@@ -4,6 +4,7 @@ import * as CryptoConstants from './crypto'
 import * as ProfileConstants from './profile'
 import * as RouterConstants from './router2'
 import * as SettingsConstants from './settings'
+import * as ChatConstants from './chat2'
 import * as Tabs from './tabs'
 import * as TeamsConstants from './teams'
 import * as Z from '../util/zustand'
@@ -212,14 +213,13 @@ export const useState = Z.createZustand<State>((set, get) => {
                 logger.warn(`invalid chat message id: ${highlightMessageID}`)
                 return
               }
-              reduxDispatch(
-                ChatGen.createPreviewConversation({
-                  channelname,
-                  highlightMessageID,
-                  reason: 'appLink',
-                  teamname,
-                })
-              )
+              const {previewConversation} = ChatConstants.useState.getState().dispatch
+              previewConversation({
+                channelname,
+                highlightMessageID,
+                reason: 'appLink',
+                teamname,
+              })
               return
             } else {
               const highlightMessageID = parseInt(parts[2]!, 10)
@@ -227,13 +227,12 @@ export const useState = Z.createZustand<State>((set, get) => {
                 logger.warn(`invalid chat message id: ${highlightMessageID}`)
                 return
               }
-              reduxDispatch(
-                ChatGen.createPreviewConversation({
-                  highlightMessageID,
-                  participants: parts[1]!.split(','),
-                  reason: 'appLink',
-                })
-              )
+              const {previewConversation} = ChatConstants.useState.getState().dispatch
+              previewConversation({
+                highlightMessageID,
+                participants: parts[1]!.split(','),
+                reason: 'appLink',
+              })
               return
             }
           }

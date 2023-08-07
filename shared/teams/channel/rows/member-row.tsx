@@ -4,13 +4,11 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import type * as Types from '../../../constants/types/teams'
 import type * as ChatTypes from '../../../constants/types/chat2'
-import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as UsersConstants from '../../../constants/users'
 import * as ProfileConstants from '../../../constants/profile'
 import * as ChatConstants from '../../../constants/chat2'
 import * as ConfigConstants from '../../../constants/config'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import MenuHeader from '../../team/rows/menu-header.new'
 
 type Props = {
@@ -72,7 +70,6 @@ const ChannelMemberRow = (props: Props) => {
   const roleLabel = !!active && !!teamMemberInfo.type && Constants.typeToLabel[teamMemberInfo.type]
   const isYou = you === username
 
-  const dispatch = Container.useDispatch()
   const channelSelectedMembers = Constants.useState(s => s.channelSelectedMembers.get(conversationIDKey))
   const anySelected = !!channelSelectedMembers?.size
   const memberSelected = !!channelSelectedMembers?.has(username)
@@ -82,9 +79,10 @@ const ChannelMemberRow = (props: Props) => {
   const onSelect = (selected: boolean) => {
     channelSetMemberSelected(conversationIDKey, username, selected)
   }
+  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
   const onChat = React.useCallback(() => {
-    username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'}))
-  }, [username, dispatch])
+    username && previewConversation({participants: [username], reason: 'teamMember'})
+  }, [username, previewConversation])
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onEditMember = React.useCallback(() => {
     yourOperations.manageMembers &&

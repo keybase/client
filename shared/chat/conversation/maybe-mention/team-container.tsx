@@ -2,9 +2,7 @@ import * as Constants from '../../../constants/chat2'
 import * as RouterConstants from '../../../constants/router2'
 import * as TeamsConstants from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat2'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as Container from '../../../util/container'
 import type {StylesTextCrossPlatform} from '../../../common-adapters/text'
 import TeamMention from './team'
 
@@ -34,9 +32,9 @@ export default (ownProps: OwnProps) => {
   const publicAdmins = mentionInfo?.publicAdmins || noAdmins
   const resolved = !!mentionInfo
 
-  const dispatch = Container.useDispatch()
+  const previewConversation = Constants.useState(s => s.dispatch.previewConversation)
   const _onChat = (conversationIDKey: Types.ConversationIDKey) => {
-    dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'teamMention'}))
+    previewConversation({conversationIDKey, reason: 'teamMention'})
   }
   const showTeamByName = TeamsConstants.useState(s => s.dispatch.showTeamByName)
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)

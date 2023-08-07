@@ -2,6 +2,7 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as ChatTypes from './types/chat2'
 import * as ConfigConstants from './config'
+import * as ChatConstants from './chat2'
 import * as RouterConstants from './router2'
 import * as UsersConstants from './users'
 import * as GregorConstants from './gregor'
@@ -1601,14 +1602,13 @@ export const useState = Z.createZustand<State>((set, get) => {
           get().dispatch.loadTeamChannelList(teamID)
           // Select the new channel, and switch to the chat tab.
           if (navToChatOnSuccess) {
-            reduxDispatch(
-              Chat2Gen.createPreviewConversation({
-                channelname,
-                conversationIDKey: newConversationIDKey,
-                reason: 'newChannel',
-                teamname,
-              })
-            )
+            const {previewConversation} = ChatConstants.useState.getState().dispatch
+            previewConversation({
+              channelname,
+              conversationIDKey: newConversationIDKey,
+              reason: 'newChannel',
+              teamname,
+            })
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -1674,9 +1674,8 @@ export const useState = Z.createZustand<State>((set, get) => {
           if (fromChat) {
             RouterConstants.useState.getState().dispatch.clearModals()
             reduxDispatch(Chat2Gen.createNavigateToInbox())
-            reduxDispatch(
-              Chat2Gen.createPreviewConversation({channelname: 'general', reason: 'convertAdHoc', teamname})
-            )
+            const {previewConversation} = ChatConstants.useState.getState().dispatch
+            previewConversation({channelname: 'general', reason: 'convertAdHoc', teamname})
           } else {
             RouterConstants.useState.getState().dispatch.clearModals()
             RouterConstants.useState.getState().dispatch.navigateAppend({props: {teamID}, selected: 'team'})

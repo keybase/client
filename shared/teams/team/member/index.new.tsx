@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/teams'
 import * as ChatConstants from '../../../constants/chat2'
 import * as ConfigConstants from '../../../constants/config'
@@ -610,7 +609,6 @@ const NodeInRow = (props: NodeInRowProps) => {
 // exported for stories
 export const TeamMemberHeader = (props: Props) => {
   const {teamID, username} = props
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const leaving = useNavUpIfRemovedFromTeam(teamID, username)
 
@@ -619,8 +617,8 @@ export const TeamMemberHeader = (props: Props) => {
   const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
 
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
-  const onChat = () =>
-    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
+  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const onChat = () => previewConversation({participants: [username], reason: 'memberView'})
   const onViewProfile = () => showUserProfile(username)
   const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
 

@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/teams'
 import * as ChatConstants from '../../../../../constants/chat2'
 import * as ProfileConstants from '../../../../../constants/profile'
@@ -70,7 +69,6 @@ export default (ownProps: OwnProps) => {
     Constants.getDisabledReasonsForRolePicker(s, teamID, username)
   )
   const waiting = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
-  const dispatch = Container.useDispatch()
   const removeMember = Constants.useState(s => s.dispatch.removeMember)
   const ignoreRequest = Constants.useState(s => s.dispatch.ignoreRequest)
 
@@ -86,8 +84,9 @@ export default (ownProps: OwnProps) => {
   const letIn = (sendNotification: boolean, role: Types.TeamRoleType) => {
     addToTeam(teamID, [{assertion: username, role}], sendNotification)
   }
+  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
   const onChat = () => {
-    username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamInvite'}))
+    username && previewConversation({participants: [username], reason: 'teamInvite'})
   }
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onOpenProfile = () => {

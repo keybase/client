@@ -2,7 +2,6 @@ import * as Chat2Gen from './chat2-gen'
 import * as ConfigConstants from '../constants/config'
 import * as RouterConstants from '../constants/router2'
 import * as UsersConstants from '../constants/users'
-import * as LinksConstants from '../constants/deeplinks'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
@@ -476,130 +475,6 @@ const confirmScreenResponse = (_: unknown, action: Chat2Gen.ConfirmScreenRespons
   storeStellarConfirmWindowResponse(action.payload.accept)
 }
 
-// We always make adhoc convos and never preview it
-const previewConversationPersonMakesAConversation = (
-  _: unknown,
-  action: Chat2Gen.PreviewConversationPayload
-) => {
-  const {participants, teamname, reason, highlightMessageID} = action.payload
-  if (teamname) return false
-  if (!participants) return false
-
-  // if stellar just search first, could do others maybe
-  if ((reason === 'requestedPayment' || reason === 'sentPayment') && participants.length === 1) {
-    const username = ConfigConstants.useCurrentUserState.getState().username
-    const toFind = participants[0]
-    for (const cs of Constants.stores.values()) {
-      const p = cs.getState().participants
-      if (p.name.length === 2) {
-        const other = p.name.filter(n => n !== username)
-        if (other[0] === toFind) {
-          return Chat2Gen.createNavigateToThread({
-            conversationIDKey: cs.getState().id,
-            reason: 'justCreated',
-          })
-        }
-      }
-    }
-  }
-
-  return [
-    Chat2Gen.createNavigateToThread({
-      conversationIDKey: Constants.pendingWaitingConversationIDKey,
-      reason: 'justCreated',
-    }),
-    Chat2Gen.createCreateConversation({highlightMessageID, participants}),
-  ]
-}
-
-// We preview channels
-const previewConversationTeam = async (_: unknown, action: Chat2Gen.PreviewConversationPayload) => {
-  const {conversationIDKey, highlightMessageID, teamname, reason} = action.payload
-  if (conversationIDKey) {
-    if (
-      reason === 'messageLink' ||
-      reason === 'teamMention' ||
-      reason === 'channelHeader' ||
-      reason === 'manageView'
-    ) {
-      // Add preview channel to inbox
-      await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
-        convID: Types.keyToConversationID(conversationIDKey),
-      })
-    }
-    return Chat2Gen.createNavigateToThread({conversationIDKey, highlightMessageID, reason: 'previewResolved'})
-  }
-
-  if (!teamname) {
-    return false
-  }
-
-  const channelname = action.payload.channelname || 'general'
-
-  try {
-    const results = await RPCChatTypes.localFindConversationsLocalRpcPromise({
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      membersType: RPCChatTypes.ConversationMembersType.team,
-      oneChatPerTLF: true,
-      tlfName: teamname,
-      topicName: channelname,
-      topicType: RPCChatTypes.TopicType.chat,
-      visibility: RPCTypes.TLFVisibility.private,
-    })
-    const resultMetas = (results.uiConversations || [])
-      .map(row => Constants.inboxUIItemToConversationMeta(row))
-      .filter(Boolean)
-
-    const first = resultMetas[0]
-    if (!first) {
-      if (action.payload.reason === 'appLink') {
-        LinksConstants.useState
-          .getState()
-          .dispatch.setLinkError(
-            "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."
-          )
-        RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
-        return
-      } else {
-        return []
-      }
-    }
-
-    const results2 = await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
-      convID: Types.keyToConversationID(first.conversationIDKey),
-    })
-    const actions: Array<Container.TypedActions> = []
-    const meta = Constants.inboxUIItemToConversationMeta(results2.conv)
-    if (meta) {
-      Constants.useState.getState().dispatch.metasReceived([meta])
-    }
-    actions.push(
-      Chat2Gen.createNavigateToThread({
-        conversationIDKey: first.conversationIDKey,
-        highlightMessageID,
-        reason: 'previewResolved',
-      })
-    )
-    return actions
-  } catch (error) {
-    if (
-      error instanceof RPCError &&
-      error.code === RPCTypes.StatusCode.scteamnotfound &&
-      reason === 'appLink'
-    ) {
-      LinksConstants.useState
-        .getState()
-        .dispatch.setLinkError(
-          "We couldn't find this team. Please check that you're a member of the team and the channel exists."
-        )
-      RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
-      return
-    } else {
-      throw error
-    }
-  }
-}
-
 const openFolder = (_: unknown, action: Chat2Gen.OpenFolderPayload) => {
   const {conversationIDKey} = action.payload
   const meta = Constants.getConvoState(conversationIDKey).meta
@@ -767,7 +642,7 @@ const resetChatWithoutThem = (_: unknown, action: Chat2Gen.ResetChatWithoutThemP
   // remove all bad people
   const goodParticipants = new Set(participantInfo.all)
   meta.resetParticipants.forEach(r => goodParticipants.delete(r))
-  return Chat2Gen.createPreviewConversation({
+  Constants.useState.getState().dispatch.previewConversation({
     participants: [...goodParticipants],
     reason: 'resetChatWithoutThem',
   })
@@ -1461,8 +1336,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
   Container.listenAction(Chat2Gen.unfurlRemove, unfurlRemove)
 
-  Container.listenAction(Chat2Gen.previewConversation, previewConversationTeam)
-  Container.listenAction(Chat2Gen.previewConversation, previewConversationPersonMakesAConversation)
   Container.listenAction(Chat2Gen.openFolder, openFolder)
 
   // Search handling

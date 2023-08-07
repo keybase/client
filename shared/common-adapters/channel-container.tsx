@@ -1,8 +1,7 @@
 import type * as Types from '../constants/types/chat2'
+import * as ChatConstants from '../constants/chat2'
 import * as React from 'react'
-import * as Chat2Gen from '../actions/chat2-gen'
 import {Channel} from './channel'
-import * as Container from '../util/container'
 import type {StylesTextCrossPlatform} from './text'
 
 type OwnProps = {
@@ -13,18 +12,15 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const dispatch = Container.useDispatch()
-
+  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
   const _onClick = React.useCallback(
     (name: string, convID: Types.ConversationIDKey) =>
-      dispatch(
-        Chat2Gen.createPreviewConversation({
-          channelname: name,
-          conversationIDKey: convID,
-          reason: 'messageLink',
-        })
-      ),
-    [dispatch]
+      previewConversation({
+        channelname: name,
+        conversationIDKey: convID,
+        reason: 'messageLink',
+      }),
+    [previewConversation]
   )
 
   const props = {

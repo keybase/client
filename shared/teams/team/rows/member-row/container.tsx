@@ -1,7 +1,7 @@
 import * as RouterConstants from '../../../../constants/router2'
 import * as Constants from '../../../../constants/teams'
+import * as ChatConstants from '../../../../constants/chat2'
 import * as UsersConstants from '../../../../constants/users'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../../constants/config'
 import * as ProfileConstants from '../../../../constants/profile'
 import * as TrackerConstants from '../../../../constants/tracker2'
@@ -31,13 +31,13 @@ export default (ownProps: OwnProps) => {
   const waitingForAdd = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
   const waitingForRemove = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, username))
   const youCanManageMembers = Constants.useState(s => Constants.getCanPerform(s, teamname).manageMembers)
-  const dispatch = Container.useDispatch()
   const setUserBlocks = UsersConstants.useState(s => s.dispatch.setUserBlocks)
   const onBlock = () => {
     username && setUserBlocks([{setChatBlock: true, setFollowBlock: true, username}])
   }
+  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
   const onChat = () => {
-    username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'}))
+    username && previewConversation({participants: [username], reason: 'teamMember'})
   }
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onClick = () => {

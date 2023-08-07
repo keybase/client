@@ -8,7 +8,6 @@ import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
 import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
-import * as ChatGen from '../../../actions/chat2-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Common from '../../common'
 import {pluralize} from '../../../util/string'
@@ -448,7 +447,6 @@ type ChannelRowProps = {
   usernames: string[]
 }
 const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, usernames}: ChannelRowProps) => {
-  const dispatch = Container.useDispatch()
   const selfMode = mode === 'self'
   const info = ChatConstants.useConvoState(channelMeta.conversationIDKey, s => s.participants)
   const participants = info.name.length ? info.name : info.all
@@ -456,13 +454,12 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, user
     s => s.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
   )
   const allInChannel = usernames.every(member => participants.includes(member))
+  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
   const onPreviewChannel = () =>
-    dispatch(
-      ChatGen.createPreviewConversation({
-        conversationIDKey: channelMeta.conversationIDKey,
-        reason: 'manageView',
-      })
-    )
+    previewConversation({
+      conversationIDKey: channelMeta.conversationIDKey,
+      reason: 'manageView',
+    })
   return Styles.isMobile ? (
     <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">

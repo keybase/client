@@ -549,6 +549,17 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         case RemoteGen.setSystemDarkMode:
           DarkMode.useDarkModeState.getState().dispatch.setSystemDarkMode(action.payload.dark)
           break
+        case RemoteGen.previewConversation:
+          {
+            const f = async () => {
+              const ChatConstants = await import('./chat2')
+              ChatConstants.useState
+                .getState()
+                .dispatch.previewConversation({participants: [action.payload.participant], reason: 'tracker'})
+            }
+            Z.ignorePromise(f())
+          }
+          break
       }
     },
     filePickerError: error => {

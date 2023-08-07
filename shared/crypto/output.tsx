@@ -1,7 +1,7 @@
-import * as Chat2Gen from '../actions/chat2-gen'
 import * as RouterConstants from '../constants/router2'
 import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/crypto'
+import * as ChatConstants from '../constants/chat2'
 import * as FSConstants from '../constants/fs'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
@@ -176,7 +176,6 @@ export const OutputInfoBanner = (props: OutputInfoProps) => {
 
 export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const {operation} = props
-  const dispatch = Container.useDispatch()
   const canSaveAsText = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
   const canReplyInChat =
     operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
@@ -206,9 +205,10 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   }
 
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
   const onReplyInChat = (username: Container.HiddenString) => {
     navigateUp()
-    dispatch(Chat2Gen.createPreviewConversation({participants: [username.stringValue()], reason: 'search'}))
+    previewConversation({participants: [username.stringValue()], reason: 'search'})
   }
 
   const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)

@@ -7,8 +7,6 @@ import * as FsConstants from '../../constants/fs'
 import * as UsersConstants from '../../constants/users'
 import * as FsTypes from '../../constants/types/fs'
 import * as ChatConstants from '../../constants/chat2'
-import * as Container from '../../util/container'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import CommonResult, {type ResultProps} from './common-result'
 
 /*
@@ -23,7 +21,6 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
   const serviceUsername = props.services[props.resultForService]
 
   // action button specific definitions
-  const dispatch = Container.useDispatch()
   const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const blocked = UsersConstants.useState(s => s.blockMap.get(keybaseUsername || '')?.chatBlocked)
   const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
@@ -50,10 +47,11 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
     keybaseUsername && navigateAppend({props: {username: keybaseUsername}, selected: 'chatBlockingModal'})
   }, [navigateAppend, keybaseUsername])
 
+  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
   const onChat = React.useCallback(() => {
     navigateUp()
-    dispatch(Chat2Gen.createPreviewConversation({participants: [decoratedUsername], reason: 'search'}))
-  }, [navigateUp, dispatch, decoratedUsername])
+    previewConversation({participants: [decoratedUsername], reason: 'search'})
+  }, [navigateUp, previewConversation, decoratedUsername])
 
   const resultIsMe = keybaseUsername === myUsername
   const dropdown = keybaseUsername ? (

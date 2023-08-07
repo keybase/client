@@ -3,9 +3,9 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as Constants from '../constants/teams'
+import * as ChatConstants from '../constants/chat2'
 import * as ProfileConstants from '../constants/profile'
 import * as RPCGen from '../constants/types/rpc-gen'
-import * as Chat2Gen from '../actions/chat2-gen'
 import {useTeamLinkPopup} from './common'
 import {pluralize} from '../util/string'
 import {memoize} from '../util/memoize'
@@ -179,9 +179,8 @@ const Header = ({info}: ExternalTeamProps) => {
 }
 
 const Member = ({member, firstItem}: {member: RPCGen.TeamMemberRole; firstItem: boolean}) => {
-  const dispatch = Container.useDispatch()
-  const onChat = () =>
-    dispatch(Chat2Gen.createPreviewConversation({participants: [member.username], reason: 'teamMember'}))
+  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const onChat = () => previewConversation({participants: [member.username], reason: 'teamMember'})
   const roleString = Constants.teamRoleByEnum[member.role]
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   return (

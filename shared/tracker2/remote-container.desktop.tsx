@@ -1,5 +1,4 @@
 // Inside tracker we use an embedded Avatar which is connected.
-import * as Chat2Gen from '../actions/chat2-gen'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Constants from '../constants/tracker2'
 import * as UsersConstants from '../constants/users'
@@ -39,6 +38,7 @@ const RemoteContainer = () => {
   ConfigConstants.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
   ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
   Constants.useState(s => s.dispatch.replace)(tracker2.usernameToDetails)
+
   return (
     <Tracker
       assertionKeys={assertions ? [...assertions.keys()] : undefined}
@@ -52,7 +52,7 @@ const RemoteContainer = () => {
       onAccept={() => dispatch(RemoteGen.createTrackerChangeFollow({follow: true, guiID}))}
       onChat={() => {
         dispatch(RemoteGen.createShowMain())
-        dispatch(Chat2Gen.createPreviewConversation({participants: [trackerUsername], reason: 'tracker'}))
+        dispatch(RemoteGen.createPreviewConversation({participant: trackerUsername}))
       }}
       onClose={() => {
         dispatch(RemoteGen.createTrackerCloseTracker({guiID}))
