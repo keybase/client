@@ -2,7 +2,6 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as ChatTypes from './types/chat2'
 import * as ConfigConstants from './config'
-import * as ChatConstants from './chat2'
 import * as RouterConstants from './router2'
 import * as UsersConstants from './users'
 import * as GregorConstants from './gregor'
@@ -1602,13 +1601,17 @@ export const useState = Z.createZustand<State>((set, get) => {
           get().dispatch.loadTeamChannelList(teamID)
           // Select the new channel, and switch to the chat tab.
           if (navToChatOnSuccess) {
-            const {previewConversation} = ChatConstants.useState.getState().dispatch
-            previewConversation({
-              channelname,
-              conversationIDKey: newConversationIDKey,
-              reason: 'newChannel',
-              teamname,
-            })
+            const f = async () => {
+              const ChatConstants = await import('./chat2')
+              const {previewConversation} = ChatConstants.useState.getState().dispatch
+              previewConversation({
+                channelname,
+                conversationIDKey: newConversationIDKey,
+                reason: 'newChannel',
+                teamname,
+              })
+            }
+            Z.ignorePromise(f())
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -1674,8 +1677,12 @@ export const useState = Z.createZustand<State>((set, get) => {
           if (fromChat) {
             RouterConstants.useState.getState().dispatch.clearModals()
             reduxDispatch(Chat2Gen.createNavigateToInbox())
-            const {previewConversation} = ChatConstants.useState.getState().dispatch
-            previewConversation({channelname: 'general', reason: 'convertAdHoc', teamname})
+            const f = async () => {
+              const ChatConstants = await import('./chat2')
+              const {previewConversation} = ChatConstants.useState.getState().dispatch
+              previewConversation({channelname: 'general', reason: 'convertAdHoc', teamname})
+            }
+            Z.ignorePromise(f())
           } else {
             RouterConstants.useState.getState().dispatch.clearModals()
             RouterConstants.useState.getState().dispatch.navigateAppend({props: {teamID}, selected: 'team'})
