@@ -1,5 +1,4 @@
 import initChat from '../actions/chat2'
-import initConfig from '../actions/config'
 import initGit from '../actions/git'
 import initPeople from '../actions/people'
 import initSettings from '../actions/settings'
@@ -10,7 +9,6 @@ import * as Z from '../util/zustand'
 
 export const initListeners = () => {
   initChat()
-  initConfig()
   initSettings()
   initTeams()
   initTeamBuilding()

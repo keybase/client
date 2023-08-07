@@ -21,6 +21,7 @@ import {type CommonResponseHandler} from '../engine/types'
 import {useAvatarState} from '../common-adapters/avatar-zus'
 import {useCurrentUserState} from './current-user'
 import {useDaemonState} from './daemon'
+import {initPlatformListener} from '../actions/platform-specific'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -599,9 +600,35 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     loadOnStart: phase => {
+      if (phase === get().loadOnStartPhase) return
       set(s => {
         s.loadOnStartPhase = phase
       })
+
+      if (phase !== 'startupOrReloginButNotInARush') return
+
+      const getFollowerInfo = () => {
+        const {uid} = useCurrentUserState.getState()
+        logger.info(`getFollowerInfo: init; uid=${uid}`)
+        if (uid) {
+          // request follower info in the background
+          RPCTypes.configRequestFollowingAndUnverifiedFollowersRpcPromise()
+            .then(() => {})
+            .catch(() => {})
+        }
+      }
+
+      const updateServerConfig = async () => {
+        const Platform = await import('./platform')
+        if (get().loggedIn) {
+          await RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
+            serverConfigPath: Platform.serverConfigFileName,
+          })
+        }
+      }
+
+      getFollowerInfo()
+      Z.ignorePromise(updateServerConfig())
     },
     login: (username, passphrase) => {
       const cancelDesc = 'Canceling RPC'
@@ -874,6 +901,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           s.justRevokedSelf = name
           s.revokedTrigger++
         })
+        useDaemonState.getState().dispatch.loadDaemonAccounts()
       }
     },
     setAccounts: a => {
@@ -933,11 +961,27 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.gregorPushState = goodState
       })
+
+      const f = async () => {
+        const items = goodState
+        const allowAnimatedEmojis = !items.find(i => i.item.category === 'emojianimations')
+        get().dispatch.setAllowAnimatedEmojis(allowAnimatedEmojis)
+
+        const lastSeenItem = items.find(i => i.item.category === 'whatsNewLastSeenVersion')
+        const WhatsNew = await import('./whats-new')
+        WhatsNew.useState.getState().dispatch.updateLastSeen(lastSeenItem)
+      }
+      Z.ignorePromise(f())
     },
     setGregorReachable: (r: Store['gregorReachable']) => {
+      if (get().gregorReachable === r) return
       set(s => {
         s.gregorReachable = r
       })
+      // Re-get info about our account if you log in/we're done handshaking/became reachable
+      if (r === RPCTypes.Reachable.yes) {
+        Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(true))
+      }
     },
     setHTTPSrvInfo: (address, token) => {
       logger.info(`config reducer: http server info: addr: ${address} token: ${token}`)
@@ -956,11 +1000,36 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.justDeletedSelf = self
       })
     },
-    setLoggedIn: (l, causedByStartup) => {
+    setLoggedIn: (loggedIn, causedByStartup) => {
+      const changed = get().loggedIn !== loggedIn
       set(s => {
-        s.loggedIn = l
+        s.loggedIn = loggedIn
         s.loggedInCausedbyStartup = causedByStartup
       })
+
+      if (!changed) return
+
+      // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
+      if (!causedByStartup || !loggedIn) {
+        Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(false))
+        useDaemonState.getState().dispatch.loadDaemonAccounts()
+      }
+
+      const {loadOnStart} = get().dispatch
+      if (loggedIn) {
+        if (!causedByStartup) {
+          loadOnStart('reloggedIn')
+          const f = async () => {
+            await Z.timeoutPromise(1000)
+            requestAnimationFrame(() => {
+              loadOnStart('startupOrReloginButNotInARush')
+            })
+          }
+          Z.ignorePromise(f())
+        }
+      } else {
+        Z.resetAllStores()
+      }
     },
     setMobileAppState: nextAppState => {
       set(s => {
@@ -1034,7 +1103,10 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.windowState.isMaximized = m
       })
     },
-    setupSubscriptions: () => {},
+    setupSubscriptions: () => {
+      // Kick off platform specific stuff
+      initPlatformListener()
+    },
     showMain: () => {
       get().dispatch.dynamic.showMainNative?.()
     },
