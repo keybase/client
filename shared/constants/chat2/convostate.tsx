@@ -329,8 +329,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   }
 
   const downloadAttachment = async (downloadToCache: boolean, message: Types.Message) => {
+    const {ordinal, conversationIDKey} = message
     try {
-      const {conversationIDKey} = message
       const rpcRes = await RPCChatTypes.localDownloadFileAttachmentLocalRpcPromise({
         conversationID: Types.keyToConversationID(conversationIDKey),
         downloadToCache,
@@ -338,19 +338,46 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         messageID: message.id,
         preview: false,
       })
-      reduxDispatch(Chat2Gen.createAttachmentDownloaded({message, path: rpcRes.filePath}))
+
+      const path = rpcRes.filePath
+      const m = get().messageMap.get(ordinal)
+      if (m?.type === 'attachment') {
+        dispatch.updateMessage(ordinal, {
+          downloadPath: path,
+          fileURLCached: true, // assume we have this on the service now
+          transferErrMsg: undefined,
+          transferProgress: 0,
+          transferState: undefined,
+        })
+        dispatch.updateAttachmentViewTransfered(message.id, path)
+      }
       return rpcRes.filePath
     } catch (error) {
       if (error instanceof RPCError) {
         logger.info(`downloadAttachment error: ${error.message}`)
-        reduxDispatch(
-          Chat2Gen.createAttachmentDownloaded({
-            error: error.message || 'Error downloading attachment',
-            message,
+        const m = get().messageMap.get(ordinal)
+        if (m?.type === 'attachment') {
+          dispatch.updateMessage(ordinal, {
+            downloadPath: '',
+            fileURLCached: true, // assume we have this on the service now
+            transferErrMsg: error.message || 'Error downloading attachment',
+            transferProgress: 0,
+            transferState: undefined,
           })
-        )
+          dispatch.updateAttachmentViewTransfered(message.id, '')
+        }
       } else {
-        reduxDispatch(Chat2Gen.createAttachmentDownloaded({error: 'Error downloading attachment', message}))
+        const m = get().messageMap.get(ordinal)
+        if (m?.type === 'attachment') {
+          dispatch.updateMessage(ordinal, {
+            downloadPath: '',
+            fileURLCached: true, // assume we have this on the service now
+            transferErrMsg: 'Error downloading attachment',
+            transferProgress: 0,
+            transferState: undefined,
+          })
+          dispatch.updateAttachmentViewTransfered(message.id, '')
+        }
       }
       return false
     }
@@ -1453,13 +1480,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             cMsg.valid.messageBody.messageType === RPCChatTypes.MessageType.attachmentuploaded &&
             message.type === 'attachment'
           ) {
-            reduxDispatch(
-              Chat2Gen.createMessageAttachmentUploaded({
-                conversationIDKey,
-                message,
-                placeholderID: cMsg.valid.messageBody.attachmentuploaded.messageID,
-              })
-            )
+            const placeholderID = cMsg.valid.messageBody.attachmentuploaded.messageID
+            const ordinal = messageIDToOrdinal(get().messageMap, get().pendingOutboxToOrdinal, placeholderID)
+            if (ordinal) {
+              const m = get().messageMap.get(ordinal)
+              dispatch.updateMessage(ordinal, m ? Message.upgradeMessage(m, message) : message)
+              const subType = Message.getMessageRenderType(message)
+              dispatch.setMessageTypeMap(ordinal, subType)
+            }
           } else if (shouldAddMessage) {
             // A normal message
             dispatch.messagesAdd({

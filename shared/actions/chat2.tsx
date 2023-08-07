@@ -1774,15 +1774,90 @@ const initChat = () => {
     Constants.getConvoState(conversationIDKey).dispatch.updateAttachmentViewTransfer(msgID, ratio)
   })
 
-  Container.listenAction(Chat2Gen.attachmentDownloaded, (_, a) => {
-    const {message, path} = a.payload
-    const {conversationIDKey} = message
-    Constants.getConvoState(conversationIDKey).dispatch.updateAttachmentViewTransfered(message.id, path ?? '')
-  })
-
   Container.listenAction([Chat2Gen.replyJump, Chat2Gen.jumpToRecent], (_, a) => {
     const {conversationIDKey} = a.payload
     Constants.getConvoState(conversationIDKey).dispatch.setMessageCenterOrdinal()
+  })
+
+  // Backend gives us messageIDs sometimes so we need to find our ordinal
+  const messageIDToOrdinal = (
+    map: Constants.ConvoState['messageMap'],
+    pendingOutboxToOrdinal: Constants.ConvoState['pendingOutboxToOrdinal'] | undefined,
+    messageID: Types.MessageID
+  ) => {
+    // A message we didn't send in this session?
+    let m = map.get(Types.numberToOrdinal(messageID))
+    if (m?.id !== 0 && m?.id === messageID) {
+      return m.ordinal
+    }
+    // Search through our sent messages
+    const pendingOrdinal = [...(pendingOutboxToOrdinal?.values() ?? [])].find(o => {
+      m = map?.get(o)
+      if (m?.id !== 0 && m?.id === messageID) {
+        return true
+      }
+      return false
+    })
+
+    if (pendingOrdinal) {
+      return pendingOrdinal
+    }
+
+    return null
+  }
+  Container.listenAction(EngineGen.chat1NotifyChatChatAttachmentDownloadComplete, (_, action) => {
+    const {convID, msgID} = action.payload.params
+    const conversationIDKey = Types.conversationIDToKey(convID)
+    const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
+    const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, msgID)
+    if (!ordinal) {
+      logger.info(
+        `downloadComplete: no ordinal found: conversationIDKey: ${conversationIDKey} msgID: ${msgID}`
+      )
+      return
+    }
+    const message = messageMap.get(ordinal)
+    if (!message) {
+      logger.info(
+        `downloadComplete: no message found: conversationIDKey: ${conversationIDKey} ordinal: ${ordinal}`
+      )
+      return
+    }
+    if (message?.type === 'attachment') {
+      dispatch.updateMessage(ordinal, {
+        transferProgress: 0,
+        transferState: undefined,
+      })
+    }
+  })
+  Container.listenAction(EngineGen.chat1NotifyChatChatAttachmentDownloadProgress, (_, action) => {
+    const {convID, msgID, bytesComplete, bytesTotal} = action.payload.params
+    const conversationIDKey = Types.conversationIDToKey(convID)
+    const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
+    const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, msgID)
+    if (!ordinal) {
+      logger.info(
+        `downloadProgress: no ordinal found: conversationIDKey: ${conversationIDKey} msgID: ${msgID}`
+      )
+      return
+    }
+    const message = messageMap.get(ordinal)
+    if (!message) {
+      logger.info(
+        `downloadProgress: no message found: conversationIDKey: ${conversationIDKey} ordinal: ${ordinal}`
+      )
+      return
+    }
+    const ratio = bytesComplete / bytesTotal
+
+    const m = messageMap.get(message.ordinal)
+    if (m?.type === 'attachment') {
+      dispatch.updateMessage(ordinal, {
+        transferErrMsg: undefined,
+        transferProgress: ratio,
+        transferState: 'downloading',
+      })
+    }
   })
 }
 

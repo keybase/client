@@ -2,8 +2,7 @@ import * as React from 'react'
 import {type Draft as _Draft} from 'immer'
 import type {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
 import type {ActionHandler as _ActionHandler} from './make-reducer'
-import type {TypedState as _TypedState} from '../constants/reducer'
-import {useDispatch as RRuseDispatch, shallowEqual, type TypedUseSelectorHook} from 'react-redux'
+import {useSelector, useDispatch as RRuseDispatch, shallowEqual} from 'react-redux'
 import type {Dispatch as RRDispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
 import type {NavigationContainerRef} from '@react-navigation/core'
@@ -14,7 +13,6 @@ export type ListenerMiddleware = ReturnType<typeof createListenerMiddleware>
 export {getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params'
 export {listenAction, type ListenerApi, spawn, type ListenActionReturn} from './redux-toolkit'
 export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
-import USH from './use-selector'
 export {useAnyWaiting, useAnyErrors, useDispatchClearWaiting} from '../constants/waiting'
 export {networkErrorCodes, isNetworkErr} from '../util/errors'
 
@@ -61,8 +59,6 @@ export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
   ? {route: {params: P | undefined}}
   : never
 
-const useSelector = USH.useSelector as TypedUseSelectorHook<RootState>
-
 export type RemoteWindowSerializeProps<P> = {[K in keyof P]-?: (val: P[K], old?: P[K]) => any}
 
 export type TypedDispatch = (action: _TypedActions) => void
@@ -87,7 +83,7 @@ export function usePrevious2<T>(value: T) {
 /** like useSelector but for remote stores **/
 export function useRemoteStore<S>(): S {
   // TODO this will warn you not to do this, could just pass in a selector later
-  return useSelector(s => s, shallowEqual) as unknown as S
+  return useSelector(s => s, shallowEqual) as any
 }
 /**
       like useEffect but doesn't call on initial mount, only when deps change
@@ -167,7 +163,7 @@ export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platfo
 export {useSafeSubmit} from './safe-submit'
 export {useSafeNavigation} from './safe-navigation'
 export type TypedActions = _TypedActions
-export type TypedState = _TypedState
+export type TypedState = {}
 export const compose = flowRight
 export {produce, castDraft, castImmutable, current} from 'immer'
 export type Draft<T> = _Draft<T>
@@ -176,9 +172,7 @@ export {default as makeReducer} from './make-reducer'
 export type ActionHandler<S, A> = _ActionHandler<S, A>
 export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
-export type RootState = _TypedState
 export const useDispatch = () => RRuseDispatch<RRDispatch<_TypedActions>>()
-export {useSelector}
 
 type Fn<ARGS extends any[], R> = (...args: ARGS) => R
 

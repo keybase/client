@@ -125,12 +125,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    "attachmentDownloaded": {
-      "_description": "We saved an attachment to the local disk",
-      "message": "Types.Message",
-      "error?": "string",
-      "path?": "string"
-    },
     "attachmentsUpload": {
       "_description": "We want to upload some attachments",
       "conversationIDKey": "Types.ConversationIDKey",
@@ -151,15 +145,6 @@
     "attachmentUploadCanceled": {
       "_description": "The attachment upload modal was canceled",
       "outboxIDs": "Array<RPCChatTypes.OutboxID>"
-    },
-    "messageAttachmentUploaded": {
-      "_description": [
-        "We got an uploaded attachment.",
-        "While online this is like an edit of the placeholder"
-      ],
-      "conversationIDKey": "Types.ConversationIDKey",
-      "placeholderID": "RPCChatTypes.MessageID",
-      "message": "Types.MessageAttachment"
     },
     "sendTyping": {
       "_description": "Tell server we're typing",

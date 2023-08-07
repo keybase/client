@@ -1,9 +1,9 @@
 import * as ConfigConstants from '../constants/config'
 import isArray from 'lodash/isArray'
 import type {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
-import type {TypedState} from '../constants/reducer'
 import {createListenerMiddleware, type ForkedTask} from '@reduxjs/toolkit'
 type ActionTypes = keyof TypedActionsMap
+type TypedState = {}
 
 type TypedDispatch = (action: TypedActions) => void
 export type ListenerApi = {

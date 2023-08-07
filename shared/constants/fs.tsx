@@ -558,8 +558,8 @@ export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: s
 export const tlfTypeAndNameToPath = (tlfType: Types.TlfType, name: string): Types.Path =>
   Types.stringToPath(`/keybase/${tlfType}/${name}`)
 
-export const resetBannerType = (_: unknown, path: Types.Path): Types.ResetBannerType => {
-  const resetParticipants = getTlfFromPath(useState.getState().tlfs, path).resetParticipants
+export const resetBannerType = (s: State, path: Types.Path): Types.ResetBannerType => {
+  const resetParticipants = getTlfFromPath(s.tlfs, path).resetParticipants
   if (resetParticipants.length === 0) {
     return Types.ResetBannerNoOthersType.None
   }

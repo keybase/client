@@ -1,9 +1,7 @@
 import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import AccountPayment from '.'
-import shallowEqual from 'shallowequal'
 import type * as Types from '../../../../constants/types/chat2'
 import type * as WalletTypes from '../../../../constants/types/wallets'
 
@@ -72,8 +70,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const accountsInfoMap = Constants.useContext(s => s.accountsInfoMap)
 
-  // TODO don't use selector
-  const stateProps = Container.useSelector(() => {
+  const stateProps = (() => {
     const youAreSender = ownProps.message.author === you
     switch (ownProps.message.type) {
       case 'sendPayment': {
@@ -147,7 +144,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
       default:
         return failedProps
     }
-  }, shallowEqual)
+  })()
 
   const props = {
     action: stateProps.action,
