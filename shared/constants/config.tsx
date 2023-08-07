@@ -12,6 +12,7 @@ import logger from '../logger'
 import type * as RPCTypesGregor from './types/rpc-gregor-gen'
 import type * as Types from './types/config'
 import type {ConversationIDKey} from './types/chat2'
+import type * as TeamTypes from './types/teams'
 import type {Tab} from './tabs'
 import uniq from 'lodash/uniq'
 import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '../util/errors'
@@ -21,6 +22,8 @@ import {type CommonResponseHandler} from '../engine/types'
 import {useAvatarState} from '../common-adapters/avatar-zus'
 import {useCurrentUserState} from './current-user'
 import {useDaemonState} from './daemon'
+import {initPlatformListener} from '../actions/platform-specific'
+import {mapGetEnsureValue} from '../util/map'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -266,6 +269,7 @@ type State = Store & {
     setUserSwitching: (sw: boolean) => void
     setUseNativeFrame: (use: boolean) => void
     setWindowIsMax: (m: boolean) => void
+    setupSubscriptions: () => void
     showMain: () => void
     toggleRuntimeStats: () => void
     updateApp: () => void
@@ -583,6 +587,12 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.installerRanCount++
       })
+
+      const updateFS = async () => {
+        const FS = await import('./fs')
+        FS.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
+      }
+      Z.ignorePromise(updateFS())
     },
     loadIsOnline: () => {
       const f = async () => {
@@ -598,9 +608,48 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     loadOnStart: phase => {
+      if (phase === get().loadOnStartPhase) return
       set(s => {
         s.loadOnStartPhase = phase
       })
+
+      if (phase === 'startupOrReloginButNotInARush') {
+        const getFollowerInfo = () => {
+          const {uid} = useCurrentUserState.getState()
+          logger.info(`getFollowerInfo: init; uid=${uid}`)
+          if (uid) {
+            // request follower info in the background
+            RPCTypes.configRequestFollowingAndUnverifiedFollowersRpcPromise()
+              .then(() => {})
+              .catch(() => {})
+          }
+        }
+
+        const updateServerConfig = async () => {
+          const Platform = await import('./platform')
+          if (get().loggedIn) {
+            await RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
+              serverConfigPath: Platform.serverConfigFileName,
+            })
+          }
+        }
+
+        const updateTeams = async () => {
+          const Teams = await import('./teams')
+          Teams.useState.getState().dispatch.getTeams()
+          Teams.useState.getState().dispatch.refreshTeamRoleMap()
+        }
+
+        const updateSettings = async () => {
+          const Settings = await import('./settings')
+          Settings.useContactsState.getState().dispatch.loadContactImportEnabled()
+        }
+
+        getFollowerInfo()
+        Z.ignorePromise(updateServerConfig())
+        Z.ignorePromise(updateTeams())
+        Z.ignorePromise(updateSettings())
+      }
     },
     login: (username, passphrase) => {
       const cancelDesc = 'Canceling RPC'
@@ -813,13 +862,36 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       })
     },
     osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => {
+      const old = get().networkStatus
       set(s => {
-        s.networkStatus = {
-          isInit,
-          online,
-          type,
+        if (!s.networkStatus) {
+          s.networkStatus = {isInit, online, type}
+        } else {
+          s.networkStatus.isInit = isInit
+          s.networkStatus.online = online
+          s.networkStatus.type = type
         }
       })
+      const next = get().networkStatus
+      if (next === old) return
+      const updateGregor = async () => {
+        const reachability = await RPCTypes.reachabilityCheckReachabilityRpcPromise()
+        get().dispatch.setGregorReachable(reachability.reachable)
+      }
+      Z.ignorePromise(updateGregor())
+
+      const updateFS = async () => {
+        if (isInit) return
+        try {
+          await RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
+        } catch (error) {
+          if (!(error instanceof RPCError)) {
+            return
+          }
+          logger.warn(`failed to check KBFS reachability: ${error.message}`)
+        }
+      }
+      Z.ignorePromise(updateFS())
     },
     powerMonitorEvent: event => {
       const f = async () => {
@@ -863,6 +935,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           s.justRevokedSelf = name
           s.revokedTrigger++
         })
+        useDaemonState.getState().dispatch.loadDaemonAccounts()
       }
     },
     setAccounts: a => {
@@ -885,9 +958,55 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
     },
     setBadgeState: b => {
+      if (get().badgeState === b) return
       set(s => {
         s.badgeState = b
       })
+
+      const updateDevices = async () => {
+        if (!b) return
+        const Devices = await import('./devices')
+        const {setBadges} = Devices.useState.getState().dispatch
+        const {newDevices, revokedDevices} = b
+        setBadges(new Set([...(newDevices ?? []), ...(revokedDevices ?? [])]))
+      }
+      Z.ignorePromise(updateDevices())
+
+      const updateAutoReset = async () => {
+        const AR = await import('./autoreset')
+        if (!b) return
+        const {resetState} = b
+        AR.useState.getState().dispatch.updateARState(resetState.active, resetState.endTime)
+      }
+      Z.ignorePromise(updateAutoReset())
+
+      const updateGit = async () => {
+        const Git = await import('./git')
+        const {setBadges} = Git.useState.getState().dispatch
+        setBadges(new Set(b?.newGitRepoGlobalUniqueIDs))
+      }
+      Z.ignorePromise(updateGit())
+
+      const updateTeams = async () => {
+        const loggedIn = useConfigState.getState().loggedIn
+        if (!loggedIn) {
+          // Don't make any calls we don't have permission to.
+          return
+        }
+        if (!b) return
+        const deletedTeams = b.deletedTeams || []
+        const newTeams = new Set<string>(b.newTeams || [])
+        const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = b.teamsWithResetUsers || []
+        const teamsWithResetUsersMap = new Map<TeamTypes.TeamID, Set<string>>()
+        teamsWithResetUsers.forEach(entry => {
+          const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
+          existing.add(entry.username)
+        })
+        // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
+        const Teams = await import('./teams')
+        Teams.useState.getState().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
+      }
+      Z.ignorePromise(updateTeams())
     },
     setDefaultUsername: u => {
       set(s => {
@@ -922,11 +1041,36 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.gregorPushState = goodState
       })
+
+      const f = async () => {
+        const items = goodState
+        const allowAnimatedEmojis = !items.find(i => i.item.category === 'emojianimations')
+        get().dispatch.setAllowAnimatedEmojis(allowAnimatedEmojis)
+
+        const lastSeenItem = items.find(i => i.item.category === 'whatsNewLastSeenVersion')
+        const WhatsNew = await import('./whats-new')
+        WhatsNew.useState.getState().dispatch.updateLastSeen(lastSeenItem)
+
+        const Teams = await import('./teams')
+        Teams.useState.getState().dispatch.onGregorPushState(items)
+      }
+      Z.ignorePromise(f())
     },
     setGregorReachable: (r: Store['gregorReachable']) => {
+      if (get().gregorReachable === r) return
       set(s => {
         s.gregorReachable = r
       })
+      // Re-get info about our account if you log in/we're done handshaking/became reachable
+      if (r === RPCTypes.Reachable.yes) {
+        Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(true))
+      }
+
+      const updateTeams = async () => {
+        const Teams = await import('./teams')
+        Teams.useState.getState().dispatch.eagerLoadTeams()
+      }
+      Z.ignorePromise(updateTeams())
     },
     setHTTPSrvInfo: (address, token) => {
       logger.info(`config reducer: http server info: addr: ${address} token: ${token}`)
@@ -945,11 +1089,44 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.justDeletedSelf = self
       })
     },
-    setLoggedIn: (l, causedByStartup) => {
+    setLoggedIn: (loggedIn, causedByStartup) => {
+      const changed = get().loggedIn !== loggedIn
       set(s => {
-        s.loggedIn = l
+        s.loggedIn = loggedIn
         s.loggedInCausedbyStartup = causedByStartup
       })
+
+      if (!changed) return
+
+      // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
+      if (!causedByStartup || !loggedIn) {
+        Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(false))
+        useDaemonState.getState().dispatch.loadDaemonAccounts()
+      }
+
+      const {loadOnStart} = get().dispatch
+      if (loggedIn) {
+        if (!causedByStartup) {
+          loadOnStart('reloggedIn')
+          const f = async () => {
+            await Z.timeoutPromise(1000)
+            requestAnimationFrame(() => {
+              loadOnStart('startupOrReloginButNotInARush')
+            })
+          }
+          Z.ignorePromise(f())
+        }
+      } else {
+        Z.resetAllStores()
+      }
+
+      const updateFS = async () => {
+        if (loggedIn) {
+          const FS = await import('./fs')
+          FS.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
+        }
+      }
+      Z.ignorePromise(updateFS())
     },
     setMobileAppState: nextAppState => {
       set(s => {
@@ -1022,6 +1199,10 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.windowState.isMaximized = m
       })
+    },
+    setupSubscriptions: () => {
+      // Kick off platform specific stuff
+      initPlatformListener()
     },
     showMain: () => {
       get().dispatch.dynamic.showMainNative?.()

@@ -66,6 +66,15 @@ export const useLogoutState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.version = version
       })
+
+      // Give time for all waiters to register and allow the case where there are no waiters
+      const f = async () => {
+        const waitKey = 'nullhandshake'
+        get().dispatch.wait(waitKey, version, true)
+        await Z.timeoutPromise(10)
+        get().dispatch.wait(waitKey, version, false)
+      }
+      Z.ignorePromise(f())
     },
     wait: (name, _version, increment) => {
       const {version} = get()

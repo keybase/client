@@ -1381,11 +1381,10 @@ const maybeChangeChatSelection = (
   // deselect if there was one
   const deselectAction = () => {
     if (wasChat && wasID && Constants.isValidConversationIDKey(wasID)) {
-      reduxDispatch(Chat2Gen.createDeselectedConversation({conversationIDKey: wasID}))
+      Constants.useState.getState().dispatch.unboxRows([wasID], true)
     }
   }
 
-  const reduxDispatch = Z.getReduxDispatch()
   // still chatting? just select new one
   if (wasChat && isChat && isID && Constants.isValidConversationIDKey(isID)) {
     deselectAction()
@@ -1415,10 +1414,6 @@ const maybeChatTabSelected = (
   if (RouterConstants.getTab(prev) !== Tabs.chatTab && RouterConstants.getTab(next) === Tabs.chatTab) {
     reduxDispatch(Chat2Gen.createTabSelected())
   }
-}
-
-const updateDraftState = (_: unknown, action: Chat2Gen.DeselectedConversationPayload) => {
-  Constants.useState.getState().dispatch.unboxRows([action.payload.conversationIDKey], true)
 }
 
 const initChat = () => {
@@ -1657,15 +1652,6 @@ const initChat = () => {
     Constants.useState.getState().dispatch.updatedGregor(s.gregorPushState)
   })
 
-  Container.listenAction(Chat2Gen.channelSuggestionsTriggered, (_, action) => {
-    const {conversationIDKey} = action.payload
-    const meta = Constants.getConvoState(conversationIDKey).meta
-    // If this is an impteam, try to refresh mutual team info
-    if (!meta.teamname) {
-      Constants.getConvoState(conversationIDKey).dispatch.refreshMutualTeamsInConv()
-    }
-  })
-
   Container.listenAction(Chat2Gen.fetchUserEmoji, fetchUserEmoji)
 
   Container.listenAction(Chat2Gen.addUsersToChannel, addUsersToChannel)
@@ -1746,8 +1732,6 @@ const initChat = () => {
     maybeChangeChatSelection(prev, next)
     maybeChatTabSelected(prev, next)
   })
-
-  Container.listenAction(Chat2Gen.deselectedConversation, updateDraftState)
 
   ConfigConstants.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return

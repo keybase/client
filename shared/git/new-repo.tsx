@@ -10,7 +10,7 @@ type OwnProps = {isTeam: boolean}
 
 export default (ownProps: OwnProps) => {
   const {isTeam} = ownProps
-  const error = Constants.useGitState(s => s.error)
+  const error = Constants.useState(s => s.error)
   const teamnames = TeamsConstants.useState(s => s.teamnames)
   const teams = [...teamnames].sort(TeamsConstants.sortTeamnames)
 
@@ -23,8 +23,8 @@ export default (ownProps: OwnProps) => {
     navigateUp()
   }
 
-  const createPersonalRepo = Constants.useGitState(s => s.dispatch.createPersonalRepo)
-  const createTeamRepo = Constants.useGitState(s => s.dispatch.createTeamRepo)
+  const createPersonalRepo = Constants.useState(s => s.dispatch.createPersonalRepo)
+  const createTeamRepo = Constants.useState(s => s.dispatch.createTeamRepo)
   const onCreate = (name: string, teamname: string, notifyTeam: boolean) => {
     if (isTeam && teamname) {
       createTeamRepo(name, teamname, notifyTeam)

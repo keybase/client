@@ -13,6 +13,7 @@ import {RPCError} from '../util/errors'
 import logger from '../logger'
 import {isLinux, isMobile} from './platform'
 import {tlfToPreferredOrder} from '../util/kbfs'
+import initPlatformSpecific from '../actions/fs/platform-specific'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
 export const folderListWaitingKey = 'fs:folderList'
@@ -1211,6 +1212,7 @@ type State = Store & {
     setTlfsAsUnloaded: () => void
     setTlfSyncConfig: (tlfPath: Types.Path, enabled: boolean) => void
     setSorting: (path: Types.Path, sortSetting: Types.SortSetting) => void
+    setupSubscriptions: () => void
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
     startManualConflictResolution: (tlfPath: Types.Path) => void
@@ -2518,6 +2520,9 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.tlfs.loaded = false
       })
+    },
+    setupSubscriptions: () => {
+      initPlatformSpecific()
     },
     showIncomingShare: initialDestinationParentPath => {
       set(s => {

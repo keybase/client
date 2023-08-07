@@ -93,12 +93,11 @@ export const useShared = () => {
     appState.current = AppState.NEEDS_INIT
   }
 
+  const setNavState = Constants.useState(s => s.dispatch.setNavState)
   const onStateChange = React.useCallback(() => {
     const ns = Constants.getRootState()
-    Constants.useState.setState(s => {
-      s.navState = ns
-    })
-  }, [])
+    setNavState(ns)
+  }, [setNavState])
 
   const navKey = useNavKey(appState.current, navContainerKey)
   const initialState = useInitialState()

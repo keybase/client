@@ -36,7 +36,7 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
     },
     [showUser, showUserProfile]
   )
-  const navigateToTeamRepo = GitConstants.useGitState(s => s.dispatch.navigateToTeamRepo)
+  const navigateToTeamRepo = GitConstants.useState(s => s.dispatch.navigateToTeamRepo)
   const onViewGitRepo = React.useCallback(
     (repoID: string, teamname: string) => {
       navigateToTeamRepo(teamname, repoID)

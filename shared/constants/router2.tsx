@@ -247,11 +247,12 @@ export type State = Store & {
     navUpToScreen: (name: string) => void
     popStack: () => void
     resetState: 'default'
+    setNavState: (ns: NavState) => void
     switchTab: (tab: Tabs.AppTab) => void
   }
 }
 
-export const useState = Z.createZustand<State>(() => {
+export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearModals: () => {
       const n = _getNavigator()
@@ -333,6 +334,101 @@ export const useState = Z.createZustand<State>(() => {
       n?.dispatch(StackActions.popToTop())
     },
     resetState: 'default',
+    setNavState: (next: NavState) => {
+      const prev = get().navState
+      if (prev === next) return
+      set(s => {
+        s.navState = next
+      })
+
+      const checkTeamBuilding = async () => {
+        const TBConstants = await import('./team-building')
+        const namespaces = ['chat2', 'crypto', 'teams', 'people'] as const
+        const namespaceToRoute = new Map([
+          ['chat2', 'chatNewChat'],
+          ['crypto', 'cryptoTeamBuilder'],
+          ['teams', 'teamsTeamBuilder'],
+          ['people', 'peopleTeamBuilder'],
+        ])
+        for (const namespace of namespaces) {
+          const wasTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(prev)?.name
+          if (wasTeamBuilding) {
+            // team building or modal on top of that still
+            const isTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(next)?.name
+            if (!isTeamBuilding) {
+              TBConstants.stores.get(namespace)?.getState().dispatch.cancelTeamBuilding()
+            }
+          }
+        }
+      }
+      Z.ignorePromise(checkTeamBuilding())
+
+      const updateFS = async () => {
+        const FS = await import('./fs')
+        const {criticalUpdate, dispatch} = FS.useState.getState()
+        // Clear critical update when we nav away from tab
+        if (criticalUpdate && prev && getTab(prev) === Tabs.fsTab && next && getTab(next) !== Tabs.fsTab) {
+          dispatch.setCriticalUpdate(false)
+        }
+        const fsRrouteNames = ['fsRoot', 'barePreview']
+        const wasScreen = fsRrouteNames.includes(getVisibleScreen(prev)?.name ?? '')
+        const isScreen = fsRrouteNames.includes(getVisibleScreen(next)?.name ?? '')
+        if (wasScreen !== isScreen) {
+          if (wasScreen) {
+            dispatch.userOut()
+          } else {
+            dispatch.userIn()
+          }
+        }
+      }
+      Z.ignorePromise(updateFS())
+
+      const updateSignup = async () => {
+        const Signup = await import('./signup')
+        // Clear "just signed up email" when you leave the people tab after signup
+        if (
+          Signup.useState.getState().justSignedUpEmail &&
+          prev &&
+          getTab(prev) === Tabs.peopleTab &&
+          next &&
+          getTab(next) !== Tabs.peopleTab
+        ) {
+          Signup.useState.getState().dispatch.clearJustSignedUpEmail()
+        }
+      }
+      Z.ignorePromise(updateSignup())
+
+      const updatePeople = async () => {
+        if (prev && getTab(prev) === Tabs.peopleTab && next && getTab(next) !== Tabs.peopleTab) {
+          const People = await import('./people')
+          People.useState.getState().dispatch.markViewed()
+        }
+      }
+      Z.ignorePromise(updatePeople())
+
+      const updateTeams = async () => {
+        const Teams = await import('./teams')
+        if (prev && getTab(prev) === Tabs.teamsTab && next && getTab(next) !== Tabs.teamsTab) {
+          Teams.useState.getState().dispatch.clearNavBadges()
+        }
+      }
+      Z.ignorePromise(updateTeams())
+
+      const updateSettings = async () => {
+        const Settings = await import('./settings')
+        // Clear "check your inbox" in settings when you leave the settings tab
+        if (
+          Settings.useEmailState.getState().addedEmail &&
+          prev &&
+          getTab(prev) === Tabs.settingsTab &&
+          next &&
+          getTab(next) !== Tabs.settingsTab
+        ) {
+          Settings.useEmailState.getState().dispatch.resetAddedEmail()
+        }
+      }
+      Z.ignorePromise(updateSettings())
+    },
     switchTab: name => {
       const n = _getNavigator()
       if (!n) return
