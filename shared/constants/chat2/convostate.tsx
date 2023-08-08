@@ -1402,6 +1402,15 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           )
         }
       })
+
+      set(s => {
+        const os = s.messageOrdinals
+        if (!os) return
+        allOrdinals.forEach(o => {
+          const idx = sortedIndexOf(os, o)
+          if (idx !== -1) os.splice(idx, 1)
+        })
+      })
     },
     metaReceivedError: (error, username) => {
       if (error) {
