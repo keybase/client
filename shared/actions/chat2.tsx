@@ -962,6 +962,7 @@ const unfurlResolvePrompt = async (_: unknown, action: Chat2Gen.UnfurlResolvePro
 const unsentTextChanged = async (_: unknown, action: Chat2Gen.UnsentTextChangedPayload) => {
   const {conversationIDKey, text} = action.payload
   const meta = Constants.getConvoState(conversationIDKey).meta
+  console.log('aaa update unsent text api', text.stringValue())
   await RPCChatTypes.localUpdateUnsentTextRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     text: text.stringValue(),

@@ -120,14 +120,16 @@ const useUnsentText = (
   // only look at the draft once per mount
   const considerDraftRef = React.useRef(true)
   const draft = Constants.useContext(s => s.draft)
-  const storeUnsentText = Constants.useContext(s => s.unsentText)
+  const storeUnsentText = '' // Constants.useContext(s => s.unsentText)
   const prevDraft = React.useRef<string | undefined>(undefined)
   const prevStoreUnsentText = React.useRef<string | undefined>(undefined)
 
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
+  console.log('aaa useUnsentText', considerDraftRef, draft, lastCID, conversationIDKey)
   // reset on convo change
   if (lastCID !== conversationIDKey) {
     setLastCID(conversationIDKey)
+    console.log('aaa consider 3 reset')
     considerDraftRef.current = true
     prevDraft.current = undefined
     prevStoreUnsentText.current = undefined
@@ -136,10 +138,13 @@ const useUnsentText = (
   let unsentText: string | undefined = undefined
   // use draft if changed , or store if changed, or the module map
   if (considerDraftRef.current && draft && draft !== prevDraft.current) {
+    console.log('aaa consider 1', draft)
     unsentText = draft
   } else if (prevStoreUnsentText.current !== storeUnsentText) {
+    console.log('aaa consider 2', storeUnsentText)
     unsentText = storeUnsentText
   }
+  console.log('aaa considerdone >>>>>>>.', unsentText)
 
   //one chance to use the draft
   considerDraftRef.current = false
@@ -171,6 +176,7 @@ const useUnsentText = (
   )
   const unsentTextChanged = React.useCallback(
     (text: string) => {
+      console.log('aaa unsentTextChanged dipsatch', text)
       dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new Container.HiddenString(text)}))
     },
     [dispatch, conversationIDKey]
@@ -303,6 +309,11 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     [sendTypingThrottled, setUnsentText, setTextInput]
   )
 
+  const setInputCallback = Constants.useContext(s => s.dispatch.setInputCallback)
+  React.useEffect(() => {
+    setInputCallback(s => setText(s))
+  }, [setInputCallback, setText])
+
   const onSubmitAndClear = React.useCallback(
     (text: string) => {
       onSubmit(text)
@@ -338,7 +349,9 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   )
 
   const [lastUnsentText, setLastUnsentText] = React.useState<string | undefined>()
+
   if (lastUnsentText !== unsentText) {
+    console.log('aaaa unsent text changed, update', lastUnsentText, unsentText)
     setLastUnsentText(unsentText)
     if (unsentText !== undefined) {
       lastTextRef.current = unsentText
@@ -347,8 +360,11 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   }
   // needs to be an effect since setTextInput needs a mounted ref
   React.useEffect(() => {
+    console.log('aaaa effect', lastTextRef.current)
     setTextInput(lastTextRef.current)
   }, [setTextInput])
+
+  console.log('aaaa render', lastTextRef.current)
 
   const isTyping = Constants.useContext(s => s.typing.size > 0)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)

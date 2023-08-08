@@ -77,6 +77,7 @@ type ConvoStore = {
   typing: Set<string>
   unfurlPrompt: Map<Types.MessageID, Set<string>>
   unread: number
+  // TODO remove
   unsentText?: string
 }
 
@@ -135,6 +136,9 @@ export type ConvoState = ConvoStore & {
     clearAttachmentView: () => void
     clearMessageTypeMap: () => void
     dismissBottomBanner: () => void
+    dynamic: {
+      injectIntoInput: (s: string) => void
+    }
     editBotSettings: (
       username: string,
       allowCommands: boolean,
@@ -220,6 +224,7 @@ export type ConvoState = ConvoStore & {
     setEditing: (ordinal: Types.Ordinal | boolean) => void // true is last, false is clear
     setExplodingMode: (seconds: number, incoming?: boolean) => void
     setExplodingModeLocked: (locked: boolean) => void
+    setInputCallback: (cb: (s: string) => void) => void
     // false to clear
     setMarkAsUnread: (readMsgID?: RPCChatTypes.MessageID | false) => void
     setMessageCenterOrdinal: (m?: Types.CenterOrdinal) => void
@@ -475,6 +480,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.dismissedInviteBanners = true
       })
+    },
+    dynamic: {
+      injectIntoInput: s => {
+        console.log('aaa inject into input w/ no input?', s)
+      },
     },
     editBotSettings: (username, allowCommands, allowMentions, convs) => {
       const f = async () => {
@@ -1908,6 +1918,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     setDraft: d => {
+      // console.log('aaa set draft', get().id, d, get().meta.draft)
       set(s => {
         s.draft = d
       })
@@ -2019,6 +2030,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setExplodingModeLocked: locked => {
       set(s => {
         s.explodingModeLock = locked ? get().explodingMode : undefined
+      })
+    },
+    setInputCallback: cb => {
+      set(s => {
+        s.dispatch.dynamic.injectIntoInput = cb
       })
     },
     setMarkAsUnread: readMsgID => {
@@ -2202,9 +2218,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     setUnsentText: u => {
-      set(s => {
-        s.unsentText = u
-      })
+      get().dispatch.dynamic.injectIntoInput(u)
+      // set(s => {
+      //   s.unsentText = u
+      // })
     },
     setupSubscriptions: () => {
       // TODO
