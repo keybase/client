@@ -32,7 +32,6 @@ export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const markTeamAsRead = 'chat2:markTeamAsRead'
 export const messageDeleteHistory = 'chat2:messageDeleteHistory'
-export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
 export const navigateToInbox = 'chat2:navigateToInbox'
@@ -221,13 +220,6 @@ export const createUnfurlRemove = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageID: Types.MessageID
 }) => ({payload, type: unfurlRemove as typeof unfurlRemove})
-/**
- * Reply privately to a message with quoting
- */
-export const createMessageReplyPrivately = (payload: {
-  readonly sourceConversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-}) => ({payload, type: messageReplyPrivately as typeof messageReplyPrivately})
 /**
  * Resolve an unknown @ mention
  */
@@ -425,7 +417,6 @@ export type LoadOlderMessagesDueToScrollPayload = ReturnType<typeof createLoadOl
 export type MarkInitiallyLoadedThreadAsReadPayload = ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
 export type MarkTeamAsReadPayload = ReturnType<typeof createMarkTeamAsRead>
 export type MessageDeleteHistoryPayload = ReturnType<typeof createMessageDeleteHistory>
-export type MessageReplyPrivatelyPayload = ReturnType<typeof createMessageReplyPrivately>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
 export type MessageSendPayload = ReturnType<typeof createMessageSend>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
@@ -477,7 +468,6 @@ export type Actions =
   | MarkInitiallyLoadedThreadAsReadPayload
   | MarkTeamAsReadPayload
   | MessageDeleteHistoryPayload
-  | MessageReplyPrivatelyPayload
   | MessageSendByUsernamesPayload
   | MessageSendPayload
   | NavigateToInboxPayload

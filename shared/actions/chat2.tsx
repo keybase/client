@@ -893,49 +893,6 @@ const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageC
   })
 }
 
-const messageReplyPrivately = async (_: unknown, action: Chat2Gen.MessageReplyPrivatelyPayload) => {
-  const {sourceConversationIDKey, ordinal} = action.payload
-  const message = Constants.getConvoState(sourceConversationIDKey).messageMap.get(ordinal)
-  if (!message) {
-    logger.warn("messageReplyPrivately: can't find message to reply to", ordinal)
-    return
-  }
-
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  if (!username) {
-    throw new Error('messageReplyPrivately: making a convo while logged out?')
-  }
-  const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
-    {
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-      tlfName: [...new Set([username, message.author])].join(','),
-      tlfVisibility: RPCTypes.TLFVisibility.private,
-      topicType: RPCChatTypes.TopicType.chat,
-    },
-    Constants.waitingKeyCreating
-  )
-  const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
-  if (!conversationIDKey) {
-    logger.warn("messageReplyPrivately: couldn't make a new conversation?")
-    return
-  }
-  const meta = Constants.inboxUIItemToConversationMeta(result.uiConv)
-  if (!meta) {
-    logger.warn('messageReplyPrivately: unable to make meta')
-    return
-  }
-
-  if (message.type !== 'text') {
-    return
-  }
-  const text = new Container.HiddenString(Constants.formatTextForQuoting(message.text.stringValue()))
-
-  Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(text.stringValue())
-  Constants.useState.getState().dispatch.metasReceived([meta])
-  return [Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'createdMessagePrivately'})]
-}
-
 const toggleMessageReaction = async (_: unknown, action: Chat2Gen.ToggleMessageReactionPayload) => {
   // The service translates this to a delete if an identical reaction already exists
   // so we only need to call this RPC to toggle it on & off
@@ -1311,7 +1268,6 @@ const initChat = () => {
 
   Container.listenAction(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   Container.listenAction(Chat2Gen.toggleMessageCollapse, toggleMessageCollapse)
-  Container.listenAction(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
   Container.listenAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
 
   Container.listenAction(Chat2Gen.toggleMessageReaction, toggleMessageReaction)

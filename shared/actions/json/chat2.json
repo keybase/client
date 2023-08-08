@@ -7,11 +7,6 @@
     "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
-    "messageReplyPrivately": {
-      "_description": "Reply privately to a message with quoting",
-      "sourceConversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
-    },
     "messageDeleteHistory": {
       "_description": "Deletes all messages",
       "conversationIDKey": "Types.ConversationIDKey"

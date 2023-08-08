@@ -167,6 +167,7 @@ export type ConvoState = ConvoStore & {
     messageAttachmentNativeShare: (message: Types.Message) => void
     messageDelete: (ordinal: Types.Ordinal) => void
     messageEdit: (ordinal: Types.Ordinal, text: string) => void
+    messageReplyPrivately: (ordinal: Types.Ordinal) => void
     messageRetry: (outboxID: Types.OutboxID) => void
     messagesAdd: (p: {
       contextType: string
@@ -1042,6 +1043,50 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             }
           }
         }
+      }
+      Z.ignorePromise(f())
+    },
+    messageReplyPrivately: ordinal => {
+      const f = async () => {
+        const ConfigConstants = await import('../config')
+        const message = get().messageMap.get(ordinal)
+        if (!message) {
+          logger.warn("messageReplyPrivately: can't find message to reply to", ordinal)
+          return
+        }
+        const username = ConfigConstants.useCurrentUserState.getState().username
+        if (!username) {
+          throw new Error('messageReplyPrivately: making a convo while logged out?')
+        }
+        const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
+          {
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+            membersType: RPCChatTypes.ConversationMembersType.impteamnative,
+            tlfName: [...new Set([username, message.author])].join(','),
+            tlfVisibility: RPCTypes.TLFVisibility.private,
+            topicType: RPCChatTypes.TopicType.chat,
+          },
+          Common.waitingKeyCreating
+        )
+        const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
+        if (!conversationIDKey) {
+          logger.warn("messageReplyPrivately: couldn't make a new conversation?")
+          return
+        }
+        const meta = Meta.inboxUIItemToConversationMeta(result.uiConv)
+        if (!meta) {
+          logger.warn('messageReplyPrivately: unable to make meta')
+          return
+        }
+        if (message.type !== 'text') {
+          return
+        }
+
+        const Constants = await import('.')
+        const text = Constants.formatTextForQuoting(message.text.stringValue())
+        Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(text)
+        Constants.useState.getState().dispatch.metasReceived([meta])
+        reduxDispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'createdMessagePrivately'}))
       }
       Z.ignorePromise(f())
     },

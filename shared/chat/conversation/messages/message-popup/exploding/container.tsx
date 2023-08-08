@@ -136,13 +136,9 @@ export default (ownProps: OwnProps) => {
   const _onReply = () => {
     setReplyTo(ownProps.ordinal)
   }
+  const messageReplyPrivately = Constants.useContext(s => s.dispatch.messageReplyPrivately)
   const _onReplyPrivately = () => {
-    dispatch(
-      Chat2Gen.createMessageReplyPrivately({
-        ordinal: ownProps.ordinal,
-        sourceConversationIDKey: ownProps.conversationIDKey,
-      })
-    )
+    messageReplyPrivately(ownProps.ordinal)
   }
   const messageAttachmentNativeSave = Constants.useContext(s => s.dispatch.messageAttachmentNativeSave)
   const messageAttachmentNativeShare = Constants.useContext(s => s.dispatch.messageAttachmentNativeShare)
