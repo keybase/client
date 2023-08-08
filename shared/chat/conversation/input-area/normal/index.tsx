@@ -187,86 +187,6 @@ const useUnsentText = (
   return {setUnsentText, unsentText, unsentTextChanged, unsentTextChangedThrottled}
 }
 
-const useInput = () => {
-  const inputRef = React.useRef<Kb.PlainInput | null>(null)
-  const setTextInput = React.useCallback(
-    (text: string) => {
-      inputRef.current?.transformText(
-        () => ({
-          selection: {end: text.length, start: text.length},
-          text,
-        }),
-        true
-      )
-    },
-    [inputRef]
-  )
-
-  return {inputRef, setTextInput}
-}
-
-const useSubmit = (
-  p: Pick<Props, 'conversationIDKey' | 'jumpToRecent' | 'onRequestScrollToBottom'> & {
-    editOrdinal: Types.Ordinal | undefined
-    replyTo: Types.Ordinal | undefined
-  }
-) => {
-  const {conversationIDKey, onRequestScrollToBottom, jumpToRecent, editOrdinal, replyTo} = p
-  const dispatch = Container.useDispatch()
-  const containsLatestMessage = Constants.useContext(s => s.containsLatestMessage)
-  const onPostMessage = React.useCallback(
-    (text: string) => {
-      dispatch(
-        Chat2Gen.createMessageSend({
-          conversationIDKey,
-          replyTo: replyTo || undefined,
-          text: new Container.HiddenString(text),
-        })
-      )
-    },
-    [dispatch, conversationIDKey, replyTo]
-  )
-  const messageEdit = Constants.useContext(s => s.dispatch.messageEdit)
-  const onEditMessage = React.useCallback(
-    (body: string) => {
-      if (editOrdinal !== undefined) {
-        messageEdit(editOrdinal, body)
-      }
-    },
-    [messageEdit, editOrdinal]
-  )
-  const onSubmit = Container.useEvent((text: string) => {
-    // don't submit empty
-    if (!text) {
-      return
-    }
-    if (editOrdinal) {
-      onEditMessage(text)
-    } else {
-      onPostMessage(text)
-    }
-    if (containsLatestMessage) {
-      onRequestScrollToBottom()
-    } else {
-      jumpToRecent()
-    }
-  })
-
-  return {onSubmit}
-}
-
-const useTyping = (conversationIDKey: Types.ConversationIDKey) => {
-  const dispatch = Container.useDispatch()
-  const sendTyping = React.useCallback(
-    (typing: boolean) => {
-      dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing}))
-    },
-    [dispatch, conversationIDKey]
-  )
-  const sendTypingThrottled = Container.useThrottledCallback(sendTyping, 2000)
-  return {sendTyping, sendTypingThrottled}
-}
-
 const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   p: Pick<
     Props,
@@ -285,86 +205,142 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     editOrdinal ? s.messageMap.get(editOrdinal)?.exploded ?? false : false
   )
   const isEditing = !!editOrdinal
-  const {onSubmit} = useSubmit({
-    conversationIDKey,
-    editOrdinal,
-    jumpToRecent,
-    onRequestScrollToBottom,
-    replyTo,
-  })
-  const {sendTyping, sendTypingThrottled} = useTyping(conversationIDKey)
-  const {inputRef, setTextInput} = useInput()
+  const dispatch = Container.useDispatch()
+  const inputRef = React.useRef<Kb.PlainInput | null>(null)
   const lastTextRef = React.useRef('')
-  const {unsentText, unsentTextChanged, unsentTextChangedThrottled, setUnsentText} = useUnsentText(
-    conversationIDKey,
-    lastTextRef
+
+  const sendTyping = React.useCallback(
+    (text: string) => {
+      // TODO throttle?
+      dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing: text.length > 0}))
+    },
+    [dispatch, conversationIDKey]
   )
 
-  const setText = React.useCallback(
+  const sendDraft = React.useCallback(
     (text: string) => {
-      setTextInput(text)
-      setUnsentText(text)
-      sendTypingThrottled(!!text)
+      // TODO throttle?
+      dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new Container.HiddenString(text)}))
     },
-    [sendTypingThrottled, setUnsentText, setTextInput]
+    [dispatch, conversationIDKey]
+  )
+
+  // true while injecting since onChaggeText is called
+  const injectingTextRef = React.useRef(false)
+  const onChangeText = React.useCallback(
+    (text: string) => {
+      if (injectingTextRef.current) return
+      console.log('aaaa onChangeText', text)
+      lastTextRef.current = text
+      sendTyping(text)
+      sendDraft(text)
+      // TODO
+    },
+    [sendTyping, sendDraft]
+  )
+  const injectText = React.useCallback(
+    (text: string) => {
+      console.log('aaaa injectText', text)
+      injectingTextRef.current = true
+      lastTextRef.current = text
+      inputRef.current?.transformText(
+        () => ({
+          selection: {end: text.length, start: text.length},
+          text,
+        }),
+        true
+      )
+      injectingTextRef.current = false
+      console.log('aaaa injectText after', text)
+    },
+    [inputRef]
   )
 
   const setInputCallback = Constants.useContext(s => s.dispatch.setInputCallback)
   React.useEffect(() => {
-    setInputCallback(s => setText(s))
-  }, [setInputCallback, setText])
+    setInputCallback(injectText)
+  }, [setInputCallback, injectText])
 
-  const onSubmitAndClear = React.useCallback(
+  const onSubmit = React.useCallback(
     (text: string) => {
-      onSubmit(text)
-      setText('')
-    },
-    [onSubmit, setText]
-  )
+      if (!text) return
 
-  const onChangeText = React.useCallback(
-    (text: string) => {
-      lastTextRef.current = text
-      const skipThrottle = lastTextRef.current.length > 0 && text.length === 0
-      setUnsentText(text)
-
-      // If the input bar has been cleared, send typing notification right away
-      if (skipThrottle) {
-        sendTypingThrottled.cancel()
-        sendTyping(false)
+      // non reactive on purpose
+      const cs = Constants.getConvoState(conversationIDKey)
+      const editOrdinal = cs.editing
+      if (editOrdinal) {
+        dispatch(
+          Chat2Gen.createMessageSend({
+            conversationIDKey,
+            replyTo,
+            text: new Container.HiddenString(text),
+          })
+        )
       } else {
-        sendTypingThrottled(!!text)
+        dispatch(
+          Chat2Gen.createMessageSend({
+            conversationIDKey,
+            replyTo,
+            text: new Container.HiddenString(text),
+          })
+        )
       }
 
-      const skipDebounce = text.startsWith('/')
+      injectText('')
 
-      if (skipDebounce) {
-        unsentTextChangedThrottled.cancel()
-        unsentTextChanged(text)
+      const containsLatestMessage = cs.containsLatestMessage
+      if (containsLatestMessage) {
+        onRequestScrollToBottom()
       } else {
-        unsentTextChangedThrottled(text)
+        jumpToRecent()
       }
     },
-    [sendTyping, sendTypingThrottled, setUnsentText, unsentTextChanged, unsentTextChangedThrottled]
+    [injectText, dispatch, conversationIDKey, onRequestScrollToBottom, jumpToRecent, replyTo]
   )
 
-  const [lastUnsentText, setLastUnsentText] = React.useState<string | undefined>()
+  // const onChangeText = React.useCallback(
+  //   (text: string) => {
+  //     lastTextRef.current = text
+  //     const skipThrottle = lastTextRef.current.length > 0 && text.length === 0
+  //     setUnsentText(text)
 
-  if (lastUnsentText !== unsentText) {
-    console.log('aaaa unsent text changed, update', lastUnsentText, unsentText)
-    setLastUnsentText(unsentText)
-    if (unsentText !== undefined) {
-      lastTextRef.current = unsentText
-      setTextInput(lastTextRef.current)
-    }
-  }
+  //     // If the input bar has been cleared, send typing notification right away
+  //     if (skipThrottle) {
+  //       sendTypingThrottled.cancel()
+  //       sendTyping(false)
+  //     } else {
+  //       sendTypingThrottled(!!text)
+  //     }
+
+  //     const skipDebounce = text.startsWith('/')
+
+  //     if (skipDebounce) {
+  //       unsentTextChangedThrottled.cancel()
+  //       unsentTextChanged(text)
+  //     } else {
+  //       unsentTextChangedThrottled(text)
+  //     }
+  //   },
+  //   [sendTyping, sendTypingThrottled, setUnsentText, unsentTextChanged, unsentTextChangedThrottled]
+  // )
+
+  // const [lastUnsentText, setLastUnsentText] = React.useState<string | undefined>()
+
+  // if (lastUnsentText !== unsentText) {
+  //   console.log('aaaa unsent text changed, update', lastUnsentText, unsentText)
+  //   setLastUnsentText(unsentText)
+  //   if (unsentText !== undefined) {
+  //     lastTextRef.current = unsentText
+  //     setTextInput(lastTextRef.current)
+  //   }
+  // }
   // needs to be an effect since setTextInput needs a mounted ref
-  React.useEffect(() => {
-    console.log('aaaa effect', lastTextRef.current)
-    setTextInput(lastTextRef.current)
-  }, [setTextInput])
+  // React.useEffect(() => {
+  //   console.log('aaaa effect', lastTextRef.current)
+  //   setTextInput(lastTextRef.current)
+  // }, [setTextInput])
 
-  console.log('aaaa render', lastTextRef.current)
+  // console.log('aaaa render', lastTextRef.current)
 
   const isTyping = Constants.useContext(s => s.typing.size > 0)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
@@ -380,8 +356,8 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const setEditing = Constants.useContext(s => s.dispatch.setEditing)
   const onCancelEditing = React.useCallback(() => {
     setEditing(false)
-    setText('')
-  }, [setEditing, setText])
+    injectText('')
+  }, [injectText, setEditing])
 
   const [lastIsEditing, setLastIsEditing] = React.useState(isEditing)
   const [lastIsEditExploded, setLastIsEditExploded] = React.useState(isEditExploded)
@@ -404,7 +380,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
         infoPanelShowing ? styles.suggestionOverlayInfoShowing : styles.suggestionOverlay
       }
       suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
-      onSubmit={onSubmitAndClear}
+      onSubmit={onSubmit}
       inputSetRef={inputRef}
       onChangeText={onChangeText}
       onCancelEditing={onCancelEditing}
