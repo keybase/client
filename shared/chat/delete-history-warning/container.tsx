@@ -1,22 +1,17 @@
-import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RouterConstants from '../../constants/router2'
-import * as Container from '../../util/container'
-import type * as Types from '../../constants/types/chat2'
+import * as Constants from '../../constants/chat2'
 import DeleteHistoryWarning from '.'
 
-type OwnProps = {conversationIDKey: Types.ConversationIDKey}
-
-export default (ownProps: OwnProps) => {
-  const conversationIDKey = ownProps.conversationIDKey
-  const dispatch = Container.useDispatch()
+export default () => {
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const messageDeleteHistory = Constants.useContext(s => s.dispatch.messageDeleteHistory)
   const onDeleteHistory = () => {
     clearModals()
-    dispatch(Chat2Gen.createMessageDeleteHistory({conversationIDKey}))
+    messageDeleteHistory()
   }
   const props = {
     onCancel,

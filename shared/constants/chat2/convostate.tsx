@@ -148,6 +148,8 @@ export type ConvoState = ConvoStore & {
     hideConversation: (hide: boolean) => void
     loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
     loadOrangeLine: () => void
+    loadOlderMessagesDueToScroll: () => void
+    loadNewerMessagesDueToScroll: () => void
     loadMoreMessages: (p: {
       forceContainsLatestCalc?: boolean
       messageIDControl?: RPCChatTypes.MessageIDControl
@@ -166,6 +168,7 @@ export type ConvoState = ConvoStore & {
     messageAttachmentNativeSave: (message: Types.Message) => void
     messageAttachmentNativeShare: (message: Types.Message) => void
     messageDelete: (ordinal: Types.Ordinal) => void
+    messageDeleteHistory: () => void
     messageEdit: (ordinal: Types.Ordinal, text: string) => void
     messageReplyPrivately: (ordinal: Types.Ordinal) => void
     messageRetry: (outboxID: Types.OutboxID) => void
@@ -775,6 +778,26 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    loadNewerMessagesDueToScroll: () => {
+      const {dispatch} = get()
+      dispatch.loadMoreMessages({
+        numberOfMessagesToLoad: numMessagesOnScrollback,
+        reason: 'scroll forward',
+        scrollDirection: 'forward',
+      })
+    },
+    loadOlderMessagesDueToScroll: () => {
+      const {dispatch, moreToLoad} = get()
+      if (!moreToLoad) {
+        logger.info('bail: scrolling back and at the end')
+        return
+      }
+      dispatch.loadMoreMessages({
+        numberOfMessagesToLoad: numMessagesOnScrollback,
+        reason: '',
+        scrollDirection: 'back',
+      })
+    },
     loadOrangeLine: () => {
       const f = async () => {
         const Constants = await import('.')
@@ -984,6 +1007,24 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             Common.waitingKeyDeletePost
           )
         }
+      }
+      Z.ignorePromise(f())
+    },
+    messageDeleteHistory: () => {
+      // Delete a message and any older
+      const f = async () => {
+        const meta = get().meta
+        if (!meta.tlfname) {
+          logger.warn('Deleting message history for non-existent TLF:')
+          return
+        }
+        await RPCChatTypes.localPostDeleteHistoryByAgeRpcPromise({
+          age: 0,
+          conversationID: Types.keyToConversationID(get().id),
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          tlfName: meta.tlfname,
+          tlfPublic: false,
+        })
       }
       Z.ignorePromise(f())
     },

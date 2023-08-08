@@ -667,25 +667,6 @@ const markTeamAsRead = async (_: unknown, action: Chat2Gen.MarkTeamAsReadPayload
   })
 }
 
-// Delete a message and any older
-const deleteMessageHistory = async (_: unknown, action: Chat2Gen.MessageDeleteHistoryPayload) => {
-  const {conversationIDKey} = action.payload
-  const meta = Constants.getConvoState(conversationIDKey).meta
-
-  if (!meta.tlfname) {
-    logger.warn('Deleting message history for non-existent TLF:')
-    return
-  }
-
-  await RPCChatTypes.localPostDeleteHistoryByAgeRpcPromise({
-    age: 0,
-    conversationID: Types.keyToConversationID(conversationIDKey),
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    tlfName: meta.tlfname,
-    tlfPublic: false,
-  })
-}
-
 const dismissJourneycard = (_: unknown, action: Chat2Gen.DismissJourneycardPayload) => {
   const {cardType, conversationIDKey, ordinal} = action.payload
   RPCChatTypes.localDismissJourneycardRpcPromise({
@@ -1156,26 +1137,6 @@ const initChat = () => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.loadMoreMessages({forceClear: true, reason: 'jump to recent'})
   })
-  Container.listenAction(Chat2Gen.loadOlderMessagesDueToScroll, () => {
-    const {dispatch, moreToLoad} = Constants.getConvoState(Constants.getSelectedConversation())
-    if (!moreToLoad) {
-      logger.info('bail: scrolling back and at the end')
-      return
-    }
-    dispatch.loadMoreMessages({
-      numberOfMessagesToLoad: Constants.numMessagesOnScrollback,
-      reason: '',
-      scrollDirection: 'back',
-    })
-  })
-  Container.listenAction(Chat2Gen.loadNewerMessagesDueToScroll, () => {
-    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
-    dispatch.loadMoreMessages({
-      numberOfMessagesToLoad: Constants.numMessagesOnScrollback,
-      reason: 'scroll forward',
-      scrollDirection: 'forward',
-    })
-  })
   Container.listenAction(Chat2Gen.loadMessagesCentered, (_, a) => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.loadMoreMessages({
@@ -1207,7 +1168,6 @@ const initChat = () => {
     dispatch.setCommandMarkdown()
   })
   Container.listenAction(Chat2Gen.messageSendByUsernames, messageSendByUsernames)
-  Container.listenAction(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
   Container.listenAction(Chat2Gen.dismissJourneycard, dismissJourneycard)
   Container.listenAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)
 

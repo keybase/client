@@ -27,11 +27,8 @@ export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
-export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
-export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const markTeamAsRead = 'chat2:markTeamAsRead'
-export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
 export const navigateToInbox = 'chat2:navigateToInbox'
@@ -79,12 +76,6 @@ export const createBlockConversation = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly reportUser: boolean
 }) => ({payload, type: blockConversation as typeof blockConversation})
-/**
- * Deletes all messages
- */
-export const createMessageDeleteHistory = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: messageDeleteHistory as typeof messageDeleteHistory})
 /**
  * Desktop changed tab to chat
  */
@@ -137,12 +128,6 @@ export const createJumpToRecent = (payload: {readonly conversationIDKey: Types.C
   payload,
   type: jumpToRecent as typeof jumpToRecent,
 })
-/**
- * Load some more messages for a conversation
- */
-export const createLoadOlderMessagesDueToScroll = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: loadOlderMessagesDueToScroll as typeof loadOlderMessagesDueToScroll})
 /**
  * Mark all conversations in a team as read
  */
@@ -371,9 +356,6 @@ export const createLoadMessagesCentered = (payload: {
   readonly messageID: Types.MessageID
   readonly highlightMode: Types.CenterOrdinalHighlightMode
 }) => ({payload, type: loadMessagesCentered as typeof loadMessagesCentered})
-export const createLoadNewerMessagesDueToScroll = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: loadNewerMessagesDueToScroll as typeof loadNewerMessagesDueToScroll})
 export const createMessageSendByUsernames = (payload: {
   readonly usernames: string
   readonly text: HiddenString
@@ -412,11 +394,8 @@ export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
 export type JumpToRecentPayload = ReturnType<typeof createJumpToRecent>
 export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation>
 export type LoadMessagesCenteredPayload = ReturnType<typeof createLoadMessagesCentered>
-export type LoadNewerMessagesDueToScrollPayload = ReturnType<typeof createLoadNewerMessagesDueToScroll>
-export type LoadOlderMessagesDueToScrollPayload = ReturnType<typeof createLoadOlderMessagesDueToScroll>
 export type MarkInitiallyLoadedThreadAsReadPayload = ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
 export type MarkTeamAsReadPayload = ReturnType<typeof createMarkTeamAsRead>
-export type MessageDeleteHistoryPayload = ReturnType<typeof createMessageDeleteHistory>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
 export type MessageSendPayload = ReturnType<typeof createMessageSend>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
@@ -463,11 +442,8 @@ export type Actions =
   | JumpToRecentPayload
   | LeaveConversationPayload
   | LoadMessagesCenteredPayload
-  | LoadNewerMessagesDueToScrollPayload
-  | LoadOlderMessagesDueToScrollPayload
   | MarkInitiallyLoadedThreadAsReadPayload
   | MarkTeamAsReadPayload
-  | MessageDeleteHistoryPayload
   | MessageSendByUsernamesPayload
   | MessageSendPayload
   | NavigateToInboxPayload

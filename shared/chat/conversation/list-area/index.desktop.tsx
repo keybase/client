@@ -1,5 +1,3 @@
-/* eslint-env browser */
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as ConfigConstants from '../../../constants/config'
 import * as Container from '../../../util/container'
@@ -146,12 +144,12 @@ const useScrolling = (
 ) => {
   const {conversationIDKey, requestScrollUpRef, requestScrollToBottomRef, requestScrollDownRef} = p
   const {listRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
-  const dispatch = Container.useDispatch()
   const editingOrdinal = Constants.useContext(s => s.editing)
+  const loadNewerMessagesDueToScroll = Constants.useContext(s => s.dispatch.loadNewerMessagesDueToScroll)
   const loadNewerMessages = Container.useThrottledCallback(
     React.useCallback(() => {
-      dispatch(Chat2Gen.createLoadNewerMessagesDueToScroll({conversationIDKey}))
-    }, [dispatch, conversationIDKey]),
+      loadNewerMessagesDueToScroll()
+    }, [loadNewerMessagesDueToScroll]),
     200
   )
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
@@ -165,14 +163,15 @@ const useScrolling = (
     lastLoadOrdinal.current = -1
   }
   const oldestOrdinal = messageOrdinals[0] ?? -1
+  const loadOlderMessagesDueToScroll = Constants.useContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const loadOlderMessages = React.useCallback(() => {
     // already loaded and nothing has changed
     if (lastLoadOrdinal.current === oldestOrdinal) {
       return
     }
     lastLoadOrdinal.current = oldestOrdinal
-    dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey}))
-  }, [dispatch, conversationIDKey, oldestOrdinal])
+    loadOlderMessagesDueToScroll()
+  }, [loadOlderMessagesDueToScroll, oldestOrdinal])
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
