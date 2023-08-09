@@ -2414,7 +2414,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       })
     },
-    updateDraft: text => {
+    updateDraft: throttle(text => {
       const f = async () => {
         const meta = get().meta
         await RPCChatTypes.localUpdateUnsentTextRpcPromise({
@@ -2424,7 +2424,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
       }
       Z.ignorePromise(f())
-    },
+    }, 200),
     // maybe remove this when reducer is ported
     updateMessage: (ordinal: Types.Ordinal, pm: Partial<Types.Message>) => {
       set(s => {
