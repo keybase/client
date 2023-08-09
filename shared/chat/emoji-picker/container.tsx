@@ -47,22 +47,16 @@ type RoutableProps = {
 const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
   const topReacjis = Constants.useState(s => s.userReacjis.topReacjis)
   const [filter, setFilter] = React.useState('')
-  const dispatch = Container.useDispatch()
+  const toggleMessageReaction = Constants.useContext(s => s.dispatch.toggleMessageReaction)
   const onChoose = React.useCallback(
     (emoji: string, renderableEmoji: RenderableEmoji) => {
       if (conversationIDKey !== Constants.noConversationIDKey && onPickAddToMessageOrdinal) {
-        dispatch(
-          Chat2Gen.createToggleMessageReaction({
-            conversationIDKey: conversationIDKey,
-            emoji,
-            ordinal: onPickAddToMessageOrdinal,
-          })
-        )
+        toggleMessageReaction(onPickAddToMessageOrdinal, emoji)
       }
       onPickAction?.(emoji, renderableEmoji)
       onDidPick?.()
     },
-    [dispatch, conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal]
+    [toggleMessageReaction, conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal]
   )
   return {
     filter,

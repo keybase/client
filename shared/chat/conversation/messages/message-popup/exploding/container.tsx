@@ -123,14 +123,9 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
+  const toggleMessageReaction = Constants.useContext(s => s.dispatch.toggleMessageReaction)
   const _onReact = (emoji: string) => {
-    dispatch(
-      Chat2Gen.createToggleMessageReaction({
-        conversationIDKey: ownProps.conversationIDKey,
-        emoji,
-        ordinal: ownProps.ordinal,
-      })
-    )
+    toggleMessageReaction(ownProps.ordinal, emoji)
   }
   const setReplyTo = Constants.useContext(s => s.dispatch.setReplyTo)
   const _onReply = () => {

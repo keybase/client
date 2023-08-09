@@ -33,12 +33,6 @@ import {
   waitingKeyCreating,
 } from './common'
 
-export const formatTextForQuoting = (text: string) =>
-  text
-    .split('\n')
-    .map(line => `> ${line}\n`)
-    .join('')
-
 export const defaultTopReacjis = [
   {name: ':+1:'},
   {name: ':-1:'},

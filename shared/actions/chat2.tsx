@@ -18,7 +18,6 @@ import * as Types from '../constants/types/chat2'
 import * as WaitingConstants from '../constants/waiting'
 import {findLast} from '../util/arrays'
 import KB2 from '../util/electron'
-import NotifyPopup from '../util/notify-popup'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
 
@@ -315,51 +314,6 @@ const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvU
     }
   }
 }
-
-// Show a desktop notification
-const desktopNotify = async (_: unknown, action: Chat2Gen.DesktopNotificationPayload) => {
-  const {conversationIDKey, author, body} = action.payload
-  const meta = Constants.getConvoState(conversationIDKey).meta
-
-  if (
-    Constants.isUserActivelyLookingAtThisThread(conversationIDKey) ||
-    meta.isMuted // ignore muted convos
-  ) {
-    logger.info('not sending notification')
-    return
-  }
-
-  logger.info('sending chat notification')
-  let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
-  if (meta.teamType === 'big') {
-    title += `#${meta.channelname}`
-  }
-
-  const actions = await new Promise<Array<Container.TypedActions>>(resolve => {
-    const onClick = () => {
-      ConfigConstants.useConfigState.getState().dispatch.showMain()
-      resolve([
-        Chat2Gen.createNavigateToInbox(),
-        Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'desktopNotification'}),
-      ])
-    }
-    const onClose = () => {
-      resolve([])
-    }
-    logger.info('invoking NotifyPopup for chat notification')
-    const sound = ConfigConstants.useConfigState.getState().notifySound
-    NotifyPopup(title, {body, sound}, -1, author, onClick, onClose)
-  })
-
-  return actions
-}
-
-const onReplyJump = (_: unknown, action: Chat2Gen.ReplyJumpPayload) =>
-  Chat2Gen.createLoadMessagesCentered({
-    conversationIDKey: action.payload.conversationIDKey,
-    highlightMode: 'flash',
-    messageID: action.payload.messageID,
-  })
 
 const messageSend = async (
   _: unknown,
@@ -865,46 +819,6 @@ const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageC
   })
 }
 
-const toggleMessageReaction = async (_: unknown, action: Chat2Gen.ToggleMessageReactionPayload) => {
-  // The service translates this to a delete if an identical reaction already exists
-  // so we only need to call this RPC to toggle it on & off
-  const {conversationIDKey, emoji, ordinal} = action.payload
-  if (!emoji) {
-    return
-  }
-  const message = Constants.getConvoState(conversationIDKey).messageMap.get(ordinal)
-  if (!message) {
-    logger.warn(`toggleMessageReaction: no message found`)
-    return
-  }
-  const {type, exploded, id} = message
-  if ((type === 'text' || type === 'attachment') && exploded) {
-    logger.warn(`toggleMessageReaction: message is exploded`)
-    return
-  }
-  const messageID = id
-  const clientPrev = getClientPrev(conversationIDKey)
-  const meta = Constants.getConvoState(conversationIDKey).meta
-  const outboxID = Constants.generateOutboxID()
-  logger.info(`toggleMessageReaction: posting reaction`)
-  try {
-    await RPCChatTypes.localPostReactionNonblockRpcPromise({
-      body: emoji,
-      clientPrev,
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      outboxID,
-      supersedes: messageID,
-      tlfName: meta.tlfname,
-      tlfPublic: false,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info(`toggleMessageReaction: failed to post` + error.message)
-    }
-  }
-}
-
 const setMinWriterRole = async (_: unknown, action: Chat2Gen.SetMinWriterRolePayload) => {
   const {conversationIDKey, role} = action.payload
   logger.info(`Setting minWriterRole to ${role} for convID ${conversationIDKey}`)
@@ -1059,11 +973,6 @@ const dismissBlockButtons = async (_: unknown, action: Chat2Gen.DismissBlockButt
 }
 
 const initChat = () => {
-  // Platform specific actions
-  if (!Container.isMobile) {
-    Container.listenAction(Chat2Gen.desktopNotification, desktopNotify)
-  }
-
   // Refresh the inbox
   Container.listenAction(EngineGen.chat1NotifyChatChatInboxStale, () => {
     Constants.useState.getState().dispatch.inboxRefresh('inboxStale')
@@ -1117,24 +1026,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.jumpToRecent, () => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.loadMoreMessages({forceClear: true, reason: 'jump to recent'})
-  })
-  Container.listenAction(Chat2Gen.loadMessagesCentered, (_, a) => {
-    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
-    dispatch.loadMoreMessages({
-      centeredMessageID: {
-        conversationIDKey: Constants.getSelectedConversation(),
-        highlightMode: a.payload.highlightMode,
-        messageID: a.payload.messageID,
-      },
-      forceClear: true,
-      forceContainsLatestCalc: true,
-      messageIDControl: {
-        mode: RPCChatTypes.MessageIDControlMode.centered,
-        num: Constants.numMessagesOnInitialLoad,
-        pivot: a.payload.messageID,
-      },
-      reason: 'centered',
-    })
   })
   Container.listenAction(Chat2Gen.tabSelected, () => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
@@ -1207,8 +1098,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.toggleMessageCollapse, toggleMessageCollapse)
   Container.listenAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
 
-  Container.listenAction(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
-
   Container.listenAction(Chat2Gen.setMinWriterRole, setMinWriterRole)
 
   Container.listenAction(Chat2Gen.fetchUserEmoji, fetchUserEmoji)
@@ -1257,7 +1146,12 @@ const initChat = () => {
       .dispatch.setMaybeMentionInfo(Constants.getTeamMentionName(teamName, channel), info)
   })
 
-  Container.listenAction(Chat2Gen.replyJump, onReplyJump)
+  Container.listenAction(Chat2Gen.replyJump, (_, action) => {
+    Constants.getConvoState(action.payload.conversationIDKey).dispatch.loadMessagesCentered(
+      action.payload.messageID,
+      'flash'
+    )
+  })
   Container.listenAction(Chat2Gen.resolveMaybeMention, resolveMaybeMention)
 
   Container.listenAction(Chat2Gen.pinMessage, pinMessage)

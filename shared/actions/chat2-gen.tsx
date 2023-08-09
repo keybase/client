@@ -18,7 +18,6 @@ export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const blockConversation = 'chat2:blockConversation'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
-export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
@@ -26,7 +25,6 @@ export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
-export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const markTeamAsRead = 'chat2:markTeamAsRead'
 export const messageSend = 'chat2:messageSend'
@@ -45,11 +43,9 @@ export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const tabSelected = 'chat2:tabSelected'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
-export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unpinMessage = 'chat2:unpinMessage'
-export const unsentTextChanged = 'chat2:unsentTextChanged'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateUnreadline = 'chat2:updateUnreadline'
 
@@ -244,22 +240,6 @@ export const createSetConvRetentionPolicy = (payload: {
   readonly policy: RetentionPolicy
 }) => ({payload, type: setConvRetentionPolicy as typeof setConvRetentionPolicy})
 /**
- * Show a desktop notification
- */
-export const createDesktopNotification = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly author: string
-  readonly body: string
-}) => ({payload, type: desktopNotification as typeof desktopNotification})
-/**
- * Tell the service to toggle a reaction on a message.
- */
-export const createToggleMessageReaction = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly emoji: string
-  readonly ordinal: Types.Ordinal
-}) => ({payload, type: toggleMessageReaction as typeof toggleMessageReaction})
-/**
  * The attachment upload modal was canceled
  */
 export const createAttachmentUploadCanceled = (payload: {
@@ -287,13 +267,6 @@ export const createUnpinMessage = (payload: {readonly conversationIDKey: Types.C
   payload,
   type: unpinMessage as typeof unpinMessage,
 })
-/**
- * Unsent text changed
- */
-export const createUnsentTextChanged = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly text: HiddenString
-}) => ({payload, type: unsentTextChanged as typeof unsentTextChanged})
 /**
  * Update the unreadline line position for a conversation
  */
@@ -343,11 +316,6 @@ export const createLeaveConversation = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly dontNavigateToInbox?: boolean
 }) => ({payload, type: leaveConversation as typeof leaveConversation})
-export const createLoadMessagesCentered = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: Types.MessageID
-  readonly highlightMode: Types.CenterOrdinalHighlightMode
-}) => ({payload, type: loadMessagesCentered as typeof loadMessagesCentered})
 export const createMessageSendByUsernames = (payload: {
   readonly usernames: string
   readonly text: HiddenString
@@ -377,7 +345,6 @@ export type AttachmentUploadCanceledPayload = ReturnType<typeof createAttachment
 export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload>
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ConfirmScreenResponsePayload = ReturnType<typeof createConfirmScreenResponse>
-export type DesktopNotificationPayload = ReturnType<typeof createDesktopNotification>
 export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockButtons>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
@@ -385,7 +352,6 @@ export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMes
 export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
 export type JumpToRecentPayload = ReturnType<typeof createJumpToRecent>
 export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation>
-export type LoadMessagesCenteredPayload = ReturnType<typeof createLoadMessagesCentered>
 export type MarkInitiallyLoadedThreadAsReadPayload = ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
 export type MarkTeamAsReadPayload = ReturnType<typeof createMarkTeamAsRead>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
@@ -404,11 +370,9 @@ export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvReten
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
-export type ToggleMessageReactionPayload = ReturnType<typeof createToggleMessageReaction>
 export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
 export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePrompt>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
-export type UnsentTextChangedPayload = ReturnType<typeof createUnsentTextChanged>
 export type UpdateNotificationSettingsPayload = ReturnType<typeof createUpdateNotificationSettings>
 export type UpdateUnreadlinePayload = ReturnType<typeof createUpdateUnreadline>
 
@@ -424,7 +388,6 @@ export type Actions =
   | AttachmentsUploadPayload
   | BlockConversationPayload
   | ConfirmScreenResponsePayload
-  | DesktopNotificationPayload
   | DismissBlockButtonsPayload
   | DismissJourneycardPayload
   | FetchUserEmojiPayload
@@ -432,7 +395,6 @@ export type Actions =
   | JoinConversationPayload
   | JumpToRecentPayload
   | LeaveConversationPayload
-  | LoadMessagesCenteredPayload
   | MarkInitiallyLoadedThreadAsReadPayload
   | MarkTeamAsReadPayload
   | MessageSendByUsernamesPayload
@@ -451,11 +413,9 @@ export type Actions =
   | SetMinWriterRolePayload
   | TabSelectedPayload
   | ToggleMessageCollapsePayload
-  | ToggleMessageReactionPayload
   | UnfurlRemovePayload
   | UnfurlResolvePromptPayload
   | UnpinMessagePayload
-  | UnsentTextChangedPayload
   | UpdateNotificationSettingsPayload
   | UpdateUnreadlinePayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

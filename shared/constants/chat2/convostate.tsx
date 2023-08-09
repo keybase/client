@@ -136,6 +136,7 @@ export type ConvoState = ConvoStore & {
     clearAttachmentView: () => void
     clearMessageTypeMap: () => void
     dismissBottomBanner: () => void
+    desktopNotification: (author: string, body: string) => void
     editBotSettings: (
       username: string,
       allowCommands: boolean,
@@ -147,7 +148,12 @@ export type ConvoState = ConvoStore & {
     giphyToggleWindow: (show: boolean) => void
     hideSearch: () => void
     hideConversation: (hide: boolean) => void
+    injectIntoInput: (text: string) => void
     loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
+    loadMessagesCentered: (
+      messageID: Types.MessageID,
+      highlightMode: Types.CenterOrdinalHighlightMode
+    ) => void
     loadOrangeLine: () => void
     loadOlderMessagesDueToScroll: () => void
     loadNewerMessagesDueToScroll: () => void
@@ -225,8 +231,8 @@ export type ConvoState = ConvoStore & {
     // false to clear
     setMarkAsUnread: (readMsgID?: RPCChatTypes.MessageID | false) => void
     setMessageCenterOrdinal: (m?: Types.CenterOrdinal) => void
-    setMessageTypeMap: (o: Types.Ordinal, t?: Types.RenderMessageType) => void
     setMessageOrdinals: (os?: Array<Types.Ordinal>) => void
+    setMessageTypeMap: (o: Types.Ordinal, t?: Types.RenderMessageType) => void
     setMeta: (m?: Types.ConversationMeta) => void
     setMoreToLoad: (m: boolean) => void
     setMuted: (m: boolean) => void
@@ -237,27 +243,27 @@ export type ConvoState = ConvoStore & {
     setThreadLoadStatus: (status: RPCChatTypes.UIChatThreadStatusTyp) => void
     setThreadSearchQuery: (query: string) => void
     setTyping: (t: Set<string>) => void
-    injectIntoInput: (text: string) => void
-    updateDraft: (text: string) => void
+    setupSubscriptions: () => void
     threadSearch: (query: string) => void
     toggleGiphyPrefill: () => void
+    toggleMessageReaction: (ordinal: Types.Ordinal, emoji: string) => void
     toggleThreadSearch: (hide?: boolean) => void
+    updateDraft: (text: string) => void
     toggleLocalReaction: (p: {
       decorated: string
       emoji: string
       targetOrdinal: Types.Ordinal
       username: string
     }) => void
+    unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
+    unreadUpdated: (unread: number) => void
+    updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
+    updateAttachmentViewTransfered: (msgId: number, path: string) => void
     updateMessage: (ordinal: Types.Ordinal, m: Partial<Types.Message>) => void
     updateMeta: (m: Partial<Types.ConversationMeta>) => void
     updateReactions: (
       updates: Array<{targetMsgID: RPCChatTypes.MessageID; reactions: Types.Reactions}>
     ) => void
-    unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
-    updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
-    updateAttachmentViewTransfered: (msgId: number, path: string) => void
-    unreadUpdated: (unread: number) => void
-    setupSubscriptions: () => void
   }
   getExplodingMode: () => number
   getEditInfo: () => {exploded: boolean; ordinal: Types.Ordinal; text: string} | undefined
@@ -473,6 +479,42 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.messageTypeMap.clear()
       })
     },
+    desktopNotification: (author, body) => {
+      if (isMobile) return
+
+      // Show a desktop notification
+      const f = async () => {
+        const meta = get().meta
+        const conversationIDKey = get().id
+        if (
+          Common.isUserActivelyLookingAtThisThread(conversationIDKey) ||
+          meta.isMuted // ignore muted convos
+        ) {
+          logger.info('not sending notification')
+          return
+        }
+
+        logger.info('sending chat notification')
+        let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
+        if (meta.teamType === 'big') {
+          title += `#${meta.channelname}`
+        }
+
+        const ConfigConstants = await import('../config')
+        const onClick = () => {
+          ConfigConstants.useConfigState.getState().dispatch.showMain()
+          reduxDispatch(Chat2Gen.createNavigateToInbox())
+          reduxDispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'desktopNotification'}))
+        }
+        const onClose = () => {}
+        logger.info('invoking NotifyPopup for chat notification')
+        const sound = ConfigConstants.useConfigState.getState().notifySound
+
+        const NotifyPopup = await import('../../util/notify-popup')
+        NotifyPopup.default(title, {body, sound}, -1, author, onClick, onClose)
+      }
+      Z.ignorePromise(f())
+    },
     dismissBottomBanner: () => {
       set(s => {
         s.dismissedInviteBanners = true
@@ -546,7 +588,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
             status: hide ? RPCChatTypes.ConversationStatus.ignored : RPCChatTypes.ConversationStatus.unfiled,
           },
-          Constants.waitingKeyConvStatusChange(conversationIDKey)
+          Common.waitingKeyConvStatusChange(conversationIDKey)
         )
       }
       Z.ignorePromise(f())
@@ -630,6 +672,23 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    loadMessagesCentered: (messageID, highlightMode) => {
+      get().dispatch.loadMoreMessages({
+        centeredMessageID: {
+          conversationIDKey: Common.getSelectedConversation(),
+          highlightMode,
+          messageID,
+        },
+        forceClear: true,
+        forceContainsLatestCalc: true,
+        messageIDControl: {
+          mode: RPCChatTypes.MessageIDControlMode.centered,
+          num: numMessagesOnInitialLoad,
+          pivot: messageID,
+        },
+        reason: 'centered',
+      })
     },
     loadMoreMessages: p => {
       const {
@@ -1132,8 +1191,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
 
         const Constants = await import('.')
-        const text = Constants.formatTextForQuoting(message.text.stringValue())
-        Constants.getConvoState(conversationIDKey).dispatch.injectIntoInput(text)
+        const text = Common.formatTextForQuoting(message.text.stringValue())
+        getConvoState(conversationIDKey).dispatch.injectIntoInput(text)
         Constants.useState.getState().dispatch.metasReceived([meta])
         reduxDispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'createdMessagePrivately'}))
       }
@@ -1662,13 +1721,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           desktopNotificationSnippet &&
           cMsg.state === RPCChatTypes.MessageUnboxedState.valid
         ) {
-          reduxDispatch(
-            Chat2Gen.createDesktopNotification({
-              author: cMsg.valid.senderUsername,
-              body: desktopNotificationSnippet,
-              conversationIDKey,
-            })
-          )
+          get().dispatch.desktopNotification(cMsg.valid.senderUsername, desktopNotificationSnippet)
         }
       }
       Z.ignorePromise(f())
@@ -1826,7 +1879,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const fetchConversationBio = () => {
           const participantInfo = get().participants
           const username = ConfigConstants.useCurrentUserState.getState().username
-          const otherParticipants = Constants.getRowParticipants(participantInfo, username || '')
+          const otherParticipants = Meta.getRowParticipants(participantInfo, username || '')
           if (otherParticipants.length === 1) {
             // we're in a one-on-one convo
             const username = otherParticipants[0] || ''
@@ -1872,8 +1925,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
 
         const ensureSelectedTeamLoaded = () => {
-          const selectedConversation = Constants.getSelectedConversation()
-          const meta = Constants.getConvoState(selectedConversation).meta
+          const selectedConversation = Common.getSelectedConversation()
+          const meta = getConvoState(selectedConversation).meta
           if (meta.conversationIDKey === selectedConversation) {
             const {teamID, teamname} = meta
             if (teamname) {
@@ -2344,6 +2397,48 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
       })
+    },
+    toggleMessageReaction: (ordinal, emoji) => {
+      const f = async () => {
+        // The service translates this to a delete if an identical reaction already exists
+        // so we only need to call this RPC to toggle it on & off
+        if (!emoji) {
+          return
+        }
+        const message = get().messageMap.get(ordinal)
+        if (!message) {
+          logger.warn(`toggleMessageReaction: no message found`)
+          return
+        }
+        const {type, exploded, id} = message
+        if ((type === 'text' || type === 'attachment') && exploded) {
+          logger.warn(`toggleMessageReaction: message is exploded`)
+          return
+        }
+        const supersedes = id
+        const conversationIDKey = get().id
+        const clientPrev = getClientPrev(conversationIDKey)
+        const meta = get().meta
+        const outboxID = Common.generateOutboxID()
+        logger.info(`toggleMessageReaction: posting reaction`)
+        try {
+          await RPCChatTypes.localPostReactionNonblockRpcPromise({
+            body: emoji,
+            clientPrev,
+            conversationID: Types.keyToConversationID(conversationIDKey),
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+            outboxID,
+            supersedes,
+            tlfName: meta.tlfname,
+            tlfPublic: false,
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info(`toggleMessageReaction: failed to post` + error.message)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     toggleThreadSearch: hide => {
       set(s => {

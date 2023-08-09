@@ -7,17 +7,6 @@
     "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
-    "loadMessagesCentered": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID",
-      "highlightMode": "Types.CenterOrdinalHighlightMode"
-    },
-    "desktopNotification": {
-      "_description": "Show a desktop notification",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "author": "string",
-      "body": "string"
-    },
     "messageSend": {
       "_description": "Send a text message",
       "conversationIDKey": "Types.ConversationIDKey",
@@ -29,12 +18,6 @@
       "usernames": "string",
       "text": "HiddenString",
       "waitingKey?": "string"
-    },
-    "toggleMessageReaction": {
-      "_description": "Tell the service to toggle a reaction on a message.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "emoji": "string",
-      "ordinal": "Types.Ordinal"
     },
     "joinConversation": {
       "conversationIDKey": "Types.ConversationIDKey"
