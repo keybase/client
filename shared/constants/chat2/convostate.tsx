@@ -550,7 +550,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
             status: hide ? RPCChatTypes.ConversationStatus.ignored : RPCChatTypes.ConversationStatus.unfiled,
           },
-          Constants.waitingKeyConvStatusChange(conversationIDKey)
+          Common.waitingKeyConvStatusChange(conversationIDKey)
         )
       }
       Z.ignorePromise(f())
@@ -1153,8 +1153,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
 
         const Constants = await import('.')
-        const text = Constants.formatTextForQuoting(message.text.stringValue())
-        Constants.getConvoState(conversationIDKey).dispatch.injectIntoInput(text)
+        const text = Common.formatTextForQuoting(message.text.stringValue())
+        getConvoState(conversationIDKey).dispatch.injectIntoInput(text)
         Constants.useState.getState().dispatch.metasReceived([meta])
         reduxDispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'createdMessagePrivately'}))
       }
@@ -1847,7 +1847,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const fetchConversationBio = () => {
           const participantInfo = get().participants
           const username = ConfigConstants.useCurrentUserState.getState().username
-          const otherParticipants = Constants.getRowParticipants(participantInfo, username || '')
+          const otherParticipants = Meta.getRowParticipants(participantInfo, username || '')
           if (otherParticipants.length === 1) {
             // we're in a one-on-one convo
             const username = otherParticipants[0] || ''
@@ -1894,7 +1894,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         const ensureSelectedTeamLoaded = () => {
           const selectedConversation = Common.getSelectedConversation()
-          const meta = Constants.getConvoState(selectedConversation).meta
+          const meta = getConvoState(selectedConversation).meta
           if (meta.conversationIDKey === selectedConversation) {
             const {teamID, teamname} = meta
             if (teamname) {

@@ -134,3 +134,9 @@ export const allMessageTypes: Set<Types.MessageType> = new Set([
 ])
 
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
+
+export const formatTextForQuoting = (text: string) =>
+  text
+    .split('\n')
+    .map(line => `> ${line}\n`)
+    .join('')
