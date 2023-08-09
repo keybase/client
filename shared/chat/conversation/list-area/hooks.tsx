@@ -4,13 +4,18 @@ import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/chat2'
 import JumpToRecent from './jump-to-recent'
 import type * as Types from '../../../constants/types/chat2'
+import logger from '../../../logger'
 
 export const useActions = (p: {conversationIDKey: Types.ConversationIDKey}) => {
   const {conversationIDKey} = p
-  const dispatch = Container.useDispatch()
   const markInitiallyLoadedThreadAsRead = React.useCallback(() => {
-    dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
+    const selected = Constants.getSelectedConversation()
+    if (selected !== conversationIDKey) {
+      logger.info('bail on not looking at this thread anymore?')
+      return
+    }
+    Constants.getConvoState(conversationIDKey).dispatch.markThreadAsRead()
+  }, [conversationIDKey])
 
   return {markInitiallyLoadedThreadAsRead}
 }

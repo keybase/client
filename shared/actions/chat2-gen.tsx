@@ -25,7 +25,6 @@ export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
-export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const markTeamAsRead = 'chat2:markTeamAsRead'
 export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
@@ -157,13 +156,6 @@ export const createNavigateToThread = (payload: {
     | 'teamMention'
   readonly pushBody?: string
 }) => ({payload, type: navigateToThread as typeof navigateToThread})
-/**
- * On startup we're automatically loading a thread sometimes.
- * When we first view it we should go through our marking as read logic
- */
-export const createMarkInitiallyLoadedThreadAsRead = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: markInitiallyLoadedThreadAsRead as typeof markInitiallyLoadedThreadAsRead})
 /**
  * Pin a message
  */
@@ -332,7 +324,6 @@ export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMes
 export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
 export type JumpToRecentPayload = ReturnType<typeof createJumpToRecent>
 export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation>
-export type MarkInitiallyLoadedThreadAsReadPayload = ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
 export type MarkTeamAsReadPayload = ReturnType<typeof createMarkTeamAsRead>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
 export type MessageSendPayload = ReturnType<typeof createMessageSend>
@@ -372,7 +363,6 @@ export type Actions =
   | JoinConversationPayload
   | JumpToRecentPayload
   | LeaveConversationPayload
-  | MarkInitiallyLoadedThreadAsReadPayload
   | MarkTeamAsReadPayload
   | MessageSendByUsernamesPayload
   | MessageSendPayload

@@ -1022,15 +1022,6 @@ const initChat = () => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.markThreadAsRead(a.payload.messageID)
   })
-  Container.listenAction(Chat2Gen.markInitiallyLoadedThreadAsRead, (_, a) => {
-    const conversationIDKey = Constants.getSelectedConversation()
-    if (a.payload.conversationIDKey !== conversationIDKey) {
-      logger.info('bail on not looking at this thread anymore?')
-      return
-    }
-    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
-    dispatch.markThreadAsRead()
-  })
   Container.listenAction(Chat2Gen.tabSelected, () => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.markThreadAsRead()

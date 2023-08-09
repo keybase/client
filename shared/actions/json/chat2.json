@@ -52,13 +52,6 @@
       "_description": "The attachment upload modal was canceled",
       "outboxIDs": "Array<RPCChatTypes.OutboxID>"
     },
-    "markInitiallyLoadedThreadAsRead": {
-      "_description": [
-        "On startup we're automatically loading a thread sometimes.",
-        "When we first view it we should go through our marking as read logic"
-      ],
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
     "markTeamAsRead": {
       "_description": "Mark all conversations in a team as read",
       "teamID": "TeamsTypes.TeamID"
