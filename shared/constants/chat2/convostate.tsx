@@ -768,6 +768,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             Z.dummyListenerApi
           )
           if (get().meta.conversationIDKey === conversationIDKey) {
+            console.log('aaaa updating offline', get().meta)
             get().dispatch.updateMeta({offline: results.offline})
           }
         } catch (error) {
@@ -1819,11 +1820,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     selectedConversation: () => {
-      // blank out draft so we don't flash old data when switching convs
-      set(s => {
-        s.meta.draft = ''
-      })
-
       const f = async () => {
         const Constants = await import('.')
         const ConfigConstants = await import('../config')
@@ -1918,7 +1914,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     setDraft: d => {
-      // console.log('aaa set draft', get().id, d, get().meta.draft)
+      if (get().id === '0000b386ba31eebeea5d8ba781aa8ccb4e0c31b6d9a210e74964b42d2d5726c1') {
+        console.log('aaa set draft', get().id, d, get().meta.draft, d)
+      }
       set(s => {
         s.draft = d
       })
@@ -2162,6 +2160,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMeta: _m => {
       // see updatemeta
       const m = _m ?? Meta.makeConversationMeta()
+      if (get().id === '0000b386ba31eebeea5d8ba781aa8ccb4e0c31b6d9a210e74964b42d2d5726c1') {
+        console.log('aaa setMeta', m)
+      }
       set(s => {
         s.meta = m
       })
@@ -2437,6 +2438,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     updateMeta: (pm: Partial<Types.ConversationMeta>) => {
+      if (get().id === '0000b386ba31eebeea5d8ba781aa8ccb4e0c31b6d9a210e74964b42d2d5726c1') {
+        console.log('aaa updateMeta', get().meta, pm)
+      }
       // see setmeta
       set(s => {
         const keys = Object.keys(pm) as Array<keyof Types.ConversationMeta>

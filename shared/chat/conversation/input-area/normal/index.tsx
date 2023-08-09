@@ -85,6 +85,9 @@ const Input = (p: Props) => {
   const showCommandStatus = Constants.useContext(s => !!s.commandStatus)
   const replyTo = Constants.useContext(s => s.messageMap.get(rordinal)?.id)
 
+  const meta = Constants.useContext(s => s.meta)
+  console.log('>>>>>>>>>> aaaa input render', meta.draft)
+
   return (
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
       {!!replyTo && <ReplyPreview />}
@@ -200,6 +203,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
 ) {
   const {conversationIDKey, focusInputCounter, showCommandMarkdown, onRequestScrollToBottom} = p
   const {onRequestScrollDown, onRequestScrollUp, showGiphySearch, replyTo, jumpToRecent} = p
+  const [lastCID, setLastCID] = React.useState(conversationIDKey)
   const editOrdinal = Constants.useContext(s => s.editing)
   const isEditExploded = Constants.useContext(s =>
     editOrdinal ? s.messageMap.get(editOrdinal)?.exploded ?? false : false
@@ -208,6 +212,10 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const dispatch = Container.useDispatch()
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
   const lastTextRef = React.useRef('')
+
+  const draft = Constants.useContext(s => s.draft)
+  console.log('aaaa render', {conversationIDKey, draft})
+  const [lastDraft, setLastDraft] = React.useState<undefined | string>()
 
   const sendTyping = React.useCallback(
     (text: string) => {
@@ -234,13 +242,12 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
       lastTextRef.current = text
       sendTyping(text)
       sendDraft(text)
-      // TODO
     },
     [sendTyping, sendDraft]
   )
   const injectText = React.useCallback(
     (text: string) => {
-      console.log('aaaa injectText', text)
+      console.log('aaaa injectText', text, inputRef.current ? 'good ref' : 'BAD ref')
       injectingTextRef.current = true
       lastTextRef.current = text
       inputRef.current?.transformText(
@@ -372,6 +379,25 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
 
   const isExploding = explodingModeSeconds !== 0
   const hintText = useHintText({cannotWrite, conversationIDKey, isEditing, isExploding, minWriterRole})
+
+  if (lastCID !== conversationIDKey) {
+    console.log('aaa CID changed', lastCID, conversationIDKey)
+    setLastCID(conversationIDKey)
+    setLastDraft(undefined)
+    injectText('')
+  }
+  if (lastDraft !== draft) {
+    console.log('aaa draft changed', lastDraft, draft)
+    setLastDraft(draft)
+    if (draft) {
+      injectText(draft)
+    }
+  }
+
+  // on mount we need to inject into the ref once
+  Container.useOnMountOnce(() => {
+    draft && injectText(draft)
+  })
 
   return (
     <PlatformInput
