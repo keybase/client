@@ -354,13 +354,6 @@ const desktopNotify = async (_: unknown, action: Chat2Gen.DesktopNotificationPay
   return actions
 }
 
-const onReplyJump = (_: unknown, action: Chat2Gen.ReplyJumpPayload) =>
-  Chat2Gen.createLoadMessagesCentered({
-    conversationIDKey: action.payload.conversationIDKey,
-    highlightMode: 'flash',
-    messageID: action.payload.messageID,
-  })
-
 const messageSend = async (
   _: unknown,
   action: Chat2Gen.MessageSendPayload,
@@ -1118,24 +1111,6 @@ const initChat = () => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.loadMoreMessages({forceClear: true, reason: 'jump to recent'})
   })
-  Container.listenAction(Chat2Gen.loadMessagesCentered, (_, a) => {
-    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
-    dispatch.loadMoreMessages({
-      centeredMessageID: {
-        conversationIDKey: Constants.getSelectedConversation(),
-        highlightMode: a.payload.highlightMode,
-        messageID: a.payload.messageID,
-      },
-      forceClear: true,
-      forceContainsLatestCalc: true,
-      messageIDControl: {
-        mode: RPCChatTypes.MessageIDControlMode.centered,
-        num: Constants.numMessagesOnInitialLoad,
-        pivot: a.payload.messageID,
-      },
-      reason: 'centered',
-    })
-  })
   Container.listenAction(Chat2Gen.tabSelected, () => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.loadMoreMessages({reason: 'tab selected'})
@@ -1257,7 +1232,12 @@ const initChat = () => {
       .dispatch.setMaybeMentionInfo(Constants.getTeamMentionName(teamName, channel), info)
   })
 
-  Container.listenAction(Chat2Gen.replyJump, onReplyJump)
+  Container.listenAction(Chat2Gen.replyJump, (_, action) => {
+    Constants.getConvoState(action.payload.conversationIDKey).dispatch.loadMessagesCentered(
+      action.payload.messageID,
+      'flash'
+    )
+  })
   Container.listenAction(Chat2Gen.resolveMaybeMention, resolveMaybeMention)
 
   Container.listenAction(Chat2Gen.pinMessage, pinMessage)

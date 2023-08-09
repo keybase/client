@@ -148,6 +148,10 @@ export type ConvoState = ConvoStore & {
     hideSearch: () => void
     hideConversation: (hide: boolean) => void
     loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
+    loadMessagesCentered: (
+      messageID: Types.MessageID,
+      highlightMode: Types.CenterOrdinalHighlightMode
+    ) => void
     loadOrangeLine: () => void
     loadOlderMessagesDueToScroll: () => void
     loadNewerMessagesDueToScroll: () => void
@@ -630,6 +634,23 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    loadMessagesCentered: (messageID, highlightMode) => {
+      get().dispatch.loadMoreMessages({
+        centeredMessageID: {
+          conversationIDKey: Common.getSelectedConversation(),
+          highlightMode,
+          messageID,
+        },
+        forceClear: true,
+        forceContainsLatestCalc: true,
+        messageIDControl: {
+          mode: RPCChatTypes.MessageIDControlMode.centered,
+          num: numMessagesOnInitialLoad,
+          pivot: messageID,
+        },
+        reason: 'centered',
+      })
     },
     loadMoreMessages: p => {
       const {
@@ -1872,7 +1893,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
 
         const ensureSelectedTeamLoaded = () => {
-          const selectedConversation = Constants.getSelectedConversation()
+          const selectedConversation = Common.getSelectedConversation()
           const meta = Constants.getConvoState(selectedConversation).meta
           if (meta.conversationIDKey === selectedConversation) {
             const {teamID, teamname} = meta

@@ -1,9 +1,7 @@
-import type * as Types from '../../../constants/types/chat2'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
-import type * as Styles from '../../../styles'
-import * as Container from '../../../util/container'
 import ThreadSearch from '.'
+import type * as Styles from '../../../styles'
+import type * as Types from '../../../constants/types/chat2'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -16,10 +14,9 @@ export default (ownProps: OwnProps) => {
   const _hits = info.hits
   const status = info.status
   const initialText = Constants.useContext(s => s.threadSearchQuery)
-
-  const dispatch = Container.useDispatch()
+  const loadMessagesCentered = Constants.useContext(s => s.dispatch.loadMessagesCentered)
   const _loadSearchHit = (messageID: Types.MessageID) => {
-    dispatch(Chat2Gen.createLoadMessagesCentered({conversationIDKey, highlightMode: 'always', messageID}))
+    loadMessagesCentered(messageID, 'always')
   }
   const setThreadSearchQuery = Constants.useContext(s => s.dispatch.setThreadSearchQuery)
   const clearInitialText = () => {
