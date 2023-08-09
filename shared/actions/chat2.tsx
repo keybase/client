@@ -397,7 +397,7 @@ const messageSend = async (
               return
             }
             if (canceled) {
-              Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(text.stringValue())
+              Constants.getConvoState(conversationIDKey).dispatch.injectIntoInput(text.stringValue())
               return
             }
             return false
@@ -959,7 +959,7 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
   const {convID, show, clearInput} = action.payload.params
   const conversationIDKey = Types.stringToConversationIDKey(convID)
   if (clearInput) {
-    Constants.getConvoState(conversationIDKey).dispatch.setUnsentText('')
+    Constants.getConvoState(conversationIDKey).dispatch.injectIntoInput('')
   }
 
   Constants.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyToggleWindow(show)
