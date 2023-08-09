@@ -7,12 +7,6 @@
     "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
-    "desktopNotification": {
-      "_description": "Show a desktop notification",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "author": "string",
-      "body": "string"
-    },
     "messageSend": {
       "_description": "Send a text message",
       "conversationIDKey": "Types.ConversationIDKey",

@@ -136,6 +136,7 @@ export type ConvoState = ConvoStore & {
     clearAttachmentView: () => void
     clearMessageTypeMap: () => void
     dismissBottomBanner: () => void
+    desktopNotification: (author: string, body: string) => void
     editBotSettings: (
       username: string,
       allowCommands: boolean,
@@ -147,6 +148,7 @@ export type ConvoState = ConvoStore & {
     giphyToggleWindow: (show: boolean) => void
     hideSearch: () => void
     hideConversation: (hide: boolean) => void
+    injectIntoInput: (text: string) => void
     loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
     loadMessagesCentered: (
       messageID: Types.MessageID,
@@ -229,8 +231,8 @@ export type ConvoState = ConvoStore & {
     // false to clear
     setMarkAsUnread: (readMsgID?: RPCChatTypes.MessageID | false) => void
     setMessageCenterOrdinal: (m?: Types.CenterOrdinal) => void
-    setMessageTypeMap: (o: Types.Ordinal, t?: Types.RenderMessageType) => void
     setMessageOrdinals: (os?: Array<Types.Ordinal>) => void
+    setMessageTypeMap: (o: Types.Ordinal, t?: Types.RenderMessageType) => void
     setMeta: (m?: Types.ConversationMeta) => void
     setMoreToLoad: (m: boolean) => void
     setMuted: (m: boolean) => void
@@ -241,27 +243,26 @@ export type ConvoState = ConvoStore & {
     setThreadLoadStatus: (status: RPCChatTypes.UIChatThreadStatusTyp) => void
     setThreadSearchQuery: (query: string) => void
     setTyping: (t: Set<string>) => void
-    injectIntoInput: (text: string) => void
-    updateDraft: (text: string) => void
+    setupSubscriptions: () => void
     threadSearch: (query: string) => void
     toggleGiphyPrefill: () => void
     toggleThreadSearch: (hide?: boolean) => void
+    updateDraft: (text: string) => void
     toggleLocalReaction: (p: {
       decorated: string
       emoji: string
       targetOrdinal: Types.Ordinal
       username: string
     }) => void
+    unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
+    unreadUpdated: (unread: number) => void
+    updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
+    updateAttachmentViewTransfered: (msgId: number, path: string) => void
     updateMessage: (ordinal: Types.Ordinal, m: Partial<Types.Message>) => void
     updateMeta: (m: Partial<Types.ConversationMeta>) => void
     updateReactions: (
       updates: Array<{targetMsgID: RPCChatTypes.MessageID; reactions: Types.Reactions}>
     ) => void
-    unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
-    updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
-    updateAttachmentViewTransfered: (msgId: number, path: string) => void
-    unreadUpdated: (unread: number) => void
-    setupSubscriptions: () => void
   }
   getExplodingMode: () => number
   getEditInfo: () => {exploded: boolean; ordinal: Types.Ordinal; text: string} | undefined
@@ -476,6 +477,42 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.messageTypeMap.clear()
       })
+    },
+    desktopNotification: (author, body) => {
+      if (isMobile) return
+
+      // Show a desktop notification
+      const f = async () => {
+        const meta = get().meta
+        const conversationIDKey = get().id
+        if (
+          Common.isUserActivelyLookingAtThisThread(conversationIDKey) ||
+          meta.isMuted // ignore muted convos
+        ) {
+          logger.info('not sending notification')
+          return
+        }
+
+        logger.info('sending chat notification')
+        let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
+        if (meta.teamType === 'big') {
+          title += `#${meta.channelname}`
+        }
+
+        const ConfigConstants = await import('../config')
+        const onClick = () => {
+          ConfigConstants.useConfigState.getState().dispatch.showMain()
+          reduxDispatch(Chat2Gen.createNavigateToInbox())
+          reduxDispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'desktopNotification'}))
+        }
+        const onClose = () => {}
+        logger.info('invoking NotifyPopup for chat notification')
+        const sound = ConfigConstants.useConfigState.getState().notifySound
+
+        const NotifyPopup = await import('../../util/notify-popup')
+        NotifyPopup.default(title, {body, sound}, -1, author, onClick, onClose)
+      }
+      Z.ignorePromise(f())
     },
     dismissBottomBanner: () => {
       set(s => {
@@ -1683,13 +1720,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           desktopNotificationSnippet &&
           cMsg.state === RPCChatTypes.MessageUnboxedState.valid
         ) {
-          reduxDispatch(
-            Chat2Gen.createDesktopNotification({
-              author: cMsg.valid.senderUsername,
-              body: desktopNotificationSnippet,
-              conversationIDKey,
-            })
-          )
+          get().dispatch.desktopNotification(cMsg.valid.senderUsername, desktopNotificationSnippet)
         }
       }
       Z.ignorePromise(f())

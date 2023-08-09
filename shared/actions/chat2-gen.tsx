@@ -18,7 +18,6 @@ export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const blockConversation = 'chat2:blockConversation'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
-export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
@@ -242,14 +241,6 @@ export const createSetConvRetentionPolicy = (payload: {
   readonly policy: RetentionPolicy
 }) => ({payload, type: setConvRetentionPolicy as typeof setConvRetentionPolicy})
 /**
- * Show a desktop notification
- */
-export const createDesktopNotification = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly author: string
-  readonly body: string
-}) => ({payload, type: desktopNotification as typeof desktopNotification})
-/**
  * Tell the service to toggle a reaction on a message.
  */
 export const createToggleMessageReaction = (payload: {
@@ -363,7 +354,6 @@ export type AttachmentUploadCanceledPayload = ReturnType<typeof createAttachment
 export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload>
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ConfirmScreenResponsePayload = ReturnType<typeof createConfirmScreenResponse>
-export type DesktopNotificationPayload = ReturnType<typeof createDesktopNotification>
 export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockButtons>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
@@ -408,7 +398,6 @@ export type Actions =
   | AttachmentsUploadPayload
   | BlockConversationPayload
   | ConfirmScreenResponsePayload
-  | DesktopNotificationPayload
   | DismissBlockButtonsPayload
   | DismissJourneycardPayload
   | FetchUserEmojiPayload

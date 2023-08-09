@@ -18,7 +18,6 @@ import * as Types from '../constants/types/chat2'
 import * as WaitingConstants from '../constants/waiting'
 import {findLast} from '../util/arrays'
 import KB2 from '../util/electron'
-import NotifyPopup from '../util/notify-popup'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
 
@@ -314,44 +313,6 @@ const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvU
       Constants.useState.getState().dispatch.metasReceived([meta])
     }
   }
-}
-
-// Show a desktop notification
-const desktopNotify = async (_: unknown, action: Chat2Gen.DesktopNotificationPayload) => {
-  const {conversationIDKey, author, body} = action.payload
-  const meta = Constants.getConvoState(conversationIDKey).meta
-
-  if (
-    Constants.isUserActivelyLookingAtThisThread(conversationIDKey) ||
-    meta.isMuted // ignore muted convos
-  ) {
-    logger.info('not sending notification')
-    return
-  }
-
-  logger.info('sending chat notification')
-  let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
-  if (meta.teamType === 'big') {
-    title += `#${meta.channelname}`
-  }
-
-  const actions = await new Promise<Array<Container.TypedActions>>(resolve => {
-    const onClick = () => {
-      ConfigConstants.useConfigState.getState().dispatch.showMain()
-      resolve([
-        Chat2Gen.createNavigateToInbox(),
-        Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'desktopNotification'}),
-      ])
-    }
-    const onClose = () => {
-      resolve([])
-    }
-    logger.info('invoking NotifyPopup for chat notification')
-    const sound = ConfigConstants.useConfigState.getState().notifySound
-    NotifyPopup(title, {body, sound}, -1, author, onClick, onClose)
-  })
-
-  return actions
 }
 
 const messageSend = async (
@@ -1052,11 +1013,6 @@ const dismissBlockButtons = async (_: unknown, action: Chat2Gen.DismissBlockButt
 }
 
 const initChat = () => {
-  // Platform specific actions
-  if (!Container.isMobile) {
-    Container.listenAction(Chat2Gen.desktopNotification, desktopNotify)
-  }
-
   // Refresh the inbox
   Container.listenAction(EngineGen.chat1NotifyChatChatInboxStale, () => {
     Constants.useState.getState().dispatch.inboxRefresh('inboxStale')
