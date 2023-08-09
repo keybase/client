@@ -131,14 +131,12 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         const name = 'config.getBootstrapStatus'
         const {wait} = get().dispatch
         wait(name, version, true)
-        await get().dispatch.loadDaemonBootstrapStatus()
-        wait(name, version, false)
-
         const DarkMode = await import('./darkmode')
-        DarkMode.useDarkModeState.getState().dispatch.loadDarkPrefs()
-
         const ChatConstants = await import('./chat2')
+        await get().dispatch.loadDaemonBootstrapStatus()
+        DarkMode.useDarkModeState.getState().dispatch.loadDarkPrefs()
         ChatConstants.useState.getState().dispatch.loadStaticConfig()
+        wait(name, version, false)
       }
       Z.ignorePromise(f())
       get().dispatch.loadDaemonAccounts()

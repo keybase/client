@@ -230,7 +230,8 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   React.useEffect(() => {
     // if the convo didn't change we only look at the unsent text being injected
     if (injectRef.current === conversationIDKey) {
-      if (unsentText) {
+      // we want to inject '' sometimes
+      if (unsentText !== undefined) {
         injectText(unsentText)
         resetUnsentText()
       }
