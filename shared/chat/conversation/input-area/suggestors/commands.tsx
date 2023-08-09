@@ -160,7 +160,6 @@ type ListProps = Pick<
 export const List = (p: ListProps) => {
   const {filter, inputRef, lastTextRef, ...rest} = p
   const items = useDataSource({filter, inputRef, lastTextRef})
-  console.log('aaa commands', {filter, items})
   return (
     <Common.List
       {...rest}
