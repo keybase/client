@@ -3,8 +3,7 @@
     "import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
     "import type * as Types from '../constants/types/chat2'",
     "import type * as TeamsTypes from '../constants/types/teams'",
-    "import type HiddenString from '../util/hidden-string'",
-    "import type {RetentionPolicy} from '../constants/types/retention-policy'"
+    "import type HiddenString from '../util/hidden-string'"
   ],
   "actions": {
     "messageSend": {
@@ -97,16 +96,6 @@
       "notificationsDesktop": "Types.NotificationsType",
       "notificationsMobile": "Types.NotificationsType",
       "notificationsGlobalIgnoreMentions": "boolean"
-    },
-    "blockConversation": {
-      "_description": "Block a conversation",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "reportUser": "boolean"
-    },
-    "setConvRetentionPolicy": {
-      "_description": "Sets the retention policy for a conversation.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "policy": "RetentionPolicy"
     },
     "setMinWriterRole": {
       "_description": "Set the minimum role required to write into a conversation. Valid only for team conversations.",

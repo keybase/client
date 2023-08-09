@@ -715,41 +715,6 @@ const updateNotificationSettings = async (_: unknown, action: Chat2Gen.UpdateNot
   })
 }
 
-const blockConversation = async (
-  _: Container.TypedState,
-  action: Chat2Gen.BlockConversationPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {conversationIDKey, reportUser} = action.payload
-  listenerApi.dispatch(Chat2Gen.createNavigateToInbox())
-  ConfigConstants.useConfigState.getState().dispatch.dynamic.persistRoute?.()
-  await RPCChatTypes.localSetConversationStatusLocalRpcPromise({
-    conversationID: Types.keyToConversationID(conversationIDKey),
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    status: reportUser ? RPCChatTypes.ConversationStatus.reported : RPCChatTypes.ConversationStatus.blocked,
-  })
-}
-
-const setConvRetentionPolicy = async (_: unknown, action: Chat2Gen.SetConvRetentionPolicyPayload) => {
-  const {conversationIDKey} = action.payload
-  const convID = Types.keyToConversationID(conversationIDKey)
-  let policy: RPCChatTypes.RetentionPolicy | undefined
-  try {
-    policy = TeamsConstants.retentionPolicyToServiceRetentionPolicy(action.payload.policy)
-    if (policy) {
-      await RPCChatTypes.localSetConvRetentionLocalRpcPromise({convID, policy})
-      return
-    }
-  } catch (error) {
-    if (error instanceof RPCError) {
-      // should never happen
-      logger.error(`Unable to parse retention policy: ${error.message}`)
-    }
-    throw error
-  }
-  return false
-}
-
 const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageCollapsePayload) => {
   const {conversationIDKey, messageID, ordinal} = action.payload
   const m = Constants.getConvoState(conversationIDKey).messageMap.get(ordinal)
@@ -1030,9 +995,7 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.leaveConversation, leaveConversation)
 
   Container.listenAction(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
-  Container.listenAction(Chat2Gen.blockConversation, blockConversation)
 
-  Container.listenAction(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   Container.listenAction(Chat2Gen.toggleMessageCollapse, toggleMessageCollapse)
   Container.listenAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
 

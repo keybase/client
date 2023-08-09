@@ -19,6 +19,7 @@ import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import throttle from 'lodash/throttle'
+import type {RetentionPolicy} from '../types/retention-policy'
 import {RPCError} from '../../util/errors'
 import {findLast} from '../../util/arrays'
 import {isMobile, isIOS} from '../platform'
@@ -132,6 +133,7 @@ export type ConvoState = ConvoStore & {
     ) => void
     attachmentDownload: (ordinal: Types.Ordinal) => void
     badgesUpdated: (badge: number) => void
+    blockConversation: (reportUser: boolean) => void
     botCommandsUpdateStatus: (b: RPCChatTypes.UIBotCommandsUpdateStatus) => void
     channelSuggestionsTriggered: () => void
     clearAttachmentView: () => void
@@ -229,6 +231,7 @@ export type ConvoState = ConvoStore & {
     setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: Types.CommandStatusInfo) => void
     setContainsLatestMessage: (c: boolean) => void
+    setConvRetentionPolicy: (policy: RetentionPolicy) => void
     setDraft: (d?: string) => void
     setEditing: (ordinal: Types.Ordinal | boolean) => void // true is last, false is clear
     setExplodingMode: (seconds: number, incoming?: boolean) => void
@@ -454,6 +457,21 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.badge = badge
       })
+    },
+    blockConversation: reportUser => {
+      const f = async () => {
+        reduxDispatch(Chat2Gen.createNavigateToInbox())
+        const ConfigConstants = await import('../config')
+        ConfigConstants.useConfigState.getState().dispatch.dynamic.persistRoute?.()
+        await RPCChatTypes.localSetConversationStatusLocalRpcPromise({
+          conversationID: Types.keyToConversationID(get().id),
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          status: reportUser
+            ? RPCChatTypes.ConversationStatus.reported
+            : RPCChatTypes.ConversationStatus.blocked,
+        })
+      }
+      Z.ignorePromise(f())
     },
     botCommandsUpdateStatus: status => {
       set(s => {
@@ -2029,6 +2047,25 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.containsLatestMessage = c
       })
+    },
+    setConvRetentionPolicy: _policy => {
+      const f = async () => {
+        const convID = Types.keyToConversationID(get().id)
+        let policy: RPCChatTypes.RetentionPolicy | undefined
+        try {
+          policy = TeamsConstants.retentionPolicyToServiceRetentionPolicy(_policy)
+          if (policy) {
+            await RPCChatTypes.localSetConvRetentionLocalRpcPromise({convID, policy})
+          }
+        } catch (error) {
+          if (error instanceof RPCError) {
+            // should never happen
+            logger.error(`Unable to parse retention policy: ${error.message}`)
+          }
+          throw error
+        }
+      }
+      Z.ignorePromise(f())
     },
     setDraft: d => {
       set(s => {
