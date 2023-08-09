@@ -78,7 +78,6 @@ type ConvoStore = {
   typing: Set<string>
   unfurlPrompt: Map<Types.MessageID, Set<string>>
   unread: number
-  // TODO remove
   unsentText?: string
 }
 
