@@ -20,13 +20,14 @@ import {usingFlashList} from '../list-area/flashlist-config'
 
 const ErrorMessage = () => {
   const createConversationError = Constants.useState(s => s.createConversationError)
+  const createConversation = Constants.useState(s => s.dispatch.createConversation)
   const dispatch = Container.useDispatch()
 
   const _onCreateWithoutThem = React.useCallback(
     (allowedUsers: Array<string>) => {
-      dispatch(Chat2Gen.createCreateConversation({participants: allowedUsers}))
+      createConversation(allowedUsers)
     },
-    [dispatch]
+    [createConversation]
   )
 
   const _onBack = React.useCallback(() => {

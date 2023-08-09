@@ -11,16 +11,15 @@ type Props = {
 
 const MoreMenuPopup = (props: Props) => {
   const {conversationIDKey, onHidden, visible} = props
-  const setUnsentText = Constants.useContext(s => s.dispatch.setUnsentText)
-  const onSlashPrefill = setUnsentText
+  const injectIntoInput = Constants.useContext(s => s.dispatch.injectIntoInput)
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onLocationShare = () => {
     navigateAppend({props: {conversationIDKey}, selected: 'chatLocationPreview'})
   }
   // merge
-  const onCoinFlip = () => onSlashPrefill('/flip ')
-  const onGiphy = () => onSlashPrefill('/giphy ')
-  const onInsertSlashCommand = () => onSlashPrefill('/')
+  const onCoinFlip = () => injectIntoInput('/flip ')
+  const onGiphy = () => injectIntoInput('/giphy ')
+  const onInsertSlashCommand = () => injectIntoInput('/')
 
   // render
   const items: Kb.MenuItems = [

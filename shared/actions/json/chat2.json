@@ -7,27 +7,6 @@
     "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
-    "createConversation": {
-      "_description": "Actually start a conversation",
-      "highlightMessageID?": "number",
-      "participants": "Array<string>"
-    },
-    "messageReplyPrivately": {
-      "_description": "Reply privately to a message with quoting",
-      "sourceConversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
-    },
-    "messageDeleteHistory": {
-      "_description": "Deletes all messages",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "loadOlderMessagesDueToScroll": {
-      "_description": "Load some more messages for a conversation",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "loadNewerMessagesDueToScroll": {
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
     "loadMessagesCentered": {
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "Types.MessageID",
@@ -101,11 +80,6 @@
     "attachmentUploadCanceled": {
       "_description": "The attachment upload modal was canceled",
       "outboxIDs": "Array<RPCChatTypes.OutboxID>"
-    },
-    "sendTyping": {
-      "_description": "Tell server we're typing",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "typing": "boolean"
     },
     "markInitiallyLoadedThreadAsRead": {
       "_description": [
@@ -193,11 +167,6 @@
       "_description": "Remove an unfurl",
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "Types.MessageID"
-    },
-    "unsentTextChanged": {
-      "_description": "Unsent text changed",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString"
     },
     "confirmScreenResponse": {
       "_description": "User responded to the chat Stellar confirm screen",

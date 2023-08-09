@@ -59,9 +59,9 @@ export const MobileSendToChat = (props: Props) => {
   const dispatch = Container.useDispatch()
 
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
-  const setUnsentText = ChatConstants.useContext(s => s.dispatch.setUnsentText)
+  const injectIntoInput = ChatConstants.useContext(s => s.dispatch.injectIntoInput)
   const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, tlfName: string) => {
-    text && setUnsentText(text)
+    text && injectIntoInput(text)
     if (sendPaths?.length) {
       navigateAppend({
         props: {

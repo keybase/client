@@ -71,7 +71,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
   )
 
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
-  const setUnsentText = Constants.useContext(s => s.dispatch.setUnsentText)
+  const injectIntoInput = Constants.useContext(s => s.dispatch.injectIntoInput)
   const onDropped = React.useCallback(
     (items: DropItems) => {
       let {attach, texts} = items.reduce(
@@ -101,7 +101,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
         }
       }
       if (texts.length) {
-        setUnsentText(texts.join('\r'))
+        injectIntoInput(texts.join('\r'))
       }
 
       if (attach.length) {
@@ -111,7 +111,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
         })
       }
     },
-    [setUnsentText, navigateAppend, conversationIDKey]
+    [injectIntoInput, navigateAppend, conversationIDKey]
   )
 
   const insets = useSafeAreaInsets()

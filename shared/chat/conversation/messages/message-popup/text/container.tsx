@@ -129,13 +129,9 @@ export default (ownProps: OwnProps) => {
   const _onReply = (message: Types.Message) => {
     setReplyTo(message.ordinal)
   }
+  const messageReplyPrivately = Constants.useContext(s => s.dispatch.messageReplyPrivately)
   const _onReplyPrivately = (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createMessageReplyPrivately({
-        ordinal: message.ordinal,
-        sourceConversationIDKey: message.conversationIDKey,
-      })
-    )
+    messageReplyPrivately(message.ordinal)
   }
   const _onUserBlock = (message: Types.Message, isSingle: boolean) => {
     navigateAppend({

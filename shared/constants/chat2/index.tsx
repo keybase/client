@@ -17,7 +17,11 @@ import type * as Wallet from '../types/wallets'
 import {RPCError} from '../../util/errors'
 import {inboxUIItemToConversationMeta, updateMeta, parseNotificationSettings} from './meta'
 import {isMobile, isPhone} from '../platform'
-import {noConversationIDKey, pendingWaitingConversationIDKey} from '../types/chat2/common'
+import {
+  noConversationIDKey,
+  pendingWaitingConversationIDKey,
+  pendingErrorConversationIDKey,
+} from '../types/chat2/common'
 import type * as TeamBuildingTypes from '../types/team-building'
 import * as Z from '../../util/zustand'
 import {getConvoState, stores} from './convostate'
@@ -26,6 +30,7 @@ import {
   getSelectedConversation,
   allMessageTypes,
   threadRouteName,
+  waitingKeyCreating,
 } from './common'
 
 export const formatTextForQuoting = (text: string) =>
@@ -370,6 +375,7 @@ export type State = Store & {
       code: number,
       message: string
     ) => void
+    createConversation: (participants: Array<string>, highlightMessageID?: number) => void
     findGeneralConvIDFromTeamID: (teamID: TeamsTypes.TeamID) => void
     inboxRefresh: (
       reason:
@@ -481,6 +487,77 @@ export const useState = Z.createZustand<State>((set, get) => {
           message,
         }
       })
+    },
+    createConversation: (participants, highlightMessageID) => {
+      // TODO This will break if you try to make 2 new conversations at the same time because there is
+      // only one pending conversation state.
+      // The fix involves being able to make multiple pending conversations
+      const f = async () => {
+        const username = ConfigConstants.useCurrentUserState.getState().username
+        if (!username) {
+          logger.error('Making a convo while logged out?')
+          return
+        }
+        try {
+          const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
+            {
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              membersType: RPCChatTypes.ConversationMembersType.impteamnative,
+              tlfName: [...new Set([username, ...participants])].join(','),
+              tlfVisibility: RPCTypes.TLFVisibility.private,
+              topicType: RPCChatTypes.TopicType.chat,
+            },
+            waitingKeyCreating
+          )
+          const {conv, uiConv} = result
+          const conversationIDKey = Types.conversationIDToKey(conv.info.id)
+          if (!conversationIDKey) {
+            logger.warn("Couldn't make a new conversation?")
+          } else {
+            const meta = inboxUIItemToConversationMeta(uiConv)
+            if (meta) {
+              get().dispatch.metasReceived([meta])
+            }
+
+            const participantInfo: Types.ParticipantInfo = uiParticipantsToParticipantInfo(
+              uiConv.participants ?? []
+            )
+            if (participantInfo.all.length > 0) {
+              getConvoState(Types.stringToConversationIDKey(uiConv.convID)).dispatch.setParticipants(
+                participantInfo
+              )
+            }
+            reduxDispatch(
+              Chat2Gen.createNavigateToThread({
+                conversationIDKey,
+                highlightMessageID,
+                reason: 'justCreated',
+              })
+            )
+          }
+        } catch (error) {
+          if (error instanceof RPCError) {
+            const errUsernames = error.fields?.filter((elem: any) => elem.key === 'usernames') as
+              | undefined
+              | Array<{key: string; value: string}>
+            let disallowedUsers: Array<string> = []
+            if (errUsernames?.length) {
+              const {value} = errUsernames[0] ?? {value: ''}
+              disallowedUsers = value.split(',')
+            }
+            const allowedUsers = participants.filter(x => !disallowedUsers?.includes(x))
+            get().dispatch.conversationErrored(allowedUsers, disallowedUsers, error.code, error.desc)
+            reduxDispatch(
+              Chat2Gen.createNavigateToThread({
+                conversationIDKey: pendingErrorConversationIDKey,
+                highlightMessageID,
+                reason: 'justCreated',
+              })
+            )
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     findGeneralConvIDFromTeamID: teamID => {
       const f = async () => {
@@ -1150,11 +1227,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             reason: 'justCreated',
           })
         )
-        reduxDispatch(
-          Chat2Gen.createCreateConversation({
-            participants: [...users].map(u => u.id),
-          })
-        )
+        get().dispatch.createConversation([...users].map(u => u.id))
       }
       Z.ignorePromise(f())
     },
@@ -1196,7 +1269,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             reason: 'justCreated',
           })
         )
-        reduxDispatch(Chat2Gen.createCreateConversation({highlightMessageID, participants}))
+        get().dispatch.createConversation(participants, highlightMessageID)
       }
 
       // We preview channels

@@ -18,7 +18,6 @@ export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const blockConversation = 'chat2:blockConversation'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
-export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
@@ -28,12 +27,8 @@ export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
-export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
-export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const markTeamAsRead = 'chat2:markTeamAsRead'
-export const messageDeleteHistory = 'chat2:messageDeleteHistory'
-export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
 export const navigateToInbox = 'chat2:navigateToInbox'
@@ -46,7 +41,6 @@ export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
-export const sendTyping = 'chat2:sendTyping'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const tabSelected = 'chat2:tabSelected'
@@ -60,13 +54,6 @@ export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateUnreadline = 'chat2:updateUnreadline'
 
 // Action Creators
-/**
- * Actually start a conversation
- */
-export const createCreateConversation = (payload: {
-  readonly highlightMessageID?: number
-  readonly participants: Array<string>
-}) => ({payload, type: createConversation as typeof createConversation})
 /**
  * Add a list of users to a conversation. Creates a SystemBulkAddToConv message.
  */
@@ -88,12 +75,6 @@ export const createBlockConversation = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly reportUser: boolean
 }) => ({payload, type: blockConversation as typeof blockConversation})
-/**
- * Deletes all messages
- */
-export const createMessageDeleteHistory = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: messageDeleteHistory as typeof messageDeleteHistory})
 /**
  * Desktop changed tab to chat
  */
@@ -146,12 +127,6 @@ export const createJumpToRecent = (payload: {readonly conversationIDKey: Types.C
   payload,
   type: jumpToRecent as typeof jumpToRecent,
 })
-/**
- * Load some more messages for a conversation
- */
-export const createLoadOlderMessagesDueToScroll = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: loadOlderMessagesDueToScroll as typeof loadOlderMessagesDueToScroll})
 /**
  * Mark all conversations in a team as read
  */
@@ -230,13 +205,6 @@ export const createUnfurlRemove = (payload: {
   readonly messageID: Types.MessageID
 }) => ({payload, type: unfurlRemove as typeof unfurlRemove})
 /**
- * Reply privately to a message with quoting
- */
-export const createMessageReplyPrivately = (payload: {
-  readonly sourceConversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-}) => ({payload, type: messageReplyPrivately as typeof messageReplyPrivately})
-/**
  * Resolve an unknown @ mention
  */
 export const createResolveMaybeMention = (payload: {readonly name: string; readonly channel: string}) => ({
@@ -283,13 +251,6 @@ export const createDesktopNotification = (payload: {
   readonly author: string
   readonly body: string
 }) => ({payload, type: desktopNotification as typeof desktopNotification})
-/**
- * Tell server we're typing
- */
-export const createSendTyping = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly typing: boolean
-}) => ({payload, type: sendTyping as typeof sendTyping})
 /**
  * Tell the service to toggle a reaction on a message.
  */
@@ -387,9 +348,6 @@ export const createLoadMessagesCentered = (payload: {
   readonly messageID: Types.MessageID
   readonly highlightMode: Types.CenterOrdinalHighlightMode
 }) => ({payload, type: loadMessagesCentered as typeof loadMessagesCentered})
-export const createLoadNewerMessagesDueToScroll = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: loadNewerMessagesDueToScroll as typeof loadNewerMessagesDueToScroll})
 export const createMessageSendByUsernames = (payload: {
   readonly usernames: string
   readonly text: HiddenString
@@ -419,7 +377,6 @@ export type AttachmentUploadCanceledPayload = ReturnType<typeof createAttachment
 export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload>
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ConfirmScreenResponsePayload = ReturnType<typeof createConfirmScreenResponse>
-export type CreateConversationPayload = ReturnType<typeof createCreateConversation>
 export type DesktopNotificationPayload = ReturnType<typeof createDesktopNotification>
 export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockButtons>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
@@ -429,12 +386,8 @@ export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
 export type JumpToRecentPayload = ReturnType<typeof createJumpToRecent>
 export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation>
 export type LoadMessagesCenteredPayload = ReturnType<typeof createLoadMessagesCentered>
-export type LoadNewerMessagesDueToScrollPayload = ReturnType<typeof createLoadNewerMessagesDueToScroll>
-export type LoadOlderMessagesDueToScrollPayload = ReturnType<typeof createLoadOlderMessagesDueToScroll>
 export type MarkInitiallyLoadedThreadAsReadPayload = ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
 export type MarkTeamAsReadPayload = ReturnType<typeof createMarkTeamAsRead>
-export type MessageDeleteHistoryPayload = ReturnType<typeof createMessageDeleteHistory>
-export type MessageReplyPrivatelyPayload = ReturnType<typeof createMessageReplyPrivately>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
 export type MessageSendPayload = ReturnType<typeof createMessageSend>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
@@ -447,7 +400,6 @@ export type ResetChatWithoutThemPayload = ReturnType<typeof createResetChatWitho
 export type ResetLetThemInPayload = ReturnType<typeof createResetLetThemIn>
 export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMention>
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
-export type SendTypingPayload = ReturnType<typeof createSendTyping>
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
@@ -472,7 +424,6 @@ export type Actions =
   | AttachmentsUploadPayload
   | BlockConversationPayload
   | ConfirmScreenResponsePayload
-  | CreateConversationPayload
   | DesktopNotificationPayload
   | DismissBlockButtonsPayload
   | DismissJourneycardPayload
@@ -482,12 +433,8 @@ export type Actions =
   | JumpToRecentPayload
   | LeaveConversationPayload
   | LoadMessagesCenteredPayload
-  | LoadNewerMessagesDueToScrollPayload
-  | LoadOlderMessagesDueToScrollPayload
   | MarkInitiallyLoadedThreadAsReadPayload
   | MarkTeamAsReadPayload
-  | MessageDeleteHistoryPayload
-  | MessageReplyPrivatelyPayload
   | MessageSendByUsernamesPayload
   | MessageSendPayload
   | NavigateToInboxPayload
@@ -500,7 +447,6 @@ export type Actions =
   | ResetLetThemInPayload
   | ResolveMaybeMentionPayload
   | SendAudioRecordingPayload
-  | SendTypingPayload
   | SetConvRetentionPolicyPayload
   | SetMinWriterRolePayload
   | TabSelectedPayload

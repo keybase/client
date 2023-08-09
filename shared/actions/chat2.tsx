@@ -397,7 +397,7 @@ const messageSend = async (
               return
             }
             if (canceled) {
-              Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(text.stringValue())
+              Constants.getConvoState(conversationIDKey).dispatch.injectIntoInput(text.stringValue())
               return
             }
             return false
@@ -625,15 +625,6 @@ const attachFromDragAndDrop = async (
   })
 }
 
-// Tell service we're typing
-const sendTyping = async (_: unknown, action: Chat2Gen.SendTypingPayload) => {
-  const {conversationIDKey, typing} = action.payload
-  await RPCChatTypes.localUpdateTypingRpcPromise({
-    conversationID: Types.keyToConversationID(conversationIDKey),
-    typing,
-  })
-}
-
 // Implicit teams w/ reset users we can invite them back in or chat w/o them
 const resetChatWithoutThem = (_: unknown, action: Chat2Gen.ResetChatWithoutThemPayload) => {
   const {conversationIDKey} = action.payload
@@ -664,25 +655,6 @@ const markTeamAsRead = async (_: unknown, action: Chat2Gen.MarkTeamAsReadPayload
   const tlfID = Buffer.from(TeamsTypes.teamIDToString(action.payload.teamID), 'hex')
   await RPCChatTypes.localMarkTLFAsReadLocalRpcPromise({
     tlfID,
-  })
-}
-
-// Delete a message and any older
-const deleteMessageHistory = async (_: unknown, action: Chat2Gen.MessageDeleteHistoryPayload) => {
-  const {conversationIDKey} = action.payload
-  const meta = Constants.getConvoState(conversationIDKey).meta
-
-  if (!meta.tlfname) {
-    logger.warn('Deleting message history for non-existent TLF:')
-    return
-  }
-
-  await RPCChatTypes.localPostDeleteHistoryByAgeRpcPromise({
-    age: 0,
-    conversationID: Types.keyToConversationID(conversationIDKey),
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    tlfName: meta.tlfname,
-    tlfPublic: false,
   })
 }
 
@@ -893,124 +865,6 @@ const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageC
   })
 }
 
-// TODO This will break if you try to make 2 new conversations at the same time because there is
-// only one pending conversation state.
-// The fix involves being able to make multiple pending conversations
-const createConversation = async (
-  _: unknown,
-  action: Chat2Gen.CreateConversationPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  if (!username) {
-    logger.error('Making a convo while logged out?')
-    return
-  }
-  try {
-    const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
-      {
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-        tlfName: [...new Set([username, ...action.payload.participants])].join(','),
-        tlfVisibility: RPCTypes.TLFVisibility.private,
-        topicType: RPCChatTypes.TopicType.chat,
-      },
-      Constants.waitingKeyCreating
-    )
-    const {conv, uiConv} = result
-    const conversationIDKey = Types.conversationIDToKey(conv.info.id)
-    if (!conversationIDKey) {
-      logger.warn("Couldn't make a new conversation?")
-    } else {
-      const meta = Constants.inboxUIItemToConversationMeta(uiConv)
-      if (meta) {
-        Constants.useState.getState().dispatch.metasReceived([meta])
-      }
-
-      const participantInfo: Types.ParticipantInfo = Constants.uiParticipantsToParticipantInfo(
-        uiConv.participants ?? []
-      )
-      if (participantInfo.all.length > 0) {
-        Constants.getConvoState(Types.stringToConversationIDKey(uiConv.convID)).dispatch.setParticipants(
-          participantInfo
-        )
-      }
-      listenerApi.dispatch(
-        Chat2Gen.createNavigateToThread({
-          conversationIDKey,
-          highlightMessageID: action.payload.highlightMessageID,
-          reason: 'justCreated',
-        })
-      )
-    }
-  } catch (error) {
-    if (error instanceof RPCError) {
-      const errUsernames = error.fields?.filter((elem: any) => elem.key === 'usernames') as
-        | undefined
-        | Array<{key: string; value: string}>
-      let disallowedUsers: Array<string> = []
-      if (errUsernames?.length) {
-        const {value} = errUsernames[0] ?? {value: ''}
-        disallowedUsers = value.split(',')
-      }
-      const allowedUsers = action.payload.participants.filter(x => !disallowedUsers?.includes(x))
-      Constants.useState
-        .getState()
-        .dispatch.conversationErrored(allowedUsers, disallowedUsers, error.code, error.desc)
-      listenerApi.dispatch(
-        Chat2Gen.createNavigateToThread({
-          conversationIDKey: Constants.pendingErrorConversationIDKey,
-          highlightMessageID: action.payload.highlightMessageID,
-          reason: 'justCreated',
-        })
-      )
-    }
-  }
-}
-
-const messageReplyPrivately = async (_: unknown, action: Chat2Gen.MessageReplyPrivatelyPayload) => {
-  const {sourceConversationIDKey, ordinal} = action.payload
-  const message = Constants.getConvoState(sourceConversationIDKey).messageMap.get(ordinal)
-  if (!message) {
-    logger.warn("messageReplyPrivately: can't find message to reply to", ordinal)
-    return
-  }
-
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  if (!username) {
-    throw new Error('messageReplyPrivately: making a convo while logged out?')
-  }
-  const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
-    {
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-      tlfName: [...new Set([username, message.author])].join(','),
-      tlfVisibility: RPCTypes.TLFVisibility.private,
-      topicType: RPCChatTypes.TopicType.chat,
-    },
-    Constants.waitingKeyCreating
-  )
-  const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
-  if (!conversationIDKey) {
-    logger.warn("messageReplyPrivately: couldn't make a new conversation?")
-    return
-  }
-  const meta = Constants.inboxUIItemToConversationMeta(result.uiConv)
-  if (!meta) {
-    logger.warn('messageReplyPrivately: unable to make meta')
-    return
-  }
-
-  if (message.type !== 'text') {
-    return
-  }
-  const text = new Container.HiddenString(Constants.formatTextForQuoting(message.text.stringValue()))
-
-  Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(text.stringValue())
-  Constants.useState.getState().dispatch.metasReceived([meta])
-  return [Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'createdMessagePrivately'})]
-}
-
 const toggleMessageReaction = async (_: unknown, action: Chat2Gen.ToggleMessageReactionPayload) => {
   // The service translates this to a delete if an identical reaction already exists
   // so we only need to call this RPC to toggle it on & off
@@ -1096,16 +950,6 @@ const unfurlResolvePrompt = async (_: unknown, action: Chat2Gen.UnfurlResolvePro
   })
 }
 
-const unsentTextChanged = async (_: unknown, action: Chat2Gen.UnsentTextChangedPayload) => {
-  const {conversationIDKey, text} = action.payload
-  const meta = Constants.getConvoState(conversationIDKey).meta
-  await RPCChatTypes.localUpdateUnsentTextRpcPromise({
-    conversationID: Types.keyToConversationID(conversationIDKey),
-    text: text.stringValue(),
-    tlfName: meta.tlfname,
-  })
-}
-
 const onGiphyResults = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphySearchResultsPayload) => {
   const {convID, results} = action.payload.params
   Constants.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyGotSearchResult(results)
@@ -1115,7 +959,7 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
   const {convID, show, clearInput} = action.payload.params
   const conversationIDKey = Types.stringToConversationIDKey(convID)
   if (clearInput) {
-    Constants.getConvoState(conversationIDKey).dispatch.setUnsentText('')
+    Constants.getConvoState(conversationIDKey).dispatch.injectIntoInput('')
   }
 
   Constants.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyToggleWindow(show)
@@ -1274,26 +1118,6 @@ const initChat = () => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.loadMoreMessages({forceClear: true, reason: 'jump to recent'})
   })
-  Container.listenAction(Chat2Gen.loadOlderMessagesDueToScroll, () => {
-    const {dispatch, moreToLoad} = Constants.getConvoState(Constants.getSelectedConversation())
-    if (!moreToLoad) {
-      logger.info('bail: scrolling back and at the end')
-      return
-    }
-    dispatch.loadMoreMessages({
-      numberOfMessagesToLoad: Constants.numMessagesOnScrollback,
-      reason: '',
-      scrollDirection: 'back',
-    })
-  })
-  Container.listenAction(Chat2Gen.loadNewerMessagesDueToScroll, () => {
-    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
-    dispatch.loadMoreMessages({
-      numberOfMessagesToLoad: Constants.numMessagesOnScrollback,
-      reason: 'scroll forward',
-      scrollDirection: 'forward',
-    })
-  })
   Container.listenAction(Chat2Gen.loadMessagesCentered, (_, a) => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.loadMoreMessages({
@@ -1325,12 +1149,8 @@ const initChat = () => {
     dispatch.setCommandMarkdown()
   })
   Container.listenAction(Chat2Gen.messageSendByUsernames, messageSendByUsernames)
-  Container.listenAction(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
   Container.listenAction(Chat2Gen.dismissJourneycard, dismissJourneycard)
   Container.listenAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)
-
-  // Giphy
-  Container.listenAction(Chat2Gen.unsentTextChanged, unsentTextChanged)
 
   Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlResolvePrompt)
   Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
@@ -1345,7 +1165,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.attachmentPasted, attachmentPasted)
   Container.listenAction(Chat2Gen.attachmentUploadCanceled, attachmentUploadCanceled)
 
-  Container.listenAction(Chat2Gen.sendTyping, sendTyping)
   Container.listenAction(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)
   Container.listenAction(Chat2Gen.resetLetThemIn, resetLetThemIn)
 
@@ -1386,8 +1205,6 @@ const initChat = () => {
 
   Container.listenAction(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   Container.listenAction(Chat2Gen.toggleMessageCollapse, toggleMessageCollapse)
-  Container.listenAction(Chat2Gen.createConversation, createConversation)
-  Container.listenAction(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
   Container.listenAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
 
   Container.listenAction(Chat2Gen.toggleMessageReaction, toggleMessageReaction)

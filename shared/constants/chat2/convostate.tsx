@@ -16,6 +16,7 @@ import logger from '../../logger'
 import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
 import sortedIndexOf from 'lodash/sortedIndexOf'
+import throttle from 'lodash/throttle'
 import type * as TeamsTypes from '../types/teams'
 import {RPCError} from '../../util/errors'
 import {findLast} from '../../util/arrays'
@@ -148,6 +149,8 @@ export type ConvoState = ConvoStore & {
     hideConversation: (hide: boolean) => void
     loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
     loadOrangeLine: () => void
+    loadOlderMessagesDueToScroll: () => void
+    loadNewerMessagesDueToScroll: () => void
     loadMoreMessages: (p: {
       forceContainsLatestCalc?: boolean
       messageIDControl?: RPCChatTypes.MessageIDControl
@@ -166,7 +169,9 @@ export type ConvoState = ConvoStore & {
     messageAttachmentNativeSave: (message: Types.Message) => void
     messageAttachmentNativeShare: (message: Types.Message) => void
     messageDelete: (ordinal: Types.Ordinal) => void
+    messageDeleteHistory: () => void
     messageEdit: (ordinal: Types.Ordinal, text: string) => void
+    messageReplyPrivately: (ordinal: Types.Ordinal) => void
     messageRetry: (outboxID: Types.OutboxID) => void
     messagesAdd: (p: {
       contextType: string
@@ -209,6 +214,7 @@ export type ConvoState = ConvoStore & {
     resetState: 'default'
     resetUnsentText: () => void
     selectedConversation: () => void
+    sendTyping: (typing: boolean) => void
     setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: Types.CommandStatusInfo) => void
     setContainsLatestMessage: (c: boolean) => void
@@ -231,6 +237,8 @@ export type ConvoState = ConvoStore & {
     setThreadLoadStatus: (status: RPCChatTypes.UIChatThreadStatusTyp) => void
     setThreadSearchQuery: (query: string) => void
     setTyping: (t: Set<string>) => void
+    injectIntoInput: (text: string) => void
+    updateDraft: (text: string) => void
     threadSearch: (query: string) => void
     toggleGiphyPrefill: () => void
     toggleThreadSearch: (hide?: boolean) => void
@@ -249,8 +257,6 @@ export type ConvoState = ConvoStore & {
     updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
     updateAttachmentViewTransfered: (msgId: number, path: string) => void
     unreadUpdated: (unread: number) => void
-    // this is how you set the unset value, including ''
-    setUnsentText: (u: string) => void
     setupSubscriptions: () => void
   }
   getExplodingMode: () => number
@@ -510,7 +516,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           await RPCChatTypes.localTrackGiphySelectRpcPromise({result})
         } catch {}
         const url = new HiddenString(result.targetUrl)
-        getConvoState(conversationIDKey).dispatch.setUnsentText('')
+        getConvoState(conversationIDKey).dispatch.injectIntoInput('')
         reduxDispatch(
           Chat2Gen.createMessageSend({conversationIDKey, replyTo: replyTo || undefined, text: url})
         )
@@ -549,6 +555,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.threadSearchInfo.visible = false
       })
+    },
+    injectIntoInput: text => {
+      set(s => {
+        s.unsentText = text
+      })
+      get().dispatch.updateDraft(text)
     },
     loadAttachmentView: (viewType, fromMsgID) => {
       set(s => {
@@ -774,6 +786,26 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    loadNewerMessagesDueToScroll: () => {
+      const {dispatch} = get()
+      dispatch.loadMoreMessages({
+        numberOfMessagesToLoad: numMessagesOnScrollback,
+        reason: 'scroll forward',
+        scrollDirection: 'forward',
+      })
+    },
+    loadOlderMessagesDueToScroll: () => {
+      const {dispatch, moreToLoad} = get()
+      if (!moreToLoad) {
+        logger.info('bail: scrolling back and at the end')
+        return
+      }
+      dispatch.loadMoreMessages({
+        numberOfMessagesToLoad: numMessagesOnScrollback,
+        reason: '',
+        scrollDirection: 'back',
+      })
+    },
     loadOrangeLine: () => {
       const f = async () => {
         const Constants = await import('.')
@@ -986,6 +1018,24 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    messageDeleteHistory: () => {
+      // Delete a message and any older
+      const f = async () => {
+        const meta = get().meta
+        if (!meta.tlfname) {
+          logger.warn('Deleting message history for non-existent TLF:')
+          return
+        }
+        await RPCChatTypes.localPostDeleteHistoryByAgeRpcPromise({
+          age: 0,
+          conversationID: Types.keyToConversationID(get().id),
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          tlfName: meta.tlfname,
+          tlfPublic: false,
+        })
+      }
+      Z.ignorePromise(f())
+    },
     messageEdit: (ordinal, text) => {
       const {id, dispatch, messageMap, meta} = get()
       const message = messageMap.get(ordinal)
@@ -1042,6 +1092,50 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             }
           }
         }
+      }
+      Z.ignorePromise(f())
+    },
+    messageReplyPrivately: ordinal => {
+      const f = async () => {
+        const ConfigConstants = await import('../config')
+        const message = get().messageMap.get(ordinal)
+        if (!message) {
+          logger.warn("messageReplyPrivately: can't find message to reply to", ordinal)
+          return
+        }
+        const username = ConfigConstants.useCurrentUserState.getState().username
+        if (!username) {
+          throw new Error('messageReplyPrivately: making a convo while logged out?')
+        }
+        const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
+          {
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+            membersType: RPCChatTypes.ConversationMembersType.impteamnative,
+            tlfName: [...new Set([username, message.author])].join(','),
+            tlfVisibility: RPCTypes.TLFVisibility.private,
+            topicType: RPCChatTypes.TopicType.chat,
+          },
+          Common.waitingKeyCreating
+        )
+        const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
+        if (!conversationIDKey) {
+          logger.warn("messageReplyPrivately: couldn't make a new conversation?")
+          return
+        }
+        const meta = Meta.inboxUIItemToConversationMeta(result.uiConv)
+        if (!meta) {
+          logger.warn('messageReplyPrivately: unable to make meta')
+          return
+        }
+        if (message.type !== 'text') {
+          return
+        }
+
+        const Constants = await import('.')
+        const text = Constants.formatTextForQuoting(message.text.stringValue())
+        Constants.getConvoState(conversationIDKey).dispatch.injectIntoInput(text)
+        Constants.useState.getState().dispatch.metasReceived([meta])
+        reduxDispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'createdMessagePrivately'}))
       }
       Z.ignorePromise(f())
     },
@@ -1315,6 +1409,15 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             })
           )
         }
+      })
+
+      set(s => {
+        const os = s.messageOrdinals
+        if (!os) return
+        allOrdinals.forEach(o => {
+          const idx = sortedIndexOf(os, o)
+          if (idx !== -1) os.splice(idx, 1)
+        })
       })
     },
     metaReceivedError: (error, username) => {
@@ -1714,11 +1817,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     selectedConversation: () => {
-      // blank out draft so we don't flash old data when switching convs
-      set(s => {
-        s.meta.draft = ''
-      })
-
       const f = async () => {
         const Constants = await import('.')
         const ConfigConstants = await import('../config')
@@ -1797,6 +1895,15 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    sendTyping: throttle(typing => {
+      const f = async () => {
+        await RPCChatTypes.localUpdateTypingRpcPromise({
+          conversationID: Types.keyToConversationID(get().id),
+          typing,
+        })
+      }
+      Z.ignorePromise(f())
+    }, 2000),
     setCommandMarkdown: md => {
       set(s => {
         s.commandMarkdown = md
@@ -1861,9 +1968,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           s.editing = ordinal
         })
         if (message.type === 'text') {
-          get().dispatch.setUnsentText(message.text.stringValue())
+          get().dispatch.injectIntoInput(message.text.stringValue())
         } else if (message.type === 'attachment') {
-          get().dispatch.setUnsentText(message.title)
+          get().dispatch.injectIntoInput(message.title)
         }
       }
     },
@@ -2106,11 +2213,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       })
     },
-    setUnsentText: u => {
-      set(s => {
-        s.unsentText = u
-      })
-    },
     setupSubscriptions: () => {
       // TODO
     },
@@ -2217,7 +2319,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     toggleGiphyPrefill: () => {
       // if the window is up, just blow it away
-      get().dispatch.setUnsentText(get().giphyWindow ? '' : '/giphy ')
+      get().dispatch.injectIntoInput(get().giphyWindow ? '' : '/giphy ')
     },
     toggleLocalReaction: p => {
       const {decorated, emoji, targetOrdinal, username} = p
@@ -2311,6 +2413,17 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       })
     },
+    updateDraft: throttle(text => {
+      const f = async () => {
+        const meta = get().meta
+        await RPCChatTypes.localUpdateUnsentTextRpcPromise({
+          conversationID: Types.keyToConversationID(get().id),
+          text,
+          tlfName: meta.tlfname,
+        })
+      }
+      Z.ignorePromise(f())
+    }, 200),
     // maybe remove this when reducer is ported
     updateMessage: (ordinal: Types.Ordinal, pm: Partial<Types.Message>) => {
       set(s => {

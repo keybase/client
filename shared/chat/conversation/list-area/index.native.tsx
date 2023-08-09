@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as Hooks from './hooks'
@@ -43,11 +42,11 @@ const useScrolling = (p: {
   listRef: React.MutableRefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
   requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
 }) => {
-  const {messageOrdinals, conversationIDKey, requestScrollToBottomRef} = p
+  const {messageOrdinals, requestScrollToBottomRef} = p
   const {cidChanged, listRef, centeredOrdinal} = p
-  const dispatch = Container.useDispatch()
   const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
   const oldestOrdinal = messageOrdinals[messageOrdinals.length - 1] ?? -1
+  const loadOlderMessagesDueToScroll = Constants.useContext(s => s.dispatch.loadOlderMessagesDueToScroll)
 
   const loadOlderMessages = Container.useEvent(() => {
     // already loaded and nothing has changed
@@ -55,7 +54,7 @@ const useScrolling = (p: {
       return
     }
     lastLoadOrdinal.current = oldestOrdinal
-    dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey}))
+    loadOlderMessagesDueToScroll()
   })
 
   const scrollToBottom = React.useCallback(() => {
