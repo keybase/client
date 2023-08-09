@@ -16,6 +16,7 @@ import logger from '../../logger'
 import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
 import sortedIndexOf from 'lodash/sortedIndexOf'
+import throttle from 'lodash/throttle'
 import type * as TeamsTypes from '../types/teams'
 import {RPCError} from '../../util/errors'
 import {findLast} from '../../util/arrays'
@@ -214,6 +215,7 @@ export type ConvoState = ConvoStore & {
     resetState: 'default'
     resetUnsentText: () => void
     selectedConversation: () => void
+    sendTyping: (typing: boolean) => void
     setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: Types.CommandStatusInfo) => void
     setContainsLatestMessage: (c: boolean) => void
@@ -236,6 +238,8 @@ export type ConvoState = ConvoStore & {
     setThreadLoadStatus: (status: RPCChatTypes.UIChatThreadStatusTyp) => void
     setThreadSearchQuery: (query: string) => void
     setTyping: (t: Set<string>) => void
+    injectIntoInput: (text: string) => void
+    updateDraft: (text: string) => void
     threadSearch: (query: string) => void
     toggleGiphyPrefill: () => void
     toggleThreadSearch: (hide?: boolean) => void
@@ -254,8 +258,6 @@ export type ConvoState = ConvoStore & {
     updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
     updateAttachmentViewTransfered: (msgId: number, path: string) => void
     unreadUpdated: (unread: number) => void
-    // this is how you set the unset value, including ''
-    setUnsentText: (u: string) => void
     setupSubscriptions: () => void
   }
   getExplodingMode: () => number
@@ -515,7 +517,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           await RPCChatTypes.localTrackGiphySelectRpcPromise({result})
         } catch {}
         const url = new HiddenString(result.targetUrl)
-        getConvoState(conversationIDKey).dispatch.setUnsentText('')
+        getConvoState(conversationIDKey).dispatch.injectIntoInput('')
         reduxDispatch(
           Chat2Gen.createMessageSend({conversationIDKey, replyTo: replyTo || undefined, text: url})
         )
@@ -554,6 +556,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.threadSearchInfo.visible = false
       })
+    },
+    injectIntoInput: text => {
+      set(s => {
+        s.unsentText = text
+      })
+      get().dispatch.updateDraft(text)
     },
     loadAttachmentView: (viewType, fromMsgID) => {
       set(s => {
@@ -1126,7 +1134,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         const Constants = await import('.')
         const text = Constants.formatTextForQuoting(message.text.stringValue())
-        Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(text)
+        Constants.getConvoState(conversationIDKey).dispatch.injectIntoInput(text)
         Constants.useState.getState().dispatch.metasReceived([meta])
         reduxDispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'createdMessagePrivately'}))
       }
@@ -1888,6 +1896,15 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    sendTyping: throttle(typing => {
+      const f = async () => {
+        await RPCChatTypes.localUpdateTypingRpcPromise({
+          conversationID: Types.keyToConversationID(get().id),
+          typing,
+        })
+      }
+      Z.ignorePromise(f())
+    }, 2000),
     setCommandMarkdown: md => {
       set(s => {
         s.commandMarkdown = md
@@ -1952,9 +1969,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           s.editing = ordinal
         })
         if (message.type === 'text') {
-          get().dispatch.setUnsentText(message.text.stringValue())
+          get().dispatch.injectIntoInput(message.text.stringValue())
         } else if (message.type === 'attachment') {
-          get().dispatch.setUnsentText(message.title)
+          get().dispatch.injectIntoInput(message.title)
         }
       }
     },
@@ -2197,11 +2214,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       })
     },
-    setUnsentText: u => {
-      set(s => {
-        s.unsentText = u
-      })
-    },
     setupSubscriptions: () => {
       // TODO
     },
@@ -2308,7 +2320,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     toggleGiphyPrefill: () => {
       // if the window is up, just blow it away
-      get().dispatch.setUnsentText(get().giphyWindow ? '' : '/giphy ')
+      get().dispatch.injectIntoInput(get().giphyWindow ? '' : '/giphy ')
     },
     toggleLocalReaction: p => {
       const {decorated, emoji, targetOrdinal, username} = p
@@ -2401,6 +2413,17 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
       })
+    },
+    updateDraft: text => {
+      const f = async () => {
+        const meta = get().meta
+        await RPCChatTypes.localUpdateUnsentTextRpcPromise({
+          conversationID: Types.keyToConversationID(get().id),
+          text,
+          tlfName: meta.tlfname,
+        })
+      }
+      Z.ignorePromise(f())
     },
     // maybe remove this when reducer is ported
     updateMessage: (ordinal: Types.Ordinal, pm: Partial<Types.Message>) => {

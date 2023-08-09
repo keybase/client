@@ -81,11 +81,6 @@
       "_description": "The attachment upload modal was canceled",
       "outboxIDs": "Array<RPCChatTypes.OutboxID>"
     },
-    "sendTyping": {
-      "_description": "Tell server we're typing",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "typing": "boolean"
-    },
     "markInitiallyLoadedThreadAsRead": {
       "_description": [
         "On startup we're automatically loading a thread sometimes.",
@@ -172,11 +167,6 @@
       "_description": "Remove an unfurl",
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "Types.MessageID"
-    },
-    "unsentTextChanged": {
-      "_description": "Unsent text changed",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString"
     },
     "confirmScreenResponse": {
       "_description": "User responded to the chat Stellar confirm screen",

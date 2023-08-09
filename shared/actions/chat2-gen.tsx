@@ -41,7 +41,6 @@ export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
-export const sendTyping = 'chat2:sendTyping'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const tabSelected = 'chat2:tabSelected'
@@ -253,13 +252,6 @@ export const createDesktopNotification = (payload: {
   readonly body: string
 }) => ({payload, type: desktopNotification as typeof desktopNotification})
 /**
- * Tell server we're typing
- */
-export const createSendTyping = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly typing: boolean
-}) => ({payload, type: sendTyping as typeof sendTyping})
-/**
  * Tell the service to toggle a reaction on a message.
  */
 export const createToggleMessageReaction = (payload: {
@@ -408,7 +400,6 @@ export type ResetChatWithoutThemPayload = ReturnType<typeof createResetChatWitho
 export type ResetLetThemInPayload = ReturnType<typeof createResetLetThemIn>
 export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMention>
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
-export type SendTypingPayload = ReturnType<typeof createSendTyping>
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
@@ -456,7 +447,6 @@ export type Actions =
   | ResetLetThemInPayload
   | ResolveMaybeMentionPayload
   | SendAudioRecordingPayload
-  | SendTypingPayload
   | SetConvRetentionPolicyPayload
   | SetMinWriterRolePayload
   | TabSelectedPayload

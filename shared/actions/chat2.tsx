@@ -625,15 +625,6 @@ const attachFromDragAndDrop = async (
   })
 }
 
-// Tell service we're typing
-const sendTyping = async (_: unknown, action: Chat2Gen.SendTypingPayload) => {
-  const {conversationIDKey, typing} = action.payload
-  await RPCChatTypes.localUpdateTypingRpcPromise({
-    conversationID: Types.keyToConversationID(conversationIDKey),
-    typing,
-  })
-}
-
 // Implicit teams w/ reset users we can invite them back in or chat w/o them
 const resetChatWithoutThem = (_: unknown, action: Chat2Gen.ResetChatWithoutThemPayload) => {
   const {conversationIDKey} = action.payload
@@ -959,16 +950,6 @@ const unfurlResolvePrompt = async (_: unknown, action: Chat2Gen.UnfurlResolvePro
   })
 }
 
-const unsentTextChanged = async (_: unknown, action: Chat2Gen.UnsentTextChangedPayload) => {
-  const {conversationIDKey, text} = action.payload
-  const meta = Constants.getConvoState(conversationIDKey).meta
-  await RPCChatTypes.localUpdateUnsentTextRpcPromise({
-    conversationID: Types.keyToConversationID(conversationIDKey),
-    text: text.stringValue(),
-    tlfName: meta.tlfname,
-  })
-}
-
 const onGiphyResults = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphySearchResultsPayload) => {
   const {convID, results} = action.payload.params
   Constants.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyGotSearchResult(results)
@@ -1171,9 +1152,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.dismissJourneycard, dismissJourneycard)
   Container.listenAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)
 
-  // Giphy
-  Container.listenAction(Chat2Gen.unsentTextChanged, unsentTextChanged)
-
   Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlResolvePrompt)
   Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
   Container.listenAction(Chat2Gen.unfurlRemove, unfurlRemove)
@@ -1187,7 +1165,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.attachmentPasted, attachmentPasted)
   Container.listenAction(Chat2Gen.attachmentUploadCanceled, attachmentUploadCanceled)
 
-  Container.listenAction(Chat2Gen.sendTyping, sendTyping)
   Container.listenAction(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)
   Container.listenAction(Chat2Gen.resetLetThemIn, resetLetThemIn)
 

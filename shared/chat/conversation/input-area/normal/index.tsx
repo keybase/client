@@ -113,52 +113,40 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const conversationIDKey = Constants.useContext(s => s.id)
   const {focusInputCounter, onRequestScrollToBottom} = p
   const {onRequestScrollDown, onRequestScrollUp, jumpToRecent} = p
+  const isTyping = Constants.useContext(s => s.typing.size > 0)
+  const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
+  const suggestBotCommandsUpdateStatus = Constants.useContext(s => s.botCommandsUpdateStatus)
+  const explodingModeSeconds = Constants.useContext(s => s.getExplodingMode())
   const showGiphySearch = Constants.useContext(s => s.giphyWindow)
   const showCommandMarkdown = Constants.useContext(s => !!s.commandMarkdown)
+  const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown
+  const {cannotWrite, minWriterRole} = Constants.useContext(s => s.meta)
   const replyTo = Constants.useContext(s => s.messageMap.get(s.replyTo)?.id)
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
   const editOrdinal = Constants.useContext(s => s.editing)
   const isEditExploded = Constants.useContext(s =>
     editOrdinal ? s.messageMap.get(editOrdinal)?.exploded ?? false : false
   )
   const isEditing = !!editOrdinal
   const dispatch = Container.useDispatch()
+  const unsentText = Constants.useContext(s => s.unsentText)
+  const sendTyping = Constants.useContext(s => s.dispatch.sendTyping)
+  const resetUnsentText = Constants.useContext(s => s.dispatch.resetUnsentText)
+  const updateDraft = Constants.useContext(s => s.dispatch.updateDraft)
+  const setExplodingModeLocked = Constants.useContext(s => s.dispatch.setExplodingModeLocked)
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
   const lastTextRef = React.useRef('')
 
-  const draft = Constants.useContext(s => s.draft)
-  const unsentText = Constants.useContext(s => s.unsentText)
-  const resetUnsentText = Constants.useContext(s => s.dispatch.resetUnsentText)
-  const setExplodingModeLocked = Constants.useContext(s => s.dispatch.setExplodingModeLocked)
-  const [lastDraft, setLastDraft] = React.useState<undefined | string>()
-
-  const sendTyping = React.useCallback(
-    (text: string) => {
-      // TODO throttle?
-      dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing: text.length > 0}))
-    },
-    [dispatch, conversationIDKey]
-  )
-
-  const sendDraft = React.useCallback(
-    (text: string) => {
-      // TODO throttle?
-      dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new Container.HiddenString(text)}))
-    },
-    [dispatch, conversationIDKey]
-  )
-
-  // true while injecting since onChaggeText is called
+  // true while injecting since onChangeText is called
   const injectingTextRef = React.useRef(false)
   const onChangeText = React.useCallback(
     (text: string) => {
       if (injectingTextRef.current) return
       lastTextRef.current = text
-      sendTyping(text)
-      sendDraft(text)
+      sendTyping(text.length > 0)
+      updateDraft(text)
       setExplodingModeLocked(text.length > 0)
     },
-    [setExplodingModeLocked, sendTyping, sendDraft]
+    [setExplodingModeLocked, sendTyping, updateDraft]
   )
   const injectText = React.useCallback(
     (text: string) => {
@@ -213,13 +201,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     [injectText, dispatch, conversationIDKey, onRequestScrollToBottom, jumpToRecent, replyTo]
   )
 
-  const isTyping = Constants.useContext(s => s.typing.size > 0)
-  const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
-  const suggestBotCommandsUpdateStatus = Constants.useContext(s => s.botCommandsUpdateStatus)
-  const explodingModeSeconds = Constants.useContext(s => s.getExplodingMode())
-  const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown
-  const {cannotWrite, minWriterRole} = Constants.useContext(s => s.meta)
-
   Container.useDepChangeEffect(() => {
     inputRef.current?.focus()
   }, [inputRef, focusInputCounter, isEditing])
@@ -244,34 +225,31 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const isExploding = explodingModeSeconds !== 0
   const hintText = useHintText({cannotWrite, conversationIDKey, isEditing, isExploding, minWriterRole})
 
-  if (lastCID !== conversationIDKey) {
-    console.log('aaa CID changed', lastCID, conversationIDKey)
-    setLastCID(conversationIDKey)
-    setLastDraft(undefined)
-    injectText('')
-  }
-  if (lastDraft !== draft) {
-    console.log('aaa draft changed', lastDraft, draft)
-    setLastDraft(draft)
-    if (draft) {
-      injectText(draft)
-    }
-  }
-
-  // when cid changes we see if we should inject a draft or other injection once
+  // if cid or unsent changes we inject
   const injectRef = React.useRef<string>('')
   React.useEffect(() => {
-    if (injectRef.current === conversationIDKey) return // once per change of convo
-    injectRef.current = conversationIDKey
-
-    // prefer injection
-    if (unsentText) {
-      injectText(unsentText)
-      resetUnsentText()
-    } else if (draft) {
-      injectText(draft)
+    // if the convo didn't change we only look at the unsent text being injected
+    if (injectRef.current === conversationIDKey) {
+      if (unsentText) {
+        injectText(unsentText)
+        resetUnsentText()
+      }
+    } else {
+      // look at draft and unsent once
+      // not reactive, just once per change
+      const draft = Constants.getConvoState(conversationIDKey).draft
+      // prefer injection
+      if (unsentText) {
+        injectText(unsentText)
+        resetUnsentText()
+      } else if (draft) {
+        injectText(draft)
+      } else {
+        injectText('')
+      }
     }
-  }, [conversationIDKey, draft, injectText, unsentText])
+    injectRef.current = conversationIDKey
+  }, [resetUnsentText, conversationIDKey, injectText, unsentText])
 
   return (
     <PlatformInput
