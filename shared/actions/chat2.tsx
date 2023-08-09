@@ -819,46 +819,6 @@ const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageC
   })
 }
 
-const toggleMessageReaction = async (_: unknown, action: Chat2Gen.ToggleMessageReactionPayload) => {
-  // The service translates this to a delete if an identical reaction already exists
-  // so we only need to call this RPC to toggle it on & off
-  const {conversationIDKey, emoji, ordinal} = action.payload
-  if (!emoji) {
-    return
-  }
-  const message = Constants.getConvoState(conversationIDKey).messageMap.get(ordinal)
-  if (!message) {
-    logger.warn(`toggleMessageReaction: no message found`)
-    return
-  }
-  const {type, exploded, id} = message
-  if ((type === 'text' || type === 'attachment') && exploded) {
-    logger.warn(`toggleMessageReaction: message is exploded`)
-    return
-  }
-  const messageID = id
-  const clientPrev = getClientPrev(conversationIDKey)
-  const meta = Constants.getConvoState(conversationIDKey).meta
-  const outboxID = Constants.generateOutboxID()
-  logger.info(`toggleMessageReaction: posting reaction`)
-  try {
-    await RPCChatTypes.localPostReactionNonblockRpcPromise({
-      body: emoji,
-      clientPrev,
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      outboxID,
-      supersedes: messageID,
-      tlfName: meta.tlfname,
-      tlfPublic: false,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info(`toggleMessageReaction: failed to post` + error.message)
-    }
-  }
-}
-
 const setMinWriterRole = async (_: unknown, action: Chat2Gen.SetMinWriterRolePayload) => {
   const {conversationIDKey, role} = action.payload
   logger.info(`Setting minWriterRole to ${role} for convID ${conversationIDKey}`)
@@ -1137,8 +1097,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   Container.listenAction(Chat2Gen.toggleMessageCollapse, toggleMessageCollapse)
   Container.listenAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
-
-  Container.listenAction(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
 
   Container.listenAction(Chat2Gen.setMinWriterRole, setMinWriterRole)
 

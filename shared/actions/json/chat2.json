@@ -19,12 +19,6 @@
       "text": "HiddenString",
       "waitingKey?": "string"
     },
-    "toggleMessageReaction": {
-      "_description": "Tell the service to toggle a reaction on a message.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "emoji": "string",
-      "ordinal": "Types.Ordinal"
-    },
     "joinConversation": {
       "conversationIDKey": "Types.ConversationIDKey"
     },

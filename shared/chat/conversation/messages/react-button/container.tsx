@@ -1,7 +1,5 @@
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
 import * as React from 'react'
 import * as RouterConstants from '../../../../constants/router2'
 import ReactButton, {NewReactionButton} from '.'
@@ -36,16 +34,16 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
     }
   }, shallowEqual)
 
-  const dispatch = Container.useDispatch()
+  const toggleMessageReaction = Constants.useContext(s => s.dispatch.toggleMessageReaction)
   const onAddReaction = React.useCallback(
     (emoji: string) => {
-      dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal}))
+      toggleMessageReaction(ordinal, emoji)
     },
-    [dispatch, conversationIDKey, ordinal]
+    [toggleMessageReaction, ordinal]
   )
   const onClick = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji: emoji || '', ordinal}))
-  }, [dispatch, emoji, ordinal, conversationIDKey])
+    toggleMessageReaction(ordinal, emoji || '')
+  }, [toggleMessageReaction, emoji, ordinal])
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onOpenEmojiPicker = React.useCallback(() => {
     navigateAppend({

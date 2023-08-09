@@ -43,7 +43,6 @@ export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const tabSelected = 'chat2:tabSelected'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
-export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unpinMessage = 'chat2:unpinMessage'
@@ -241,14 +240,6 @@ export const createSetConvRetentionPolicy = (payload: {
   readonly policy: RetentionPolicy
 }) => ({payload, type: setConvRetentionPolicy as typeof setConvRetentionPolicy})
 /**
- * Tell the service to toggle a reaction on a message.
- */
-export const createToggleMessageReaction = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly emoji: string
-  readonly ordinal: Types.Ordinal
-}) => ({payload, type: toggleMessageReaction as typeof toggleMessageReaction})
-/**
  * The attachment upload modal was canceled
  */
 export const createAttachmentUploadCanceled = (payload: {
@@ -379,7 +370,6 @@ export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvReten
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
-export type ToggleMessageReactionPayload = ReturnType<typeof createToggleMessageReaction>
 export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
 export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePrompt>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
@@ -423,7 +413,6 @@ export type Actions =
   | SetMinWriterRolePayload
   | TabSelectedPayload
   | ToggleMessageCollapsePayload
-  | ToggleMessageReactionPayload
   | UnfurlRemovePayload
   | UnfurlResolvePromptPayload
   | UnpinMessagePayload

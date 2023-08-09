@@ -246,6 +246,7 @@ export type ConvoState = ConvoStore & {
     setupSubscriptions: () => void
     threadSearch: (query: string) => void
     toggleGiphyPrefill: () => void
+    toggleMessageReaction: (ordinal: Types.Ordinal, emoji: string) => void
     toggleThreadSearch: (hide?: boolean) => void
     updateDraft: (text: string) => void
     toggleLocalReaction: (p: {
@@ -2396,6 +2397,48 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
       })
+    },
+    toggleMessageReaction: (ordinal, emoji) => {
+      const f = async () => {
+        // The service translates this to a delete if an identical reaction already exists
+        // so we only need to call this RPC to toggle it on & off
+        if (!emoji) {
+          return
+        }
+        const message = get().messageMap.get(ordinal)
+        if (!message) {
+          logger.warn(`toggleMessageReaction: no message found`)
+          return
+        }
+        const {type, exploded, id} = message
+        if ((type === 'text' || type === 'attachment') && exploded) {
+          logger.warn(`toggleMessageReaction: message is exploded`)
+          return
+        }
+        const supersedes = id
+        const conversationIDKey = get().id
+        const clientPrev = getClientPrev(conversationIDKey)
+        const meta = get().meta
+        const outboxID = Common.generateOutboxID()
+        logger.info(`toggleMessageReaction: posting reaction`)
+        try {
+          await RPCChatTypes.localPostReactionNonblockRpcPromise({
+            body: emoji,
+            clientPrev,
+            conversationID: Types.keyToConversationID(conversationIDKey),
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+            outboxID,
+            supersedes,
+            tlfName: meta.tlfname,
+            tlfPublic: false,
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info(`toggleMessageReaction: failed to post` + error.message)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     toggleThreadSearch: hide => {
       set(s => {

@@ -1,7 +1,5 @@
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouterConstants from '../../../../constants/router2'
 import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
 import * as React from 'react'
 import EmojiRow from '.'
 import type {Position, StylesCrossPlatform} from '../../../../styles'
@@ -28,17 +26,16 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
   }, shallowEqual)
 
   const emojis = Constants.useState(s => s.userReacjis.topReacjis.slice(0, 5), shallowEqual)
-  const dispatch = Container.useDispatch()
-
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const toggleMessageReaction = Constants.useContext(s => s.dispatch.toggleMessageReaction)
   const onForward = React.useCallback(() => {
     navigateAppend({props: {ordinal, srcConvID: conversationIDKey}, selected: 'chatForwardMsgPick'})
   }, [navigateAppend, conversationIDKey, ordinal])
   const onReact = React.useCallback(
     (emoji: string) => {
-      dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal}))
+      toggleMessageReaction(ordinal, emoji)
     },
-    [dispatch, conversationIDKey, ordinal]
+    [toggleMessageReaction, ordinal]
   )
   const setReplyTo = Constants.useContext(s => s.dispatch.setReplyTo)
   const onReply = React.useCallback(() => {
