@@ -26,15 +26,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "dontNavigateToInbox?": "boolean"
     },
-    "resetChatWithoutThem": {
-      "_description": "If an implied team chat member resets you can start a new chat w/o any reset people",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "resetLetThemIn": {
-      "_description": "If an implied team chat member resets you can add them back in",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string"
-    },
     "attachmentPreviewSelect": {
       "_description": "The user has selected an attachment with a preview",
       "conversationIDKey": "Types.ConversationIDKey",

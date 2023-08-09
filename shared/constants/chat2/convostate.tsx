@@ -219,6 +219,8 @@ export type ConvoState = ConvoStore & {
     removeBotMember: (username: string) => void
     replaceMessageMap: (mm: ConvoStore['messageMap']) => void
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
+    resetChatWithoutThem: () => void
+    resetLetThemIn: (username: string) => void
     resetState: 'default'
     resetUnsentText: () => void
     selectedConversation: () => void
@@ -1879,6 +1881,32 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.accountsInfoMap.set(messageID, requestInfo)
       })
+    },
+    resetChatWithoutThem: () => {
+      // Implicit teams w/ reset users we can invite them back in or chat w/o them
+      const f = async () => {
+        const meta = get().meta
+        const participantInfo = get().participants
+        // remove all bad people
+        const goodParticipants = new Set(participantInfo.all)
+        meta.resetParticipants.forEach(r => goodParticipants.delete(r))
+        const Constants = await import('.')
+        Constants.useState.getState().dispatch.previewConversation({
+          participants: [...goodParticipants],
+          reason: 'resetChatWithoutThem',
+        })
+      }
+      Z.ignorePromise(f())
+    },
+    resetLetThemIn: username => {
+      // let them back in after they reset
+      const f = async () => {
+        await RPCChatTypes.localAddTeamMemberAfterResetRpcPromise({
+          convID: Types.keyToConversationID(get().id),
+          username,
+        })
+      }
+      Z.ignorePromise(f())
     },
     resetState: 'default',
     resetUnsentText: () => {

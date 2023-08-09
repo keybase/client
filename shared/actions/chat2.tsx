@@ -565,28 +565,6 @@ const attachFromDragAndDrop = async (
   })
 }
 
-// Implicit teams w/ reset users we can invite them back in or chat w/o them
-const resetChatWithoutThem = (_: unknown, action: Chat2Gen.ResetChatWithoutThemPayload) => {
-  const {conversationIDKey} = action.payload
-  const meta = Constants.getConvoState(conversationIDKey).meta
-  const participantInfo = Constants.getConvoState(conversationIDKey).participants
-  // remove all bad people
-  const goodParticipants = new Set(participantInfo.all)
-  meta.resetParticipants.forEach(r => goodParticipants.delete(r))
-  Constants.useState.getState().dispatch.previewConversation({
-    participants: [...goodParticipants],
-    reason: 'resetChatWithoutThem',
-  })
-}
-
-// let them back in after they reset
-const resetLetThemIn = async (_: unknown, action: Chat2Gen.ResetLetThemInPayload) => {
-  await RPCChatTypes.localAddTeamMemberAfterResetRpcPromise({
-    convID: Types.keyToConversationID(action.payload.conversationIDKey),
-    username: action.payload.username,
-  })
-}
-
 const markTeamAsRead = async (_: unknown, action: Chat2Gen.MarkTeamAsReadPayload) => {
   if (!ConfigConstants.useConfigState.getState().loggedIn) {
     logger.info('bail on not logged in')
@@ -1039,9 +1017,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.attachFromDragAndDrop, attachFromDragAndDrop)
   Container.listenAction(Chat2Gen.attachmentPasted, attachmentPasted)
   Container.listenAction(Chat2Gen.attachmentUploadCanceled, attachmentUploadCanceled)
-
-  Container.listenAction(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)
-  Container.listenAction(Chat2Gen.resetLetThemIn, resetLetThemIn)
 
   Container.listenAction(Chat2Gen.updateUnreadline, (_, a) => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())

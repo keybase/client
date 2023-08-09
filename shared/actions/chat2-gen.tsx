@@ -34,8 +34,6 @@ export const navigateToThread = 'chat2:navigateToThread'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const pinMessage = 'chat2:pinMessage'
 export const replyJump = 'chat2:replyJump'
-export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
-export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
@@ -82,19 +80,6 @@ export const createDismissJourneycard = (payload: {
   readonly cardType: RPCChatTypes.JourneycardType
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: dismissJourneycard as typeof dismissJourneycard})
-/**
- * If an implied team chat member resets you can add them back in
- */
-export const createResetLetThemIn = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly username: string
-}) => ({payload, type: resetLetThemIn as typeof resetLetThemIn})
-/**
- * If an implied team chat member resets you can start a new chat w/o any reset people
- */
-export const createResetChatWithoutThem = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: resetChatWithoutThem as typeof resetChatWithoutThem})
 /**
  * Ignore pinned message
  */
@@ -356,8 +341,6 @@ export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
 export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
-export type ResetChatWithoutThemPayload = ReturnType<typeof createResetChatWithoutThem>
-export type ResetLetThemInPayload = ReturnType<typeof createResetLetThemIn>
 export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMention>
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
@@ -398,8 +381,6 @@ export type Actions =
   | OpenChatFromWidgetPayload
   | PinMessagePayload
   | ReplyJumpPayload
-  | ResetChatWithoutThemPayload
-  | ResetLetThemInPayload
   | ResolveMaybeMentionPayload
   | SendAudioRecordingPayload
   | SetConvRetentionPolicyPayload
