@@ -1,6 +1,7 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Common from './common'
 import * as EngineGen from '../../actions/engine-gen-gen'
+import * as FsTypes from '../types/fs'
 import * as Message from './message'
 import * as Meta from './meta'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
@@ -200,6 +201,7 @@ export type ConvoState = ConvoStore & {
     }) => void
     metaReceivedError: (error: RPCChatTypes.InboxUIItemError, username: string) => void
     mute: (m: boolean) => void
+    openFolder: () => void
     onEngineIncoming: (
       action:
         | EngineGen.Chat1ChatUiChatInboxFailedPayload
@@ -1763,6 +1765,21 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             dispatch.updateMessage(ordinal, {ordinal})
           }
         }
+      }
+      Z.ignorePromise(f())
+    },
+    openFolder: () => {
+      const f = async () => {
+        const FsConstants = await import('../fs')
+        const ConfigConstants = await import('../config')
+        const meta = get().meta
+        const participantInfo = get().participants
+        const path = FsTypes.stringToPath(
+          meta.teamType !== 'adhoc'
+            ? ConfigConstants.teamFolder(meta.teamname)
+            : ConfigConstants.privateFolderWithUsers(participantInfo.name)
+        )
+        FsConstants.makeActionForOpenPathInFilesTab(path)
       }
       Z.ignorePromise(f())
     },

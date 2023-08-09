@@ -5,9 +5,7 @@ import * as UsersConstants from '../constants/users'
 import * as TeamConstants from '../constants/teams'
 import * as ConfigConstants from '../constants/config'
 import * as Platforms from '../constants/platform'
-import * as Chat2Gen from '../actions/chat2-gen'
 import * as Styles from '../styles'
-import * as Container from '../util/container'
 import type * as Types from '../constants/types/chat2'
 import ChatInboxHeader from './inbox/header/container'
 
@@ -41,10 +39,7 @@ const Header2 = (props: Props) => {
   const desc = (otherInfo?.bio && otherInfo.bio.replace(/(\r\n|\n|\r)/gm, ' ')) || descriptionDecorated
   const fullName = otherInfo?.fullname
 
-  const dispatch = Container.useDispatch()
-  const onOpenFolder = React.useCallback(() => {
-    dispatch(Chat2Gen.createOpenFolder({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
+  const onOpenFolder = Constants.useContext(s => s.dispatch.openFolder)
   const toggleThreadSearch = Constants.useContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = React.useCallback(() => {
     toggleThreadSearch()

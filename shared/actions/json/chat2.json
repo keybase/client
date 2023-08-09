@@ -26,9 +26,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "dontNavigateToInbox?": "boolean"
     },
-    "openFolder": {
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
     "resetChatWithoutThem": {
       "_description": "If an implied team chat member resets you can start a new chat w/o any reset people",
       "conversationIDKey": "Types.ConversationIDKey"

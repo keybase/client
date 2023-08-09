@@ -32,7 +32,6 @@ export const messageSendByUsernames = 'chat2:messageSendByUsernames'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
-export const openFolder = 'chat2:openFolder'
 export const pinMessage = 'chat2:pinMessage'
 export const replyJump = 'chat2:replyJump'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
@@ -324,10 +323,6 @@ export const createMessageSendByUsernames = (payload: {
 export const createOpenChatFromWidget = (
   payload: {readonly conversationIDKey?: Types.ConversationIDKey} = {}
 ) => ({payload, type: openChatFromWidget as typeof openChatFromWidget})
-export const createOpenFolder = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
-  payload,
-  type: openFolder as typeof openFolder,
-})
 export const createSendAudioRecording = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly duration: number
@@ -359,7 +354,6 @@ export type MessageSendPayload = ReturnType<typeof createMessageSend>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
-export type OpenFolderPayload = ReturnType<typeof createOpenFolder>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
 export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
 export type ResetChatWithoutThemPayload = ReturnType<typeof createResetChatWithoutThem>
@@ -402,7 +396,6 @@ export type Actions =
   | NavigateToInboxPayload
   | NavigateToThreadPayload
   | OpenChatFromWidgetPayload
-  | OpenFolderPayload
   | PinMessagePayload
   | ReplyJumpPayload
   | ResetChatWithoutThemPayload

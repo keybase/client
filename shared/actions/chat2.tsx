@@ -5,8 +5,6 @@ import * as UsersConstants from '../constants/users'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
-import * as FsConstants from '../constants/fs'
-import * as FsTypes from '../constants/types/fs'
 import * as Platform from '../constants/platform'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from './../constants/types/rpc-gen'
@@ -427,18 +425,6 @@ function storeStellarConfirmWindowResponse(accept: boolean, response?: StellarCo
 
 const confirmScreenResponse = (_: unknown, action: Chat2Gen.ConfirmScreenResponsePayload) => {
   storeStellarConfirmWindowResponse(action.payload.accept)
-}
-
-const openFolder = (_: unknown, action: Chat2Gen.OpenFolderPayload) => {
-  const {conversationIDKey} = action.payload
-  const meta = Constants.getConvoState(conversationIDKey).meta
-  const participantInfo = Constants.getConvoState(conversationIDKey).participants
-  const path = FsTypes.stringToPath(
-    meta.teamType !== 'adhoc'
-      ? ConfigConstants.teamFolder(meta.teamname)
-      : ConfigConstants.privateFolderWithUsers(participantInfo.name)
-  )
-  return FsConstants.makeActionForOpenPathInFilesTab(path)
 }
 
 const attachmentPreviewSelect = (_: unknown, action: Chat2Gen.AttachmentPreviewSelectPayload) => {
@@ -1046,8 +1032,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlResolvePrompt)
   Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
   Container.listenAction(Chat2Gen.unfurlRemove, unfurlRemove)
-
-  Container.listenAction(Chat2Gen.openFolder, openFolder)
 
   // Search handling
   Container.listenAction(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)
