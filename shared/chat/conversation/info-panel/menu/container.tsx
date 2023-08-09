@@ -148,10 +148,11 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     addTeamWithChosenChannels(teamID)
   }, [manageChatChannels, addTeamWithChosenChannels, teamID])
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const markTeamAsRead = ChatConstants.useContext(s => s.dispatch.markTeamAsRead)
   const onMarkAsRead = React.useCallback(() => {
     clearModals()
-    dispatch(ChatGen.createMarkTeamAsRead({teamID}))
-  }, [clearModals, dispatch, teamID])
+    markTeamAsRead(teamID)
+  }, [clearModals, markTeamAsRead, teamID])
   const setMarkAsUnread = ChatConstants.useContext(s => s.dispatch.setMarkAsUnread)
   const onMarkAsUnread = React.useCallback(() => {
     clearModals()

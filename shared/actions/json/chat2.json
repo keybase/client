@@ -52,10 +52,6 @@
       "_description": "The attachment upload modal was canceled",
       "outboxIDs": "Array<RPCChatTypes.OutboxID>"
     },
-    "markTeamAsRead": {
-      "_description": "Mark all conversations in a team as read",
-      "teamID": "TeamsTypes.TeamID"
-    },
     "navigateToInbox": {
       "_description": "Navigation helper. Nav is slightly different on mobile / desktop."
     },

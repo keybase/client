@@ -565,17 +565,6 @@ const attachFromDragAndDrop = async (
   })
 }
 
-const markTeamAsRead = async (_: unknown, action: Chat2Gen.MarkTeamAsReadPayload) => {
-  if (!ConfigConstants.useConfigState.getState().loggedIn) {
-    logger.info('bail on not logged in')
-    return
-  }
-  const tlfID = Buffer.from(TeamsTypes.teamIDToString(action.payload.teamID), 'hex')
-  await RPCChatTypes.localMarkTLFAsReadLocalRpcPromise({
-    tlfID,
-  })
-}
-
 const dismissJourneycard = (_: unknown, action: Chat2Gen.DismissJourneycardPayload) => {
   const {cardType, conversationIDKey, ordinal} = action.payload
   RPCChatTypes.localDismissJourneycardRpcPromise({
@@ -1027,7 +1016,6 @@ const initChat = () => {
     dispatch.markThreadAsRead()
   })
 
-  Container.listenAction(Chat2Gen.markTeamAsRead, markTeamAsRead)
   Container.listenAction(Chat2Gen.leaveConversation, () => {
     RouterConstants.useState.getState().dispatch.clearModals()
   })

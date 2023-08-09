@@ -8,6 +8,7 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as React from 'react'
 import * as RouterConstants from '../router2'
+import * as TeamsTypes from '../types/teams'
 import * as TeamsConstants from '../teams'
 import * as Types from '../types/chat2'
 import * as Z from '../../util/zustand'
@@ -18,7 +19,6 @@ import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import throttle from 'lodash/throttle'
-import type * as TeamsTypes from '../types/teams'
 import {RPCError} from '../../util/errors'
 import {findLast} from '../../util/arrays'
 import {isMobile, isIOS} from '../platform'
@@ -173,6 +173,7 @@ export type ConvoState = ConvoStore & {
       numberOfMessagesToLoad?: number
     }) => void
     markThreadAsRead: (unreadLineMessageID?: number) => void
+    markTeamAsRead: (teamID: TeamsTypes.TeamID) => void
     messageAttachmentNativeSave: (message: Types.Message) => void
     messageAttachmentNativeShare: (message: Types.Message) => void
     messageDelete: (ordinal: Types.Ordinal) => void
@@ -909,6 +910,18 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           // ignore this error in general
         }
+      }
+      Z.ignorePromise(f())
+    },
+    markTeamAsRead: teamID => {
+      const f = async () => {
+        const ConfigConstants = await import('../config')
+        if (!ConfigConstants.useConfigState.getState().loggedIn) {
+          logger.info('bail on not logged in')
+          return
+        }
+        const tlfID = Buffer.from(TeamsTypes.teamIDToString(teamID), 'hex')
+        await RPCChatTypes.localMarkTLFAsReadLocalRpcPromise({tlfID})
       }
       Z.ignorePromise(f())
     },
