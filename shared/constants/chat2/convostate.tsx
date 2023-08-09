@@ -136,9 +136,6 @@ export type ConvoState = ConvoStore & {
     clearAttachmentView: () => void
     clearMessageTypeMap: () => void
     dismissBottomBanner: () => void
-    // dynamic: {
-    //   injectIntoInput: (s: string) => void
-    // }
     editBotSettings: (
       username: string,
       allowCommands: boolean,
@@ -224,7 +221,6 @@ export type ConvoState = ConvoStore & {
     setEditing: (ordinal: Types.Ordinal | boolean) => void // true is last, false is clear
     setExplodingMode: (seconds: number, incoming?: boolean) => void
     setExplodingModeLocked: (locked: boolean) => void
-    // setInputCallback: (cb: (s: string) => void) => void
     // false to clear
     setMarkAsUnread: (readMsgID?: RPCChatTypes.MessageID | false) => void
     setMessageCenterOrdinal: (m?: Types.CenterOrdinal) => void
@@ -481,11 +477,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.dismissedInviteBanners = true
       })
     },
-    // dynamic: {
-    //   injectIntoInput: s => {
-    //     console.log('aaa inject into input w/ no input?', s)
-    //   },
-    // },
     editBotSettings: (username, allowCommands, allowMentions, convs) => {
       const f = async () => {
         const conversationIDKey = get().id
@@ -768,7 +759,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             Z.dummyListenerApi
           )
           if (get().meta.conversationIDKey === conversationIDKey) {
-            console.log('aaaa updating offline', get().meta)
             get().dispatch.updateMeta({offline: results.offline})
           }
         } catch (error) {
@@ -1914,9 +1904,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     setDraft: d => {
-      if (get().id === '0000b386ba31eebeea5d8ba781aa8ccb4e0c31b6d9a210e74964b42d2d5726c1') {
-        console.log('aaa set draft', get().id, d, get().meta.draft, d)
-      }
       set(s => {
         s.draft = d
       })
@@ -2030,11 +2017,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.explodingModeLock = locked ? get().explodingMode : undefined
       })
     },
-    // setInputCallback: cb => {
-    //   set(s => {
-    //     s.dispatch.dynamic.injectIntoInput = cb
-    //   })
-    // },
     setMarkAsUnread: readMsgID => {
       // false means clear, readMsgID === undefined means last item
       set(s => {
@@ -2160,9 +2142,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMeta: _m => {
       // see updatemeta
       const m = _m ?? Meta.makeConversationMeta()
-      if (get().id === '0000b386ba31eebeea5d8ba781aa8ccb4e0c31b6d9a210e74964b42d2d5726c1') {
-        console.log('aaa setMeta', m)
-      }
       set(s => {
         s.meta = m
       })
@@ -2437,9 +2416,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     updateMeta: (pm: Partial<Types.ConversationMeta>) => {
-      if (get().id === '0000b386ba31eebeea5d8ba781aa8ccb4e0c31b6d9a210e74964b42d2d5726c1') {
-        console.log('aaa updateMeta', get().meta, pm)
-      }
       // see setmeta
       set(s => {
         const keys = Object.keys(pm) as Array<keyof Types.ConversationMeta>

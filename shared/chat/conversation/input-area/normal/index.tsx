@@ -83,9 +83,6 @@ const Input = (p: Props) => {
   const showCommandMarkdown = Constants.useContext(s => !!s.commandMarkdown)
   const showCommandStatus = Constants.useContext(s => !!s.commandStatus)
   const showReplyTo = Constants.useContext(s => !!s.messageMap.get(s.replyTo)?.id)
-
-  const NOJIMA = Constants.useContext(s => s.commandMarkdown)
-  console.log('aaaa', NOJIMA)
   return (
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
       {showReplyTo && <ReplyPreview />}
@@ -133,7 +130,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const unsentText = Constants.useContext(s => s.unsentText)
   const resetUnsentText = Constants.useContext(s => s.dispatch.resetUnsentText)
   const setExplodingModeLocked = Constants.useContext(s => s.dispatch.setExplodingModeLocked)
-  console.log('aaaa render', {conversationIDKey, draft, unsentText})
   const [lastDraft, setLastDraft] = React.useState<undefined | string>()
 
   const sendTyping = React.useCallback(
@@ -157,7 +153,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const onChangeText = React.useCallback(
     (text: string) => {
       if (injectingTextRef.current) return
-      console.log('aaaa onChangeText', text)
       lastTextRef.current = text
       sendTyping(text)
       sendDraft(text)
@@ -167,7 +162,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   )
   const injectText = React.useCallback(
     (text: string) => {
-      console.log('aaaa injectText', text, inputRef.current ? 'good ref' : 'BAD ref')
       injectingTextRef.current = true
       lastTextRef.current = text
       inputRef.current?.transformText(
@@ -178,15 +172,9 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
         true
       )
       injectingTextRef.current = false
-      console.log('aaaa injectText after', text)
     },
     [inputRef]
   )
-
-  // const setInputCallback = Constants.useContext(s => s.dispatch.setInputCallback)
-  // React.useEffect(() => {
-  //   setInputCallback(injectText)
-  // }, [setInputCallback, injectText])
 
   const onSubmit = React.useCallback(
     (text: string) => {
@@ -224,50 +212,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     },
     [injectText, dispatch, conversationIDKey, onRequestScrollToBottom, jumpToRecent, replyTo]
   )
-
-  // const onChangeText = React.useCallback(
-  //   (text: string) => {
-  //     lastTextRef.current = text
-  //     const skipThrottle = lastTextRef.current.length > 0 && text.length === 0
-  //     setUnsentText(text)
-
-  //     // If the input bar has been cleared, send typing notification right away
-  //     if (skipThrottle) {
-  //       sendTypingThrottled.cancel()
-  //       sendTyping(false)
-  //     } else {
-  //       sendTypingThrottled(!!text)
-  //     }
-
-  //     const skipDebounce = text.startsWith('/')
-
-  //     if (skipDebounce) {
-  //       unsentTextChangedThrottled.cancel()
-  //       unsentTextChanged(text)
-  //     } else {
-  //       unsentTextChangedThrottled(text)
-  //     }
-  //   },
-  //   [sendTyping, sendTypingThrottled, setUnsentText, unsentTextChanged, unsentTextChangedThrottled]
-  // )
-
-  // const [lastUnsentText, setLastUnsentText] = React.useState<string | undefined>()
-
-  // if (lastUnsentText !== unsentText) {
-  //   console.log('aaaa unsent text changed, update', lastUnsentText, unsentText)
-  //   setLastUnsentText(unsentText)
-  //   if (unsentText !== undefined) {
-  //     lastTextRef.current = unsentText
-  //     setTextInput(lastTextRef.current)
-  //   }
-  // }
-  // needs to be an effect since setTextInput needs a mounted ref
-  // React.useEffect(() => {
-  //   console.log('aaaa effect', lastTextRef.current)
-  //   setTextInput(lastTextRef.current)
-  // }, [setTextInput])
-
-  // console.log('aaaa render', lastTextRef.current)
 
   const isTyping = Constants.useContext(s => s.typing.size > 0)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)

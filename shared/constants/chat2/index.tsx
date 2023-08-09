@@ -918,7 +918,6 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
     },
     metasReceived: (metas, removals) => {
-      console.log('aaa metasReceived', metas)
       removals?.forEach(r => {
         getConvoState(r).dispatch.setMeta()
       })
