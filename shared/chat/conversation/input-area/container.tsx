@@ -34,7 +34,7 @@ const InputAreaContainer = (p: OwnProps) => {
     return null
   }
   if (isPreview) {
-    return <Preview conversationIDKey={p.conversationIDKey} />
+    return <Preview />
   }
   if (showThreadSearch && Container.isMobile) {
     return <ThreadSearch conversationIDKey={p.conversationIDKey} />

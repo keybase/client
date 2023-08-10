@@ -495,18 +495,6 @@ const fetchUserEmoji = async (_: unknown, action: Chat2Gen.FetchUserEmojiPayload
   Constants.useState.getState().dispatch.loadedUserEmoji(results)
 }
 
-// Helpers to nav you to the right place
-const navigateToInbox = (
-  _: unknown,
-  action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.LeaveConversationPayload
-) => {
-  if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
-    return
-  }
-  RouterConstants.useState.getState().dispatch.navUpToScreen('chatRoot')
-  RouterConstants.useState.getState().dispatch.switchTab(Tabs.chatTab)
-}
-
 const navigateToThread = (_: unknown, action: Chat2Gen.NavigateToThreadPayload) => {
   const {conversationIDKey, reason} = action.payload
   // don't nav if its caused by a nav
@@ -564,22 +552,6 @@ const ensureWidgetMetas = () => {
   }
 
   Constants.useState.getState().dispatch.unboxRows(missing, true)
-}
-
-const joinConversation = async (_: unknown, action: Chat2Gen.JoinConversationPayload) => {
-  await RPCChatTypes.localJoinConversationByIDLocalRpcPromise(
-    {convID: Types.keyToConversationID(action.payload.conversationIDKey)},
-    Constants.waitingKeyJoinConversation
-  )
-}
-
-const leaveConversation = async (_: unknown, action: Chat2Gen.LeaveConversationPayload) => {
-  await RPCChatTypes.localLeaveConversationLocalRpcPromise(
-    {
-      convID: Types.keyToConversationID(action.payload.conversationIDKey),
-    },
-    Constants.waitingKeyLeaveConversation
-  )
 }
 
 const updateNotificationSettings = async (_: unknown, action: Chat2Gen.UpdateNotificationSettingsPayload) => {
@@ -871,18 +843,15 @@ const initChat = () => {
     dispatch.markThreadAsRead()
   })
 
-  Container.listenAction(Chat2Gen.leaveConversation, () => {
-    RouterConstants.useState.getState().dispatch.clearModals()
+  Container.listenAction(Chat2Gen.navigateToInbox, () => {
+    RouterConstants.useState.getState().dispatch.navUpToScreen('chatRoot')
+    RouterConstants.useState.getState().dispatch.switchTab(Tabs.chatTab)
   })
-  Container.listenAction([Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation], navigateToInbox)
   Container.listenAction(Chat2Gen.navigateToThread, navigateToThread)
   Container.listenAction(Chat2Gen.navigateToThread, (_, action) => {
     const {conversationIDKey} = action.payload
     Constants.getConvoState(conversationIDKey).dispatch.hideSearch()
   })
-
-  Container.listenAction(Chat2Gen.joinConversation, joinConversation)
-  Container.listenAction(Chat2Gen.leaveConversation, leaveConversation)
 
   Container.listenAction(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
 

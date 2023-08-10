@@ -5,13 +5,6 @@
     "import type * as TeamsTypes from '../constants/types/teams'"
   ],
   "actions": {
-    "joinConversation": {
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "leaveConversation": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "dontNavigateToInbox?": "boolean"
-    },
     "attachmentPreviewSelect": {
       "_description": "The user has selected an attachment with a preview",
       "conversationIDKey": "Types.ConversationIDKey",

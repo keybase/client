@@ -19,9 +19,7 @@ export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
-export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
-export const leaveConversation = 'chat2:leaveConversation'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
@@ -247,14 +245,6 @@ export const createDismissBlockButtons = (payload: {readonly teamID: RPCTypes.Te
   payload,
   type: dismissBlockButtons as typeof dismissBlockButtons,
 })
-export const createJoinConversation = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
-  payload,
-  type: joinConversation as typeof joinConversation,
-})
-export const createLeaveConversation = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly dontNavigateToInbox?: boolean
-}) => ({payload, type: leaveConversation as typeof leaveConversation})
 export const createOpenChatFromWidget = (
   payload: {readonly conversationIDKey?: Types.ConversationIDKey} = {}
 ) => ({payload, type: openChatFromWidget as typeof openChatFromWidget})
@@ -278,9 +268,7 @@ export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockBut
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
 export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMessage>
-export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
 export type JumpToRecentPayload = ReturnType<typeof createJumpToRecent>
-export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
@@ -312,9 +300,7 @@ export type Actions =
   | DismissJourneycardPayload
   | FetchUserEmojiPayload
   | IgnorePinnedMessagePayload
-  | JoinConversationPayload
   | JumpToRecentPayload
-  | LeaveConversationPayload
   | NavigateToInboxPayload
   | NavigateToThreadPayload
   | OpenChatFromWidgetPayload

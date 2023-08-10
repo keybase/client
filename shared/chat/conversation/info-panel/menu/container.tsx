@@ -2,8 +2,6 @@ import * as ChatConstants from '../../../../constants/chat2'
 import * as RouterConstants from '../../../../constants/router2'
 import * as UsersConstants from '../../../../constants/users'
 import * as ConfigConstants from '../../../../constants/config'
-import * as ChatGen from '../../../../actions/chat2-gen'
-import * as Container from '../../../../util/container'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
@@ -105,9 +103,6 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
 
   const {teamname, teamID, badgeSubscribe, canAddPeople, channelname, isInChannel, ignored} = data
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
-
-  const dispatch = Container.useDispatch()
-
   const startAddMembersWizard = TeamConstants.useState(s => s.dispatch.startAddMembersWizard)
   const onAddPeople = React.useCallback(() => {
     teamID && startAddMembersWizard(teamID)
@@ -129,14 +124,8 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     teamID && navigateAppend({props: {teamID}, selected})
   }, [navigateAppend, teamID])
 
-  const onJoinChannel = React.useCallback(
-    () => dispatch(ChatGen.createJoinConversation({conversationIDKey})),
-    [dispatch, conversationIDKey]
-  )
-  const onLeaveChannel = React.useCallback(
-    () => dispatch(ChatGen.createLeaveConversation({conversationIDKey})),
-    [dispatch, conversationIDKey]
-  )
+  const onJoinChannel = ChatConstants.useContext(s => s.dispatch.joinConversation)
+  const onLeaveChannel = ChatConstants.useContext(s => s.dispatch.leaveConversation)
   const onLeaveTeam = React.useCallback(
     () => teamID && navigateAppend({props: {teamID}, selected: 'teamReallyLeaveTeam'}),
     [navigateAppend, teamID]

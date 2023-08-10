@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
@@ -18,7 +17,6 @@ type SettingsPanelProps = {conversationIDKey: Types.ConversationIDKey; isPreview
 
 const SettingsPanel = (props: SettingsPanelProps) => {
   const {conversationIDKey, isPreview} = props
-  const dispatch = Container.useDispatch()
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const meta = Constants.useContext(s => s.meta)
   const {status, teamname, teamType, channelname, teamID} = meta
@@ -68,7 +66,10 @@ const SettingsPanel = (props: SettingsPanelProps) => {
       }
     : onHideConv
 
-  const onLeaveConversation = () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey}))
+  const leaveConversation = Constants.useContext(s => s.dispatch.leaveConversation)
+  const onLeaveConversation = () => {
+    leaveConversation()
+  }
 
   const showDangerZone = canDeleteHistory || entityType === 'adhoc' || entityType !== 'channel'
 

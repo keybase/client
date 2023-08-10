@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Common from './common'
+import * as Tabs from '../tabs'
 import * as EngineGen from '../../actions/engine-gen-gen'
 import * as FsTypes from '../types/fs'
 import * as Message from './message'
@@ -152,6 +153,8 @@ export type ConvoState = ConvoStore & {
     hideSearch: () => void
     hideConversation: (hide: boolean) => void
     injectIntoInput: (text: string) => void
+    joinConversation: () => void
+    leaveConversation: (navToInbox?: boolean) => void
     loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
     loadMessagesCentered: (
       messageID: Types.MessageID,
@@ -624,6 +627,29 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.unsentText = text
       })
       get().dispatch.updateDraft(text)
+    },
+    joinConversation: () => {
+      const f = async () => {
+        await RPCChatTypes.localJoinConversationByIDLocalRpcPromise(
+          {convID: Types.keyToConversationID(get().id)},
+          Common.waitingKeyJoinConversation
+        )
+      }
+      Z.ignorePromise(f())
+    },
+    leaveConversation: (navToInbox = true) => {
+      const f = async () => {
+        await RPCChatTypes.localLeaveConversationLocalRpcPromise(
+          {convID: Types.keyToConversationID(get().id)},
+          Common.waitingKeyLeaveConversation
+        )
+      }
+      Z.ignorePromise(f())
+      RouterConstants.useState.getState().dispatch.clearModals()
+      if (navToInbox) {
+        RouterConstants.useState.getState().dispatch.navUpToScreen('chatRoot')
+        RouterConstants.useState.getState().dispatch.switchTab(Tabs.chatTab)
+      }
     },
     loadAttachmentView: (viewType, fromMsgID) => {
       set(s => {
