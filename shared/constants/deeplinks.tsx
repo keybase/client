@@ -44,7 +44,7 @@ type State = Store & {
     handleAppLink: (link: string) => void
     handleKeybaseLink: (link: string) => void
     handleSaltPackOpen: (_path: string | HiddenString) => void
-    onEngineIncoming: (action: EngineGen.Keybase1NotifyServiceHandleKeybaseLinkPayload) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     resetState: 'default'
     setLinkError: (e: string) => void
   }
@@ -300,6 +300,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           get().dispatch.handleKeybaseLink(link)
           break
         }
+        default:
       }
     },
     resetState: 'default',

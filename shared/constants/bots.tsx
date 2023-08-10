@@ -1,6 +1,6 @@
 import * as RPCTypes from './types/rpc-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as Z from '../util/zustand'
-import type * as EngineGen from '../actions/engine-gen-gen'
 import logger from '../logger'
 import {RPCError, isNetworkErr} from '../util/errors'
 
@@ -43,9 +43,9 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
-    botsUpdate: (action: EngineGen.Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload) => void
     getFeaturedBots: (limit?: number, page?: number) => void
     loadNextBotPage: (pageSize?: number) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     resetState: 'default'
     searchFeaturedAndUsers: (query: string) => void
     searchFeaturedBots: (query: string, limit?: number, offset?: number) => void
@@ -59,13 +59,6 @@ type State = Store & {
 const pageSize = 100
 export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
-    botsUpdate: action => {
-      const {bots, limit, offset} = action.payload.params
-      const loadedAllBots = !bots || bots.length < pageSize
-      const page = offset / (limit ?? pageSize)
-      get().dispatch.updateFeaturedBots(bots ?? [], page)
-      get().dispatch.setLoadedAllBots(loadedAllBots)
-    },
     getFeaturedBots: (limit, page) => {
       const f = async () => {
         try {
@@ -92,6 +85,20 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     loadNextBotPage: ps => {
       get().dispatch.getFeaturedBots(ps ?? pageSize, get().featuredBotsPage + 1)
+    },
+    onEngineIncoming: (action: EngineGen.Actions) => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
+          {
+            const {bots, limit, offset} = action.payload.params
+            const loadedAllBots = !bots || bots.length < pageSize
+            const page = offset / (limit ?? pageSize)
+            get().dispatch.updateFeaturedBots(bots ?? [], page)
+            get().dispatch.setLoadedAllBots(loadedAllBots)
+          }
+          break
+        default:
+      }
     },
     resetState: 'default',
     searchFeaturedAndUsers: query => {

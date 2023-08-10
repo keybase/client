@@ -3,8 +3,7 @@
     "import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
     "import type * as Types from '../constants/types/chat2'",
     "import type * as TeamsTypes from '../constants/types/teams'",
-    "import type HiddenString from '../util/hidden-string'",
-    "import type {RetentionPolicy} from '../constants/types/retention-policy'"
+    "import type HiddenString from '../util/hidden-string'"
   ],
   "actions": {
     "messageSend": {
@@ -25,18 +24,6 @@
     "leaveConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
       "dontNavigateToInbox?": "boolean"
-    },
-    "openFolder": {
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "resetChatWithoutThem": {
-      "_description": "If an implied team chat member resets you can start a new chat w/o any reset people",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "resetLetThemIn": {
-      "_description": "If an implied team chat member resets you can add them back in",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string"
     },
     "attachmentPreviewSelect": {
       "_description": "The user has selected an attachment with a preview",
@@ -63,17 +50,6 @@
     "attachmentUploadCanceled": {
       "_description": "The attachment upload modal was canceled",
       "outboxIDs": "Array<RPCChatTypes.OutboxID>"
-    },
-    "markInitiallyLoadedThreadAsRead": {
-      "_description": [
-        "On startup we're automatically loading a thread sometimes.",
-        "When we first view it we should go through our marking as read logic"
-      ],
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "markTeamAsRead": {
-      "_description": "Mark all conversations in a team as read",
-      "teamID": "TeamsTypes.TeamID"
     },
     "navigateToInbox": {
       "_description": "Navigation helper. Nav is slightly different on mobile / desktop."
@@ -120,16 +96,6 @@
       "notificationsDesktop": "Types.NotificationsType",
       "notificationsMobile": "Types.NotificationsType",
       "notificationsGlobalIgnoreMentions": "boolean"
-    },
-    "blockConversation": {
-      "_description": "Block a conversation",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "reportUser": "boolean"
-    },
-    "setConvRetentionPolicy": {
-      "_description": "Sets the retention policy for a conversation.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "policy": "RetentionPolicy"
     },
     "setMinWriterRole": {
       "_description": "Set the minimum role required to write into a conversation. Valid only for team conversations.",

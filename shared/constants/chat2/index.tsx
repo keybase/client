@@ -399,17 +399,7 @@ export type State = Store & {
       removals?: Array<Types.ConversationIDKey> // convs to remove
     ) => void
     onEngineConnected: () => void
-    onEngineIncoming: (
-      action:
-        | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
-        | EngineGen.Chat1ChatUiChatInboxFailedPayload
-        | EngineGen.Chat1NotifyChatChatSetConvRetentionPayload
-        | EngineGen.Chat1NotifyChatChatSetTeamRetentionPayload
-        | EngineGen.Chat1NotifyChatChatSetConvSettingsPayload
-        | EngineGen.Chat1NotifyChatChatAttachmentUploadProgressPayload
-        | EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload
-        | EngineGen.Chat1NotifyChatNewChatActivityPayload
-    ) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     onIncomingInboxUIItem: (inboxUIItem?: RPCChatTypes.InboxUIItem) => void
     onRouteChanged: (prev: Router2.NavState, next: Router2.NavState) => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
@@ -431,8 +421,8 @@ export type State = Store & {
     setTrustedInboxHasLoaded: () => void
     showInfoPanel: (
       show: boolean,
-      tab?: 'settings' | 'members' | 'attachments' | 'bots',
-      conversationIDKey?: Types.ConversationIDKey
+      tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined,
+      conversationIDKey: Types.ConversationIDKey
     ) => void
     setInboxNumSmallRows: (rows: number, ignoreWrite?: boolean) => void
     toggleInboxSearch: (enabled: boolean) => void
@@ -1120,6 +1110,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           )
           break
         }
+        default:
       }
     },
     onIncomingInboxUIItem: conv => {
@@ -1211,7 +1202,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       maybeChangeChatSelection()
       maybeChatTabSelected()
     },
-    onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => {
+    onTeamBuildingFinished: users => {
       const f = async () => {
         // need to let the mdoal hide first else its thrashy
         await Z.timeoutPromise(500)
@@ -1471,11 +1462,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.trustedInboxHasLoaded = true
       })
     },
-    showInfoPanel: (
-      show: boolean,
-      tab?: 'settings' | 'members' | 'attachments' | 'bots',
-      conversationIDKey?: Types.ConversationIDKey
-    ) => {
+    showInfoPanel: (show, tab, conversationIDKey) => {
       set(s => {
         s.infoPanelShowing = show
         s.infoPanelSelectedTab = show ? tab : undefined

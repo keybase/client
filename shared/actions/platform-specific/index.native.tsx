@@ -392,6 +392,7 @@ export const initPlatformListener = () => {
 
     s.dispatch.dynamic.onEngineIncomingNative = action => {
       switch (action.type) {
+        default:
       }
     }
   })
@@ -554,10 +555,10 @@ export const initPlatformListener = () => {
   // mobile version of the remote connection
   Container.listenAction(RemoteGen.engineConnection, (_, a) => {
     if (a.payload.connected) {
-      EngineConstants.useState.getState().dispatch.connected()
+      EngineConstants.useState.getState().dispatch.onEngineConnected()
       ConfigConstants.useConfigState.getState().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
     } else {
-      EngineConstants.useState.getState().dispatch.connected()
+      EngineConstants.useState.getState().dispatch.onEngineDisconnected()
     }
   })
 
@@ -608,6 +609,7 @@ export const initPlatformListener = () => {
         case EngineGen.chat1ChatUiChatClearWatch:
           Z.ignorePromise(onChatClearWatch())
           break
+        default:
       }
     }
   })

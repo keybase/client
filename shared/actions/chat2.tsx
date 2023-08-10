@@ -5,8 +5,6 @@ import * as UsersConstants from '../constants/users'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
-import * as FsConstants from '../constants/fs'
-import * as FsTypes from '../constants/types/fs'
 import * as Platform from '../constants/platform'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from './../constants/types/rpc-gen'
@@ -429,18 +427,6 @@ const confirmScreenResponse = (_: unknown, action: Chat2Gen.ConfirmScreenRespons
   storeStellarConfirmWindowResponse(action.payload.accept)
 }
 
-const openFolder = (_: unknown, action: Chat2Gen.OpenFolderPayload) => {
-  const {conversationIDKey} = action.payload
-  const meta = Constants.getConvoState(conversationIDKey).meta
-  const participantInfo = Constants.getConvoState(conversationIDKey).participants
-  const path = FsTypes.stringToPath(
-    meta.teamType !== 'adhoc'
-      ? ConfigConstants.teamFolder(meta.teamname)
-      : ConfigConstants.privateFolderWithUsers(participantInfo.name)
-  )
-  return FsConstants.makeActionForOpenPathInFilesTab(path)
-}
-
 const attachmentPreviewSelect = (_: unknown, action: Chat2Gen.AttachmentPreviewSelectPayload) => {
   RouterConstants.useState.getState().dispatch.navigateAppend({
     props: {
@@ -576,39 +562,6 @@ const attachFromDragAndDrop = async (
     conversationIDKey: action.payload.conversationIDKey,
     paths: action.payload.paths,
     titles: action.payload.titles,
-  })
-}
-
-// Implicit teams w/ reset users we can invite them back in or chat w/o them
-const resetChatWithoutThem = (_: unknown, action: Chat2Gen.ResetChatWithoutThemPayload) => {
-  const {conversationIDKey} = action.payload
-  const meta = Constants.getConvoState(conversationIDKey).meta
-  const participantInfo = Constants.getConvoState(conversationIDKey).participants
-  // remove all bad people
-  const goodParticipants = new Set(participantInfo.all)
-  meta.resetParticipants.forEach(r => goodParticipants.delete(r))
-  Constants.useState.getState().dispatch.previewConversation({
-    participants: [...goodParticipants],
-    reason: 'resetChatWithoutThem',
-  })
-}
-
-// let them back in after they reset
-const resetLetThemIn = async (_: unknown, action: Chat2Gen.ResetLetThemInPayload) => {
-  await RPCChatTypes.localAddTeamMemberAfterResetRpcPromise({
-    convID: Types.keyToConversationID(action.payload.conversationIDKey),
-    username: action.payload.username,
-  })
-}
-
-const markTeamAsRead = async (_: unknown, action: Chat2Gen.MarkTeamAsReadPayload) => {
-  if (!ConfigConstants.useConfigState.getState().loggedIn) {
-    logger.info('bail on not logged in')
-    return
-  }
-  const tlfID = Buffer.from(TeamsTypes.teamIDToString(action.payload.teamID), 'hex')
-  await RPCChatTypes.localMarkTLFAsReadLocalRpcPromise({
-    tlfID,
   })
 }
 
@@ -760,41 +713,6 @@ const updateNotificationSettings = async (_: unknown, action: Chat2Gen.UpdateNot
       },
     ],
   })
-}
-
-const blockConversation = async (
-  _: Container.TypedState,
-  action: Chat2Gen.BlockConversationPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {conversationIDKey, reportUser} = action.payload
-  listenerApi.dispatch(Chat2Gen.createNavigateToInbox())
-  ConfigConstants.useConfigState.getState().dispatch.dynamic.persistRoute?.()
-  await RPCChatTypes.localSetConversationStatusLocalRpcPromise({
-    conversationID: Types.keyToConversationID(conversationIDKey),
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    status: reportUser ? RPCChatTypes.ConversationStatus.reported : RPCChatTypes.ConversationStatus.blocked,
-  })
-}
-
-const setConvRetentionPolicy = async (_: unknown, action: Chat2Gen.SetConvRetentionPolicyPayload) => {
-  const {conversationIDKey} = action.payload
-  const convID = Types.keyToConversationID(conversationIDKey)
-  let policy: RPCChatTypes.RetentionPolicy | undefined
-  try {
-    policy = TeamsConstants.retentionPolicyToServiceRetentionPolicy(action.payload.policy)
-    if (policy) {
-      await RPCChatTypes.localSetConvRetentionLocalRpcPromise({convID, policy})
-      return
-    }
-  } catch (error) {
-    if (error instanceof RPCError) {
-      // should never happen
-      logger.error(`Unable to parse retention policy: ${error.message}`)
-    }
-    throw error
-  }
-  return false
 }
 
 const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageCollapsePayload) => {
@@ -1047,8 +965,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
   Container.listenAction(Chat2Gen.unfurlRemove, unfurlRemove)
 
-  Container.listenAction(Chat2Gen.openFolder, openFolder)
-
   // Search handling
   Container.listenAction(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)
   Container.listenAction(Chat2Gen.attachmentsUpload, attachmentsUpload)
@@ -1056,28 +972,15 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.attachmentPasted, attachmentPasted)
   Container.listenAction(Chat2Gen.attachmentUploadCanceled, attachmentUploadCanceled)
 
-  Container.listenAction(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)
-  Container.listenAction(Chat2Gen.resetLetThemIn, resetLetThemIn)
-
   Container.listenAction(Chat2Gen.updateUnreadline, (_, a) => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.markThreadAsRead(a.payload.messageID)
-  })
-  Container.listenAction(Chat2Gen.markInitiallyLoadedThreadAsRead, (_, a) => {
-    const conversationIDKey = Constants.getSelectedConversation()
-    if (a.payload.conversationIDKey !== conversationIDKey) {
-      logger.info('bail on not looking at this thread anymore?')
-      return
-    }
-    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
-    dispatch.markThreadAsRead()
   })
   Container.listenAction(Chat2Gen.tabSelected, () => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.markThreadAsRead()
   })
 
-  Container.listenAction(Chat2Gen.markTeamAsRead, markTeamAsRead)
   Container.listenAction(Chat2Gen.leaveConversation, () => {
     RouterConstants.useState.getState().dispatch.clearModals()
   })
@@ -1092,9 +995,7 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.leaveConversation, leaveConversation)
 
   Container.listenAction(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
-  Container.listenAction(Chat2Gen.blockConversation, blockConversation)
 
-  Container.listenAction(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   Container.listenAction(Chat2Gen.toggleMessageCollapse, toggleMessageCollapse)
   Container.listenAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
 

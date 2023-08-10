@@ -4,7 +4,6 @@ import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import type * as Types from '../constants/types/chat2'
 import type * as TeamsTypes from '../constants/types/teams'
 import type HiddenString from '../util/hidden-string'
-import type {RetentionPolicy} from '../constants/types/retention-policy'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
@@ -16,7 +15,6 @@ export const attachmentPasted = 'chat2:attachmentPasted'
 export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
 export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
-export const blockConversation = 'chat2:blockConversation'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
@@ -25,21 +23,15 @@ export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
-export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
-export const markTeamAsRead = 'chat2:markTeamAsRead'
 export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
-export const openFolder = 'chat2:openFolder'
 export const pinMessage = 'chat2:pinMessage'
 export const replyJump = 'chat2:replyJump'
-export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
-export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
-export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const tabSelected = 'chat2:tabSelected'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
@@ -65,13 +57,6 @@ export const createAddUserToChannel = (payload: {
   readonly username: string
 }) => ({payload, type: addUserToChannel as typeof addUserToChannel})
 /**
- * Block a conversation
- */
-export const createBlockConversation = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly reportUser: boolean
-}) => ({payload, type: blockConversation as typeof blockConversation})
-/**
  * Desktop changed tab to chat
  */
 export const createTabSelected = (payload?: undefined) => ({payload, type: tabSelected as typeof tabSelected})
@@ -83,19 +68,6 @@ export const createDismissJourneycard = (payload: {
   readonly cardType: RPCChatTypes.JourneycardType
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: dismissJourneycard as typeof dismissJourneycard})
-/**
- * If an implied team chat member resets you can add them back in
- */
-export const createResetLetThemIn = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly username: string
-}) => ({payload, type: resetLetThemIn as typeof resetLetThemIn})
-/**
- * If an implied team chat member resets you can start a new chat w/o any reset people
- */
-export const createResetChatWithoutThem = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: resetChatWithoutThem as typeof resetChatWithoutThem})
 /**
  * Ignore pinned message
  */
@@ -122,13 +94,6 @@ export const createReplyJump = (payload: {
 export const createJumpToRecent = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
   payload,
   type: jumpToRecent as typeof jumpToRecent,
-})
-/**
- * Mark all conversations in a team as read
- */
-export const createMarkTeamAsRead = (payload: {readonly teamID: TeamsTypes.TeamID}) => ({
-  payload,
-  type: markTeamAsRead as typeof markTeamAsRead,
 })
 /**
  * Navigation helper. Nav is slightly different on mobile / desktop.
@@ -173,13 +138,6 @@ export const createNavigateToThread = (payload: {
     | 'teamMention'
   readonly pushBody?: string
 }) => ({payload, type: navigateToThread as typeof navigateToThread})
-/**
- * On startup we're automatically loading a thread sometimes.
- * When we first view it we should go through our marking as read logic
- */
-export const createMarkInitiallyLoadedThreadAsRead = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: markInitiallyLoadedThreadAsRead as typeof markInitiallyLoadedThreadAsRead})
 /**
  * Pin a message
  */
@@ -232,13 +190,6 @@ export const createSetMinWriterRole = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly role: TeamsTypes.TeamRoleType
 }) => ({payload, type: setMinWriterRole as typeof setMinWriterRole})
-/**
- * Sets the retention policy for a conversation.
- */
-export const createSetConvRetentionPolicy = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly policy: RetentionPolicy
-}) => ({payload, type: setConvRetentionPolicy as typeof setConvRetentionPolicy})
 /**
  * The attachment upload modal was canceled
  */
@@ -324,10 +275,6 @@ export const createMessageSendByUsernames = (payload: {
 export const createOpenChatFromWidget = (
   payload: {readonly conversationIDKey?: Types.ConversationIDKey} = {}
 ) => ({payload, type: openChatFromWidget as typeof openChatFromWidget})
-export const createOpenFolder = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
-  payload,
-  type: openFolder as typeof openFolder,
-})
 export const createSendAudioRecording = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly duration: number
@@ -343,7 +290,6 @@ export type AttachmentPastedPayload = ReturnType<typeof createAttachmentPasted>
 export type AttachmentPreviewSelectPayload = ReturnType<typeof createAttachmentPreviewSelect>
 export type AttachmentUploadCanceledPayload = ReturnType<typeof createAttachmentUploadCanceled>
 export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload>
-export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ConfirmScreenResponsePayload = ReturnType<typeof createConfirmScreenResponse>
 export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockButtons>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
@@ -352,21 +298,15 @@ export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMes
 export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
 export type JumpToRecentPayload = ReturnType<typeof createJumpToRecent>
 export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation>
-export type MarkInitiallyLoadedThreadAsReadPayload = ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
-export type MarkTeamAsReadPayload = ReturnType<typeof createMarkTeamAsRead>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
 export type MessageSendPayload = ReturnType<typeof createMessageSend>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
-export type OpenFolderPayload = ReturnType<typeof createOpenFolder>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
 export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
-export type ResetChatWithoutThemPayload = ReturnType<typeof createResetChatWithoutThem>
-export type ResetLetThemInPayload = ReturnType<typeof createResetLetThemIn>
 export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMention>
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
-export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
@@ -386,7 +326,6 @@ export type Actions =
   | AttachmentPreviewSelectPayload
   | AttachmentUploadCanceledPayload
   | AttachmentsUploadPayload
-  | BlockConversationPayload
   | ConfirmScreenResponsePayload
   | DismissBlockButtonsPayload
   | DismissJourneycardPayload
@@ -395,21 +334,15 @@ export type Actions =
   | JoinConversationPayload
   | JumpToRecentPayload
   | LeaveConversationPayload
-  | MarkInitiallyLoadedThreadAsReadPayload
-  | MarkTeamAsReadPayload
   | MessageSendByUsernamesPayload
   | MessageSendPayload
   | NavigateToInboxPayload
   | NavigateToThreadPayload
   | OpenChatFromWidgetPayload
-  | OpenFolderPayload
   | PinMessagePayload
   | ReplyJumpPayload
-  | ResetChatWithoutThemPayload
-  | ResetLetThemInPayload
   | ResolveMaybeMentionPayload
   | SendAudioRecordingPayload
-  | SetConvRetentionPolicyPayload
   | SetMinWriterRolePayload
   | TabSelectedPayload
   | ToggleMessageCollapsePayload

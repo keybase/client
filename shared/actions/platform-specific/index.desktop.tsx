@@ -165,7 +165,9 @@ export const initPlatformListener = () => {
           ConfigConstants.useConfigState
             .getState()
             .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
+          break
         }
+        default:
       }
     }
   })

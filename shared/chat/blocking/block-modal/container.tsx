@@ -1,5 +1,5 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/users'
+import * as ChatConstants from '../../../constants/chat2'
 import * as TeamsConstants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as RouterConstants from '../../../constants/router2'
@@ -53,8 +53,6 @@ export default (ownProps: OwnProps) => {
     teamname,
   }
 
-  const dispatch = Container.useDispatch()
-
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onClose = navigateUp
   const leaveTeam = TeamsConstants.useState(s => s.dispatch.leaveTeam)
@@ -79,17 +77,7 @@ export default (ownProps: OwnProps) => {
     },
     [_reportUser]
   )
-  const setConversationStatus = React.useCallback(
-    (conversationIDKey: string, reportUser: boolean) => {
-      dispatch(
-        Chat2Gen.createBlockConversation({
-          conversationIDKey,
-          reportUser,
-        })
-      )
-    },
-    [dispatch]
-  )
+  const setConversationStatus = ChatConstants.useContext(s => s.dispatch.blockConversation)
   const _setUserBlocks = Constants.useState(s => s.dispatch.setUserBlocks)
   const setUserBlocks = React.useCallback(
     (newBlocks: NewBlocksMap) => {
@@ -127,7 +115,7 @@ export default (ownProps: OwnProps) => {
         } else if (stateProps.convID) {
           takingAction = true
           const anyReported = [...newBlocks.values()].some(v => v?.report !== undefined)
-          setConversationStatus(stateProps.convID, anyReported)
+          setConversationStatus(anyReported)
         }
       }
       if (newBlocks.size) {

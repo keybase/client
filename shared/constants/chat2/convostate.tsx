@@ -1,12 +1,14 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Common from './common'
 import * as EngineGen from '../../actions/engine-gen-gen'
+import * as FsTypes from '../types/fs'
 import * as Message from './message'
 import * as Meta from './meta'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as React from 'react'
 import * as RouterConstants from '../router2'
+import * as TeamsTypes from '../types/teams'
 import * as TeamsConstants from '../teams'
 import * as Types from '../types/chat2'
 import * as Z from '../../util/zustand'
@@ -17,7 +19,7 @@ import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import throttle from 'lodash/throttle'
-import type * as TeamsTypes from '../types/teams'
+import type {RetentionPolicy} from '../types/retention-policy'
 import {RPCError} from '../../util/errors'
 import {findLast} from '../../util/arrays'
 import {isMobile, isIOS} from '../platform'
@@ -131,6 +133,7 @@ export type ConvoState = ConvoStore & {
     ) => void
     attachmentDownload: (ordinal: Types.Ordinal) => void
     badgesUpdated: (badge: number) => void
+    blockConversation: (reportUser: boolean) => void
     botCommandsUpdateStatus: (b: RPCChatTypes.UIBotCommandsUpdateStatus) => void
     channelSuggestionsTriggered: () => void
     clearAttachmentView: () => void
@@ -172,6 +175,7 @@ export type ConvoState = ConvoStore & {
       numberOfMessagesToLoad?: number
     }) => void
     markThreadAsRead: (unreadLineMessageID?: number) => void
+    markTeamAsRead: (teamID: TeamsTypes.TeamID) => void
     messageAttachmentNativeSave: (message: Types.Message) => void
     messageAttachmentNativeShare: (message: Types.Message) => void
     messageDelete: (ordinal: Types.Ordinal) => void
@@ -200,6 +204,7 @@ export type ConvoState = ConvoStore & {
     }) => void
     metaReceivedError: (error: RPCChatTypes.InboxUIItemError, username: string) => void
     mute: (m: boolean) => void
+    openFolder: () => void
     onEngineIncoming: (
       action:
         | EngineGen.Chat1ChatUiChatInboxFailedPayload
@@ -217,6 +222,8 @@ export type ConvoState = ConvoStore & {
     removeBotMember: (username: string) => void
     replaceMessageMap: (mm: ConvoStore['messageMap']) => void
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
+    resetChatWithoutThem: () => void
+    resetLetThemIn: (username: string) => void
     resetState: 'default'
     resetUnsentText: () => void
     selectedConversation: () => void
@@ -224,6 +231,7 @@ export type ConvoState = ConvoStore & {
     setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: Types.CommandStatusInfo) => void
     setContainsLatestMessage: (c: boolean) => void
+    setConvRetentionPolicy: (policy: RetentionPolicy) => void
     setDraft: (d?: string) => void
     setEditing: (ordinal: Types.Ordinal | boolean) => void // true is last, false is clear
     setExplodingMode: (seconds: number, incoming?: boolean) => void
@@ -450,6 +458,21 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.badge = badge
       })
     },
+    blockConversation: reportUser => {
+      const f = async () => {
+        reduxDispatch(Chat2Gen.createNavigateToInbox())
+        const ConfigConstants = await import('../config')
+        ConfigConstants.useConfigState.getState().dispatch.dynamic.persistRoute?.()
+        await RPCChatTypes.localSetConversationStatusLocalRpcPromise({
+          conversationID: Types.keyToConversationID(get().id),
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          status: reportUser
+            ? RPCChatTypes.ConversationStatus.reported
+            : RPCChatTypes.ConversationStatus.blocked,
+        })
+      }
+      Z.ignorePromise(f())
+    },
     botCommandsUpdateStatus: status => {
       set(s => {
         s.botCommandsUpdateStatus = status.typ
@@ -579,7 +602,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           // does that with better information. It knows the conversation is hidden even before
           // that state bounces back.
           reduxDispatch(Chat2Gen.createNavigateToInbox())
-          Constants.useState.getState().dispatch.showInfoPanel(false)
+          Constants.useState.getState().dispatch.showInfoPanel(false, undefined, conversationIDKey)
         }
 
         await RPCChatTypes.localSetConversationStatusLocalRpcPromise(
@@ -905,6 +928,18 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           // ignore this error in general
         }
+      }
+      Z.ignorePromise(f())
+    },
+    markTeamAsRead: teamID => {
+      const f = async () => {
+        const ConfigConstants = await import('../config')
+        if (!ConfigConstants.useConfigState.getState().loggedIn) {
+          logger.info('bail on not logged in')
+          return
+        }
+        const tlfID = Buffer.from(TeamsTypes.teamIDToString(teamID), 'hex')
+        await RPCChatTypes.localMarkTLFAsReadLocalRpcPromise({tlfID})
       }
       Z.ignorePromise(f())
     },
@@ -1766,6 +1801,21 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    openFolder: () => {
+      const f = async () => {
+        const FsConstants = await import('../fs')
+        const ConfigConstants = await import('../config')
+        const meta = get().meta
+        const participantInfo = get().participants
+        const path = FsTypes.stringToPath(
+          meta.teamType !== 'adhoc'
+            ? ConfigConstants.teamFolder(meta.teamname)
+            : ConfigConstants.privateFolderWithUsers(participantInfo.name)
+        )
+        FsConstants.makeActionForOpenPathInFilesTab(path)
+      }
+      Z.ignorePromise(f())
+    },
     paymentInfoReceived: (messageID, paymentInfo) => {
       set(s => {
         s.accountsInfoMap.set(messageID, paymentInfo)
@@ -1862,6 +1912,32 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.accountsInfoMap.set(messageID, requestInfo)
       })
+    },
+    resetChatWithoutThem: () => {
+      // Implicit teams w/ reset users we can invite them back in or chat w/o them
+      const f = async () => {
+        const meta = get().meta
+        const participantInfo = get().participants
+        // remove all bad people
+        const goodParticipants = new Set(participantInfo.all)
+        meta.resetParticipants.forEach(r => goodParticipants.delete(r))
+        const Constants = await import('.')
+        Constants.useState.getState().dispatch.previewConversation({
+          participants: [...goodParticipants],
+          reason: 'resetChatWithoutThem',
+        })
+      }
+      Z.ignorePromise(f())
+    },
+    resetLetThemIn: username => {
+      // let them back in after they reset
+      const f = async () => {
+        await RPCChatTypes.localAddTeamMemberAfterResetRpcPromise({
+          convID: Types.keyToConversationID(get().id),
+          username,
+        })
+      }
+      Z.ignorePromise(f())
     },
     resetState: 'default',
     resetUnsentText: () => {
@@ -1971,6 +2047,25 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.containsLatestMessage = c
       })
+    },
+    setConvRetentionPolicy: _policy => {
+      const f = async () => {
+        const convID = Types.keyToConversationID(get().id)
+        let policy: RPCChatTypes.RetentionPolicy | undefined
+        try {
+          policy = TeamsConstants.retentionPolicyToServiceRetentionPolicy(_policy)
+          if (policy) {
+            await RPCChatTypes.localSetConvRetentionLocalRpcPromise({convID, policy})
+          }
+        } catch (error) {
+          if (error instanceof RPCError) {
+            // should never happen
+            logger.error(`Unable to parse retention policy: ${error.message}`)
+          }
+          throw error
+        }
+      }
+      Z.ignorePromise(f())
     },
     setDraft: d => {
       set(s => {

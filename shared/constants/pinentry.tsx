@@ -36,7 +36,7 @@ type State = Store & {
         result: (param: RPCTypes.GetPassphraseRes) => void
       }
     ) => void
-    onEngineIncoming: (action: EngineGen.Keybase1SecretUiGetPassphrasePayload) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     onEngineConnected: () => void
     resetState: () => void
   }
@@ -67,6 +67,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           get().dispatch.secretUIWantsPassphrase(pinentry, response)
           break
         }
+        default:
       }
     },
     resetState: () => {

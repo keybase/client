@@ -103,7 +103,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
         )}
         <Kb.Text type="Header">Conversation</Kb.Text>
         <RetentionPicker
-          conversationIDKey={['adhoc', 'channel'].includes(entityType) ? conversationIDKey : undefined}
+          conversationIDKey={
+            ['adhoc', 'channel'].includes(entityType) ? conversationIDKey : Constants.noConversationIDKey
+          }
           dropdownStyle={styles.retentionDropdownStyle}
           entityType={entityType}
           showSaveIndicator={true}

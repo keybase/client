@@ -66,7 +66,7 @@ export type State = Store & {
     checkUsername: (username: string) => void
     clearJustSignedUpEmail: () => void
     goBackAndClearErrors: () => void
-    onEngineIncoming: (action: EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     requestAutoInvite: (username?: string) => void
     requestInvite: (email: string, name: string) => void
     resetState: () => void
@@ -276,6 +276,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
           get().dispatch.clearJustSignedUpEmail()
           break
+        default:
       }
     },
     requestAutoInvite: username => {

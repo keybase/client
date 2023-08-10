@@ -242,18 +242,7 @@ export type State = Store & {
     notifySummary: (summary: RPCTypes.Identify3Summary) => void
     notifyUserBlocked: (b: RPCTypes.UserBlockedSummary) => void
     onEngineConnected: () => void
-    onEngineIncoming: (
-      action:
-        | EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
-        | EngineGen.Keybase1Identify3UiIdentify3ResultPayload
-        | EngineGen.Keybase1Identify3UiIdentify3ShowTrackerPayload
-        | EngineGen.Keybase1NotifyUsersUserChangedPayload
-        | EngineGen.Keybase1NotifyTrackingNotifyUserBlockedPayload
-        | EngineGen.Keybase1Identify3UiIdentify3UpdateRowPayload
-        | EngineGen.Keybase1Identify3UiIdentify3UserResetPayload
-        | EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload
-        | EngineGen.Keybase1Identify3UiIdentify3SummaryPayload
-    ) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     replace: (usernameToDetails: Map<string, Types.Details>) => void
     resetState: 'default'
     showUser: (username: string, asTracker: boolean, skipNav?: boolean) => void
@@ -651,6 +640,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           get().dispatch.notifySummary(summary)
           break
         }
+        default:
       }
     },
     replace: usernameToDetails => {

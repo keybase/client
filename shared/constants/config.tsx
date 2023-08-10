@@ -190,23 +190,8 @@ type State = Store & {
       openAppSettings?: () => void
       openAppStore?: () => void
       onEngineConnectedDesktop?: () => void
-      onEngineIncomingDesktop?: (
-        action:
-          | EngineGen.Keybase1LogsendPrepareLogsendPayload
-          | EngineGen.Keybase1NotifyAppExitPayload
-          | EngineGen.Keybase1NotifyFSFSActivityPayload
-          | EngineGen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
-          | EngineGen.Keybase1NotifyServiceShutdownPayload
-          | EngineGen.Keybase1LogUiLogPayload
-          | EngineGen.Keybase1NotifySessionClientOutOfDatePayload
-      ) => void
-      onEngineIncomingNative?: (
-        action:
-          | EngineGen.Chat1ChatUiChatClearWatchPayload
-          | EngineGen.Chat1ChatUiChatWatchPositionPayload
-          | EngineGen.Chat1ChatUiTriggerContactSyncPayload
-          | EngineGen.Keybase1LogUiLogPayload
-      ) => void
+      onEngineIncomingDesktop?: (action: EngineGen.Actions) => void
+      onEngineIncomingNative?: (action: EngineGen.Actions) => void
       persistRoute?: (path?: Array<any>) => void
       setNavigatorExistsNative?: () => void
       showMainNative?: () => void
@@ -229,18 +214,7 @@ type State = Store & {
     logoutAndTryToLogInAs: (username: string) => void
     onEngineConnected: () => void
     onEngineDisonnected: () => void
-    onEngineIncoming: (
-      action:
-        | EngineGen.Keybase1GregorUIPushStatePayload
-        | EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
-        | EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
-        | EngineGen.Keybase1NotifySessionLoggedInPayload
-        | EngineGen.Keybase1NotifySessionLoggedOutPayload
-        | EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload
-        | EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
-        | EngineGen.Keybase1NotifyTrackingTrackingInfoPayload
-        | EngineGen.Keybase1ReachabilityReachabilityChangedPayload
-    ) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => void
     openUnlockFolders: (devices: Array<RPCTypes.Device>) => void
     powerMonitorEvent: (event: string) => void
@@ -370,10 +344,10 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           const f = async () => {
             const EngineConstants = await import('./engine')
             if (action.payload.connected) {
-              EngineConstants.useState.getState().dispatch.connected()
+              EngineConstants.useState.getState().dispatch.onEngineConnected()
               get().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
             } else {
-              EngineConstants.useState.getState().dispatch.disconnected()
+              EngineConstants.useState.getState().dispatch.onEngineDisconnected()
             }
           }
           Z.ignorePromise(f())
@@ -891,6 +865,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
             get().dispatch.setGregorReachable(action.payload.params.reachability.reachable)
           }
           break
+        default:
       }
     },
     openUnlockFolders: devices => {

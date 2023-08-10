@@ -358,11 +358,7 @@ type State = Store & {
     setResentEmail: (email: string) => void
     skipTodo: (type: Types.TodoType) => void
     markViewed: () => void
-    onEngineIncoming: (
-      action:
-        | EngineGen.Keybase1HomeUIHomeUIRefreshPayload
-        | EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
-    ) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     resetState: () => void
   }
 }
@@ -528,6 +524,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
           get().dispatch.setResentEmail(action.payload.params.emailAddress)
           break
+        default:
       }
     },
     resetState: () => {
