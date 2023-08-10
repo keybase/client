@@ -1865,8 +1865,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             return
           }
           const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID)
-          if (ordinal && message.ordinal !== ordinal) {
-            dispatch.updateMessage(ordinal, {ordinal})
+          if (ordinal) {
+            dispatch.updateMessage(ordinal, message)
           }
         }
       }
