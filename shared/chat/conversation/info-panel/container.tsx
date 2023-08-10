@@ -7,10 +7,10 @@ import type * as Types from '../../../constants/types/chat2'
 import {InfoPanel, type Panel} from '.'
 
 type Props = {
-  conversationIDKey?: Types.ConversationIDKey
+  conversationIDKey: Types.ConversationIDKey
   navigation?: any
 } & Partial<{
-  conversationIDKey?: Types.ConversationIDKey
+  conversationIDKey: Types.ConversationIDKey
   tab?: 'settings' | 'members' | 'attachments' | 'bots'
 }>
 
@@ -36,7 +36,7 @@ const InfoPanelConnector = (props: Props) => {
   const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
   const clearAttachmentView = Constants.useContext(s => s.dispatch.clearAttachmentView)
   const onCancel = () => {
-    showInfoPanel(false)
+    showInfoPanel(false, undefined, conversationIDKey)
     clearAttachmentView()
   }
   const onGoToInbox = React.useCallback(() => dispatch(Chat2Gen.createNavigateToInbox()), [dispatch])

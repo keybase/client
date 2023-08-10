@@ -602,7 +602,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           // does that with better information. It knows the conversation is hidden even before
           // that state bounces back.
           reduxDispatch(Chat2Gen.createNavigateToInbox())
-          Constants.useState.getState().dispatch.showInfoPanel(false)
+          Constants.useState.getState().dispatch.showInfoPanel(false, undefined, conversationIDKey)
         }
 
         await RPCChatTypes.localSetConversationStatusLocalRpcPromise(

@@ -427,6 +427,7 @@ const policyToExplanation = (convType: string, p: RetentionPolicy, parent?: Rete
 
 // Switcher to avoid having RetentionPicker try to process nonexistent data
 const RetentionSwitcher = (props: {entityType: RetentionEntityType} & Props) => {
+  console.log('aaaa RetentionSwitcher ')
   const {teamID} = props
   const existing = Constants.useState(s => s.teamIDToRetentionPolicy.get(teamID))
   const getTeamRetentionPolicy = Constants.useState(s => s.dispatch.getTeamRetentionPolicy)
