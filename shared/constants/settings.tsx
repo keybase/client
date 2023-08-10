@@ -1,4 +1,5 @@
 import * as RPCTypes from './types/rpc-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as WaitingConstants from './waiting'
 import * as RouterConstants from './router2'
 import openURL from '../util/open-url'
@@ -10,6 +11,7 @@ import logger from '../logger'
 import {pprofDir} from '../constants/platform'
 import {useState as usePhoneState} from './settings-phone'
 import {useState as useEmailState} from './settings-email'
+import {useState as usePasswordState} from './settings-password'
 
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
@@ -87,6 +89,7 @@ export type State = Store & {
     loadProxyData: () => void
     loadSettings: () => void
     loginBrowserViaWebAuthToken: () => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     processorProfile: (durationSeconds: number) => void
     resetCheckPassword: () => void
     resetState: 'default'
@@ -212,6 +215,30 @@ export const useState = Z.createZustand<State>(set => {
         openURL(link)
       }
       Z.ignorePromise(f())
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+          logger.info('email verified')
+          useEmailState.getState().dispatch.notifyEmailVerified(action.payload.params.emailAddress)
+          break
+        case EngineGen.keybase1NotifyUsersPasswordChanged: {
+          const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
+          usePasswordState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
+          break
+        }
+        case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {
+          const {list} = action.payload.params
+          usePhoneState.getState().dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
+          break
+        }
+        case EngineGen.keybase1NotifyEmailAddressEmailsChanged: {
+          const list = action.payload.params.list ?? []
+          useEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(list)
+          break
+        }
+        default:
+      }
     },
     processorProfile: profileDurationSeconds => {
       const f = async () => {

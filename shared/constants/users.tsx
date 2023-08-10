@@ -42,7 +42,7 @@ export type State = Store & {
   dispatch: {
     getBio: (username: string) => void
     getBlockState: (usernames: Array<string>) => void
-    onEngineIncoming: (action: EngineGen.Keybase1NotifyUsersIdentifyUpdatePayload) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     reportUser: (p: {
       username: string
       reason: string
@@ -100,7 +100,9 @@ export const useState = Z.createZustand<State>((set, get) => {
           brokenUsernames &&
             get().dispatch.updates(brokenUsernames.map(name => ({info: {broken: true}, name})))
           okUsernames && get().dispatch.updates(okUsernames.map(name => ({info: {broken: false}, name})))
+          break
         }
+        default:
       }
     },
     replace: (infoMap, blockMap) => {

@@ -399,17 +399,7 @@ export type State = Store & {
       removals?: Array<Types.ConversationIDKey> // convs to remove
     ) => void
     onEngineConnected: () => void
-    onEngineIncoming: (
-      action:
-        | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
-        | EngineGen.Chat1ChatUiChatInboxFailedPayload
-        | EngineGen.Chat1NotifyChatChatSetConvRetentionPayload
-        | EngineGen.Chat1NotifyChatChatSetTeamRetentionPayload
-        | EngineGen.Chat1NotifyChatChatSetConvSettingsPayload
-        | EngineGen.Chat1NotifyChatChatAttachmentUploadProgressPayload
-        | EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload
-        | EngineGen.Chat1NotifyChatNewChatActivityPayload
-    ) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     onIncomingInboxUIItem: (inboxUIItem?: RPCChatTypes.InboxUIItem) => void
     onRouteChanged: (prev: Router2.NavState, next: Router2.NavState) => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
@@ -1120,6 +1110,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           )
           break
         }
+        default:
       }
     },
     onIncomingInboxUIItem: conv => {

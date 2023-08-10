@@ -1126,17 +1126,7 @@ export type State = Store & {
     notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => void
     notifyTreeMembershipsPartial: (membership: RPCChatTypes.Keybase1.TeamTreeMembership) => void
     notifyTeamTeamRoleMapChanged: (newVersion: number) => void
-    onEngineIncoming: (
-      action:
-        | EngineGen.Chat1NotifyChatChatWelcomeMessageLoadedPayload
-        | EngineGen.Keybase1NotifyTeamTeamMetadataUpdatePayload
-        | EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload
-        | EngineGen.Keybase1NotifyTeamTeamTreeMembershipsDonePayload
-        | EngineGen.Keybase1NotifyTeamTeamRoleMapChangedPayload
-        | EngineGen.Keybase1NotifyTeamTeamChangedByIDPayload
-        | EngineGen.Keybase1NotifyTeamTeamDeletedPayload
-        | EngineGen.Keybase1NotifyTeamTeamExitPayload
-    ) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     openInviteLink: (inviteID: string, inviteKey: string) => void
     onGregorPushState: (gs: Array<{md: RPCTypes.Gregor1.Metadata; item: RPCTypes.Gregor1.Item}>) => void
     reAddToTeam: (teamID: Types.TeamID, username: string) => void
@@ -2493,6 +2483,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             RouterConstants.useState.getState().dispatch.navUpToScreen('teamsRoot')
           }
           break
+        default:
       }
     },
     onGregorPushState: items => {

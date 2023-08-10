@@ -31,12 +31,7 @@ const initialStore: Store = {
 type State = Store & {
   dispatch: {
     onEngineConnected: () => void
-    onEngineIncoming: (
-      action:
-        | EngineGen.Keybase1NotifyAuditRootAuditErrorPayload
-        | EngineGen.Keybase1NotifyAuditBoxAuditErrorPayload
-        | EngineGen.Keybase1NotifyBadgesBadgeStatePayload
-    ) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     resetState: 'default'
     badgeApp: (key: NotificationKeys, on: boolean) => void
     setBadgeCounts: (counts: Map<Tabs.Tab, number>) => void
@@ -186,6 +181,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
           break
         }
+        default:
       }
     },
     resetState: 'default',

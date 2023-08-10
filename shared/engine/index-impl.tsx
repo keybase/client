@@ -65,7 +65,7 @@ class Engine {
     const f = async () => {
       this._engineConstantsIncomingCall = (
         await import('../constants/engine')
-      ).useState.getState().dispatch.incomingCall
+      ).useState.getState().dispatch.onEngineIncoming
     }
     f()
       .then(() => {})

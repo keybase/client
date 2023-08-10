@@ -1181,12 +1181,7 @@ type State = Store & {
     newFolderRow: (parentPath: Types.Path) => void
     moveOrCopy: (destinationParentPath: Types.Path, type: 'move' | 'copy') => void
     onChangedFocus: (appFocused: boolean) => void
-    onEngineIncoming: (
-      action:
-        | EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
-        | EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload
-        | EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPayload
-    ) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     onPathChange: (clientID: string, path: string, topics: RPCTypes.PathSubscriptionTopic[]) => void
     onSubscriptionNotify: (clientID: string, topic: RPCTypes.SubscriptionTopic) => void
     pollJournalStatus: () => void
@@ -2284,6 +2279,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           get().dispatch.onSubscriptionNotify(clientID, topic)
           break
         }
+        default:
       }
     },
     onPathChange: (cid, path, topics) => {

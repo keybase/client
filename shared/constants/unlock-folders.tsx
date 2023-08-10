@@ -19,9 +19,7 @@ export type State = Store & {
   dispatch: {
     onBackFromPaperKey: () => void
     onEngineConnected: () => void
-    onEngineIncoming: (
-      action: EngineGen.Keybase1RekeyUIRefreshPayload | EngineGen.Keybase1RekeyUIDelegateRekeyUIPayload
-    ) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     toPaperKeyInput: () => void
     replace: (devices: Store['devices']) => void
     resetState: 'default'
@@ -76,6 +74,7 @@ export const useState = Z.createZustand<State>((set, _get) => {
           response.result(session.id)
           break
         }
+        default:
       }
     },
     replace: devices => {
