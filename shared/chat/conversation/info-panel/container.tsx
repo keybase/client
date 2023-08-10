@@ -21,7 +21,7 @@ const InfoPanelConnector = (props: Props) => {
   const conversationIDKey: Types.ConversationIDKey =
     props.conversationIDKey ?? props.conversationIDKey ?? Constants.noConversationIDKey
 
-  const meta = Constants.useContext(s => s.meta)
+  const meta = Constants.useConvoState(conversationIDKey, s => s.meta)
   const shouldNavigateOut = meta.conversationIDKey === Constants.noConversationIDKey
   const yourRole = TeamConstants.useState(s => TeamConstants.getRole(s, meta.teamID))
   const isPreview = meta.membershipType === 'youArePreviewing'
@@ -34,7 +34,7 @@ const InfoPanelConnector = (props: Props) => {
 
   const dispatch = Container.useDispatch()
   const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
-  const clearAttachmentView = Constants.useContext(s => s.dispatch.clearAttachmentView)
+  const clearAttachmentView = Constants.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
   const onCancel = () => {
     showInfoPanel(false, undefined, conversationIDKey)
     clearAttachmentView()

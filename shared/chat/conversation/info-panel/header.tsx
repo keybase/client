@@ -1,7 +1,5 @@
 import * as React from 'react'
-import * as Container from '../../../util/container'
 import * as RouterConstants from '../../../constants/router2'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as TeamConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import * as Constants from '../../../constants/chat2'
@@ -18,10 +16,10 @@ const gearIconSize = Styles.isMobile ? 24 : 16
 
 const TeamHeader = (props: SmallProps) => {
   const {conversationIDKey} = props
-  const dispatch = Container.useDispatch()
   const meta = Constants.useContext(s => s.meta)
   const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
   const participants = Constants.useContext(s => s.participants)
+  const onJoinChannel = Constants.useContext(s => s.dispatch.joinConversation)
   const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(participants, meta)
 
   const yourOperations = TeamConstants.useState(s =>
@@ -30,7 +28,6 @@ const TeamHeader = (props: SmallProps) => {
   const admin = yourOperations?.manageMembers ?? false
   const isPreview = membershipType === 'youArePreviewing'
   const isSmallTeam = !!teamname && !!channelname && teamType !== 'big'
-  const onJoinChannel = () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey}))
   let title = teamname
   if (channelname && !isSmallTeam) {
     title += '#' + channelname
@@ -41,16 +38,18 @@ const TeamHeader = (props: SmallProps) => {
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
       return (
-        <ConvoIDContext.Provider value={conversationIDKey}>
-          <InfoPanelMenu
-            attachTo={attachTo}
-            floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
-            onHidden={toggleShowingPopup}
-            hasHeader={false}
-            isSmallTeam={isSmallTeam}
-            visible={true}
-          />
-        </ConvoIDContext.Provider>
+        <Constants.Provider id={conversationIDKey}>
+          <ConvoIDContext.Provider value={conversationIDKey}>
+            <InfoPanelMenu
+              attachTo={attachTo}
+              floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
+              onHidden={toggleShowingPopup}
+              hasHeader={false}
+              isSmallTeam={isSmallTeam}
+              visible={true}
+            />
+          </ConvoIDContext.Provider>
+        </Constants.Provider>
       )
     },
     [conversationIDKey, isSmallTeam]

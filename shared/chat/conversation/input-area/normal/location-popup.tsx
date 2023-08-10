@@ -2,14 +2,12 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
 import * as RouterConstants from '../../../../constants/router2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type * as Types from '../../../../constants/types/chat2'
 import LocationMap from '../../../location-map'
-import HiddenString from '../../../../util/hidden-string'
 import {watchPositionForMap} from '../../../../actions/platform-specific'
 
 type Props = {conversationIDKey: Types.ConversationIDKey}
@@ -29,14 +27,10 @@ const LocationPopup = (props: Props) => {
     clearModals()
   }
   const onSettings = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const messageSend = Constants.useContext(s => s.dispatch.messageSend)
   const onLocationShare = (duration: string) => {
     onClose()
-    dispatch(
-      Chat2Gen.createMessageSend({
-        conversationIDKey,
-        text: duration ? new HiddenString(`/location live ${duration}`) : new HiddenString('/location'),
-      })
-    )
+    messageSend(duration ? `/location live ${duration}` : '/location')
   }
 
   React.useEffect(() => {

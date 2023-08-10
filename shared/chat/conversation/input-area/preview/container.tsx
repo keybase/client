@@ -1,24 +1,11 @@
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
-import type * as Types from '../../../../constants/types/chat2'
-import * as Container from '../../../../util/container'
 import ChannelPreview from '.'
 
-type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
-}
-
-export default (ownProps: OwnProps) => {
-  const {conversationIDKey} = ownProps
+export default () => {
   const meta = Constants.useContext(s => s.meta)
+  const onJoinChannel = Constants.useContext(s => s.dispatch.joinConversation)
+  const onLeaveChannel = Constants.useContext(s => s.dispatch.leaveConversation)
   const {channelname} = meta
-  const dispatch = Container.useDispatch()
-  const onJoinChannel = () => {
-    dispatch(Chat2Gen.createJoinConversation({conversationIDKey}))
-  }
-  const onLeaveChannel = () => {
-    dispatch(Chat2Gen.createLeaveConversation({conversationIDKey}))
-  }
   const props = {
     channelname,
     onJoinChannel,

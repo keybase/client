@@ -3,7 +3,6 @@ import type * as RPCTypes from '../constants/types/rpc-gen'
 import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import type * as Types from '../constants/types/chat2'
 import type * as TeamsTypes from '../constants/types/teams'
-import type HiddenString from '../util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
@@ -20,11 +19,7 @@ export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
-export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
-export const leaveConversation = 'chat2:leaveConversation'
-export const messageSend = 'chat2:messageSend'
-export const messageSendByUsernames = 'chat2:messageSendByUsernames'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
@@ -175,15 +170,6 @@ export const createUnfurlResolvePrompt = (payload: {
   readonly result: RPCChatTypes.UnfurlPromptResult
 }) => ({payload, type: unfurlResolvePrompt as typeof unfurlResolvePrompt})
 /**
- * Send a text message
- */
-export const createMessageSend = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly text: HiddenString
-  readonly replyTo?: Types.MessageID
-  readonly waitingKey?: string
-}) => ({payload, type: messageSend as typeof messageSend})
-/**
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
 export const createSetMinWriterRole = (payload: {
@@ -259,19 +245,6 @@ export const createDismissBlockButtons = (payload: {readonly teamID: RPCTypes.Te
   payload,
   type: dismissBlockButtons as typeof dismissBlockButtons,
 })
-export const createJoinConversation = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
-  payload,
-  type: joinConversation as typeof joinConversation,
-})
-export const createLeaveConversation = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly dontNavigateToInbox?: boolean
-}) => ({payload, type: leaveConversation as typeof leaveConversation})
-export const createMessageSendByUsernames = (payload: {
-  readonly usernames: string
-  readonly text: HiddenString
-  readonly waitingKey?: string
-}) => ({payload, type: messageSendByUsernames as typeof messageSendByUsernames})
 export const createOpenChatFromWidget = (
   payload: {readonly conversationIDKey?: Types.ConversationIDKey} = {}
 ) => ({payload, type: openChatFromWidget as typeof openChatFromWidget})
@@ -295,11 +268,7 @@ export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockBut
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
 export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMessage>
-export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
 export type JumpToRecentPayload = ReturnType<typeof createJumpToRecent>
-export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation>
-export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
-export type MessageSendPayload = ReturnType<typeof createMessageSend>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
@@ -331,11 +300,7 @@ export type Actions =
   | DismissJourneycardPayload
   | FetchUserEmojiPayload
   | IgnorePinnedMessagePayload
-  | JoinConversationPayload
   | JumpToRecentPayload
-  | LeaveConversationPayload
-  | MessageSendByUsernamesPayload
-  | MessageSendPayload
   | NavigateToInboxPayload
   | NavigateToThreadPayload
   | OpenChatFromWidgetPayload

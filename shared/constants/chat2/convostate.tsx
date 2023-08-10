@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Common from './common'
+import * as Tabs from '../tabs'
 import * as EngineGen from '../../actions/engine-gen-gen'
 import * as FsTypes from '../types/fs'
 import * as Message from './message'
@@ -152,6 +153,8 @@ export type ConvoState = ConvoStore & {
     hideSearch: () => void
     hideConversation: (hide: boolean) => void
     injectIntoInput: (text: string) => void
+    joinConversation: () => void
+    leaveConversation: (navToInbox?: boolean) => void
     loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
     loadMessagesCentered: (
       messageID: Types.MessageID,
@@ -183,6 +186,7 @@ export type ConvoState = ConvoStore & {
     messageEdit: (ordinal: Types.Ordinal, text: string) => void
     messageReplyPrivately: (ordinal: Types.Ordinal) => void
     messageRetry: (outboxID: Types.OutboxID) => void
+    messageSend: (text: string, replyTo?: Types.MessageID, waitingKey?: string) => void
     messagesAdd: (p: {
       contextType: string
       messages: Array<Types.Message>
@@ -580,11 +584,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         try {
           await RPCChatTypes.localTrackGiphySelectRpcPromise({result})
         } catch {}
-        const url = new HiddenString(result.targetUrl)
         getConvoState(conversationIDKey).dispatch.injectIntoInput('')
-        reduxDispatch(
-          Chat2Gen.createMessageSend({conversationIDKey, replyTo: replyTo || undefined, text: url})
-        )
+        get().dispatch.messageSend(result.targetUrl, replyTo)
       }
       Z.ignorePromise(f())
     },
@@ -626,6 +627,29 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.unsentText = text
       })
       get().dispatch.updateDraft(text)
+    },
+    joinConversation: () => {
+      const f = async () => {
+        await RPCChatTypes.localJoinConversationByIDLocalRpcPromise(
+          {convID: Types.keyToConversationID(get().id)},
+          Common.waitingKeyJoinConversation
+        )
+      }
+      Z.ignorePromise(f())
+    },
+    leaveConversation: (navToInbox = true) => {
+      const f = async () => {
+        await RPCChatTypes.localLeaveConversationLocalRpcPromise(
+          {convID: Types.keyToConversationID(get().id)},
+          Common.waitingKeyLeaveConversation
+        )
+      }
+      Z.ignorePromise(f())
+      RouterConstants.useState.getState().dispatch.clearModals()
+      if (navToInbox) {
+        RouterConstants.useState.getState().dispatch.navUpToScreen('chatRoot')
+        RouterConstants.useState.getState().dispatch.switchTab(Tabs.chatTab)
+      }
     },
     loadAttachmentView: (viewType, fromMsgID) => {
       set(s => {
@@ -1255,6 +1279,77 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    messageSend: (text, replyTo, waitingKey) => {
+      const f = async () => {
+        const meta = get().meta
+        const tlfName = meta.tlfname
+        const conversationIDKey = get().id
+        const clientPrev = getClientPrev(conversationIDKey)
+
+        // disable sending exploding messages if flag is false
+        const ephemeralLifetime = get().explodingMode
+        const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+        const confirmRouteName = 'chatPaymentsConfirm'
+        try {
+          await RPCChatTypes.localPostTextNonblockRpcListener(
+            {
+              customResponseIncomingCallMap: {
+                'chat.1.chatUi.chatStellarDataConfirm': (_, response) => {
+                  response.result(false) // immediate fail
+                },
+                'chat.1.chatUi.chatStellarDataError': (_, response) => {
+                  response.result(false) // immediate fail
+                },
+              },
+              incomingCallMap: {
+                'chat.1.chatUi.chatStellarDone': ({canceled}) => {
+                  const visibleScreen = RouterConstants.getVisibleScreen()
+                  if (visibleScreen && visibleScreen.name === confirmRouteName) {
+                    RouterConstants.useState.getState().dispatch.clearModals()
+                    return
+                  }
+                  if (canceled) {
+                    get().dispatch.injectIntoInput(text)
+                  }
+                },
+                'chat.1.chatUi.chatStellarShowConfirm': () => {},
+              },
+              params: {
+                ...ephemeralData,
+                body: text,
+                clientPrev,
+                conversationID: Types.keyToConversationID(conversationIDKey),
+                identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+                outboxID: undefined,
+                replyTo,
+                tlfName,
+                tlfPublic: false,
+              },
+              waitingKey: waitingKey || Common.waitingKeyPost,
+            },
+            Z.dummyListenerApi
+          )
+          logger.info('success')
+        } catch (_) {
+          logger.info('error')
+        }
+
+        // If there are block buttons on this conversation, clear them.
+        const Constants = await import('.')
+        if (Constants.useState.getState().blockButtonsMap.has(meta.teamID)) {
+          reduxDispatch(Chat2Gen.createDismissBlockButtons({teamID: meta.teamID}))
+        }
+
+        // Do some logging to track down the root cause of a bug causing
+        // messages to not send. Do this after creating the objects above to
+        // narrow down the places where the action can possibly stop.
+        logger.info('non-empty text?', text.length > 0)
+      }
+      Z.ignorePromise(f())
+
+      get().dispatch.setReplyTo(0)
+      get().dispatch.setCommandMarkdown()
+    },
     messagesAdd: p => {
       const {contextType, shouldClearOthers} = p
       // pull out deletes and handle at the end
@@ -1794,8 +1889,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             return
           }
           const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID)
-          if (ordinal && message.ordinal !== ordinal) {
-            dispatch.updateMessage(ordinal, {ordinal})
+          if (ordinal) {
+            dispatch.updateMessage(ordinal, message)
           }
         }
       }

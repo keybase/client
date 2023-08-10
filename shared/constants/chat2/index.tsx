@@ -394,6 +394,7 @@ export type State = Store & {
     ) => void
     loadStaticConfig: () => void
     loadedUserEmoji: (results: RPCChatTypes.UserEmojiRes) => void
+    messageSendByUsername: (username: string, text: string, waitingKey?: string) => void
     metasReceived: (
       metas: Array<Types.ConversationMeta>,
       removals?: Array<Types.ConversationIDKey> // convs to remove
@@ -900,6 +901,33 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.userEmojisForAutocomplete = newEmojis
         s.userEmojis = results.emojis.emojis ?? []
       })
+    },
+    messageSendByUsername: (username, text, waitingKey) => {
+      const f = async () => {
+        const tlfName = `${ConfigConstants.useCurrentUserState.getState().username},${username}`
+        try {
+          const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
+            {
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              membersType: RPCChatTypes.ConversationMembersType.impteamnative,
+              tlfName,
+              tlfVisibility: RPCTypes.TLFVisibility.private,
+              topicType: RPCChatTypes.TopicType.chat,
+            },
+            waitingKey
+          )
+          getConvoState(Types.conversationIDToKey(result.conv.info.id)).dispatch.messageSend(
+            text,
+            undefined,
+            waitingKey
+          )
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.warn('Could not send in messageSendByUsernames', error.message)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     metasReceived: (metas, removals) => {
       removals?.forEach(r => {
@@ -1701,4 +1729,5 @@ export {
   pendingWaitingConversationIDKey,
   pendingErrorConversationIDKey,
   isValidConversationIDKey,
+  dummyConversationIDKey,
 } from '../types/chat2/common'

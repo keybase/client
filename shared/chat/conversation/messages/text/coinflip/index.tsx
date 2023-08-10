@@ -1,5 +1,3 @@
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as Container from '../../../../../util/container'
 import * as Constants from '../../../../../constants/chat2'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
@@ -8,22 +6,20 @@ import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import CoinFlipError from './errors'
 import CoinFlipParticipants from './participants'
 import CoinFlipResult from './results'
-import {ConvoIDContext, OrdinalContext} from '../../ids-context'
+import {OrdinalContext} from '../../ids-context'
 import {pluralize} from '../../../../../util/string'
 
 const CoinFlipContainer = React.memo(function CoinFlipContainer() {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-
   const message = Constants.useContext(s => s.messageMap.get(ordinal))
   const isSendError = message?.type === 'text' ? !!message.errorReason : false
   const text = message?.type === 'text' ? message.text : undefined
   const flipGameID = (message?.type === 'text' && message.flipGameID) || ''
   const status = Constants.useState(s => s.flipStatusMap.get(flipGameID))
-  const dispatch = Container.useDispatch()
+  const messageSend = Constants.useContext(s => s.dispatch.messageSend)
   const onFlipAgain = React.useCallback(() => {
-    text && dispatch(Chat2Gen.createMessageSend({conversationIDKey, text}))
-  }, [dispatch, conversationIDKey, text])
+    text && messageSend(text.stringValue())
+  }, [messageSend, text])
   const phase = status?.phase
   const errorInfo = phase === RPCChatTypes.UICoinFlipPhase.error ? status?.errorInfo : undefined
   const participants = status?.participants ?? undefined

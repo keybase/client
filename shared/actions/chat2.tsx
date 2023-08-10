@@ -313,108 +313,6 @@ const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvU
   }
 }
 
-const messageSend = async (
-  _: unknown,
-  action: Chat2Gen.MessageSendPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {conversationIDKey, text, replyTo} = action.payload
-
-  const meta = Constants.getConvoState(conversationIDKey).meta
-  const tlfName = meta.tlfname
-  const clientPrev = getClientPrev(conversationIDKey)
-
-  // disable sending exploding messages if flag is false
-  const ephemeralLifetime = Constants.getConvoState(conversationIDKey).explodingMode
-  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  const confirmRouteName = 'chatPaymentsConfirm'
-  try {
-    await RPCChatTypes.localPostTextNonblockRpcListener(
-      {
-        customResponseIncomingCallMap: {
-          'chat.1.chatUi.chatStellarDataConfirm': (_, response) => {
-            // immediate fail
-            response.result(false)
-          },
-          'chat.1.chatUi.chatStellarDataError': (_, response) => {
-            // immediate fail
-            response.result(false)
-          },
-        },
-        incomingCallMap: {
-          'chat.1.chatUi.chatStellarDone': ({canceled}) => {
-            const visibleScreen = RouterConstants.getVisibleScreen()
-            if (visibleScreen && visibleScreen.name === confirmRouteName) {
-              RouterConstants.useState.getState().dispatch.clearModals()
-              return
-            }
-            if (canceled) {
-              Constants.getConvoState(conversationIDKey).dispatch.injectIntoInput(text.stringValue())
-              return
-            }
-            return false
-          },
-          'chat.1.chatUi.chatStellarShowConfirm': () => {},
-        },
-        params: {
-          ...ephemeralData,
-          body: text.stringValue(),
-          clientPrev,
-          conversationID: Types.keyToConversationID(conversationIDKey),
-          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          outboxID: undefined,
-          replyTo,
-          tlfName,
-          tlfPublic: false,
-        },
-        waitingKey: action.payload.waitingKey || Constants.waitingKeyPost,
-      },
-      listenerApi
-    )
-    logger.info('success')
-  } catch (_) {
-    logger.info('error')
-  }
-
-  // If there are block buttons on this conversation, clear them.
-  if (Constants.useState.getState().blockButtonsMap.has(meta.teamID)) {
-    listenerApi.dispatch(Chat2Gen.createDismissBlockButtons({teamID: meta.teamID}))
-  }
-
-  // Do some logging to track down the root cause of a bug causing
-  // messages to not send. Do this after creating the objects above to
-  // narrow down the places where the action can possibly stop.
-  logger.info('non-empty text?', text.stringValue().length > 0)
-}
-
-const messageSendByUsernames = async (_: unknown, action: Chat2Gen.MessageSendByUsernamesPayload) => {
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  const tlfName = `${username},${action.payload.usernames}`
-  try {
-    const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
-      {
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-        tlfName,
-        tlfVisibility: RPCTypes.TLFVisibility.private,
-        topicType: RPCChatTypes.TopicType.chat,
-      },
-      action.payload.waitingKey
-    )
-    const {text, waitingKey} = action.payload
-    return Chat2Gen.createMessageSend({
-      conversationIDKey: Types.conversationIDToKey(result.conv.info.id),
-      text,
-      waitingKey,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.warn('Could not send in messageSendByUsernames', error.message)
-    }
-  }
-  return []
-}
-
 type StellarConfirmWindowResponse = {result: (b: boolean) => void}
 let _stellarConfirmWindowResponse: StellarConfirmWindowResponse | undefined
 
@@ -597,18 +495,6 @@ const fetchUserEmoji = async (_: unknown, action: Chat2Gen.FetchUserEmojiPayload
   Constants.useState.getState().dispatch.loadedUserEmoji(results)
 }
 
-// Helpers to nav you to the right place
-const navigateToInbox = (
-  _: unknown,
-  action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.LeaveConversationPayload
-) => {
-  if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
-    return
-  }
-  RouterConstants.useState.getState().dispatch.navUpToScreen('chatRoot')
-  RouterConstants.useState.getState().dispatch.switchTab(Tabs.chatTab)
-}
-
 const navigateToThread = (_: unknown, action: Chat2Gen.NavigateToThreadPayload) => {
   const {conversationIDKey, reason} = action.payload
   // don't nav if its caused by a nav
@@ -666,22 +552,6 @@ const ensureWidgetMetas = () => {
   }
 
   Constants.useState.getState().dispatch.unboxRows(missing, true)
-}
-
-const joinConversation = async (_: unknown, action: Chat2Gen.JoinConversationPayload) => {
-  await RPCChatTypes.localJoinConversationByIDLocalRpcPromise(
-    {convID: Types.keyToConversationID(action.payload.conversationIDKey)},
-    Constants.waitingKeyJoinConversation
-  )
-}
-
-const leaveConversation = async (_: unknown, action: Chat2Gen.LeaveConversationPayload) => {
-  await RPCChatTypes.localLeaveConversationLocalRpcPromise(
-    {
-      convID: Types.keyToConversationID(action.payload.conversationIDKey),
-    },
-    Constants.waitingKeyLeaveConversation
-  )
 }
 
 const updateNotificationSettings = async (_: unknown, action: Chat2Gen.UpdateNotificationSettingsPayload) => {
@@ -950,14 +820,6 @@ const initChat = () => {
     dispatch.loadMoreMessages({reason: 'tab selected'})
   })
 
-  Container.listenAction(Chat2Gen.messageSend, messageSend)
-  Container.listenAction(Chat2Gen.messageSend, (_, a) => {
-    const {conversationIDKey} = a.payload
-    const {dispatch} = Constants.getConvoState(conversationIDKey)
-    dispatch.setReplyTo(0)
-    dispatch.setCommandMarkdown()
-  })
-  Container.listenAction(Chat2Gen.messageSendByUsernames, messageSendByUsernames)
   Container.listenAction(Chat2Gen.dismissJourneycard, dismissJourneycard)
   Container.listenAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)
 
@@ -981,18 +843,15 @@ const initChat = () => {
     dispatch.markThreadAsRead()
   })
 
-  Container.listenAction(Chat2Gen.leaveConversation, () => {
-    RouterConstants.useState.getState().dispatch.clearModals()
+  Container.listenAction(Chat2Gen.navigateToInbox, () => {
+    RouterConstants.useState.getState().dispatch.navUpToScreen('chatRoot')
+    RouterConstants.useState.getState().dispatch.switchTab(Tabs.chatTab)
   })
-  Container.listenAction([Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation], navigateToInbox)
   Container.listenAction(Chat2Gen.navigateToThread, navigateToThread)
   Container.listenAction(Chat2Gen.navigateToThread, (_, action) => {
     const {conversationIDKey} = action.payload
     Constants.getConvoState(conversationIDKey).dispatch.hideSearch()
   })
-
-  Container.listenAction(Chat2Gen.joinConversation, joinConversation)
-  Container.listenAction(Chat2Gen.leaveConversation, leaveConversation)
 
   Container.listenAction(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
 

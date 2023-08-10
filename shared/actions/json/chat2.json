@@ -2,29 +2,9 @@
   "prelude": [
     "import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
     "import type * as Types from '../constants/types/chat2'",
-    "import type * as TeamsTypes from '../constants/types/teams'",
-    "import type HiddenString from '../util/hidden-string'"
+    "import type * as TeamsTypes from '../constants/types/teams'"
   ],
   "actions": {
-    "messageSend": {
-      "_description": "Send a text message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString",
-      "replyTo?": "Types.MessageID",
-      "waitingKey?": "string"
-    },
-    "messageSendByUsernames": {
-      "usernames": "string",
-      "text": "HiddenString",
-      "waitingKey?": "string"
-    },
-    "joinConversation": {
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "leaveConversation": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "dontNavigateToInbox?": "boolean"
-    },
     "attachmentPreviewSelect": {
       "_description": "The user has selected an attachment with a preview",
       "conversationIDKey": "Types.ConversationIDKey",

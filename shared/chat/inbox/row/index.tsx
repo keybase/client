@@ -23,7 +23,11 @@ const makeRow = (
   }
   switch (item.type) {
     case 'bigHeader':
-      return <BigTeamHeader teamname={item.teamname} teamID={item.teamID} navKey={navKey} />
+      return (
+        <Constants.Provider id={Constants.dummyConversationIDKey}>
+          <BigTeamHeader teamname={item.teamname} teamID={item.teamID} navKey={navKey} />
+        </Constants.Provider>
+      )
     case 'big':
       return (
         <Constants.Provider id={item.conversationIDKey}>

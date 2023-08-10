@@ -1,6 +1,6 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/teams'
+import * as ChatConstants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
@@ -84,14 +84,15 @@ const EmptyRow = (props: Props) => {
   const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const notIn = teamMeta.role === 'none' || props.notChannelMember
   const you = ConfigConstants.useCurrentUserState(s => s.username)
-
-  const dispatch = Container.useDispatch()
   const onSecondaryAction = useSecondaryAction(props)
-
   const addToTeam = Constants.useState(s => s.dispatch.addToTeam)
+  const joinConversation = ChatConstants.useConvoState(
+    conversationIDKey ?? ChatConstants.noConversationIDKey,
+    s => s.dispatch.joinConversation
+  )
   const onAddSelf = () => {
     if (conversationIDKey) {
-      dispatch(Chat2Gen.createJoinConversation({conversationIDKey}))
+      joinConversation()
     } else {
       addToTeam(teamID, [{assertion: you, role: 'admin'}], false)
     }
