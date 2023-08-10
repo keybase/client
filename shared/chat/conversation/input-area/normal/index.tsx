@@ -1,6 +1,5 @@
 import * as Constants from '../../../../constants/chat2'
 import * as ConfigConstants from '../../../../constants/config'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
@@ -127,7 +126,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     editOrdinal ? s.messageMap.get(editOrdinal)?.exploded ?? false : false
   )
   const isEditing = !!editOrdinal
-  const dispatch = Container.useDispatch()
   const unsentText = Constants.useContext(s => s.unsentText)
   const sendTyping = Constants.useContext(s => s.dispatch.sendTyping)
   const resetUnsentText = Constants.useContext(s => s.dispatch.resetUnsentText)
@@ -164,6 +162,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     [inputRef]
   )
 
+  const messageSend = Constants.useContext(s => s.dispatch.messageSend)
   const onSubmit = React.useCallback(
     (text: string) => {
       if (!text) return
@@ -172,21 +171,9 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
       const cs = Constants.getConvoState(conversationIDKey)
       const editOrdinal = cs.editing
       if (editOrdinal) {
-        dispatch(
-          Chat2Gen.createMessageSend({
-            conversationIDKey,
-            replyTo,
-            text: new Container.HiddenString(text),
-          })
-        )
+        messageSend(text, replyTo)
       } else {
-        dispatch(
-          Chat2Gen.createMessageSend({
-            conversationIDKey,
-            replyTo,
-            text: new Container.HiddenString(text),
-          })
-        )
+        messageSend(text, replyTo)
       }
 
       injectText('')
@@ -198,7 +185,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
         jumpToRecent()
       }
     },
-    [injectText, dispatch, conversationIDKey, onRequestScrollToBottom, jumpToRecent, replyTo]
+    [injectText, messageSend, conversationIDKey, onRequestScrollToBottom, jumpToRecent, replyTo]
   )
 
   Container.useDepChangeEffect(() => {

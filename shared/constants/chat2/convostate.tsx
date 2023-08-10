@@ -183,6 +183,7 @@ export type ConvoState = ConvoStore & {
     messageEdit: (ordinal: Types.Ordinal, text: string) => void
     messageReplyPrivately: (ordinal: Types.Ordinal) => void
     messageRetry: (outboxID: Types.OutboxID) => void
+    messageSend: (text: string, replyTo?: Types.MessageID, waitingKey?: string) => void
     messagesAdd: (p: {
       contextType: string
       messages: Array<Types.Message>
@@ -580,11 +581,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         try {
           await RPCChatTypes.localTrackGiphySelectRpcPromise({result})
         } catch {}
-        const url = new HiddenString(result.targetUrl)
         getConvoState(conversationIDKey).dispatch.injectIntoInput('')
-        reduxDispatch(
-          Chat2Gen.createMessageSend({conversationIDKey, replyTo: replyTo || undefined, text: url})
-        )
+        get().dispatch.messageSend(result.targetUrl, replyTo)
       }
       Z.ignorePromise(f())
     },
@@ -1254,6 +1252,79 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         )
       }
       Z.ignorePromise(f())
+    },
+    messageSend: (text, replyTo, waitingKey) => {
+      const f = async () => {
+        const meta = get().meta
+        const tlfName = meta.tlfname
+        const conversationIDKey = get().id
+        const clientPrev = getClientPrev(conversationIDKey)
+
+        // disable sending exploding messages if flag is false
+        const ephemeralLifetime = get().explodingMode
+        const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+        const confirmRouteName = 'chatPaymentsConfirm'
+        try {
+          await RPCChatTypes.localPostTextNonblockRpcListener(
+            {
+              customResponseIncomingCallMap: {
+                'chat.1.chatUi.chatStellarDataConfirm': (_, response) => {
+                  // immediate fail
+                  response.result(false)
+                },
+                'chat.1.chatUi.chatStellarDataError': (_, response) => {
+                  // immediate fail
+                  response.result(false)
+                },
+              },
+              incomingCallMap: {
+                'chat.1.chatUi.chatStellarDone': ({canceled}) => {
+                  const visibleScreen = RouterConstants.getVisibleScreen()
+                  if (visibleScreen && visibleScreen.name === confirmRouteName) {
+                    RouterConstants.useState.getState().dispatch.clearModals()
+                    return
+                  }
+                  if (canceled) {
+                    get().dispatch.injectIntoInput(text)
+                  }
+                },
+                'chat.1.chatUi.chatStellarShowConfirm': () => {},
+              },
+              params: {
+                ...ephemeralData,
+                body: text,
+                clientPrev,
+                conversationID: Types.keyToConversationID(conversationIDKey),
+                identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+                outboxID: undefined,
+                replyTo,
+                tlfName,
+                tlfPublic: false,
+              },
+              waitingKey: waitingKey || Common.waitingKeyPost,
+            },
+            Z.dummyListenerApi
+          )
+          logger.info('success')
+        } catch (_) {
+          logger.info('error')
+        }
+
+        // If there are block buttons on this conversation, clear them.
+        const Constants = await import('.')
+        if (Constants.useState.getState().blockButtonsMap.has(meta.teamID)) {
+          reduxDispatch(Chat2Gen.createDismissBlockButtons({teamID: meta.teamID}))
+        }
+
+        // Do some logging to track down the root cause of a bug causing
+        // messages to not send. Do this after creating the objects above to
+        // narrow down the places where the action can possibly stop.
+        logger.info('non-empty text?', text.length > 0)
+      }
+      Z.ignorePromise(f())
+
+      get().dispatch.setReplyTo(0)
+      get().dispatch.setCommandMarkdown()
     },
     messagesAdd: p => {
       const {contextType, shouldClearOthers} = p

@@ -23,7 +23,6 @@ export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
-export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
@@ -175,15 +174,6 @@ export const createUnfurlResolvePrompt = (payload: {
   readonly result: RPCChatTypes.UnfurlPromptResult
 }) => ({payload, type: unfurlResolvePrompt as typeof unfurlResolvePrompt})
 /**
- * Send a text message
- */
-export const createMessageSend = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly text: HiddenString
-  readonly replyTo?: Types.MessageID
-  readonly waitingKey?: string
-}) => ({payload, type: messageSend as typeof messageSend})
-/**
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
 export const createSetMinWriterRole = (payload: {
@@ -299,7 +289,6 @@ export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
 export type JumpToRecentPayload = ReturnType<typeof createJumpToRecent>
 export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
-export type MessageSendPayload = ReturnType<typeof createMessageSend>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
@@ -335,7 +324,6 @@ export type Actions =
   | JumpToRecentPayload
   | LeaveConversationPayload
   | MessageSendByUsernamesPayload
-  | MessageSendPayload
   | NavigateToInboxPayload
   | NavigateToThreadPayload
   | OpenChatFromWidgetPayload

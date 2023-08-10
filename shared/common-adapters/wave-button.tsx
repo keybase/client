@@ -9,6 +9,7 @@ import * as Container from '../util/container'
 import HiddenString from '../util/hidden-string'
 import * as Chat2Gen from '../actions/chat2-gen'
 import type * as ChatTypes from '../constants/types/chat2'
+import * as Constants from '../constants/chat2'
 import logger from '../logger'
 
 const Kb = {
@@ -40,6 +41,7 @@ export const WaveButton = (props: Props) => {
   const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
   const waving = Container.useAnyWaiting(waitingKey)
   const dispatch = Container.useDispatch()
+  const messageSend = Constants.useContext(s => s.dispatch.messageSend)
 
   const onWave = () => {
     if (props.username) {
@@ -51,13 +53,7 @@ export const WaveButton = (props: Props) => {
         })
       )
     } else if (props.conversationIDKey) {
-      dispatch(
-        Chat2Gen.createMessageSend({
-          conversationIDKey: props.conversationIDKey,
-          text: new HiddenString(':wave:'),
-          waitingKey,
-        })
-      )
+      messageSend(':wave:', undefined, waitingKey)
     } else {
       logger.warn('WaveButton: need one of username xor conversationIDKey')
       return
@@ -104,7 +100,7 @@ const styles = Styles.styleSheetCreate(
         ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small, Styles.globalMargins.xtiny),
         position: 'absolute',
       },
-    } as const)
+    }) as const
 )
 
 export default WaveButton

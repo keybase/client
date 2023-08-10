@@ -313,80 +313,6 @@ const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvU
   }
 }
 
-const messageSend = async (
-  _: unknown,
-  action: Chat2Gen.MessageSendPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {conversationIDKey, text, replyTo} = action.payload
-
-  const meta = Constants.getConvoState(conversationIDKey).meta
-  const tlfName = meta.tlfname
-  const clientPrev = getClientPrev(conversationIDKey)
-
-  // disable sending exploding messages if flag is false
-  const ephemeralLifetime = Constants.getConvoState(conversationIDKey).explodingMode
-  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  const confirmRouteName = 'chatPaymentsConfirm'
-  try {
-    await RPCChatTypes.localPostTextNonblockRpcListener(
-      {
-        customResponseIncomingCallMap: {
-          'chat.1.chatUi.chatStellarDataConfirm': (_, response) => {
-            // immediate fail
-            response.result(false)
-          },
-          'chat.1.chatUi.chatStellarDataError': (_, response) => {
-            // immediate fail
-            response.result(false)
-          },
-        },
-        incomingCallMap: {
-          'chat.1.chatUi.chatStellarDone': ({canceled}) => {
-            const visibleScreen = RouterConstants.getVisibleScreen()
-            if (visibleScreen && visibleScreen.name === confirmRouteName) {
-              RouterConstants.useState.getState().dispatch.clearModals()
-              return
-            }
-            if (canceled) {
-              Constants.getConvoState(conversationIDKey).dispatch.injectIntoInput(text.stringValue())
-              return
-            }
-            return false
-          },
-          'chat.1.chatUi.chatStellarShowConfirm': () => {},
-        },
-        params: {
-          ...ephemeralData,
-          body: text.stringValue(),
-          clientPrev,
-          conversationID: Types.keyToConversationID(conversationIDKey),
-          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          outboxID: undefined,
-          replyTo,
-          tlfName,
-          tlfPublic: false,
-        },
-        waitingKey: action.payload.waitingKey || Constants.waitingKeyPost,
-      },
-      listenerApi
-    )
-    logger.info('success')
-  } catch (_) {
-    logger.info('error')
-  }
-
-  // If there are block buttons on this conversation, clear them.
-  if (Constants.useState.getState().blockButtonsMap.has(meta.teamID)) {
-    listenerApi.dispatch(Chat2Gen.createDismissBlockButtons({teamID: meta.teamID}))
-  }
-
-  // Do some logging to track down the root cause of a bug causing
-  // messages to not send. Do this after creating the objects above to
-  // narrow down the places where the action can possibly stop.
-  logger.info('non-empty text?', text.stringValue().length > 0)
-}
-
 const messageSendByUsernames = async (_: unknown, action: Chat2Gen.MessageSendByUsernamesPayload) => {
   const username = ConfigConstants.useCurrentUserState.getState().username
   const tlfName = `${username},${action.payload.usernames}`
@@ -402,11 +328,11 @@ const messageSendByUsernames = async (_: unknown, action: Chat2Gen.MessageSendBy
       action.payload.waitingKey
     )
     const {text, waitingKey} = action.payload
-    return Chat2Gen.createMessageSend({
-      conversationIDKey: Types.conversationIDToKey(result.conv.info.id),
-      text,
-      waitingKey,
-    })
+    Constants.getConvoState(Types.conversationIDToKey(result.conv.info.id)).dispatch.messageSend(
+      text.stringValue(),
+      undefined,
+      waitingKey
+    )
   } catch (error) {
     if (error instanceof RPCError) {
       logger.warn('Could not send in messageSendByUsernames', error.message)
@@ -950,13 +876,6 @@ const initChat = () => {
     dispatch.loadMoreMessages({reason: 'tab selected'})
   })
 
-  Container.listenAction(Chat2Gen.messageSend, messageSend)
-  Container.listenAction(Chat2Gen.messageSend, (_, a) => {
-    const {conversationIDKey} = a.payload
-    const {dispatch} = Constants.getConvoState(conversationIDKey)
-    dispatch.setReplyTo(0)
-    dispatch.setCommandMarkdown()
-  })
   Container.listenAction(Chat2Gen.messageSendByUsernames, messageSendByUsernames)
   Container.listenAction(Chat2Gen.dismissJourneycard, dismissJourneycard)
   Container.listenAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)

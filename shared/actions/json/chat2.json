@@ -6,13 +6,6 @@
     "import type HiddenString from '../util/hidden-string'"
   ],
   "actions": {
-    "messageSend": {
-      "_description": "Send a text message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString",
-      "replyTo?": "Types.MessageID",
-      "waitingKey?": "string"
-    },
     "messageSendByUsernames": {
       "usernames": "string",
       "text": "HiddenString",
