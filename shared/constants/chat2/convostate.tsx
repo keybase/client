@@ -1295,12 +1295,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             {
               customResponseIncomingCallMap: {
                 'chat.1.chatUi.chatStellarDataConfirm': (_, response) => {
-                  // immediate fail
-                  response.result(false)
+                  response.result(false) // immediate fail
                 },
                 'chat.1.chatUi.chatStellarDataError': (_, response) => {
-                  // immediate fail
-                  response.result(false)
+                  response.result(false) // immediate fail
                 },
               },
               incomingCallMap: {
