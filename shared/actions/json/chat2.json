@@ -2,15 +2,9 @@
   "prelude": [
     "import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
     "import type * as Types from '../constants/types/chat2'",
-    "import type * as TeamsTypes from '../constants/types/teams'",
-    "import type HiddenString from '../util/hidden-string'"
+    "import type * as TeamsTypes from '../constants/types/teams'"
   ],
   "actions": {
-    "messageSendByUsernames": {
-      "usernames": "string",
-      "text": "HiddenString",
-      "waitingKey?": "string"
-    },
     "joinConversation": {
       "conversationIDKey": "Types.ConversationIDKey"
     },

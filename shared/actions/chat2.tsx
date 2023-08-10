@@ -313,34 +313,6 @@ const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvU
   }
 }
 
-const messageSendByUsernames = async (_: unknown, action: Chat2Gen.MessageSendByUsernamesPayload) => {
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  const tlfName = `${username},${action.payload.usernames}`
-  try {
-    const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
-      {
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-        tlfName,
-        tlfVisibility: RPCTypes.TLFVisibility.private,
-        topicType: RPCChatTypes.TopicType.chat,
-      },
-      action.payload.waitingKey
-    )
-    const {text, waitingKey} = action.payload
-    Constants.getConvoState(Types.conversationIDToKey(result.conv.info.id)).dispatch.messageSend(
-      text.stringValue(),
-      undefined,
-      waitingKey
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.warn('Could not send in messageSendByUsernames', error.message)
-    }
-  }
-  return []
-}
-
 type StellarConfirmWindowResponse = {result: (b: boolean) => void}
 let _stellarConfirmWindowResponse: StellarConfirmWindowResponse | undefined
 
@@ -876,7 +848,6 @@ const initChat = () => {
     dispatch.loadMoreMessages({reason: 'tab selected'})
   })
 
-  Container.listenAction(Chat2Gen.messageSendByUsernames, messageSendByUsernames)
   Container.listenAction(Chat2Gen.dismissJourneycard, dismissJourneycard)
   Container.listenAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)
 

@@ -6,8 +6,6 @@ import Button from './button'
 import Emoji from './emoji'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import HiddenString from '../util/hidden-string'
-import * as Chat2Gen from '../actions/chat2-gen'
 import type * as ChatTypes from '../constants/types/chat2'
 import * as Constants from '../constants/chat2'
 import logger from '../logger'
@@ -40,18 +38,11 @@ export const WaveButton = (props: Props) => {
   const [waved, setWaved] = React.useState(false)
   const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
   const waving = Container.useAnyWaiting(waitingKey)
-  const dispatch = Container.useDispatch()
   const messageSend = Constants.useContext(s => s.dispatch.messageSend)
-
+  const messageSendByUsername = Constants.useState(s => s.dispatch.messageSendByUsername)
   const onWave = () => {
     if (props.username) {
-      dispatch(
-        Chat2Gen.createMessageSendByUsernames({
-          text: new HiddenString(':wave:'),
-          usernames: props.username,
-          waitingKey,
-        })
-      )
+      messageSendByUsername(props.username, ':wave:', waitingKey)
     } else if (props.conversationIDKey) {
       messageSend(':wave:', undefined, waitingKey)
     } else {
