@@ -1729,4 +1729,5 @@ export {
   pendingWaitingConversationIDKey,
   pendingErrorConversationIDKey,
   isValidConversationIDKey,
+  dummyConversationIDKey,
 } from '../types/chat2/common'

@@ -1,4 +1,5 @@
 import * as RouterConstants from '../../../constants/router2'
+import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as RowSizes from './sizes'
@@ -23,14 +24,16 @@ const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
       return (
-        <TeamMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={toggleShowingPopup}
-          teamID={teamID}
-          hasHeader={true}
-          isSmallTeam={false}
-        />
+        <Constants.Provider id={Constants.dummyConversationIDKey}>
+          <TeamMenu
+            attachTo={attachTo}
+            visible={true}
+            onHidden={toggleShowingPopup}
+            teamID={teamID}
+            hasHeader={true}
+            isSmallTeam={false}
+          />
+        </Constants.Provider>
       )
     },
     [teamID]

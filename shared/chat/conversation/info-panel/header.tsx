@@ -38,16 +38,18 @@ const TeamHeader = (props: SmallProps) => {
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
       return (
-        <ConvoIDContext.Provider value={conversationIDKey}>
-          <InfoPanelMenu
-            attachTo={attachTo}
-            floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
-            onHidden={toggleShowingPopup}
-            hasHeader={false}
-            isSmallTeam={isSmallTeam}
-            visible={true}
-          />
-        </ConvoIDContext.Provider>
+        <Constants.Provider id={conversationIDKey}>
+          <ConvoIDContext.Provider value={conversationIDKey}>
+            <InfoPanelMenu
+              attachTo={attachTo}
+              floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
+              onHidden={toggleShowingPopup}
+              hasHeader={false}
+              isSmallTeam={isSmallTeam}
+              visible={true}
+            />
+          </ConvoIDContext.Provider>
+        </Constants.Provider>
       )
     },
     [conversationIDKey, isSmallTeam]
