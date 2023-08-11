@@ -360,11 +360,11 @@ export const initPlatformListener = () => {
         let param = {}
         let routeName = Tabs.peopleTab
         if (path) {
-          const cur = C.useRouterState()
+          const cur = C.getTab()
           if (cur) {
             routeName = cur
           }
-          const ap = C.useRouterState()
+          const ap = C.getVisiblePath()
           ap.some(r => {
             if (r.name == 'chatConversation') {
               param = {
@@ -546,7 +546,7 @@ export const initPlatformListener = () => {
     if (next === prev) return
     const f = async () => {
       await Container.timeoutPromise(1000)
-      const path = C.useRouterState()
+      const path = C.getVisiblePath()
       ConfigConstants.useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
     }
     Z.ignorePromise(f())
