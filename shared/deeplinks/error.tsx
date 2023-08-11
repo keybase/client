@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import {useDeepLinksState} from '../constants'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 
@@ -23,7 +22,7 @@ export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
 }
 
 const KeybaseLinkError = () => {
-  const deepError = useDeepLinksState(s => s.keybaseLinkError)
+  const deepError = C.useDeepLinksState(s => s.keybaseLinkError)
   const message = deepError
   const isError = true
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
