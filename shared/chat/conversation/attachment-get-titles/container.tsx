@@ -1,7 +1,5 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as RouterConstants from '../../../constants/router2'
-import * as Container from '../../../util/container'
 import * as FsTypes from '../../../constants/types/fs'
 import GetTitles, {type Info} from '.'
 import type * as Types from '../../../constants/types/chat2'
@@ -20,22 +18,20 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const dispatch = Container.useDispatch()
   const conversationIDKey = ownProps.conversationIDKey ?? Constants.noConversationIDKey
   const {titles, tlfName, pathAndOutboxIDs} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const attachmentUploadCanceled = Constants.useContext(s => s.dispatch.attachmentUploadCanceled)
   const onCancel = () => {
-    dispatch(
-      Chat2Gen.createAttachmentUploadCanceled({
-        outboxIDs: pathAndOutboxIDs.reduce((l: Array<RPCChatTypes.OutboxID>, {outboxID}) => {
-          if (outboxID) {
-            l.push(outboxID)
-          }
-          return l
-        }, []),
-      })
+    attachmentUploadCanceled(
+      pathAndOutboxIDs.reduce((l: Array<RPCChatTypes.OutboxID>, {outboxID}) => {
+        if (outboxID) {
+          l.push(outboxID)
+        }
+        return l
+      }, [])
     )
     navigateUp()
   }
@@ -49,7 +45,7 @@ export default (ownProps: OwnProps) => {
     clearModals()
 
     if (selectConversationWithReason) {
-      dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: selectConversationWithReason}))
+      Constants.getConvoState(conversationIDKey).dispatch.navigateToThread(selectConversationWithReason)
     }
   }
   const props = {

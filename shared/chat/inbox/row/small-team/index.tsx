@@ -62,6 +62,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
 
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const participantInfo = Constants.useContext(s => s.participants)
+  const navigateToThread = Constants.useContext(s => s.dispatch.navigateToThread)
   const participants = Constants.useContext(s => {
     const {meta} = s
     const teamname = (meta.teamname || layoutIsTeam ? layoutName : '') || ''
@@ -86,7 +87,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
     if (isInWidget) {
       dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))
     } else {
-      dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSmall'}))
+      navigateToThread('inboxSmall')
     }
   })
 

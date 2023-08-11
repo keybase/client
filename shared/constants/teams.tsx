@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../actions/chat2-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as ChatTypes from './types/chat2'
 import * as ConfigConstants from './config'
@@ -1216,7 +1215,6 @@ export type State = Store & {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
     addMembersWizardPushMembers: members => {
       const f = async () => {
@@ -1666,10 +1664,10 @@ export const useState = Z.createZustand<State>((set, get) => {
 
           if (fromChat) {
             RouterConstants.useState.getState().dispatch.clearModals()
-            reduxDispatch(Chat2Gen.createNavigateToInbox())
             const f = async () => {
               const ChatConstants = await import('./chat2')
-              const {previewConversation} = ChatConstants.useState.getState().dispatch
+              const {previewConversation, navigateToInbox} = ChatConstants.useState.getState().dispatch
+              navigateToInbox()
               previewConversation({channelname: 'general', reason: 'convertAdHoc', teamname})
             }
             Z.ignorePromise(f())

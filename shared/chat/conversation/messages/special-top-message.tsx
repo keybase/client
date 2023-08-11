@@ -1,7 +1,5 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
 import * as FsConstants from '../../../constants/fs'
 import * as FsTypes from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
@@ -21,7 +19,6 @@ import {usingFlashList} from '../list-area/flashlist-config'
 const ErrorMessage = () => {
   const createConversationError = Constants.useState(s => s.createConversationError)
   const createConversation = Constants.useState(s => s.dispatch.createConversation)
-  const dispatch = Container.useDispatch()
 
   const _onCreateWithoutThem = React.useCallback(
     (allowedUsers: Array<string>) => {
@@ -30,11 +27,7 @@ const ErrorMessage = () => {
     [createConversation]
   )
 
-  const _onBack = React.useCallback(() => {
-    dispatch(Chat2Gen.createNavigateToInbox())
-  }, [dispatch])
-
-  const onBack = Styles.isMobile ? _onBack : null
+  const onBack = Constants.useState(s => (Styles.isMobile ? s.dispatch.navigateToInbox : null))
 
   let createConversationDisallowedUsers: Array<string> = []
   let createConversationErrorDescription = ''

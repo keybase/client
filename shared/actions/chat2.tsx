@@ -7,7 +7,6 @@ import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from './../constants/types/rpc-gen'
-import * as Tabs from '../constants/tabs'
 import * as TeamsConstants from '../constants/teams'
 import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
@@ -97,7 +96,7 @@ const maybeChangeSelectedConv = () => {
   const selectedConversation = Constants.getSelectedConversation()
   const {inboxLayout} = Constants.useState.getState()
   if (!inboxLayout || !inboxLayout.reselectInfo) {
-    return false
+    return
   }
   const {reselectInfo} = inboxLayout
   if (
@@ -108,29 +107,27 @@ const maybeChangeSelectedConv = () => {
       // on mobile just head back to the inbox if we have something selected
       if (Constants.isValidConversationIDKey(selectedConversation)) {
         logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
-        return Chat2Gen.createNavigateToInbox()
+        Constants.useState.getState().dispatch.navigateToInbox()
+        return
       }
       logger.info(`maybeChangeSelectedConv: mobile: ignoring conv change, no conv selected`)
-      return false
+      return
     }
     if (reselectInfo.newConvID) {
       logger.info(`maybeChangeSelectedConv: selecting new conv: ${reselectInfo.newConvID}`)
-      return Chat2Gen.createNavigateToThread({
-        conversationIDKey: reselectInfo.newConvID,
-        reason: 'findNewestConversation',
-      })
+      Constants.getConvoState(reselectInfo.newConvID).dispatch.navigateToThread('findNewestConversation')
+      return
     } else {
       logger.info(`maybeChangeSelectedConv: deselecting conv, service provided no new conv`)
-      return Chat2Gen.createNavigateToThread({
-        conversationIDKey: Constants.noConversationIDKey,
-        reason: 'findNewestConversation',
-      })
+      Constants.getConvoState(Constants.noConversationIDKey).dispatch.navigateToThread(
+        'findNewestConversation'
+      )
+      return
     }
   } else {
     logger.info(
       `maybeChangeSelectedConv: selected conv mismatch on reselect (ignoring): selected: ${selectedConversation} srvold: ${reselectInfo.oldConvID}`
     )
-    return false
   }
 }
 
@@ -391,47 +388,6 @@ const fetchUserEmoji = async (_: unknown, action: Chat2Gen.FetchUserEmojiPayload
   Constants.useState.getState().dispatch.loadedUserEmoji(results)
 }
 
-const navigateToThread = (_: unknown, action: Chat2Gen.NavigateToThreadPayload) => {
-  const {conversationIDKey, reason} = action.payload
-  // don't nav if its caused by a nav
-  if (reason === 'navChanged') {
-    return
-  }
-  const visible = RouterConstants.getVisibleScreen()
-  // @ts-ignore TODO better types
-  const visibleConvo: Types.ConversationIDKey | undefined = visible?.params?.conversationIDKey
-  const visibleRouteName = visible?.name
-
-  if (visibleRouteName !== Constants.threadRouteName && reason === 'findNewestConversation') {
-    // service is telling us to change our selection but we're not looking, ignore
-    return
-  }
-
-  // we select the chat tab and change the params
-  if (Constants.isSplit) {
-    RouterConstants.navToThread(conversationIDKey)
-  } else {
-    // immediately switch stack to an inbox | thread stack
-    if (reason === 'push' || reason === 'savedLastState') {
-      RouterConstants.navToThread(conversationIDKey)
-      return
-    } else {
-      // replace if looking at the pending / waiting screen
-      const replace =
-        visibleRouteName === Constants.threadRouteName &&
-        !Constants.isValidConversationIDKey(visibleConvo ?? '')
-      // note: we don't switch tabs on non split
-      const modalPath = RouterConstants.getModalStack()
-      if (modalPath.length > 0) {
-        RouterConstants.useState.getState().dispatch.clearModals()
-      }
-      RouterConstants.useState
-        .getState()
-        .dispatch.navigateAppend({props: {conversationIDKey}, selected: Constants.threadRouteName}, replace)
-    }
-  }
-}
-
 const ensureWidgetMetas = () => {
   const {inboxLayout} = Constants.useState.getState()
   if (!inboxLayout?.widgetList) {
@@ -606,12 +562,9 @@ const openChatFromWidget = (
   {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
 ) => {
   ConfigConstants.useConfigState.getState().dispatch.showMain()
-  return [
-    Chat2Gen.createNavigateToThread({
-      conversationIDKey: conversationIDKey ?? Constants.noConversationIDKey,
-      reason: 'inboxSmall',
-    }),
-  ]
+  Constants.getConvoState(conversationIDKey ?? Constants.noConversationIDKey).dispatch.navigateToThread(
+    'inboxSmall'
+  )
 }
 
 const addUsersToChannel = async (_: unknown, action: Chat2Gen.AddUsersToChannelPayload) => {
@@ -637,12 +590,11 @@ const addUserToChannel = async (_: unknown, action: Chat2Gen.AddUserToChannelPay
       {convID: Types.keyToConversationID(conversationIDKey), usernames: [username]},
       Constants.waitingKeyAddUserToChannel(username, conversationIDKey)
     )
-    return Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'addedToChannel'})
+    Constants.getConvoState(conversationIDKey).dispatch.navigateToThread('addedToChannel')
   } catch (error) {
     if (error instanceof RPCError) {
       logger.error(`addUserToChannel: ${error.message}`) // surfaced in UI via waiting key
     }
-    return false
   }
 }
 
@@ -672,41 +624,6 @@ const initChat = () => {
     Constants.useState.getState().dispatch.updateInboxLayout(action.payload.params.layout)
   })
 
-  Container.listenAction(Chat2Gen.navigateToThread, (_, a) => {
-    const id = a.payload.conversationIDKey
-    const {dispatch} = Constants.getConvoState(id)
-    let reason: string = a.payload.reason || 'navigated'
-    let forceClear = false
-    let forceContainsLatestCalc = false
-    let messageIDControl: RPCChatTypes.MessageIDControl | undefined = undefined
-    const knownRemotes = a.payload.pushBody && a.payload.pushBody.length > 0 ? [a.payload.pushBody] : []
-    const centeredMessageID = a.payload.highlightMessageID
-      ? {
-          conversationIDKey: id,
-          highlightMode: 'flash' as const,
-          messageID: a.payload.highlightMessageID,
-        }
-      : undefined
-
-    if (a.payload.highlightMessageID) {
-      reason = 'centered'
-      messageIDControl = {
-        mode: RPCChatTypes.MessageIDControlMode.centered,
-        num: Constants.numMessagesOnInitialLoad,
-        pivot: a.payload.highlightMessageID,
-      }
-      forceClear = true
-      forceContainsLatestCalc = true
-    }
-    dispatch.loadMoreMessages({
-      centeredMessageID,
-      forceClear,
-      forceContainsLatestCalc,
-      knownRemotes,
-      messageIDControl,
-      reason,
-    })
-  })
   Container.listenAction(Chat2Gen.jumpToRecent, () => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.loadMoreMessages({forceClear: true, reason: 'jump to recent'})
@@ -730,16 +647,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.tabSelected, () => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.markThreadAsRead()
-  })
-
-  Container.listenAction(Chat2Gen.navigateToInbox, () => {
-    RouterConstants.useState.getState().dispatch.navUpToScreen('chatRoot')
-    RouterConstants.useState.getState().dispatch.switchTab(Tabs.chatTab)
-  })
-  Container.listenAction(Chat2Gen.navigateToThread, navigateToThread)
-  Container.listenAction(Chat2Gen.navigateToThread, (_, action) => {
-    const {conversationIDKey} = action.payload
-    Constants.getConvoState(conversationIDKey).dispatch.hideSearch()
   })
 
   Container.listenAction(Chat2Gen.updateNotificationSettings, updateNotificationSettings)

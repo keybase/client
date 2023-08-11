@@ -1,5 +1,4 @@
 // Just for desktop and tablet, we show inbox and conversation side by side
-import * as Chat2Gen from '../actions/chat2-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
@@ -16,7 +15,6 @@ type Props = {conversationIDKey?: Types.ConversationIDKey; navKey?: string}
 const InboxAndConversation = React.memo(function InboxAndConversation(props?: Props) {
   const conversationIDKey = props?.conversationIDKey ?? Constants.noConversationIDKey
   const navKey = props?.navKey ?? ''
-  const dispatch = Container.useDispatch()
   const inboxSearch = Constants.useState(s => s.inboxSearch)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
   const validConvoID = conversationIDKey && conversationIDKey !== Constants.noConversationIDKey
@@ -32,11 +30,8 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props?: Pr
     if (needSelectConvoID) {
       // hack to select the convo after we render
       setTimeout(() => {
-        dispatch(
-          Chat2Gen.createNavigateToThread({
-            conversationIDKey: needSelectConvoID,
-            reason: 'findNewestConversationFromLayout',
-          })
+        Constants.getConvoState(needSelectConvoID).dispatch.navigateToThread(
+          'findNewestConversationFromLayout'
         )
       }, 1)
     }

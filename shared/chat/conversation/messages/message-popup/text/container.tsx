@@ -82,7 +82,7 @@ export default (ownProps: OwnProps) => {
     messageDelete(message.ordinal)
   }
   const _onDeleteMessageHistory = (message: Types.Message) => {
-    dispatch(Chat2Gen.createNavigateToThread({conversationIDKey: message.conversationIDKey, reason: 'misc'}))
+    Constants.getConvoState(message.conversationIDKey).dispatch.navigateToThread('misc')
     navigateAppend({
       props: {conversationIDKey: message.conversationIDKey},
       selected: 'chatDeleteHistoryWarning',

@@ -1,4 +1,3 @@
-import * as ChatGen from '../actions/chat2-gen'
 import * as ConfigConstants from './config'
 import * as CryptoConstants from './crypto'
 import * as ProfileConstants from './profile'
@@ -51,8 +50,6 @@ type State = Store & {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
-
   const handleShowUserProfileLink = (username: string) => {
     RouterConstants.useState.getState().dispatch.switchTab(Tabs.peopleTab)
     ProfileConstants.useState.getState().dispatch.showUserProfile(username)
@@ -191,9 +188,11 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
         case 'convid':
           if (parts.length === 2) {
-            reduxDispatch(
-              ChatGen.createNavigateToThread({conversationIDKey: parts[1]!, reason: 'navChanged'})
-            )
+            const f = async () => {
+              const ChatConstants = await import('./chat2')
+              ChatConstants.getConvoState(parts[1]!).dispatch.navigateToThread('navChanged')
+            }
+            Z.ignorePromise(f())
             return
           }
           break

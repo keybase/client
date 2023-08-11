@@ -5,45 +5,6 @@
     "import type * as TeamsTypes from '../constants/types/teams'"
   ],
   "actions": {
-    "navigateToInbox": {
-      "_description": "Navigation helper. Nav is slightly different on mobile / desktop."
-    },
-    "navigateToThread": {
-      "_description": "Navigation helper. Nav is slightly different on mobile / desktop.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "highlightMessageID?": "number",
-      // why this happened, sometimes there's different side effects
-      "reason": [
-        "'focused'", // nav focus changed
-        "'clearSelected'", // deselect
-        "'desktopNotification'", // clicked notification
-        "'createdMessagePrivately'", // messaging privately and maybe made it
-        "'extension'", // from a notification from iOS share extension
-        "'files'", // from the Files tab
-        "'findNewestConversation'", // find a new chat to select (from service)
-        "'findNewestConversationFromLayout'", // find a small chat to select (from js)
-        "'inboxBig'", // inbox row
-        "'inboxFilterArrow'", // arrow keys in inbox filter
-        "'inboxFilterChanged'", // inbox filter made first one selected
-        "'inboxSmall'", // inbox row
-        "'inboxNewConversation'", // new conversation row
-        "'inboxSearch'", // selected from inbox seaech
-        "'jumpFromReset'", // from older reset convo
-        "'jumpToReset'", // going to an older reset convo
-        "'justCreated'", // just made it and select it
-        "'manageView'", // clicked from manage screen
-        "'previewResolved'", // did a preview and are now selecting it
-        "'push'", // from a push
-        "'savedLastState'", // last seen chat tab
-        "'startFoundExisting'", // starting a conversation and found one already
-        "'teamChat'", // from team
-        "'addedToChannel'", // just added people to this channel
-        "'navChanged'", // the nav state changed
-        "'misc'", // misc
-        "'teamMention'" // from team mention
-      ],
-      "pushBody?": "string"
-    },
     "updateNotificationSettings": {
       "_description": "We're changing the notification settings",
       "conversationIDKey": "Types.ConversationIDKey",
