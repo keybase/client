@@ -5,15 +5,6 @@
     "import type * as TeamsTypes from '../constants/types/teams'"
   ],
   "actions": {
-    "attachmentPasted": {
-      "_description": "Image data pasted into a conversation",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "data": "Buffer"
-    },
-    "attachmentUploadCanceled": {
-      "_description": "The attachment upload modal was canceled",
-      "outboxIDs": "Array<RPCChatTypes.OutboxID>"
-    },
     "navigateToInbox": {
       "_description": "Navigation helper. Nav is slightly different on mobile / desktop."
     },

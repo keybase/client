@@ -320,27 +320,6 @@ const confirmScreenResponse = (_: unknown, action: Chat2Gen.ConfirmScreenRespons
   storeStellarConfirmWindowResponse(action.payload.accept)
 }
 
-// Handle an image pasted into a conversation
-const attachmentPasted = async (_: unknown, action: Chat2Gen.AttachmentPastedPayload) => {
-  const {conversationIDKey, data} = action.payload
-  const outboxID = Constants.generateOutboxID()
-  const path = await RPCChatTypes.localMakeUploadTempFileRpcPromise({data, filename: 'paste.png', outboxID})
-
-  const pathAndOutboxIDs = [{outboxID, path}]
-
-  RouterConstants.useState.getState().dispatch.navigateAppend({
-    props: {conversationIDKey, noDragDrop: true, pathAndOutboxIDs},
-    selected: 'chatAttachmentGetTitles',
-  })
-}
-
-const attachmentUploadCanceled = async (_: unknown, action: Chat2Gen.AttachmentUploadCanceledPayload) => {
-  const {outboxIDs} = action.payload
-  for (const outboxID of outboxIDs) {
-    await RPCChatTypes.localCancelUploadTempFileRpcPromise({outboxID})
-  }
-}
-
 const sendAudioRecording = async (_: unknown, action: Chat2Gen.SendAudioRecordingPayload) => {
   const {conversationIDKey, amps, path, duration} = action.payload
   const outboxID = Constants.generateOutboxID()
@@ -743,10 +722,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlResolvePrompt)
   Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
   Container.listenAction(Chat2Gen.unfurlRemove, unfurlRemove)
-
-  // Search handling
-  Container.listenAction(Chat2Gen.attachmentPasted, attachmentPasted)
-  Container.listenAction(Chat2Gen.attachmentUploadCanceled, attachmentUploadCanceled)
 
   Container.listenAction(Chat2Gen.updateUnreadline, (_, a) => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())

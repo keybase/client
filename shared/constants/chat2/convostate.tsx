@@ -136,7 +136,9 @@ export type ConvoState = ConvoStore & {
       restricted: boolean,
       convs?: Array<string>
     ) => void
+    attachmentPasted: (data: Buffer) => void
     attachmentPreviewSelect: (ordinal: Types.Ordinal) => void
+    attachmentUploadCanceled: (outboxIDs: Array<RPCChatTypes.OutboxID>) => void
     attachmentDownload: (ordinal: Types.Ordinal) => void
     attachmentsUpload: (paths: Array<Types.PathAndOutboxID>, titles: Array<string>, tlfName?: string) => void
     attachFromDragAndDrop: (paths: Array<Types.PathAndOutboxID>, titles: Array<string>) => void
@@ -483,11 +485,36 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    attachmentPasted: data => {
+      const f = async () => {
+        const outboxID = Common.generateOutboxID()
+        const path = await RPCChatTypes.localMakeUploadTempFileRpcPromise({
+          data,
+          filename: 'paste.png',
+          outboxID,
+        })
+
+        const pathAndOutboxIDs = [{outboxID, path}]
+        RouterConstants.useState.getState().dispatch.navigateAppend({
+          props: {conversationIDKey: get().id, noDragDrop: true, pathAndOutboxIDs},
+          selected: 'chatAttachmentGetTitles',
+        })
+      }
+      Z.ignorePromise(f())
+    },
     attachmentPreviewSelect: ordinal => {
       RouterConstants.useState.getState().dispatch.navigateAppend({
         props: {conversationIDKey: get().id, ordinal},
         selected: 'chatAttachmentFullscreen',
       })
+    },
+    attachmentUploadCanceled: outboxIDs => {
+      const f = async () => {
+        for (const outboxID of outboxIDs) {
+          await RPCChatTypes.localCancelUploadTempFileRpcPromise({outboxID})
+        }
+      }
+      Z.ignorePromise(f())
     },
     attachmentsUpload: (paths, titles, _tlfName) => {
       const f = async () => {

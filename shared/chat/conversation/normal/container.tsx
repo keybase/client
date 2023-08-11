@@ -59,13 +59,7 @@ const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
     dispatch(Chat2Gen.createJumpToRecent({conversationIDKey}))
   }, [conversationIDKey, dispatch])
 
-  const onPaste = React.useCallback(
-    (data: Buffer) => {
-      dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data}))
-    },
-    [conversationIDKey, dispatch]
-  )
-
+  const onPaste = Constants.useContext(s => s.dispatch.attachmentPasted)
   const toggleThreadSearch = Constants.useContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = React.useCallback(() => {
     toggleThreadSearch()
