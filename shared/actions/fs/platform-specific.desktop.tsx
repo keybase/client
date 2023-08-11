@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Z from '../../util/zustand'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
@@ -72,7 +72,7 @@ const driverEnableFuse = async (isRetry: boolean) => {
   if (fuseInstallResultIsKextPermissionError(result)) {
     Constants.useState.getState().dispatch.driverKextPermissionError()
     if (!isRetry) {
-      RouterConstants.useState.getState().dispatch.navigateAppend('kextPermission')
+      C.useRouterState.getState().dispatch.navigateAppend('kextPermission')
     }
   } else {
     await RPCTypes.installInstallKBFSRpcPromise() // restarts kbfsfuse
@@ -276,7 +276,7 @@ const initPlatformSpecific = () => {
       if (path) {
         Constants.makeActionForOpenPathInFilesTab(path)
       } else {
-        RouterConstants.useState.getState().dispatch.navigateAppend(Tabs.fsTab)
+        C.useRouterState.getState().dispatch.navigateAppend(Tabs.fsTab)
       }
     }
 

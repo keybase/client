@@ -1,10 +1,9 @@
 import * as ConfigConstants from '../constants/config'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import type * as Tabs from '../constants/tabs'
 import openURL from '../util/open-url'
 import {currentVersion, useState} from '../constants/whats-new'
 import {Current, Last, LastLast} from './versions'
-import type {PathParam} from '../constants/router2'
 import WhatsNew from '.'
 
 type OwnProps = {
@@ -17,7 +16,7 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
   const _onNavigateExternal = (url: string) => {
     openURL(url)
   }
-  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const _onSwitchTab = (tab: Tabs.AppTab) => {
     switchTab(tab)
   }
@@ -36,14 +35,14 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
       ownProps.onBack()
     }
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const props = {
     Current,
     Last,
     LastLast,
     onBack,
     // Navigate then handle setting seen state and closing the modal (desktop only)
-    onNavigate: (props: PathParam) => {
+    onNavigate: (props: C.PathParam) => {
       navigateAppend(props)
       onBack()
     },

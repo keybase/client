@@ -1,4 +1,4 @@
-import * as RouterConstants from './router2'
+import {useRouterState} from '.'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
@@ -157,9 +157,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               s.error = ''
             })
             get().dispatch.loadInvites()
-            RouterConstants.useState
-              .getState()
-              .dispatch.navigateAppend({props: {email, link}, selected: 'inviteSent'})
+            useRouterState.getState().dispatch.navigateAppend({props: {email, link}, selected: 'inviteSent'})
           }
         } catch (error) {
           if (!(error instanceof RPCError)) {

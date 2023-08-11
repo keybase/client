@@ -2,14 +2,14 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as ConfigConstants from '../../constants/config'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import type {Props} from '.'
 
 const ChatPDF = (props: Props) => {
   const {message, url} = props
   const title = message?.title || message?.fileName || 'PDF'
   const [error, setError] = React.useState('')
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => navigateUp()
   const showShareActionSheet = ConfigConstants.useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
   const onShare = () => showShareActionSheet?.(url ?? '', '', 'application/pdf')

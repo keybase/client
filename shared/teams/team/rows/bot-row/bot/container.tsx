@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../../../constants/router2'
+import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/teams'
 import * as BotsConstants from '../../../../../constants/bots'
 import * as TrackerConstants from '../../../../../constants/tracker2'
@@ -50,7 +50,7 @@ export default (ownProps: OwnProps) => {
       showUser(username, true)
     }
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = () => {
     navigateAppend({props: ownProps, selected: 'teamMember'})
   }

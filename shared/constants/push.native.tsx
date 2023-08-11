@@ -1,4 +1,4 @@
-import * as RouterConstants from './router2'
+import {useRouterState} from '.'
 import * as ProfileConstants from './profile'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
@@ -184,8 +184,8 @@ export const useState = Z.createZustand<State>((set, get) => {
               break
             case 'settings.contacts':
               if (useConfigState.getState().loggedIn) {
-                RouterConstants.useState.getState().dispatch.switchTab(Tabs.peopleTab)
-                RouterConstants.useState.getState().dispatch.navUpToScreen('peopleRoot')
+                useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
+                useRouterState.getState().dispatch.navUpToScreen('peopleRoot')
               }
               break
           }
@@ -319,8 +319,8 @@ export const useState = Z.createZustand<State>((set, get) => {
         if (p.show && useConfigState.getState().loggedIn && !get().justSignedUp && !get().hasPermissions) {
           logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
           await Z.timeoutPromise(100)
-          RouterConstants.useState.getState().dispatch.switchTab(Tabs.peopleTab)
-          RouterConstants.useState.getState().dispatch.navigateAppend('settingsPushPrompt')
+          useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
+          useRouterState.getState().dispatch.navigateAppend('settingsPushPrompt')
         }
       }
       Z.ignorePromise(monsterPrompt())

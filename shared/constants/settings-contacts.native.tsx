@@ -1,6 +1,6 @@
+import {useRouterState} from '.'
 import * as Contacts from 'expo-contacts'
 import * as RPCTypes from './types/rpc-gen'
-import * as RouterConstants from './router2'
 import * as WaitingConstants from './waiting'
 import * as Z from '../util/zustand'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
@@ -230,7 +230,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               s.waitingToShowJoinedModal = false
             })
             if (resolved.length) {
-              RouterConstants.useState.getState().dispatch.navigateAppend('settingsContactsJoined')
+              useRouterState.getState().dispatch.navigateAppend('settingsContactsJoined')
             }
           }
         } catch (_error) {

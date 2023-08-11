@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/provision'
 import * as Container from '../../util/container'
 import * as DevicesConstants from '../../constants/devices'
@@ -23,7 +23,7 @@ const CodePageContainer = () => {
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const submitTextCode = Constants.useState(s => s.dispatch.dynamic.submitTextCode)
 
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
 
   const cancel = Constants.useState(s => s.dispatch.dynamic.cancel)

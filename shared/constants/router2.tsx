@@ -1,3 +1,4 @@
+import {TBstores} from '.'
 import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
 import * as Z from '../util/zustand'
 import * as Container from '../util/container'
@@ -341,8 +342,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.navState = next
       })
 
-      const updateTeamBuilding = async () => {
-        const TBConstants = await import('./team-building')
+      const updateTeamBuilding = () => {
         const namespaces = ['chat2', 'crypto', 'teams', 'people'] as const
         const namespaceToRoute = new Map([
           ['chat2', 'chatNewChat'],
@@ -356,12 +356,12 @@ export const useState = Z.createZustand<State>((set, get) => {
             // team building or modal on top of that still
             const isTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(next)?.name
             if (!isTeamBuilding) {
-              TBConstants.stores.get(namespace)?.getState().dispatch.cancelTeamBuilding()
+              TBstores.get(namespace)?.getState().dispatch.cancelTeamBuilding()
             }
           }
         }
       }
-      Z.ignorePromise(updateTeamBuilding())
+      updateTeamBuilding()
 
       const updateFS = async () => {
         const FS = await import('./fs')

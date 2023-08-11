@@ -1,5 +1,5 @@
+import {getModalStack, useRouterState} from '..'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as RouterConstants from '../router2'
 import * as Tabs from '../tabs'
 import * as LinksConstants from '../deeplinks'
 import * as TeamsConstants from '../teams'
@@ -939,8 +939,8 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
     },
     navigateToInbox: () => {
-      RouterConstants.useState.getState().dispatch.navUpToScreen('chatRoot')
-      RouterConstants.useState.getState().dispatch.switchTab(Tabs.chatTab)
+      useRouterState.getState().dispatch.navUpToScreen('chatRoot')
+      useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
     },
     onEngineConnected: () => {
       const f = async () => {
@@ -1159,8 +1159,8 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     onRouteChanged: (prev, next) => {
       const maybeChangeChatSelection = () => {
-        const wasModal = prev && Router2.getModalStack(prev).length > 0
-        const isModal = next && Router2.getModalStack(next).length > 0
+        const wasModal = prev && getModalStack(prev).length > 0
+        const isModal = next && getModalStack(next).length > 0
         // ignore if changes involve a modal
         if (wasModal || isModal) {
           return

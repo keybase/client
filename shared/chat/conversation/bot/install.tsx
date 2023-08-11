@@ -1,7 +1,7 @@
 import * as Constants from '../../../constants/chat2'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as BotsConstants from '../../../constants/bots'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -105,8 +105,8 @@ const InstallBotPopup = (props: Props) => {
   const {channelMetas} = useAllChannelMetas(teamID)
   const error = Container.useAnyErrors([Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove])
   // dispatch
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const addBotMember = Constants.useContext(s => s.dispatch.addBotMember)
   const onClose = () => {
     Styles.isMobile ? navigateUp() : clearModals()
@@ -134,7 +134,7 @@ const InstallBotPopup = (props: Props) => {
     }
     editBotSettings(botUsername, installWithCommands, installWithMentions, installInConvs)
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onRemove = () => {
     if (!conversationIDKey) {
       return

@@ -1,3 +1,4 @@
+import {useRouterState, getModalStack, getVisibleScreen, navToThread} from '..'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Styles from '../../styles'
 import * as Common from './common'
@@ -9,7 +10,6 @@ import * as Meta from './meta'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as React from 'react'
-import * as RouterConstants from '../router2'
 import * as TeamsTypes from '../types/teams'
 import * as TeamsConstants from '../teams'
 import * as Types from '../types/chat2'
@@ -386,7 +386,7 @@ export const numMessagesOnScrollback = isMobile ? 100 : 100
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const closeBotModal = () => {
-    RouterConstants.useState.getState().dispatch.clearModals()
+    useRouterState.getState().dispatch.clearModals()
     const meta = get().meta
     if (meta.teamname) {
       TeamsConstants.useState.getState().dispatch.getMembers(meta.teamID)
@@ -525,7 +525,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
 
         const pathAndOutboxIDs = [{outboxID, path}]
-        RouterConstants.useState.getState().dispatch.navigateAppend({
+        useRouterState.getState().dispatch.navigateAppend({
           props: {conversationIDKey: get().id, noDragDrop: true, pathAndOutboxIDs},
           selected: 'chatAttachmentGetTitles',
         })
@@ -533,7 +533,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       Z.ignorePromise(f())
     },
     attachmentPreviewSelect: ordinal => {
-      RouterConstants.useState.getState().dispatch.navigateAppend({
+      useRouterState.getState().dispatch.navigateAppend({
         props: {conversationIDKey: get().id, ordinal},
         selected: 'chatAttachmentFullscreen',
       })
@@ -779,10 +779,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         )
       }
       Z.ignorePromise(f())
-      RouterConstants.useState.getState().dispatch.clearModals()
+      useRouterState.getState().dispatch.clearModals()
       if (navToInbox) {
-        RouterConstants.useState.getState().dispatch.navUpToScreen('chatRoot')
-        RouterConstants.useState.getState().dispatch.switchTab(Tabs.chatTab)
+        useRouterState.getState().dispatch.navUpToScreen('chatRoot')
+        useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
       }
     },
     loadAttachmentView: (viewType, fromMsgID) => {
@@ -1199,7 +1199,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
 
         if (isIOS && message.fileName.endsWith('.pdf')) {
-          RouterConstants.useState.getState().dispatch.navigateAppend({
+          useRouterState.getState().dispatch.navigateAppend({
             props: {
               message,
               // Prepend the 'file://' prefix here. Otherwise when webview
@@ -1437,9 +1437,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               },
               incomingCallMap: {
                 'chat.1.chatUi.chatStellarDone': ({canceled}) => {
-                  const visibleScreen = RouterConstants.getVisibleScreen()
+                  const visibleScreen = getVisibleScreen()
                   if (visibleScreen && visibleScreen.name === confirmRouteName) {
-                    RouterConstants.useState.getState().dispatch.clearModals()
+                    useRouterState.getState().dispatch.clearModals()
                     return
                   }
                   if (canceled) {
@@ -1849,7 +1849,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
         const conversationIDKey = get().id
-        const visible = RouterConstants.getVisibleScreen()
+        const visible = getVisibleScreen()
         // @ts-ignore TODO better types
         const visibleConvo: Types.ConversationIDKey | undefined = visible?.params?.conversationIDKey
         const visibleRouteName = visible?.name
@@ -1861,11 +1861,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         // we select the chat tab and change the params
         if (Common.isSplit) {
-          RouterConstants.navToThread(conversationIDKey)
+          navToThread(conversationIDKey)
         } else {
           // immediately switch stack to an inbox | thread stack
           if (reason === 'push' || reason === 'savedLastState') {
-            RouterConstants.navToThread(conversationIDKey)
+            navToThread(conversationIDKey)
             return
           } else {
             // replace if looking at the pending / waiting screen
@@ -1873,11 +1873,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               visibleRouteName === Common.threadRouteName &&
               !Types.isValidConversationIDKey(visibleConvo ?? '')
             // note: we don't switch tabs on non split
-            const modalPath = RouterConstants.getModalStack()
+            const modalPath = getModalStack()
             if (modalPath.length > 0) {
-              RouterConstants.useState.getState().dispatch.clearModals()
+              useRouterState.getState().dispatch.clearModals()
             }
-            RouterConstants.useState
+            useRouterState
               .getState()
               .dispatch.navigateAppend(
                 {props: {conversationIDKey}, selected: Common.threadRouteName},

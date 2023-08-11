@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as SettingsConstants from '../../constants/settings'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import VerifyPhoneNumber, {type Props} from './verify'
 
 type WatcherProps = Props & {
@@ -57,12 +57,12 @@ export default () => {
   const _onResend = (phoneNumber: string) => {
     resendVerificationForPhone(phoneNumber)
   }
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }
   const onCleanup = clearPhoneNumberAdd
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onSuccess = () => {
     clearModals()
   }

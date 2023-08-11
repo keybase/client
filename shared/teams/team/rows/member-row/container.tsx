@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/teams'
 import * as ChatConstants from '../../../../constants/chat2'
 import * as UsersConstants from '../../../../constants/users'
@@ -39,7 +39,7 @@ export default (ownProps: OwnProps) => {
   const onChat = () => {
     username && previewConversation({participants: [username], reason: 'teamMember'})
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = () => {
     navigateAppend({props: {teamID, username}, selected: 'teamMember'})
   }

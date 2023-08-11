@@ -1,10 +1,10 @@
-import * as RouterConstants from '../../../../../constants/router2'
+import * as C from '../../../../../constants'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as TeamsConstants from '../../../../../constants/teams'
 import * as ProfileConstants from '../../../../../constants/profile'
 import * as Container from '../../../../../util/container'
-import * as DeeplinksConstants from '../../../../../constants/deeplinks'
+import {linkFromConvAndMessage} from '../../../../../constants'
 import * as ConfigConstants from '../../../../../constants/config'
 import Text from '.'
 import openURL from '../../../../../util/open-url'
@@ -57,7 +57,7 @@ export default (ownProps: OwnProps) => {
   const _you = ConfigConstants.useCurrentUserState(s => s.username)
 
   const dispatch = Container.useDispatch()
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAddReaction = (message: Types.Message) => {
     navigateAppend({
       props: {
@@ -75,7 +75,7 @@ export default (ownProps: OwnProps) => {
     }
   }
   const _onCopyLink = (label: string, message: Types.Message) => {
-    copyToClipboard(DeeplinksConstants.linkFromConvAndMessage(label, message.id))
+    copyToClipboard(linkFromConvAndMessage(label, message.id))
   }
   const messageDelete = Constants.useContext(s => s.dispatch.messageDelete)
   const _onDelete = (message: Types.Message) => {

@@ -1,5 +1,4 @@
-import * as RouterConstants from '../constants/router2'
-import * as Constants from '../constants/deeplinks'
+import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 
@@ -23,10 +22,10 @@ export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
 }
 
 const KeybaseLinkError = () => {
-  const deepError = Constants.useState(s => s.keybaseLinkError)
+  const deepError = C.useDeepLinksState(s => s.keybaseLinkError)
   const message = deepError
   const isError = true
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onClose = () => navigateUp()
   return <KeybaseLinkErrorBody onCancel={onClose} isError={isError} message={message} />
 }

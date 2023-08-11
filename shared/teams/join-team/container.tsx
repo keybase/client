@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/teams'
 import JoinTeam from '.'
 import upperFirst from 'lodash/upperFirst'
@@ -11,7 +11,7 @@ export default (ownProps: OwnProps) => {
   const open = Constants.useState(s => s.teamJoinSuccessOpen)
   const success = Constants.useState(s => s.teamJoinSuccess)
   const successTeamName = Constants.useState(s => s.teamJoinSuccessTeamName)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }

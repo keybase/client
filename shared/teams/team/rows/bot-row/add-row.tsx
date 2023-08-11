@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
@@ -7,7 +7,7 @@ type Props = {
 }
 const AddBotRow = (props: Props) => {
   const {teamID} = props
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onBotAdd = () => navigateAppend({props: {teamID}, selected: 'chatSearchBots'})
 
   return (

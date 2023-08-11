@@ -1,6 +1,6 @@
 import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/recover-password'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
@@ -13,8 +13,8 @@ type Props = {
 const useConn = () => {
   const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
   const error = Constants.useState(s => s.error)
-  const popStack = RouterConstants.useState(s => s.dispatch.popStack)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const popStack = C.useRouterState(s => s.dispatch.popStack)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     loggedIn ? navigateUp() : popStack()
   }

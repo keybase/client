@@ -1,5 +1,5 @@
 import * as Constants from '../../constants/config'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Platform from '../../constants/platform'
 import * as React from 'react'
 import GlobalError from '.'
@@ -11,8 +11,8 @@ const Connected = () => {
   const error = Constants.useConfigState(s => s.globalError)
   const setGlobalError = Constants.useConfigState(s => s.dispatch.setGlobalError)
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onFeedback = React.useCallback(() => {
     setGlobalError()
     if (loggedIn) {

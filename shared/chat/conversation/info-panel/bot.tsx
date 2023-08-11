@@ -4,7 +4,7 @@ import * as UsersConstants from '../../../constants/users'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as TeamConstants from '../../../constants/teams'
 import type * as RPCTypes from '../../../constants/types/rpc-gen'
@@ -252,7 +252,7 @@ const BotTab = (props: Props) => {
 
   const botsInTeam: string[] = botUsernames.filter(b => !botsInConv.includes(b))
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onBotAdd = () => {
     navigateAppend({props: {conversationIDKey}, selected: 'chatSearchBots'})
   }

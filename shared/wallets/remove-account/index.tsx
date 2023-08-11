@@ -1,5 +1,5 @@
 import * as Constants from '../../constants/wallets'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import WalletPopup from '../wallet-popup'
@@ -11,11 +11,11 @@ export default (ownProps: OwnProps) => {
   const account = Constants.useState(s => s.accountMap.get(accountID))
   const balance = account?.balanceDescription ?? 'Error loading account'
   const name = account?.name ?? ''
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onClose = () => {
     navigateUp()
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDelete = () => {
     navigateAppend({props: {accountID}, selected: 'reallyRemoveAccount'}, true)
   }

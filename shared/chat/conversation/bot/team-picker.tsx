@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as BotsConstants from '../../../constants/bots'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../constants/types/chat2'
@@ -40,11 +40,11 @@ const BotTeamPicker = (props: Props) => {
     )
   }
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSelect = (convID: RPCChatTypes.ConversationID) => {
     const conversationIDKey = Types.conversationIDToKey(convID)
     navigateAppend({

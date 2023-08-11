@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/profile'
 import * as ConfigConstants from '../../constants/config'
 import PostProof from '.'
@@ -50,7 +50,7 @@ export default () => {
   const platformUserName = username
 
   const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     clearModals()
     cancelAddProof?.()

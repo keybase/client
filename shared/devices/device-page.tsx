@@ -1,4 +1,4 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Constants from '../constants/devices'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -92,7 +92,7 @@ const DevicePage = (ownProps: OwnProps) => {
   const iconNumber = Constants.useDeviceIconNumber(id)
   const device = Constants.useState(s => s.deviceMap.get(id))
   const canRevoke = Constants.useActiveDeviceCounts() > 1
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const showRevokeDevicePage = React.useCallback(() => {
     navigateAppend({props: {deviceID: id}, selected: 'deviceRevoke'})
   }, [navigateAppend, id])

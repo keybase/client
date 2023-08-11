@@ -5,7 +5,7 @@ import * as EngineGen from '../actions/engine-gen-gen'
 import * as Followers from './followers'
 import * as RPCTypes from './types/rpc-gen'
 import * as RemoteGen from '../actions/remote-gen'
-import * as RouterConstants from './router2'
+import {useRouterState} from '.'
 import * as Stats from '../engine/stats'
 import * as Z from '../util/zustand'
 import isEqual from 'lodash/isEqual'
@@ -354,11 +354,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.switchTab: {
-          const f = async () => {
-            const RouterConstants = await import('./router2')
-            RouterConstants.useState.getState().dispatch.switchTab(action.payload.tab)
-          }
-          Z.ignorePromise(f())
+          useRouterState.getState().dispatch.switchTab(action.payload.tab)
           break
         }
         case RemoteGen.setCriticalUpdate: {
@@ -970,7 +966,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       })
       // already loaded, so just go now
       if (get().startup.loaded) {
-        RouterConstants.useState.getState().dispatch.navigateAppend('incomingShareNew')
+        useRouterState.getState().dispatch.navigateAppend('incomingShareNew')
       }
     },
     setBadgeState: b => {

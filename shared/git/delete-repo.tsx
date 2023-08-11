@@ -1,5 +1,5 @@
 import * as Constants from '../constants/git'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -18,7 +18,7 @@ export default (ownProps: OwnProps) => {
 
   const deletePersonalRepo = Constants.useState(s => s.dispatch.deletePersonalRepo)
   const deleteTeamRepo = Constants.useState(s => s.dispatch.deleteTeamRepo)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
 
   const _onDelete = (teamname: string | undefined, name: string, notifyTeam: boolean) => {
     if (teamname) {

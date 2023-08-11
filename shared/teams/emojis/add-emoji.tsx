@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as TeamsTypes from '../../constants/types/teams'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import * as FsTypes from '../../constants/types/fs'
 import * as ChatTypes from '../../constants/types/chat2'
@@ -45,7 +45,7 @@ const useDoAddEmojis = (
   const [bannerError, setBannerError] = React.useState('')
   const clearBannerError = React.useCallback(() => setBannerError(''), [setBannerError])
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const doAddEmojis =
     conversationIDKey !== ChatConstants.noConversationIDKey
       ? () => {

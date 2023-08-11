@@ -1,4 +1,4 @@
-import * as RouterConstants from './router2'
+import {useRouterState} from '.'
 import * as ConfigConstants from '../constants/config'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as UsersConstants from './users'
@@ -358,8 +358,8 @@ export const useState = Z.createZustand<State>((set, get) => {
                   .dispatch.setLinkError(
                     `You followed a profile link for a user (${assertion}) that does not exist.`
                   )
-                RouterConstants.useState.getState().dispatch.navigateUp()
-                RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
+                useRouterState.getState().dispatch.navigateUp()
+                useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
               }
               Z.ignorePromise(f())
             }

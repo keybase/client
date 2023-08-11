@@ -1,3 +1,4 @@
+import {getNavigator} from '.'
 import logger from '../logger'
 import * as RPCTypes from './types/rpc-gen'
 import type * as Types from './types/config'
@@ -104,9 +105,8 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       if (!changed) return
 
       const checkNav = async (version: number) => {
-        const RouterConstants = await import('./router2')
         // have one
-        if (RouterConstants._getNavigator()) return
+        if (getNavigator()) return
         const Constants = await import('./config')
         const name = 'nav'
         const {wait} = get().dispatch
@@ -114,7 +114,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         logger.info('Waiting on nav')
         Constants.useConfigState.setState(s => {
           s.dispatch.dynamic.setNavigatorExistsNative = () => {
-            if (RouterConstants._getNavigator()) {
+            if (getNavigator()) {
               Constants.useConfigState.setState(s => {
                 s.dispatch.dynamic.setNavigatorExistsNative = undefined
               })

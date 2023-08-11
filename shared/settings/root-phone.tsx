@@ -1,4 +1,4 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as React from 'react'
 import * as TabConstants from '../constants/tabs'
 import * as Kb from '../common-adapters'
@@ -65,7 +65,7 @@ function SettingsNav() {
   const badgeNumbers = NotifConstants.useState(s => s.navBadges)
   const badgeNotifications = PushConstants.useState(s => !s.hasPermissions)
   const statsShown = ConfigConstants.useConfigState(s => !!s.runtimeStats)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onTabChange = React.useCallback(
     (s: any) => {
       navigateAppend(s)

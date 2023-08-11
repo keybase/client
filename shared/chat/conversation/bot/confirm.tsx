@@ -1,6 +1,6 @@
 import * as Kb from '../../../common-adapters'
 import * as Constants from '../../../constants/chat2'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import type * as Types from '../../../constants/types/chat2'
 import type * as TeamsTypes from '../../../constants/types/teams'
 import {useBotConversationIDKey} from './install'
@@ -26,7 +26,7 @@ type Props = {
 
 const ConfirmBotRemove = (props: Props) => {
   const {botUsername, conversationIDKey} = props
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const removeBotMember = Constants.useContext(s => s.dispatch.removeBotMember)
   const onClose = () => {
     clearModals()

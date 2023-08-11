@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/profile'
 import * as TrackerConstants from '../../../constants/tracker2'
 import ProofsList from '.'
@@ -6,7 +6,7 @@ import * as Styles from '../../../styles'
 
 export default () => {
   const _proofSuggestions = TrackerConstants.useState(s => s.proofSuggestions)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }

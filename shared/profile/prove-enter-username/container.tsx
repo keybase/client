@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/profile'
 import ProveEnterUsername from '.'
 
@@ -29,7 +29,7 @@ export default () => {
       submitUsername?.()
     }
   }
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     cancelAddProof?.()
     clearModals()

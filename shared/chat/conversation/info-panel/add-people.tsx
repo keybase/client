@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import * as TeamsConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import type * as TeamTypes from '../../../constants/types/teams'
 import type * as Types from '../../../constants/types/chat2'
@@ -82,7 +82,7 @@ const AddPeople = (ownProps: OwnProps) => {
   const _onAddPeople = (teamID: TeamTypes.TeamID) => {
     startAddMembersWizard(teamID)
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAddToChannel = (conversationIDKey: Types.ConversationIDKey, teamID: TeamTypes.TeamID) => {
     navigateAppend({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'})
   }

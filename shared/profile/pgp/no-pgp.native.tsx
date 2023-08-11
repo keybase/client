@@ -1,9 +1,9 @@
 import * as Kb from '../../common-adapters'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import Modal from '../modal'
 
 export default function NoPGPView() {
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }

@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/teams'
 import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
@@ -92,7 +92,7 @@ export default (ownProps: OwnProps) => {
   const onAddOrInvitePeople = () => {
     startAddMembersWizard(teamID)
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteTeam = () => {
     navigateAppend({props: {teamID}, selected: 'teamDeleteTeam'})
   }

@@ -1,5 +1,5 @@
 import * as Kb from '../../../../common-adapters'
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import type * as Types from '../../../../constants/types/chat2'
 
@@ -12,7 +12,7 @@ type Props = {
 const MoreMenuPopup = (props: Props) => {
   const {conversationIDKey, onHidden, visible} = props
   const injectIntoInput = Constants.useContext(s => s.dispatch.injectIntoInput)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onLocationShare = () => {
     navigateAppend({props: {conversationIDKey}, selected: 'chatLocationPreview'})
   }

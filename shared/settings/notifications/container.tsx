@@ -1,6 +1,6 @@
 import * as Constants from '../../constants/settings'
 import * as Container from '../../util/container'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import Notifications, {type Props} from '.'
 import {Reloadable} from '../../common-adapters'
 
@@ -31,11 +31,11 @@ export default () => {
   const toggle = Constants.useNotifState(s => s.dispatch.toggle)
   const showEmailSection = Constants.useEmailState(s => s.emails.size > 0)
   const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClickYourAccount = () => {
     navigateAppend(Constants.accountTab)
   }

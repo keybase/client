@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as ConfigConstants from '../../constants/config'
@@ -25,12 +25,12 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
   const blocked = UsersConstants.useState(s => s.blockMap.get(keybaseUsername || '')?.chatBlocked)
   const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onMenuAddToTeam = React.useCallback(() => {
     keybaseUsername && navigateAppend({props: {username: keybaseUsername}, selected: 'profileAddToTeam'})
   }, [navigateAppend, keybaseUsername])
 
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onOpenPrivateFolder = React.useCallback(() => {
     navigateUp()
     FsConstants.makeActionForOpenPathInFilesTab(

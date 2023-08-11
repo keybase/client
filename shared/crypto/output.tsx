@@ -1,4 +1,4 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/crypto'
 import * as ChatConstants from '../constants/chat2'
@@ -204,7 +204,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     openLocalPathInSystemFileManagerDesktop?.(output.stringValue())
   }
 
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
   const onReplyInChat = (username: Container.HiddenString) => {
     navigateUp()

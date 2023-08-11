@@ -1,5 +1,5 @@
 import * as ConfigConstants from '../../constants/config'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
@@ -23,7 +23,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const [sk, setSK] = React.useState('')
   const loading = !sk
   const getSecretKey = Container.useRPC(RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }

@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import ConversationFilterInput from '.'
@@ -20,7 +20,7 @@ export default (ownProps: OwnProps) => {
   const _appendNewChatBuilder = () => {
     appendNewChatBuilder()
   }
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }

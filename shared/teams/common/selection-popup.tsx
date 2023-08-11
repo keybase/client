@@ -3,7 +3,7 @@ import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Styles from '../../styles'
 import type * as ChatTypes from '../../constants/types/chat2'
 import type * as Types from '../../constants/types/teams'
@@ -205,7 +205,7 @@ const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   const membersSet = Constants.useState(s => s.teamSelectedMembers.get(teamID))
   const isBigTeam = ChatConstants.useState(s => ChatConstants.isBigTeam(s, teamID))
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   if (!membersSet) {
     // we shouldn't be rendered
     return null
@@ -296,7 +296,7 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
 
 const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
   // Channels tab functions
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDelete = () => navigateAppend({props: {teamID}, selected: 'teamDeleteChannel'})
 
   return (
@@ -311,7 +311,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
   )
   const channelInfo = Constants.useState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   if (!membersSet) {
     // we shouldn't be rendered

@@ -1,7 +1,7 @@
 import * as Constants from '../../constants/chat2'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Styles from '../../styles'
 import * as TeamsConstants from '../../constants/teams'
 import Rover from './background'
@@ -391,7 +391,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
   const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
   const showTeamByName = TeamsConstants.useState(s => s.dispatch.showTeamByName)
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p

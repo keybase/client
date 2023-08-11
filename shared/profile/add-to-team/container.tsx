@@ -1,5 +1,5 @@
 import * as Constants from '../../constants/teams'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Container from '../../util/container'
 import * as React from 'react'
 import AddToTeam, {type AddToTeamProps} from '.'
@@ -120,7 +120,7 @@ export default (ownProps: OwnProps) => {
   const loadTeamList = () => {
     getTeamProfileAddList(_them)
   }
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
     resetTeamProfileAddList()

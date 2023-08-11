@@ -1,5 +1,5 @@
 import * as Constants from '../../constants/teams'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import type * as Types from '../../constants/types/teams'
 import {InviteByEmailDesktop} from '.'
 
@@ -20,7 +20,7 @@ export default (ownProps: OwnProps) => {
   const resetErrorInEmailInvite = Constants.useState(s => s.dispatch.resetErrorInEmailInvite)
   // should only be called on unmount
   const onClearInviteError = resetErrorInEmailInvite
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onClose = () => {
     navigateUp()
   }

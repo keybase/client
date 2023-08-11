@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as ChatConstants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
@@ -35,7 +35,7 @@ export default (ownProps: OwnProps) => {
   const loadWelcomeMessage = () => {
     _loadWelcomeMessage(teamID)
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onEditWelcomeMessage = () => {
     navigateAppend({props: {teamID}, selected: 'teamEditWelcomeMessage'})
   }

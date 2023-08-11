@@ -1,5 +1,5 @@
 import * as Constants from '../../../../constants/fs'
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as React from 'react'
 import type * as Types from '../../../../constants/types/fs'
 import ReallyDelete from '.'
@@ -12,7 +12,7 @@ type OwnProps = {
 export default (ownProps: OwnProps) => {
   const {path, mode} = ownProps
   const deleteFile = Constants.useState(s => s.dispatch.deleteFile)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
   const onDelete = React.useCallback(() => {
     if (path !== Constants.defaultPath) {

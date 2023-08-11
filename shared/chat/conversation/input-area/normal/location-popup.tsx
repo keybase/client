@@ -4,7 +4,7 @@ import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type * as Types from '../../../../constants/types/chat2'
 import LocationMap from '../../../location-map'
@@ -22,7 +22,7 @@ const LocationPopup = (props: Props) => {
   )
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const dispatch = Container.useDispatch()
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
   }

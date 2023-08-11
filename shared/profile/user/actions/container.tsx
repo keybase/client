@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/tracker2'
 import * as BotsConstants from '../../../constants/bots'
 import * as ProfileConstants from '../../../constants/profile'
@@ -25,7 +25,7 @@ export default (ownProps: OwnProps) => {
   const hidFromFollowers = d.hidFromFollowers
   const state = d.state
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAddToTeam = (username: string) => navigateAppend({props: {username}, selected: 'profileAddToTeam'})
   const _onBrowsePublicFolder = (username: string) =>
     FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${username}`))

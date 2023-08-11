@@ -1,5 +1,5 @@
 import * as Constants from '../../../../../constants/chat2'
-import * as RouterConstants from '../../../../../constants/router2'
+import * as C from '../../../../../constants'
 import * as FSConstants from '../../../../../constants/fs'
 import * as CryptoConstants from '../../../../../constants/crypto'
 import * as Container from '../../../../../util/container'
@@ -35,7 +35,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   })
 
   const saltpackOpenFile = CryptoConstants.useState(s => s.dispatch.onSaltpackOpenFile)
-  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onSaltpackFileOpen = React.useCallback(
     (path: string, operation: CryptoTypes.Operations) => {
       switchTab(Tabs.cryptoTab)
@@ -50,7 +50,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)
   }, [openLocalPathInSystemFileManagerDesktop, downloadPath])
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const attachmentDownload = Constants.useContext(s => s.dispatch.attachmentDownload)
   const messageAttachmentNativeShare = Constants.useContext(s => s.dispatch.messageAttachmentNativeShare)
   const onDownload = React.useCallback(() => {

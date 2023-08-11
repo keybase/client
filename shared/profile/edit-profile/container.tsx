@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
 import * as ProfileConstants from '../../constants/profile'
 import * as ConfigConstants from '../../constants/config'
@@ -11,7 +11,7 @@ export default () => {
   const fullname = d.fullname || ''
   const location = d.location || ''
 
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }

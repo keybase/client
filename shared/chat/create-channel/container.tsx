@@ -1,7 +1,7 @@
 import * as Container from '../../util/container'
 import * as React from 'react'
 import * as TeamsConstants from '../../constants/teams'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as TeamsTypes from '../../constants/types/teams'
 import CreateChannel from '.'
 import upperFirst from 'lodash/upperFirst'
@@ -16,7 +16,7 @@ const Wrapped = (p: OwnProps) => {
   const navToChatOnSuccess = p.navToChatOnSuccess ?? true
   const errorText = TeamsConstants.useState(s => upperFirst(s.errorInChannelCreation))
   const teamname = TeamsConstants.useState(s => TeamsConstants.getTeamNameFromID(s, teamID) ?? '')
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
   const [channelname, onChannelnameChange] = React.useState<string>('')
   const [description, onDescriptionChange] = React.useState<string>('')

@@ -1,7 +1,7 @@
 import Announcement from '.'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/people'
 import * as ChatConstants from '../../constants/chat2'
 import * as SettingsTabs from '../../constants/settings'
@@ -23,8 +23,8 @@ export default (ownProps: OwnProps) => {
   const {appLink, badged, confirmLabel, iconUrl, id, text, url, dismissable} = ownProps
   const loadPeople = Constants.useState(s => s.dispatch.loadPeople)
   const dismissAnnouncement = Constants.useState(s => s.dispatch.dismissAnnouncement)
-  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const navigateToInbox = ChatConstants.useState(s => s.dispatch.navigateToInbox)
   const onConfirm = () => {
     if (url) {

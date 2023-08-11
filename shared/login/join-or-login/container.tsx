@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/provision'
 import * as Container from '../../util/container'
@@ -17,7 +17,7 @@ export default () => {
   const isOnline = ConfigConstants.useConfigState(s => s.isOnline)
   const loadIsOnline = ConfigConstants.useConfigState(s => s.dispatch.loadIsOnline)
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onFeedback = () => {
     navigateAppend({props: {}, selected: 'feedback'})
   }

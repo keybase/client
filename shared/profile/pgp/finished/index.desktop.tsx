@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
@@ -89,7 +89,7 @@ export default () => {
   const promptShouldStoreKeyOnServer = Constants.useState(s => s.promptShouldStoreKeyOnServer)
   const finishedWithKeyGen = Constants.useState(s => s.dispatch.dynamic.finishedWithKeyGen)
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onDone = (shouldStoreKeyOnServer: boolean) => {
     finishedWithKeyGen?.(shouldStoreKeyOnServer)
     clearModals()

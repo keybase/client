@@ -1,10 +1,10 @@
 import * as Kb from '../../../common-adapters'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import Modal from '../../modal'
 
 export default function Import() {
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }

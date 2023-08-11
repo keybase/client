@@ -2,7 +2,7 @@ import * as ChatConstants from '../constants/chat2'
 import * as ConfigConstants from '../constants/config'
 import * as PushConstants from '../constants/push'
 import * as Container from '../util/container'
-import * as LinkingConstants from '../constants/deeplinks'
+import * as C from '../constants'
 import * as Shared from './router.shared'
 import * as Tabs from '../constants/tabs'
 import {getStateFromPath} from '@react-navigation/native'
@@ -129,7 +129,7 @@ const makeLinking = (options: OptionsType) => {
       }
       // allow deep links sagas access to the first link
       if (isValidLink(url)) {
-        setTimeout(() => url && LinkingConstants.useState.getState().dispatch.handleAppLink(url), 1)
+        setTimeout(() => url && C.useDeepLinksState.getState().dispatch.handleAppLink(url), 1)
       }
       return url
     },

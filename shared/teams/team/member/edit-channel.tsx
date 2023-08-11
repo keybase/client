@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/teams'
 import {ModalTitle} from '../../common'
@@ -31,7 +31,7 @@ const EditChannel = (props: Props) => {
   const [description, setDescription] = React.useState(oldDescription)
 
   const onBack = () => nav.safeNavigateUp()
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => clearModals()
 
   const updateChannelName = Constants.useState(s => s.dispatch.updateChannelName)

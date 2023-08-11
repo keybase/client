@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/chat2'
 import InboxSearch from '.'
 import * as React from 'react'
@@ -17,7 +17,7 @@ export default (ownProps: OwnProps) => {
   const onCancel = () => {
     toggleInboxSearch(false)
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onInstallBot = (username: string) => {
     navigateAppend({props: {botUsername: username}, selected: 'chatInstallBotPick'})
   }

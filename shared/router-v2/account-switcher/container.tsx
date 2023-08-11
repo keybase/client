@@ -1,5 +1,5 @@
 import * as ConfigConstants from '../../constants/config'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as UsersConstants from '../../constants/users'
 import * as ProfileConstants from '../../constants/profile'
 import * as ProvisionConstants from '../../constants/provision'
@@ -21,7 +21,7 @@ export default () => {
   const waiting = Container.useAnyWaiting(ConfigConstants.loginWaitingKey)
   const _onProfileClick = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onAddAccount = ProvisionConstants.useState(s => s.dispatch.startProvision)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }
@@ -33,7 +33,7 @@ export default () => {
     login(username, '')
   }
   const onSelectAccountLoggedOut = ConfigConstants.useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSignOut = () => {
     navigateAppend(SettingsConstants.logOutTab)
   }

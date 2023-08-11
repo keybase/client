@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -244,7 +244,7 @@ const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
 
   const editPhone = Constants.usePhoneState(s => s.dispatch.editPhone)
   const resendVerificationForPhoneNumber = Constants.usePhoneState(s => s.dispatch.resendVerificationForPhone)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   const dispatchProps = {
     email: {

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as ChatConstants from '../../../constants/chat2'
@@ -319,8 +319,8 @@ const SelfChannelActions = ({
       selected: 'teamEditChannel',
     })
   }, [nav, meta])
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onChannelSettings = React.useCallback(() => {
     clearModals()
     navigateAppend({

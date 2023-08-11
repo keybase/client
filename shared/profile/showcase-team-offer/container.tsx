@@ -1,5 +1,5 @@
 import * as Constants from '../../constants/teams'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
 import * as Tracker2Constants from '../../constants/tracker2'
 import * as WaitingConstants from '../../constants/waiting'
@@ -9,7 +9,7 @@ export default () => {
   const waiting = WaitingConstants.useWaitingState(s => s.counts)
   const _you = ConfigConstants.useCurrentUserState(s => s.username)
   const teamMeta = Constants.useState(s => s.teamMeta)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = (you: string) => {
     // sadly a little racy, doing this for now
     setTimeout(() => {

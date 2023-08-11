@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../../../constants/router2'
+import * as C from '../../../../../constants'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
@@ -147,7 +147,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
 
   const startAddMembersWizard = TeamConstants.useState(s => s.dispatch.startAddMembersWizard)
   const _onAddPeopleToTeam = (teamID: TeamTypes.TeamID) => startAddMembersWizard(teamID)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAuthorClick = (teamID: TeamTypes.TeamID) => navigateAppend({props: {teamID}, selected: 'team'})
   const _onCreateChannel = (teamID: string) =>
     navigateAppend({props: {teamID}, selected: 'chatCreateChannel'})

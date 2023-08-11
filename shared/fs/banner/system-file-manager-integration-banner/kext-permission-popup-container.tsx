@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
 import KextPermissionPopup from './kext-permission-popup'
 
@@ -8,7 +8,7 @@ const KPPContainer = () => {
   const openSecurityPreferencesDesktop = Constants.useState(
     s => s.dispatch.dynamic.openSecurityPreferencesDesktop
   )
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp
   const openSecurityPrefs = React.useCallback(
     () => openSecurityPreferencesDesktop?.(),

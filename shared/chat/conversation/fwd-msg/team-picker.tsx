@@ -6,7 +6,7 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import {Avatars, TeamAvatar} from '../../avatars'
 import debounce from 'lodash/debounce'
 import logger from '../../../logger'
@@ -48,7 +48,7 @@ const TeamPicker = (props: Props) => {
     )
   }
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
   }

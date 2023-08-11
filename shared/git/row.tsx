@@ -1,4 +1,4 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Constants from '../constants/git'
 import * as ConfigConstants from '../constants/config'
 import * as FsConstants from '../constants/fs'
@@ -33,7 +33,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
     FsConstants.makeActionForOpenPathInFilesTab(path)
   }
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onOpenChannelSelection = () => {
     teamID &&
       navigateAppend({

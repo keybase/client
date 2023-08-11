@@ -1,8 +1,8 @@
+import {useRouterState} from '.'
 import * as ConfigConstants from './config'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as SettingsConstants from './settings'
-import * as RouterConstants from './router2'
 import * as Tabs from './tabs'
 import * as Types from './types/fs'
 import * as Z from '../util/zustand'
@@ -886,7 +886,7 @@ export const getPathStatusIconInMergeProps = (
 
 export const makeActionsForDestinationPickerOpen = (index: number, path: Types.Path) => {
   useState.getState().dispatch.setDestinationPickerParentPath(index, path)
-  RouterConstants.useState.getState().dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
+  useRouterState.getState().dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
 }
 
 export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
@@ -895,7 +895,7 @@ export const makeActionForOpenPathInFilesTab = (
   // TODO: remove the second arg when we are done with migrating to nav2
   path: Types.Path
 ) => {
-  RouterConstants.useState.getState().dispatch.navigateAppend({props: {path}, selected: 'fsRoot'})
+  useRouterState.getState().dispatch.navigateAppend({props: {path}, selected: 'fsRoot'})
 }
 
 export const putActionIfOnPathForNav1 = (action: TypedActions) => action
@@ -1927,8 +1927,8 @@ export const useState = Z.createZustand<State>((set, get) => {
             const users = error.fields?.filter((elem: any) => elem.key === 'usernames')
             const usernames = users?.map((elem: any) => elem.value)
             // Don't leave the user on a broken FS dir screen.
-            RouterConstants.useState.getState().dispatch.navigateUp()
-            RouterConstants.useState.getState().dispatch.navigateAppend({
+            useRouterState.getState().dispatch.navigateUp()
+            useRouterState.getState().dispatch.navigateAppend({
               props: {source: 'newFolder', usernames},
               selected: 'contactRestricted',
             })
@@ -2530,9 +2530,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
       })
-      RouterConstants.useState
-        .getState()
-        .dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
+      useRouterState.getState().dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
     },
     showMoveOrCopy: initialDestinationParentPath => {
       set(s => {
@@ -2547,9 +2545,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
       })
 
-      RouterConstants.useState
-        .getState()
-        .dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
+      useRouterState.getState().dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
     },
     startManualConflictResolution: tlfPath => {
       const f = async () => {

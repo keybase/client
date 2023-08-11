@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
@@ -15,7 +15,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   const _tlf = Constants.useState(s => Constants.getTlfFromPath(s.tlfs, path))
   const finishManualConflictResolution = Constants.useState(s => s.dispatch.finishManualConflictResolution)
   const startManualConflictResolution = Constants.useState(s => s.dispatch.startManualConflictResolution)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onFeedback = React.useCallback(() => {
     navigateAppend({
       props: {feedback: `Conflict Resolution failed in \`${path}\`.\n`},

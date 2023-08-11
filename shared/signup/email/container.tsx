@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as SettingsConstants from '../../constants/settings'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/signup'
 import * as Platform from '../../constants/platform'
 import * as PushConstants from '../../constants/push'
@@ -43,11 +43,11 @@ const ConnectedEnterEmail = () => {
   const error = SettingsConstants.useEmailState(s => s.error)
   const initialEmail = Constants.useState(s => s.email)
   const waiting = Container.useAnyWaiting(SettingsConstants.addEmailWaitingKey)
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const _navClearModals = () => {
     clearModals()
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _navToPushPrompt = () => {
     navigateAppend('settingsPushPrompt', true)
   }

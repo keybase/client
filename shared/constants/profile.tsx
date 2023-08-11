@@ -1,5 +1,5 @@
+import {useRouterState} from '.'
 import * as ConfigConstants from './config'
-import * as RouterConstants from './router2'
 import * as More from './types/more'
 import * as RPCTypes from './types/rpc-gen'
 import * as TrackerConstants from './tracker2'
@@ -212,7 +212,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           s.proofFound = true
           s.proofStatus = RPCTypes.ProofStatus.ok
         })
-        RouterConstants.useState.getState().dispatch.navigateAppend('profileConfirmOrPending')
+        useRouterState.getState().dispatch.navigateAppend('profileConfirmOrPending')
       } catch (_error) {
         if (_error instanceof RPCError) {
           const error = _error
@@ -244,14 +244,14 @@ export const useState = Z.createZustand<State>((set, get) => {
         // Special cases
         switch (service) {
           case 'dnsOrGenericWebSite':
-            RouterConstants.useState.getState().dispatch.navigateAppend('profileProveWebsiteChoice')
+            useRouterState.getState().dispatch.navigateAppend('profileProveWebsiteChoice')
             return
           case 'zcash': //  fallthrough
           case 'btc':
-            RouterConstants.useState.getState().dispatch.navigateAppend('profileProveEnterUsername')
+            useRouterState.getState().dispatch.navigateAppend('profileProveEnterUsername')
             return
           case 'pgp':
-            RouterConstants.useState.getState().dispatch.navigateAppend('profilePgp')
+            useRouterState.getState().dispatch.navigateAppend('profilePgp')
             return
           default:
         }
@@ -338,7 +338,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     set(s => {
                       s.proofText = proof
                     })
-                    RouterConstants.useState.getState().dispatch.navigateAppend('profilePostProof')
+                    useRouterState.getState().dispatch.navigateAppend('profilePostProof')
                   } else if (proof) {
                     set(s => {
                       s.platformGenericURL = proof
@@ -387,12 +387,12 @@ export const useState = Z.createZustand<State>((set, get) => {
                     })
                   }
                   if (service) {
-                    RouterConstants.useState.getState().dispatch.navigateAppend('profileProveEnterUsername')
+                    useRouterState.getState().dispatch.navigateAppend('profileProveEnterUsername')
                   } else if (genericService && parameters) {
                     set(s => {
                       s.platformGenericParams = toProveGenericParams(parameters)
                     })
-                    RouterConstants.useState.getState().dispatch.navigateAppend('profileGenericEnterUsername')
+                    useRouterState.getState().dispatch.navigateAppend('profileGenericEnterUsername')
                   }
                 },
               },
@@ -441,7 +441,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                   .dispatch.setLinkError(
                     "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
                   )
-                RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
+                useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
               }
               Z.ignorePromise(f())
             }
@@ -464,7 +464,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     backToProfile: () => {
-      RouterConstants.useState.getState().dispatch.clearModals()
+      useRouterState.getState().dispatch.clearModals()
       get().dispatch.showUserProfile(ConfigConstants.useCurrentUserState.getState().username)
     },
     checkProof: () => {
@@ -494,7 +494,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               s.proofStatus = status
             })
             if (!isGeneric) {
-              RouterConstants.useState.getState().dispatch.navigateAppend('profileConfirmOrPending')
+              useRouterState.getState().dispatch.navigateAppend('profileConfirmOrPending')
             }
           }
         } catch (_) {
@@ -550,7 +550,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           username: pgpFullName || '',
         }))
 
-        RouterConstants.useState.getState().dispatch.navigateAppend('profileGenerate')
+        useRouterState.getState().dispatch.navigateAppend('profileGenerate')
         // We allow the UI to cancel this call. Just stash this intention and nav away and response with an error to the rpc
         set(s => {
           s.dispatch.dynamic.cancelPgpGen = () => {
@@ -573,7 +573,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                   }
                 },
                 'keybase.1.pgpUi.shouldPushPrivate': ({prompt}, response) => {
-                  RouterConstants.useState.getState().dispatch.navigateAppend('profileFinished')
+                  useRouterState.getState().dispatch.navigateAppend('profileFinished')
                   set(s => {
                     s.promptShouldStoreKeyOnServer = prompt
                     s.dispatch.dynamic.finishedWithKeyGen = (shouldStoreKeyOnServer: boolean) => {
@@ -644,9 +644,9 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     showUserProfile: username => {
       if (isMobile) {
-        RouterConstants.useState.getState().dispatch.clearModals()
+        useRouterState.getState().dispatch.clearModals()
       }
-      RouterConstants.useState.getState().dispatch.navigateAppend({props: {username}, selected: 'profile'})
+      useRouterState.getState().dispatch.navigateAppend({props: {username}, selected: 'profile'})
     },
     submitBTCAddress: () => {
       submitCryptoAddress('bitcoin')
@@ -764,7 +764,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await RPCTypes.userUploadUserAvatarRpcPromise({crop, filename}, uploadAvatarWaitingKey)
-          RouterConstants.useState.getState().dispatch.navigateUp()
+          useRouterState.getState().dispatch.navigateUp()
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return

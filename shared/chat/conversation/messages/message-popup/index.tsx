@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
@@ -181,7 +181,7 @@ export const useMessagePopup = (p: {
     [conversationIDKey, ordinal, shouldShow, style]
   )
   const desktopPopup = Kb.usePopup2(makePopup)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const mobilePopup: {
     popup: React.ReactNode
     popupAnchor: React.MutableRefObject<React.Component | null>

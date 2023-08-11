@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../../../constants/router2'
+import * as C from '../../../../../constants'
 import type {RetentionPolicy} from '../../../../../constants/types/retention-policy'
 import type {RetentionEntityType} from '../../../../team/settings-tab/retention'
 import RetentionWarning from '.'
@@ -10,7 +10,7 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }

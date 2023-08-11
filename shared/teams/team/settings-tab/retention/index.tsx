@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../../constants/teams'
 import * as Styles from '../../../../styles'
@@ -77,7 +77,7 @@ const RetentionPicker = (p: Props) => {
     }, 1)
   }
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   React.useEffect(() => {
     if (userSelectedRef.current) {
       userSelectedRef.current = false

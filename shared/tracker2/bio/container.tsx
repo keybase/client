@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
 import * as Followers from '../../constants/followers'
 import Bio from '.'
@@ -39,7 +39,7 @@ export default (ownProps: OwnProps) => {
       }
     }
   }, shallowEqual)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }

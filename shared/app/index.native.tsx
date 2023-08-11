@@ -1,7 +1,7 @@
 import * as Styles from '../styles'
 import * as WaitingConstants from '../constants/waiting'
 import * as ConfigConstants from '../constants/config'
-import * as LinkingConstants from '../constants/deeplinks'
+import * as C from '../constants'
 import * as React from 'react'
 import * as DarkMode from '../constants/darkmode'
 import {chatDebugEnabled} from '../constants/chat2/debug'
@@ -29,7 +29,7 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
   const dispatch = useDispatch()
   const appStateRef = React.useRef('active')
   const {setSystemDarkMode} = DarkMode.useDarkModeState.getState().dispatch
-  const handleAppLink = LinkingConstants.useState(s => s.dispatch.handleAppLink)
+  const handleAppLink = C.useDeepLinksState(s => s.dispatch.handleAppLink)
   const setMobileAppState = ConfigConstants.useConfigState(s => s.dispatch.setMobileAppState)
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
