@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import * as ConfigConstants from '../../../../constants/config'
 import * as React from 'react'
@@ -18,7 +18,7 @@ const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const isAdmin = TeamConstants.isAdmin(role) || TeamConstants.isOwner(role)
   const team = teamname
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
   const onViewTeam = React.useCallback(() => {
     if (teamID) {

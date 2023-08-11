@@ -1,4 +1,4 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as React from 'react'
 import * as Styles from '../styles'
 import Icon from './icon'
@@ -11,7 +11,7 @@ const Kb = {
 }
 
 const BackButton = React.memo(function BackButton(props: Props) {
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = props.disabled ? () => {} : props.onClick ?? (() => navigateUp())
   const _onClick = (event: React.BaseSyntheticEvent) => {
     event.preventDefault()

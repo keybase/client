@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -17,7 +17,7 @@ type Props = {
 const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
   const {navKey, teamID, teamname} = props
   const badgeSubscribe = TeamConstants.useState(s => !TeamConstants.isTeamWithChosenChannels(s, teamname))
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = () => navigateAppend({props: {teamID}, selected: 'team'}, false, navKey)
 
   const makePopup = React.useCallback(

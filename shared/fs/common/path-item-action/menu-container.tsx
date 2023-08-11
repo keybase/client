@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Types from '../../../constants/types/fs'
 import * as React from 'react'
 import * as Constants from '../../../constants/fs'
@@ -79,7 +79,7 @@ export default (ownProps: OwnProps) => {
   const _confirmSendToOtherApp = React.useCallback(() => {
     setPathItemActionMenuView(Types.PathItemActionMenuView.ConfirmSendToOtherApp)
   }, [setPathItemActionMenuView])
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _delete = () => {
     navigateAppend({props: {mode, path}, selected: 'confirmDelete'})
   }

@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import type * as Chat2Types from '../../../../constants/types/chat2'
@@ -8,7 +8,7 @@ type Props = {
 }
 
 const MakeTeam = ({conversationIDKey}: Props) => {
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowNewTeamDialog = () =>
     navigateAppend({props: {conversationIDKey}, selected: 'chatShowNewTeamDialog'})
   return (

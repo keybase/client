@@ -1,5 +1,5 @@
 import * as ChatConstants from '../constants/chat2'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as TeamsConstants from '../constants/teams'
 import type * as Types from '../constants/types/chat2'
 import NewTeamDialog from '../teams/new-team'
@@ -11,7 +11,7 @@ export default (ownProps: OwnProps) => {
   const conversationIDKey = ownProps.conversationIDKey ?? ChatConstants.noConversationIDKey
   const baseTeam = ''
   const errorText = TeamsConstants.useState(s => upperFirst(s.errorInTeamCreation))
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }

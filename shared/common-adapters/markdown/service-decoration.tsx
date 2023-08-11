@@ -1,7 +1,7 @@
 import {useDeepLinksState} from '../../constants'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as React from 'react'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Styles from '../../styles'
 import Channel from '../channel-container'
 import KbfsPath from '../../fs/common/kbfs-path'
@@ -58,7 +58,7 @@ type WarningLinkProps = {
 
 const WarningLink = (props: WarningLinkProps) => {
   const {display, punycode, url} = props
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   if (Styles.isMobile) {
     return (
       <Text

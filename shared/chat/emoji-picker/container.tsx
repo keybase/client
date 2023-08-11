@@ -3,7 +3,7 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import type {LayoutEvent} from './../../common-adapters/box'
 import * as Constants from './../../constants/chat2'
-import * as RouterConstants from './../../constants/router2'
+import * as C from './../../constants'
 import * as Types from './../../constants/types/chat2'
 import * as TeamsTypes from './../../constants/types/teams'
 import * as Teams from './../../constants/teams'
@@ -137,9 +137,9 @@ const WrapperMobile = (props: Props) => {
   )
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const addEmoji = React.useCallback(
     () =>
       navigateAppend({
@@ -214,7 +214,7 @@ export const EmojiPickerDesktop = (props: Props) => {
     props.disableCustomEmoji
   )
   const canManageEmoji = useCanManageEmoji()
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const addEmoji = () => {
     props.onDidPick?.()
     navigateAppend({
@@ -384,7 +384,7 @@ const Routable = (props: RoutableProps) => {
     [updatePickerMap, pickKey]
   )
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onDidPick = () => navigateUp()
 
   Container.useOnMountOnce(() => {

@@ -1,4 +1,4 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Constants from '../constants/settings'
 import * as FSConstants from '../constants/fs'
 import * as ConfigConstants from '../constants/config'
@@ -214,7 +214,7 @@ const Developer = () => {
   const onTrace = trace
   const processorProfileInProgress = Container.useAnyWaiting(Constants.processorProfileInProgressKey)
   const onProcessorProfile = processorProfile
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDBNuke = () => navigateAppend('dbNukeConfirm')
 
   return (

@@ -1,5 +1,5 @@
 import * as Constants from '../../constants/settings'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
@@ -20,14 +20,14 @@ export default () => {
   const _onClearSupersededPhoneNumber = (phone: string) => {
     editPhone(phone, true)
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onAddEmail = () => {
     navigateAppend('settingsAddEmail')
   }
   const onAddPhone = () => {
     navigateAppend('settingsAddPhone')
   }
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = isMobile
     ? () => {
         navigateUp()
@@ -52,7 +52,7 @@ export default () => {
   const onSetPassword = () => {
     navigateAppend(Constants.passwordTab)
   }
-  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onStartPhoneConversation = () => {
     switchTab(Tabs.chatTab)
     navigateAppend({props: {namespace: 'chat2'}, selected: 'chatNewChat'})

@@ -1,5 +1,5 @@
 import * as Constants from '../constants/provision'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as RecoverConstants from '../constants/recover-password'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
@@ -14,7 +14,7 @@ export default () => {
   const resetEmailSent = RecoverConstants.useState(s => s.resetEmailSent)
   const username = Constants.useState(s => s.username)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const startRecoverPassword = RecoverConstants.useState(s => s.dispatch.startRecoverPassword)
   const _onForgotPassword = (username: string) => {
     startRecoverPassword({abortProvisioning: true, username})

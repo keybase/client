@@ -12,7 +12,7 @@ import * as ExpoTaskManager from 'expo-task-manager'
 import * as MediaLibrary from 'expo-media-library'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
 import * as Types from '../../constants/types/chat2'
@@ -360,11 +360,11 @@ export const initPlatformListener = () => {
         let param = {}
         let routeName = Tabs.peopleTab
         if (path) {
-          const cur = RouterConstants.getTab()
+          const cur = C.useRouterState()
           if (cur) {
             routeName = cur
           }
-          const ap = RouterConstants.getVisiblePath()
+          const ap = C.useRouterState()
           ap.some(r => {
             if (r.name == 'chatConversation') {
               param = {
@@ -479,7 +479,7 @@ export const initPlatformListener = () => {
         try {
           const result = await launchImageLibraryAsync('photo')
           if (!result.canceled) {
-            RouterConstants.useState
+            C.useRouterState
               .getState()
               .dispatch.navigateAppend({props: {image: result.assets[0]}, selected: 'profileEditAvatar'})
           }
@@ -540,13 +540,13 @@ export const initPlatformListener = () => {
     })
   }
 
-  RouterConstants.useState.subscribe((s, old) => {
+  C.useRouterState.subscribe((s, old) => {
     const next = s.navState
     const prev = old.navState
     if (next === prev) return
     const f = async () => {
       await Container.timeoutPromise(1000)
-      const path = RouterConstants.getVisiblePath()
+      const path = C.useRouterState()
       ConfigConstants.useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
     }
     Z.ignorePromise(f())
@@ -614,7 +614,7 @@ export const initPlatformListener = () => {
     }
   })
 
-  RouterConstants.useState.setState(s => {
+  C.useRouterState.setState(s => {
     s.dispatch.dynamic.tabLongPress = tab => {
       if (tab !== Tabs.peopleTab) return
       const accountRows = ConfigConstants.useConfigState.getState().configuredAccounts

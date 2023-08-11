@@ -1,13 +1,13 @@
 import {PaperKey} from '../../../provision/paper-key'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Container from '../../../util/container'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 
 export default () => {
   const error = ''
   const hint = ''
   const waiting = false
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }

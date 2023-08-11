@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/settings'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Container from '../../util/container'
 import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
@@ -34,7 +34,7 @@ export const Email = () => {
     [resetAddingEmail]
   )
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
 
   // watch for + nav away on success
   React.useEffect(() => {
@@ -249,7 +249,7 @@ export const VerifyPhone = () => {
     },
     [clearPhoneNumberAdd]
   )
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   // Clear on success
   React.useEffect(() => {
     if (verificationState === 'success' && !error) {

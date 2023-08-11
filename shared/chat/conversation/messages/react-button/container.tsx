@@ -1,7 +1,7 @@
 import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
 import * as React from 'react'
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import ReactButton, {NewReactionButton} from '.'
 import shallowEqual from 'shallowequal'
 import type {StylesCrossPlatform} from '../../../../styles'
@@ -44,7 +44,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   const onClick = React.useCallback(() => {
     toggleMessageReaction(ordinal, emoji || '')
   }, [toggleMessageReaction, emoji, ordinal])
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onOpenEmojiPicker = React.useCallback(() => {
     navigateAppend({
       props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},

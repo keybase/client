@@ -1,5 +1,5 @@
 import EditAvatar from '.'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/profile'
 import * as TeamsConstants from '../../constants/teams'
@@ -29,12 +29,12 @@ export default (ownProps: OwnProps) => {
   )
 
   const dispatchClearWaiting = Container.useDispatchClearWaiting()
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     dispatchClearWaiting(Constants.uploadAvatarWaitingKey)
     navigateUp()
   }
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     dispatchClearWaiting(Constants.uploadAvatarWaitingKey)
     clearModals()

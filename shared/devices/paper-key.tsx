@@ -1,5 +1,5 @@
 import * as Constants from '../constants/devices'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -33,7 +33,7 @@ const PaperKey = () => {
       .catch(() => {})
   })
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>

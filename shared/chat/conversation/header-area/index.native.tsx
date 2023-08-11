@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as ProfileConstants from '../../../constants/profile'
 import * as React from 'react'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as UsersConstants from '../../../constants/users'
 import shallowEqual from 'shallowequal'
@@ -37,7 +37,7 @@ const ChannelHeader = () => {
     return {channelname, smallTeam, teamID, teamname}
   }, shallowEqual)
   const textType = smallTeam ? 'BodyBig' : Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = React.useCallback(() => {
     navigateAppend({props: {teamID}, selected: 'team'})
   }, [navigateAppend, teamID])

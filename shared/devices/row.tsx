@@ -1,5 +1,5 @@
 import * as Constants from '../constants/devices'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -22,7 +22,7 @@ export default (ownProps: OwnProps) => {
   const isNew = React.useContext(NewContext).has(deviceID)
   const {currentDevice, name, revokedAt, lastUsed} = device
   const isRevoked = !!device.revokedByName
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const showExistingDevicePage = React.useCallback(() => {
     navigateAppend({props: {deviceID}, selected: 'devicePage'})
   }, [navigateAppend, deviceID])

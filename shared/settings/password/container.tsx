@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/settings'
 import UpdatePassword from '.'
 import * as Container from '../../util/container'
@@ -12,7 +12,7 @@ export default () => {
   const saveLabel = Constants.usePasswordState(s => (s.randomPW ? 'Create password' : 'Save'))
   const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
 
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }

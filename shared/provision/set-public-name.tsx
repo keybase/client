@@ -1,5 +1,5 @@
 import * as Constants from '../constants/provision'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Devices from '../constants/devices'
 import * as Kb from '../common-adapters'
@@ -14,7 +14,7 @@ const PublicNameContainer = () => {
   const devices = Constants.useState(s => s.devices)
   const error = Constants.useState(s => s.error)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, !!error)
   const setDeviceName = Constants.useState(s => s.dispatch.dynamic.setDeviceName)

@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
 import * as ProfileConstants from '../../constants/profile'
 import * as DaemonConstants from '../../constants/daemon'
@@ -265,7 +265,7 @@ export const initPlatformListener = () => {
 
   ProfileConstants.useState.setState(s => {
     s.dispatch.editAvatar = () => {
-      RouterConstants.useState
+      C.useRouterState
         .getState()
         .dispatch.navigateAppend({props: {image: undefined}, selected: 'profileEditAvatar'})
     }

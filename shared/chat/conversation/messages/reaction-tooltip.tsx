@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as UsersConstants from '../../../constants/users'
 import * as Container from '../../../util/container'
@@ -59,7 +59,7 @@ const ReactionTooltip = (p: OwnProps) => {
   }, shallowEqual)
   const _usersInfo = good ? infoMap : emptyStateProps._usersInfo
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onAddReaction = React.useCallback(() => {
     onHidden()
     navigateAppend({

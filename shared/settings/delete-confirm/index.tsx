@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
@@ -44,7 +44,7 @@ const DeleteConfirm = () => {
   const [checkUsername, setCheckUsername] = React.useState(false)
   const nav = Container.useSafeNavigation()
   const onCancel = () => nav.safeNavigateUp()
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteForever = () => {
     if (Styles.isMobile && hasPassword) {
       navigateAppend('checkPassphraseBeforeDeleteAccount')

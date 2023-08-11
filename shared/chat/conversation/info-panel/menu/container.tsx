@@ -1,5 +1,5 @@
 import * as ChatConstants from '../../../../constants/chat2'
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as UsersConstants from '../../../../constants/users'
 import * as ConfigConstants from '../../../../constants/config'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
@@ -107,7 +107,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const onAddPeople = React.useCallback(() => {
     teamID && startAddMembersWizard(teamID)
   }, [startAddMembersWizard, teamID])
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onBlockConv = React.useCallback(() => {
     navigateAppend({
       props: {
@@ -136,7 +136,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     manageChatChannels(teamID)
     addTeamWithChosenChannels(teamID)
   }, [manageChatChannels, addTeamWithChosenChannels, teamID])
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const markTeamAsRead = ChatConstants.useContext(s => s.dispatch.markTeamAsRead)
   const onMarkAsRead = React.useCallback(() => {
     clearModals()

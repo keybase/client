@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Constants from '../constants/settings'
 import * as ConfigConstants from '../constants/config'
@@ -68,12 +68,12 @@ const ManageContactsBanner = () => {
   const importedCount = Constants.useContactsState(s => s.importedCount)
   const error = Constants.useContactsState(s => s.importError)
   const onOpenAppSettings = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppSettings)
-  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onStartChat = React.useCallback(() => {
     switchTab(Tabs.chatTab)
     appendNewChatBuilder()
   }, [switchTab])
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSendFeedback = React.useCallback(() => {
     navigateAppend({
       props: {feedback: `Contact import failed\n${error}\n\n`},

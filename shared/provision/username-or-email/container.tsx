@@ -1,5 +1,5 @@
 import * as ARConstants from '../../constants/autoreset'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/provision'
 import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -45,10 +45,10 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const hasError = !!error || !!inlineError || inlineSignUpLink
 
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, hasError)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onForgotUsername = React.useCallback(() => navigateAppend('forgotUsername'), [navigateAppend])
   const requestAutoInvite = SignupConstants.useState(s => s.dispatch.requestAutoInvite)
   const onGoToSignup = requestAutoInvite

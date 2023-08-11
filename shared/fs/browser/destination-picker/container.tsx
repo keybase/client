@@ -1,5 +1,5 @@
 import * as Constants from '../../../constants/fs'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/fs'
 import DestinationPicker from '.'
@@ -63,8 +63,8 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
 
   const newFolderRow = Constants.useState(s => s.dispatch.newFolderRow)
   const moveOrCopy = Constants.useState(s => s.dispatch.moveOrCopy)
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const dispatchProps = {
     _onBackUp: (currentPath: Types.Path) =>
       Constants.makeActionsForDestinationPickerOpen(getIndex(ownProps) + 1, Types.getPathParent(currentPath)),

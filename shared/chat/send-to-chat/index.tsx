@@ -6,7 +6,7 @@ import * as Kbfs from '../../fs/common'
 import * as Styles from '../../styles'
 import * as ChatConstants from '../../constants/chat2'
 import * as ConfigConstants from '../../constants/config'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import type * as ChatTypes from '../../constants/types/chat2'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
@@ -20,9 +20,9 @@ type Props = {
 
 const MobileSendToChatRoutable = (props: Props) => {
   const {canBack, isFromShareExtension, sendPaths, text} = props
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => clearModals()
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => navigateUp()
 
   return (
@@ -54,7 +54,7 @@ const MobileSendToChatRoutable = (props: Props) => {
 
 export const MobileSendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const injectIntoInput = ChatConstants.useContext(s => s.dispatch.injectIntoInput)
   const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, tlfName: string) => {
     text && injectIntoInput(text)
@@ -85,7 +85,7 @@ const DesktopSendToChat = (props: Props) => {
   const [conversationIDKey, setConversationIDKey] = React.useState(ChatConstants.noConversationIDKey)
   const [convName, setConvName] = React.useState('')
   const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     clearModals()
   }

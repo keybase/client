@@ -1,4 +1,4 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
@@ -14,7 +14,7 @@ const Row = (p: {account: Constants.Account}) => {
   const [sk, setSK] = React.useState('')
   const [err, setErr] = React.useState('')
   const getSecretKey = Container.useRPC(RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onRemove = React.useCallback(() => {
     navigateAppend({props: {accountID}, selected: 'removeAccount'})
   }, [navigateAppend, accountID])

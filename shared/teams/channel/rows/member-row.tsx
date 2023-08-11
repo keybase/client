@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
@@ -83,7 +83,7 @@ const ChannelMemberRow = (props: Props) => {
   const onChat = React.useCallback(() => {
     username && previewConversation({participants: [username], reason: 'teamMember'})
   }, [username, previewConversation])
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onEditMember = React.useCallback(() => {
     yourOperations.manageMembers &&
       username &&

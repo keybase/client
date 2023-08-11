@@ -1,10 +1,10 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 import {version} from '../constants/platform'
 
 const About = () => {
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowPrivacyPolicy = () =>
     navigateAppend({
       props: {title: 'Privacy Policy', url: 'https://keybase.io/_/webview/privacypolicy'},

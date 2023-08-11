@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
 import * as ProfileConstants from '../../constants/profile'
 import * as ConfigConstants from '../../constants/config'
@@ -90,7 +90,7 @@ export default (ownProps: OwnProps) => {
   const _onRecheck = (sigID: string) => {
     recheckProof(sigID)
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onRevokeProof = (
     type: PlatformsExpandedType,
     value: string,

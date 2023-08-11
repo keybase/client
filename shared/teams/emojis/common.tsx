@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 
 type AliasInputProps = {
   error?: string
@@ -99,7 +99,7 @@ type ModalProps = {
 }
 
 export const Modal = (props: ModalProps) => {
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => clearModals()
   return (
     <Kb.PopupWrapper onCancel={onCancel} title={props.title}>

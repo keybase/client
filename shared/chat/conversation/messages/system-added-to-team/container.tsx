@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
 import * as ConfigConstants from '../../../../constants/config'
@@ -30,7 +30,7 @@ const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
     showInfoPanel(true, 'settings', conversationIDKey)
   }, [showInfoPanel, conversationIDKey])
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onViewBot = React.useCallback(() => {
     navigateAppend({
       props: {botUsername: addee, conversationIDKey: conversationIDKey},

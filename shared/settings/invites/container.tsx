@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/settings'
 import * as ProfileConstants from '../../constants/profile'
 import type {PendingInvite} from '../../constants/settings-invites'
@@ -22,7 +22,7 @@ export default () => {
   const onGenerateInvitation = sendInvite
   const onReclaimInvitation = reclaimInvite
   const onRefresh = loadInvites
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSelectPendingInvite = (invite: PendingInvite) => {
     navigateAppend({props: {email: invite.email, link: invite.url}, selected: 'inviteSent'})
   }

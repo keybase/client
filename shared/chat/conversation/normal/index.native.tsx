@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
@@ -70,7 +70,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
     </Kb.BoxGrow>
   )
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const injectIntoInput = Constants.useContext(s => s.dispatch.injectIntoInput)
   const onDropped = React.useCallback(
     (items: DropItems) => {

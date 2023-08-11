@@ -1,13 +1,13 @@
 import * as React from 'react'
 import * as Constants from '../../constants/push'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 const PushPrompt = () => {
   const rejectPermissions = Constants.useState(s => s.dispatch.rejectPermissions)
   const requestPermissions = Constants.useState(s => s.dispatch.requestPermissions)
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onNoPermissions = React.useCallback(() => {
     rejectPermissions()
     clearModals()

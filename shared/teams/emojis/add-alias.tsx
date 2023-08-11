@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
@@ -59,7 +59,7 @@ export const AddAliasModal = (props: Props) => {
 
   const refreshEmoji = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const doAddAlias = emoji
     ? () => {
         setAddAliasWaiting(true)
@@ -150,7 +150,7 @@ const ChooseEmoji = Styles.isMobile
         }, 1)
       }
 
-      const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+      const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
       const openEmojiPicker = () =>
         navigateAppend({
           props: {

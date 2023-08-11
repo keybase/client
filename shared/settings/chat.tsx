@@ -1,5 +1,5 @@
 import * as Constants from '../constants/settings'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as ConfigConstants from '../constants/config'
 import * as PushConstants from '../constants/push'
 import * as Container from '../util/container'
@@ -40,7 +40,7 @@ export default () => {
   const notifRefresh = Constants.useNotifState(s => s.dispatch.refresh)
   const notifToggle = Constants.useNotifState(s => s.dispatch.toggle)
 
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = Container.isMobile
     ? () => {
         navigateUp()

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
@@ -90,7 +90,7 @@ const NewTeamInfo = () => {
   const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < minLength
 
   const onBack = () => nav.safeNavigateUp()
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => clearModals()
 
   const setTeamWizardNameDescription = Constants.useState(s => s.dispatch.setTeamWizardNameDescription)

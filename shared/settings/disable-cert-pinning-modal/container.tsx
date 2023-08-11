@@ -1,9 +1,9 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/settings'
 import ConfirmDisableCertPinningModal from '.'
 
 export default () => {
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }

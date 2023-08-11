@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../../../constants/router2'
+import * as C from '../../../../../constants'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as TeamsConstants from '../../../../../constants/teams'
@@ -57,7 +57,7 @@ export default (ownProps: OwnProps) => {
   const _you = ConfigConstants.useCurrentUserState(s => s.username)
 
   const dispatch = Container.useDispatch()
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAddReaction = (message: Types.Message) => {
     navigateAppend({
       props: {

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/fs'
@@ -64,8 +64,8 @@ const Connected = (ownProps?: OwnProps) => {
   const path = ownProps?.path ?? Constants.defaultPath
   const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
   const kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const emitBarePreview = () => {
     navigateUp()
     navigateAppend({props: {path}, selected: 'barePreview'})

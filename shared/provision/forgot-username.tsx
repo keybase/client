@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/provision'
 import * as SettingsConstants from '../constants/settings'
@@ -16,7 +16,7 @@ const ForgotUsername = () => {
   }, [defaultCountry, loadDefaultPhoneCountry])
 
   const forgotUsernameResult = Constants.useState(s => s.forgotUsernameResult)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
   const waiting = Container.useAnyWaiting(Constants.forgotUsernameWaitingKey)
 

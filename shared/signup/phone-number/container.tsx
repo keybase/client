@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as SettingsConstants from '../../constants/settings'
@@ -46,7 +46,7 @@ const ConnectedEnterPhoneNumber = () => {
   const onClear = clearPhoneNumberErrors
   const addPhoneNumber = SettingsConstants.usePhoneState(s => s.dispatch.addPhoneNumber)
   const onContinue = addPhoneNumber
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onGoToVerify = () => {
     navigateAppend('signupVerifyPhoneNumber')
   }

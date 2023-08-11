@@ -1,6 +1,6 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
-import * as RouterConstants from '../../../../../constants/router2'
+import * as C from '../../../../../constants'
 import * as FSConstants from '../../../../../constants/fs'
 import * as TeamsConstants from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
@@ -48,7 +48,7 @@ export default (ownProps: OwnProps) => {
 
   const dispatch = Container.useDispatch()
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAddReaction = (message: Types.Message) => {
     navigateAppend({
       props: {
@@ -59,7 +59,7 @@ export default (ownProps: OwnProps) => {
       selected: 'chatChooseEmoji',
     })
   }
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
   const _onAllMedia = (conversationIDKey: Types.ConversationIDKey) => {
     clearModals()

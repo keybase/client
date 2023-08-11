@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import InviteGenerated from '.'
 
 type OwnProps = {
@@ -8,7 +8,7 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {link, email} = ownProps
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onClose = () => {
     navigateUp()
   }

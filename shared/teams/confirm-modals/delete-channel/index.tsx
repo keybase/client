@@ -1,5 +1,5 @@
 import * as Constants from '../../../constants/teams'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
@@ -61,7 +61,7 @@ const DeleteChannel = (props: Props) => {
     setChannelSelected(teamID, '', false, true)
   }
 
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }

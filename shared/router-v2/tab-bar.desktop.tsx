@@ -2,7 +2,7 @@ import './tab-bar.css'
 import * as ConfigConstants from '../constants/config'
 import * as ProvisionConstants from '../constants/provision'
 import * as Container from '../util/container'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as FsConstants from '../constants/fs'
 import * as ProfileConstants from '../constants/profile'
 import * as NotifConstants from '../constants/notifications'
@@ -68,9 +68,9 @@ const Header = () => {
       ctlQuit?.()
     }, 2000)
   }
-  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onSettings = () => switchTab(Tabs.settingsTab)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSignOut = () => navigateAppend(SettingsConstants.logOutTab)
 
   const menuHeader = () => (

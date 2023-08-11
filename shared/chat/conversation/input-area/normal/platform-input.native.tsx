@@ -2,7 +2,7 @@ import * as Container from '../../../../util/container'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as Styles from '../../../../styles'
 import AudioRecorder from '../../../audio/audio-recorder.native'
 import FilePickerPopup from '../filepicker-popup'
@@ -82,7 +82,7 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
     }, 1)
   }
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const openEmojiPicker = React.useCallback(() => {
     navigateAppend({
       props: {conversationIDKey, pickKey},
@@ -212,7 +212,7 @@ type ChatFilePickerProps = {
 const ChatFilePicker = (p: ChatFilePickerProps) => {
   const {attachTo, showingPopup, toggleShowingPopup, conversationIDKey} = p
   const filePickerError = ConfigConstants.useConfigState(s => s.dispatch.filePickerError)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const launchNativeImagePicker = React.useCallback(
     (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
       const handleSelection = (result: ImagePicker.ImagePickerResult) => {
@@ -395,7 +395,7 @@ const PlatformInput = (p: Props) => {
     ourShowMenu('exploding')
   }, [ourShowMenu])
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onPasteImage = React.useCallback(
     (uri: string) => {
       try {

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as TeamsConstants from '../../constants/teams'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import type * as TeamsTypes from '../../constants/types/teams'
 import type {TextType} from '../text'
 import {TeamWithPopup} from './'
@@ -27,8 +27,8 @@ const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
   }
   const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
   const _onJoinTeam = joinTeam
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onViewTeam = React.useCallback(
     (teamID: TeamsTypes.TeamID) => {
       clearModals()

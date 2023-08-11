@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/profile'
 import openURL from '../../../util/open-url'
 import EnterUsername from '.'
@@ -28,13 +28,13 @@ const ConnectedEnterUsername = () => {
   const updateUsername = Constants.useState(s => s.dispatch.updateUsername)
   const submitUsername = Constants.useState(s => s.dispatch.dynamic.submitUsername)
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onBack = () => {
     cancelAddProof?.()
     clearModals()
   }
   const onChangeUsername = updateUsername
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onContinue = () => {
     navigateAppend('profileGenericProofResult')
   }

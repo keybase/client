@@ -1,6 +1,6 @@
 import * as Kb from '../../../../../../common-adapters/index'
 import * as ConfigConstants from '../../../../../../constants/config'
-import * as RouterConstants from '../../../../../../constants/router2'
+import * as C from '../../../../../../constants'
 import * as Constants from '../../../../../../constants/chat2'
 import * as Styles from '../../../../../../styles'
 import type * as Types from '../../../../../../constants/types/chat2'
@@ -21,7 +21,7 @@ const UnfurlMapPopup = (props: Props) => {
   const author = props.author ?? ''
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
   }

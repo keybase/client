@@ -1,5 +1,5 @@
 import * as Constants from '../constants/signup'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as ProvisionConstants from '../constants/provision'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
@@ -15,7 +15,7 @@ const ConnectedEnterUsername = () => {
   const usernameTaken = Constants.useState(s => s.usernameTaken)
   const checkUsername = Constants.useState(s => s.dispatch.checkUsername)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const restartSignup = Constants.useState(s => s.dispatch.restartSignup)
   const onBack = () => {
     restartSignup()

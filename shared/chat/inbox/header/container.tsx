@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import ChatInboxHeader from '.'
@@ -21,7 +21,7 @@ export default (ownProps: OwnProps) => {
   const isSearching = Constants.useState(s => !!s.inboxSearch)
   const showFilter = !showEmptyInbox
 
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }

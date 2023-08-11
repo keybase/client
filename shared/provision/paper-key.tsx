@@ -1,5 +1,5 @@
 import * as Constants from '../constants/provision'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -11,7 +11,7 @@ export default () => {
   const error = Constants.useState(s => s.error)
   const hint = Constants.useState(s => `${s.codePageOtherDevice.name || ''}...`)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }

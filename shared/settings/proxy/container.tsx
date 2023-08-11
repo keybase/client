@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/settings'
 import {ProxySettings as ProxySettingsComponent, ProxySettingsPopup} from '.'
 
@@ -11,7 +11,7 @@ const useConnect = () => {
   const resetCertPinningToggle = () => {
     setDidToggleCertificatePinning()
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onBack = () => {
     navigateAppend('login')
   }

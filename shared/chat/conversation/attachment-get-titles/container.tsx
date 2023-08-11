@@ -1,5 +1,5 @@
 import * as Constants from '../../../constants/chat2'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as FsTypes from '../../../constants/types/fs'
 import GetTitles, {type Info} from '.'
 import type * as Types from '../../../constants/types/chat2'
@@ -22,7 +22,7 @@ export default (ownProps: OwnProps) => {
   const {titles, tlfName, pathAndOutboxIDs} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const attachmentUploadCanceled = Constants.useContext(s => s.dispatch.attachmentUploadCanceled)
   const onCancel = () => {
     attachmentUploadCanceled(
@@ -35,7 +35,7 @@ export default (ownProps: OwnProps) => {
     )
     navigateUp()
   }
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const attachmentsUpload = Constants.useContext(s => s.dispatch.attachmentsUpload)
   const attachFromDragAndDrop = Constants.useContext(s => s.dispatch.attachFromDragAndDrop)
   const onSubmit = (titles: Array<string>) => {

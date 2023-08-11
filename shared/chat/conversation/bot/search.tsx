@@ -1,5 +1,5 @@
 import * as Constants from '../../../constants/bots'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -32,7 +32,7 @@ const SearchBotPopup = (props: Props) => {
     Constants.waitingKeyBotSearchUsers,
     Constants.waitingKeyBotSearchFeatured,
   ])
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
   }
@@ -51,7 +51,7 @@ const SearchBotPopup = (props: Props) => {
       setSearchFeaturedAndUsersResults(query, undefined)
     }
   }, 200)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSelect = (username: string) => {
     navigateAppend({
       props: {botUsername: username, conversationIDKey, teamID},

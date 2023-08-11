@@ -1,6 +1,6 @@
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigConstants from '../constants/config'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as UsersConstants from '../constants/users'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
@@ -575,7 +575,7 @@ const addUsersToChannel = async (_: unknown, action: Chat2Gen.AddUsersToChannelP
       {convID: Types.keyToConversationID(conversationIDKey), usernames},
       Constants.waitingKeyAddUsersToChannel
     )
-    RouterConstants.useState.getState().dispatch.clearModals()
+    C.useRouterState.getState().dispatch.clearModals()
   } catch (error) {
     if (error instanceof RPCError) {
       logger.error(`addUsersToChannel: ${error.message}`) // surfaced in UI via waiting key

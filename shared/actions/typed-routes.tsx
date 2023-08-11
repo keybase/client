@@ -1,4 +1,4 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 // Typed aliases for certain routes so you they are guaranteed to be routed
 // correctly
 import type * as TeamTypes from '../constants/types/teams'
@@ -6,7 +6,7 @@ import type * as TeamTypes from '../constants/types/teams'
 // TODO i think this should go away. either we dispatch a team building action that's typed that produces these or
 // we actually type the routes / props
 export const appendPeopleBuilder = () => {
-  RouterConstants.useState.getState().dispatch.navigateAppend({
+  C.useRouterState.getState().dispatch.navigateAppend({
     props: {
       filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
       namespace: 'people',
@@ -17,14 +17,14 @@ export const appendPeopleBuilder = () => {
 }
 
 export const appendNewChatBuilder = () => {
-  RouterConstants.useState
+  C.useRouterState
     .getState()
     .dispatch.navigateAppend({props: {namespace: 'chat2', title: 'New chat'}, selected: 'chatNewChat'})
 }
 
 // Unless you're within the add members wizard you probably should use `TeamsGen.startAddMembersWizard` instead
 export const appendNewTeamBuilder = (teamID: TeamTypes.TeamID) => {
-  RouterConstants.useState.getState().dispatch.navigateAppend({
+  C.useRouterState.getState().dispatch.navigateAppend({
     props: {
       filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
       goButtonLabel: 'Add',
@@ -37,7 +37,7 @@ export const appendNewTeamBuilder = (teamID: TeamTypes.TeamID) => {
 }
 
 export const appendEncryptRecipientsBuilder = () => {
-  RouterConstants.useState.getState().dispatch.navigateAppend({
+  C.useRouterState.getState().dispatch.navigateAppend({
     props: {
       filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
       goButtonLabel: 'Add',

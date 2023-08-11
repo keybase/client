@@ -4,7 +4,7 @@ import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as Styles from '../../../../styles'
 import * as TeamConstants from '../../../../constants/teams'
 import MinWriterRole from './min-writer-role'
@@ -44,7 +44,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     u => u !== username && !Constants.isAssertion(u)
   )
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowClearConversationDialog = () => {
     navigateAppend({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'})
   }

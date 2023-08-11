@@ -5,7 +5,7 @@ import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as RPCGen from '../../../constants/types/rpc-gen'
 import * as Styles from '../../../styles'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import {ModalTitle} from '../../common'
 import {FloatingRolePicker} from '../../role-picker'
@@ -77,7 +77,7 @@ const GenerateLinkModal = (props: Props) => {
   const inviteLink = [...(inviteLinks || [])].find(i => i.url == inviteLinkURL)
 
   const onBack = () => nav.safeNavigateUp()
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => clearModals()
 
   const makePopup = React.useCallback((p: Kb.Popup2Parms) => {

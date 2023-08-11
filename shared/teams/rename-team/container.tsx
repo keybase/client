@@ -1,5 +1,5 @@
 import * as Container from '../../util/container'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as WaitConstants from '../../constants/waiting'
 import * as Constants from '../../constants/teams'
 import RenameTeam from '.'
@@ -13,7 +13,7 @@ export default (ownProps: OwnProps) => {
   const dispatchClearWaiting = Container.useDispatchClearWaiting()
   const renameTeam = Constants.useState(s => s.dispatch.renameTeam)
   const _onRename = renameTeam
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     dispatchClearWaiting(Constants.teamRenameWaitingKey)
     navigateUp()

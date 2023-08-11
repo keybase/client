@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import * as React from 'react'
 import EmojiRow from '.'
@@ -26,7 +26,7 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
   }, shallowEqual)
 
   const emojis = Constants.useState(s => s.userReacjis.topReacjis.slice(0, 5), shallowEqual)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const toggleMessageReaction = Constants.useContext(s => s.dispatch.toggleMessageReaction)
   const onForward = React.useCallback(() => {
     navigateAppend({props: {ordinal, srcConvID: conversationIDKey}, selected: 'chatForwardMsgPick'})

@@ -1,5 +1,5 @@
 import * as Constants from '../constants/git'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -39,9 +39,9 @@ export default (ownProps: OwnProps) => {
   }, shallowEqual)
   const {badged} = useLocalBadging(isNew, clearBadges)
   const {personals, teams} = getRepos(idToInfo)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowDelete = React.useCallback(
     (id: string) => {
       setError(undefined)

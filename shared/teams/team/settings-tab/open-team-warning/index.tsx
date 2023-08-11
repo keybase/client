@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import {useSettingsState} from '../use-settings'
 
 type Props = {
@@ -26,7 +26,7 @@ const OpenTeamWarning = (props: Props) => {
   const [enabled, setEnabled] = React.useState(false)
   const onConfirmCallback = useSettingsState(s => s.dispatch.triggerAllowOpen)
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onConfirm = () => {
     clearModals()
     onConfirmCallback()

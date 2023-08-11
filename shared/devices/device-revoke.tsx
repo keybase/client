@@ -1,5 +1,5 @@
 import * as Constants from '../constants/devices'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -94,7 +94,7 @@ const useRevoke = (deviceID = '') => {
   const load = Constants.useState(s => s.dispatch.load)
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const wasCurrentDevice = d?.currentDevice ?? false
-  const navUpToScreen = RouterConstants.useState(s => s.dispatch.navUpToScreen)
+  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   const deviceName = d?.name ?? ''
   return React.useCallback(() => {
     const f = async () => {
@@ -136,7 +136,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const iconNumber = Constants.useDeviceIconNumber(selectedDeviceID)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const onSubmit = useRevoke(deviceID)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp
 
   const actingDevice = ConfigConstants.useCurrentUserState(s => s.deviceID)

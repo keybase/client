@@ -1,4 +1,4 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as React from 'react'
 import * as Constants from '../constants/devices'
 import * as ProvisionConstants from '../constants/provision'
@@ -22,7 +22,7 @@ export default function AddDevice(ownProps: OwnProps) {
     addNewDevice('desktop')
   }, [addNewDevice])
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onAddPaperKey = useSafeCallback(
     React.useCallback(() => {
       navigateAppend('devicePaperKey')
@@ -34,7 +34,7 @@ export default function AddDevice(ownProps: OwnProps) {
     addNewDevice('mobile')
   }, [addNewDevice])
   const cancel = ProvisionConstants.useState(s => s.dispatch.dynamic.cancel)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = React.useCallback(() => {
     cancel?.()
     navigateUp()

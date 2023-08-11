@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat2'
@@ -51,7 +51,7 @@ const AddMembersConfirm = () => {
 
   const cancelAddMembersWizard = Constants.useState(s => s.dispatch.cancelAddMembersWizard)
   const onLeave = () => cancelAddMembersWizard()
-  const navUpToScreen = RouterConstants.useState(s => s.dispatch.navUpToScreen)
+  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   const onBack = () => navUpToScreen('teamAddToTeamFromWhere')
 
   const [_waiting, setWaiting] = React.useState(false)
@@ -343,7 +343,7 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
 
 const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles; lastMember?: boolean}) => {
   const addMembersWizardRemoveMember = Constants.useState(s => s.dispatch.addMembersWizardRemoveMember)
-  const navUpToScreen = RouterConstants.useState(s => s.dispatch.navUpToScreen)
+  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   const onRemove = () => {
     addMembersWizardRemoveMember(props.assertion)
     if (props.lastMember) {

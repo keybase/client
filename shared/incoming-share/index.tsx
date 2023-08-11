@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as FsTypes from '../constants/types/fs'
 import * as FsConstants from '../constants/fs'
@@ -139,7 +139,7 @@ const getContentDescription = (items: Array<RPCTypes.IncomingShareItem>) => {
 }
 
 const useHeader = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => clearModals()
   return {
     leftButton: (
@@ -159,7 +159,7 @@ const useHeader = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
 
 const useFooter = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
   const setIncomingShareSource = FsConstants.useState(s => s.dispatch.setIncomingShareSource)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const saveInFiles = () => {
     setIncomingShareSource(incomingShareItems)
     navigateAppend({
@@ -219,8 +219,8 @@ const IncomingShare = (props: IncomingShareProps) => {
 }
 
 const IncomingShareError = () => {
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const erroredSendFeedback = () => {
     clearModals()
     navigateAppend({

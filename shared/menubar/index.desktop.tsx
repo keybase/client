@@ -1,4 +1,4 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as DarkMode from '../constants/darkmode'
 import * as FsTypes from '../constants/types/fs'
@@ -297,7 +297,7 @@ const LoggedOut = (p: {daemonHandshakeState: ConfigTypes.DaemonHandshakeState; l
     : 'Starting up Keybase...'
 
   const dispatch = Container.useDispatch()
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const logIn = () => {
     dispatch(RemoteGen.createShowMain())
     navigateAppend(Tabs.loginTab)

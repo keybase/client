@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import NewTeamDialog from '.'
 import upperFirst from 'lodash/upperFirst'
 import * as Constants from '../../constants/teams'
@@ -10,7 +10,7 @@ export default (ownProps: OwnProps) => {
   const subteamOf = ownProps.subteamOf ?? Types.noTeamID
   const baseTeam = Constants.useState(s => Constants.getTeamMeta(s, subteamOf).teamname)
   const errorText = Constants.useState(s => upperFirst(s.errorInTeamCreation))
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }

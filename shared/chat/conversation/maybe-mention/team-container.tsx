@@ -1,5 +1,5 @@
 import * as Constants from '../../../constants/chat2'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as TeamsConstants from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
@@ -37,7 +37,7 @@ export default (ownProps: OwnProps) => {
     previewConversation({conversationIDKey, reason: 'teamMention'})
   }
   const showTeamByName = TeamsConstants.useState(s => s.dispatch.showTeamByName)
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const _onViewTeam = (teamname: string) => {
     clearModals()
     showTeamByName(teamname)

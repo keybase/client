@@ -1,5 +1,5 @@
 import * as Constants from '../constants/git'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as TeamsConstants from '../constants/teams'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -16,7 +16,7 @@ export default (ownProps: OwnProps) => {
 
   const waitingKey = Constants.loadingWaitingKey
 
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const getTeams = TeamsConstants.useState(s => s.dispatch.getTeams)
   const loadTeams = getTeams
   const onClose = () => {
@@ -34,7 +34,7 @@ export default (ownProps: OwnProps) => {
     navigateUp()
   }
   const launchNewTeamWizardOrModal = TeamsConstants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
-  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onNewTeam = () => {
     switchTab(teamsTab)
     launchNewTeamWizardOrModal()

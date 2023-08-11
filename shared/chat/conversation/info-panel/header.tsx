@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as TeamConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import * as Constants from '../../../constants/chat2'
@@ -158,7 +158,7 @@ type AdhocHeaderProps = {conversationIDKey: ChatTypes.ConversationIDKey}
 
 export const AdhocHeader = (props: AdhocHeaderProps) => {
   const {conversationIDKey} = props
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowNewTeamDialog = () => {
     navigateAppend({
       props: {conversationIDKey},

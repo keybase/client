@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
@@ -19,7 +19,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
         .filter(name => !!name)
     : undefined
 
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = deleteWaiting ? () => {} : _onBack
   const deleteTeam = Constants.useState(s => s.dispatch.deleteTeam)

@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/teams'
 import {memoize} from '../../util/memoize'
 
@@ -47,7 +47,7 @@ const ConfirmKickOut = (props: Props) => {
   }
 
   const wasWaiting = Container.usePrevious(waiting)
-  const navUpToScreen = RouterConstants.useState(s => s.dispatch.navUpToScreen)
+  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   React.useEffect(() => {
     if (wasWaiting && !waiting) {
       navUpToScreen('team')

@@ -1,5 +1,5 @@
 import Profile2, {type BackgroundColorType} from '.'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/tracker2'
 import * as ProfileConstants from '../../constants/profile'
@@ -135,11 +135,11 @@ const Connected = (ownProps: OwnProps) => {
       }
     }
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onAddIdentity = () => {
     navigateAppend('profileProofsList')
   }
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }

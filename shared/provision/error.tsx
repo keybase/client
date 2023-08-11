@@ -1,5 +1,5 @@
 import * as Constants from '../constants/autoreset'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as ProvisionConstants from '../constants/provision'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -18,7 +18,7 @@ const ConnectedRenderError = () => {
   const _onAccountReset = (username: string) => {
     startAccountReset(false, username)
   }
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }

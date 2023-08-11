@@ -1,4 +1,4 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Constants from '../constants/devices'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -18,7 +18,7 @@ export const HeaderTitle = () => {
 }
 
 export const HeaderRightActions = () => {
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onAdd = React.useCallback(() => navigateAppend({props: {}, selected: 'deviceAdd'}), [navigateAppend])
   return (
     <Kb.Button

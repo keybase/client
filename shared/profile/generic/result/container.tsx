@@ -1,5 +1,5 @@
 import * as Constants from '../../../constants/profile'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import Success from '.'
 
 export default () => {
@@ -10,7 +10,7 @@ export default () => {
   const serviceIcon = Constants.useState(s => s.platformGenericParams?.logoFull ?? [])
   const backToProfile = Constants.useState(s => s.dispatch.backToProfile)
   const clearPlatformGeneric = Constants.useState(s => s.dispatch.clearPlatformGeneric)
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
     backToProfile()

@@ -1,4 +1,4 @@
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
 import * as TeamsConstants from '../../../../constants/teams'
@@ -16,7 +16,7 @@ const SystemSimpleToComplexContainer = React.memo(function SystemSimpleToComplex
   const onManageChannels = React.useCallback(() => {
     manageChatChannels(teamID)
   }, [manageChatChannels, teamID])
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onViewTeam = React.useCallback(() => {
     navigateAppend({props: {teamID}, selected: 'team'})
   }, [navigateAppend, teamID])

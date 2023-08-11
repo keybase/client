@@ -1,5 +1,5 @@
 import * as Constants from '../constants/devices'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -36,12 +36,12 @@ const ReloadableDevices = () => {
     }, [load])
   )
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onAddDevice = (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
     // We don't have navigateAppend in upgraded routes
     navigateAppend({props: {highlight}, selected: 'deviceAdd'})
   }
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/autoreset'
@@ -14,7 +14,7 @@ const ResetModalImpl = () => {
   const active = Constants.useState(s => s.active)
   const endTime = Constants.useState(s => s.endTime)
   const error = Constants.useState(s => s.error)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   React.useEffect(() => {
     if (!active) {
       navigateUp()
