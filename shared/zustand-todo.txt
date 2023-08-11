@@ -7,3 +7,4 @@ remove convid as param
     use .at() instead of length-1
     remove other meta related actions
     remove chat.init in configure listeners
+    move all constant includes to C
