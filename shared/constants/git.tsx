@@ -1,4 +1,4 @@
-import * as RouterConstants from './router2'
+import {useRouterState} from '.'
 import type * as Types from './types/git'
 import * as dateFns from 'date-fns'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -144,7 +144,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         await _load()
         for (const [, info] of get().idToInfo) {
           if (info.repoID === repoID && info.teamname === teamname) {
-            RouterConstants.useState
+            useRouterState
               .getState()
               .dispatch.navigateAppend({props: {expanded: info.id}, selected: 'gitRoot'})
             break

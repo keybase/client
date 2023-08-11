@@ -1,7 +1,7 @@
+import {useRouterState} from '.'
 import * as RPCTypes from './types/rpc-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as WaitingConstants from './waiting'
-import * as RouterConstants from './router2'
 import openURL from '../util/open-url'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
@@ -117,8 +117,8 @@ export const useState = Z.createZustand<State>(set => {
       return
     }
     maybeLoadAppLinkOnce = true
-    RouterConstants.useState.getState().dispatch.switchTab(Tabs.settingsTab)
-    RouterConstants.useState.getState().dispatch.navigateAppend('settingsAddPhone')
+    useRouterState.getState().dispatch.switchTab(Tabs.settingsTab)
+    useRouterState.getState().dispatch.navigateAppend('settingsAddPhone')
   }
 
   const dispatch: State['dispatch'] = {
@@ -150,7 +150,7 @@ export const useState = Z.createZustand<State>(set => {
 
         await RPCTypes.loginAccountDeleteRpcPromise({passphrase}, settingsWaitingKey)
         useConfigState.getState().dispatch.setJustDeletedSelf(username)
-        RouterConstants.useState.getState().dispatch.navigateAppend(Tabs.loginTab)
+        useRouterState.getState().dispatch.navigateAppend(Tabs.loginTab)
       }
       Z.ignorePromise(f())
     },

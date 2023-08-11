@@ -1,6 +1,6 @@
 import * as RPCTypes from './types/rpc-gen'
 import * as React from 'react'
-import * as RouterConstants from './router2'
+import {getModalStack, useRouterState} from '.'
 import * as SettingsConstants from './settings'
 import * as UsersConstants from './users'
 import * as ProfileConstants from './profile'
@@ -310,11 +310,11 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       })
     },
     closeTeamBuilding: () => {
-      const modals = RouterConstants.getModalStack()
+      const modals = getModalStack()
       const routeNames = [...namespaceToRoute.values()]
       const routeName = modals[modals.length - 1]?.name
       if (routeNames.includes(routeName ?? '')) {
-        RouterConstants.useState.getState().dispatch.clearModals()
+        useRouterState.getState().dispatch.clearModals()
       }
     },
     fetchUserRecs: () => {

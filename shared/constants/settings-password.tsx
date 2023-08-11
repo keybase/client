@@ -1,5 +1,5 @@
+import {useRouterState} from '.'
 import * as Z from '../util/zustand'
-import * as RouterConstants from './router2'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
 import * as RPCTypes from './types/rpc-gen'
@@ -142,7 +142,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           if (thenLogout) {
             useLogoutState.getState().dispatch.requestLogout()
           }
-          RouterConstants.useState.getState().dispatch.navigateUp()
+          useRouterState.getState().dispatch.navigateUp()
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return

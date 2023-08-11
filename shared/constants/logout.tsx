@@ -1,4 +1,4 @@
-import * as RouterConstants from './router2'
+import {useRouterState} from '.'
 import logger from '../logger'
 import * as RPCTypes from '../constants/types/rpc-gen'
 // normally util.container but it re-exports from us so break the cycle
@@ -44,10 +44,10 @@ export const useLogoutState = Z.createZustand<State>((set, get) => {
           const {settingsTab} = await import('./tabs')
           const {isMobile} = await import('./platform')
           if (isMobile) {
-            RouterConstants.useState.getState().dispatch.navigateAppend(passwordTab)
+            useRouterState.getState().dispatch.navigateAppend(passwordTab)
           } else {
-            RouterConstants.useState.getState().dispatch.navigateAppend(settingsTab)
-            RouterConstants.useState.getState().dispatch.navigateAppend(passwordTab)
+            useRouterState.getState().dispatch.navigateAppend(settingsTab)
+            useRouterState.getState().dispatch.navigateAppend(passwordTab)
           }
         }
       }

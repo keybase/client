@@ -1,4 +1,4 @@
-import * as LinkingConstants from '../../constants/deeplinks'
+import {useDeepLinksState} from '../../constants'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as RouterConstants from '../../constants/router2'
@@ -30,7 +30,7 @@ type KeybaseLinkProps = {
 }
 
 const KeybaseLink = (props: KeybaseLinkProps) => {
-  const handleAppLink = LinkingConstants.useState(s => s.dispatch.handleAppLink)
+  const handleAppLink = useDeepLinksState(s => s.dispatch.handleAppLink)
   const onClick = React.useCallback(() => {
     handleAppLink(props.link)
   }, [handleAppLink, props.link])

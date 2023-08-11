@@ -1,4 +1,4 @@
-import * as RouterConstants from './router2'
+import {useRouterState} from '.'
 import * as Platform from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as UserConstants from './current-user'
@@ -640,7 +640,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           break
       }
       if (Platform.isMobile) {
-        RouterConstants.useState.getState().dispatch.navigateAppend(route)
+        useRouterState.getState().dispatch.navigateAppend(route)
       }
     },
     setEncryptOptions: (newOptions, hideIncludeSelf) => {

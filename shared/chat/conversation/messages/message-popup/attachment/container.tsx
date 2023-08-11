@@ -5,7 +5,7 @@ import * as FSConstants from '../../../../../constants/fs'
 import * as TeamsConstants from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
 import * as ConfigConstants from '../../../../../constants/config'
-import * as DeeplinksConstants from '../../../../../constants/deeplinks'
+import {linkFromConvAndMessage} from '../../../../../constants'
 import Attachment from '.'
 import * as React from 'react'
 import type * as TeamTypes from '../../../../../constants/types/teams'
@@ -67,7 +67,7 @@ export default (ownProps: OwnProps) => {
   }
   const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const _onCopyLink = (label: string, message: Types.Message) => {
-    copyToClipboard(DeeplinksConstants.linkFromConvAndMessage(label, message.id))
+    copyToClipboard(linkFromConvAndMessage(label, message.id))
   }
   const messageDelete = Constants.useContext(s => s.dispatch.messageDelete)
   const _onDelete = (message: Types.Message) => {
