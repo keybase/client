@@ -1664,10 +1664,10 @@ export const useState = Z.createZustand<State>((set, get) => {
 
           if (fromChat) {
             RouterConstants.useState.getState().dispatch.clearModals()
-            ChatConstants.useState.getState().dispatch.navigateToInbox()
             const f = async () => {
               const ChatConstants = await import('./chat2')
-              const {previewConversation} = ChatConstants.useState.getState().dispatch
+              const {previewConversation, navigateToInbox} = ChatConstants.useState.getState().dispatch
+              navigateToInbox()
               previewConversation({channelname: 'general', reason: 'convertAdHoc', teamname})
             }
             Z.ignorePromise(f())
