@@ -4,9 +4,7 @@ import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../../fs/common'
 import * as Styles from '../../styles'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ChatConstants from '../../constants/chat2'
-import * as Container from '../../util/container'
 import * as ConfigConstants from '../../constants/config'
 import * as RouterConstants from '../../constants/router2'
 import type * as ChatTypes from '../../constants/types/chat2'
@@ -56,8 +54,6 @@ const MobileSendToChatRoutable = (props: Props) => {
 
 export const MobileSendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
-  const dispatch = Container.useDispatch()
-
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const injectIntoInput = ChatConstants.useContext(s => s.dispatch.injectIntoInput)
   const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, tlfName: string) => {
@@ -73,11 +69,8 @@ export const MobileSendToChat = (props: Props) => {
         selected: 'chatAttachmentGetTitles',
       })
     } else {
-      dispatch(
-        Chat2Gen.createNavigateToThread({
-          conversationIDKey,
-          reason: isFromShareExtension ? 'extension' : 'files',
-        })
+      ChatConstants.getConvoState(conversationIDKey).dispatch.navigateToThread(
+        isFromShareExtension ? 'extension' : 'files'
       )
     }
   }
@@ -92,7 +85,6 @@ const DesktopSendToChat = (props: Props) => {
   const [conversationIDKey, setConversationIDKey] = React.useState(ChatConstants.noConversationIDKey)
   const [convName, setConvName] = React.useState('')
   const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const dispatch = Container.useDispatch()
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onCancel = () => {
     clearModals()
@@ -107,7 +99,7 @@ const DesktopSendToChat = (props: Props) => {
       attachmentsUpload([{path: Types.pathToString(path)}], [title], `${username},${convName.split('#')[0]}`)
     )
     clearModals()
-    dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'files'}))
+    ChatConstants.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
   }
   return (
     <Kb.PopupWrapper>

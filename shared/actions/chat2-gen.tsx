@@ -15,7 +15,6 @@ export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const jumpToRecent = 'chat2:jumpToRecent'
-export const navigateToThread = 'chat2:navigateToThread'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const pinMessage = 'chat2:pinMessage'
 export const replyJump = 'chat2:replyJump'
@@ -77,42 +76,6 @@ export const createJumpToRecent = (payload: {readonly conversationIDKey: Types.C
   payload,
   type: jumpToRecent as typeof jumpToRecent,
 })
-/**
- * Navigation helper. Nav is slightly different on mobile / desktop.
- */
-export const createNavigateToThread = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly highlightMessageID?: number
-  readonly reason:
-    | 'focused'
-    | 'clearSelected'
-    | 'desktopNotification'
-    | 'createdMessagePrivately'
-    | 'extension'
-    | 'files'
-    | 'findNewestConversation'
-    | 'findNewestConversationFromLayout'
-    | 'inboxBig'
-    | 'inboxFilterArrow'
-    | 'inboxFilterChanged'
-    | 'inboxSmall'
-    | 'inboxNewConversation'
-    | 'inboxSearch'
-    | 'jumpFromReset'
-    | 'jumpToReset'
-    | 'justCreated'
-    | 'manageView'
-    | 'previewResolved'
-    | 'push'
-    | 'savedLastState'
-    | 'startFoundExisting'
-    | 'teamChat'
-    | 'addedToChannel'
-    | 'navChanged'
-    | 'misc'
-    | 'teamMention'
-  readonly pushBody?: string
-}) => ({payload, type: navigateToThread as typeof navigateToThread})
 /**
  * Pin a message
  */
@@ -217,7 +180,6 @@ export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneyca
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
 export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMessage>
 export type JumpToRecentPayload = ReturnType<typeof createJumpToRecent>
-export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
 export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
@@ -243,7 +205,6 @@ export type Actions =
   | FetchUserEmojiPayload
   | IgnorePinnedMessagePayload
   | JumpToRecentPayload
-  | NavigateToThreadPayload
   | OpenChatFromWidgetPayload
   | PinMessagePayload
   | ReplyJumpPayload

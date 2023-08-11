@@ -447,8 +447,6 @@ const untrustedConversationIDKeys = (ids: Array<Types.ConversationIDKey>) =>
 
 // generic chat store
 export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
-
   // We keep a set of conversations to unbox
   let metaQueue = new Set<Types.ConversationIDKey>()
 
@@ -514,13 +512,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                 participantInfo
               )
             }
-            reduxDispatch(
-              Chat2Gen.createNavigateToThread({
-                conversationIDKey,
-                highlightMessageID,
-                reason: 'justCreated',
-              })
-            )
+            getConvoState(conversationIDKey).dispatch.navigateToThread('justCreated', highlightMessageID)
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -534,12 +526,9 @@ export const useState = Z.createZustand<State>((set, get) => {
             }
             const allowedUsers = participants.filter(x => !disallowedUsers?.includes(x))
             get().dispatch.conversationErrored(allowedUsers, disallowedUsers, error.code, error.desc)
-            reduxDispatch(
-              Chat2Gen.createNavigateToThread({
-                conversationIDKey: pendingErrorConversationIDKey,
-                highlightMessageID,
-                reason: 'justCreated',
-              })
+            getConvoState(pendingErrorConversationIDKey).dispatch.navigateToThread(
+              'justCreated',
+              highlightMessageID
             )
           }
         }
@@ -836,7 +825,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         query = selected?.query
       }
 
-      reduxDispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSearch'}))
+      getConvoState(conversationIDKey).dispatch.navigateToThread('inboxSearch')
       if (query) {
         const cs = getConvoState(conversationIDKey)
         cs.dispatch.setThreadSearchQuery(query)
@@ -1240,12 +1229,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         // need to let the mdoal hide first else its thrashy
         await Z.timeoutPromise(500)
-        reduxDispatch(
-          Chat2Gen.createNavigateToThread({
-            conversationIDKey: pendingWaitingConversationIDKey,
-            reason: 'justCreated',
-          })
-        )
+        getConvoState(pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
         get().dispatch.createConversation([...users].map(u => u.id))
       }
       Z.ignorePromise(f())
@@ -1271,23 +1255,14 @@ export const useState = Z.createZustand<State>((set, get) => {
             if (p.name.length === 2) {
               const other = p.name.filter(n => n !== username)
               if (other[0] === toFind) {
-                reduxDispatch(
-                  Chat2Gen.createNavigateToThread({
-                    conversationIDKey: cs.getState().id,
-                    reason: 'justCreated',
-                  })
-                )
+                getConvoState(cs.getState().id).dispatch.navigateToThread('justCreated')
                 return
               }
             }
           }
         }
-        reduxDispatch(
-          Chat2Gen.createNavigateToThread({
-            conversationIDKey: pendingWaitingConversationIDKey,
-            reason: 'justCreated',
-          })
-        )
+
+        getConvoState(pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
         get().dispatch.createConversation(participants, highlightMessageID)
       }
 
@@ -1306,13 +1281,8 @@ export const useState = Z.createZustand<State>((set, get) => {
               convID: Types.keyToConversationID(conversationIDKey),
             })
           }
-          reduxDispatch(
-            Chat2Gen.createNavigateToThread({
-              conversationIDKey,
-              highlightMessageID,
-              reason: 'previewResolved',
-            })
-          )
+
+          getConvoState(conversationIDKey).dispatch.navigateToThread('previewResolved', highlightMessageID)
           return
         }
 
@@ -1357,12 +1327,10 @@ export const useState = Z.createZustand<State>((set, get) => {
           if (meta) {
             useState.getState().dispatch.metasReceived([meta])
           }
-          reduxDispatch(
-            Chat2Gen.createNavigateToThread({
-              conversationIDKey: first.conversationIDKey,
-              highlightMessageID,
-              reason: 'previewResolved',
-            })
+
+          getConvoState(first.conversationIDKey).dispatch.navigateToThread(
+            'previewResolved',
+            highlightMessageID
           )
         } catch (error) {
           if (

@@ -46,6 +46,35 @@ const noParticipantInfo: Types.ParticipantInfo = {
   name: [],
 }
 
+type NavReason =
+  | 'focused' // nav focus changed
+  | 'clearSelected' // deselect
+  | 'desktopNotification' // clicked notification
+  | 'createdMessagePrivately' // messaging privately and maybe made it
+  | 'extension' // from a notification from iOS share extension
+  | 'files' // from the Files tab
+  | 'findNewestConversation' // find a new chat to select (from service)
+  | 'findNewestConversationFromLayout' // find a small chat to select (from js)
+  | 'inboxBig' // inbox row
+  | 'inboxFilterArrow' // arrow keys in inbox filter
+  | 'inboxFilterChanged' // inbox filter made first one selected
+  | 'inboxSmall' // inbox row
+  | 'inboxNewConversation' // new conversation row
+  | 'inboxSearch' // selected from inbox seaech
+  | 'jumpFromReset' // from older reset convo
+  | 'jumpToReset' // going to an older reset convo
+  | 'justCreated' // just made it and select it
+  | 'manageView' // clicked from manage screen
+  | 'previewResolved' // did a preview and are now selecting it
+  | 'push' // from a push
+  | 'savedLastState' // last seen chat tab
+  | 'startFoundExisting' // starting a conversation and found one already
+  | 'teamChat' // from team
+  | 'addedToChannel' // just added people to this channel
+  | 'navChanged' // the nav state changed
+  | 'misc' // misc
+  | 'teamMention' // from team mention
+
 // per convo store
 type ConvoStore = {
   id: Types.ConversationIDKey
@@ -217,6 +246,7 @@ export type ConvoState = ConvoStore & {
     }) => void
     metaReceivedError: (error: RPCChatTypes.InboxUIItemError, username: string) => void
     mute: (m: boolean) => void
+    navigateToThread: (reason: NavReason, highlightMessageID?: number, pushBody?: string) => void
     openFolder: () => void
     onEngineIncoming: (
       action:
@@ -634,7 +664,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const onClick = () => {
           ConfigConstants.useConfigState.getState().dispatch.showMain()
           Constants.useState.getState().dispatch.navigateToInbox()
-          reduxDispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'desktopNotification'}))
+          get().dispatch.navigateToThread('desktopNotification')
         }
         const onClose = () => {}
         logger.info('invoking NotifyPopup for chat notification')
@@ -1357,7 +1387,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const text = Common.formatTextForQuoting(message.text.stringValue())
         getConvoState(conversationIDKey).dispatch.injectIntoInput(text)
         Constants.useState.getState().dispatch.metasReceived([meta])
-        reduxDispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'createdMessagePrivately'}))
+        getConvoState(conversationIDKey).dispatch.navigateToThread('createdMessagePrivately')
       }
       Z.ignorePromise(f())
     },
@@ -1772,6 +1802,91 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
       }
       Z.ignorePromise(f())
+    },
+    navigateToThread: (_reason, highlightMessageID, pushBody) => {
+      get().dispatch.hideSearch()
+
+      const loadMessages = () => {
+        const {dispatch} = get()
+        let reason: string = _reason || 'navigated'
+        let forceClear = false
+        let forceContainsLatestCalc = false
+        let messageIDControl: RPCChatTypes.MessageIDControl | undefined = undefined
+        const knownRemotes = pushBody && pushBody.length > 0 ? [pushBody] : []
+        const centeredMessageID = highlightMessageID
+          ? {
+              conversationIDKey: get().id,
+              highlightMode: 'flash' as const,
+              messageID: highlightMessageID,
+            }
+          : undefined
+
+        if (highlightMessageID) {
+          reason = 'centered'
+          messageIDControl = {
+            mode: RPCChatTypes.MessageIDControlMode.centered,
+            num: numMessagesOnInitialLoad,
+            pivot: highlightMessageID,
+          }
+          forceClear = true
+          forceContainsLatestCalc = true
+        }
+        dispatch.loadMoreMessages({
+          centeredMessageID,
+          forceClear,
+          forceContainsLatestCalc,
+          knownRemotes,
+          messageIDControl,
+          reason,
+        })
+      }
+      loadMessages()
+
+      const updateNav = () => {
+        const reason = _reason
+        // don't nav if its caused by a nav
+        if (reason === 'navChanged') {
+          return
+        }
+        const conversationIDKey = get().id
+        const visible = RouterConstants.getVisibleScreen()
+        // @ts-ignore TODO better types
+        const visibleConvo: Types.ConversationIDKey | undefined = visible?.params?.conversationIDKey
+        const visibleRouteName = visible?.name
+
+        if (visibleRouteName !== Common.threadRouteName && reason === 'findNewestConversation') {
+          // service is telling us to change our selection but we're not looking, ignore
+          return
+        }
+
+        // we select the chat tab and change the params
+        if (Common.isSplit) {
+          RouterConstants.navToThread(conversationIDKey)
+        } else {
+          // immediately switch stack to an inbox | thread stack
+          if (reason === 'push' || reason === 'savedLastState') {
+            RouterConstants.navToThread(conversationIDKey)
+            return
+          } else {
+            // replace if looking at the pending / waiting screen
+            const replace =
+              visibleRouteName === Common.threadRouteName &&
+              !Types.isValidConversationIDKey(visibleConvo ?? '')
+            // note: we don't switch tabs on non split
+            const modalPath = RouterConstants.getModalStack()
+            if (modalPath.length > 0) {
+              RouterConstants.useState.getState().dispatch.clearModals()
+            }
+            RouterConstants.useState
+              .getState()
+              .dispatch.navigateAppend(
+                {props: {conversationIDKey}, selected: Common.threadRouteName},
+                replace
+              )
+          }
+        }
+      }
+      updateNav()
     },
     onEngineIncoming: action => {
       switch (action.type) {

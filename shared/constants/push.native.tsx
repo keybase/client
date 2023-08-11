@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../actions/chat2-gen'
 import * as RouterConstants from './router2'
 import * as ProfileConstants from './profile'
 import * as RPCChatTypes from './types/rpc-chat-gen'
@@ -31,8 +30,6 @@ const initialStore: Store = {
 
 const monsterStorageKey = 'shownMonsterPushPrompt'
 export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
-
   const neverShowMonsterAgain = async () => {
     await RPCTypes.configGuiSetValueRpcPromise({
       path: `ui.${monsterStorageKey}`,
@@ -82,9 +79,8 @@ export const useState = Z.createZustand<State>((set, get) => {
     const {conversationIDKey, unboxPayload, membersType} = notification
 
     logger.warn('push selecting ', conversationIDKey)
-    reduxDispatch(
-      Chat2Gen.createNavigateToThread({conversationIDKey, pushBody: unboxPayload, reason: 'push'})
-    )
+    const ChatConstants = await import('./chat2')
+    ChatConstants.getConvoState(conversationIDKey).dispatch.navigateToThread('push', undefined, unboxPayload)
     if (unboxPayload && membersType && !isIOS) {
       logger.info('[Push] unboxing message')
       try {
@@ -179,7 +175,11 @@ export const useState = Z.createZustand<State>((set, get) => {
             case 'chat.extension':
               {
                 const {conversationIDKey} = notification
-                reduxDispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'extension'}))
+                const f = async () => {
+                  const ChatConstants = await import('./chat2')
+                  ChatConstants.getConvoState(conversationIDKey).dispatch.navigateToThread('extension')
+                }
+                Z.ignorePromise(f())
               }
               break
             case 'settings.contacts':

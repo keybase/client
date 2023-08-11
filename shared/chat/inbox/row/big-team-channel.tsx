@@ -1,6 +1,4 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
@@ -16,8 +14,7 @@ type Props = {
 }
 
 const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
-  const {conversationIDKey, selected, layoutChannelname} = props
-  const dispatch = Container.useDispatch()
+  const {selected, layoutChannelname} = props
   const channelname = Constants.useContext(s => s.meta.channelname) || layoutChannelname
   const isError = Constants.useContext(s => s.meta.trustedState === 'error')
   const snippetDecoration = Constants.useContext(s => s.meta.snippetDecoration)
@@ -25,9 +22,9 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
   const hasDraft = Constants.useContext(s => !!s.draft)
   const hasUnread = Constants.useContext(s => s.unread > 0)
   const isMuted = Constants.useContext(s => s.muted)
+  const navigateToThread = Constants.useContext(s => s.dispatch.navigateToThread)
 
-  const onSelectConversation = () =>
-    dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxBig'}))
+  const onSelectConversation = () => navigateToThread('inboxBig')
 
   let outboxIcon: React.ReactNode = null
   switch (snippetDecoration) {
