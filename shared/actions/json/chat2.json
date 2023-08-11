@@ -5,9 +5,6 @@
     "import type * as TeamsTypes from '../constants/types/teams'"
   ],
   "actions": {
-    "navigateToInbox": {
-      "_description": "Navigation helper. Nav is slightly different on mobile / desktop."
-    },
     "navigateToThread": {
       "_description": "Navigation helper. Nav is slightly different on mobile / desktop.",
       "conversationIDKey": "Types.ConversationIDKey",

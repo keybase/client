@@ -7,11 +7,11 @@ import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from './../constants/types/rpc-gen'
-import * as Tabs from '../constants/tabs'
 import * as TeamsConstants from '../constants/teams'
 import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
 import * as WaitingConstants from '../constants/waiting'
+import * as Z from '../util/zustand'
 import {findLast} from '../util/arrays'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
@@ -96,8 +96,9 @@ const onGetInboxConvsUnboxed = (_: unknown, action: EngineGen.Chat1ChatUiChatInb
 const maybeChangeSelectedConv = () => {
   const selectedConversation = Constants.getSelectedConversation()
   const {inboxLayout} = Constants.useState.getState()
+  const reduxDispatch = Z.getReduxDispatch()
   if (!inboxLayout || !inboxLayout.reselectInfo) {
-    return false
+    return
   }
   const {reselectInfo} = inboxLayout
   if (
@@ -108,29 +109,35 @@ const maybeChangeSelectedConv = () => {
       // on mobile just head back to the inbox if we have something selected
       if (Constants.isValidConversationIDKey(selectedConversation)) {
         logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
-        return Chat2Gen.createNavigateToInbox()
+        Constants.useState.getState().dispatch.navigateToInbox()
+        return
       }
       logger.info(`maybeChangeSelectedConv: mobile: ignoring conv change, no conv selected`)
-      return false
+      return
     }
     if (reselectInfo.newConvID) {
       logger.info(`maybeChangeSelectedConv: selecting new conv: ${reselectInfo.newConvID}`)
-      return Chat2Gen.createNavigateToThread({
-        conversationIDKey: reselectInfo.newConvID,
-        reason: 'findNewestConversation',
-      })
+      reduxDispatch(
+        Chat2Gen.createNavigateToThread({
+          conversationIDKey: reselectInfo.newConvID,
+          reason: 'findNewestConversation',
+        })
+      )
+      return
     } else {
       logger.info(`maybeChangeSelectedConv: deselecting conv, service provided no new conv`)
-      return Chat2Gen.createNavigateToThread({
-        conversationIDKey: Constants.noConversationIDKey,
-        reason: 'findNewestConversation',
-      })
+      reduxDispatch(
+        Chat2Gen.createNavigateToThread({
+          conversationIDKey: Constants.noConversationIDKey,
+          reason: 'findNewestConversation',
+        })
+      )
+      return
     }
   } else {
     logger.info(
       `maybeChangeSelectedConv: selected conv mismatch on reselect (ignoring): selected: ${selectedConversation} srvold: ${reselectInfo.oldConvID}`
     )
-    return false
   }
 }
 
@@ -732,10 +739,6 @@ const initChat = () => {
     dispatch.markThreadAsRead()
   })
 
-  Container.listenAction(Chat2Gen.navigateToInbox, () => {
-    RouterConstants.useState.getState().dispatch.navUpToScreen('chatRoot')
-    RouterConstants.useState.getState().dispatch.switchTab(Tabs.chatTab)
-  })
   Container.listenAction(Chat2Gen.navigateToThread, navigateToThread)
   Container.listenAction(Chat2Gen.navigateToThread, (_, action) => {
     const {conversationIDKey} = action.payload

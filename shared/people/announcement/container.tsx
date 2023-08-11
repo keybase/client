@@ -1,9 +1,9 @@
 import Announcement from '.'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
 import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/people'
+import * as ChatConstants from '../../constants/chat2'
 import * as SettingsTabs from '../../constants/settings'
 import openURL from '../../util/open-url'
 import * as Container from '../../util/container'
@@ -21,13 +21,11 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {appLink, badged, confirmLabel, iconUrl, id, text, url, dismissable} = ownProps
-  const dispatch = Container.useDispatch()
-
   const loadPeople = Constants.useState(s => s.dispatch.loadPeople)
   const dismissAnnouncement = Constants.useState(s => s.dispatch.dismissAnnouncement)
-
   const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateToInbox = ChatConstants.useState(s => s.dispatch.navigateToInbox)
   const onConfirm = () => {
     if (url) {
       openURL(url)
@@ -37,7 +35,7 @@ export default (ownProps: OwnProps) => {
       case RPCTypes.AppLinkType.people:
         break
       case RPCTypes.AppLinkType.chat:
-        dispatch(Chat2Gen.createNavigateToInbox())
+        navigateToInbox()
         break
       case RPCTypes.AppLinkType.files:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.fsTab)

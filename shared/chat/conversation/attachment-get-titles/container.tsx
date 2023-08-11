@@ -26,16 +26,15 @@ export default (ownProps: OwnProps) => {
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const attachmentUploadCanceled = Constants.useContext(s => s.dispatch.attachmentUploadCanceled)
   const onCancel = () => {
-    dispatch(
-      Chat2Gen.createAttachmentUploadCanceled({
-        outboxIDs: pathAndOutboxIDs.reduce((l: Array<RPCChatTypes.OutboxID>, {outboxID}) => {
-          if (outboxID) {
-            l.push(outboxID)
-          }
-          return l
-        }, []),
-      })
+    attachmentUploadCanceled(
+      pathAndOutboxIDs.reduce((l: Array<RPCChatTypes.OutboxID>, {outboxID}) => {
+        if (outboxID) {
+          l.push(outboxID)
+        }
+        return l
+      }, [])
     )
     navigateUp()
   }

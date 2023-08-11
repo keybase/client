@@ -1,7 +1,7 @@
-import * as Chat2Gen from '../actions/chat2-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as ChatTypes from './types/chat2'
 import * as ConfigConstants from './config'
+import * as ChatConstants from './chat2'
 import * as RouterConstants from './router2'
 import * as UsersConstants from './users'
 import * as GregorConstants from './gregor'
@@ -1216,7 +1216,6 @@ export type State = Store & {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
     addMembersWizardPushMembers: members => {
       const f = async () => {
@@ -1666,7 +1665,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
           if (fromChat) {
             RouterConstants.useState.getState().dispatch.clearModals()
-            reduxDispatch(Chat2Gen.createNavigateToInbox())
+            ChatConstants.useState.getState().dispatch.navigateToInbox()
             const f = async () => {
               const ChatConstants = await import('./chat2')
               const {previewConversation} = ChatConstants.useState.getState().dispatch

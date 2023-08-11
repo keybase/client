@@ -9,15 +9,12 @@ export const resetStore = 'common:resetStore' // not a part of chat2 but is hand
 export const typePrefix = 'chat2:'
 export const addUserToChannel = 'chat2:addUserToChannel'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
-export const attachmentPasted = 'chat2:attachmentPasted'
-export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const jumpToRecent = 'chat2:jumpToRecent'
-export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const pinMessage = 'chat2:pinMessage'
@@ -67,13 +64,6 @@ export const createIgnorePinnedMessage = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
 }) => ({payload, type: ignorePinnedMessage as typeof ignorePinnedMessage})
 /**
- * Image data pasted into a conversation
- */
-export const createAttachmentPasted = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly data: Buffer
-}) => ({payload, type: attachmentPasted as typeof attachmentPasted})
-/**
  * Jump to a replied to message
  */
 export const createReplyJump = (payload: {
@@ -86,13 +76,6 @@ export const createReplyJump = (payload: {
 export const createJumpToRecent = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
   payload,
   type: jumpToRecent as typeof jumpToRecent,
-})
-/**
- * Navigation helper. Nav is slightly different on mobile / desktop.
- */
-export const createNavigateToInbox = (payload?: undefined) => ({
-  payload,
-  type: navigateToInbox as typeof navigateToInbox,
 })
 /**
  * Navigation helper. Nav is slightly different on mobile / desktop.
@@ -174,12 +157,6 @@ export const createSetMinWriterRole = (payload: {
   readonly role: TeamsTypes.TeamRoleType
 }) => ({payload, type: setMinWriterRole as typeof setMinWriterRole})
 /**
- * The attachment upload modal was canceled
- */
-export const createAttachmentUploadCanceled = (payload: {
-  readonly outboxIDs: Array<RPCChatTypes.OutboxID>
-}) => ({payload, type: attachmentUploadCanceled as typeof attachmentUploadCanceled})
-/**
  * Toggle the collapse status of a message
  */
 export const createToggleMessageCollapse = (payload: {
@@ -234,15 +211,12 @@ export const createSendAudioRecording = (payload: {
 // Action Payloads
 export type AddUserToChannelPayload = ReturnType<typeof createAddUserToChannel>
 export type AddUsersToChannelPayload = ReturnType<typeof createAddUsersToChannel>
-export type AttachmentPastedPayload = ReturnType<typeof createAttachmentPasted>
-export type AttachmentUploadCanceledPayload = ReturnType<typeof createAttachmentUploadCanceled>
 export type ConfirmScreenResponsePayload = ReturnType<typeof createConfirmScreenResponse>
 export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockButtons>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
 export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMessage>
 export type JumpToRecentPayload = ReturnType<typeof createJumpToRecent>
-export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
@@ -263,15 +237,12 @@ export type UpdateUnreadlinePayload = ReturnType<typeof createUpdateUnreadline>
 export type Actions =
   | AddUserToChannelPayload
   | AddUsersToChannelPayload
-  | AttachmentPastedPayload
-  | AttachmentUploadCanceledPayload
   | ConfirmScreenResponsePayload
   | DismissBlockButtonsPayload
   | DismissJourneycardPayload
   | FetchUserEmojiPayload
   | IgnorePinnedMessagePayload
   | JumpToRecentPayload
-  | NavigateToInboxPayload
   | NavigateToThreadPayload
   | OpenChatFromWidgetPayload
   | PinMessagePayload

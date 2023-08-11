@@ -1,6 +1,4 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
 import * as React from 'react'
 import * as TeamConstants from '../../../constants/teams'
 import type * as Types from '../../../constants/types/chat2'
@@ -32,14 +30,13 @@ const InfoPanelConnector = (props: Props) => {
   const [selectedTab, onSelectTab] = React.useState<Panel | undefined>(initialTab)
   const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
 
-  const dispatch = Container.useDispatch()
   const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
   const clearAttachmentView = Constants.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
   const onCancel = () => {
     showInfoPanel(false, undefined, conversationIDKey)
     clearAttachmentView()
   }
-  const onGoToInbox = React.useCallback(() => dispatch(Chat2Gen.createNavigateToInbox()), [dispatch])
+  const onGoToInbox = Constants.useState(s => s.dispatch.navigateToInbox)
 
   if (lastSNO !== shouldNavigateOut) {
     setLastSNO(shouldNavigateOut)

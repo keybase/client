@@ -565,7 +565,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     blockConversation: reportUser => {
       const f = async () => {
-        reduxDispatch(Chat2Gen.createNavigateToInbox())
+        const Constants = await import('.')
+        Constants.useState.getState().dispatch.navigateToInbox()
         const ConfigConstants = await import('../config')
         ConfigConstants.useConfigState.getState().dispatch.dynamic.persistRoute?.()
         await RPCChatTypes.localSetConversationStatusLocalRpcPromise({
@@ -629,9 +630,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
 
         const ConfigConstants = await import('../config')
+        const Constants = await import('.')
         const onClick = () => {
           ConfigConstants.useConfigState.getState().dispatch.showMain()
-          reduxDispatch(Chat2Gen.createNavigateToInbox())
+          Constants.useState.getState().dispatch.navigateToInbox()
           reduxDispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'desktopNotification'}))
         }
         const onClose = () => {}
@@ -703,8 +705,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           // Nav to inbox but don't use findNewConversation since changeSelectedConversation
           // does that with better information. It knows the conversation is hidden even before
           // that state bounces back.
-          reduxDispatch(Chat2Gen.createNavigateToInbox())
-          Constants.useState.getState().dispatch.showInfoPanel(false, undefined, conversationIDKey)
+          const {showInfoPanel, navigateToInbox} = Constants.useState.getState().dispatch
+          navigateToInbox()
+          showInfoPanel(false, undefined, conversationIDKey)
         }
 
         await RPCChatTypes.localSetConversationStatusLocalRpcPromise(
@@ -980,9 +983,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             logger.warn(error.desc)
             // no longer in team
             if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
-              const {inboxRefresh} = Constants.useState.getState().dispatch
+              const {inboxRefresh, navigateToInbox} = Constants.useState.getState().dispatch
               inboxRefresh('maybeKickedFromTeam')
-              reduxDispatch(Chat2Gen.createNavigateToInbox())
+              navigateToInbox()
             }
             if (error.code !== RPCTypes.StatusCode.scteamreaderror) {
               // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
@@ -1046,9 +1049,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         } catch (error) {
           if (error instanceof RPCError) {
             if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
-              const {inboxRefresh} = Constants.useState.getState().dispatch
+              const {inboxRefresh, navigateToInbox} = Constants.useState.getState().dispatch
               inboxRefresh('maybeKickedFromTeam')
-              reduxDispatch(Chat2Gen.createNavigateToInbox())
+              navigateToInbox()
             }
           }
           // ignore this error in general

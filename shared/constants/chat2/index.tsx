@@ -1,4 +1,5 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
+import * as RouterConstants from '../router2'
 import * as Tabs from '../tabs'
 import * as LinksConstants from '../deeplinks'
 import * as TeamsConstants from '../teams'
@@ -399,6 +400,7 @@ export type State = Store & {
       metas: Array<Types.ConversationMeta>,
       removals?: Array<Types.ConversationIDKey> // convs to remove
     ) => void
+    navigateToInbox: () => void
     onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     onIncomingInboxUIItem: (inboxUIItem?: RPCChatTypes.InboxUIItem) => void
@@ -946,6 +948,10 @@ export const useState = Z.createZustand<State>((set, get) => {
           TeamsConstants.useState.getState().dispatch.getMembers(teamID)
         }
       }
+    },
+    navigateToInbox: () => {
+      RouterConstants.useState.getState().dispatch.navUpToScreen('chatRoot')
+      RouterConstants.useState.getState().dispatch.switchTab(Tabs.chatTab)
     },
     onEngineConnected: () => {
       const f = async () => {
