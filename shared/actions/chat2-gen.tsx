@@ -9,11 +9,8 @@ export const resetStore = 'common:resetStore' // not a part of chat2 but is hand
 export const typePrefix = 'chat2:'
 export const addUserToChannel = 'chat2:addUserToChannel'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
-export const attachFromDragAndDrop = 'chat2:attachFromDragAndDrop'
 export const attachmentPasted = 'chat2:attachmentPasted'
-export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
 export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
-export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
@@ -183,13 +180,6 @@ export const createAttachmentUploadCanceled = (payload: {
   readonly outboxIDs: Array<RPCChatTypes.OutboxID>
 }) => ({payload, type: attachmentUploadCanceled as typeof attachmentUploadCanceled})
 /**
- * The user has selected an attachment with a preview
- */
-export const createAttachmentPreviewSelect = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-}) => ({payload, type: attachmentPreviewSelect as typeof attachmentPreviewSelect})
-/**
  * Toggle the collapse status of a message
  */
 export const createToggleMessageCollapse = (payload: {
@@ -219,15 +209,6 @@ export const createConfirmScreenResponse = (payload: {readonly accept: boolean})
   type: confirmScreenResponse as typeof confirmScreenResponse,
 })
 /**
- * We want to upload some attachments
- */
-export const createAttachmentsUpload = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly paths: Array<Types.PathAndOutboxID>
-  readonly titles: Array<string>
-  readonly tlfName?: string
-}) => ({payload, type: attachmentsUpload as typeof attachmentsUpload})
-/**
  * We're changing the notification settings
  */
 export const createUpdateNotificationSettings = (payload: {
@@ -236,11 +217,6 @@ export const createUpdateNotificationSettings = (payload: {
   readonly notificationsMobile: Types.NotificationsType
   readonly notificationsGlobalIgnoreMentions: boolean
 }) => ({payload, type: updateNotificationSettings as typeof updateNotificationSettings})
-export const createAttachFromDragAndDrop = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly paths: Array<Types.PathAndOutboxID>
-  readonly titles: Array<string>
-}) => ({payload, type: attachFromDragAndDrop as typeof attachFromDragAndDrop})
 export const createDismissBlockButtons = (payload: {readonly teamID: RPCTypes.TeamID}) => ({
   payload,
   type: dismissBlockButtons as typeof dismissBlockButtons,
@@ -258,11 +234,8 @@ export const createSendAudioRecording = (payload: {
 // Action Payloads
 export type AddUserToChannelPayload = ReturnType<typeof createAddUserToChannel>
 export type AddUsersToChannelPayload = ReturnType<typeof createAddUsersToChannel>
-export type AttachFromDragAndDropPayload = ReturnType<typeof createAttachFromDragAndDrop>
 export type AttachmentPastedPayload = ReturnType<typeof createAttachmentPasted>
-export type AttachmentPreviewSelectPayload = ReturnType<typeof createAttachmentPreviewSelect>
 export type AttachmentUploadCanceledPayload = ReturnType<typeof createAttachmentUploadCanceled>
-export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload>
 export type ConfirmScreenResponsePayload = ReturnType<typeof createConfirmScreenResponse>
 export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockButtons>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
@@ -290,11 +263,8 @@ export type UpdateUnreadlinePayload = ReturnType<typeof createUpdateUnreadline>
 export type Actions =
   | AddUserToChannelPayload
   | AddUsersToChannelPayload
-  | AttachFromDragAndDropPayload
   | AttachmentPastedPayload
-  | AttachmentPreviewSelectPayload
   | AttachmentUploadCanceledPayload
-  | AttachmentsUploadPayload
   | ConfirmScreenResponsePayload
   | DismissBlockButtonsPayload
   | DismissJourneycardPayload

@@ -175,12 +175,12 @@ export const useCollapseIcon = Container.isMobile ? useCollapseIconMobile : useC
 
 export const useAttachmentRedux = () => {
   const ordinal = React.useContext(OrdinalContext)
-  const dispatch = Container.useDispatch()
   const getIds = React.useContext(GetIdsContext)
+  const attachmentPreviewSelect = Constants.useContext(s => s.dispatch.attachmentPreviewSelect)
   const openFullscreen = React.useCallback(() => {
-    const {conversationIDKey, ordinal} = getIds()
-    dispatch(Chat2Gen.createAttachmentPreviewSelect({conversationIDKey, ordinal}))
-  }, [dispatch, getIds])
+    const {ordinal} = getIds()
+    attachmentPreviewSelect(ordinal)
+  }, [attachmentPreviewSelect, getIds])
 
   const editInfo = Constants.useContext(s => s.getEditInfo())
   const {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState} =

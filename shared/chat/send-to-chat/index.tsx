@@ -101,16 +101,10 @@ const DesktopSendToChat = (props: Props) => {
     setConversationIDKey(convID)
     setConvName(convname)
   }
+  const attachmentsUpload = ChatConstants.useContext(s => s.dispatch.attachmentsUpload)
   const onSend = () => {
     sendPaths?.forEach(path =>
-      dispatch(
-        Chat2Gen.createAttachmentsUpload({
-          conversationIDKey,
-          paths: [{path: Types.pathToString(path)}],
-          titles: [title],
-          tlfName: `${username},${convName.split('#')[0]}`,
-        })
-      )
+      attachmentsUpload([{path: Types.pathToString(path)}], [title], `${username},${convName.split('#')[0]}`)
     )
     clearModals()
     dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'files'}))
