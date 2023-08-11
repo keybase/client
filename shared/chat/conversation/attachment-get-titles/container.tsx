@@ -40,23 +40,12 @@ export default (ownProps: OwnProps) => {
     navigateUp()
   }
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const attachmentsUpload = Constants.useContext(s => s.dispatch.attachmentsUpload)
+  const attachFromDragAndDrop = Constants.useContext(s => s.dispatch.attachFromDragAndDrop)
   const onSubmit = (titles: Array<string>) => {
     tlfName || noDragDrop
-      ? dispatch(
-          Chat2Gen.createAttachmentsUpload({
-            conversationIDKey,
-            paths: pathAndOutboxIDs,
-            titles,
-            tlfName,
-          })
-        )
-      : dispatch(
-          Chat2Gen.createAttachFromDragAndDrop({
-            conversationIDKey,
-            paths: pathAndOutboxIDs,
-            titles,
-          })
-        )
+      ? attachmentsUpload(pathAndOutboxIDs, titles, tlfName)
+      : attachFromDragAndDrop(pathAndOutboxIDs, titles)
     clearModals()
 
     if (selectConversationWithReason) {

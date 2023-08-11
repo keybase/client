@@ -5,21 +5,16 @@ import * as UsersConstants from '../constants/users'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
-import * as Platform from '../constants/platform'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from './../constants/types/rpc-gen'
-import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as TeamsConstants from '../constants/teams'
 import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
 import * as WaitingConstants from '../constants/waiting'
 import {findLast} from '../util/arrays'
-import KB2 from '../util/electron'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
-
-const {darwinCopyToChatTempUploadFile} = KB2.functions
 
 const getClientPrev = (conversationIDKey: Types.ConversationIDKey): Types.MessageID => {
   let clientPrev: undefined | Types.MessageID
@@ -325,16 +320,6 @@ const confirmScreenResponse = (_: unknown, action: Chat2Gen.ConfirmScreenRespons
   storeStellarConfirmWindowResponse(action.payload.accept)
 }
 
-const attachmentPreviewSelect = (_: unknown, action: Chat2Gen.AttachmentPreviewSelectPayload) => {
-  RouterConstants.useState.getState().dispatch.navigateAppend({
-    props: {
-      conversationIDKey: action.payload.conversationIDKey,
-      ordinal: action.payload.ordinal,
-    },
-    selected: 'chatAttachmentFullscreen',
-  })
-}
-
 // Handle an image pasted into a conversation
 const attachmentPasted = async (_: unknown, action: Chat2Gen.AttachmentPastedPayload) => {
   const {conversationIDKey, data} = action.payload
@@ -393,74 +378,6 @@ const sendAudioRecording = async (_: unknown, action: Chat2Gen.SendAudioRecordin
       logger.warn('sendAudioRecording: failed to send attachment: ' + error.message)
     }
   }
-}
-
-// Upload an attachment
-const attachmentsUpload = async (_: unknown, action: Chat2Gen.AttachmentsUploadPayload) => {
-  const {conversationIDKey, paths, titles} = action.payload
-  let tlfName = action.payload.tlfName
-  const meta = Constants.getConvoState(conversationIDKey).meta
-  if (meta.conversationIDKey !== conversationIDKey) {
-    if (!tlfName) {
-      logger.warn('attachmentsUpload: missing meta for attachment upload', conversationIDKey)
-      return
-    }
-  } else {
-    tlfName = meta.tlfname
-  }
-  const clientPrev = getClientPrev(conversationIDKey)
-  // disable sending exploding messages if flag is false
-  const ephemeralLifetime = Constants.getConvoState(conversationIDKey).explodingMode
-  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  const outboxIDs = paths.reduce<Array<Buffer>>((obids, p) => {
-    obids.push(p.outboxID ? p.outboxID : Constants.generateOutboxID())
-    return obids
-  }, [])
-  await Promise.all(
-    paths.map(async (p, i) =>
-      RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
-        arg: {
-          ...ephemeralData,
-          conversationID: Types.keyToConversationID(conversationIDKey),
-          filename: Styles.unnormalizePath(p.path),
-          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          metadata: Buffer.from([]),
-          outboxID: outboxIDs[i],
-          title: titles[i] ?? '',
-          tlfName: tlfName ?? '',
-          visibility: RPCTypes.TLFVisibility.private,
-        },
-        clientPrev,
-      })
-    )
-  )
-}
-
-const attachFromDragAndDrop = async (
-  _: Container.TypedState,
-  action: Chat2Gen.AttachFromDragAndDropPayload
-) => {
-  if (Platform.isDarwin && darwinCopyToChatTempUploadFile) {
-    const paths = await Promise.all(
-      action.payload.paths.map(async p => {
-        const outboxID = Constants.generateOutboxID()
-        const dst = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: p.path, outboxID})
-        await darwinCopyToChatTempUploadFile(dst, p.path)
-        return {outboxID, path: dst}
-      })
-    )
-
-    return Chat2Gen.createAttachmentsUpload({
-      conversationIDKey: action.payload.conversationIDKey,
-      paths,
-      titles: action.payload.titles,
-    })
-  }
-  return Chat2Gen.createAttachmentsUpload({
-    conversationIDKey: action.payload.conversationIDKey,
-    paths: action.payload.paths,
-    titles: action.payload.titles,
-  })
 }
 
 const dismissJourneycard = (_: unknown, action: Chat2Gen.DismissJourneycardPayload) => {
@@ -828,9 +745,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.unfurlRemove, unfurlRemove)
 
   // Search handling
-  Container.listenAction(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)
-  Container.listenAction(Chat2Gen.attachmentsUpload, attachmentsUpload)
-  Container.listenAction(Chat2Gen.attachFromDragAndDrop, attachFromDragAndDrop)
   Container.listenAction(Chat2Gen.attachmentPasted, attachmentPasted)
   Container.listenAction(Chat2Gen.attachmentUploadCanceled, attachmentUploadCanceled)
 

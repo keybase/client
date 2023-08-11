@@ -5,23 +5,6 @@
     "import type * as TeamsTypes from '../constants/types/teams'"
   ],
   "actions": {
-    "attachmentPreviewSelect": {
-      "_description": "The user has selected an attachment with a preview",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
-    },
-    "attachmentsUpload": {
-      "_description": "We want to upload some attachments",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "paths": "Array<Types.PathAndOutboxID>",
-      "titles": "Array<string>",
-      "tlfName?": "string"
-    },
-    "attachFromDragAndDrop": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "paths": "Array<Types.PathAndOutboxID>",
-      "titles": "Array<string>"
-    },
     "attachmentPasted": {
       "_description": "Image data pasted into a conversation",
       "conversationIDKey": "Types.ConversationIDKey",

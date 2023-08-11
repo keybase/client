@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as FSConstants from '../../../constants/fs'
@@ -400,7 +399,6 @@ export const useAttachmentSections = (
   useFlexWrap: boolean
 ): Array<Section<any, {title?: string}>> => {
   const {conversationIDKey} = p
-  const dispatch = Container.useDispatch()
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<RPCChatTypes.GalleryItemTyp>(
     RPCChatTypes.GalleryItemTyp.media
   )
@@ -433,13 +431,8 @@ export const useAttachmentSections = (
     loadAttachmentView(selectedAttachmentView)
   }
 
-  const onMediaClick = (message: Types.MessageAttachment) =>
-    dispatch(
-      Chat2Gen.createAttachmentPreviewSelect({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.id,
-      })
-    )
+  const attachmentPreviewSelect = Constants.useContext(s => s.dispatch.attachmentPreviewSelect)
+  const onMediaClick = (message: Types.MessageAttachment) => attachmentPreviewSelect(message.id)
 
   const attachmentDownload = Constants.useContext(s => s.dispatch.attachmentDownload)
   const messageAttachmentNativeShare = Constants.useContext(s => s.dispatch.messageAttachmentNativeShare)

@@ -1,4 +1,5 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
+import * as Styles from '../../styles'
 import * as Common from './common'
 import * as Tabs from '../tabs'
 import * as EngineGen from '../../actions/engine-gen-gen'
@@ -29,6 +30,9 @@ import {noConversationIDKey} from '../types/chat2/common'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {useConfigState, useCurrentUserState} from '../config'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../../actions/platform-specific'
+import * as Platform from '../platform'
+import KB2 from '../../util/electron'
+const {darwinCopyToChatTempUploadFile} = KB2.functions
 
 const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
   hits: [],
@@ -132,7 +136,10 @@ export type ConvoState = ConvoStore & {
       restricted: boolean,
       convs?: Array<string>
     ) => void
+    attachmentPreviewSelect: (ordinal: Types.Ordinal) => void
     attachmentDownload: (ordinal: Types.Ordinal) => void
+    attachmentsUpload: (paths: Array<Types.PathAndOutboxID>, titles: Array<string>, tlfName?: string) => void
+    attachFromDragAndDrop: (paths: Array<Types.PathAndOutboxID>, titles: Array<string>) => void
     badgesUpdated: (badge: number) => void
     blockConversation: (reportUser: boolean) => void
     botCommandsUpdateStatus: (b: RPCChatTypes.UIBotCommandsUpdateStatus) => void
@@ -433,6 +440,25 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    attachFromDragAndDrop: (paths, titles) => {
+      const f = async () => {
+        if (Platform.isDarwin && darwinCopyToChatTempUploadFile) {
+          const p = await Promise.all(
+            paths.map(async p => {
+              const outboxID = Common.generateOutboxID()
+              const dst = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: p.path, outboxID})
+              await darwinCopyToChatTempUploadFile(dst, p.path)
+              return {outboxID, path: dst}
+            })
+          )
+
+          get().dispatch.attachmentsUpload(p, titles)
+        } else {
+          get().dispatch.attachmentsUpload(paths, titles)
+        }
+      }
+      Z.ignorePromise(f())
+    },
     attachmentDownload: ordinal => {
       const {dispatch, messageMap} = get()
       const m = messageMap.get(ordinal)
@@ -454,6 +480,54 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
         await downloadAttachment(false, message)
+      }
+      Z.ignorePromise(f())
+    },
+    attachmentPreviewSelect: ordinal => {
+      RouterConstants.useState.getState().dispatch.navigateAppend({
+        props: {conversationIDKey: get().id, ordinal},
+        selected: 'chatAttachmentFullscreen',
+      })
+    },
+    attachmentsUpload: (paths, titles, _tlfName) => {
+      const f = async () => {
+        let tlfName = _tlfName
+        const conversationIDKey = get().id
+        const meta = get().meta
+        if (meta.conversationIDKey !== conversationIDKey) {
+          if (!tlfName) {
+            logger.warn('attachmentsUpload: missing meta for attachment upload', conversationIDKey)
+            return
+          }
+        } else {
+          tlfName = meta.tlfname
+        }
+        const clientPrev = getClientPrev(conversationIDKey)
+        // disable sending exploding messages if flag is false
+        const ephemeralLifetime = get().explodingMode
+        const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+        const outboxIDs = paths.reduce<Array<Buffer>>((obids, p) => {
+          obids.push(p.outboxID ? p.outboxID : Common.generateOutboxID())
+          return obids
+        }, [])
+        await Promise.all(
+          paths.map(async (p, i) =>
+            RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
+              arg: {
+                ...ephemeralData,
+                conversationID: Types.keyToConversationID(conversationIDKey),
+                filename: Styles.unnormalizePath(p.path),
+                identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+                metadata: Buffer.from([]),
+                outboxID: outboxIDs[i],
+                title: titles[i] ?? '',
+                tlfName: tlfName ?? '',
+                visibility: RPCTypes.TLFVisibility.private,
+              },
+              clientPrev,
+            })
+          )
+        )
       }
       Z.ignorePromise(f())
     },
