@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as Constants from '../constants/git'
 import * as ConfigConstants from '../constants/config'
 import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
@@ -19,16 +18,16 @@ type OwnProps = {
   onToggleExpand: (id: string) => void
 }
 
-const noGit = Constants.makeGitInfo()
+const noGit = C.makeGitInfo()
 const ConnectedRow = (ownProps: OwnProps) => {
   const {id, expanded} = ownProps
-  const git = Constants.useState(s => s.idToInfo.get(id) || noGit)
+  const git = C.useGitState(s => s.idToInfo.get(id) || noGit)
   const teamID = TeamConstants.useState(s =>
     git.teamname ? TeamConstants.getTeamID(s, git.teamname) : undefined
   )
   const isNew = React.useContext(NewContext).has(id)
   const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const setTeamRepoSettings = Constants.useState(s => s.dispatch.setTeamRepoSettings)
+  const setTeamRepoSettings = C.useGitState(s => s.dispatch.setTeamRepoSettings)
   const _onBrowseGitRepo = (path: FsTypes.Path) => {
     FsConstants.makeActionForOpenPathInFilesTab(path)
   }

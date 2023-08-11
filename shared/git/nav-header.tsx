@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import * as Constants from '../constants/git'
 
 export const HeaderTitle = () => (
   <Kb.Box2
@@ -27,7 +26,7 @@ export const HeaderTitle = () => (
 )
 
 export const HeaderRightActions = () => {
-  const setError = Constants.useState(state => state.dispatch.setError)
+  const setError = C.useGitState(s => s.dispatch.setError)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
   const makePopup = React.useCallback(
