@@ -1,7 +1,6 @@
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as ChatTypes from './types/chat2'
 import * as ConfigConstants from './config'
-import * as ChatConstants from './chat2'
 import * as RouterConstants from './router2'
 import * as UsersConstants from './users'
 import * as GregorConstants from './gregor'
