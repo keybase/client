@@ -3,15 +3,15 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Platform from '../constants/platform'
 import * as Tabs from '../constants/tabs'
+import type * as C from '../constants'
 import {encryptTab} from '../constants/crypto'
 import {cryptoTab, displayTab} from '../constants/settings'
 import {keybaseFM} from '../constants/whats-new'
 import NewFeatureRow from './new-feature-row'
-import type {PathParam} from '../constants/router2'
 
 export type VersionProps = {
   seen: boolean
-  onNavigate: (props: PathParam) => void
+  onNavigate: (props: C.PathParam) => void
   onNavigateExternal: (url: string) => void
   onSwitchTab: (tab: Tabs.AppTab) => void
 }

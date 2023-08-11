@@ -4,7 +4,6 @@ import type * as Tabs from '../constants/tabs'
 import openURL from '../util/open-url'
 import {currentVersion, useState} from '../constants/whats-new'
 import {Current, Last, LastLast} from './versions'
-import type {PathParam} from '../constants/router2'
 import WhatsNew from '.'
 
 type OwnProps = {
@@ -43,7 +42,7 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
     LastLast,
     onBack,
     // Navigate then handle setting seen state and closing the modal (desktop only)
-    onNavigate: (props: PathParam) => {
+    onNavigate: (props: C.PathParam) => {
       navigateAppend(props)
       onBack()
     },

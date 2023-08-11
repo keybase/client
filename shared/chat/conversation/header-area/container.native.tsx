@@ -1,4 +1,5 @@
 import * as Constants from '../../../constants/chat2'
+import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import type * as Types from '../../../constants/types/chat2'
@@ -7,7 +8,6 @@ import {DebugChatDumpContext} from '../../../constants/chat2/debug'
 import {HeaderLeftArrow} from '../../../common-adapters/header-hoc'
 import {Keyboard} from 'react-native'
 import {getRouteParamsFromRoute} from '../../../router-v2/route-params'
-import {getVisiblePath} from '../../../constants/router2'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -93,7 +93,7 @@ const HeaderBranchContainer = React.memo(function HeaderBranchContainer() {
 export default HeaderBranchContainer
 
 const BadgeHeaderLeftArray = ({conversationIDKey, ...rest}: any) => {
-  const visiblePath = getVisiblePath()
+  const visiblePath = C.getVisiblePath()
   const onTopOfInbox = visiblePath?.[(visiblePath.length ?? 0) - 2]?.name === 'chatRoot'
   const badgeCountsChanged = Constants.useState(s => s.badgeCountsChanged)
   const badgeNumber = React.useMemo(() => {

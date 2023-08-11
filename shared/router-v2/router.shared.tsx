@@ -1,5 +1,5 @@
 import * as ConfigConstants from '../constants/config'
-import * as Constants from '../constants/router2'
+import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as DarkMode from '../constants/darkmode'
 import * as FsConstants from '../constants/fs'
@@ -22,15 +22,15 @@ const useConnectNavToRedux = () => {
   const setNavigatorExists = ConfigConstants.useConfigState(s => s.dispatch.setNavigatorExists)
   React.useEffect(() => {
     if (!setNavOnce.current) {
-      if (Constants.navigationRef_.isReady()) {
+      if (RouterConstants.navigationRef_.isReady()) {
         setNavOnce.current = true
         setNavigatorExists()
 
         if (__DEV__) {
           // @ts-ignore
-          window.DEBUGNavigator = Constants.navigationRef_.current
+          window.DEBUGNavigator = RouterConstants.navigationRef_.current
           // @ts-ignore
-          window.DEBUGRouter2 = Constants
+          window.DEBUGRouter2 = RouterConstants
         }
       }
     }
@@ -73,8 +73,8 @@ const useIsDarkChanged = () => {
 const useInitialState = () => {
   const darkChanged = useIsDarkChanged()
   return darkChanged
-    ? Constants.navigationRef_?.isReady()
-      ? Constants.navigationRef_.getRootState()
+    ? RouterConstants.navigationRef_?.isReady()
+      ? RouterConstants.navigationRef_.getRootState()
       : undefined
     : undefined
 }
@@ -93,9 +93,9 @@ export const useShared = () => {
     appState.current = AppState.NEEDS_INIT
   }
 
-  const setNavState = Constants.useState(s => s.dispatch.setNavState)
+  const setNavState = RouterConstants.useState(s => s.dispatch.setNavState)
   const onStateChange = React.useCallback(() => {
-    const ns = Constants.getRootState()
+    const ns = RouterConstants.getRootState()
     setNavState(ns)
   }, [setNavState])
 
