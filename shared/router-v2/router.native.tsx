@@ -1,7 +1,7 @@
+import * as C from '../constants'
 import * as Constants from '../constants/router2'
 import * as PushConstants from '../constants/push'
 import * as NotifConstants from '../constants/notifications'
-import * as DarkMode from '../constants/darkmode'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
@@ -300,8 +300,8 @@ const RootStack = createNativeStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
 
 const useBarStyle = () => {
-  const darkModePreference = DarkMode.useDarkModeState(s => s.darkModePreference)
-  const isDarkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
+  const darkModePreference = C.useDarkModeState(s => s.darkModePreference)
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
 
   if (!darkModePreference || darkModePreference === 'system') {
     return 'default'

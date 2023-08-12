@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Container from '../util/container'
-import * as DarkMode from '../constants/darkmode'
 import * as FsTypes from '../constants/types/fs'
 import * as Kb from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -338,12 +337,10 @@ const MenubarRender = (p: Props) => {
   const [lastDM, setLastDM] = React.useState(p.darkMode)
   if (p.darkMode !== lastDM) {
     setLastDM(p.darkMode)
-    DarkMode.useDarkModeState
-      .getState()
-      .dispatch.setDarkModePreference(p.darkMode ? 'alwaysDark' : 'alwaysLight')
+    C.useDarkModeState.getState().dispatch.setDarkModePreference(p.darkMode ? 'alwaysDark' : 'alwaysLight')
   }
 
-  const darkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
+  const darkMode = C.useDarkModeState(s => s.isDarkMode())
 
   let content: React.ReactNode = null
   if (daemonHandshakeState === 'done' && loggedIn) {

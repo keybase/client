@@ -1,10 +1,10 @@
 // Entry point to the chrome part of the app
 import Main from '../../app/main.desktop'
-// order of the above 2 must NOT change. needed for patching / hot loading to be correct
+// order of the above must NOT change. needed for patching / hot loading to be correct
+import * as C from '../../constants'
 import * as WaitingConstants from '../../constants/waiting'
 import * as ConfigConstants from '../../constants/config'
 import * as RemoteGen from '../../actions/remote-gen'
-import * as DarkMode from '../../constants/darkmode'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import RemoteProxies from '../remote/proxies.desktop'
@@ -25,7 +25,7 @@ const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions
 const darkModeFromNode = window.location.search.match(/darkModePreference=(alwaysLight|alwaysDark|system)/)
 const isDarkFromNode = window.location.search.match(/isDarkMode=(0|1)/)
 
-const {setDarkModePreference, setSystemDarkMode} = DarkMode.useDarkModeState.getState().dispatch
+const {setDarkModePreference, setSystemDarkMode} = C.useDarkModeState.getState().dispatch
 
 if (darkModeFromNode) {
   const dm = darkModeFromNode[1]
@@ -125,7 +125,7 @@ const FontLoader = () => (
 let store: any
 
 const DarkCSSInjector = () => {
-  const isDark = DarkMode.useDarkModeState(s => s.isDarkMode())
+  const isDark = C.useDarkModeState(s => s.isDarkMode())
   const [lastIsDark, setLastIsDark] = React.useState<boolean | undefined>()
   if (lastIsDark !== isDark) {
     setLastIsDark(isDark)

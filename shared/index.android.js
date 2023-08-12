@@ -12,8 +12,7 @@ enableMapSet()
 // Add scaleY back to work around its removal in React Native 0.70. needed for list perf issues, see list-area.native
 ViewReactNativeStyleAttributes.scaleY = true
 
-const {setSystemSupported, setSystemDarkMode, setDarkModePreference} =
-  DarkMode.useDarkModeState.getState().dispatch
+const {setSystemSupported, setSystemDarkMode, setDarkModePreference} = DarkMode.useState.getState().dispatch
 setSystemDarkMode(Appearance.getColorScheme() === 'dark')
 setSystemSupported(darkModeSupported === '1')
 try {

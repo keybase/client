@@ -9,8 +9,7 @@ import * as DarkMode from './constants/darkmode'
 import {enableMapSet} from 'immer'
 enableMapSet()
 
-const {setSystemSupported, setSystemDarkMode, setDarkModePreference} =
-  DarkMode.useDarkModeState.getState().dispatch
+const {setSystemSupported, setSystemDarkMode, setDarkModePreference} = DarkMode.useState.getState().dispatch
 setSystemDarkMode(Appearance.getColorScheme() === 'dark')
 setSystemSupported(darkModeSupported === '1')
 try {

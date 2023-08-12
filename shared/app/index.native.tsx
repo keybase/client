@@ -1,9 +1,8 @@
+import * as C from '../constants'
 import * as Styles from '../styles'
 import * as WaitingConstants from '../constants/waiting'
 import * as ConfigConstants from '../constants/config'
-import * as C from '../constants'
 import * as React from 'react'
-import * as DarkMode from '../constants/darkmode'
 import {chatDebugEnabled} from '../constants/chat2/debug'
 import Main from './main.native'
 import makeStore from '../store/configure-store'
@@ -28,7 +27,7 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
   const {children} = p
   const dispatch = useDispatch()
   const appStateRef = React.useRef('active')
-  const {setSystemDarkMode} = DarkMode.useDarkModeState.getState().dispatch
+  const {setSystemDarkMode} = C.useDarkModeState.getState().dispatch
   const handleAppLink = C.useDeepLinksState(s => s.dispatch.handleAppLink)
   const setMobileAppState = ConfigConstants.useConfigState(s => s.dispatch.setMobileAppState)
   React.useEffect(() => {
@@ -75,7 +74,7 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
     }
   }, [dispatch, setSystemDarkMode, handleAppLink, setMobileAppState])
 
-  const darkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
+  const darkMode = C.useDarkModeState(s => s.isDarkMode())
   return <Styles.DarkModeContext.Provider value={darkMode}>{children}</Styles.DarkModeContext.Provider>
 }
 

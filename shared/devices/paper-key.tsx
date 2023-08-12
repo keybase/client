@@ -1,4 +1,3 @@
-import * as Constants from '../constants/devices'
 import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
@@ -25,7 +24,7 @@ const PaperKey = () => {
           },
         },
         params: undefined,
-        waitingKey: Constants.waitingKey,
+        waitingKey: C.devicesWaitingKey,
       },
       Container.dummyListenerApi
     )
@@ -75,7 +74,7 @@ const PaperKey = () => {
           label="Done"
           onClick={clearModals}
           disabled={!wroteItDown}
-          waitingKey={Constants.waitingKey}
+          waitingKey={C.devicesWaitingKey}
         />
       </Kb.Box2>
     </Kb.Box2>

@@ -839,7 +839,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       if (get().staticConfig) {
         return
       }
-      const {handshakeVersion, dispatch} = ConfigConstants.useDaemonState.getState()
+      const {handshakeVersion, dispatch} = C.useDaemonState.getState()
       const f = async () => {
         const name = 'chat.loadStatic'
         dispatch.wait(name, handshakeVersion, true)

@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
@@ -304,7 +305,7 @@ export const initPushListener = () => {
 
   Constants.useState.getState().dispatch.initialPermissionsCheck()
 
-  ConfigConstants.useDaemonState.subscribe((s, old) => {
+  C.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return
 
     const f = async () => {

@@ -1,6 +1,5 @@
 import * as C from '.'
 import * as ChatTypes from './types/chat2'
-import * as DarkMode from './darkmode'
 import * as DeviceTypes from './types/devices'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Followers from './followers'
@@ -22,7 +21,6 @@ import {defaultUseNativeFrame, runMode, isMobile} from './platform'
 import {noConversationIDKey} from './types/chat2/common'
 import {type CommonResponseHandler} from '../engine/types'
 import {useAvatarState} from '../common-adapters/avatar-zus'
-import {useDaemonState} from './daemon'
 import {initPlatformListener} from '../actions/platform-specific'
 import {mapGetEnsureValue} from '../util/map'
 
@@ -517,7 +515,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           get().dispatch.windowShown(action.payload.component)
           break
         case RemoteGen.setSystemDarkMode:
-          DarkMode.useDarkModeState.getState().dispatch.setSystemDarkMode(action.payload.dark)
+          C.useDarkModeState.getState().dispatch.setSystemDarkMode(action.payload.dark)
           break
         case RemoteGen.previewConversation:
           {
@@ -760,7 +758,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     onEngineConnected: () => {
-      useDaemonState.getState().dispatch.startHandshake()
+      C.useDaemonState.getState().dispatch.startHandshake()
 
       // The startReachability RPC call both starts and returns the current
       // reachability state. Then we'll get updates of changes from this state via reachabilityChanged.
@@ -793,7 +791,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         await logger.dump()
       }
       Z.ignorePromise(f())
-      useDaemonState.getState().dispatch.setError(new Error('Disconnected'))
+      C.useDaemonState.getState().dispatch.setError(new Error('Disconnected'))
     },
     onEngineIncoming: action => {
       switch (action.type) {
@@ -947,7 +945,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           s.justRevokedSelf = name
           s.revokedTrigger++
         })
-        useDaemonState.getState().dispatch.loadDaemonAccounts()
+        C.useDaemonState.getState().dispatch.loadDaemonAccounts()
       }
     },
     setAccounts: a => {
@@ -1092,8 +1090,8 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       // Re-get info about our account if you log in/we're done handshaking/became reachable
       if (r === RPCTypes.Reachable.yes) {
         // not in waiting state
-        if (useDaemonState.getState().handshakeWaiters.size === 0) {
-          Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(true))
+        if (C.useDaemonState.getState().handshakeWaiters.size === 0) {
+          Z.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(true))
         }
       }
 
@@ -1131,8 +1129,8 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
       // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
       if (!causedByStartup || !loggedIn) {
-        Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
-        useDaemonState.getState().dispatch.loadDaemonAccounts()
+        Z.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
+        C.useDaemonState.getState().dispatch.loadDaemonAccounts()
       }
 
       const {loadOnStart} = get().dispatch
@@ -1324,6 +1322,5 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
   }
 })
 
-export {useDaemonState, maxHandshakeTries} from './daemon'
 export {useFollowerState} from './followers'
 export {useLogoutState} from './logout'

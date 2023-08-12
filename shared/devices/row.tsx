@@ -1,4 +1,3 @@
-import * as Constants from '../constants/devices'
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -16,7 +15,7 @@ export const NewContext = React.createContext(new Set())
 
 export default (ownProps: OwnProps) => {
   const {deviceID, firstItem} = ownProps
-  const device = Constants.useState(s => s.deviceMap.get(deviceID))
+  const device = C.useDevicesState(s => s.deviceMap.get(deviceID))
   if (!device) return null
 
   const isNew = React.useContext(NewContext).has(deviceID)
