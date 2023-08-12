@@ -33,7 +33,7 @@ export default (ownProps: OwnProps) => {
   // TODO remove
   const m = Constants.useContext(s => s.messageMap.get(ordinal))
   const message = m?.type === 'text' || m?.type === 'attachment' ? m : emptyMessage
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const yourMessage = message.author === you
   const meta = Constants.useContext(s => s.meta)
   const participantInfo = Constants.useContext(s => s.participants)

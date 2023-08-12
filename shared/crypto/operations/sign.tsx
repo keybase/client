@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Constants from '../../constants/crypto'
 import * as Container from '../../util/container'
@@ -9,7 +10,7 @@ import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from 
 const operation = Constants.Operations.Sign
 
 export const SignOutputBanner = () => {
-  const outputType = Constants.useState(s => s.sign.outputType)
+  const outputType = C.useCryptoState(s => s.sign.outputType)
   return (
     <OutputInfoBanner operation={operation}>
       <Kb.Text type="BodySmallSemibold" center={true}>
@@ -28,7 +29,7 @@ export const SignOutputBanner = () => {
 }
 
 export const SignInput = () => {
-  const resetOperation = Constants.useState(s => s.dispatch.resetOperation)
+  const resetOperation = C.useCryptoState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
       if (Container.isMobile) {

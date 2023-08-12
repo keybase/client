@@ -1,4 +1,4 @@
-import {useRouterState} from '.'
+import * as C from '.'
 import * as ConfigConstants from './config'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as RPCTypes from './types/rpc-gen'
@@ -564,7 +564,7 @@ export const resetBannerType = (s: State, path: Types.Path): Types.ResetBannerTy
     return Types.ResetBannerNoOthersType.None
   }
 
-  const you = ConfigConstants.useCurrentUserState.getState().username
+  const you = C.useCurrentUserState.getState().username
   if (resetParticipants.findIndex(username => username === you) >= 0) {
     return Types.ResetBannerNoOthersType.Self
   }
@@ -886,7 +886,7 @@ export const getPathStatusIconInMergeProps = (
 
 export const makeActionsForDestinationPickerOpen = (index: number, path: Types.Path) => {
   useState.getState().dispatch.setDestinationPickerParentPath(index, path)
-  useRouterState.getState().dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
+  C.useRouterState.getState().dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
 }
 
 export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
@@ -895,7 +895,7 @@ export const makeActionForOpenPathInFilesTab = (
   // TODO: remove the second arg when we are done with migrating to nav2
   path: Types.Path
 ) => {
-  useRouterState.getState().dispatch.navigateAppend({props: {path}, selected: 'fsRoot'})
+  C.useRouterState.getState().dispatch.navigateAppend({props: {path}, selected: 'fsRoot'})
 }
 
 export const putActionIfOnPathForNav1 = (action: TypedActions) => action
@@ -1606,7 +1606,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               const tlfType = rpcFolderTypeToTlfType(folder.folderType)
               const tlfName =
                 tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
-                  ? tlfToPreferredOrder(folder.name, ConfigConstants.useCurrentUserState.getState().username)
+                  ? tlfToPreferredOrder(folder.name, C.useCurrentUserState.getState().username)
                   : folder.name
               tlfType &&
                 payload[tlfType].set(
@@ -1898,7 +1898,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           const tlfType = rpcFolderTypeToTlfType(folder.folderType)
           const tlfName =
             tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
-              ? tlfToPreferredOrder(folder.name, ConfigConstants.useCurrentUserState.getState().username)
+              ? tlfToPreferredOrder(folder.name, C.useCurrentUserState.getState().username)
               : folder.name
 
           if (tlfType) {
@@ -1927,8 +1927,8 @@ export const useState = Z.createZustand<State>((set, get) => {
             const users = error.fields?.filter((elem: any) => elem.key === 'usernames')
             const usernames = users?.map((elem: any) => elem.value)
             // Don't leave the user on a broken FS dir screen.
-            useRouterState.getState().dispatch.navigateUp()
-            useRouterState.getState().dispatch.navigateAppend({
+            C.useRouterState.getState().dispatch.navigateUp()
+            C.useRouterState.getState().dispatch.navigateAppend({
               props: {source: 'newFolder', usernames},
               selected: 'contactRestricted',
             })
@@ -2530,7 +2530,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
       })
-      useRouterState.getState().dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
+      C.useRouterState.getState().dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
     },
     showMoveOrCopy: initialDestinationParentPath => {
       set(s => {
@@ -2545,7 +2545,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
       })
 
-      useRouterState.getState().dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
+      C.useRouterState.getState().dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
     },
     startManualConflictResolution: tlfPath => {
       const f = async () => {

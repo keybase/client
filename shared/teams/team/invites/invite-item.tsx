@@ -1,7 +1,7 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/teams'
 import type * as Types from '../../../constants/types/teams'
 
@@ -20,7 +20,7 @@ export const InviteItem = ({
   style?: Styles.StylesCrossPlatform
   teamID: Types.TeamID
 }) => {
-  const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
+  const yourUsername = C.useCurrentUserState(s => s.username)
   const [waitingForExpire, setWaitingForExpire] = React.useState(false)
   const removePendingInvite = Constants.useState(s => s.dispatch.removePendingInvite)
   const onExpire = () => {

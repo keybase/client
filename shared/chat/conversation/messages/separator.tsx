@@ -1,6 +1,6 @@
+import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import * as ConfigConstants from '../../../constants/config'
 import * as ProfileConstants from '../../../constants/profile'
 import * as Constants from '../../../constants/chat2'
 import * as TrackerConstants from '../../../constants/tracker2'
@@ -193,7 +193,7 @@ const useReduxFast = (trailingItem: Types.Ordinal, leadingItem: Types.Ordinal) =
     trailingItem = leadingItem
     leadingItem = sm.get(trailingItem) ?? 0
   }
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const orangeOrdinal = Constants.useContext(s => s.orangeLine)
   return Constants.useContext(s => {
     let ordinal = trailingItem

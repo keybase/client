@@ -1,10 +1,10 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
-import * as C from '../../../../constants'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type * as Types from '../../../../constants/types/chat2'
 import LocationMap from '../../../location-map'
@@ -14,7 +14,7 @@ type Props = {conversationIDKey: Types.ConversationIDKey}
 
 const LocationPopup = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
   const location = Constants.useState(s => s.lastCoord)
   const locationDenied = Constants.useContext(

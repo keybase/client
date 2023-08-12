@@ -1,5 +1,5 @@
+import * as C from '../constants'
 import * as React from 'react'
-import * as ConfigConstants from '../constants/config'
 import * as ProfileConstants from '../constants/profile'
 import * as TrackerConstants from '../constants/tracker2'
 import * as UsersConstants from '../constants/users'
@@ -258,7 +258,7 @@ const Usernames = React.memo(
     const colorBroken = p.colorBroken ?? true
     const underline = p.underline ?? true
     const withProfileCardPopup = p.withProfileCardPopup ?? true
-    const you = ConfigConstants.useCurrentUserState(s => s.username)
+    const you = C.useCurrentUserState(s => s.username)
 
     const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
     const containerStyle2: Styles.StylesCrossPlatform = inline

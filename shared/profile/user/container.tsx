@@ -1,12 +1,11 @@
-import Profile2, {type BackgroundColorType} from '.'
 import * as C from '../../constants'
-import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/tracker2'
 import * as ProfileConstants from '../../constants/profile'
 import * as Followers from '../../constants/followers'
 import * as Styles from '../../styles'
 import type * as Types from '../../constants/types/tracker2'
 import {memoize} from '../../util/memoize'
+import Profile2, {type BackgroundColorType} from '.'
 
 export type OwnProps = {username: string}
 
@@ -28,7 +27,7 @@ const filterWebOfTrustEntries = memoize(
 const Connected = (ownProps: OwnProps) => {
   const {username} = ownProps
   const d = Constants.useState(s => Constants.getDetails(s, username))
-  const myName = ConfigConstants.useCurrentUserState(s => s.username)
+  const myName = C.useCurrentUserState(s => s.username)
   const notAUser = d.state === 'notAUserYet'
   const userIsYou = username === myName
 

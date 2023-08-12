@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as ConfigConstants from '../../constants/config'
 import * as UsersConstants from '../../constants/users'
 import * as FsTypes from '../../constants/types/fs'
 import * as ChatConstants from '../../constants/chat2'
@@ -20,7 +19,7 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
   const serviceUsername = props.services[props.resultForService]
 
   // action button specific definitions
-  const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
+  const myUsername = C.useCurrentUserState(s => s.username)
   const blocked = UsersConstants.useState(s => s.blockMap.get(keybaseUsername || '')?.chatBlocked)
   const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
 

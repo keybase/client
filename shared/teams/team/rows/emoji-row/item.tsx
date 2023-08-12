@@ -1,3 +1,4 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
@@ -5,7 +6,6 @@ import * as ChatTypes from '../../../../constants/types/chat2'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/teams'
 import * as Kb from '../../../../common-adapters'
-import * as ConfigConstants from '../../../../constants/config'
 import * as dateFns from 'date-fns'
 import type * as TeamTypes from '../../../../constants/types/teams'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../../../util/emoji'
@@ -23,7 +23,7 @@ type OwnProps = {
 const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji, false)
   const nav = Container.useSafeNavigation()
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const canManageEmoji = Constants.useState(s => Constants.getCanPerformByID(s, teamID).manageEmojis)
   const deleteOtherEmoji = Constants.useState(s => Constants.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)

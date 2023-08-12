@@ -1,8 +1,7 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as ConfigConstants from '../../constants/config'
 import * as Types from '../../constants/types/fs'
-import * as C from '../../constants'
 import openUrl from '../../util/open-url'
 
 type Props = {
@@ -19,7 +18,7 @@ const getTlfName = (parsedPath: Types.ParsedPath): string => {
 const PublicBanner = ({path}: Props) => {
   const isWritable = C.useFSState(s => C.getPathItem(s.pathItems, path).writable)
   const lastPublicBannerClosedTlf = C.useFSState(s => s.lastPublicBannerClosedTlf)
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
 
   const setLastPublicBannerClosedTlf = C.useFSState(s => s.dispatch.setLastPublicBannerClosedTlf)
 

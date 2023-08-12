@@ -1,4 +1,5 @@
 // Inside tracker we use an embedded Avatar which is connected.
+import * as C from '../constants'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Constants from '../constants/tracker2'
 import * as UsersConstants from '../constants/users'
@@ -35,7 +36,7 @@ const RemoteContainer = () => {
   useAvatarState(s => s.dispatch.replace)(avatarRefreshCounter)
   Followers.useFollowerState(s => s.dispatch.replace)(followers, following)
   UsersConstants.useState(s => s.dispatch.replace)(infoMap, blockMap)
-  ConfigConstants.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
+  C.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
   ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
   Constants.useState(s => s.dispatch.replace)(tracker2.usernameToDetails)
 

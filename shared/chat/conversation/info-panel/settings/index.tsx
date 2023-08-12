@@ -1,10 +1,9 @@
-import * as ConfigConstants from '../../../../constants/config'
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
-import * as C from '../../../../constants'
 import * as Styles from '../../../../styles'
 import * as TeamConstants from '../../../../constants/teams'
 import MinWriterRole from './min-writer-role'
@@ -17,7 +16,7 @@ type SettingsPanelProps = {conversationIDKey: Types.ConversationIDKey; isPreview
 
 const SettingsPanel = (props: SettingsPanelProps) => {
   const {conversationIDKey, isPreview} = props
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const meta = Constants.useContext(s => s.meta)
   const {status, teamname, teamType, channelname, teamID} = meta
   const yourOperations = TeamConstants.useState(s =>

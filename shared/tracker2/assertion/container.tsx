@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
 import * as ProfileConstants from '../../constants/profile'
-import * as ConfigConstants from '../../constants/config'
 import type * as Types from '../../constants/types/tracker2'
 import Assertion from '.'
 import openUrl from '../../util/open-url'
@@ -37,7 +36,7 @@ export default (ownProps: OwnProps) => {
   let a = Constants.noAssertion
   let notAUser = false
   let stellarHidden = false
-  const isYours = ConfigConstants.useCurrentUserState(s => ownProps.username === s.username)
+  const isYours = C.useCurrentUserState(s => ownProps.username === s.username)
   a = Constants.useState(s => {
     if (ownProps.isSuggestion) {
       a = s.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) || Constants.noAssertion

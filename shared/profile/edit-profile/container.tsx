@@ -1,11 +1,10 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
 import * as ProfileConstants from '../../constants/profile'
-import * as ConfigConstants from '../../constants/config'
 import EditProfile from '.'
 
 export default () => {
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const d = Constants.useState(s => Constants.getDetails(s, username))
   const bio = d.bio || ''
   const fullname = d.fullname || ''

@@ -1,8 +1,8 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
-import * as ConfigConstants from '../../../../constants/config'
 import * as Styles from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
@@ -60,7 +60,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
     return {isDecryptingSnippet, snippet, snippetDecoration}
   }, shallowEqual)
 
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const participantInfo = Constants.useContext(s => s.participants)
   const navigateToThread = Constants.useContext(s => s.dispatch.navigateToThread)
   const participants = Constants.useContext(s => {
@@ -155,7 +155,7 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   const layoutIsTeam = React.useContext(IsTeamContext)
   const participants = React.useContext(ParticipantsContext)
   const isMuted = Constants.useContext(s => s.muted)
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const isLocked = Constants.useContext(s => {
     const {meta} = s
     const isLocked = meta.rekeyers.has(you) || meta.rekeyers.size > 0 || !!meta.wasFinalizedBy

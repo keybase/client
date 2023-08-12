@@ -8,7 +8,6 @@ import * as Constants from '../../../constants/teams'
 import * as UsersConstants from '../../../constants/users'
 import * as ProfileConstants from '../../../constants/profile'
 import * as ChatConstants from '../../../constants/chat2'
-import * as ConfigConstants from '../../../constants/config'
 import MenuHeader from '../../team/rows/menu-header.new'
 
 type Props = {
@@ -39,7 +38,7 @@ const ChannelMemberRow = (props: Props) => {
   const teamMemberInfo = Constants.useState(
     s => s.teamDetails.get(teamID)?.members?.get(username) ?? Constants.initialMemberInfo
   )
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type

@@ -2,16 +2,15 @@ import * as React from 'react'
 import * as C from '../../constants'
 import * as Container from '../../util/container'
 import * as DevicesConstants from '../../constants/devices'
-import * as ConfigConstants from '../../constants/config'
 import CodePage2 from '.'
 
 const CodePageContainer = () => {
-  const storeDeviceName = ConfigConstants.useCurrentUserState(s => s.deviceName)
+  const storeDeviceName = C.useCurrentUserState(s => s.deviceName)
   const currentDeviceAlreadyProvisioned = !!storeDeviceName
   // we either have a name for real or we asked on a previous screen
   const provisionDeviceName = C.useProvisionState(s => s.deviceName)
   const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
-  const deviceID = ConfigConstants.useCurrentUserState(s => s.deviceID)
+  const deviceID = C.useCurrentUserState(s => s.deviceID)
   const currentDevice =
     DevicesConstants.useState(s => s.deviceMap.get(deviceID)) ?? DevicesConstants.emptyDevice
   const error = C.useProvisionState(s => s.error)

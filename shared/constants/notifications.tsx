@@ -1,3 +1,4 @@
+import * as C from '.'
 import * as Z from '../util/zustand'
 import * as FsConstants from './fs'
 import * as ConfigConstants from './config'
@@ -70,7 +71,7 @@ const badgeStateToBadgeCounts = (bs: RPCTypes.BadgeState) => {
   revokedDevices.forEach(d => allDeviceChanges.add(d))
 
   // don't see badges related to this device
-  const deviceID = ConfigConstants.useCurrentUserState.getState().deviceID
+  const deviceID = C.useCurrentUserState.getState().deviceID
   counts.set(Tabs.devicesTab, allDeviceChanges.size - (allDeviceChanges.has(deviceID) ? 1 : 0))
   counts.set(Tabs.chatTab, bs.smallTeamBadgeCount + bs.bigTeamBadgeCount)
   counts.set(Tabs.gitTab, newGitRepoGlobalUniqueIDs.length)

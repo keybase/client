@@ -92,7 +92,7 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
 const useRevoke = (deviceID = '') => {
   const d = Constants.useState(s => s.deviceMap.get(deviceID))
   const load = Constants.useState(s => s.dispatch.load)
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const wasCurrentDevice = d?.currentDevice ?? false
   const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   const deviceName = d?.name ?? ''
@@ -139,7 +139,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp
 
-  const actingDevice = ConfigConstants.useCurrentUserState(s => s.deviceID)
+  const actingDevice = C.useCurrentUserState(s => s.deviceID)
   Container.useOnMountOnce(() => {
     const f = async () => {
       const tlfs = await loadEndangeredTLF(actingDevice, selectedDeviceID)

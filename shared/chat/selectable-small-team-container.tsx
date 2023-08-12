@@ -1,4 +1,4 @@
-import * as ConfigConstants from '../constants/config'
+import * as C from '../constants'
 import * as Constants from '../constants/chat2'
 import type * as Types from '../constants/types/chat2'
 import SelectableSmallTeam from './selectable-small-team'
@@ -20,7 +20,7 @@ export default (ownProps: OwnProps) => {
   const _hasUnread = Constants.useConvoState(conversationIDKey, s => s.unread > 0)
   const _meta = Constants.useConvoState(conversationIDKey, s => s.meta)
   const _participantInfo = Constants.useConvoState(conversationIDKey, s => s.participants)
-  const _username = ConfigConstants.useCurrentUserState(s => s.username)
+  const _username = C.useCurrentUserState(s => s.username)
   const isMuted = Constants.useConvoState(conversationIDKey, s => s.muted)
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
   const styles = Constants.getRowStyles(isSelected, _hasUnread)

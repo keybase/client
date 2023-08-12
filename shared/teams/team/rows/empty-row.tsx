@@ -1,4 +1,4 @@
-import * as ConfigConstants from '../../../constants/config'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as ChatConstants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
@@ -83,7 +83,7 @@ const EmptyRow = (props: Props) => {
   const {conversationIDKey, teamID} = props
   const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const notIn = teamMeta.role === 'none' || props.notChannelMember
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const onSecondaryAction = useSecondaryAction(props)
   const addToTeam = Constants.useState(s => s.dispatch.addToTeam)
   const joinConversation = ChatConstants.useConvoState(

@@ -1,3 +1,4 @@
+import * as C from '.'
 import {useRouterState} from '.'
 import * as RPCTypes from './types/rpc-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
@@ -5,7 +6,7 @@ import * as WaitingConstants from './waiting'
 import openURL from '../util/open-url'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
-import {useCurrentUserState, useConfigState} from './config'
+import {useConfigState} from './config'
 import * as Tabs from './tabs'
 import logger from '../logger'
 import {pprofDir} from '../constants/platform'
@@ -142,7 +143,7 @@ export const useState = Z.createZustand<State>(set => {
     },
     deleteAccountForever: passphrase => {
       const f = async () => {
-        const username = useCurrentUserState.getState().username
+        const username = C.useCurrentUserState.getState().username
 
         if (!username) {
           throw new Error('Unable to delete account: no username set')

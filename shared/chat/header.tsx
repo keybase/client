@@ -1,9 +1,9 @@
+import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
 import * as UsersConstants from '../constants/users'
 import * as TeamConstants from '../constants/teams'
-import * as ConfigConstants from '../constants/config'
 import * as Platforms from '../constants/platform'
 import * as Styles from '../styles'
 import type * as Types from '../constants/types/chat2'
@@ -22,7 +22,7 @@ const Header = (props: Props) => {
 
 const Header2 = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
   const participantInfo = Constants.useContext(s => s.participants)
   const meta = Constants.useContext(s => s.meta)

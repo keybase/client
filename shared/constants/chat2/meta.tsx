@@ -1,8 +1,8 @@
 // Meta manages the metadata about a conversation. Participants, isMuted, reset people, etc. Things that drive the inbox
+import * as C from '..'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as Types from '../types/chat2'
-import * as ConfigConstants from '../config'
 import * as TeamConstants from '../teams'
 import * as Message from './message'
 import type {ConversationMeta, PinnedMessageInfo} from '../types/chat2/meta'
@@ -272,8 +272,8 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem): Conv
   let pinnedMsg: PinnedMessageInfo | undefined
   if (i.pinnedMsg) {
     const CSConstants = require('./convostate')
-    const username = ConfigConstants.useCurrentUserState.getState().username
-    const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
+    const username = C.useCurrentUserState.getState().username
+    const devicename = C.useCurrentUserState.getState().deviceName
     const getLastOrdinal = () => CSConstants.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? 0
     const message = Message.uiMessageToMessage(
       conversationIDKey,

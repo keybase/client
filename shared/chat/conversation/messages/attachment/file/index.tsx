@@ -6,7 +6,7 @@ import * as Styles from '../../../../../styles'
 import type * as Types from '../../../../../constants/types/chat2'
 import type * as CryptoTypes from '../../../../../constants/types/crypto'
 import {getEditStyle, ShowToastAfterSaving} from '../shared'
-import {isPathSaltpackEncrypted, isPathSaltpackSigned, Operations} from '../../../../../constants/crypto'
+import * as CryptoConstants from '../../../../../constants/crypto'
 
 type Props = {
   toggleMessageMenu: () => void
@@ -29,10 +29,10 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
   const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(props.transferState)
   const {isSaltpackFile, isEditing, toggleMessageMenu} = props
   const iconType = isSaltpackFile ? 'icon-file-saltpack-32' : 'icon-file-32'
-  const operation = isPathSaltpackEncrypted(props.fileName)
-    ? Operations.Decrypt
-    : isPathSaltpackSigned(props.fileName)
-    ? Operations.Verify
+  const operation = CryptoConstants.isPathSaltpackEncrypted(props.fileName)
+    ? CryptoConstants.Operations.Decrypt
+    : CryptoConstants.isPathSaltpackSigned(props.fileName)
+    ? CryptoConstants.Operations.Verify
     : undefined
   const operationTitle = captialize(operation)
   return (
@@ -177,7 +177,7 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.xtiny,
       },
       titleStyle: {flex: 1},
-    } as const)
+    }) as const
 )
 
 export default FileAttachment

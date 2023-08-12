@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as Constants from '../../../constants/tracker2'
 import * as ProfileConstants from '../../../constants/profile'
 import * as Followers from '../../../constants/followers'
-import * as ConfigConstants from '../../../constants/config'
 import * as FsTypes from '../../../constants/types/fs'
 import Actions from '.'
 
@@ -18,7 +17,7 @@ export default (ownProps: OwnProps) => {
   const isBot = C.useBotsState(s => s.featuredBotsMap.has(username))
 
   const _guiID = d.guiID
-  const _you = ConfigConstants.useCurrentUserState(s => s.username)
+  const _you = C.useCurrentUserState(s => s.username)
   const blocked = d.blocked
   const hidFromFollowers = d.hidFromFollowers
   const state = d.state

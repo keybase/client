@@ -1,4 +1,4 @@
-import * as ConfigConstants from '../../../constants/config'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
@@ -22,7 +22,7 @@ const AddSubteamMembers = () => {
       ? setTeamWizardSubteamMembers([...selectedMembers])
       : startAddMembersWizard(Types.newTeamWizardTeamID)
 
-  const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
+  const yourUsername = C.useCurrentUserState(s => s.username)
   const parentTeamID = Constants.useState(s => s.newTeamWizard.parentTeamID ?? Types.noTeamID)
   useTeamDetailsSubscribe(parentTeamID)
   const parentTeamName = Constants.useState(s => Constants.getTeamMeta(s, parentTeamID).teamname)

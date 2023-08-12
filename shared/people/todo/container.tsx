@@ -1,12 +1,11 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/people'
 import * as TrackerConstants from '../../constants/tracker2'
 import * as TeamsConstants from '../../constants/teams'
 import * as ProfileConstants from '../../constants/profile'
-import * as C from '../../constants'
 import * as SettingsConstants from '../../constants/settings'
-import * as ConfigConstants from '../../constants/config'
 import * as Tabs from '../../constants/tabs'
 import openURL from '../../util/open-url'
 import type * as Types from '../../constants/types/people'
@@ -96,7 +95,7 @@ const AvatarUserConnector = (props: TodoOwnProps) => {
 }
 
 const BioConnector = (props: TodoOwnProps) => {
-  const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
+  const myUsername = C.useCurrentUserState(s => s.username)
   const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const onConfirm = (username: string) => {
     // make sure we have tracker state & profile is up to date
@@ -107,7 +106,7 @@ const BioConnector = (props: TodoOwnProps) => {
 }
 
 const ProofConnector = (props: TodoOwnProps) => {
-  const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
+  const myUsername = C.useCurrentUserState(s => s.username)
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onConfirm = showUserProfile
   const onDismiss = useOnSkipTodo('proof')

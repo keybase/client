@@ -36,7 +36,7 @@ const Header = () => {
   const [showingMenu, setShowingMenu] = React.useState(false)
   const attachmentRef = React.useRef<Kb.Box2>(null)
   const getAttachmentRef = () => attachmentRef.current
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const fullname = TrackerConstants.useState(s => TrackerConstants.getDetails(s, username).fullname || '')
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onProfileClick = () => showUserProfile(username)
@@ -157,7 +157,7 @@ const hotKeys = Object.keys(keysMap)
 
 const TabBar = React.memo(function TabBar(props: Props) {
   const {navigation, state} = props
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const onHotKey = React.useCallback(
     (cmd: string) => {
       // @ts-ignore
@@ -212,7 +212,7 @@ const Tab = React.memo(function Tab(props: TabProps) {
   const {tab, index, isSelected, onSelectTab} = props
   const {label} = Tabs.desktopTabMeta[tab]
   const accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
-  const current = ConfigConstants.useCurrentUserState(s => s.username)
+  const current = C.useCurrentUserState(s => s.username)
   const setUserSwitching = ConfigConstants.useConfigState(s => s.dispatch.setUserSwitching)
   const login = ConfigConstants.useConfigState(s => s.dispatch.login)
   const onQuickSwitch = React.useMemo(

@@ -1,6 +1,6 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as ConfigConstants from '../../../../constants/config'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
@@ -114,7 +114,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
     return !!typers?.size
   })
 
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const hasUnread = Constants.useContext(s => s.unread > 0)
   const _draft = Constants.useContext(s => s.draft)
   const meta = Constants.useContext(s => s.meta)

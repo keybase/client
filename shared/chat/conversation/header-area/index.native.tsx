@@ -1,9 +1,8 @@
-import * as ConfigConstants from '../../../constants/config'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as ProfileConstants from '../../../constants/profile'
 import * as React from 'react'
-import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as UsersConstants from '../../../constants/users'
 import shallowEqual from 'shallowequal'
@@ -72,7 +71,7 @@ const ChannelHeader = () => {
 
 const emptyArray = new Array<string>()
 const UsernameHeader = () => {
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const infoMap = UsersConstants.useState(s => s.infoMap)
   const participantInfo = Constants.useContext(s => s.participants)
   const {participants, theirFullname} = Constants.useContext(s => {

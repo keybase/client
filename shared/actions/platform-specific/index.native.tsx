@@ -618,7 +618,7 @@ export const initPlatformListener = () => {
     s.dispatch.dynamic.tabLongPress = tab => {
       if (tab !== Tabs.peopleTab) return
       const accountRows = ConfigConstants.useConfigState.getState().configuredAccounts
-      const current = ConfigConstants.useCurrentUserState.getState().username
+      const current = C.useCurrentUserState.getState().username
       const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
       if (row) {
         ConfigConstants.useConfigState.getState().dispatch.setUserSwitching(true)

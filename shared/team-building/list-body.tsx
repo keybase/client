@@ -1,7 +1,7 @@
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Followers from '../constants/followers'
 import * as Kb from '../common-adapters'
-import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/team-building'
 import * as SettingsConstants from '../constants/settings'
 import * as Shared from './shared'
@@ -242,7 +242,7 @@ export const ListBody = (
   const contactsImported = SettingsConstants.useContactsState(s => s.importEnabled)
   const contactsPermissionStatus = SettingsConstants.useContactsState(s => s.permissionStatus)
 
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const following = Followers.useFollowerState(s => s.following)
 
   const maybeTeamDetails = TeamsConstants.useState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
@@ -440,5 +440,5 @@ const styles = Styles.styleSheetCreate(
         textAlign: 'center',
         ...Styles.padding(Styles.globalMargins.small),
       },
-    } as const)
+    }) as const
 )

@@ -1,5 +1,4 @@
-import {useRouterState} from '.'
-import * as ConfigConstants from '../constants/config'
+import * as C from '../constants'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as UsersConstants from './users'
 import * as RPCTypes from './types/rpc-gen'
@@ -8,6 +7,7 @@ import logger from '../logger'
 import type * as Types from './types/tracker2'
 import {RPCError} from '../util/errors'
 import {mapGetEnsureValue} from '../util/map'
+import {useRouterState} from '.'
 
 export const noDetails: Types.Details = {
   assertions: new Map(),
@@ -598,11 +598,11 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
         // if we mutated somehow reload ourselves and reget the suggestions
         case EngineGen.keybase1NotifyUsersUserChanged: {
-          if (ConfigConstants.useCurrentUserState.getState().uid !== action.payload.params.uid) {
+          if (C.useCurrentUserState.getState().uid !== action.payload.params.uid) {
             return
           }
           get().dispatch.load({
-            assertion: ConfigConstants.useCurrentUserState.getState().username,
+            assertion: C.useCurrentUserState.getState().username,
             forceDisplay: false,
             fromDaemon: false,
             guiID: generateGUIID(),

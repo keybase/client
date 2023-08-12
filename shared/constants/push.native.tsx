@@ -1,4 +1,4 @@
-import {useRouterState} from '.'
+import * as C from '.'
 import * as ProfileConstants from './profile'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
@@ -10,7 +10,7 @@ import logger from '../logger'
 import type * as Types from './types/push'
 import {isDevApplePushToken} from '../local-debug'
 import {isIOS} from './platform'
-import {useConfigState, useCurrentUserState, useLogoutState} from './config'
+import {useConfigState, useLogoutState} from './config'
 import {
   iosGetHasShownPushPrompt,
   androidRequestPushPermissions,
@@ -124,7 +124,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         const waitKey = 'push:deleteToken'
         useLogoutState.getState().dispatch.wait(waitKey, version, true)
         try {
-          const deviceID = useCurrentUserState.getState().deviceID
+          const deviceID = C.useCurrentUserState.getState().deviceID
           if (!deviceID) {
             logger.info('[PushToken] no device id')
             return
@@ -184,8 +184,8 @@ export const useState = Z.createZustand<State>((set, get) => {
               break
             case 'settings.contacts':
               if (useConfigState.getState().loggedIn) {
-                useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
-                useRouterState.getState().dispatch.navUpToScreen('peopleRoot')
+                C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
+                C.useRouterState.getState().dispatch.navUpToScreen('peopleRoot')
               }
               break
           }
@@ -282,7 +282,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
 
       const uploadPushToken = async () => {
-        const {deviceID, username} = useCurrentUserState.getState()
+        const {deviceID, username} = C.useCurrentUserState.getState()
         if (!username || !deviceID) {
           return
         }
@@ -319,8 +319,8 @@ export const useState = Z.createZustand<State>((set, get) => {
         if (p.show && useConfigState.getState().loggedIn && !get().justSignedUp && !get().hasPermissions) {
           logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
           await Z.timeoutPromise(100)
-          useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
-          useRouterState.getState().dispatch.navigateAppend('settingsPushPrompt')
+          C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
+          C.useRouterState.getState().dispatch.navigateAppend('settingsPushPrompt')
         }
       }
       Z.ignorePromise(monsterPrompt())

@@ -1,9 +1,8 @@
-import * as ConfigConstants from '../../../constants/config'
+import * as C from '../../../constants'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Constants from '../../../constants/chat2'
 import * as ProfileConstants from '../../../constants/profile'
 import * as Container from '../../../util/container'
-import * as C from '../../../constants'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
 
@@ -24,7 +23,7 @@ const Rekey = (props: Props) =>
   )
 
 export default () => {
-  const _you = ConfigConstants.useCurrentUserState(s => s.username)
+  const _you = C.useCurrentUserState(s => s.username)
   const rekeyers = Constants.useContext(s => s.meta.rekeyers)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

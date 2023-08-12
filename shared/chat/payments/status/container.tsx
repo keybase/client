@@ -1,4 +1,4 @@
-import * as ConfigConstants from '../../../constants/config'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import PaymentStatus, {type Props} from '.'
@@ -37,7 +37,7 @@ const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: Own
   const paymentInfo = Constants.useState(s => (paymentID ? s.paymentStatusMap.get(paymentID) : undefined))
   const status = error ? 'error' : paymentInfo?.status ?? 'pending'
 
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   // TODO remove
   const message = Constants.useContext(s => s.messageMap.get(ordinal))
   const author = message?.author

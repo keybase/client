@@ -1,3 +1,4 @@
+import * as C from '../constants'
 import * as React from 'react'
 import * as Constants from '../constants/crypto'
 import * as FsConstants from '../constants/fs'
@@ -210,7 +211,7 @@ export const FileInput = (props: FileProps) => {
 export const Input = (props: CommonProps) => {
   const {operation} = props
 
-  const {input: _input, inputType} = Constants.useState(s => {
+  const {input: _input, inputType} = C.useCryptoState(s => {
     const o = s[operation]
     const {input, inputType} = o
     return {input, inputType}
@@ -219,8 +220,8 @@ export const Input = (props: CommonProps) => {
 
   const [inputValue, setInputValue] = React.useState(input)
 
-  const setInput = Constants.useState(s => s.dispatch.setInput)
-  const clearInput = Constants.useState(s => s.dispatch.clearInput)
+  const setInput = C.useCryptoState(s => s.dispatch.setInput)
+  const clearInput = C.useCryptoState(s => s.dispatch.clearInput)
 
   const onSetInput = (type: Types.InputTypes, newValue: string) => {
     setInput(operation, type, newValue)
@@ -262,8 +263,8 @@ const allowInputFolders = new Map([
 
 export const DragAndDrop = (props: DragAndDropProps) => {
   const {prompt, children, operation} = props
-  const inProgress = Constants.useState(s => s[operation].inProgress)
-  const setInput = Constants.useState(s => s.dispatch.setInput)
+  const inProgress = C.useCryptoState(s => s[operation].inProgress)
+  const setInput = C.useCryptoState(s => s.dispatch.setInput)
 
   const onAttach = (localPaths: Array<string>) => {
     const path = localPaths[0]
@@ -292,7 +293,7 @@ export const OperationBanner = (props: CommonProps) => {
   const {operation} = props
   const infoMessage = Constants.infoMessage[operation]
 
-  const {errorMessage: _errorMessage, warningMessage: _warningMessage} = Constants.useState(s => {
+  const {errorMessage: _errorMessage, warningMessage: _warningMessage} = C.useCryptoState(s => {
     const {errorMessage, warningMessage} = s[operation]
     return {errorMessage, warningMessage}
   }, shallowEqual)
@@ -328,7 +329,7 @@ export const InputActionsBar = (props: RunOperationProps) => {
   const {operation, children} = props
   const waitingKey = Constants.waitingKey
   const operationTitle = capitalize(operation)
-  const runTextOperation = Constants.useState(s => s.dispatch.runTextOperation)
+  const runTextOperation = C.useCryptoState(s => s.dispatch.runTextOperation)
   const onRunOperation = () => {
     runTextOperation(operation)
   }
@@ -456,5 +457,5 @@ const styles = Styles.styleSheetCreate(
           paddingTop: Styles.globalMargins.xsmall,
         },
       }),
-    } as const)
+    }) as const
 )

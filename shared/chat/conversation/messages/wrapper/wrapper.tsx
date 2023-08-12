@@ -1,5 +1,5 @@
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
-import * as ConfigConstants from '../../../../constants/config'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
@@ -145,7 +145,7 @@ const useRedux = (ordinal: Types.Ordinal) => {
     return EditCancelRetryType.RETRY_CANCEL
   }
 
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const paymentStatusMap = Constants.useState(s => s.paymentStatusMap)
   const accountsInfoMap = Constants.useContext(s => s.accountsInfoMap)
   const ordinals = Constants.useContext(s => s.messageOrdinals)

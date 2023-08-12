@@ -1,7 +1,7 @@
+import * as C from '../../../../../../constants'
 import * as React from 'react'
 import * as Container from '../../../../../../util/container'
 import * as Chat2Gen from '../../../../../../actions/chat2-gen'
-import * as ConfigConstants from '../../../../../../constants/config'
 import type * as Constants from '../../../../../../constants/chat2'
 import type * as Types from '../../../../../../constants/types/chat2'
 
@@ -25,7 +25,7 @@ export const useActions = (
 export const getUnfurlInfo = (state: Constants.ConvoState, ordinal: Types.Ordinal, idx: number) => {
   const message = state.messageMap.get(ordinal)
   const author = message?.author
-  const you = ConfigConstants.useCurrentUserState.getState().username
+  const you = C.useCurrentUserState.getState().username
   const youAreAuthor = author === you
   const unfurlInfo = [...(message?.unfurls?.values() ?? [])][idx]
 

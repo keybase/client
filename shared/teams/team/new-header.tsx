@@ -1,10 +1,10 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat2'
-import * as ConfigConstants from '../../constants/config'
 import TeamMenu from './menu-container'
 import type {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
@@ -291,7 +291,7 @@ export default HeaderTitle
 const useHeaderCallbacks = (teamID: TeamID) => {
   const nav = Container.useSafeNavigation()
   const meta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
-  const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
+  const yourUsername = C.useCurrentUserState(s => s.username)
   const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
   const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
   const addMembersWizardPushMembers = Constants.useState(s => s.dispatch.addMembersWizardPushMembers)
