@@ -1,6 +1,7 @@
+import * as C from '../../../constants'
+import * as Constants from '../../../constants/fs'
 import * as Types from '../../../constants/types/fs'
 import * as RowTypes from './types'
-import * as C from '../../../constants'
 import * as ConfigConstants from '../../../constants/config'
 import {isMobile} from '../../../constants/platform'
 import {sortRowItems, type SortableRowItem} from './sort'
@@ -108,7 +109,7 @@ const getTlfRowsFromTlfs = memoize(
     [...tlfs]
       .filter(([_, {isIgnored}]) => !isIgnored)
       .map(([name, {isNew, tlfMtime}]) => ({
-        disabled: C.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex),
+        disabled: Constants.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex),
         isNew,
         key: `tlf:${name}`,
         name,
@@ -139,7 +140,7 @@ const getTlfItemsFromStateProps = (
     return folderPlaceholderRows
   }
 
-  const {tlfList, tlfType} = C.getTlfListAndTypeFromPath(stateProps._tlfs, path)
+  const {tlfList, tlfType} = Constants.getTlfListAndTypeFromPath(stateProps._tlfs, path)
 
   return sortRowItems(
     getTlfRowsFromTlfs(tlfList, tlfType, stateProps._username, destinationPickerIndex),
@@ -177,7 +178,7 @@ export default (o: OwnProps) => {
   const _edits = C.useFSState(s => s.edits)
   const _filter = C.useFSState(s => s.folderViewFilter)
   const _pathItems = C.useFSState(s => s.pathItems)
-  const _sortSetting = C.useFSState(s => C.getPathUserSetting(s.pathUserSettings, o.path).sort)
+  const _sortSetting = C.useFSState(s => Constants.getPathUserSetting(s.pathUserSettings, o.path).sort)
   const _tlfs = C.useFSState(s => s.tlfs)
   const _username = ConfigConstants.useCurrentUserState(s => s.username)
 

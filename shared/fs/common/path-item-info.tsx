@@ -1,5 +1,6 @@
-import * as Types from '../../constants/types/fs'
 import * as C from '../../constants'
+import * as Constants from '../../constants/fs'
+import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import LastModifiedLine from './last-modified-line-container'
@@ -24,7 +25,7 @@ const getNumberOfFilesAndFolders = (
         ({folders, files, loaded}, p) => {
           const item = C.getPathItem(pathItems, Types.pathConcat(path, p))
           const isFolder = item.type === Types.PathType.Folder
-          const isFile = item.type !== Types.PathType.Folder && item !== C.unknownPathItem
+          const isFile = item.type !== Types.PathType.Folder && item !== Constants.unknownPathItem
           return {
             files: files + (isFile ? 1 : 0),
             folders: folders + (isFolder ? 1 : 0),
@@ -97,7 +98,9 @@ const PathItemInfo = (props: Props) => {
         {pathItem.type === Types.PathType.File && (
           <Kb.Text type="BodySmall">{C.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}
-        {C.isInTlf(props.path) && C.isFolder(props.path, pathItem) && <FilesAndFoldersCount {...props} />}
+        {Constants.isInTlf(props.path) && C.isFolder(props.path, pathItem) && (
+          <FilesAndFoldersCount {...props} />
+        )}
         {getTlfInfoLineOrLastModifiedLine(props.path)}
       </Kb.Box2>
     </>

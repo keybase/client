@@ -1,5 +1,6 @@
-import * as React from 'react'
 import * as C from '../constants'
+import * as React from 'react'
+import * as Constants from '../constants/fs'
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/fs'
@@ -18,7 +19,7 @@ type ChooseComponentProps = {
 const ChooseComponent = (props: ChooseComponentProps) => {
   const {emitBarePreview} = props
 
-  const fileContext = C.useFSState(s => s.fileContext.get(props.path) || C.emptyFileContext)
+  const fileContext = C.useFSState(s => s.fileContext.get(props.path) || Constants.emptyFileContext)
   const bare = Container.isMobile && fileContext.viewType === RPCTypes.GUIViewType.image
   React.useEffect(() => {
     bare && emitBarePreview()
@@ -44,7 +45,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
     case Types.PathType.Unknown:
       return <SimpleScreens.Loading />
     default:
-      if (fileContext === C.emptyFileContext) {
+      if (fileContext === Constants.emptyFileContext) {
         // We don't have it yet, so don't render.
         return <SimpleScreens.Loading />
       }
@@ -69,7 +70,7 @@ const Connected = (ownProps?: OwnProps) => {
     navigateUp()
     navigateAppend({props: {path}, selected: 'barePreview'})
   }
-  const isDefinitelyFolder = Types.getPathElements(path).length <= 3 && !C.hasSpecialFileElement(path)
+  const isDefinitelyFolder = Types.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
   const props = {
     emitBarePreview: emitBarePreview,
     kbfsDaemonStatus: kbfsDaemonStatus,

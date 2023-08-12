@@ -1,5 +1,6 @@
-import * as Types from '../../../constants/types/fs'
 import * as C from '../../../constants'
+import * as Constants from '../../../constants/fs'
+import * as Types from '../../../constants/types/fs'
 import {isMobile, isIOS} from '../../../constants/platform'
 
 export type Layout = {
@@ -90,7 +91,8 @@ const getRawLayout = (
         download: pathItem.type === Types.PathType.File && !isIOS,
         moveOrCopy: true,
         rename: pathItem.writable && mode === 'row',
-        saveMedia: isMobile && pathItem.type === Types.PathType.File && C.canSaveMedia(pathItem, fileContext),
+        saveMedia:
+          isMobile && pathItem.type === Types.PathType.File && Constants.canSaveMedia(pathItem, fileContext),
         showInSystemFileManager: !isMobile,
         // share menu items
         // eslint-disable-next-line sort-keys

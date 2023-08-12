@@ -1,6 +1,7 @@
+import * as C from '../../constants'
+import * as Constants from '../../constants/fs'
 import Sort from './sort'
 import * as Types from '../../constants/types/fs'
-import * as C from '../../constants'
 
 type OwnProps = {
   path: Types.Path
@@ -12,7 +13,7 @@ export default (ownProps: OwnProps) => {
   const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
 
   const setSorting = C.useFSState(s => s.dispatch.setSorting)
-  const _sortSetting = C.useFSState(s => C.getPathUserSetting(s.pathUserSettings, path).sort)
+  const _sortSetting = C.useFSState(s => Constants.getPathUserSetting(s.pathUserSettings, path).sort)
 
   const sortByNameAsc =
     path === C.defaultPath
@@ -43,7 +44,7 @@ export default (ownProps: OwnProps) => {
     sortByNameDesc,
     sortByTimeAsc,
     sortByTimeDesc,
-    sortSetting: C.showSortSetting(path, _pathItem, _kbfsDaemonStatus) ? _sortSetting : undefined,
+    sortSetting: Constants.showSortSetting(path, _pathItem, _kbfsDaemonStatus) ? _sortSetting : undefined,
   }
   return <Sort {...props} />
 }

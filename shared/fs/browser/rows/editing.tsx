@@ -1,6 +1,7 @@
+import * as C from '../../../constants'
+import * as Constants from '../../../constants/fs'
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
-import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import {rowStyles} from './common'
@@ -18,7 +19,7 @@ const Editing = ({editID}: Props) => {
   const onSubmit = () => {
     commitEdit(editID)
   }
-  const edit = C.useFSState(s => s.edits.get(editID) || C.emptyNewFolder)
+  const edit = C.useFSState(s => s.edits.get(editID) || Constants.emptyNewFolder)
   const [filename, setFilename] = React.useState(edit.name)
   const setEditName = C.useFSState(s => s.dispatch.setEditName)
   React.useEffect(() => {
@@ -67,7 +68,7 @@ const Editing = ({editID}: Props) => {
             style={styles.button}
             small={true}
             label={edit.error ? 'Retry' : edit.type === Types.EditType.NewFolder ? 'Create' : 'Save'}
-            waitingKey={C.commitEditWaitingKey}
+            waitingKey={Constants.commitEditWaitingKey}
             onClick={onSubmit}
           />
           <Kb.Icon

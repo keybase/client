@@ -1,4 +1,5 @@
 import * as C from '../../constants'
+import * as Constants from '../../constants/fs'
 import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
 import type * as Types from '../../constants/types/fs'
@@ -26,7 +27,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   }, [finishManualConflictResolution, path])
   const onGoToSamePathInDifferentTlf = React.useCallback(
     (tlfPath: Types.Path) => {
-      navigateAppend({props: {path: C.rebasePathToDifferentTlf(path, tlfPath)}, selected: 'fsRoot'})
+      navigateAppend({props: {path: Constants.rebasePathToDifferentTlf(path, tlfPath)}, selected: 'fsRoot'})
     },
     [navigateAppend, path]
   )
@@ -56,7 +57,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     onHelp,
     onStartResolving,
     openInSystemFileManager,
-    tlfPath: C.getTlfPath(path),
+    tlfPath: Constants.getTlfPath(path),
   }
   return <ConflictBanner {...props} />
 }

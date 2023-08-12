@@ -1,6 +1,7 @@
+import * as C from '../../constants'
+import * as Constants from '../../constants/fs'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as ConfigConstants from '../../constants/config'
 import TlfType from './rows/tlf-type-container'
@@ -95,7 +96,7 @@ const useRecentTlfs = (n: number, destinationPickerIndex?: number): Array<Sectio
       typeof destinationPickerIndex === 'number'
         ? recent.filter(
             ({name, tlfType}) =>
-              !C.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex)
+              !Constants.hideOrDisableInDestinationPicker(tlfType, name, username, destinationPickerIndex)
           )
         : recent
     return afterFilter.slice(0, n)
