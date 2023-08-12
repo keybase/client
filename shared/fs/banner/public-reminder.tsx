@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as ConfigConstants from '../../constants/config'
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
+import * as C from '../../constants'
 import openUrl from '../../util/open-url'
 
 type Props = {
@@ -17,15 +17,15 @@ const getTlfName = (parsedPath: Types.ParsedPath): string => {
 }
 
 const PublicBanner = ({path}: Props) => {
-  const isWritable = Constants.useState(s => Constants.getPathItem(s.pathItems, path).writable)
-  const lastPublicBannerClosedTlf = Constants.useState(s => s.lastPublicBannerClosedTlf)
+  const isWritable = C.useFSState(s => C.getPathItem(s.pathItems, path).writable)
+  const lastPublicBannerClosedTlf = C.useFSState(s => s.lastPublicBannerClosedTlf)
   const you = ConfigConstants.useCurrentUserState(s => s.username)
 
-  const setLastPublicBannerClosedTlf = Constants.useState(s => s.dispatch.setLastPublicBannerClosedTlf)
+  const setLastPublicBannerClosedTlf = C.useFSState(s => s.dispatch.setLastPublicBannerClosedTlf)
 
   const setLastClosed = () => setLastPublicBannerClosedTlf(tlfName)
 
-  const parsedPath = Constants.parsePath(path)
+  const parsedPath = C.parsePath(path)
   const tlfName = getTlfName(parsedPath)
 
   // If we're showing the banner for a new TLF, clear the closed state

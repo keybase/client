@@ -1,6 +1,7 @@
+import * as C from '../../constants'
+import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import type {IconType} from '../../common-adapters/icon'
 
@@ -74,7 +75,7 @@ const getTlfTypeIcon = (size: Size, tlfType: Types.TlfType) => {
 }
 
 export const TlfTypeIcon = (props: TlfTypeIconProps) => {
-  const tlfList = Constants.useState(s => Constants.getTlfListFromType(s.tlfs, props.tlfType))
+  const tlfList = C.useFSState(s => Constants.getTlfListFromType(s.tlfs, props.tlfType))
   const badgeCount = Constants.computeBadgeNumberForTlfList(tlfList)
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
   return (
@@ -226,7 +227,7 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
         width: 0,
       },
-    } as const)
+    }) as const
 )
 
 const badgeStyles = {
@@ -255,7 +256,7 @@ const badgeStyles = {
             width: Styles.globalMargins.xsmall,
           },
         }),
-      } as const)
+      }) as const
   ),
   '32': Styles.styleSheetCreate(
     () =>
@@ -282,7 +283,7 @@ const badgeStyles = {
             width: Styles.globalMargins.small,
           },
         }),
-      } as const)
+      }) as const
   ),
   '48': Styles.styleSheetCreate(
     () =>
@@ -299,7 +300,7 @@ const badgeStyles = {
           top: -Styles.globalMargins.small - Styles.globalMargins.xtiny,
           width: Styles.globalMargins.small,
         },
-      } as const)
+      }) as const
   ),
   '96': Styles.styleSheetCreate(
     () =>
@@ -318,6 +319,6 @@ const badgeStyles = {
           top: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny),
           width: Styles.globalMargins.medium,
         },
-      } as const)
+      }) as const
   ),
 }

@@ -1,6 +1,7 @@
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
+import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
 import DownloadWrapper from './download-wrapper'
@@ -32,18 +33,16 @@ const getProgress = (dlState: Types.DownloadState) => (
 
 const Download = (props: Props) => {
   const dlInfo = Kbfs.useFsDownloadInfo(props.downloadID)
-  const dlState = Constants.useState(
-    s => s.downloads.state.get(props.downloadID) || Constants.emptyDownloadState
-  )
-  const openLocalPathInSystemFileManagerDesktop = Constants.useState(
+  const dlState = C.useFSState(s => s.downloads.state.get(props.downloadID) || Constants.emptyDownloadState)
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const open = dlState.localPath
     ? () => openLocalPathInSystemFileManagerDesktop?.(dlState.localPath)
     : () => {}
-  const dismissDownload = Constants.useState(s => s.dispatch.dismissDownload)
+  const dismissDownload = C.useFSState(s => s.dispatch.dismissDownload)
   const dismiss = () => dismissDownload(props.downloadID)
-  const cancelDownload = Constants.useState(s => s.dispatch.cancelDownload)
+  const cancelDownload = C.useFSState(s => s.dispatch.cancelDownload)
   const cancel = () => cancelDownload(props.downloadID)
   Kbfs.useFsWatchDownloadForMobile(props.downloadID, Types.DownloadIntent.None)
   return (

@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -58,7 +59,7 @@ class ThresholdDropdown extends React.PureComponent<
 }
 
 const Files = (props: Props) => {
-  const syncOnCellular = Constants.useState(s => s.settings.syncOnCellular)
+  const syncOnCellular = C.useFSState(s => s.settings.syncOnCellular)
   const toggleSyncOnCellular = () => {
     RPCTypes.SimpleFSSimpleFSSetSyncOnCellularRpcPromise(
       {syncOnCellular: !syncOnCellular},
@@ -127,7 +128,7 @@ const styles = Styles.styleSheetCreate(
           maxWidth: 410,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default Files

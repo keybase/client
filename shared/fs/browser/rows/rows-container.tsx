@@ -1,6 +1,7 @@
+import * as C from '../../../constants'
+import * as Constants from '../../../constants/fs'
 import * as Types from '../../../constants/types/fs'
 import * as RowTypes from './types'
-import * as Constants from '../../../constants/fs'
 import * as ConfigConstants from '../../../constants/config'
 import {isMobile} from '../../../constants/platform'
 import {sortRowItems, type SortableRowItem} from './sort'
@@ -21,7 +22,7 @@ const getStillRows = memoize(
     names: Set<string>
   ): Array<RowTypes.StillRowItem> =>
     [...names].reduce<Array<RowTypes.StillRowItem>>((items, name) => {
-      const item = Constants.getPathItem(pathItems, Types.pathConcat(parentPath, name))
+      const item = C.getPathItem(pathItems, Types.pathConcat(parentPath, name))
       const path = Types.pathConcat(parentPath, item.name)
       return [
         ...items,
@@ -84,7 +85,7 @@ const getInTlfItemsFromStateProps = (
   stateProps: StateProps,
   path: Types.Path
 ): Array<RowTypes.NamedRowItem> => {
-  const _pathItem = Constants.getPathItem(stateProps._pathItems, path)
+  const _pathItem = C.getPathItem(stateProps._pathItems, path)
   if (_pathItem.type !== Types.PathType.Folder) {
     return filePlaceholderRows
   }
@@ -174,11 +175,11 @@ const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
     : rows
 
 export default (o: OwnProps) => {
-  const _edits = Constants.useState(s => s.edits)
-  const _filter = Constants.useState(s => s.folderViewFilter)
-  const _pathItems = Constants.useState(s => s.pathItems)
-  const _sortSetting = Constants.useState(s => Constants.getPathUserSetting(s.pathUserSettings, o.path).sort)
-  const _tlfs = Constants.useState(s => s.tlfs)
+  const _edits = C.useFSState(s => s.edits)
+  const _filter = C.useFSState(s => s.folderViewFilter)
+  const _pathItems = C.useFSState(s => s.pathItems)
+  const _sortSetting = C.useFSState(s => Constants.getPathUserSetting(s.pathUserSettings, o.path).sort)
+  const _tlfs = C.useFSState(s => s.tlfs)
   const _username = ConfigConstants.useCurrentUserState(s => s.username)
 
   const s = {

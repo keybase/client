@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
-import * as Constants from '../../../constants/fs'
+import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import Rows from '../rows/rows-container'
@@ -136,7 +136,7 @@ const DestinationPicker = (props: Props) => {
             </Kb.Text>
           </Kb.ClickableBox>
         )}
-        {props.parentPath === Constants.defaultPath ? (
+        {props.parentPath === C.defaultPath ? (
           <Root destinationPickerIndex={props.index} />
         ) : (
           <Rows path={props.parentPath} destinationPickerIndex={props.index} />
@@ -204,5 +204,5 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.blueDark,
         marginLeft: Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )

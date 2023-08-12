@@ -1,5 +1,5 @@
 import type * as Types from '../../../constants/types/fs'
-import * as Constants from '../../../constants/fs'
+import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import type {FloatingMenuProps} from './types'
@@ -25,8 +25,8 @@ const ConfirmHeader = (props: Props) => (
     </Kb.Text>
     <Kb.Text type="Body" style={styles.confirmText}>
       {props.action === 'save-media'
-        ? `You are about to download a ${Constants.humanReadableFileSize(props.size)} file.`
-        : `The file will be downloaded and its size is ${Constants.humanReadableFileSize(props.size)}.`}
+        ? `You are about to download a ${C.humanReadableFileSize(props.size)} file.`
+        : `The file will be downloaded and its size is ${C.humanReadableFileSize(props.size)}.`}
     </Kb.Text>
   </Kb.Box2>
 )
@@ -76,5 +76,5 @@ const styles = Styles.styleSheetCreate(
       progressIndicator: {
         marginRight: Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )

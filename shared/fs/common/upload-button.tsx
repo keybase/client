@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Platforms from '../../constants/platform'
 import type * as Styles from '../../styles'
@@ -71,9 +71,9 @@ const UploadButton = (props: UploadButtonProps) => {
 }
 
 export default (ownProps: OwnProps) => {
-  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, ownProps.path))
-  const openAndUploadDesktop = Constants.useState(s => s.dispatch.dynamic.openAndUploadDesktop)
-  const pickAndUploadMobile = Constants.useState(s => s.dispatch.dynamic.pickAndUploadMobile)
+  const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, ownProps.path))
+  const openAndUploadDesktop = C.useFSState(s => s.dispatch.dynamic.openAndUploadDesktop)
+  const pickAndUploadMobile = C.useFSState(s => s.dispatch.dynamic.pickAndUploadMobile)
   const _openAndUploadBoth = () => {
     openAndUploadDesktop?.(Types.OpenDialogType.Both, ownProps.path)
   }

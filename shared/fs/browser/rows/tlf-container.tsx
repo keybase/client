@@ -1,5 +1,6 @@
-import * as Types from '../../../constants/types/fs'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
+import * as Types from '../../../constants/types/fs'
 import * as ConfigConstants from '../../../constants/config'
 import {useOpen} from '../../common/use-open'
 import Tlf from './tlf'
@@ -14,7 +15,7 @@ export type OwnProps = {
 
 const TLFContainer = (p: OwnProps) => {
   const {tlfType, name, mixedMode, destinationPickerIndex, disabled} = p
-  const tlf = Constants.useState(s => Constants.getTlfFromTlfs(s.tlfs, tlfType, name))
+  const tlf = C.useFSState(s => Constants.getTlfFromTlfs(s.tlfs, tlfType, name))
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const path = Constants.tlfTypeAndNameToPath(tlfType, name)
   const usernames = Constants.getUsernamesFromTlfName(name).filter(name => name !== username)

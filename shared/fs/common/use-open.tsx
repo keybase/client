@@ -1,4 +1,4 @@
-import * as Constants from '../../constants/fs'
+import * as C from '../../constants'
 import * as Types from '../../constants/types/fs'
 import * as Container from '../../util/container'
 
@@ -8,8 +8,8 @@ type Props = {
 }
 
 export const useOpen = (props: Props) => {
-  const destPicker = Constants.useState(s => s.destinationPicker)
-  const pathItems = Constants.useState(s => s.pathItems)
+  const destPicker = C.useFSState(s => s.destinationPicker)
+  const pathItems = C.useFSState(s => s.pathItems)
   const nav = Container.useSafeNavigation()
 
   if (typeof props.destinationPickerIndex !== 'number') {
@@ -17,8 +17,7 @@ export const useOpen = (props: Props) => {
   }
 
   const isFolder =
-    Types.getPathLevel(props.path) <= 3 ||
-    Constants.getPathItem(pathItems, props.path).type === Types.PathType.Folder
+    Types.getPathLevel(props.path) <= 3 || C.getPathItem(pathItems, props.path).type === Types.PathType.Folder
 
   const canOpenInDestinationPicker =
     isFolder &&
@@ -31,7 +30,7 @@ export const useOpen = (props: Props) => {
   }
 
   const destinationPickerGoTo = () =>
-    Constants.makeActionsForDestinationPickerOpen((props.destinationPickerIndex || 0) + 1, props.path)
+    C.makeActionsForDestinationPickerOpen((props.destinationPickerIndex || 0) + 1, props.path)
 
   return destinationPickerGoTo
 }

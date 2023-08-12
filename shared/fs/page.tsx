@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Types from '../constants/types/fs'
-import * as Constants from '../constants/fs'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 
@@ -8,14 +8,14 @@ const Index = React.lazy(async () => import('.'))
 type OwnProps = Container.ViewPropsToPageProps<typeof Index>
 
 const getOptions = (ownProps?: OwnProps) => {
-  const path = ownProps?.route.params?.path ?? Constants.defaultPath
+  const path = ownProps?.route.params?.path ?? C.defaultPath
   return Container.isMobile
     ? {header: () => <MobileHeader path={path} />}
     : {
         headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
         headerTitle: () => <Title path={path} />,
         subHeader: MainBanner,
-        title: path === Constants.defaultPath ? 'Files' : Types.getPathName(path),
+        title: path === C.defaultPath ? 'Files' : Types.getPathName(path),
       }
 }
 

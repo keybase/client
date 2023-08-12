@@ -1,18 +1,18 @@
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as React from 'react'
 
 type OwnProps = {path: Types.Path}
 
-const styles = Styles.styleSheetCreate(() => ({headerIcon: {padding: Styles.globalMargins.tiny}} as const))
+const styles = Styles.styleSheetCreate(() => ({headerIcon: {padding: Styles.globalMargins.tiny}}) as const)
 
 const NewFolder = (op: OwnProps) => {
   const {path} = op
-  const pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
+  const pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
   const canCreateNewFolder = pathItem.type === Types.PathType.Folder && pathItem.writable
-  const newFolderRow = Constants.useState(s => s.dispatch.newFolderRow)
+  const newFolderRow = C.useFSState(s => s.dispatch.newFolderRow)
   const onNewFolder = React.useCallback(() => {
     newFolderRow(path)
   }, [newFolderRow, path])

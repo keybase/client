@@ -1,7 +1,7 @@
 // A mirror of the remote menubar windows.
 import * as ConfigConstants from '../constants/config'
 import * as DarkMode from '../constants/darkmode'
-import * as FSConstants from '../constants/fs'
+import * as C from '../constants'
 import * as ChatConstants from '../constants/chat2'
 import * as UsersConstants from '../constants/users'
 import * as NotifConstants from '../constants/notifications'
@@ -99,12 +99,12 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const windowShownCount = ConfigConstants.useConfigState(s => s.windowShownCount)
   const outOfDate = ConfigConstants.useConfigState(s => s.outOfDate)
   const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
-  const kbfsDaemonStatus = FSConstants.useState(s => s.kbfsDaemonStatus)
-  const overallSyncStatus = FSConstants.useState(s => s.overallSyncStatus)
-  const pathItems = FSConstants.useState(s => s.pathItems)
-  const sfmi = FSConstants.useState(s => s.sfmi)
-  const tlfUpdates = FSConstants.useState(s => s.tlfUpdates)
-  const uploads = FSConstants.useState(s => s.uploads)
+  const kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
+  const overallSyncStatus = C.useFSState(s => s.overallSyncStatus)
+  const pathItems = C.useFSState(s => s.pathItems)
+  const sfmi = C.useFSState(s => s.sfmi)
+  const tlfUpdates = C.useFSState(s => s.tlfUpdates)
+  const uploads = C.useFSState(s => s.uploads)
   const {desktopAppBadgeCount, navBadges, widgetBadge} = NotifConstants.useState(s => {
     const {desktopAppBadgeCount, navBadges, widgetBadge} = s
     return {desktopAppBadgeCount, navBadges, widgetBadge}
@@ -192,7 +192,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
 
   // Filter out folder paths.
   const filePaths = [...uploads.syncingPaths].filter(
-    path => FSConstants.getPathItem(pathItems, path).type !== FSTypes.PathType.Folder
+    path => C.getPathItem(pathItems, path).type !== FSTypes.PathType.Folder
   )
 
   const upDown = {

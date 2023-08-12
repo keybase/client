@@ -1,5 +1,6 @@
-import * as Types from '../../constants/types/fs'
+import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
+import * as Types from '../../constants/types/fs'
 import * as ConfigConstants from '../../constants/config'
 import TlfInfoLine from './tlf-info-line'
 
@@ -10,7 +11,7 @@ export type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const _tlf = Constants.useState(s => Constants.getTlfFromPath(s.tlfs, ownProps.path))
+  const _tlf = C.useFSState(s => C.getTlfFromPath(s.tlfs, ownProps.path))
   const _username = ConfigConstants.useCurrentUserState(s => s.username)
   const resetParticipants = _tlf === Constants.unknownTlf ? undefined : _tlf.resetParticipants
   const props = {

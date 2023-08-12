@@ -1,5 +1,6 @@
-import * as Types from '../../constants/types/fs'
+import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
+import * as Types from '../../constants/types/fs'
 import {useFsPathInfo} from './hooks'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
@@ -11,7 +12,7 @@ type PathInfoProps = {
 }
 
 const useMountPointPath = (platformAfterMountPath: string) => {
-  const sfmi = Constants.useState(s => s.sfmi)
+  const sfmi = C.useFSState(s => s.sfmi)
   const mount =
     sfmi.driverStatus.type === Types.DriverStatusType.Enabled
       ? sfmi.preferredMountDirs[0] || sfmi.directMountDir
@@ -63,5 +64,5 @@ const styles = Styles.styleSheetCreate(
       localPath: {
         marginTop: Styles.globalMargins.small,
       },
-    } as const)
+    }) as const
 )

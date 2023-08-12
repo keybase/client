@@ -1,10 +1,9 @@
+import * as C from '../../../constants'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
-import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as FSConstants from '../../../constants/fs'
 import * as ConfigConstants from '../../../constants/config'
 import Fullscreen from '.'
 import * as Container from '../../../util/container'
@@ -90,7 +89,7 @@ const Connected = (props: OwnProps) => {
     }
   }
 
-  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

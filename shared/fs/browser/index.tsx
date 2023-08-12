@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
@@ -17,9 +18,9 @@ type OwnProps = {path: Types.Path}
 
 export default (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
-  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
-  const resetBannerType = Constants.useState(s => Constants.resetBannerType(s, path))
+  const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
+  const _pathItem = C.useFSState(s => Constants.getPathItem(s.pathItems, path))
+  const resetBannerType = C.useFSState(s => Constants.resetBannerType(s, path))
   const props = {
     offlineUnsynced: Constants.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path),
     path,
@@ -65,7 +66,7 @@ const DragAndDrop = ({
   path: Types.Path
   rejectReason?: string
 }) => {
-  const uploadFromDragAndDrop = Constants.useState(s => s.dispatch.dynamic.uploadFromDragAndDropDesktop)
+  const uploadFromDragAndDrop = C.useFSState(s => s.dispatch.dynamic.uploadFromDragAndDropDesktop)
   const onAttach = (localPaths: Array<string>) => uploadFromDragAndDrop?.(path, localPaths)
   return (
     <Kb.DragAndDrop

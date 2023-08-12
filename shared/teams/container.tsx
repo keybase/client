@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as FsConstants from '../constants/fs'
+import * as C from '../constants'
 import * as ConfigConstants from '../constants/config'
 import * as FsTypes from '../constants/types/fs'
 import Teams, {type OwnProps as MainOwnProps} from './main'
@@ -103,7 +103,7 @@ const Connected = () => {
     updateGregorCategory('sawChatBanner', 'true')
   }
   const onOpenFolder = (teamname: Types.Teamname) => {
-    FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
+    C.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
   }
   const onReadMore = () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')

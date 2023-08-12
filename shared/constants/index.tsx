@@ -19,3 +19,18 @@ export {
   waitingKey as provisionWaitingKey,
   forgotUsernameWaitingKey,
 } from './provision'
+export {
+  useState as useFSState,
+  makeActionForOpenPathInFilesTab,
+  emptyFileContext,
+  defaultPath,
+  getPathItem,
+  humanReadableFileSize,
+  getTlfFromPath,
+  parsePath,
+  syncToggleWaitingKey,
+  isFolder,
+  makeActionsForDestinationPickerOpen,
+  isTeamPath,
+  pathTypeToTextType,
+} from './fs'

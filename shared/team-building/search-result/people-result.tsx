@@ -3,7 +3,6 @@ import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as ConfigConstants from '../../constants/config'
-import * as FsConstants from '../../constants/fs'
 import * as UsersConstants from '../../constants/users'
 import * as FsTypes from '../../constants/types/fs'
 import * as ChatConstants from '../../constants/chat2'
@@ -33,14 +32,14 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onOpenPrivateFolder = React.useCallback(() => {
     navigateUp()
-    FsConstants.makeActionForOpenPathInFilesTab(
+    C.makeActionForOpenPathInFilesTab(
       FsTypes.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
     )
   }, [navigateUp, decoratedUsername, myUsername])
 
   const onBrowsePublicFolder = React.useCallback(() => {
     navigateUp()
-    FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${decoratedUsername}`))
+    C.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${decoratedUsername}`))
   }, [navigateUp, decoratedUsername])
 
   const onManageBlocking = React.useCallback(() => {

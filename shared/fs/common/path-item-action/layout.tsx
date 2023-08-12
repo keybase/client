@@ -1,5 +1,6 @@
-import * as Types from '../../../constants/types/fs'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
+import * as Types from '../../../constants/types/fs'
 import {isMobile, isIOS} from '../../../constants/platform'
 
 export type Layout = {
@@ -50,7 +51,7 @@ const getRawLayout = (
   fileContext: Types.FileContext,
   me: string
 ): Layout => {
-  const parsedPath = Constants.parsePath(path)
+  const parsedPath = C.parsePath(path)
   switch (parsedPath.kind) {
     case Types.PathKind.Root:
       // should never happen

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Constants from '../../../../constants/chat2'
-import * as FSConstants from '../../../../constants/fs'
+import * as C from '../../../../constants'
 import {OrdinalContext} from '../ids-context'
 import AudioPlayer from '../../../audio/audio-player'
 
@@ -17,7 +17,7 @@ const AudioAttachment = () => {
   })
   const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(message.transferState)
   const hasProgress = Constants.messageAttachmentHasProgress(message)
-  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {

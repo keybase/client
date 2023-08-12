@@ -1,6 +1,7 @@
+import * as C from '../../../constants'
+import * as Constants from '../../../constants/fs'
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
-import * as Constants from '../../../constants/fs'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import {rowStyles} from './common'
@@ -10,17 +11,17 @@ type Props = {
 }
 
 const Editing = ({editID}: Props) => {
-  const discardEdit = Constants.useState(s => s.dispatch.discardEdit)
+  const discardEdit = C.useFSState(s => s.dispatch.discardEdit)
   const onCancel = () => {
     discardEdit(editID)
   }
-  const commitEdit = Constants.useState(s => s.dispatch.commitEdit)
+  const commitEdit = C.useFSState(s => s.dispatch.commitEdit)
   const onSubmit = () => {
     commitEdit(editID)
   }
-  const edit = Constants.useState(s => s.edits.get(editID) || Constants.emptyNewFolder)
+  const edit = C.useFSState(s => s.edits.get(editID) || Constants.emptyNewFolder)
   const [filename, setFilename] = React.useState(edit.name)
-  const setEditName = Constants.useState(s => s.dispatch.setEditName)
+  const setEditName = C.useFSState(s => s.dispatch.setEditName)
   React.useEffect(() => {
     setEditName(editID, filename)
   }, [editID, filename, setEditName])
@@ -110,7 +111,7 @@ const styles = Styles.styleSheetCreate(
           maxWidth: '100%',
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default Editing

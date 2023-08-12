@@ -1,6 +1,7 @@
+import * as C from '../../constants'
+import * as Constants from '../../constants/fs'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as Styles from '../../styles'
@@ -14,24 +15,24 @@ type Props = {
 
 // /keybase/b/c => [/keybase, /keybase/b, /keybase/b/c]
 const getAncestors = memoize(path =>
-  path === Constants.defaultPath
+  path === C.defaultPath
     ? []
     : Types.getPathElements(path)
         .slice(1, -1)
         .reduce(
           (list, current) => [...list, Types.pathConcat(list[list.length - 1], current)],
-          [Constants.defaultPath]
+          [C.defaultPath]
         )
 )
 
 const Breadcrumb = (props: Props) => {
-  const ancestors = getAncestors(props.path || Constants.defaultPath)
+  const ancestors = getAncestors(props.path || C.defaultPath)
   const {inDestinationPicker} = props
   const nav = Container.useSafeNavigation()
   const onOpenPath = React.useCallback(
     (path: Types.Path) => {
       inDestinationPicker
-        ? Constants.makeActionsForDestinationPickerOpen(0, path)
+        ? C.makeActionsForDestinationPickerOpen(0, path)
         : nav.safeNavigateAppend({props: {path}, selected: 'fsRoot'})
     },
     [nav, inDestinationPicker]
@@ -118,7 +119,7 @@ const MainTitle = (props: Props) => (
 )
 
 const FsNavHeaderTitle = (props: Props) =>
-  props.path === Constants.defaultPath ? (
+  props.path === C.defaultPath ? (
     <Kb.Text type="Header" style={styles.rootTitle}>
       Files
     </Kb.Text>

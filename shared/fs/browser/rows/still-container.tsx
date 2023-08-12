@@ -1,5 +1,6 @@
-import * as Types from '../../../constants/types/fs'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
+import * as Types from '../../../constants/types/fs'
 import {useOpen} from '../../common/use-open'
 import Still from './still'
 
@@ -10,12 +11,12 @@ type OwnProps = {
 
 const StillContainer = (p: OwnProps) => {
   const {destinationPickerIndex, path} = p
-  const _downloads = Constants.useState(s => s.downloads)
-  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
-  const _pathItemActionMenu = Constants.useState(s => s.pathItemActionMenu)
-  const _uploads = Constants.useState(s => s.uploads)
+  const _downloads = C.useFSState(s => s.downloads)
+  const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
+  const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
+  const _uploads = C.useFSState(s => s.uploads)
 
-  const dismissUpload = Constants.useState(s => s.dispatch.dismissUpload)
+  const dismissUpload = C.useFSState(s => s.dispatch.dismissUpload)
   const dismissUploadError = dismissUpload
   const writingToJournalUploadState = _uploads.writingToJournal.get(path)
   const onOpen = useOpen({destinationPickerIndex, path})

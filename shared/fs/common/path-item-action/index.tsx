@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type * as Types from '../../../constants/types/fs'
-import * as Constants from '../../../constants/fs'
+import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import ChooseView from './choose-view'
@@ -51,8 +51,8 @@ const IconClickable = (props: any) => (
 
 const PathItemAction = (props: Props) => {
   const {initView, path, mode} = props
-  const setPathItemActionMenuDownload = Constants.useState(s => s.dispatch.setPathItemActionMenuDownload)
-  const setPathItemActionMenuView = Constants.useState(s => s.dispatch.setPathItemActionMenuView)
+  const setPathItemActionMenuDownload = C.useFSState(s => s.dispatch.setPathItemActionMenuDownload)
+  const setPathItemActionMenuView = C.useFSState(s => s.dispatch.setPathItemActionMenuView)
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
@@ -85,7 +85,7 @@ const PathItemAction = (props: Props) => {
     toggleShowingPopup()
   }, [initView, setPathItemActionMenuView, toggleShowingPopup])
 
-  if (props.path === Constants.defaultPath) {
+  if (props.path === C.defaultPath) {
     return null
   }
 
@@ -123,7 +123,7 @@ const styles = Styles.styleSheetCreate(
           marginTop: undefined,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default PathItemAction

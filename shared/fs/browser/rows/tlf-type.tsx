@@ -1,5 +1,5 @@
 import * as Styles from '../../../styles'
-import * as Constants from '../../../constants/fs'
+import * as C from '../../../constants'
 import * as Types from '../../../constants/types/fs'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
@@ -16,7 +16,7 @@ const TlfType = (props: TlfTypeProps) => (
     content={
       <Kb.Text
         fixOverdraw={true}
-        type={Constants.pathTypeToTextType(PathType.Folder)}
+        type={C.pathTypeToTextType(PathType.Folder)}
         style={rowStyles.rowText}
         lineClamp={Styles.isMobile ? 1 : undefined}
       >

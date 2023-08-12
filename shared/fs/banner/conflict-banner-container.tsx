@@ -12,9 +12,9 @@ type OwnProps = {
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _tlf = Constants.useState(s => Constants.getTlfFromPath(s.tlfs, path))
-  const finishManualConflictResolution = Constants.useState(s => s.dispatch.finishManualConflictResolution)
-  const startManualConflictResolution = Constants.useState(s => s.dispatch.startManualConflictResolution)
+  const _tlf = C.useFSState(s => C.getTlfFromPath(s.tlfs, path))
+  const finishManualConflictResolution = C.useFSState(s => s.dispatch.finishManualConflictResolution)
+  const startManualConflictResolution = C.useFSState(s => s.dispatch.startManualConflictResolution)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onFeedback = React.useCallback(() => {
     navigateAppend({
@@ -38,7 +38,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     startManualConflictResolution(path)
   }, [startManualConflictResolution, path])
 
-  const openPathInSystemFileManagerDesktop = Constants.useState(
+  const openPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
   )
 

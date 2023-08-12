@@ -1,4 +1,4 @@
-import * as Constants from '../../../constants/fs'
+import * as C from '../../../constants'
 import * as React from 'react'
 import Confirm, {type Props} from './confirm'
 import type * as Types from '../../../constants/types/fs'
@@ -11,11 +11,11 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _pathItemActionMenu = Constants.useState(s => s.pathItemActionMenu)
-  const size = Constants.useState(s => Constants.getPathItem(s.pathItems, path).size)
+  const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
+  const size = C.useFSState(s => C.getPathItem(s.pathItems, path).size)
 
-  const setPathItemActionMenuView = Constants.useState(s => s.dispatch.setPathItemActionMenuView)
-  const download = Constants.useState(s => s.dispatch.download)
+  const setPathItemActionMenuView = C.useFSState(s => s.dispatch.setPathItemActionMenuView)
+  const download = C.useFSState(s => s.dispatch.download)
   const _confirm = React.useCallback(
     ({view, previousView}: any) => {
       download(path, view === 'confirm-save-media' ? 'saveMedia' : 'share')

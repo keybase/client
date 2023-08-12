@@ -1,18 +1,18 @@
-import * as Constants from '../../constants/fs'
 import * as C from '../../constants'
+import * as Constants from '../../constants/fs'
 import Files, {defaultNotificationThreshold, allowedNotificationThresholds} from '.'
 import type {PickerItem} from '../../common-adapters/floating-picker'
 import {isMobile} from '../../constants/platform'
 
 const SettingsFiles = () => {
-  const areSettingsLoading = Constants.useState(s => s.settings.isLoading)
-  const driverEnable = Constants.useState(s => s.dispatch.driverEnable)
-  const driverDisable = Constants.useState(s => s.dispatch.driverDisable)
-  const driverStatus = Constants.useState(s => s.sfmi.driverStatus)
-  const setSpaceAvailableNotificationThreshold = Constants.useState(
+  const areSettingsLoading = C.useFSState(s => s.settings.isLoading)
+  const driverEnable = C.useFSState(s => s.dispatch.driverEnable)
+  const driverDisable = C.useFSState(s => s.dispatch.driverDisable)
+  const driverStatus = C.useFSState(s => s.sfmi.driverStatus)
+  const setSpaceAvailableNotificationThreshold = C.useFSState(
     s => s.dispatch.setSpaceAvailableNotificationThreshold
   )
-  const spaceAvailableNotificationThreshold = Constants.useState(
+  const spaceAvailableNotificationThreshold = C.useFSState(
     s => s.settings.spaceAvailableNotificationThreshold
   )
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

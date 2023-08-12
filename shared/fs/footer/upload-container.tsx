@@ -1,7 +1,7 @@
 import * as Types from '../../constants/types/fs'
 import Upload from './upload'
 import {useUploadCountdown} from './use-upload-countdown'
-import * as Constants from '../../constants/fs'
+import * as C from '../../constants'
 
 // NOTE flip this to show a button to debug the upload banner animations.
 const enableDebugUploadBanner = false
@@ -11,7 +11,7 @@ const getDebugToggleShow = () => {
     return undefined
   }
 
-  const journalUpdate = Constants.useState.getState().dispatch.journalUpdate
+  const journalUpdate = C.useFSState.getState().dispatch.journalUpdate
   let showing = false
   return () => {
     journalUpdate(
@@ -24,9 +24,9 @@ const getDebugToggleShow = () => {
 }
 
 const UpoadContainer = () => {
-  const kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
-  const pathItems = Constants.useState(s => s.pathItems)
-  const uploads = Constants.useState(s => s.uploads)
+  const kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
+  const pathItems = C.useFSState(s => s.pathItems)
+  const uploads = C.useFSState(s => s.uploads)
   const debugToggleShow = getDebugToggleShow()
 
   // We just use syncingPaths rather than merging with writingToJournal here
@@ -35,7 +35,7 @@ const UpoadContainer = () => {
 
   // Filter out folder paths.
   const filePaths = [...uploads.syncingPaths].filter(
-    path => Constants.getPathItem(pathItems, path).type !== Types.PathType.Folder
+    path => C.getPathItem(pathItems, path).type !== Types.PathType.Folder
   )
 
   const np = useUploadCountdown({

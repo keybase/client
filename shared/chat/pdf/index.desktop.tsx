@@ -1,6 +1,6 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as FSConstants from '../../constants/fs'
 import * as Constants from '../../constants/chat2'
 import {downloadFolder} from '../../constants/platform'
 import type {Props} from '.'
@@ -9,7 +9,7 @@ const ChatPDF = (props: Props) => {
   const {message} = props
   const title = message?.title || message?.fileName || 'PDF'
   const url = message?.fileURL
-  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
 

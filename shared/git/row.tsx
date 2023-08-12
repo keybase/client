@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as ConfigConstants from '../constants/config'
-import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -29,7 +28,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const setTeamRepoSettings = C.useGitState(s => s.dispatch.setTeamRepoSettings)
   const _onBrowseGitRepo = (path: FsTypes.Path) => {
-    FsConstants.makeActionForOpenPathInFilesTab(path)
+    C.makeActionForOpenPathInFilesTab(path)
   }
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
