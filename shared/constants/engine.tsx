@@ -1,4 +1,5 @@
 import * as Z from '../util/zustand'
+import * as C from '.'
 import type * as EngineGen from '../actions/engine-gen-gen'
 
 type Store = {}
@@ -43,11 +44,8 @@ export const useState = Z.createZustand<State>(() => {
     },
     onEngineIncoming: action => {
       const f = async () => {
-        const BotsConstants = await import('./bots')
         const ChatConstants = await import('./chat2')
         const ConfigConstants = await import('./config')
-        const DLConstants = await import('./deeplinks')
-        const FSConstants = await import('./fs')
         const NotifConstants = await import('./notifications')
         const PeopleConstants = await import('./people')
         const PinConstants = await import('./pinentry')
@@ -57,13 +55,13 @@ export const useState = Z.createZustand<State>(() => {
         const TrackerConstants = await import('./tracker2')
         const UnlockConstants = await import('./unlock-folders')
         const UsersConstants = await import('./users')
-        BotsConstants.useState.getState().dispatch.onEngineIncoming(action)
+        C.useBotsState.getState().dispatch.onEngineIncoming(action)
         ChatConstants.useState.getState().dispatch.onEngineIncoming(action)
         ConfigConstants.useConfigState.getState().dispatch.dynamic.onEngineIncomingDesktop?.(action)
         ConfigConstants.useConfigState.getState().dispatch.dynamic.onEngineIncomingNative?.(action)
         ConfigConstants.useConfigState.getState().dispatch.onEngineIncoming(action)
-        DLConstants.useState.getState().dispatch.onEngineIncoming(action)
-        FSConstants.useState.getState().dispatch.onEngineIncoming(action)
+        C.useDeepLinksState.getState().dispatch.onEngineIncoming(action)
+        C.useFSState.getState().dispatch.onEngineIncoming(action)
         NotifConstants.useState.getState().dispatch.onEngineIncoming(action)
         PeopleConstants.useState.getState().dispatch.onEngineIncoming(action)
         PinConstants.useState.getState().dispatch.onEngineIncoming(action)
