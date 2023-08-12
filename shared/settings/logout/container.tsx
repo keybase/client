@@ -5,13 +5,13 @@ import * as C from '../../constants'
 import LogOut from '.'
 
 const LogoutContainer = () => {
-  const checkPasswordIsCorrect = Constants.useState(s => s.checkPasswordIsCorrect)
-  const resetCheckPassword = Constants.useState(s => s.dispatch.resetCheckPassword)
-  const checkPassword = Constants.useState(s => s.dispatch.checkPassword)
-  const hasRandomPW = Constants.usePasswordState(s => s.randomPW)
+  const checkPasswordIsCorrect = C.useSettingsState(s => s.checkPasswordIsCorrect)
+  const resetCheckPassword = C.useSettingsState(s => s.dispatch.resetCheckPassword)
+  const checkPassword = C.useSettingsState(s => s.dispatch.checkPassword)
+  const hasRandomPW = C.useSettingsPasswordState(s => s.randomPW)
   const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
 
-  const loadHasRandomPw = Constants.usePasswordState(s => s.dispatch.loadHasRandomPw)
+  const loadHasRandomPw = C.useSettingsPasswordState(s => s.dispatch.loadHasRandomPw)
 
   const onBootstrap = loadHasRandomPw
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -28,9 +28,9 @@ const LogoutContainer = () => {
     resetCheckPassword()
   }, [resetCheckPassword, requestLogout])
 
-  const submitNewPassword = Constants.usePasswordState(s => s.dispatch.submitNewPassword)
-  const setPassword = Constants.usePasswordState(s => s.dispatch.setPassword)
-  const setPasswordConfirm = Constants.usePasswordState(s => s.dispatch.setPasswordConfirm)
+  const submitNewPassword = C.useSettingsPasswordState(s => s.dispatch.submitNewPassword)
+  const setPassword = C.useSettingsPasswordState(s => s.dispatch.setPassword)
+  const setPasswordConfirm = C.useSettingsPasswordState(s => s.dispatch.setPasswordConfirm)
 
   const onSavePassword = React.useCallback(
     (password: string) => {

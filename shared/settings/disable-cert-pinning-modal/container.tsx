@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Constants from '../../constants/settings'
 import ConfirmDisableCertPinningModal from '.'
 
 export default () => {
@@ -7,7 +6,7 @@ export default () => {
   const onCancel = () => {
     navigateUp()
   }
-  const setDidToggleCertificatePinning = Constants.useState(s => s.dispatch.setDidToggleCertificatePinning)
+  const setDidToggleCertificatePinning = C.useSettingsState(s => s.dispatch.setDidToggleCertificatePinning)
   const onConfirm = () => {
     setDidToggleCertificatePinning(true)
     navigateUp()

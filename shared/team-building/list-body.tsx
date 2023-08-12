@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/team-building'
-import * as SettingsConstants from '../constants/settings'
 import * as Shared from './shared'
 import * as Styles from '../styles'
 import PeopleResult from './search-result/people-result'
@@ -238,8 +237,8 @@ export const ListBody = (
   const {onAdd, onRemove, teamSoFar, onSearchForMore, onChangeText} = props
   const {namespace, highlightedIndex, /*offset, */ enterInputCounter, onFinishTeamBuilding} = props
 
-  const contactsImported = SettingsConstants.useContactsState(s => s.importEnabled)
-  const contactsPermissionStatus = SettingsConstants.useContactsState(s => s.permissionStatus)
+  const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
+  const contactsPermissionStatus = C.useSettingsContactsState(s => s.permissionStatus)
 
   const username = C.useCurrentUserState(s => s.username)
   const following = C.useFollowerState(s => s.following)

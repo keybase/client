@@ -4,7 +4,6 @@ import * as DeviceTypes from './types/devices'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as RemoteGen from '../actions/remote-gen'
-import {useRouterState} from '.'
 import * as Stats from '../engine/stats'
 import * as Z from '../util/zustand'
 import isEqual from 'lodash/isEqual'
@@ -351,7 +350,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.switchTab: {
-          useRouterState.getState().dispatch.switchTab(action.payload.tab)
+          C.useRouterState.getState().dispatch.switchTab(action.payload.tab)
           break
         }
         case RemoteGen.setCriticalUpdate: {
@@ -633,9 +632,8 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           Teams.useState.getState().dispatch.refreshTeamRoleMap()
         }
 
-        const updateSettings = async () => {
-          const Settings = await import('./settings')
-          Settings.useContactsState.getState().dispatch.loadContactImportEnabled()
+        const updateSettings = () => {
+          C.useSettingsContactsState.getState().dispatch.loadContactImportEnabled()
         }
 
         const updateChat = async () => {
@@ -655,7 +653,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         getFollowerInfo()
         Z.ignorePromise(updateServerConfig())
         Z.ignorePromise(updateTeams())
-        Z.ignorePromise(updateSettings())
+        updateSettings()
         Z.ignorePromise(updateChat())
       }
     },
@@ -959,7 +957,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       })
       // already loaded, so just go now
       if (get().startup.loaded) {
-        useRouterState.getState().dispatch.navigateAppend('incomingShareNew')
+        C.useRouterState.getState().dispatch.navigateAppend('incomingShareNew')
       }
     },
     setBadgeState: b => {

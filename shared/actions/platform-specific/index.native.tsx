@@ -10,7 +10,6 @@ import * as ExpoTaskManager from 'expo-task-manager'
 import * as MediaLibrary from 'expo-media-library'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
 import * as Types from '../../constants/types/chat2'
 import NetInfo from '@react-native-community/netinfo'
@@ -524,7 +523,7 @@ export const initPlatformListener = () => {
     if (s.mobileAppState === old.mobileAppState) return
     if (s.mobileAppState === 'active') {
       // only reload on foreground
-      SettingsConstants.useContactsState.getState().dispatch.loadContactPermissions()
+      C.useSettingsContactsState.getState().dispatch.loadContactPermissions()
     }
   })
 
@@ -589,7 +588,7 @@ export const initPlatformListener = () => {
     s.dispatch.dynamic.onEngineIncomingNative = action => {
       switch (action.type) {
         case EngineGen.chat1ChatUiTriggerContactSync:
-          SettingsConstants.useContactsState.getState().dispatch.manageContactsCache()
+          C.useSettingsContactsState.getState().dispatch.manageContactsCache()
           break
         case EngineGen.keybase1LogUiLog: {
           const {params} = action.payload

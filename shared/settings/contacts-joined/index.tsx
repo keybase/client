@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/settings'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import type * as RPCTypes from '../../constants/types/rpc-gen'
@@ -35,7 +34,7 @@ const Item = ({item}: {item: RPCTypes.ProcessedContact}) => {
 }
 
 const ContactsJoinedModal = () => {
-  const people = Constants.useContactsState(s => s.alreadyOnKeybase)
+  const people = C.useSettingsContactsState(s => s.alreadyOnKeybase)
   const nav = Container.useSafeNavigation()
   const onClose = () => nav.safeNavigateUp()
   return (

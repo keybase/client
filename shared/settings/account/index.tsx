@@ -1,5 +1,5 @@
-import * as Constants from '../../constants/settings'
 import * as C from '../../constants'
+import * as Constants from '../../constants/settings'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
@@ -9,13 +9,13 @@ import EmailPhoneRow from './email-phone-row'
 import {isMobile} from '../../styles'
 
 export default () => {
-  const _emails = Constants.useEmailState(s => s.emails)
-  const _phones = Constants.usePhoneState(s => s.phones)
-  const addedEmail = Constants.useEmailState(s => s.addedEmail)
-  const addedPhone = Constants.usePhoneState(s => s.addedPhone)
-  const editPhone = Constants.usePhoneState(s => s.dispatch.editPhone)
-  const clearAddedPhone = Constants.usePhoneState(s => s.dispatch.clearAddedPhone)
-  const hasPassword = Constants.usePasswordState(s => !s.randomPW)
+  const _emails = C.useSettingsEmailState(s => s.emails)
+  const _phones = C.useSettingsPhoneState(s => s.phones)
+  const addedEmail = C.useSettingsEmailState(s => s.addedEmail)
+  const addedPhone = C.useSettingsPhoneState(s => s.addedPhone)
+  const editPhone = C.useSettingsPhoneState(s => s.dispatch.editPhone)
+  const clearAddedPhone = C.useSettingsPhoneState(s => s.dispatch.clearAddedPhone)
+  const hasPassword = C.useSettingsPasswordState(s => !s.randomPW)
   const waiting = Container.useAnyWaiting(Constants.loadSettingsWaitingKey)
   const _onClearSupersededPhoneNumber = (phone: string) => {
     editPhone(phone, true)
@@ -34,15 +34,15 @@ export default () => {
       }
     : undefined
 
-  const resetAddedEmail = Constants.useEmailState(s => s.dispatch.resetAddedEmail)
+  const resetAddedEmail = C.useSettingsEmailState(s => s.dispatch.resetAddedEmail)
   const onClearAddedEmail = resetAddedEmail
   const onClearAddedPhone = clearAddedPhone
   const onDeleteAccount = () => {
     navigateAppend('deleteConfirm')
   }
-  const loadSettings = Constants.useState(s => s.dispatch.loadSettings)
-  const loadRememberPassword = Constants.usePasswordState(s => s.dispatch.loadRememberPassword)
-  const loadHasRandomPw = Constants.usePasswordState(s => s.dispatch.loadHasRandomPw)
+  const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)
+  const loadRememberPassword = C.useSettingsPasswordState(s => s.dispatch.loadRememberPassword)
+  const loadHasRandomPw = C.useSettingsPasswordState(s => s.dispatch.loadHasRandomPw)
 
   const onReload = () => {
     loadSettings()
@@ -200,7 +200,7 @@ const Password = (props: Props) => {
 }
 
 const WebAuthTokenLogin = (_: Props) => {
-  const loginBrowserViaWebAuthToken = Constants.useState(s => s.dispatch.loginBrowserViaWebAuthToken)
+  const loginBrowserViaWebAuthToken = C.useSettingsState(s => s.dispatch.loginBrowserViaWebAuthToken)
   return (
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>

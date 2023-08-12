@@ -1,8 +1,7 @@
-import {useRouterState} from '.'
+import * as C from '.'
 import * as ConfigConstants from './config'
 import * as CryptoConstants from './crypto'
 import * as ProfileConstants from './profile'
-import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
 import * as TeamsConstants from './teams'
 import * as Z from '../util/zustand'
@@ -51,7 +50,7 @@ type State = Store & {
 
 export const useState = Z.createZustand<State>((set, get) => {
   const handleShowUserProfileLink = (username: string) => {
-    useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
+    C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
     ProfileConstants.useState.getState().dispatch.showUserProfile(username)
   }
 
@@ -132,12 +131,12 @@ export const useState = Z.createZustand<State>((set, get) => {
         const url = new URL(link)
         const username = urlToUsername(url)
         if (username === 'phone-app') {
-          const phones = SettingsConstants.usePhoneState.getState().phones
+          const phones = C.useSettingsPhoneState.getState().phones
           if (!phones || phones.size > 0) {
             return
           }
-          useRouterState.getState().dispatch.switchTab(Tabs.settingsTab)
-          useRouterState.getState().dispatch.navigateAppend('settingsAddPhone')
+          C.useRouterState.getState().dispatch.switchTab(Tabs.settingsTab)
+          C.useRouterState.getState().dispatch.navigateAppend('settingsAddPhone')
         } else if (username && username !== 'app') {
           handleShowUserProfileLink(username)
           return
@@ -177,8 +176,8 @@ export const useState = Z.createZustand<State>((set, get) => {
         case 'team':
           try {
             const decoded = decodeURIComponent(link)
-            useRouterState.getState().dispatch.switchTab(Tabs.fsTab)
-            useRouterState
+            C.useRouterState.getState().dispatch.switchTab(Tabs.fsTab)
+            C.useRouterState
               .getState()
               .dispatch.navigateAppend({props: {path: `/keybase/${decoded}`}, selected: 'fsRoot'})
             return
@@ -202,7 +201,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               const teamChat = parts[1]!.split('#')
               if (teamChat.length !== 2) {
                 get().dispatch.setLinkError(error)
-                useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
+                C.useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
                 return
               }
               const [teamname, channelname] = teamChat
@@ -255,7 +254,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
           break
         case 'incoming-share':
-          useRouterState.getState().dispatch.navigateAppend('incomingShareNew')
+          C.useRouterState.getState().dispatch.navigateAppend('incomingShareNew')
           return
         case 'team-invite-link':
           TeamsConstants.useState.getState().dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
@@ -264,7 +263,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         // Fall through to the error return below.
       }
       get().dispatch.setLinkError(error)
-      useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
+      C.useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
     },
     handleSaltPackOpen: _path => {
       const path = typeof _path === 'string' ? _path : _path.stringValue()
@@ -286,7 +285,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       const {onSaltpackOpenFile} = CryptoConstants.useState.getState().dispatch
       onSaltpackOpenFile(operation, path)
-      useRouterState.getState().dispatch.switchTab(Tabs.cryptoTab)
+      C.useRouterState.getState().dispatch.switchTab(Tabs.cryptoTab)
     },
 
     onEngineIncoming: action => {

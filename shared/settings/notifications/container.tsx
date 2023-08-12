@@ -5,8 +5,8 @@ import Notifications, {type Props} from '.'
 import {Reloadable} from '../../common-adapters'
 
 const ReloadableNotifications = (props: Props) => {
-  const loadSettings = Constants.useState(s => s.dispatch.loadSettings)
-  const refresh = Constants.useNotifState(s => s.dispatch.refresh)
+  const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)
+  const refresh = C.useSettingsNotifState(s => s.dispatch.refresh)
 
   const onRefresh = () => {
     loadSettings()
@@ -16,7 +16,7 @@ const ReloadableNotifications = (props: Props) => {
   return (
     <Reloadable
       onBack={Container.isMobile ? props.onBack : undefined}
-      waitingKeys={[Constants.refreshNotificationsWaitingKey, Constants.loadSettingsWaitingKey]}
+      waitingKeys={[C.refreshNotificationsWaitingKey, Constants.loadSettingsWaitingKey]}
       onReload={onRefresh}
       reloadOnMount={true}
     >
@@ -26,10 +26,10 @@ const ReloadableNotifications = (props: Props) => {
 }
 
 export default () => {
-  const _groups = Constants.useNotifState(s => s.groups)
-  const allowEdit = Constants.useNotifState(s => s.allowEdit)
-  const toggle = Constants.useNotifState(s => s.dispatch.toggle)
-  const showEmailSection = Constants.useEmailState(s => s.emails.size > 0)
+  const _groups = C.useSettingsNotifState(s => s.groups)
+  const allowEdit = C.useSettingsNotifState(s => s.allowEdit)
+  const toggle = C.useSettingsNotifState(s => s.dispatch.toggle)
+  const showEmailSection = C.useSettingsEmailState(s => s.emails.size > 0)
   const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {

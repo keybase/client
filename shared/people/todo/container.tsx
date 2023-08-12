@@ -201,9 +201,9 @@ const TeamShowcaseConnector = (props: TodoOwnProps) => {
 }
 
 const VerifyAllEmailConnector = (props: TodoOwnProps) => {
-  const addingEmail = SettingsConstants.useEmailState(s => s.addingEmail)
+  const addingEmail = C.useSettingsEmailState(s => s.addingEmail)
   const setResentEmail = C.usePeopleState(s => s.dispatch.setResentEmail)
-  const editEmail = SettingsConstants.useEmailState(s => s.dispatch.editEmail)
+  const editEmail = C.useSettingsEmailState(s => s.dispatch.editEmail)
   const onConfirm = (email: string) => {
     editEmail({email, verify: true})
     setResentEmail(email)
@@ -242,9 +242,7 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
 }
 
 const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
-  const resendVerificationForPhone = SettingsConstants.usePhoneState(
-    s => s.dispatch.resendVerificationForPhone
-  )
+  const resendVerificationForPhone = C.useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (phoneNumber: string) => {
     resendVerificationForPhone(phoneNumber)
@@ -278,7 +276,7 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
 }
 
 const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
-  const editEmail = SettingsConstants.useEmailState(s => s.dispatch.editEmail)
+  const editEmail = C.useSettingsEmailState(s => s.dispatch.editEmail)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (email: string) => {

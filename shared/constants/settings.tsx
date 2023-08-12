@@ -318,17 +318,3 @@ export const useState = Z.createZustand<State>(set => {
     dispatch,
   }
 })
-export {usePhoneState, useEmailState}
-export {useState as usePasswordState} from './settings-password'
-export {useState as useInvitesState} from './settings-invites'
-export {useState as useNotifState, refreshNotificationsWaitingKey} from './settings-notifications'
-export {
-  useState as useChatState,
-  contactSettingsSaveWaitingKey,
-  chatUnfurlWaitingKey,
-  contactSettingsLoadWaitingKey,
-} from './settings-chat'
-export {useState as useContactsState, importContactsWaitingKey} from './settings-contacts'
-
-export * from './settings-phone'
-export {addEmailWaitingKey} from './settings-email'

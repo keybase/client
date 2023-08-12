@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/settings'
 
 type CheckboxesProps = {
   checkData: boolean
@@ -35,8 +34,8 @@ const Checkboxes = (props: CheckboxesProps) => (
 )
 
 const DeleteConfirm = () => {
-  const hasPassword = Constants.usePasswordState(s => !s.randomPW)
-  const deleteAccountForever = Constants.useState(s => s.dispatch.deleteAccountForever)
+  const hasPassword = C.useSettingsPasswordState(s => !s.randomPW)
+  const deleteAccountForever = C.useSettingsState(s => s.dispatch.deleteAccountForever)
   const username = C.useCurrentUserState(s => s.username)
   const [checkData, setCheckData] = React.useState(false)
   const [checkTeams, setCheckTeams] = React.useState(false)

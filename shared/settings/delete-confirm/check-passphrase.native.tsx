@@ -1,18 +1,18 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Constants from '../../constants/settings'
 import * as Container from '../../util/container'
 
 const CheckPassphraseMobile = () => {
   const [password, setPassword] = React.useState('')
   const [showTyping, setShowTyping] = React.useState(false)
 
-  const checkPasswordIsCorrect = Constants.useState(s => s.checkPasswordIsCorrect)
+  const checkPasswordIsCorrect = C.useSettingsState(s => s.checkPasswordIsCorrect)
   const nav = Container.useSafeNavigation()
-  const checkPassword = Constants.useState(s => s.dispatch.checkPassword)
-  const resetCheckPassword = Constants.useState(s => s.dispatch.resetCheckPassword)
-  const deleteAccountForever = Constants.useState(s => s.dispatch.deleteAccountForever)
+  const checkPassword = C.useSettingsState(s => s.dispatch.checkPassword)
+  const resetCheckPassword = C.useSettingsState(s => s.dispatch.resetCheckPassword)
+  const deleteAccountForever = C.useSettingsState(s => s.dispatch.deleteAccountForever)
 
   const onCancel = () => {
     resetCheckPassword()
@@ -23,7 +23,7 @@ const CheckPassphraseMobile = () => {
     deleteAccountForever(password)
   }
 
-  const waitingKey = Container.useAnyWaiting(Constants.settingsWaitingKey)
+  const waitingKey = Container.useAnyWaiting(C.settingsWaitingKey)
   const inputType = showTyping ? 'text' : 'password'
   const keyboardType = showTyping && Styles.isAndroid ? 'visible-password' : 'default'
 
@@ -48,7 +48,7 @@ const CheckPassphraseMobile = () => {
           <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
             <Kb.WaitingButton
               fullWidth={true}
-              waitingKey={Constants.checkPasswordWaitingKey}
+              waitingKey={C.checkPasswordWaitingKey}
               disabled={!!checkPasswordIsCorrect || !password}
               label="Authorize"
               onClick={() => onCheckPassword(password)}

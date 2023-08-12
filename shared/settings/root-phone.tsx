@@ -70,7 +70,7 @@ function SettingsNav() {
     },
     [navigateAppend]
   )
-  const contactsLabel = Constants.useContactsState(s =>
+  const contactsLabel = C.useSettingsContactsState(s =>
     s.importEnabled ? 'Phone contacts' : 'Import phone contacts'
   )
 

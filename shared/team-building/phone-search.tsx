@@ -1,8 +1,8 @@
+import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import * as Constants from '../constants/team-building'
-import * as SettingsConstants from '../constants/settings'
 import * as Container from '../util/container'
 import type * as Types from 'constants/types/team-building'
 import type {AllowedNamespace} from '../constants/types/team-building'
@@ -21,9 +21,9 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   const [phoneNumber, setPhoneNumber] = React.useState('')
   const [phoneInputKey, setPhoneInputKey] = React.useState(0)
   const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
-  const loadDefaultPhoneCountry = SettingsConstants.usePhoneState(s => s.dispatch.loadDefaultPhoneCountry)
+  const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
   // trigger a default phone number country rpc if it's not already loaded
-  const defaultCountry = SettingsConstants.usePhoneState(s => s.defaultCountry)
+  const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
   React.useEffect(() => {
     !defaultCountry && loadDefaultPhoneCountry()
   }, [defaultCountry, loadDefaultPhoneCountry])
@@ -160,7 +160,7 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-start',
         justifyContent: 'center',
       },
-    } as const)
+    }) as const
 )
 
 export default PhoneSearch

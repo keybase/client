@@ -1,7 +1,6 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
-import * as SettingsConstants from '../../constants/settings'
-import * as C from '../../constants'
 import VerifyPhoneNumber, {type Props} from './verify'
 
 type WatcherProps = Props & {
@@ -35,21 +34,19 @@ export class WatchForSuccess extends React.Component<WatcherProps> {
 }
 
 export default () => {
-  const error = SettingsConstants.usePhoneState(s => (s.verificationState === 'error' ? s.error : ''))
-  const phoneNumber = SettingsConstants.usePhoneState(s => s.pendingVerification)
+  const error = C.useSettingsPhoneState(s => (s.verificationState === 'error' ? s.error : ''))
+  const phoneNumber = C.useSettingsPhoneState(s => s.pendingVerification)
   const resendWaiting = Container.useAnyWaiting([
-    SettingsConstants.resendVerificationForPhoneWaitingKey,
-    SettingsConstants.addPhoneNumberWaitingKey,
+    C.resendVerificationForPhoneWaitingKey,
+    C.addPhoneNumberWaitingKey,
   ])
-  const verificationStatus = SettingsConstants.usePhoneState(s => s.verificationState)
-  const verifyWaiting = Container.useAnyWaiting(SettingsConstants.verifyPhoneNumberWaitingKey)
+  const verificationStatus = C.useSettingsPhoneState(s => s.verificationState)
+  const verifyWaiting = Container.useAnyWaiting(C.verifyPhoneNumberWaitingKey)
 
-  const verifyPhoneNumber = SettingsConstants.usePhoneState(s => s.dispatch.verifyPhoneNumber)
-  const resendVerificationForPhone = SettingsConstants.usePhoneState(
-    s => s.dispatch.resendVerificationForPhone
-  )
+  const verifyPhoneNumber = C.useSettingsPhoneState(s => s.dispatch.verifyPhoneNumber)
+  const resendVerificationForPhone = C.useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)
 
-  const clearPhoneNumberAdd = SettingsConstants.usePhoneState(s => s.dispatch.clearPhoneNumberAdd)
+  const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
 
   const _onContinue = (phoneNumber: string, code: string) => {
     verifyPhoneNumber(phoneNumber, code)
