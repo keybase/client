@@ -3,12 +3,11 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RecoverConstants from '../../constants/recover-password'
 
 const ConfirmReset = () => {
   const hasWallet = C.useAutoResetState(s => s.hasWallet)
   const error = C.useAutoResetState(s => s.error)
-  const submitResetPassword = RecoverConstants.useState(s => s.dispatch.dynamic.submitResetPassword)
+  const submitResetPassword = C.useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
   const onContinue = React.useCallback(() => {
     submitResetPassword?.(RPCTypes.ResetPromptResponse.confirmReset)
   }, [submitResetPassword])

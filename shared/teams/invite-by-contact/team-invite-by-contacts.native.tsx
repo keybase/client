@@ -1,7 +1,7 @@
+import * as C from '../../constants'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as React from 'react'
-import * as SettingsConstants from '../../constants/settings'
 import type * as Types from '../../constants/types/teams'
 import useContacts, {type Contact} from '../common/use-contacts.native'
 import {InviteByContact, type ContactRowProps} from './index.native'
@@ -12,7 +12,7 @@ import {useTeamDetailsSubscribe} from '../subscriber'
 const extractPhoneNumber = (name: string, region: string): string => {
   const matches = /\((.*)\)/.exec(name)
   const maybeNumber = matches?.[1]?.replace(/[^0-9+]/g, '')
-  return (maybeNumber && SettingsConstants.getE164(maybeNumber, region)) ?? ''
+  return (maybeNumber && C.getE164(maybeNumber, region)) ?? ''
 }
 
 // Extract either emails or phone numbers from team invites, to match to

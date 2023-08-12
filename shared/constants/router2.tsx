@@ -1,4 +1,4 @@
-import {TBstores} from '.'
+import * as C from '.'
 import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
 import * as Z from '../util/zustand'
 import * as Container from '../util/container'
@@ -356,7 +356,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             // team building or modal on top of that still
             const isTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(next)?.name
             if (!isTeamBuilding) {
-              TBstores.get(namespace)?.getState().dispatch.cancelTeamBuilding()
+              C.TBstores.get(namespace)?.getState().dispatch.cancelTeamBuilding()
             }
           }
         }
@@ -414,20 +414,19 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(updateTeams())
 
-      const updateSettings = async () => {
-        const Settings = await import('./settings')
+      const updateSettings = () => {
         // Clear "check your inbox" in settings when you leave the settings tab
         if (
-          Settings.useEmailState.getState().addedEmail &&
+          C.useSettingsEmailState.getState().addedEmail &&
           prev &&
           getTab(prev) === Tabs.settingsTab &&
           next &&
           getTab(next) !== Tabs.settingsTab
         ) {
-          Settings.useEmailState.getState().dispatch.resetAddedEmail()
+          C.useSettingsEmailState.getState().dispatch.resetAddedEmail()
         }
       }
-      Z.ignorePromise(updateSettings())
+      updateSettings()
 
       const updateChat = async () => {
         const ChatConstants = await import('./chat2')

@@ -1,7 +1,5 @@
-import * as Constants from '../constants/settings'
 import * as C from '../constants'
 import * as ConfigConstants from '../constants/config'
-import * as PushConstants from '../constants/push'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Platform from '../constants/platform'
@@ -17,28 +15,28 @@ import {Group} from './notifications/render'
 const emptyList = new Array<string>()
 
 export default () => {
-  const contactSettingsEnabled = Constants.useChatState(s => s.contactSettings.settings?.enabled)
-  const contactSettingsIndirectFollowees = Constants.useChatState(
+  const contactSettingsEnabled = C.useSettingsChatState(s => s.contactSettings.settings?.enabled)
+  const contactSettingsIndirectFollowees = C.useSettingsChatState(
     s => s.contactSettings.settings?.allowFolloweeDegrees === 2
   )
-  const contactSettingsTeams = Constants.useChatState(s => s.contactSettings.settings?.teams)
-  const contactSettingsTeamsEnabled = Constants.useChatState(s => s.contactSettings.settings?.allowGoodTeams)
-  const whitelist = Constants.useChatState(s => s.unfurl.unfurlWhitelist)
+  const contactSettingsTeams = C.useSettingsChatState(s => s.contactSettings.settings?.teams)
+  const contactSettingsTeamsEnabled = C.useSettingsChatState(s => s.contactSettings.settings?.allowGoodTeams)
+  const whitelist = C.useSettingsChatState(s => s.unfurl.unfurlWhitelist)
   const unfurlWhitelist = whitelist ?? emptyList
-  const allowEdit = Constants.useNotifState(s => s.allowEdit)
-  const contactSettingsError = Constants.useChatState(s => s.contactSettings.error)
-  const groups = Constants.useNotifState(s => s.groups)
-  const mobileHasPermissions = PushConstants.useState(s => s.hasPermissions)
+  const allowEdit = C.useSettingsNotifState(s => s.allowEdit)
+  const contactSettingsError = C.useSettingsChatState(s => s.contactSettings.error)
+  const groups = C.useSettingsNotifState(s => s.groups)
+  const mobileHasPermissions = C.usePushState(s => s.hasPermissions)
   const sound = ConfigConstants.useConfigState(s => s.notifySound) // desktop
   const _teamMeta = TeamConstants.useState(s => s.teamMeta)
-  const unfurlError = Constants.useChatState(s => s.unfurl.unfurlError)
-  const unfurlMode = Constants.useChatState(s => s.unfurl.unfurlMode)
-  const contactSettingsSaved = Constants.useChatState(s => s.dispatch.contactSettingsSaved)
-  const contactSettingsRefresh = Constants.useChatState(s => s.dispatch.contactSettingsRefresh)
-  const unfurlSettingsRefresh = Constants.useChatState(s => s.dispatch.unfurlSettingsRefresh)
-  const unfurlSettingsSaved = Constants.useChatState(s => s.dispatch.unfurlSettingsSaved)
-  const notifRefresh = Constants.useNotifState(s => s.dispatch.refresh)
-  const notifToggle = Constants.useNotifState(s => s.dispatch.toggle)
+  const unfurlError = C.useSettingsChatState(s => s.unfurl.unfurlError)
+  const unfurlMode = C.useSettingsChatState(s => s.unfurl.unfurlMode)
+  const contactSettingsSaved = C.useSettingsChatState(s => s.dispatch.contactSettingsSaved)
+  const contactSettingsRefresh = C.useSettingsChatState(s => s.dispatch.contactSettingsRefresh)
+  const unfurlSettingsRefresh = C.useSettingsChatState(s => s.dispatch.unfurlSettingsRefresh)
+  const unfurlSettingsSaved = C.useSettingsChatState(s => s.dispatch.unfurlSettingsSaved)
+  const notifRefresh = C.useSettingsNotifState(s => s.dispatch.refresh)
+  const notifToggle = C.useSettingsNotifState(s => s.dispatch.toggle)
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = Container.isMobile
@@ -47,7 +45,7 @@ export default () => {
       }
     : undefined
   const onContactSettingsSave = contactSettingsSaved
-  const loadSettings = Constants.useState(s => s.dispatch.loadSettings)
+  const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)
   const onRefresh = () => {
     // Security: misc
     loadSettings()
@@ -331,7 +329,7 @@ class Chat extends React.Component<Props, State> {
                     label="Save"
                     small={true}
                     style={styles.save}
-                    waitingKey={Constants.contactSettingsSaveWaitingKey}
+                    waitingKey={C.contactSettingsSaveWaitingKey}
                   />
                   {!!this.props.contactSettingsError && (
                     <Kb.Text type="BodySmall" style={styles.error}>
@@ -431,7 +429,7 @@ class Chat extends React.Component<Props, State> {
                 small={true}
                 style={styles.save}
                 disabled={this._isUnfurlSaveDisabled()}
-                waitingKey={Constants.chatUnfurlWaitingKey}
+                waitingKey={C.chatUnfurlWaitingKey}
               />
               {this.props.unfurlError && (
                 <Kb.Text type="BodySmall" style={styles.error}>

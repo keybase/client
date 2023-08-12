@@ -21,7 +21,7 @@ const Connected = () => {
         navigateAppend(settingsTab)
         navigateAppend({
           props: {},
-          selected: require('../../constants/settings').feedbackTab,
+          selected: C.feedbackTab,
         })
       } else {
         navigateAppend({props: {}, selected: 'modalFeedback'})

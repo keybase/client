@@ -36,8 +36,8 @@ const UseNativeFrame = () => {
 
 const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean}) => {
   const {hasRandomPW, settingLockdownMode} = p
-  const lockdownModeEnabled = Constants.useState(s => !!s.lockdownModeEnabled)
-  const setLockdownMode = Constants.useState(s => s.dispatch.setLockdownMode)
+  const lockdownModeEnabled = C.useSettingsState(s => !!s.lockdownModeEnabled)
+  const setLockdownMode = C.useSettingsState(s => s.dispatch.setLockdownMode)
   const onChangeLockdownMode = setLockdownMode
   const label = 'Enable account lockdown mode' + (hasRandomPW ? ' (you need to set a password first)' : '')
   const checked = hasRandomPW || !!lockdownModeEnabled
@@ -72,11 +72,11 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
 
 const Advanced = () => {
   const settingLockdownMode = Container.useAnyWaiting(Constants.setLockdownModeWaitingKey)
-  const hasRandomPW = Constants.usePasswordState(s => !!s.randomPW)
+  const hasRandomPW = C.useSettingsPasswordState(s => !!s.randomPW)
   const openAtLogin = ConfigConstants.useConfigState(s => s.openAtLogin)
-  const rememberPassword = Constants.usePasswordState(s => s.rememberPassword)
+  const rememberPassword = C.useSettingsPasswordState(s => s.rememberPassword)
   const setLockdownModeError = Container.useAnyErrors(Constants.setLockdownModeWaitingKey)?.message || ''
-  const setRememberPassword = Constants.usePasswordState(s => s.dispatch.setRememberPassword)
+  const setRememberPassword = C.useSettingsPasswordState(s => s.dispatch.setRememberPassword)
   const onChangeRememberPassword = setRememberPassword
   const onSetOpenAtLogin = ConfigConstants.useConfigState(s => s.dispatch.setOpenAtLogin)
 
@@ -119,9 +119,9 @@ const Advanced = () => {
     )
   }
 
-  const loadHasRandomPw = Constants.usePasswordState(s => s.dispatch.loadHasRandomPw)
-  const loadRememberPassword = Constants.usePasswordState(s => s.dispatch.loadRememberPassword)
-  const loadLockdownMode = Constants.useState(s => s.dispatch.loadLockdownMode)
+  const loadHasRandomPw = C.useSettingsPasswordState(s => s.dispatch.loadHasRandomPw)
+  const loadRememberPassword = C.useSettingsPasswordState(s => s.dispatch.loadRememberPassword)
+  const loadLockdownMode = C.useSettingsState(s => s.dispatch.loadLockdownMode)
 
   React.useEffect(() => {
     loadHasRandomPw()
@@ -208,8 +208,8 @@ const Developer = () => {
   const showPprofControls = clickCount >= clickThreshold
   const traceInProgress = Container.useAnyWaiting(Constants.traceInProgressKey)
 
-  const trace = Constants.useState(s => s.dispatch.trace)
-  const processorProfile = Constants.useState(s => s.dispatch.processorProfile)
+  const trace = C.useSettingsState(s => s.dispatch.trace)
+  const processorProfile = C.useSettingsState(s => s.dispatch.processorProfile)
   const onTrace = trace
   const processorProfileInProgress = Container.useAnyWaiting(Constants.processorProfileInProgressKey)
   const onProcessorProfile = processorProfile

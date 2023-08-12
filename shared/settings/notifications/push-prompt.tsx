@@ -1,12 +1,11 @@
-import * as React from 'react'
-import * as Constants from '../../constants/push'
 import * as C from '../../constants'
+import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 const PushPrompt = () => {
-  const rejectPermissions = Constants.useState(s => s.dispatch.rejectPermissions)
-  const requestPermissions = Constants.useState(s => s.dispatch.requestPermissions)
+  const rejectPermissions = C.usePushState(s => s.dispatch.rejectPermissions)
+  const requestPermissions = C.usePushState(s => s.dispatch.requestPermissions)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onNoPermissions = React.useCallback(() => {
     rejectPermissions()
@@ -40,7 +39,7 @@ const PushPrompt = () => {
             fullWidth={true}
             onClick={onRequestPermissions}
             label="Allow notifications"
-            waitingKey={Constants.permissionsRequestingWaitingKey}
+            waitingKey={C.permissionsRequestingWaitingKey}
             style={styles.button}
             type="Success"
           />

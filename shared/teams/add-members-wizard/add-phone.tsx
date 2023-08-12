@@ -1,10 +1,10 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as RPCGen from '../../constants/types/rpc-gen'
-import * as SettingsConstants from '../../constants/settings'
 import {ModalTitle, usePhoneNumberList} from '../common'
 
 const waitingKey = 'phoneLookup'
@@ -19,9 +19,8 @@ const AddPhone = () => {
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
   const waiting = Container.useAnyWaiting(waitingKey)
 
-  const defaultCountry = SettingsConstants.usePhoneState(s => s.defaultCountry)
-
-  const loadDefaultPhoneCountry = SettingsConstants.usePhoneState(s => s.dispatch.loadDefaultPhoneCountry)
+  const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
+  const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
 
   React.useEffect(() => {
     if (!defaultCountry) {

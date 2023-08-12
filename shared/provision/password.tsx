@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as RecoverConstants from '../constants/recover-password'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -10,11 +9,11 @@ import {isMobile} from '../constants/platform'
 
 export default () => {
   const error = C.useProvisionState(s => s.error)
-  const resetEmailSent = RecoverConstants.useState(s => s.resetEmailSent)
+  const resetEmailSent = C.useRecoverState(s => s.resetEmailSent)
   const username = C.useProvisionState(s => s.username)
   const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const startRecoverPassword = RecoverConstants.useState(s => s.dispatch.startRecoverPassword)
+  const startRecoverPassword = C.useRecoverState(s => s.dispatch.startRecoverPassword)
   const _onForgotPassword = (username: string) => {
     startRecoverPassword({abortProvisioning: true, username})
   }
@@ -48,7 +47,7 @@ const Password = (props: Props) => {
   const [password, setPassword] = React.useState('')
   const {onSubmit} = props
   const _onSubmit = React.useCallback(() => onSubmit(password), [password, onSubmit])
-  const resetState = RecoverConstants.useState(s => s.dispatch.resetState)
+  const resetState = C.useRecoverState(s => s.dispatch.resetState)
   React.useEffect(
     () => () => {
       resetState()

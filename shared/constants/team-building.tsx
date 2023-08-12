@@ -1,7 +1,6 @@
+import * as C from '.'
 import * as RPCTypes from './types/rpc-gen'
 import * as React from 'react'
-import {getModalStack, useRouterState} from '.'
-import * as SettingsConstants from './settings'
 import * as UsersConstants from './users'
 import * as ProfileConstants from './profile'
 import * as Z from '../util/zustand'
@@ -310,11 +309,11 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       })
     },
     closeTeamBuilding: () => {
-      const modals = getModalStack()
+      const modals = C.getModalStack()
       const routeNames = [...namespaceToRoute.values()]
       const routeName = modals[modals.length - 1]?.name
       if (routeNames.includes(routeName ?? '')) {
-        useRouterState.getState().dispatch.clearModals()
+        C.useRouterState.getState().dispatch.clearModals()
       }
     },
     fetchUserRecs: () => {
@@ -331,8 +330,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           const contactRes = _contactRes || []
           const contacts = contactRes.map(contactToUser)
           let suggestions = suggestionRes.map(interestingPersonToUser)
-          const expectingContacts =
-            SettingsConstants.useContactsState.getState().importEnabled && includeContacts
+          const expectingContacts = C.useSettingsContactsState.getState().importEnabled && includeContacts
           if (expectingContacts) {
             suggestions = suggestions.slice(0, 10)
           }
@@ -441,7 +439,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         )
         if (selectedService === 'keybase') {
           // If we are on Keybase tab, do additional search if query is phone/email.
-          const userRegion = SettingsConstants.useContactsState.getState().userCountryCode
+          const userRegion = C.useSettingsContactsState.getState().userCountryCode
           users = await specialContactSearch(users, searchQuery, userRegion)
         }
         set(s => {

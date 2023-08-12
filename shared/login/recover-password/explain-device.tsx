@@ -1,17 +1,16 @@
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Constants from '../../constants/recover-password'
 import type {ButtonType} from '../../common-adapters/button'
 import {SignupScreen} from '../../signup/common'
 import {globalColors} from '../../styles'
 
 const ConnectedExplainDevice = () => {
-  const ed = Constants.useState(s => s.explainedDevice)
+  const ed = C.useRecoverState(s => s.explainedDevice)
   const deviceName = ed ? ed.name : ''
   const deviceType = ed ? ed.type : undefined
-  const username = Constants.useState(s => s.username)
-  const startRecoverPassword = Constants.useState(s => s.dispatch.startRecoverPassword)
+  const username = C.useRecoverState(s => s.username)
+  const startRecoverPassword = C.useRecoverState(s => s.dispatch.startRecoverPassword)
   const onBack = () => {
     startRecoverPassword({
       replaceRoute: true,

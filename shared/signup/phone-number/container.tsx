@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
-import * as SettingsConstants from '../../constants/settings'
 import EnterPhoneNumber, {type Props} from '.'
 
 type WatcherProps = Props & {
@@ -37,14 +36,14 @@ export class WatchForGoToVerify extends React.Component<WatcherProps> {
 }
 
 const ConnectedEnterPhoneNumber = () => {
-  const defaultCountry = SettingsConstants.usePhoneState(s => s.defaultCountry)
-  const error = SettingsConstants.usePhoneState(s => s.error)
-  const pendingVerification = SettingsConstants.usePhoneState(s => s.pendingVerification)
-  const waiting = Container.useAnyWaiting(SettingsConstants.addPhoneNumberWaitingKey)
-  const clearPhoneNumberErrors = SettingsConstants.usePhoneState(s => s.dispatch.clearPhoneNumberErrors)
-  const clearPhoneNumberAdd = SettingsConstants.usePhoneState(s => s.dispatch.clearPhoneNumberAdd)
+  const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
+  const error = C.useSettingsPhoneState(s => s.error)
+  const pendingVerification = C.useSettingsPhoneState(s => s.pendingVerification)
+  const waiting = Container.useAnyWaiting(C.addPhoneNumberWaitingKey)
+  const clearPhoneNumberErrors = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberErrors)
+  const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
   const onClear = clearPhoneNumberErrors
-  const addPhoneNumber = SettingsConstants.usePhoneState(s => s.dispatch.addPhoneNumber)
+  const addPhoneNumber = C.useSettingsPhoneState(s => s.dispatch.addPhoneNumber)
   const onContinue = addPhoneNumber
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onGoToVerify = () => {

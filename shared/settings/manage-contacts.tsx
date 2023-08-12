@@ -13,18 +13,18 @@ const enabledDescription = 'Your phone contacts are being synced on this device.
 const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'
 
 const ManageContacts = () => {
-  const status = Constants.useContactsState(s => s.permissionStatus)
-  const contactsImported = Constants.useContactsState(s => s.importEnabled)
-  const waiting = Container.useAnyWaiting(Constants.importContactsWaitingKey)
+  const status = C.useSettingsContactsState(s => s.permissionStatus)
+  const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
+  const waiting = Container.useAnyWaiting(C.importContactsWaitingKey)
 
-  const loadContactImportEnabled = Constants.useContactsState(s => s.dispatch.loadContactImportEnabled)
+  const loadContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.loadContactImportEnabled)
 
   if (contactsImported === null) {
     loadContactImportEnabled()
   }
 
-  const requestPermissions = Constants.useContactsState(s => s.dispatch.requestPermissions)
-  const editContactImportEnabled = Constants.useContactsState(s => s.dispatch.editContactImportEnabled)
+  const requestPermissions = C.useSettingsContactsState(s => s.dispatch.requestPermissions)
+  const editContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.editContactImportEnabled)
 
   const onToggle = React.useCallback(() => {
     if (status !== 'granted') {
@@ -63,10 +63,10 @@ const ManageContacts = () => {
 }
 
 const ManageContactsBanner = () => {
-  const status = Constants.useContactsState(s => s.permissionStatus)
-  const contactsImported = Constants.useContactsState(s => s.importEnabled)
-  const importedCount = Constants.useContactsState(s => s.importedCount)
-  const error = Constants.useContactsState(s => s.importError)
+  const status = C.useSettingsContactsState(s => s.permissionStatus)
+  const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
+  const importedCount = C.useSettingsContactsState(s => s.importedCount)
+  const error = C.useSettingsContactsState(s => s.importError)
   const onOpenAppSettings = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppSettings)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onStartChat = React.useCallback(() => {

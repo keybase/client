@@ -44,7 +44,7 @@ const Header = () => {
   }
 
   const startProvision = C.useProvisionState(s => s.dispatch.startProvision)
-  const stop = SettingsConstants.useState(s => s.dispatch.stop)
+  const stop = C.useSettingsState(s => s.dispatch.stop)
   const onAddAccount = () => {
     startProvision()
   }

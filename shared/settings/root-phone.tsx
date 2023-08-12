@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as TabConstants from '../constants/tabs'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/settings'
-import * as PushConstants from '../constants/push'
 import * as ConfigConstants from '../constants/config'
 import * as Styles from '../styles'
 import {logPerfLogPointRpcPromise} from '../constants/types/rpc-gen'
@@ -62,7 +61,7 @@ const renderItem = ({item}: any) => {
 
 function SettingsNav() {
   const badgeNumbers = C.useNotifState(s => s.navBadges)
-  const badgeNotifications = PushConstants.useState(s => !s.hasPermissions)
+  const badgeNotifications = C.usePushState(s => !s.hasPermissions)
   const statsShown = ConfigConstants.useConfigState(s => !!s.runtimeStats)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onTabChange = React.useCallback(
@@ -71,7 +70,7 @@ function SettingsNav() {
     },
     [navigateAppend]
   )
-  const contactsLabel = Constants.useContactsState(s =>
+  const contactsLabel = C.useSettingsContactsState(s =>
     s.importEnabled ? 'Phone contacts' : 'Import phone contacts'
   )
 

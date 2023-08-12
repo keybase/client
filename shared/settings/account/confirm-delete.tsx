@@ -1,8 +1,8 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/settings'
 import * as PhoneUtil from '../../util/phone-numbers'
 
 type Props = {
@@ -76,8 +76,8 @@ const DeleteModal = (props: OwnProps) => {
   const lastEmail = props.lastEmail ?? false
 
   const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
-  const editPhone = Constants.usePhoneState(s => s.dispatch.editPhone)
-  const editEmail = Constants.useEmailState(s => s.dispatch.editEmail)
+  const editPhone = C.useSettingsPhoneState(s => s.dispatch.editPhone)
+  const editEmail = C.useSettingsEmailState(s => s.dispatch.editEmail)
   const onConfirm = React.useCallback(() => {
     if (itemType === 'phone') {
       editPhone(itemAddress, true)
