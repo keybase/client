@@ -140,12 +140,12 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const {cannotWrite, channelname, teamname, teamID} = conv
   const welcomeMessage = {display: '', raw: '', set: false}
   const _teamID = teamID
-  const canShowcase = TeamConstants.useState(s => TeamConstants.canShowcase(s, teamID))
+  const canShowcase = C.useTeamsState(s => TeamConstants.canShowcase(s, teamID))
   const isBigTeam = Constants.useState(s => Constants.isBigTeam(s, teamID))
 
   const dispatch = Container.useDispatch()
 
-  const startAddMembersWizard = TeamConstants.useState(s => s.dispatch.startAddMembersWizard)
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const _onAddPeopleToTeam = (teamID: TeamTypes.TeamID) => startAddMembersWizard(teamID)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAuthorClick = (teamID: TeamTypes.TeamID) => navigateAppend({props: {teamID}, selected: 'team'})
@@ -159,10 +159,10 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const previewConversation = Constants.useState(s => s.dispatch.previewConversation)
   const _onGoToChannel = (channelname: string, teamname: string) =>
     previewConversation({channelname, reason: 'journeyCardPopular', teamname})
-  const manageChatChannels = TeamConstants.useState(s => s.dispatch.manageChatChannels)
+  const manageChatChannels = C.useTeamsState(s => s.dispatch.manageChatChannels)
   const _onManageChannels = (teamID: string) => manageChatChannels(teamID)
 
-  const setMemberPublicity = TeamConstants.useState(s => s.dispatch.setMemberPublicity)
+  const setMemberPublicity = C.useTeamsState(s => s.dispatch.setMemberPublicity)
   const _onPublishTeam = (teamID: string) => {
     navigateAppend('profileShowcaseTeamOffer')
     setMemberPublicity(teamID, true)

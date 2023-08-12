@@ -37,7 +37,7 @@ export default (ownProps: OwnProps) => {
   const yourMessage = message.author === you
   const meta = Constants.useContext(s => s.meta)
   const participantInfo = Constants.useContext(s => s.participants)
-  const _canDeleteHistory = TeamConstants.useState(
+  const _canDeleteHistory = C.useTeamsState(
     s => meta.teamType === 'adhoc' || TeamConstants.getCanPerformByID(s, meta.teamID).deleteChatHistory
   )
   const _canExplodeNow = (yourMessage || _canDeleteHistory) && message.isDeleteable
@@ -48,10 +48,8 @@ export default (ownProps: OwnProps) => {
     !yourMessage &&
     message.type === 'text' &&
     (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
-  const authorIsBot = TeamConstants.useState(s =>
-    Constants.messageAuthorIsBot(s, meta, message, participantInfo)
-  )
-  const _teamMembers = TeamConstants.useState(s => s.teamIDToMembers.get(meta.teamID))
+  const authorIsBot = C.useTeamsState(s => Constants.messageAuthorIsBot(s, meta, message, participantInfo))
+  const _teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(meta.teamID))
 
   const _authorIsBot = authorIsBot
   const _participants = participantInfo.all

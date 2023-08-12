@@ -24,8 +24,8 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji, false)
   const nav = Container.useSafeNavigation()
   const username = C.useCurrentUserState(s => s.username)
-  const canManageEmoji = Constants.useState(s => Constants.getCanPerformByID(s, teamID).manageEmojis)
-  const deleteOtherEmoji = Constants.useState(s => Constants.getCanPerformByID(s, teamID).deleteOtherEmojis)
+  const canManageEmoji = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID).manageEmojis)
+  const deleteOtherEmoji = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
   const onAddAlias = Container.useEvent(() => {
     nav.safeNavigateAppend({

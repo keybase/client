@@ -138,7 +138,7 @@ type State = Store & {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const _cancel = () => {
     WaitingConstants.useWaitingState.getState().dispatch.clear(waitingKey)
     console.log('Provision: cancel called while not overloaded')

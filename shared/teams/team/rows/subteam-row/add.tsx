@@ -1,13 +1,13 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import type * as Types from '../../../../constants/types/teams'
-import * as Constants from '../../../../constants/teams'
 
 const AddSubteam = ({teamID}: {teamID: Types.TeamID}) => {
-  const subteamFilter = Constants.useState(s => s.subteamFilter)
-  const setSubteamFilter = Constants.useState(s => s.dispatch.setSubteamFilter)
-  const launchNewTeamWizardOrModal = Constants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
+  const subteamFilter = C.useTeamsState(s => s.subteamFilter)
+  const setSubteamFilter = C.useTeamsState(s => s.dispatch.setSubteamFilter)
+  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onCreateSubteam = () => launchNewTeamWizardOrModal(teamID)
   const onChangeFilter = (filter: string) => setSubteamFilter(filter, teamID)
   // clear filter on unmount

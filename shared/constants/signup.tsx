@@ -1,7 +1,6 @@
 import * as C from '.'
 import * as Platforms from './platform'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as PushConstants from './push'
 import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
 import logger from '../logger'
@@ -74,7 +73,7 @@ export type State = Store & {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const noErrors = () => {
     const {devicenameError, emailError, inviteCodeError} = get()
     const {nameError, usernameError, signupError, usernameTaken} = get()
@@ -103,7 +102,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
 
       try {
-        PushConstants.useState.getState().dispatch.showPermissionsPrompt({justSignedUp: true})
+        C.usePushState.getState().dispatch.showPermissionsPrompt({justSignedUp: true})
 
         await RPCTypes.signupSignupRpcListener(
           {
@@ -156,7 +155,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             s.signupError = error
           })
           C.useRouterState.getState().dispatch.navigateAppend('signupError')
-          PushConstants.useState.getState().dispatch.showPermissionsPrompt({justSignedUp: false})
+          C.usePushState.getState().dispatch.showPermissionsPrompt({justSignedUp: false})
         }
       }
     }

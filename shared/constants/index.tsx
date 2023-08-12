@@ -1,62 +1,50 @@
 // Used to avoid circular dependencies
-export {useState as useRouterState, getModalStack, getTab} from './router2'
+export {_useState as useRouterState, getModalStack, getTab} from './router2'
 export {_getNavigator as getNavigator, navigationRef_, getVisibleScreen} from './router2'
 export {getVisiblePath, navToThread, type PathParam} from './router2'
-export {useState as useDeepLinksState, linkFromConvAndMessage} from './deeplinks'
+export {_useState as useDeepLinksState, linkFromConvAndMessage} from './deeplinks'
 export {Provider as TBProvider, useContext as useTBContext, stores as TBstores} from './team-building'
-export {useState as useGitState, loadingWaitingKey as gitWaitingKey, makeGitInfo} from './git'
-export {useState as useProvisionState, waitingKey as provisionWaitingKey} from './provision'
+export {_useState as useGitState, loadingWaitingKey as gitWaitingKey, makeGitInfo} from './git'
+export {_useState as useProvisionState, waitingKey as provisionWaitingKey} from './provision'
 export {type Device as ProvisionDevice, forgotUsernameWaitingKey} from './provision'
-export {useState as useFSState, makeActionForOpenPathInFilesTab, emptyFileContext, defaultPath} from './fs'
+export {_useState as useFSState, makeActionForOpenPathInFilesTab, emptyFileContext, defaultPath} from './fs'
 export {getPathItem, humanReadableFileSize, getTlfFromPath, parsePath, syncToggleWaitingKey} from './fs'
 export {isFolder, makeActionsForDestinationPickerOpen, isTeamPath, pathTypeToTextType} from './fs'
-export {useState as useActiveState} from './active'
-export {useState as useAutoResetState, enterPipelineWaitingKey} from './autoreset'
+export {_useState as useActiveState} from './active'
+export {_useState as useAutoResetState, enterPipelineWaitingKey} from './autoreset'
 export {actuallyResetWaitingKey, cancelResetWaitingKey} from './autoreset'
-export {useState as useBotsState, getFeaturedSorted} from './bots'
+export {_useState as useBotsState, getFeaturedSorted} from './bots'
 export {waitingKeyBotSearchUsers, waitingKeyBotSearchFeatured} from './bots'
-export {useState as useCryptoState} from './crypto'
-export {useState as useCurrentUserState} from './current-user'
-export {useState as useDaemonState, maxHandshakeTries} from './daemon'
-export {useState as useDarkModeState} from './darkmode'
-export {useState as useDevicesState, waitingKey as devicesWaitingKey} from './devices'
-export {useState as useEngineState} from './engine'
-export {useState as useFollowerState} from './followers'
+export {_useState as useCryptoState} from './crypto'
+export {_useState as useCurrentUserState} from './current-user'
+export {_useState as useDaemonState, maxHandshakeTries} from './daemon'
+export {_useState as useDarkModeState} from './darkmode'
+export {_useState as useDevicesState, waitingKey as devicesWaitingKey} from './devices'
+export {_useState as useEngineState} from './engine'
+export {_useState as useFollowerState} from './followers'
 export {bodyToJSON} from './gregor'
-export {useState as useLogoutState} from './logout'
-export {useState as useNotifState} from './notifications'
-export {useState as usePeopleState, getPeopleDataWaitingKey, todoTypes} from './people'
-export {useState as usePinentryState} from './pinentry'
-export {useState as useProfileState, uploadAvatarWaitingKey, waitingKey as profileWaitingKey} from './profile'
-export {useState as usePushState, permissionsRequestingWaitingKey} from './push'
-export {useState as useRecoverState, waitingKey as recoverWaitingKey} from './recover-password'
+export {_useState as useLogoutState} from './logout'
+export {_useState as useNotifState} from './notifications'
+export {_useState as usePeopleState, getPeopleDataWaitingKey, todoTypes} from './people'
+export {_useState as usePinentryState} from './pinentry'
 export {
-  useState as useSettingsState,
-  feedbackTab,
-  settingsWaitingKey,
-  checkPasswordWaitingKey,
-} from './settings'
-export {
-  useState as useSettingsChatState,
-  contactSettingsSaveWaitingKey,
-  chatUnfurlWaitingKey,
-  contactSettingsLoadWaitingKey,
-} from './settings-chat'
-export {
-  useState as useSettingsPhoneState,
-  getE164,
-  addPhoneNumberWaitingKey,
-  resendVerificationForPhoneWaitingKey,
-  verifyPhoneNumberWaitingKey,
-} from './settings-phone'
-export {useState as useSettingsEmailState, addEmailWaitingKey} from './settings-email'
-export {useState as useSettingsPasswordState} from './settings-password'
-export {useState as useSettingsInvitesState} from './settings-invites'
-export {useState as useSettingsNotifState, refreshNotificationsWaitingKey} from './settings-notifications'
-export {useState as useSettingsContactsState, importContactsWaitingKey} from './settings-contacts'
-export {
-  useState as useSignupState,
-  waitingKey as signupWaitingKey,
-  maxUsernameLength,
-  defaultDevicename,
-} from './signup'
+  _useState as useProfileState,
+  uploadAvatarWaitingKey,
+  waitingKey as profileWaitingKey,
+} from './profile'
+export {_useState as usePushState, permissionsRequestingWaitingKey} from './push'
+export {_useState as useRecoverState, waitingKey as recoverWaitingKey} from './recover-password'
+export {_useState as useSettingsState, feedbackTab} from './settings'
+export {settingsWaitingKey, checkPasswordWaitingKey} from './settings'
+export {_useState as useSettingsChatState, contactSettingsSaveWaitingKey} from './settings-chat'
+export {chatUnfurlWaitingKey, contactSettingsLoadWaitingKey} from './settings-chat'
+export {resendVerificationForPhoneWaitingKey, verifyPhoneNumberWaitingKey} from './settings-phone'
+export {_useState as useSettingsPhoneState, getE164, addPhoneNumberWaitingKey} from './settings-phone'
+export {_useState as useSettingsEmailState, addEmailWaitingKey} from './settings-email'
+export {_useState as useSettingsPasswordState} from './settings-password'
+export {_useState as useSettingsInvitesState} from './settings-invites'
+export {_useState as useSettingsNotifState, refreshNotificationsWaitingKey} from './settings-notifications'
+export {_useState as useSettingsContactsState, importContactsWaitingKey} from './settings-contacts'
+export {_useState as useSignupState, waitingKey as signupWaitingKey} from './signup'
+export {maxUsernameLength, defaultDevicename} from './signup'
+export {_useState as useTeamsState, teamWaitingKey} from './teams'

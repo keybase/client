@@ -1,10 +1,10 @@
+import * as C from '../constants'
 import * as ChatConstants from '../constants/chat2'
 import * as Constants from '../constants/team-building'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
-import * as TeamConstants from '../constants/teams'
 import * as TeamBuildingTypes from '../constants/types/team-building'
 import EmailSearch from './email-search'
 import Input from './input'
@@ -167,7 +167,7 @@ const TeamBuilding = (p: OwnProps) => {
     [search, incFocusInputCounter, setSelectedService, searchString]
   )
 
-  const title = TeamConstants.useState(s =>
+  const title = C.useTeamsState(s =>
     namespace === 'teams' ? `Add to ${getTeamMeta(s, teamID ?? '').teamname}` : p.title ?? ''
   )
 
@@ -257,7 +257,7 @@ const TeamBuilding = (p: OwnProps) => {
       teamSoFar={teamSoFar}
       searchString={searchString}
       goButtonLabel={goButtonLabel}
-      waitingKey={teamID ? TeamConstants.teamWaitingKey(teamID) : undefined}
+      waitingKey={teamID ? C.teamWaitingKey(teamID) : undefined}
     />
   )
 
@@ -337,7 +337,7 @@ const styles = Styles.styleSheetCreate(
         height: 48,
         width: 48,
       },
-    } as const)
+    }) as const
 )
 
 export default TeamBuilding

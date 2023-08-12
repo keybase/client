@@ -398,7 +398,7 @@ export const getDisabledReasonsForRolePicker = (
 ): Types.DisabledReasonsForRolePicker => {
   const canManageMembers = getCanPerformByID(state, teamID).manageMembers
   const teamMeta = getTeamMeta(state, teamID)
-  const teamDetails = useState.getState().teamDetails.get(teamID)
+  const teamDetails = _useState.getState().teamDetails.get(teamID)
   const members: Map<string, Types.MemberInfo> =
     teamDetails?.members || state.teamIDToMembers.get(teamID) || new Map<string, Types.MemberInfo>()
   const teamname = teamMeta.teamname
@@ -525,7 +525,7 @@ export const sortTeamsByName = memoize((teamMeta: Map<Types.TeamID, Types.TeamMe
 )
 
 // sorted by name
-export const getSortedTeams = () => sortTeamsByName(useState.getState().teamMeta)
+export const getSortedTeams = () => sortTeamsByName(_useState.getState().teamMeta)
 
 export const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
 export const isOwner = (type: Types.MaybeTeamRoleType) => type === 'owner'
@@ -905,7 +905,7 @@ export const consumeTeamTreeMembershipValue = (
 // in the treeloader-powered map (which can go stale) as a backup. If it returns null, it means we
 // don't know the answer (yet). If it returns type='none', that means the user is not in the team.
 export const maybeGetSparseMemberInfo = (state: State, teamID: string, username: string) => {
-  const details = useState.getState().teamDetails.get(teamID)
+  const details = _useState.getState().teamDetails.get(teamID)
   if (details) {
     return details.members.get(username) ?? {type: 'none'}
   }
@@ -1213,7 +1213,7 @@ export type State = Store & {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     addMembersWizardPushMembers: members => {
       const f = async () => {
@@ -2530,7 +2530,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             // identify error
             if (error.code === RPCTypes.StatusCode.scidentifysummaryerror) {
               // show profile card
-              ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+              C.useProfileState.getState().dispatch.showUserProfile(username)
             }
           }
         }

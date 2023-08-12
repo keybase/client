@@ -1,8 +1,8 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import {memoize} from '../../../util/memoize'
 import {useTeamDetailsSubscribe} from '../../subscriber'
@@ -27,7 +27,7 @@ const splitInviteLinks = memoize(
 const InviteHistory = (props: Props) => {
   const teamID = props.teamID ?? Types.noTeamID
   useTeamDetailsSubscribe(teamID)
-  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const loading = !teamDetails
   const [showingValid, setShowingValid] = React.useState(true)
   const nav = Container.useSafeNavigation()

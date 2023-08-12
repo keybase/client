@@ -1,7 +1,6 @@
 import * as C from '../../../../../constants'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
-import * as TeamsConstants from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
 import * as ConfigConstants from '../../../../../constants/config'
 import {linkFromConvAndMessage} from '../../../../../constants'
@@ -33,13 +32,11 @@ export default (ownProps: OwnProps) => {
   const meta = Constants.useContext(s => s.meta)
   const isTeam = !!meta.teamname
   const participantInfo = Constants.useContext(s => s.participants)
-  const yourOperations = TeamsConstants.useState(s => getCanPerformByID(s, meta.teamID))
+  const yourOperations = C.useTeamsState(s => getCanPerformByID(s, meta.teamID))
   const _canAdminDelete = yourOperations.deleteOtherMessages
   const _canPinMessage = !isTeam || yourOperations.pinMessage
-  const _authorIsBot = TeamsConstants.useState(s =>
-    Constants.messageAuthorIsBot(s, meta, message, participantInfo)
-  )
-  const _teamMembers = TeamsConstants.useState(s => s.teamIDToMembers.get(meta.teamID))
+  const _authorIsBot = C.useTeamsState(s => Constants.messageAuthorIsBot(s, meta, message, participantInfo))
+  const _teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(meta.teamID))
   const _label = Constants.getConversationLabel(participantInfo, meta, true)
   const _teamID = meta.teamID
   const _you = C.useCurrentUserState(s => s.username)

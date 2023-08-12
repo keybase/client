@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import * as Constants from '../../../../constants/teams'
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
 import type * as TeamsTypes from '../../../../constants/types/teams'
@@ -428,8 +427,8 @@ const policyToExplanation = (convType: string, p: RetentionPolicy, parent?: Rete
 // Switcher to avoid having RetentionPicker try to process nonexistent data
 const RetentionSwitcher = (props: {entityType: RetentionEntityType} & Props) => {
   const {teamID} = props
-  const existing = Constants.useState(s => s.teamIDToRetentionPolicy.get(teamID))
-  const getTeamRetentionPolicy = Constants.useState(s => s.dispatch.getTeamRetentionPolicy)
+  const existing = C.useTeamsState(s => s.teamIDToRetentionPolicy.get(teamID))
+  const getTeamRetentionPolicy = C.useTeamsState(s => s.dispatch.getTeamRetentionPolicy)
   React.useEffect(() => {
     // only load it up if its empty
     if (!existing) {

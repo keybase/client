@@ -14,7 +14,6 @@ import type * as Types from './types'
 import type {RootRouteProps} from '../router-v2/route-params'
 import {RecsAndRecos, numSectionLabel} from './recs-and-recos'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
-import * as TeamsConstants from '../constants/teams'
 import {memoize} from '../util/memoize'
 import {useRoute} from '@react-navigation/native'
 // import {useAnimatedScrollHandler} from '../common-adapters/reanimated'
@@ -243,7 +242,7 @@ export const ListBody = (
   const username = C.useCurrentUserState(s => s.username)
   const following = C.useFollowerState(s => s.following)
 
-  const maybeTeamDetails = TeamsConstants.useState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
+  const maybeTeamDetails = C.useTeamsState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
   const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
   const userRecs = Constants.useContext(s => s.userRecs)
   const _teamSoFar = Constants.useContext(s => s.teamSoFar)

@@ -1,7 +1,7 @@
+import * as C from '../../../../constants'
 import * as Common from './common'
 import * as Constants from '../../../../constants/chat2'
 import * as UsersConstants from '../../../../constants/users'
-import * as TeamConstants from '../../../../constants/teams'
 import * as Kb from '../../../../common-adapters'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
@@ -146,7 +146,7 @@ const useDataUsers = () => {
   return Constants.useContext(s => {
     const {teamID, teamType} = s.meta
     // TODO not reactive
-    const teamMembers = TeamConstants.useState.getState().teamIDToMembers.get(teamID)
+    const teamMembers = C.useTeamsState.getState().teamIDToMembers.get(teamID)
     const usernames = teamMembers
       ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))
       : participantInfo.all

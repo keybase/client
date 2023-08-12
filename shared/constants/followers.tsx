@@ -17,7 +17,7 @@ type State = Store & {
     updateFollowers: (user: string, add: boolean) => void
   }
 }
-export const useState = Z.createZustand<State>(set => {
+export const _useState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
     replace: (followers, following) => {
       set(s => {

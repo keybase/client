@@ -1,15 +1,15 @@
+import * as C from '../constants'
 import * as React from 'react'
 import * as Container from '../util/container'
 import type * as Types from '../constants/types/teams'
-import * as Constants from '../constants/teams'
 import {useFocusEffect} from '@react-navigation/core'
 
 // NOTE: If you are in a floating box or otherwise outside the navigation
 // context, you must use `*MountOnly` variants of these helpers
 
 const useTeamsSubscribeMobile = () => {
-  const getTeams = Constants.useState(s => s.dispatch.getTeams)
-  const unsubscribeTeamList = Constants.useState(s => s.dispatch.unsubscribeTeamList)
+  const getTeams = C.useTeamsState(s => s.dispatch.getTeams)
+  const unsubscribeTeamList = C.useTeamsState(s => s.dispatch.unsubscribeTeamList)
   useFocusEffect(
     React.useCallback(() => {
       getTeams(true)
@@ -20,8 +20,8 @@ const useTeamsSubscribeMobile = () => {
   )
 }
 const useTeamsSubscribeDesktop = () => {
-  const getTeams = Constants.useState(s => s.dispatch.getTeams)
-  const unsubscribeTeamList = Constants.useState(s => s.dispatch.unsubscribeTeamList)
+  const getTeams = C.useTeamsState(s => s.dispatch.getTeams)
+  const unsubscribeTeamList = C.useTeamsState(s => s.dispatch.unsubscribeTeamList)
   React.useEffect(() => {
     getTeams(true)
     return () => {
@@ -44,8 +44,8 @@ export const TeamsSubscriberMountOnly = () => {
 }
 
 const useTeamDetailsSubscribeMobile = (teamID: Types.TeamID) => {
-  const loadTeam = Constants.useState(s => s.dispatch.loadTeam)
-  const unsubscribeTeamDetails = Constants.useState(s => s.dispatch.unsubscribeTeamDetails)
+  const loadTeam = C.useTeamsState(s => s.dispatch.loadTeam)
+  const unsubscribeTeamDetails = C.useTeamsState(s => s.dispatch.unsubscribeTeamDetails)
   useFocusEffect(
     React.useCallback(() => {
       loadTeam(teamID, true)
@@ -54,8 +54,8 @@ const useTeamDetailsSubscribeMobile = (teamID: Types.TeamID) => {
   )
 }
 const useTeamDetailsSubscribeDesktop = (teamID: Types.TeamID) => {
-  const loadTeam = Constants.useState(s => s.dispatch.loadTeam)
-  const unsubscribeTeamDetails = Constants.useState(s => s.dispatch.unsubscribeTeamDetails)
+  const loadTeam = C.useTeamsState(s => s.dispatch.loadTeam)
+  const unsubscribeTeamDetails = C.useTeamsState(s => s.dispatch.unsubscribeTeamDetails)
   React.useEffect(() => {
     loadTeam(teamID, true)
     return () => unsubscribeTeamDetails(teamID)

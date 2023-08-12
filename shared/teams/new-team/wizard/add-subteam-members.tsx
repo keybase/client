@@ -15,18 +15,18 @@ const AddSubteamMembers = () => {
   const [filter, setFilter] = React.useState('')
   const filterL = filter.toLowerCase()
   const onBack = () => nav.safeNavigateUp()
-  const setTeamWizardSubteamMembers = Constants.useState(s => s.dispatch.setTeamWizardSubteamMembers)
-  const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
+  const setTeamWizardSubteamMembers = C.useTeamsState(s => s.dispatch.setTeamWizardSubteamMembers)
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onContinue = () =>
     selectedMembers.size
       ? setTeamWizardSubteamMembers([...selectedMembers])
       : startAddMembersWizard(Types.newTeamWizardTeamID)
 
   const yourUsername = C.useCurrentUserState(s => s.username)
-  const parentTeamID = Constants.useState(s => s.newTeamWizard.parentTeamID ?? Types.noTeamID)
+  const parentTeamID = C.useTeamsState(s => s.newTeamWizard.parentTeamID ?? Types.noTeamID)
   useTeamDetailsSubscribe(parentTeamID)
-  const parentTeamName = Constants.useState(s => Constants.getTeamMeta(s, parentTeamID).teamname)
-  const parentMembersMap = Constants.useState(
+  const parentTeamName = C.useTeamsState(s => Constants.getTeamMeta(s, parentTeamID).teamname)
+  const parentMembersMap = C.useTeamsState(
     s => (s.teamDetails.get(parentTeamID) ?? Constants.emptyTeamDetails).members
   )
   const parentMembers = [...parentMembersMap.values()].filter(

@@ -389,7 +389,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     C.useRouterState.getState().dispatch.clearModals()
     const meta = get().meta
     if (meta.teamname) {
-      TeamsConstants.useState.getState().dispatch.getMembers(meta.teamID)
+      C.useTeamsState.getState().dispatch.getMembers(meta.teamID)
     }
   }
 
@@ -2298,7 +2298,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           if (meta.conversationIDKey === selectedConversation) {
             const {teamID, teamname} = meta
             if (teamname) {
-              TeamsConstants.useState.getState().dispatch.getMembers(teamID)
+              C.useTeamsState.getState().dispatch.getMembers(teamID)
             }
           }
         }

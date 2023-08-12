@@ -1,5 +1,5 @@
-import EditAvatar from '.'
 import * as C from '../../constants'
+import EditAvatar from '.'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as TeamsConstants from '../../constants/teams'
 import * as Container from '../../util/container'
@@ -23,7 +23,7 @@ export default (ownProps: OwnProps) => {
   const sperror = Container.useAnyErrors(C.uploadAvatarWaitingKey)
   const sendChatNotification = ownProps.sendChatNotification ?? false
   const submitting = Container.useAnyWaiting(C.uploadAvatarWaitingKey)
-  const teamname = TeamsConstants.useState(
+  const teamname = C.useTeamsState(
     s => (teamID ? TeamsConstants.getTeamNameFromID(s, teamID) : undefined) ?? ''
   )
 
@@ -38,7 +38,7 @@ export default (ownProps: OwnProps) => {
     dispatchClearWaiting(C.uploadAvatarWaitingKey)
     clearModals()
   }
-  const uploadTeamAvatar = TeamsConstants.useState(s => s.dispatch.uploadTeamAvatar)
+  const uploadTeamAvatar = C.useTeamsState(s => s.dispatch.uploadTeamAvatar)
   const onSaveTeamAvatar = (
     _filename: string,
     teamname: string,
@@ -55,7 +55,7 @@ export default (ownProps: OwnProps) => {
     const filename = Styles.unnormalizePath(_filename)
     uploadAvatar(filename, crop)
   }
-  const setTeamWizardAvatar = TeamsConstants.useState(s => s.dispatch.setTeamWizardAvatar)
+  const setTeamWizardAvatar = C.useTeamsState(s => s.dispatch.setTeamWizardAvatar)
   const onSaveWizardAvatar = (_filename: string, crop?: Types.AvatarCrop) => {
     const filename = Styles.unnormalizePath(_filename)
     setTeamWizardAvatar(crop, filename)

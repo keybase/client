@@ -1,13 +1,12 @@
+import * as C from '../constants'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigConstants from '../constants/config'
-import * as C from '../constants'
 import * as UsersConstants from '../constants/users'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from './../constants/types/rpc-gen'
-import * as TeamsConstants from '../constants/teams'
 import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
 import * as WaitingConstants from '../constants/waiting'
@@ -674,8 +673,8 @@ const initChat = () => {
   Container.listenAction(EngineGen.chat1ChatUiChatGiphyToggleResultWindow, onGiphyToggleWindow)
   Container.listenAction(EngineGen.chat1ChatUiChatShowManageChannels, (_, action) => {
     const {teamname} = action.payload.params
-    const teamID = TeamsConstants.useState.getState().teamNameToID.get(teamname) ?? TeamsTypes.noTeamID
-    TeamsConstants.useState.getState().dispatch.manageChatChannels(teamID)
+    const teamID = C.useTeamsState.getState().teamNameToID.get(teamname) ?? TeamsTypes.noTeamID
+    C.useTeamsState.getState().dispatch.manageChatChannels(teamID)
   })
   Container.listenAction(EngineGen.chat1ChatUiChatCoinFlipStatus, (_, action) => {
     const {statuses} = action.payload.params

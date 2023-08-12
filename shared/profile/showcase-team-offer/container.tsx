@@ -7,7 +7,7 @@ import Render from '.'
 export default () => {
   const waiting = WaitingConstants.useWaitingState(s => s.counts)
   const _you = C.useCurrentUserState(s => s.username)
-  const teamMeta = Constants.useState(s => s.teamMeta)
+  const teamMeta = C.useTeamsState(s => s.teamMeta)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = (you: string) => {
     // sadly a little racy, doing this for now
@@ -23,7 +23,7 @@ export default () => {
     navigateUp()
   }
 
-  const setMemberPublicity = Constants.useState(s => s.dispatch.setMemberPublicity)
+  const setMemberPublicity = C.useTeamsState(s => s.dispatch.setMemberPublicity)
   const onPromote = setMemberPublicity
   const props = {
     onCancel: () => onCancel(_you),

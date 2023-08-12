@@ -15,8 +15,8 @@ const blankInfo = Constants.initialMemberInfo
 
 export default (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
-  const canManageBots = Constants.useState(s => Constants.getCanPerformByID(s, teamID).manageBots)
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
+  const canManageBots = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID).manageBots)
   const map = teamDetails?.members
   const info: Types.MemberInfo = map?.get(ownProps.username) || blankInfo
   const bot: RPCTypes.FeaturedBot = C.useBotsState(

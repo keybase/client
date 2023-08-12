@@ -1,9 +1,9 @@
+import * as C from '../../constants'
 import * as ChatConstants from '../../constants/chat2'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as C from '../../constants'
 import * as Styles from '../../styles'
 import type * as ChatTypes from '../../constants/types/chat2'
 import type * as Types from '../../constants/types/teams'
@@ -45,7 +45,7 @@ const getChannelSelectedCount = (props: ChannelProps) => {
   const {conversationIDKey, selectedTab} = props
   switch (selectedTab) {
     default:
-      return Constants.useState.getState().channelSelectedMembers.get(conversationIDKey)?.size ?? 0
+      return C.useTeamsState.getState().channelSelectedMembers.get(conversationIDKey)?.size ?? 0
   }
 }
 
@@ -132,14 +132,14 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
 const TeamSelectionPopup = (props: TeamProps) => {
   const {selectedTab, teamID} = props
 
-  const selectedCount = Constants.useState(s =>
+  const selectedCount = C.useTeamsState(s =>
     selectedTab === 'teamChannels'
       ? s.teamSelectedChannels.get(teamID)?.size ?? 0
       : s.teamSelectedMembers.get(teamID)?.size ?? 0
   )
 
-  const setChannelSelected = Constants.useState(s => s.dispatch.setChannelSelected)
-  const setMemberSelected = Constants.useState(s => s.dispatch.setMemberSelected)
+  const setChannelSelected = C.useTeamsState(s => s.dispatch.setChannelSelected)
+  const setMemberSelected = C.useTeamsState(s => s.dispatch.setMemberSelected)
 
   const onCancel = () => {
     switch (selectedTab) {
@@ -168,7 +168,7 @@ const TeamSelectionPopup = (props: TeamProps) => {
 const ChannelSelectionPopup = (props: ChannelProps) => {
   const {conversationIDKey, selectedTab, teamID} = props
   const selectedCount = getChannelSelectedCount(props)
-  const channelSetMemberSelected = Constants.useState(s => s.dispatch.channelSetMemberSelected)
+  const channelSetMemberSelected = C.useTeamsState(s => s.dispatch.channelSetMemberSelected)
   const onCancel = () => {
     switch (selectedTab) {
       case 'channelMembers':
@@ -203,7 +203,7 @@ const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
   </Kb.Box2>
 )
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
-  const membersSet = Constants.useState(s => s.teamSelectedMembers.get(teamID))
+  const membersSet = C.useTeamsState(s => s.teamSelectedMembers.get(teamID))
   const isBigTeam = ChatConstants.useState(s => ChatConstants.isBigTeam(s, teamID))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   if (!membersSet) {
@@ -248,7 +248,7 @@ function allSameOrNull<T>(arr: T[]): T | null {
   return (arr.some(r => r !== first) ? null : first) ?? null
 }
 const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: string[]}) => {
-  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const roles = members.map(username => teamDetails?.members.get(username)?.type)
   const currentRole = allSameOrNull(roles) ?? undefined
 
@@ -264,11 +264,9 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
     }
   }, [showingPicker, teamWaiting])
 
-  const disabledReasons = Constants.useState(s =>
-    Constants.getDisabledReasonsForRolePicker(s, teamID, members)
-  )
+  const disabledReasons = C.useTeamsState(s => Constants.getDisabledReasonsForRolePicker(s, teamID, members))
   const disableButton = disabledReasons.admin !== undefined
-  const editMembership = Constants.useState(s => s.dispatch.editMembership)
+  const editMembership = C.useTeamsState(s => s.dispatch.editMembership)
   const onChangeRoles = (role: Types.TeamRoleType) => editMembership(teamID, members, role)
 
   return (
@@ -306,10 +304,10 @@ const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
   )
 }
 const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps) => {
-  const membersSet = Constants.useState(
+  const membersSet = C.useTeamsState(
     s => s.channelSelectedMembers.get(conversationIDKey) ?? emptySetForUseSelector
   )
-  const channelInfo = Constants.useState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const channelInfo = C.useTeamsState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 

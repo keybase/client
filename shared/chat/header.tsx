@@ -28,10 +28,7 @@ const Header2 = (props: Props) => {
   const meta = Constants.useContext(s => s.meta)
   const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
   // TODO not reactive
-  const canEditDesc = TeamConstants.getCanPerform(
-    TeamConstants.useState.getState(),
-    teamname
-  ).editChannelDescription
+  const canEditDesc = TeamConstants.getCanPerform(C.useTeamsState.getState(), teamname).editChannelDescription
   const otherParticipants = Constants.getRowParticipants(participantInfo, username)
   const first: string = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
   const otherInfo = UsersConstants.useState(s => s.infoMap.get(first))

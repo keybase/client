@@ -30,8 +30,8 @@ const buttonLabel = {
 const useSecondaryAction = (props: Props) => {
   const {teamID, conversationIDKey} = props
   const nav = Container.useSafeNavigation()
-  const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
-  const launchNewTeamWizardOrModal = Constants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onSecondaryAction = () => {
     switch (props.type) {
       case 'members':
@@ -81,11 +81,11 @@ Make it a big team by creating chat channels.`
 
 const EmptyRow = (props: Props) => {
   const {conversationIDKey, teamID} = props
-  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
+  const teamMeta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
   const notIn = teamMeta.role === 'none' || props.notChannelMember
   const you = C.useCurrentUserState(s => s.username)
   const onSecondaryAction = useSecondaryAction(props)
-  const addToTeam = Constants.useState(s => s.dispatch.addToTeam)
+  const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
   const joinConversation = ChatConstants.useConvoState(
     conversationIDKey ?? ChatConstants.noConversationIDKey,
     s => s.dispatch.joinConversation

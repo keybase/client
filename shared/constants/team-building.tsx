@@ -2,7 +2,6 @@ import * as C from '.'
 import * as RPCTypes from './types/rpc-gen'
 import * as React from 'react'
 import * as UsersConstants from './users'
-import * as ProfileConstants from './profile'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import trim from 'lodash/trim'
@@ -286,7 +285,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           case 'people': {
             for (const user of teamSoFar) {
               const username = user.serviceMap.keybase || user.id
-              ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+              C.useProfileState.getState().dispatch.showUserProfile(username)
               break
             }
             // stop a silly race
@@ -352,18 +351,14 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       })
       get().dispatch.closeTeamBuilding()
       const {teamSoFar} = get()
-      const f = async () => {
-        const TeamsConstants = await import('./teams')
-        if (get().namespace === 'teams') {
-          TeamsConstants.useState
-            .getState()
-            .dispatch.addMembersWizardPushMembers(
-              [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
-            )
-          get().dispatch.finishedTeamBuilding()
-        }
+      if (get().namespace === 'teams') {
+        C.useTeamsState
+          .getState()
+          .dispatch.addMembersWizardPushMembers(
+            [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
+          )
+        get().dispatch.finishedTeamBuilding()
       }
-      Z.ignorePromise(f())
     },
     finishedTeamBuilding: () => {
       set(s => {
@@ -382,8 +377,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const f = async () => {
         switch (namespace) {
           case 'crypto': {
-            const CryptoConstants = await import('./crypto')
-            CryptoConstants.useState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
+            C.useCryptoState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
             break
           }
           case 'chat2': {

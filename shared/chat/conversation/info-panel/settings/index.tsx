@@ -19,7 +19,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const username = C.useCurrentUserState(s => s.username)
   const meta = Constants.useContext(s => s.meta)
   const {status, teamname, teamType, channelname, teamID} = meta
-  const yourOperations = TeamConstants.useState(s =>
+  const yourOperations = C.useTeamsState(s =>
     teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined
   )
   const ignored = status === RPCChatTypes.ConversationStatus.ignored
@@ -37,7 +37,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     entityType = 'adhoc'
   }
 
-  const teamMembers = TeamConstants.useState(s => s.teamIDToMembers.get(teamID))
+  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const participantInfo = Constants.useContext(s => s.participants)
   const membersForBlock = (teamMembers?.size ? [...teamMembers.keys()] : participantInfo.name).filter(
     u => u !== username && !Constants.isAssertion(u)

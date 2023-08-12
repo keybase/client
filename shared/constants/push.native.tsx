@@ -1,5 +1,4 @@
 import * as C from '.'
-import * as ProfileConstants from './profile'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as Tabs from './tabs'
@@ -169,7 +168,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               if (notification.userInteraction) {
                 const {username} = notification
                 logger.info('[Push] follower: ', username)
-                ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+                C.useProfileState.getState().dispatch.showUserProfile(username)
               }
               break
             case 'chat.extension':

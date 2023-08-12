@@ -1,10 +1,10 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as C from '../../constants'
 import * as ChatConstants from '../../constants/chat2'
 import * as UsersConstants from '../../constants/users'
 import type * as ChatTypes from '../../constants/types/chat2'
@@ -37,7 +37,7 @@ const useLoadDataForChannelPage = (
   const dispatch = Container.useDispatch()
   const prevSelectedTab = Container.usePrevious(selectedTab)
   const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
-  const getMembers = Constants.useState(s => s.dispatch.getMembers)
+  const getMembers = C.useTeamsState(s => s.dispatch.getMembers)
   const getBlockState = UsersConstants.useState(s => s.dispatch.getBlockState)
   const unboxRows = ChatConstants.useState(s => s.dispatch.unboxRows)
   React.useEffect(() => {
@@ -70,7 +70,7 @@ const useLoadDataForChannelPage = (
     }
   }, [selectedTab, searchFeaturedBots, conversationIDKey, prevSelectedTab, bots, featuredBotsMap])
 
-  const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
+  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
   React.useEffect(() => {
     loadTeamChannelList(teamID)
   }, [loadTeamChannelList, teamID])
@@ -122,9 +122,9 @@ const Channel = (props: OwnProps) => {
     s => ChatConstants.getBotsAndParticipants(meta, s.participants, true /* sort */),
     isEqual // do a deep comparison so as to not render thrash
   )
-  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
-  const teamMembers = Constants.useState(s => s.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector)
+  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector)
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
   useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants, bots)
   const participants = useChannelParticipants(teamID, conversationIDKey)

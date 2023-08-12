@@ -14,12 +14,8 @@ const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
   const {conversationIDKey, addee, adder, author, bulkAdds, role, timestamp} = message
   const meta = Constants.useContext(s => s.meta)
   const {teamID, teamname, teamType} = meta
-  const authorIsAdmin = TeamConstants.useState(s =>
-    TeamConstants.userIsRoleInTeam(s, teamID, author, 'admin')
-  )
-  const authorIsOwner = TeamConstants.useState(s =>
-    TeamConstants.userIsRoleInTeam(s, teamID, author, 'owner')
-  )
+  const authorIsAdmin = C.useTeamsState(s => TeamConstants.userIsRoleInTeam(s, teamID, author, 'admin'))
+  const authorIsOwner = C.useTeamsState(s => TeamConstants.userIsRoleInTeam(s, teamID, author, 'owner'))
   const you = C.useCurrentUserState(s => s.username)
   const isAdmin = authorIsAdmin || authorIsOwner
   const isTeam = teamType === 'big' || teamType === 'small'

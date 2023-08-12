@@ -53,7 +53,7 @@ export type State = Store & {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   // const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
     refresh: () => {

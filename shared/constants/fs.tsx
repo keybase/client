@@ -885,7 +885,7 @@ export const getPathStatusIconInMergeProps = (
 }
 
 export const makeActionsForDestinationPickerOpen = (index: number, path: Types.Path) => {
-  useState.getState().dispatch.setDestinationPickerParentPath(index, path)
+  _useState.getState().dispatch.setDestinationPickerParentPath(index, path)
   C.useRouterState.getState().dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
 }
 
@@ -1010,7 +1010,7 @@ const noAccessErrorCodes = [
 
 export const errorToActionOrThrow = (error: any, path?: Types.Path) => {
   if (error?.code === RPCTypes.StatusCode.sckbfsclienttimeout) {
-    useState.getState().dispatch.checkKbfsDaemonRpcStatus()
+    _useState.getState().dispatch.checkKbfsDaemonRpcStatus()
     return
   }
   if (error?.code === RPCTypes.StatusCode.scidentifiesfailed) {
@@ -1027,19 +1027,19 @@ export const errorToActionOrThrow = (error: any, path?: Types.Path) => {
     return undefined
   }
   if (path && error?.code === RPCTypes.StatusCode.scsimplefsnotexist) {
-    useState.getState().dispatch.setPathSoftError(path, Types.SoftError.Nonexistent)
+    _useState.getState().dispatch.setPathSoftError(path, Types.SoftError.Nonexistent)
     return
   }
   if (path && noAccessErrorCodes.includes(error?.code)) {
     const tlfPath = getTlfPath(path)
     if (tlfPath) {
-      useState.getState().dispatch.setTlfSoftError(tlfPath, Types.SoftError.NoAccess)
+      _useState.getState().dispatch.setTlfSoftError(tlfPath, Types.SoftError.NoAccess)
       return
     }
   }
   if (error?.code === RPCTypes.StatusCode.scdeleted) {
     // The user is deleted. Let user know and move on.
-    useState.getState().dispatch.redbar('A user in this shared folder has deleted their account.')
+    _useState.getState().dispatch.redbar('A user in this shared folder has deleted their account.')
     return
   }
   throw error
@@ -1302,7 +1302,7 @@ const updatePathItem = (
   return newPathItemFromAction
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
   // reducer and happens before this.
   let waitForKbfsDaemonInProgress = false
@@ -1579,7 +1579,6 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     favoritesLoad: () => {
       const f = async () => {
-        const NotifConstants = await import('./notifications')
         try {
           if (!ConfigConstants.useConfigState.getState().loggedIn) {
             return
@@ -1635,7 +1634,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             })
             const counts = new Map<Tabs.Tab, number>()
             counts.set(Tabs.fsTab, computeBadgeNumberForAll(get().tlfs))
-            NotifConstants.useState.getState().dispatch.setBadgeCounts(counts)
+            C.useNotifState.getState().dispatch.setBadgeCounts(counts)
           }
         } catch (e) {
           errorToActionOrThrow(e)
@@ -2287,7 +2286,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         return
       }
 
-      const {folderListLoad} = useState.getState().dispatch
+      const {folderListLoad} = _useState.getState().dispatch
       topics.forEach(topic => {
         switch (topic) {
           case RPCTypes.PathSubscriptionTopic.children:
@@ -2343,7 +2342,6 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
 
       const f = async () => {
-        const NotifConstants = await import('./notifications')
         if (polling) {
           return
         }
@@ -2366,12 +2364,12 @@ export const useState = Z.createZustand<State>((set, get) => {
             if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
               break
             }
-            NotifConstants.useState.getState().dispatch.badgeApp('kbfsUploading', true)
+            C.useNotifState.getState().dispatch.badgeApp('kbfsUploading', true)
             await Z.timeoutPromise(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
           }
         } finally {
           polling = false
-          NotifConstants.useState.getState().dispatch.badgeApp('kbfsUploading', false)
+          C.useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
           get().dispatch.checkKbfsDaemonRpcStatus()
         }
       }
@@ -2624,15 +2622,11 @@ export const useState = Z.createZustand<State>((set, get) => {
       if (oldStatus !== diskSpaceStatus) {
         switch (diskSpaceStatus) {
           case Types.DiskSpaceStatus.Error: {
-            const f = async () => {
-              NotifyPopup('Sync Error', {
-                body: 'You are out of disk space. Some folders could not be synced.',
-                sound: true,
-              })
-              const NotifConstants = await import('./notifications')
-              NotifConstants.useState.getState().dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
-            }
-            Z.ignorePromise(f())
+            NotifyPopup('Sync Error', {
+              body: 'You are out of disk space. Some folders could not be synced.',
+              sound: true,
+            })
+            C.useNotifState.getState().dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
             break
           }
           case Types.DiskSpaceStatus.Warning:

@@ -1,6 +1,6 @@
+import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
-import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as Styles from '../../../styles'
 import {ModalTitle} from '../../common'
@@ -8,7 +8,7 @@ import {ModalTitle} from '../../common'
 const MakeBigTeam = () => {
   const nav = Container.useSafeNavigation()
   const onBack = () => nav.safeNavigateUp()
-  const setTeamWizardTeamSize = Constants.useState(s => s.dispatch.setTeamWizardTeamSize)
+  const setTeamWizardTeamSize = C.useTeamsState(s => s.dispatch.setTeamWizardTeamSize)
   const onSubmit = (isBig: boolean) => setTeamWizardTeamSize(isBig)
 
   const teamID = Types.newTeamWizardTeamID

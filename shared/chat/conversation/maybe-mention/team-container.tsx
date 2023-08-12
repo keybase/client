@@ -1,6 +1,5 @@
-import * as Constants from '../../../constants/chat2'
 import * as C from '../../../constants'
-import * as TeamsConstants from '../../../constants/teams'
+import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import type {StylesTextCrossPlatform} from '../../../common-adapters/text'
@@ -36,13 +35,13 @@ export default (ownProps: OwnProps) => {
   const _onChat = (conversationIDKey: Types.ConversationIDKey) => {
     previewConversation({conversationIDKey, reason: 'teamMention'})
   }
-  const showTeamByName = TeamsConstants.useState(s => s.dispatch.showTeamByName)
+  const showTeamByName = C.useTeamsState(s => s.dispatch.showTeamByName)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const _onViewTeam = (teamname: string) => {
     clearModals()
     showTeamByName(teamname)
   }
-  const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
+  const joinTeam = C.useTeamsState(s => s.dispatch.joinTeam)
   const onJoinTeam = joinTeam
 
   const convID = _convID ? Types.stringToConversationIDKey(_convID) : undefined

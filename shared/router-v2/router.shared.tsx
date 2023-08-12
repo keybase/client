@@ -92,7 +92,7 @@ export const useShared = () => {
     appState.current = AppState.NEEDS_INIT
   }
 
-  const setNavState = RouterConstants.useState(s => s.dispatch.setNavState)
+  const setNavState = C.useRouterState(s => s.dispatch.setNavState)
   const onStateChange = React.useCallback(() => {
     const ns = RouterConstants.getRootState()
     setNavState(ns)

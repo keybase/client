@@ -81,13 +81,13 @@ const styles = Styles.styleSheetCreate(() => ({
 
 export default (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const {teamname, role, memberCount} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
-  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
+  const {teamname, role, memberCount} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
   const canDeleteTeam = yourOperations.deleteTeam
   const canInvite = yourOperations.manageMembers
-  const canLeaveTeam = Constants.useState(s => !Constants.isLastOwner(s, teamID) && role !== 'none')
+  const canLeaveTeam = C.useTeamsState(s => !Constants.isLastOwner(s, teamID) && role !== 'none')
   const canViewFolder = !yourOperations.joinTeam
-  const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onAddOrInvitePeople = () => {
     startAddMembersWizard(teamID)
   }

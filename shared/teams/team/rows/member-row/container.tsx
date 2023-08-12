@@ -17,8 +17,8 @@ const blankInfo = Constants.initialMemberInfo
 
 export default (ownProps: OwnProps) => {
   const {teamID, firstItem, username} = ownProps
-  const {members} = Constants.useState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
-  const {teamname} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
+  const {members} = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
+  const {teamname} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
   const info = members.get(username) || blankInfo
 
   const you = C.useCurrentUserState(s => s.username)
@@ -28,7 +28,7 @@ export default (ownProps: OwnProps) => {
   const status = info.status
   const waitingForAdd = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
   const waitingForRemove = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, username))
-  const youCanManageMembers = Constants.useState(s => Constants.getCanPerform(s, teamname).manageMembers)
+  const youCanManageMembers = C.useTeamsState(s => Constants.getCanPerform(s, teamname).manageMembers)
   const setUserBlocks = UsersConstants.useState(s => s.dispatch.setUserBlocks)
   const onBlock = () => {
     username && setUserBlocks([{setChatBlock: true, setFollowBlock: true, username}])
@@ -45,8 +45,8 @@ export default (ownProps: OwnProps) => {
   const onOpenProfile = () => {
     username && showUserProfile(username)
   }
-  const reAddToTeam = Constants.useState(s => s.dispatch.reAddToTeam)
-  const removeMember = Constants.useState(s => s.dispatch.removeMember)
+  const reAddToTeam = C.useTeamsState(s => s.dispatch.reAddToTeam)
+  const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
   const onReAddToTeam = () => {
     reAddToTeam(teamID, username)
   }

@@ -349,19 +349,15 @@ export const useState = Z.createZustand<State>((set, get) => {
             if (error.code === RPCTypes.StatusCode.scresolutionfailed) {
               get().dispatch.updateResult(guiID, 'notAUserYet')
             } else if (error.code === RPCTypes.StatusCode.scnotfound) {
-              const f = async () => {
-                // we're on the profile page for a user that does not exist. Currently the only way
-                // to get here is with an invalid link or deeplink.
-                const LinksConstants = await import('./deeplinks')
-                LinksConstants.useState
-                  .getState()
-                  .dispatch.setLinkError(
-                    `You followed a profile link for a user (${assertion}) that does not exist.`
-                  )
-                useRouterState.getState().dispatch.navigateUp()
-                useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
-              }
-              Z.ignorePromise(f())
+              // we're on the profile page for a user that does not exist. Currently the only way
+              // to get here is with an invalid link or deeplink.
+              C.useDeepLinksState
+                .getState()
+                .dispatch.setLinkError(
+                  `You followed a profile link for a user (${assertion}) that does not exist.`
+                )
+              useRouterState.getState().dispatch.navigateUp()
+              useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
             }
             // hooked into reloadable
             logger.error(`Error loading profile: ${error.message}`)
@@ -662,11 +658,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
       if (!skipNav) {
         // go to profile page
-        const f = async () => {
-          const ProfileConstants = await import('./profile')
-          ProfileConstants.useState.getState().dispatch.showUserProfile(username)
-        }
-        Z.ignorePromise(f())
+        C.useProfileState.getState().dispatch.showUserProfile(username)
       }
     },
     updateResult: (guiID, result, reason) => {

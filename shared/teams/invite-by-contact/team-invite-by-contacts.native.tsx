@@ -46,8 +46,8 @@ type Props = {
 const TeamInviteByContact = (props: Props) => {
   const {teamID} = props
   const {contacts, region, errorMessage} = useContacts()
-  const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
-  const invites = Constants.useState(s => s.teamDetails.get(teamID) ?? Constants.emptyTeamDetails).invites
+  const teamname = C.useTeamsState(s => Constants.getTeamMeta(s, teamID).teamname)
+  const invites = C.useTeamsState(s => s.teamDetails.get(teamID) ?? Constants.emptyTeamDetails).invites
 
   useTeamDetailsSubscribe(teamID)
 
@@ -55,8 +55,8 @@ const TeamInviteByContact = (props: Props) => {
 
   const [selectedRole, setSelectedRole] = React.useState('writer' as Types.TeamRoleType)
 
-  const loadingInvites = Constants.useState(s => s.teamNameToLoadingInvites.get(teamname))
-  const resetErrorInEmailInvite = Constants.useState(s => s.dispatch.resetErrorInEmailInvite)
+  const loadingInvites = C.useTeamsState(s => s.teamNameToLoadingInvites.get(teamname))
+  const resetErrorInEmailInvite = C.useTeamsState(s => s.dispatch.resetErrorInEmailInvite)
   const onBack = React.useCallback(() => {
     nav.safeNavigateUp()
     resetErrorInEmailInvite()
@@ -68,8 +68,8 @@ const TeamInviteByContact = (props: Props) => {
     },
     [setSelectedRole]
   )
-  const inviteToTeamByEmail = Constants.useState(s => s.dispatch.inviteToTeamByEmail)
-  const inviteToTeamByPhone = Constants.useState(s => s.dispatch.inviteToTeamByPhone)
+  const inviteToTeamByEmail = C.useTeamsState(s => s.dispatch.inviteToTeamByEmail)
+  const inviteToTeamByPhone = C.useTeamsState(s => s.dispatch.inviteToTeamByPhone)
 
   const onInviteContact = React.useCallback(
     (contact: Contact) => {
@@ -90,7 +90,7 @@ const TeamInviteByContact = (props: Props) => {
     [inviteToTeamByPhone, inviteToTeamByEmail, resetErrorInEmailInvite, selectedRole, teamID, teamname]
   )
 
-  const removePendingInvite = Constants.useState(s => s.dispatch.removePendingInvite)
+  const removePendingInvite = C.useTeamsState(s => s.dispatch.removePendingInvite)
   const onCancelInvite = React.useCallback(
     (inviteID: string) => {
       resetErrorInEmailInvite()

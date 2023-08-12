@@ -1,7 +1,7 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as C from '../../constants'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat2'
@@ -28,16 +28,16 @@ const disabledRolesSubteam = {
 }
 
 const AddMembersConfirm = () => {
-  const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = Constants.useState(
+  const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = C.useTeamsState(
     s => s.addMembersWizard
   )
-  const isSubteam = Constants.useState(s => Constants.getTeamMeta(s, teamID)?.teamname.includes('.'))
+  const isSubteam = C.useTeamsState(s => Constants.getTeamMeta(s, teamID)?.teamname.includes('.'))
   const fromNewTeamWizard = teamID === Types.newTeamWizardTeamID
   const isBigTeam = ChatConstants.useState(s =>
     fromNewTeamWizard ? false : ChatConstants.isBigTeam(s, teamID)
   )
   const noun = addingMembers.length === 1 ? 'person' : 'people'
-  const isInTeam = Constants.useState(s => Constants.getRole(s, teamID) !== 'none')
+  const isInTeam = C.useTeamsState(s => Constants.getRole(s, teamID) !== 'none')
 
   // TODO: consider useMemoing these
   const anyNonKeybase = addingMembers.some(m => m.assertion.includes('@'))
@@ -49,21 +49,21 @@ const AddMembersConfirm = () => {
 
   const [emailMessage, setEmailMessage] = React.useState<string>('')
 
-  const cancelAddMembersWizard = Constants.useState(s => s.dispatch.cancelAddMembersWizard)
+  const cancelAddMembersWizard = C.useTeamsState(s => s.dispatch.cancelAddMembersWizard)
   const onLeave = () => cancelAddMembersWizard()
   const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   const onBack = () => navUpToScreen('teamAddToTeamFromWhere')
 
   const [_waiting, setWaiting] = React.useState(false)
   const [_error, setError] = React.useState('')
-  const newTeamWizErr = Constants.useState(s => (fromNewTeamWizard ? s.newTeamWizard.error : undefined))
+  const newTeamWizErr = C.useTeamsState(s => (fromNewTeamWizard ? s.newTeamWizard.error : undefined))
   const error = _error || newTeamWizErr
   const newTeamWaiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
   const waiting = _waiting || newTeamWaiting
 
   const addMembers = Container.useRPC(RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
-  const finishNewTeamWizard = Constants.useState(s => s.dispatch.finishNewTeamWizard)
-  const finishedAddMembersWizard = Constants.useState(s => s.dispatch.finishedAddMembersWizard)
+  const finishNewTeamWizard = C.useTeamsState(s => s.dispatch.finishNewTeamWizard)
+  const finishedAddMembersWizard = C.useTeamsState(s => s.dispatch.finishedAddMembersWizard)
 
   const onComplete = fromNewTeamWizard
     ? () => finishNewTeamWizard()
@@ -207,7 +207,7 @@ const AlreadyInTeam = ({assertions}: {assertions: string[]}) => {
 
 const AddMoreMembers = () => {
   const nav = Container.useSafeNavigation()
-  const teamID = Constants.useState(s => s.addMembersWizard.teamID)
+  const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
@@ -255,8 +255,8 @@ type RoleSelectorProps = {
 }
 const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
   const [showingMenu, setShowingMenu] = React.useState(false)
-  const storeRole = Constants.useState(s => s.addMembersWizard.role)
-  const setAddMembersWizardRole = Constants.useState(s => s.dispatch.setAddMembersWizardRole)
+  const storeRole = C.useTeamsState(s => s.addMembersWizard.role)
+  const setAddMembersWizardRole = C.useTeamsState(s => s.dispatch.setAddMembersWizardRole)
   const [role, setRole] = React.useState<RoleType>(storeRole)
   const onConfirmRole = (newRole: RoleType) => {
     setRole(newRole)
@@ -290,7 +290,7 @@ const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
 }
 
 const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
-  const addingMembers = Constants.useState(s => s.addMembersWizard.addingMembers)
+  const addingMembers = C.useTeamsState(s => s.addMembersWizard.addingMembers)
   const [expanded, setExpanded] = React.useState(false)
   const showDivider = Styles.isMobile && addingMembers.length > 4
   const aboveDivider = Container.isMobile ? addingMembers.slice(0, 4) : addingMembers
@@ -342,7 +342,7 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
 }
 
 const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles; lastMember?: boolean}) => {
-  const addMembersWizardRemoveMember = Constants.useState(s => s.dispatch.addMembersWizardRemoveMember)
+  const addMembersWizardRemoveMember = C.useTeamsState(s => s.dispatch.addMembersWizardRemoveMember)
   const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   const onRemove = () => {
     addMembersWizardRemoveMember(props.assertion)
@@ -350,8 +350,8 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
       navUpToScreen('teamAddToTeamFromWhere')
     }
   }
-  const role = Constants.useState(s => s.addMembersWizard.role)
-  const individualRole: Types.MaybeTeamRoleType = Constants.useState(
+  const role = C.useTeamsState(s => s.addMembersWizard.role)
+  const individualRole: Types.MaybeTeamRoleType = C.useTeamsState(
     s =>
       s.addMembersWizard.addingMembers.find(m => m.assertion === props.assertion)?.role ??
       (role === 'setIndividually' ? 'writer' : role)
@@ -365,9 +365,7 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
     setShowingMenu(true)
   }
 
-  const setAddMembersWizardIndividualRole = Constants.useState(
-    s => s.dispatch.setAddMembersWizardIndividualRole
-  )
+  const setAddMembersWizardIndividualRole = C.useTeamsState(s => s.dispatch.setAddMembersWizardIndividualRole)
   const onConfirmRole = (newRole: typeof rolePickerRole) => {
     setRole(newRole)
     setShowingMenu(false)
@@ -416,11 +414,11 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
 
 const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
   const {defaultChannels, defaultChannelsWaiting} = useDefaultChannels(teamID)
-  const addToChannels = Constants.useState(s => s.addMembersWizard.addToChannels)
-  const allKeybaseUsers = Constants.useState(
+  const addToChannels = C.useTeamsState(s => s.addMembersWizard.addToChannels)
+  const allKeybaseUsers = C.useTeamsState(
     s => !s.addMembersWizard.addingMembers.some(member => member.assertion.includes('@'))
   )
-  const addMembersWizardSetDefaultChannels = Constants.useState(
+  const addMembersWizardSetDefaultChannels = C.useTeamsState(
     s => s.dispatch.addMembersWizardSetDefaultChannels
   )
   const onChangeFromDefault = () => addMembersWizardSetDefaultChannels([])

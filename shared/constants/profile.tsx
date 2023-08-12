@@ -139,7 +139,7 @@ type State = Store & {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const clearErrors = (s: Store) => {
     s.errorCode = undefined
     s.errorText = ''
@@ -433,16 +433,12 @@ export const useState = Z.createZustand<State>((set, get) => {
               s.errorCode = error.code
             })
             if (error.code === RPCTypes.StatusCode.scgeneric && reason === 'appLink') {
-              const f = async () => {
-                const LinksConstants = await import('./deeplinks')
-                LinksConstants.useState
-                  .getState()
-                  .dispatch.setLinkError(
-                    "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
-                  )
-                C.useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
-              }
-              Z.ignorePromise(f())
+              C.useDeepLinksState
+                .getState()
+                .dispatch.setLinkError(
+                  "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
+                )
+              C.useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
             }
           }
           if (genericService) {

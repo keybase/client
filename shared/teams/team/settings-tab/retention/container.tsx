@@ -1,3 +1,4 @@
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/teams'
 import * as ChatConstants from '../../../../constants/chat2'
 import type * as TeamsTypes from '../../../../constants/types/teams'
@@ -29,7 +30,7 @@ export default (ownProps: OwnProps) => {
   let policy = ChatConstants.useConvoState(conversationIDKey, s =>
     _cid ? s.meta.retentionPolicy : Constants.retentionPolicies.policyRetain
   )
-  const tempPolicy = Constants.useState(s => Constants.getTeamRetentionPolicyByID(s, teamID))
+  const tempPolicy = C.useTeamsState(s => Constants.getTeamRetentionPolicyByID(s, teamID))
   if (entityType !== 'adhoc') {
     loading = !tempPolicy
     if (tempPolicy) {
@@ -41,14 +42,14 @@ export default (ownProps: OwnProps) => {
     }
   }
 
-  const canSetPolicy = Constants.useState(
+  const canSetPolicy = C.useTeamsState(
     s => entityType === 'adhoc' || Constants.getCanPerformByID(s, teamID).setRetentionPolicy
   )
   const policyIsExploding =
     policy.type === 'explode' || (policy.type === 'inherit' && teamPolicy?.type === 'explode')
   const showInheritOption = entityType === 'channel'
   const showOverrideNotice = entityType === 'big team'
-  const setTeamRetentionPolicy = Constants.useState(s => s.dispatch.setTeamRetentionPolicy)
+  const setTeamRetentionPolicy = C.useTeamsState(s => s.dispatch.setTeamRetentionPolicy)
   const setConvRetentionPolicy = ChatConstants.useConvoState(
     conversationIDKey,
     s => s.dispatch.setConvRetentionPolicy

@@ -337,16 +337,12 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.engineConnection: {
-          const f = async () => {
-            const EngineConstants = await import('./engine')
-            if (action.payload.connected) {
-              EngineConstants.useState.getState().dispatch.onEngineConnected()
-              get().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
-            } else {
-              EngineConstants.useState.getState().dispatch.onEngineDisconnected()
-            }
+          if (action.payload.connected) {
+            C.useEngineState.getState().dispatch.onEngineConnected()
+            get().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
+          } else {
+            C.useEngineState.getState().dispatch.onEngineDisconnected()
           }
-          Z.ignorePromise(f())
           break
         }
         case RemoteGen.switchTab: {
@@ -354,61 +350,31 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.setCriticalUpdate: {
-          const f = async () => {
-            const FSConstants = await import('./fs')
-            FSConstants.useState.getState().dispatch.setCriticalUpdate(action.payload.critical)
-          }
-          Z.ignorePromise(f())
+          C.useFSState.getState().dispatch.setCriticalUpdate(action.payload.critical)
           break
         }
         case RemoteGen.userFileEditsLoad: {
-          const f = async () => {
-            const FSConstants = await import('./fs')
-            FSConstants.useState.getState().dispatch.userFileEditsLoad()
-          }
-          Z.ignorePromise(f())
+          C.useFSState.getState().dispatch.userFileEditsLoad()
           break
         }
         case RemoteGen.openFilesFromWidget: {
-          const f = async () => {
-            const FSConstants = await import('./fs')
-            FSConstants.useState.getState().dispatch.dynamic.openFilesFromWidgetDesktop?.(action.payload.path)
-          }
-          Z.ignorePromise(f())
+          C.useFSState.getState().dispatch.dynamic.openFilesFromWidgetDesktop?.(action.payload.path)
           break
         }
         case RemoteGen.saltpackFileOpen: {
-          const f = async () => {
-            const DConstants = await import('./deeplinks')
-            DConstants.useState.getState().dispatch.handleSaltPackOpen(action.payload.path)
-          }
-          Z.ignorePromise(f())
+          C.useDeepLinksState.getState().dispatch.handleSaltPackOpen(action.payload.path)
           break
         }
         case RemoteGen.pinentryOnCancel: {
-          const f = async () => {
-            const PConstants = await import('./pinentry')
-            PConstants.useState.getState().dispatch.dynamic.onCancel?.()
-          }
-          Z.ignorePromise(f())
+          C.usePinentryState.getState().dispatch.dynamic.onCancel?.()
           break
         }
         case RemoteGen.pinentryOnSubmit: {
-          const f = async () => {
-            const PConstants = await import('./pinentry')
-            PConstants.useState.getState().dispatch.dynamic.onSubmit?.(action.payload.password)
-          }
-          Z.ignorePromise(f())
+          C.usePinentryState.getState().dispatch.dynamic.onSubmit?.(action.payload.password)
           break
         }
         case RemoteGen.openPathInSystemFileManager: {
-          const f = async () => {
-            const FSConstants = await import('./fs')
-            FSConstants.useState
-              .getState()
-              .dispatch.dynamic.openPathInSystemFileManagerDesktop?.(action.payload.path)
-          }
-          Z.ignorePromise(f())
+          C.useFSState.getState().dispatch.dynamic.openPathInSystemFileManagerDesktop?.(action.payload.path)
           break
         }
         case RemoteGen.unlockFoldersSubmitPaperKey: {
@@ -434,11 +400,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.stop: {
-          const f = async () => {
-            const SettingsConstants = await import('./settings')
-            SettingsConstants.useState.getState().dispatch.stop(action.payload.exitCode)
-          }
-          Z.ignorePromise(f())
+          C.useSettingsState.getState().dispatch.stop(action.payload.exitCode)
           break
         }
         case RemoteGen.trackerChangeFollow: {
@@ -478,11 +440,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         case RemoteGen.link:
           {
             const {link} = action.payload
-            const f = async () => {
-              const DeepLinkConstants = await import('./deeplinks')
-              DeepLinkConstants.useState.getState().dispatch.handleAppLink(link)
-            }
-            Z.ignorePromise(f())
+            C.useDeepLinksState.getState().dispatch.handleAppLink(link)
           }
           break
         case RemoteGen.installerRan:
@@ -580,11 +538,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.installerRanCount++
       })
 
-      const updateFS = async () => {
-        const FS = await import('./fs')
-        FS.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
-      }
-      Z.ignorePromise(updateFS())
+      C.useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
     },
     loadIsOnline: () => {
       const f = async () => {
@@ -626,10 +580,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           }
         }
 
-        const updateTeams = async () => {
-          const Teams = await import('./teams')
-          Teams.useState.getState().dispatch.getTeams()
-          Teams.useState.getState().dispatch.refreshTeamRoleMap()
+        const updateTeams = () => {
+          C.useTeamsState.getState().dispatch.getTeams()
+          C.useTeamsState.getState().dispatch.refreshTeamRoleMap()
         }
 
         const updateSettings = () => {
@@ -652,7 +605,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
         getFollowerInfo()
         Z.ignorePromise(updateServerConfig())
-        Z.ignorePromise(updateTeams())
+        updateTeams()
         updateSettings()
         Z.ignorePromise(updateChat())
       }
@@ -673,11 +626,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
                 'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
                 'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
                   cancelOnCallback(undefined, response)
-                  const f = async () => {
-                    const ProvisionConstants = await import('./provision')
-                    ProvisionConstants.useState.getState().dispatch.dynamic.setUsername?.(username)
-                  }
-                  Z.ignorePromise(f())
+                  C.useProvisionState.getState().dispatch.dynamic.setUsername?.(username)
                 },
                 'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
                 'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
@@ -966,31 +915,28 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.badgeState = b
       })
 
-      const updateDevices = async () => {
+      const updateDevices = () => {
         if (!b) return
-        const Devices = await import('./devices')
-        const {setBadges} = Devices.useState.getState().dispatch
+        const {setBadges} = C.useDevicesState.getState().dispatch
         const {newDevices, revokedDevices} = b
         setBadges(new Set([...(newDevices ?? []), ...(revokedDevices ?? [])]))
       }
-      Z.ignorePromise(updateDevices())
+      updateDevices()
 
-      const updateAutoReset = async () => {
-        const AR = await import('./autoreset')
+      const updateAutoReset = () => {
         if (!b) return
         const {resetState} = b
-        AR.useState.getState().dispatch.updateARState(resetState.active, resetState.endTime)
+        C.useAutoResetState.getState().dispatch.updateARState(resetState.active, resetState.endTime)
       }
-      Z.ignorePromise(updateAutoReset())
+      updateAutoReset()
 
-      const updateGit = async () => {
-        const Git = await import('./git')
-        const {setBadges} = Git.useState.getState().dispatch
+      const updateGit = () => {
+        const {setBadges} = C.useGitState.getState().dispatch
         setBadges(new Set(b?.newGitRepoGlobalUniqueIDs))
       }
-      Z.ignorePromise(updateGit())
+      updateGit()
 
-      const updateTeams = async () => {
+      const updateTeams = () => {
         const loggedIn = useConfigState.getState().loggedIn
         if (!loggedIn) {
           // Don't make any calls we don't have permission to.
@@ -1006,10 +952,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           existing.add(entry.username)
         })
         // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
-        const Teams = await import('./teams')
-        Teams.useState.getState().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
+        C.useTeamsState.getState().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
       }
-      Z.ignorePromise(updateTeams())
+      updateTeams()
 
       const updateChat = async () => {
         if (!b) return
@@ -1066,8 +1011,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         const WhatsNew = await import('./whats-new')
         WhatsNew.useState.getState().dispatch.updateLastSeen(lastSeenItem)
 
-        const Teams = await import('./teams')
-        Teams.useState.getState().dispatch.onGregorPushState(items)
+        C.useTeamsState.getState().dispatch.onGregorPushState(items)
 
         const ChatConstants = await import('./chat2')
         ChatConstants.useState.getState().dispatch.updatedGregor(items)
@@ -1088,11 +1032,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         }
       }
 
-      const updateTeams = async () => {
-        const Teams = await import('./teams')
-        Teams.useState.getState().dispatch.eagerLoadTeams()
-      }
-      Z.ignorePromise(updateTeams())
+      C.useTeamsState.getState().dispatch.eagerLoadTeams()
     },
     setHTTPSrvInfo: (address, token) => {
       logger.info(`config reducer: http server info: addr: ${address} token: ${token}`)
@@ -1142,13 +1082,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         Z.resetAllStores()
       }
 
-      const updateFS = async () => {
-        if (loggedIn) {
-          const FS = await import('./fs')
-          FS.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
-        }
+      if (loggedIn) {
+        C.useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
       }
-      Z.ignorePromise(updateFS())
     },
     setMobileAppState: nextAppState => {
       if (get().mobileAppState === nextAppState) return
