@@ -1,9 +1,8 @@
-import {useRouterState} from '.'
+import * as C from '.'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
 import * as RPCTypes from './types/rpc-gen'
-import {useLogoutState} from './config'
 
 const settingsWaitingKey = 'settings:generic'
 type Store = {
@@ -140,9 +139,9 @@ export const useState = Z.createZustand<State>((set, get) => {
           )
 
           if (thenLogout) {
-            useLogoutState.getState().dispatch.requestLogout()
+            C.useLogoutState.getState().dispatch.requestLogout()
           }
-          useRouterState.getState().dispatch.navigateUp()
+          C.useRouterState.getState().dispatch.navigateUp()
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return

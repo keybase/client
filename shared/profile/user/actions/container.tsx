@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/tracker2'
 import * as ProfileConstants from '../../../constants/profile'
-import * as Followers from '../../../constants/followers'
 import * as FsTypes from '../../../constants/types/fs'
 import Actions from '.'
 
@@ -12,8 +11,8 @@ type OwnProps = {
 export default (ownProps: OwnProps) => {
   const username = ownProps.username
   const d = Constants.useState(s => Constants.getDetails(s, username))
-  const followThem = Followers.useFollowerState(s => s.following.has(username))
-  const followsYou = Followers.useFollowerState(s => s.followers.has(username))
+  const followThem = C.useFollowerState(s => s.following.has(username))
+  const followsYou = C.useFollowerState(s => s.followers.has(username))
   const isBot = C.useBotsState(s => s.featuredBotsMap.has(username))
 
   const _guiID = d.guiID

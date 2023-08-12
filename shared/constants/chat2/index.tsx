@@ -1633,40 +1633,34 @@ export const useState = Z.createZustand<State>((set, get) => {
         })
       }
 
-      const f = async () => {
-        const GregorConstants = await import('../gregor')
-        set(s => {
-          const blockButtons = items.some(i => i.item.category.startsWith(blockButtonsGregorPrefix))
-          if (blockButtons || s.blockButtonsMap.size > 0) {
-            const shouldKeepExistingBlockButtons = new Map<string, boolean>()
-            s.blockButtonsMap.forEach((_, teamID: string) =>
-              shouldKeepExistingBlockButtons.set(teamID, false)
-            )
-            items
-              .filter(i => i.item.category.startsWith(blockButtonsGregorPrefix))
-              .forEach(i => {
-                try {
-                  const teamID = i.item.category.substring(blockButtonsGregorPrefix.length)
-                  if (!s.blockButtonsMap.get(teamID)) {
-                    const body = GregorConstants.bodyToJSON(i.item.body) as {adder: string}
-                    const adder = body.adder
-                    s.blockButtonsMap.set(teamID, {adder})
-                  } else {
-                    shouldKeepExistingBlockButtons.set(teamID, true)
-                  }
-                } catch (e) {
-                  logger.info('block buttons parse fail', e)
+      set(s => {
+        const blockButtons = items.some(i => i.item.category.startsWith(blockButtonsGregorPrefix))
+        if (blockButtons || s.blockButtonsMap.size > 0) {
+          const shouldKeepExistingBlockButtons = new Map<string, boolean>()
+          s.blockButtonsMap.forEach((_, teamID: string) => shouldKeepExistingBlockButtons.set(teamID, false))
+          items
+            .filter(i => i.item.category.startsWith(blockButtonsGregorPrefix))
+            .forEach(i => {
+              try {
+                const teamID = i.item.category.substring(blockButtonsGregorPrefix.length)
+                if (!s.blockButtonsMap.get(teamID)) {
+                  const body = C.bodyToJSON(i.item.body) as {adder: string}
+                  const adder = body.adder
+                  s.blockButtonsMap.set(teamID, {adder})
+                } else {
+                  shouldKeepExistingBlockButtons.set(teamID, true)
                 }
-              })
-            shouldKeepExistingBlockButtons.forEach((keep, teamID) => {
-              if (!keep) {
-                s.blockButtonsMap.delete(teamID)
+              } catch (e) {
+                logger.info('block buttons parse fail', e)
               }
             })
-          }
-        })
-      }
-      Z.ignorePromise(f())
+          shouldKeepExistingBlockButtons.forEach((keep, teamID) => {
+            if (!keep) {
+              s.blockButtonsMap.delete(teamID)
+            }
+          })
+        }
+      })
     },
   }
   return {

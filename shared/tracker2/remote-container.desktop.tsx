@@ -4,7 +4,6 @@ import * as RemoteGen from '../actions/remote-gen'
 import * as Constants from '../constants/tracker2'
 import * as UsersConstants from '../constants/users'
 import * as ConfigConstants from '../constants/config'
-import * as Followers from '../constants/followers'
 import * as Container from '../util/container'
 import type * as Types from '../constants/types/tracker2'
 import Tracker from './index.desktop'
@@ -34,7 +33,7 @@ const RemoteContainer = () => {
   const {assertions, bio, followersCount, followingCount} = details
   const {guiID, location, reason, state: trackerState, teamShowcase} = details
   useAvatarState(s => s.dispatch.replace)(avatarRefreshCounter)
-  Followers.useFollowerState(s => s.dispatch.replace)(followers, following)
+  C.useFollowerState(s => s.dispatch.replace)(followers, following)
   UsersConstants.useState(s => s.dispatch.replace)(infoMap, blockMap)
   C.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
   ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)

@@ -3,7 +3,6 @@ import * as ConfigConstants from '../constants/config'
 import * as UsersConstants from '../constants/users'
 import * as ChatConstants from '../constants/chat2'
 import * as Container from '../util/container'
-import * as Followers from '../constants/followers'
 import Menubar from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import {useAvatarState} from '../common-adapters/avatar-zus'
@@ -37,7 +36,7 @@ const RemoteContainer = () => {
   } = Container.useRemoteStore<DeserializeProps>()
   useAvatarState(s => s.dispatch.replace)(avatarRefreshCounter)
   C.useDaemonState(s => s.dispatch.setState)(daemonHandshakeState)
-  Followers.useFollowerState(s => s.dispatch.replace)(followers, following)
+  C.useFollowerState(s => s.dispatch.replace)(followers, following)
   UsersConstants.useState(s => s.dispatch.replace)(infoMap)
   C.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
   ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)

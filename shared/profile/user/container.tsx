@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
 import * as ProfileConstants from '../../constants/profile'
-import * as Followers from '../../constants/followers'
 import * as Styles from '../../styles'
 import type * as Types from '../../constants/types/tracker2'
 import {memoize} from '../../util/memoize'
@@ -52,8 +51,8 @@ const Connected = (ownProps: OwnProps) => {
     username,
   }
 
-  const followThem = Followers.useFollowerState(s => s.following.has(username))
-  const followsYou = Followers.useFollowerState(s => s.followers.has(username))
+  const followThem = C.useFollowerState(s => s.following.has(username))
+  const followsYou = C.useFollowerState(s => s.followers.has(username))
   const mutualFollow = followThem && followsYou
   const _suggestionKeys = Constants.useState(s => (userIsYou ? s.proofSuggestions : undefined))
   const nonUserDetails = Constants.useState(s => Constants.getNonUserDetails(s, username))

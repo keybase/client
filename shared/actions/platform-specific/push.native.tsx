@@ -285,7 +285,7 @@ export const initPushListener = () => {
   })
 
   // Token handling
-  ConfigConstants.useLogoutState.subscribe((s, old) => {
+  C.useLogoutState.subscribe((s, old) => {
     if (s.version === old.version) return
     Constants.useState.getState().dispatch.deleteToken(s.version)
   })

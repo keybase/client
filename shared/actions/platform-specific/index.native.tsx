@@ -4,7 +4,6 @@ import * as Clipboard from 'expo-clipboard'
 import * as ConfigConstants from '../../constants/config'
 import * as ProfileConstants from '../../constants/profile'
 import * as ChatConstants from '../../constants/chat2'
-import * as EngineConstants from '../../constants/engine'
 import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
 import * as ExpoLocation from 'expo-location'
@@ -554,10 +553,10 @@ export const initPlatformListener = () => {
   // mobile version of the remote connection
   Container.listenAction(RemoteGen.engineConnection, (_, a) => {
     if (a.payload.connected) {
-      EngineConstants.useState.getState().dispatch.onEngineConnected()
+      C.useEngineState.getState().dispatch.onEngineConnected()
       ConfigConstants.useConfigState.getState().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
     } else {
-      EngineConstants.useState.getState().dispatch.onEngineDisconnected()
+      C.useEngineState.getState().dispatch.onEngineDisconnected()
     }
   })
 

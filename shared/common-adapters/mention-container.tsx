@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as Followers from '../constants/followers'
 import * as ProfileConstants from '../constants/profile'
 import * as TrackerConstants from '../constants/tracker2'
 import Mention, {type OwnProps} from './mention'
@@ -9,7 +8,7 @@ import * as Container from '../util/container'
 export default (ownProps: OwnProps) => {
   let {username} = ownProps
   username = username.toLowerCase()
-  const following = Followers.useFollowerState(s => s.following.has(username))
+  const following = C.useFollowerState(s => s.following.has(username))
   const myUsername = C.useCurrentUserState(s => s.username)
   const theme = (() => {
     if (isSpecialMention(username)) {

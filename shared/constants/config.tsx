@@ -2,7 +2,6 @@ import * as C from '.'
 import * as ChatTypes from './types/chat2'
 import * as DeviceTypes from './types/devices'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as Followers from './followers'
 import * as RPCTypes from './types/rpc-gen'
 import * as RemoteGen from '../actions/remote-gen'
 import {useRouterState} from '.'
@@ -833,7 +832,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         }
         case EngineGen.keybase1NotifyTrackingTrackingChanged: {
           const {isTracking, username} = action.payload.params
-          Followers.useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
+          C.useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
           break
         }
         case EngineGen.keybase1NotifyTrackingTrackingInfo: {
@@ -843,11 +842,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           }
           const newFollowers = new Set(_newFollowers)
           const newFollowing = new Set(_newFollowing)
-          const {
-            following: oldFollowing,
-            followers: oldFollowers,
-            dispatch,
-          } = Followers.useFollowerState.getState()
+          const {following: oldFollowing, followers: oldFollowers, dispatch} = C.useFollowerState.getState()
           const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
           const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
           dispatch.replace(followers, following)
@@ -1321,6 +1316,3 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     dispatch,
   }
 })
-
-export {useFollowerState} from './followers'
-export {useLogoutState} from './logout'

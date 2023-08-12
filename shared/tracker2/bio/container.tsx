@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
-import * as Followers from '../../constants/followers'
 import Bio from '.'
 import shallowEqual from 'shallowequal'
 
@@ -44,8 +43,8 @@ export default (ownProps: OwnProps) => {
     navigateUp()
   }
 
-  const followThem = Followers.useFollowerState(s => s.following.has(username))
-  const followsYou = Followers.useFollowerState(s => s.followers.has(username))
+  const followThem = C.useFollowerState(s => s.following.has(username))
+  const followsYou = C.useFollowerState(s => s.followers.has(username))
 
   const props = {
     followThem,

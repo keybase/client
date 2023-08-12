@@ -3,7 +3,6 @@ import * as EngineGen from '../actions/engine-gen-gen'
 import * as ChatTypes from './types/chat2'
 import * as ConfigConstants from './config'
 import * as UsersConstants from './users'
-import * as GregorConstants from './gregor'
 import * as ProfileConstants from './profile'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
@@ -1322,7 +1321,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           if (item?.item?.body) {
             const body = item.item.body
             msgID = item.md?.msgID
-            teams = GregorConstants.bodyToJSON(body)
+            teams = C.bodyToJSON(body)
           } else {
             logger.info(
               `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
@@ -2496,7 +2495,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           chosenChannels = i
         }
         if (i.item.category.startsWith(newRequestsGregorPrefix)) {
-          const body = GregorConstants.bodyToJSON(i.item.body)
+          const body = C.bodyToJSON(i.item.body)
           if (body) {
             const request: {id: Types.TeamID; username: string} = body
             const requests = mapGetEnsureValue(newTeamRequests, request.id, new Set())
@@ -2508,7 +2507,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       sawSubteamsBanner && get().dispatch.setTeamSawSubteamsBanner()
       get().dispatch.setNewTeamRequests(newTeamRequests)
       get().dispatch.setTeamsWithChosenChannels(
-        new Set<Types.Teamname>(GregorConstants.bodyToJSON(chosenChannels?.item.body))
+        new Set<Types.Teamname>(C.bodyToJSON(chosenChannels?.item.body))
       )
     },
     openInviteLink: (inviteID, inviteKey) => {

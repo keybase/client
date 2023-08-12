@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as Followers from '../constants/followers'
 import * as Styles from '../styles'
 import * as Platforms from '../util/platforms'
 import * as TrackerConstants from '../constants/tracker2'
@@ -131,8 +130,8 @@ const ProfileCard = ({
   username,
 }: Props) => {
   const userDetails = TrackerConstants.useState(s => TrackerConstants.getDetails(s, username))
-  const followThem = Followers.useFollowerState(s => s.following.has(username))
-  const followsYou = Followers.useFollowerState(s => s.followers.has(username))
+  const followThem = C.useFollowerState(s => s.following.has(username))
+  const followsYou = C.useFollowerState(s => s.followers.has(username))
   const isSelf = C.useCurrentUserState(s => s.username === username)
   const hasBrokenProof = [...(userDetails.assertions || new Map()).values()].find(
     assertion => assertion.state !== 'valid'

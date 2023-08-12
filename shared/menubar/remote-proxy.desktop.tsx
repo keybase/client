@@ -3,9 +3,7 @@ import * as C from '../constants'
 import * as ConfigConstants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
 import * as UsersConstants from '../constants/users'
-import * as NotifConstants from '../constants/notifications'
 import * as FSTypes from '../constants/types/fs'
-import * as Followers from '../constants/followers'
 import * as React from 'react'
 import * as Styles from '../styles'
 import KB2 from '../util/electron.desktop'
@@ -17,6 +15,7 @@ import {mapFilterByKey} from '../util/map'
 import {memoize} from '../util/memoize'
 import {serialize, type ProxyProps, type RemoteTlfUpdates} from './remote-serializer.desktop'
 import {useAvatarState} from '../common-adapters/avatar-zus'
+import type * as NotifConstants from '../constants/notifications'
 
 const {showTray} = KB2.functions
 
@@ -91,8 +90,8 @@ const convoDiff = (a: ChatConstants.ConvoState, b: ChatConstants.ConvoState) => 
 
 // TODO could make this render less
 const RemoteProxy = React.memo(function MenubarRemoteProxy() {
-  const following = Followers.useFollowerState(s => s.following)
-  const followers = Followers.useFollowerState(s => s.followers)
+  const following = C.useFollowerState(s => s.following)
+  const followers = C.useFollowerState(s => s.followers)
   const username = C.useCurrentUserState(s => s.username)
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
   const windowShownCount = ConfigConstants.useConfigState(s => s.windowShownCount)
@@ -104,7 +103,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const sfmi = C.useFSState(s => s.sfmi)
   const tlfUpdates = C.useFSState(s => s.tlfUpdates)
   const uploads = C.useFSState(s => s.uploads)
-  const {desktopAppBadgeCount, navBadges, widgetBadge} = NotifConstants.useState(s => {
+  const {desktopAppBadgeCount, navBadges, widgetBadge} = C.useNotifState(s => {
     const {desktopAppBadgeCount, navBadges, widgetBadge} = s
     return {desktopAppBadgeCount, navBadges, widgetBadge}
   }, shallowEqual)
