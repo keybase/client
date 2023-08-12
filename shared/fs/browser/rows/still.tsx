@@ -1,5 +1,5 @@
 import * as Types from '../../../constants/types/fs'
-import * as Constants from '../../../constants/fs'
+import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
@@ -36,11 +36,7 @@ const Still = (props: StillProps) => (
     uploadErrored={!!props.dismissUploadError}
     content={
       <>
-        <Filename
-          path={props.path}
-          type={Constants.pathTypeToTextType(props.type)}
-          style={rowStyles.rowText}
-        />
+        <Filename path={props.path} type={C.pathTypeToTextType(props.type)} style={rowStyles.rowText} />
         {props.isEmpty && (
           <Kb.Meta
             title="empty"

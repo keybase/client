@@ -1,6 +1,7 @@
+import * as C from '../../../constants'
+import * as Constants from '../../../constants/fs'
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
-import * as Constants from '../../../constants/fs'
 import * as Kb from '../../../common-adapters'
 import {fileUIName} from '../../../constants/platform'
 import * as Styles from '../../../styles'
@@ -166,9 +167,9 @@ const DokanOutdated = (props: Props) => {
 
 type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
-  const preferredMountDirs = Constants.useState(s => s.sfmi.preferredMountDirs)
+  const preferredMountDirs = C.useFSState(s => s.sfmi.preferredMountDirs)
   const displayingMountDir = preferredMountDirs[0] || ''
-  const openLocalPathInSystemFileManagerDesktop = Constants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const open = displayingMountDir

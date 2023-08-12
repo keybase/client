@@ -1,5 +1,5 @@
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
+import * as C from '../../constants'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import LastModifiedLine from './last-modified-line-container'
@@ -18,13 +18,13 @@ const getNumberOfFilesAndFolders = (
   pathItems: Types.PathItems,
   path: Types.Path
 ): {folders: number; files: number; loaded: boolean} => {
-  const pathItem = Constants.getPathItem(pathItems, path)
+  const pathItem = C.getPathItem(pathItems, path)
   return pathItem.type === Types.PathType.Folder
     ? [...pathItem.children].reduce(
         ({folders, files, loaded}, p) => {
-          const item = Constants.getPathItem(pathItems, Types.pathConcat(path, p))
+          const item = C.getPathItem(pathItems, Types.pathConcat(path, p))
           const isFolder = item.type === Types.PathType.Folder
-          const isFile = item.type !== Types.PathType.Folder && item !== Constants.unknownPathItem
+          const isFile = item.type !== Types.PathType.Folder && item !== C.unknownPathItem
           return {
             files: files + (isFile ? 1 : 0),
             folders: folders + (isFolder ? 1 : 0),
@@ -38,7 +38,7 @@ const getNumberOfFilesAndFolders = (
 
 const FilesAndFoldersCount = (props: Props) => {
   useFsChildren(props.path)
-  const pathItems = Constants.useState(s => s.pathItems)
+  const pathItems = C.useFSState(s => s.pathItems)
   const {files, folders, loaded} = getNumberOfFilesAndFolders(pathItems, props.path)
   return loaded ? (
     <Kb.Text type="BodySmall">
@@ -79,7 +79,7 @@ const SoftErrorBanner = ({path}: {path: Types.Path}) => {
 const PathItemInfo = (props: Props) => {
   useFsOnlineStatus() // when used in chat, we don't have this from Files tab
   useFsPathMetadata(props.path)
-  const pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, props.path))
+  const pathItem = C.useFSState(s => C.getPathItem(s.pathItems, props.path))
   const name = (
     <CommaSeparatedName
       center={true}
@@ -95,11 +95,9 @@ const PathItemInfo = (props: Props) => {
         <ItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
         <Kb.Box style={styles.nameTextBox}>{name}</Kb.Box>
         {pathItem.type === Types.PathType.File && (
-          <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(pathItem.size)}</Kb.Text>
+          <Kb.Text type="BodySmall">{C.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}
-        {Constants.isInTlf(props.path) && Constants.isFolder(props.path, pathItem) && (
-          <FilesAndFoldersCount {...props} />
-        )}
+        {C.isInTlf(props.path) && C.isFolder(props.path, pathItem) && <FilesAndFoldersCount {...props} />}
         {getTlfInfoLineOrLastModifiedLine(props.path)}
       </Kb.Box2>
     </>
@@ -127,5 +125,5 @@ const styles = Styles.styleSheetCreate(
       stylesNameText: {
         textAlign: 'center',
       },
-    } as const)
+    }) as const
 )

@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/crypto'
 import * as ChatConstants from '../constants/chat2'
-import * as FSConstants from '../constants/fs'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Path from '../util/path'
@@ -197,7 +196,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
 
   const actionsDisabled = waiting || !outputValid
 
-  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {
@@ -383,7 +382,7 @@ export const OperationOutput = (props: OutputProps) => {
   }, shallowEqual)
   const output = _output.stringValue()
 
-  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {

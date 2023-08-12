@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Z from '../../util/zustand'
@@ -10,7 +11,7 @@ const finishedRegularDownloadIDs = new Set<string>()
 export default function initPlatformSpecific() {
   nativeInit()
 
-  Constants.useState.setState(s => {
+  C.useFSState.setState(s => {
     s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = () => {
       const f = async () => {
         await RPCTypes.SimpleFSSimpleFSConfigureDownloadRpcPromise({
@@ -33,7 +34,7 @@ export default function initPlatformSpecific() {
         }
         finishedRegularDownloadIDs.add(downloadID)
 
-        const {downloads} = Constants.useState.getState()
+        const {downloads} = C.useFSState.getState()
 
         const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
         const downloadInfo = downloads.info.get(downloadID) || Constants.emptyDownloadInfo

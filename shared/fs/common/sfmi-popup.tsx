@@ -3,7 +3,7 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/fs'
 import {useFuseClosedSourceConsent} from './hooks'
-import * as Constants from '../../constants/fs'
+import * as C from '../../constants'
 import {fileUIName} from '../../constants/platform'
 
 type Props = {
@@ -11,8 +11,8 @@ type Props = {
 }
 
 const SFMIPopup = (props: Props) => {
-  const sfmi = Constants.useState(s => s.sfmi)
-  const driverEnable = Constants.useState(s => s.dispatch.driverEnable)
+  const sfmi = C.useFSState(s => s.sfmi)
+  const driverEnable = C.useFSState(s => s.dispatch.driverEnable)
   const {driverStatus} = sfmi
   const {type} = driverStatus
   const isEnabling = type === Types.DriverStatusType.Disabled ? driverStatus.isEnabling : false

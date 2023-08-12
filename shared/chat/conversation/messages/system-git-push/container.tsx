@@ -1,8 +1,7 @@
+import * as C from '../../../../constants'
 import * as Container from '../../../../util/container'
-import * as FsConstants from '../../../../constants/fs'
 import * as TrackerConstants from '../../../../constants/tracker2'
 import * as FsTypes from '../../../../constants/types/fs'
-import * as C from '../../../../constants'
 import * as ProfileConstants from '../../../../constants/profile'
 import * as React from 'react'
 import Git from '.'
@@ -24,7 +23,7 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
           '/.kbfs_autogit_commit_' +
           commitHash
       )
-      FsConstants.makeActionForOpenPathInFilesTab(path)
+      C.makeActionForOpenPathInFilesTab(path)
     },
     [message]
   )

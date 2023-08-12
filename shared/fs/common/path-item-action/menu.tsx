@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
-import * as Constants from '../../../constants/fs'
+import * as C from '../../../constants'
 import * as Kbfs from '../../common/hooks'
 import type {FloatingMenuProps} from './types'
 import {fileUIName} from '../../../constants/platform'
@@ -188,10 +188,10 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
 
 const PathItemActionMenu = (props: Props) => {
   Kbfs.useFsFileContext(props.path)
-  const {downloadID, downloadIntent} = Constants.useState(s => s.pathItemActionMenu)
+  const {downloadID, downloadIntent} = C.useFSState(s => s.pathItemActionMenu)
   const justDoneWithIntent = Kbfs.useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
 
-  const dismissDownload = Constants.useState(s => s.dispatch.dismissDownload)
+  const dismissDownload = C.useFSState(s => s.dispatch.dismissDownload)
   const {
     floatingMenuProps: {hide},
   } = props

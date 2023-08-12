@@ -1,19 +1,19 @@
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
+import * as C from '../../constants'
 import DefaultView from './default-view'
 
 type OwnProps = {path: Types.Path}
 
 export default (ownProps: OwnProps) => {
   const {path} = ownProps
-  const pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
-  const sfmiEnabled = Constants.useState(s => s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled)
+  const pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
+  const sfmiEnabled = C.useFSState(s => s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled)
 
-  const _download = Constants.useState(s => s.dispatch.download)
+  const _download = C.useFSState(s => s.dispatch.download)
   const download = () => {
     _download(path, 'download')
   }
-  const openPathInSystemFileManagerDesktop = Constants.useState(
+  const openPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
   )
   const showInSystemFileManager = () => {

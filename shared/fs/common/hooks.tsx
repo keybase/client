@@ -1,6 +1,7 @@
+import * as C from '../../constants'
+import * as Constants from '../../constants/fs'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
@@ -12,8 +13,8 @@ import type {StylesTextCrossPlatform} from '../../common-adapters/text'
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
 
 const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => {
-  const subscribePath = Constants.useState(s => s.dispatch.subscribePath)
-  const unsubscribe = Constants.useState(s => s.dispatch.unsubscribe)
+  const subscribePath = C.useFSState(s => s.dispatch.subscribePath)
+  const unsubscribe = C.useFSState(s => s.dispatch.unsubscribe)
   React.useEffect(() => {
     if (Types.getPathLevel(path) < 3) {
       return () => {}
@@ -26,8 +27,8 @@ const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubsc
 }
 
 const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
-  const subscribeNonPath = Constants.useState(s => s.dispatch.subscribeNonPath)
-  const unsubscribe = Constants.useState(s => s.dispatch.unsubscribe)
+  const subscribeNonPath = C.useFSState(s => s.dispatch.subscribeNonPath)
+  const unsubscribe = C.useFSState(s => s.dispatch.unsubscribe)
   React.useEffect(() => {
     const subscriptionID = Constants.makeUUID()
     subscribeNonPath(subscriptionID, topic)
@@ -40,13 +41,13 @@ const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
 export const useFsPathMetadata = (path: Types.Path) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.stat)
   React.useEffect(() => {
-    isPathItem(path) && Constants.useState.getState().dispatch.loadPathMetadata(path)
+    isPathItem(path) && C.useFSState.getState().dispatch.loadPathMetadata(path)
   }, [path])
 }
 
 export const useFsChildren = (path: Types.Path, initialLoadRecursive?: boolean) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.children)
-  const {folderListLoad} = Constants.useState.getState().dispatch
+  const {folderListLoad} = C.useFSState.getState().dispatch
   React.useEffect(() => {
     isPathItem(path) && folderListLoad(path, initialLoadRecursive || false)
   }, [folderListLoad, path, initialLoadRecursive])
@@ -54,7 +55,7 @@ export const useFsChildren = (path: Types.Path, initialLoadRecursive?: boolean) 
 
 export const useFsTlfs = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.favorites)
-  const favoritesLoad = Constants.useState(s => s.dispatch.favoritesLoad)
+  const favoritesLoad = C.useFSState(s => s.dispatch.favoritesLoad)
   React.useEffect(() => {
     favoritesLoad()
   }, [favoritesLoad])
@@ -62,8 +63,8 @@ export const useFsTlfs = () => {
 
 export const useFsTlf = (path: Types.Path) => {
   const tlfPath = Constants.getTlfPath(path)
-  const tlfs = Constants.useState(s => s.tlfs)
-  const loadAdditionalTlf = Constants.useState(s => s.dispatch.loadAdditionalTlf)
+  const tlfs = C.useFSState(s => s.tlfs)
+  const loadAdditionalTlf = C.useFSState(s => s.dispatch.loadAdditionalTlf)
   const active =
     // If we don't have a TLF path, we are not inside a TLF yet. So no need
     // to load.
@@ -92,35 +93,35 @@ export const useFsTlf = (path: Types.Path) => {
 
 export const useFsOnlineStatus = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.onlineStatus)
-  const getOnlineStatus = Constants.useState(s => s.dispatch.getOnlineStatus)
+  const getOnlineStatus = C.useFSState(s => s.dispatch.getOnlineStatus)
   React.useEffect(() => {
     getOnlineStatus()
   }, [getOnlineStatus])
 }
 
 export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): Types.PathInfo => {
-  const pathInfo = Constants.useState(s => s.pathInfos.get(path) || Constants.emptyPathInfo)
+  const pathInfo = C.useFSState(s => s.pathInfos.get(path) || Constants.emptyPathInfo)
   const alreadyKnown = knownPathInfo !== Constants.emptyPathInfo
   React.useEffect(() => {
     if (alreadyKnown) {
-      Constants.useState.getState().dispatch.loadedPathInfo(path, knownPathInfo)
+      C.useFSState.getState().dispatch.loadedPathInfo(path, knownPathInfo)
     } else if (pathInfo === Constants.emptyPathInfo) {
       // We only need to load if it's empty. This never changes once we have
       // it.
-      Constants.useState.getState().dispatch.loadPathInfo(path)
+      C.useFSState.getState().dispatch.loadPathInfo(path)
     }
   }, [path, alreadyKnown, knownPathInfo, pathInfo])
   return alreadyKnown ? knownPathInfo : pathInfo
 }
 
 export const useFsSoftError = (path: Types.Path): Types.SoftError | undefined => {
-  const softErrors = Constants.useState(s => s.softErrors)
+  const softErrors = C.useFSState(s => s.softErrors)
   return Constants.getSoftError(softErrors, path)
 }
 
 export const useFsDownloadInfo = (downloadID: string): Types.DownloadInfo => {
-  const info = Constants.useState(s => s.downloads.info.get(downloadID) || Constants.emptyDownloadInfo)
-  const loadDownloadInfo = Constants.useState(s => s.dispatch.loadDownloadInfo)
+  const info = C.useFSState(s => s.downloads.info.get(downloadID) || Constants.emptyDownloadInfo)
+  const loadDownloadInfo = C.useFSState(s => s.dispatch.loadDownloadInfo)
   React.useEffect(() => {
     // This never changes, so simply just load it once.
     downloadID && loadDownloadInfo(downloadID)
@@ -130,16 +131,16 @@ export const useFsDownloadInfo = (downloadID: string): Types.DownloadInfo => {
 
 export const useFsDownloadStatus = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.downloadStatus)
-  const loadDownloadStatus = Constants.useState(s => s.dispatch.loadDownloadStatus)
+  const loadDownloadStatus = C.useFSState(s => s.dispatch.loadDownloadStatus)
   React.useEffect(() => {
     loadDownloadStatus()
   }, [loadDownloadStatus])
 }
 
 export const useFsFileContext = (path: Types.Path) => {
-  const pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
+  const pathItem = C.useFSState(s => Constants.getPathItem(s.pathItems, path))
   const [urlError, setUrlError] = React.useState<string>('')
-  const loadFileContext = Constants.useState(s => s.dispatch.loadFileContext)
+  const loadFileContext = C.useFSState(s => s.dispatch.loadFileContext)
   React.useEffect(() => {
     urlError && logger.info(`urlError: ${urlError}`)
     pathItem.type === Types.PathType.File && loadFileContext(path)
@@ -158,24 +159,22 @@ export const useFsFileContext = (path: Types.Path) => {
 
 export const useFsWatchDownloadForMobile = isMobile
   ? (downloadID: string, downloadIntent?: Types.DownloadIntent): boolean => {
-      const dlState = Constants.useState(
-        s => s.downloads.state.get(downloadID) || Constants.emptyDownloadState
-      )
+      const dlState = C.useFSState(s => s.downloads.state.get(downloadID) || Constants.emptyDownloadState)
       const finished = dlState !== Constants.emptyDownloadState && !Constants.downloadIsOngoing(dlState)
 
       const dlInfo = useFsDownloadInfo(downloadID)
       useFsFileContext(dlInfo.path)
 
-      const mimeType = Constants.useState(
+      const mimeType = C.useFSState(
         s => s.fileContext.get(dlInfo.path) || Constants.emptyFileContext
       ).contentType
 
       const [justDoneWithIntent, setJustDoneWithIntent] = React.useState(false)
 
-      const finishedDownloadWithIntentMobile = Constants.useState(
+      const finishedDownloadWithIntentMobile = C.useFSState(
         s => s.dispatch.dynamic.finishedDownloadWithIntentMobile
       )
-      const finishedRegularDownloadMobile = Constants.useState(
+      const finishedRegularDownloadMobile = C.useFSState(
         s => s.dispatch.dynamic.finishedRegularDownloadMobile
       )
 

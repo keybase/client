@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Constants from '../../constants/fs'
+import * as C from '../../constants'
 
 type Props = {
   refresh: () => void
@@ -15,7 +15,7 @@ class Component extends React.PureComponent<Props> {
 }
 
 export default () => {
-  const refreshDriverStatusDesktop = Constants.useState(s => s.dispatch.dynamic.refreshDriverStatusDesktop)
+  const refreshDriverStatusDesktop = C.useFSState(s => s.dispatch.dynamic.refreshDriverStatusDesktop)
   const refresh = () => refreshDriverStatusDesktop?.()
   const props = {
     refresh,

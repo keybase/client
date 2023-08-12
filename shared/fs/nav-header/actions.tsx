@@ -1,5 +1,6 @@
-import * as Types from '../../constants/types/fs'
+import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
+import * as Types from '../../constants/types/fs'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
@@ -11,9 +12,9 @@ type Props = {
 }
 
 const FsNavHeaderRightActions = (props: Props) => {
-  const softErrors = Constants.useState(s => s.softErrors)
+  const softErrors = C.useFSState(s => s.softErrors)
   const hasSoftError = !!Constants.getSoftError(softErrors, props.path)
-  const setFolderViewFilter = Constants.useState(s => s.dispatch.setFolderViewFilter)
+  const setFolderViewFilter = C.useFSState(s => s.dispatch.setFolderViewFilter)
   React.useEffect(() => {
     !Styles.isMobile && setFolderViewFilter() // mobile is handled in mobile-header.tsx
   }, [setFolderViewFilter, props.path]) // clear if path changes or it's a new layer of mount
@@ -60,5 +61,5 @@ const styles = Styles.styleSheetCreate(
           marginRight: Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )

@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
@@ -53,10 +54,10 @@ const isPending = (props: Props) =>
   (props.driverStatus.type === Types.DriverStatusType.Disabled && props.driverStatus.isEnabling)
 
 const FinderIntegration = (props: Props) => {
-  const preferredMountDirs = Constants.useState(s => s.sfmi.preferredMountDirs)
-  const driverDisable = Constants.useState(s => s.dispatch.driverDisable)
+  const preferredMountDirs = C.useFSState(s => s.sfmi.preferredMountDirs)
+  const driverDisable = C.useFSState(s => s.dispatch.driverDisable)
   const displayingMountDir = preferredMountDirs[0] || ''
-  const openLocalPathInSystemFileManagerDesktop = Constants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const openMount = displayingMountDir

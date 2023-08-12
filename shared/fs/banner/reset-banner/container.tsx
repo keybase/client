@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as TrackerConstants from '../../../constants/tracker2'
-import * as Constants from '../../../constants/fs'
+import * as C from '../../../constants'
 import * as ProfileConstants from '../../../constants/profile'
 import * as Types from '../../../constants/types/fs'
 import type * as RPCTypes from '../../../constants/types/rpc-gen'
@@ -15,15 +15,15 @@ type OwnProps = {
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _tlf = Constants.useState(s => Constants.getTlfFromPath(s.tlfs, path))
-  const letResetUserBackIn = Constants.useState(s => s.dispatch.letResetUserBackIn)
+  const _tlf = C.useFSState(s => C.getTlfFromPath(s.tlfs, path))
+  const letResetUserBackIn = C.useFSState(s => s.dispatch.letResetUserBackIn)
   const _onOpenWithoutResetUsers = React.useCallback(
     (currPath: Types.Path, users: {[K in string]: boolean}) => {
       const pathElems = Types.getPathElements(currPath)
       if (pathElems.length < 3) return
       const filteredPathName = folderNameWithoutUsers(pathElems[2] ?? '', users)
       const filteredPath = Types.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
-      Constants.makeActionForOpenPathInFilesTab(filteredPath)
+      C.makeActionForOpenPathInFilesTab(filteredPath)
     },
     []
   )

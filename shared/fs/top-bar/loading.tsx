@@ -1,5 +1,5 @@
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
@@ -17,14 +17,14 @@ const styles = Styles.styleSheetCreate(
         height: 18,
         width: 18,
       },
-    } as const)
+    }) as const
 )
 
 const Loading = (op: OwnProps) => {
   const {path} = op
-  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
-  const _tlfsLoaded = Constants.useState(s => !!s.tlfs.private.size)
-  const parsedPath = Constants.parsePath(path)
+  const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
+  const _tlfsLoaded = C.useFSState(s => !!s.tlfs.private.size)
+  const parsedPath = C.parsePath(path)
   let show = false
 
   switch (parsedPath.kind) {

@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as C from '../constants'
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
 import Browser from './browser'
 import {NormalPreview} from './filepreview'
@@ -19,7 +18,7 @@ type ChooseComponentProps = {
 const ChooseComponent = (props: ChooseComponentProps) => {
   const {emitBarePreview} = props
 
-  const fileContext = Constants.useState(s => s.fileContext.get(props.path) || Constants.emptyFileContext)
+  const fileContext = C.useFSState(s => s.fileContext.get(props.path) || C.emptyFileContext)
   const bare = Container.isMobile && fileContext.viewType === RPCTypes.GUIViewType.image
   React.useEffect(() => {
     bare && emitBarePreview()
@@ -45,7 +44,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
     case Types.PathType.Unknown:
       return <SimpleScreens.Loading />
     default:
-      if (fileContext === Constants.emptyFileContext) {
+      if (fileContext === C.emptyFileContext) {
         // We don't have it yet, so don't render.
         return <SimpleScreens.Loading />
       }
@@ -61,16 +60,16 @@ const ChooseComponent = (props: ChooseComponentProps) => {
 type OwnProps = {path?: Types.Path}
 
 const Connected = (ownProps?: OwnProps) => {
-  const path = ownProps?.path ?? Constants.defaultPath
-  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
-  const kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
+  const path = ownProps?.path ?? C.defaultPath
+  const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
+  const kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const emitBarePreview = () => {
     navigateUp()
     navigateAppend({props: {path}, selected: 'barePreview'})
   }
-  const isDefinitelyFolder = Types.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
+  const isDefinitelyFolder = Types.getPathElements(path).length <= 3 && !C.hasSpecialFileElement(path)
   const props = {
     emitBarePreview: emitBarePreview,
     kbfsDaemonStatus: kbfsDaemonStatus,

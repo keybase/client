@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
+import * as C from '../../constants'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import DefaultView from './default-view-container'
 import TextView from './text-view'
@@ -26,14 +26,14 @@ const FilePreviewView = (p: Props) => {
 }
 
 const FilePreviewViewContent = ({path, onUrlError}: Props) => {
-  const pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
+  const pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
   const [loadedLastModifiedTimestamp, setLoadedLastModifiedTimestamp] = React.useState(
     pathItem.lastModifiedTimestamp
   )
   const reload = () => setLoadedLastModifiedTimestamp(pathItem.lastModifiedTimestamp)
   const tooLargeForText = pathItem.type === Types.PathType.File && pathItem.size > textViewUpperLimit
 
-  const fileContext = Constants.useState(s => s.fileContext.get(path) || Constants.emptyFileContext)
+  const fileContext = C.useFSState(s => s.fileContext.get(path) || C.emptyFileContext)
 
   if (pathItem.type === Types.PathType.Symlink) {
     return <DefaultView path={path} />
@@ -43,7 +43,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
     return <Kb.Text type="BodySmallError">This shouldn't happen type={pathItem.type}</Kb.Text>
   }
 
-  if (fileContext === Constants.emptyFileContext) {
+  if (fileContext === C.emptyFileContext) {
     // We are still loading fileContext which is needed to determine which
     // component to use.
     return (
@@ -135,5 +135,5 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
         width: '100%',
       },
-    } as const)
+    }) as const
 )

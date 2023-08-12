@@ -55,23 +55,23 @@ const addCancelIfNeeded = (action: () => void, cancel: (arg0: string) => void, t
 export default (ownProps: OwnProps) => {
   const {path, mode} = ownProps
 
-  const _downloads = Constants.useState(s => s.downloads)
-  const cancelDownload = Constants.useState(s => s.dispatch.cancelDownload)
+  const _downloads = C.useFSState(s => s.downloads)
+  const cancelDownload = C.useFSState(s => s.dispatch.cancelDownload)
 
-  const _fileContext = Constants.useState(s => s.fileContext.get(path) || Constants.emptyFileContext)
+  const _fileContext = C.useFSState(s => s.fileContext.get(path) || Constants.emptyFileContext)
   const _ignoreNeedsToWait = Container.useAnyWaiting([
     Constants.folderListWaitingKey,
     Constants.statWaitingKey,
   ])
-  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
-  const _pathItemActionMenu = Constants.useState(s => s.pathItemActionMenu)
+  const _pathItem = C.useFSState(s => Constants.getPathItem(s.pathItems, path))
+  const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
   const _downloadID = _pathItemActionMenu.downloadID
-  const _sfmiEnabled = Constants.useState(s => s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled)
+  const _sfmiEnabled = C.useFSState(s => s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled)
   const _username = ConfigConstants.useCurrentUserState(s => s.username)
   const _view = _pathItemActionMenu.view
   const _cancel = cancelDownload
 
-  const setPathItemActionMenuView = Constants.useState(s => s.dispatch.setPathItemActionMenuView)
+  const setPathItemActionMenuView = C.useFSState(s => s.dispatch.setPathItemActionMenuView)
 
   const _confirmSaveMedia = React.useCallback(() => {
     setPathItemActionMenuView(Types.PathItemActionMenuView.ConfirmSaveMedia)
@@ -83,11 +83,11 @@ export default (ownProps: OwnProps) => {
   const _delete = () => {
     navigateAppend({props: {mode, path}, selected: 'confirmDelete'})
   }
-  const favoriteIgnore = Constants.useState(s => s.dispatch.favoriteIgnore)
+  const favoriteIgnore = C.useFSState(s => s.dispatch.favoriteIgnore)
   const _ignoreTlf = React.useCallback(() => {
     favoriteIgnore(path)
   }, [favoriteIgnore, path])
-  const newFolderRow = Constants.useState(s => s.dispatch.newFolderRow)
+  const newFolderRow = C.useFSState(s => s.dispatch.newFolderRow)
   const _newFolder = React.useCallback(() => {
     newFolderRow(path)
   }, [newFolderRow, path])
@@ -100,8 +100,8 @@ export default (ownProps: OwnProps) => {
       ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
     })
   }
-  const startRename = Constants.useState(s => s.dispatch.startRename)
-  const download = Constants.useState(s => s.dispatch.download)
+  const startRename = C.useFSState(s => s.dispatch.startRename)
+  const download = C.useFSState(s => s.dispatch.download)
   const _download = React.useCallback(() => {
     download(path, 'download')
   }, [download, path])
@@ -120,7 +120,7 @@ export default (ownProps: OwnProps) => {
   const _share = React.useCallback(() => {
     setPathItemActionMenuView(Types.PathItemActionMenuView.Share)
   }, [setPathItemActionMenuView])
-  const openPathInSystemFileManagerDesktop = Constants.useState(
+  const openPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
   )
   const _showInSystemFileManager = React.useCallback(() => {

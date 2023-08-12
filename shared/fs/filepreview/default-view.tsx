@@ -1,5 +1,5 @@
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
+import * as C from '../../constants'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {PathItemAction, LastModifiedLine, ItemIcon} from '../common'
@@ -15,7 +15,7 @@ type DefaultViewProps = {
 }
 
 const DefaultView = (props: DefaultViewProps) => {
-  const fileContext = Constants.useState(s => s.fileContext.get(props.path) || Constants.emptyFileContext)
+  const fileContext = C.useFSState(s => s.fileContext.get(props.path) || C.emptyFileContext)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       <Kb.Box2
@@ -29,7 +29,7 @@ const DefaultView = (props: DefaultViewProps) => {
         <Kb.Text type="BodyBig" style={styles.filename}>
           {props.pathItem.name}
         </Kb.Text>
-        <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(props.pathItem.size)}</Kb.Text>
+        <Kb.Text type="BodySmall">{C.humanReadableFileSize(props.pathItem.size)}</Kb.Text>
         {isMobile && <LastModifiedLine path={props.path} mode="default" />}
         {props.pathItem.type === Types.PathType.Symlink && (
           <Kb.Text type="BodySmall" style={styles.symlink}>
@@ -118,7 +118,7 @@ const styles = Styles.styleSheetCreate(
       symlink: {
         marginTop: Styles.globalMargins.medium,
       },
-    } as const)
+    }) as const
 )
 
 export default DefaultView

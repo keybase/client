@@ -1,6 +1,5 @@
-import * as Constants from '../../../../../constants/chat2'
 import * as C from '../../../../../constants'
-import * as FSConstants from '../../../../../constants/fs'
+import * as Constants from '../../../../../constants/chat2'
 import * as CryptoConstants from '../../../../../constants/crypto'
 import * as Container from '../../../../../util/container'
 import * as React from 'react'
@@ -43,7 +42,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     },
     [switchTab, saltpackOpenFile]
   )
-  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = React.useCallback(() => {

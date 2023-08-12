@@ -1,6 +1,6 @@
+import * as C from '../../../constants'
 import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/chat2'
-import * as FsConstants from '../../../constants/fs'
 import * as FsTypes from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
@@ -178,7 +178,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
     teamType === 'adhoc' && participantInfoAll.length === 1 && participantInfoAll.includes(username)
 
   const openPrivateFolder = React.useCallback(() => {
-    FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/private/${username}`))
+    C.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/private/${username}`))
   }, [username])
 
   return (

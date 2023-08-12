@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Constants from '../constants/settings'
-import * as FSConstants from '../constants/fs'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
@@ -192,7 +191,7 @@ const processorProfileDurationSeconds = 30
 const Developer = () => {
   const [clickCount, setClickCount] = React.useState(0)
 
-  const setDebugLevel = FSConstants.useState(s => s.dispatch.setDebugLevel)
+  const setDebugLevel = C.useFSState(s => s.dispatch.setDebugLevel)
   const onExtraKBFSLogging = () => setDebugLevel('vlog2')
   const onToggleRuntimeStats = ConfigConstants.useConfigState(s => s.dispatch.toggleRuntimeStats)
   const onLabelClick = () =>

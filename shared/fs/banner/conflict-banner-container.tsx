@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Constants from '../../constants/fs'
 import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
 import type * as Types from '../../constants/types/fs'
@@ -12,9 +11,9 @@ type OwnProps = {
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _tlf = Constants.useState(s => Constants.getTlfFromPath(s.tlfs, path))
-  const finishManualConflictResolution = Constants.useState(s => s.dispatch.finishManualConflictResolution)
-  const startManualConflictResolution = Constants.useState(s => s.dispatch.startManualConflictResolution)
+  const _tlf = C.useFSState(s => C.getTlfFromPath(s.tlfs, path))
+  const finishManualConflictResolution = C.useFSState(s => s.dispatch.finishManualConflictResolution)
+  const startManualConflictResolution = C.useFSState(s => s.dispatch.startManualConflictResolution)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onFeedback = React.useCallback(() => {
     navigateAppend({
@@ -27,7 +26,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   }, [finishManualConflictResolution, path])
   const onGoToSamePathInDifferentTlf = React.useCallback(
     (tlfPath: Types.Path) => {
-      navigateAppend({props: {path: Constants.rebasePathToDifferentTlf(path, tlfPath)}, selected: 'fsRoot'})
+      navigateAppend({props: {path: C.rebasePathToDifferentTlf(path, tlfPath)}, selected: 'fsRoot'})
     },
     [navigateAppend, path]
   )
@@ -38,7 +37,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     startManualConflictResolution(path)
   }, [startManualConflictResolution, path])
 
-  const openPathInSystemFileManagerDesktop = Constants.useState(
+  const openPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
   )
 
@@ -57,7 +56,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     onHelp,
     onStartResolving,
     openInSystemFileManager,
-    tlfPath: Constants.getTlfPath(path),
+    tlfPath: C.getTlfPath(path),
   }
   return <ConflictBanner {...props} />
 }

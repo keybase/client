@@ -1,8 +1,8 @@
+import * as C from '../constants'
 import * as ConfigConstants from '../constants/config'
 import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as DarkMode from '../constants/darkmode'
-import * as FsConstants from '../constants/fs'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
 import * as React from 'react'
@@ -136,7 +136,7 @@ export const SimpleLoading = React.memo(function SimpleLoading() {
 })
 
 export const FilesTabBadge = () => {
-  const uploadIcon = FsConstants.useState(s => s.getUploadIconForFilesTab())
+  const uploadIcon = C.useFSState(s => s.getUploadIconForFilesTab())
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
 }
 

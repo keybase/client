@@ -8,3 +8,4 @@ remove convid as param
     remove other meta related actions
     remove chat.init in configure listeners
     move all constant includes to C
+    move all types into T

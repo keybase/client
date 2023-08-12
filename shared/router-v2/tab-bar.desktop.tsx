@@ -1,8 +1,7 @@
+import * as C from '../constants'
 import './tab-bar.css'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
-import * as C from '../constants'
-import * as FsConstants from '../constants/fs'
 import * as ProfileConstants from '../constants/profile'
 import * as NotifConstants from '../constants/notifications'
 import * as Kb from '../common-adapters'
@@ -29,7 +28,7 @@ export type Props = {
 }
 
 const FilesTabBadge = () => {
-  const uploadIcon = FsConstants.useState(s => s.getUploadIconForFilesTab())
+  const uploadIcon = C.useFSState(s => s.getUploadIconForFilesTab())
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.badgeIconUpload} /> : null
 }
 
@@ -204,7 +203,7 @@ type TabProps = {
 const TabBadge = (p: {name: Tabs.Tab}) => {
   const {name} = p
   const badgeNumbers = NotifConstants.useState(s => s.navBadges)
-  const fsCriticalUpdate = FsConstants.useState(s => s.criticalUpdate)
+  const fsCriticalUpdate = C.useFSState(s => s.criticalUpdate)
   const badge = (badgeNumbers.get(name) ?? 0) + (name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
   return badge ? <Kb.Badge className="tab-badge" badgeNumber={badge} /> : null
 }

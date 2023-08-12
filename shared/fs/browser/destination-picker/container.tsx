@@ -1,5 +1,5 @@
-import * as Constants from '../../../constants/fs'
 import * as C from '../../../constants'
+import * as Constants from '../../../constants/fs'
 import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/fs'
 import DestinationPicker from '.'
@@ -51,9 +51,9 @@ const canBackUp = isMobile
   : () => false
 
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
-  const destPicker = Constants.useState(s => s.destinationPicker)
+  const destPicker = C.useFSState(s => s.destinationPicker)
   const isShare = destPicker.source.type === Types.DestinationPickerSource.IncomingShare
-  const pathItems = Constants.useState(s => s.pathItems)
+  const pathItems = C.useFSState(s => s.pathItems)
   const headerRightButton =
     destPicker.source.type === Types.DestinationPickerSource.IncomingShare ? (
       <OriginalOrCompressedButton incomingShareItems={destPicker.source.source} />
@@ -61,8 +61,8 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
 
   const nav = Container.useSafeNavigation()
 
-  const newFolderRow = Constants.useState(s => s.dispatch.newFolderRow)
-  const moveOrCopy = Constants.useState(s => s.dispatch.moveOrCopy)
+  const newFolderRow = C.useFSState(s => s.dispatch.newFolderRow)
+  const moveOrCopy = C.useFSState(s => s.dispatch.moveOrCopy)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const dispatchProps = {

@@ -1,7 +1,7 @@
+import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import * as C from '../constants'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as FsTypes from '../constants/types/fs'
 import * as FsConstants from '../constants/fs'
@@ -158,7 +158,7 @@ const useHeader = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
 }
 
 const useFooter = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
-  const setIncomingShareSource = FsConstants.useState(s => s.dispatch.setIncomingShareSource)
+  const setIncomingShareSource = C.useFSState(s => s.dispatch.setIncomingShareSource)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const saveInFiles = () => {
     setIncomingShareSource(incomingShareItems)

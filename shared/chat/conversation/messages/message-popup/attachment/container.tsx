@@ -1,7 +1,6 @@
+import * as C from '../../../../../constants'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
-import * as C from '../../../../../constants'
-import * as FSConstants from '../../../../../constants/fs'
 import * as TeamsConstants from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
 import * as ConfigConstants from '../../../../../constants/config'
@@ -124,7 +123,7 @@ export default (ownProps: OwnProps) => {
   const _onShareAttachment = (message: Types.MessageAttachment) => {
     messageAttachmentNativeShare(message)
   }
-  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const _onShowInFinder = (message: Types.MessageAttachment) => {
