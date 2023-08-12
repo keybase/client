@@ -12,7 +12,7 @@ export default () => {
   const onCancel = (you: string) => {
     // sadly a little racy, doing this for now
     setTimeout(() => {
-      Tracker2Constants.useState.getState().dispatch.load({
+      C.useTrackerState.getState().dispatch.load({
         assertion: you,
         guiID: Tracker2Constants.generateGUIID(),
         ignoreCache: true,

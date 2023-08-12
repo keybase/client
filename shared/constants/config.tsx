@@ -404,37 +404,19 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.trackerChangeFollow: {
-          const f = async () => {
-            const TrackerConstants = await import('./tracker2')
-            TrackerConstants.useState
-              .getState()
-              .dispatch.changeFollow(action.payload.guiID, action.payload.follow)
-          }
-          Z.ignorePromise(f())
+          C.useTrackerState.getState().dispatch.changeFollow(action.payload.guiID, action.payload.follow)
           break
         }
         case RemoteGen.trackerIgnore: {
-          const f = async () => {
-            const TrackerConstants = await import('./tracker2')
-            TrackerConstants.useState.getState().dispatch.ignore(action.payload.guiID)
-          }
-          Z.ignorePromise(f())
+          C.useTrackerState.getState().dispatch.ignore(action.payload.guiID)
           break
         }
         case RemoteGen.trackerCloseTracker: {
-          const f = async () => {
-            const TrackerConstants = await import('./tracker2')
-            TrackerConstants.useState.getState().dispatch.closeTracker(action.payload.guiID)
-          }
-          Z.ignorePromise(f())
+          C.useTrackerState.getState().dispatch.closeTracker(action.payload.guiID)
           break
         }
         case RemoteGen.trackerLoad: {
-          const f = async () => {
-            const TrackerConstants = await import('./tracker2')
-            TrackerConstants.useState.getState().dispatch.load(action.payload)
-          }
-          Z.ignorePromise(f())
+          C.useTrackerState.getState().dispatch.load(action.payload)
           break
         }
         case RemoteGen.link:

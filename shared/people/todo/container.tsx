@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
-import * as TrackerConstants from '../../constants/tracker2'
 import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
 import openURL from '../../util/open-url'
@@ -92,7 +91,7 @@ const AvatarUserConnector = (props: TodoOwnProps) => {
 
 const BioConnector = (props: TodoOwnProps) => {
   const myUsername = C.useCurrentUserState(s => s.username)
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onConfirm = (username: string) => {
     // make sure we have tracker state & profile is up to date
     showUser(username, false)

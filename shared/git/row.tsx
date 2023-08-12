@@ -5,7 +5,6 @@ import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as TeamConstants from '../constants/teams'
-import * as TrackerConstants from '../constants/tracker2'
 import openURL from '../util/open-url'
 
 export const NewContext = React.createContext(new Set())
@@ -41,7 +40,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
     setTeamRepoSettings('', teamname, repoID, disabled)
   }
   const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const openUserTracker = (username: string) => {
     showUser(username, true)
   }

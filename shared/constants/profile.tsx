@@ -271,7 +271,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         let canceled = false
 
         const loadAfter = () =>
-          TrackerConstants.useState.getState().dispatch.load({
+          C.useTrackerState.getState().dispatch.load({
             assertion: C.useCurrentUserState.getState().username,
             guiID: TrackerConstants.generateGUIID(),
             inTracker: false,
@@ -525,7 +525,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     finishRevoking: () => {
       const username = C.useCurrentUserState.getState().username
       get().dispatch.showUserProfile(username)
-      TrackerConstants.useState.getState().dispatch.load({
+      C.useTrackerState.getState().dispatch.load({
         assertion: C.useCurrentUserState.getState().username,
         guiID: TrackerConstants.generateGUIID(),
         inTracker: false,
@@ -624,9 +624,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         await RPCTypes.proveCheckProofRpcPromise({sigID}, waitingKey)
-        TrackerConstants.useState
-          .getState()
-          .dispatch.showUser(C.useCurrentUserState.getState().username, false)
+        C.useTrackerState.getState().dispatch.showUser(C.useCurrentUserState.getState().username, false)
       }
       Z.ignorePromise(f())
     },
@@ -656,7 +654,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.blockUserModal = undefined
           })
-          TrackerConstants.useState.getState().dispatch.load({
+          C.useTrackerState.getState().dispatch.load({
             assertion: username,
             guiID: TrackerConstants.generateGUIID(),
             inTracker: false,
@@ -678,7 +676,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     submitRevokeProof: proofId => {
       const f = async () => {
         const you = TrackerConstants.getDetails(
-          TrackerConstants.useState.getState(),
+          C.useTrackerState.getState(),
           C.useCurrentUserState.getState().username
         )
         if (!you.assertions) return
@@ -712,7 +710,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await RPCTypes.userUnblockUserRpcPromise({username}, blockUserWaitingKey)
-          TrackerConstants.useState.getState().dispatch.load({
+          C.useTrackerState.getState().dispatch.load({
             assertion: username,
             guiID: TrackerConstants.generateGUIID(),
             inTracker: false,
@@ -724,7 +722,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
           const error = _error
           logger.warn(`Error unblocking user ${username}`, error)
-          TrackerConstants.useState
+          C.useTrackerState
             .getState()
             .dispatch.updateResult(guiID, 'error', `Failed to unblock ${username}: ${error.desc}`)
         }

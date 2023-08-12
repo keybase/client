@@ -36,7 +36,7 @@ export default (ownProps: OwnProps) => {
   let notAUser = false
   let stellarHidden = false
   const isYours = C.useCurrentUserState(s => ownProps.username === s.username)
-  a = Constants.useState(s => {
+  a = C.useTrackerState(s => {
     if (ownProps.isSuggestion) {
       a = s.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) || Constants.noAssertion
     } else {

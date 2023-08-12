@@ -24,7 +24,7 @@ const filterWebOfTrustEntries = memoize(
 
 const Connected = (ownProps: OwnProps) => {
   const {username} = ownProps
-  const d = Constants.useState(s => Constants.getDetails(s, username))
+  const d = C.useTrackerState(s => Constants.getDetails(s, username))
   const myName = C.useCurrentUserState(s => s.username)
   const notAUser = d.state === 'notAUserYet'
   const userIsYou = username === myName
@@ -53,8 +53,8 @@ const Connected = (ownProps: OwnProps) => {
   const followThem = C.useFollowerState(s => s.following.has(username))
   const followsYou = C.useFollowerState(s => s.followers.has(username))
   const mutualFollow = followThem && followsYou
-  const _suggestionKeys = Constants.useState(s => (userIsYou ? s.proofSuggestions : undefined))
-  const nonUserDetails = Constants.useState(s => Constants.getNonUserDetails(s, username))
+  const _suggestionKeys = C.useTrackerState(s => (userIsYou ? s.proofSuggestions : undefined))
+  const nonUserDetails = C.useTrackerState(s => Constants.getNonUserDetails(s, username))
   const stateProps = (() => {
     if (!notAUser) {
       // Keybase user
@@ -116,9 +116,9 @@ const Connected = (ownProps: OwnProps) => {
   //     RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})
   //   )
   // }
-  const showUser = Constants.useState(s => s.dispatch.showUser)
-  const getProofSuggestions = Constants.useState(s => s.dispatch.getProofSuggestions)
-  const loadNonUserProfile = Constants.useState(s => s.dispatch.loadNonUserProfile)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const getProofSuggestions = C.useTrackerState(s => s.dispatch.getProofSuggestions)
+  const loadNonUserProfile = C.useTrackerState(s => s.dispatch.loadNonUserProfile)
   const _onReload = (username: string, isYou: boolean, state: Types.DetailsState) => {
     if (state !== 'valid' && !isYou) {
       // Might be a Keybase user or not, launch non-user profile fetch.

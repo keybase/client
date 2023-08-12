@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Container from '../../../../util/container'
-import * as TrackerConstants from '../../../../constants/tracker2'
 import * as FsTypes from '../../../../constants/types/fs'
 import * as React from 'react'
 import Git from '.'
@@ -27,7 +26,7 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
     [message]
   )
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onClickUserAvatar = React.useCallback(
     (username: string) => {
       Container.isMobile ? showUserProfile(username) : showUser(username, true)

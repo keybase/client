@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
-import * as TrackerConstants from '../../constants/tracker2'
 import NameWithIcon, {type NameWithIconProps} from '.'
 
 export type ConnectedNameWithIconProps = {
@@ -21,7 +20,7 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
       navigateAppend({props: {teamID}, selected: 'team'})
     }
   }, [clearModals, navigateAppend, teamID])
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onOpenTracker = React.useCallback(() => {
     username && showUser(username, true)
   }, [showUser, username])

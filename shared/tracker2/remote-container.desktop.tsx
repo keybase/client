@@ -37,7 +37,7 @@ const RemoteContainer = () => {
   UsersConstants.useState(s => s.dispatch.replace)(infoMap, blockMap)
   C.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
   ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
-  Constants.useState(s => s.dispatch.replace)(tracker2.usernameToDetails)
+  C.useTrackerState(s => s.dispatch.replace)(tracker2.usernameToDetails)
 
   return (
     <Tracker

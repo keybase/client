@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as TrackerConstants from '../constants/tracker2'
 import {isMobile} from '../constants/platform'
 import {Banner, BannerParagraph} from './banner'
 
@@ -10,7 +9,7 @@ type ProofBrokenBannerNonEmptyProps = {users: Array<string>}
 
 const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onClickUsername = React.useCallback(
     (username: string) => {
       if (isMobile) {

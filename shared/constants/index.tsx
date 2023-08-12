@@ -48,3 +48,4 @@ export {_useState as useSettingsContactsState, importContactsWaitingKey} from '.
 export {_useState as useSignupState, waitingKey as signupWaitingKey} from './signup'
 export {maxUsernameLength, defaultDevicename} from './signup'
 export {_useState as useTeamsState, teamWaitingKey} from './teams'
+export {_useState as useTrackerState} from './tracker2'

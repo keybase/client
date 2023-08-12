@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as TrackerConstants from '../constants/tracker2'
 import * as UsersConstants from '../constants/users'
 import * as Styles from '../styles'
 import Text, {
@@ -97,7 +96,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
     },
     [showUserProfile, username]
   )
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onOpenTracker = React.useCallback(
     (evt: any) => {
       evt?.stopPropagation()

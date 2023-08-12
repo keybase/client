@@ -10,7 +10,7 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {inTracker, username} = ownProps
-  const stateProps = Constants.useState(s => {
+  const stateProps = C.useTrackerState(s => {
     const d = Constants.getDetails(s, username)
     const common = {
       blocked: d.blocked,
