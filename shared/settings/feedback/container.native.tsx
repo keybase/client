@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
-import * as PushConstants from '../../constants/push'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import Feedback from '.'
@@ -108,7 +107,7 @@ const Connected = (ownProps: OwnProps) => {
   const feedback = ownProps.feedback ?? ''
   const chat = getExtraChatLogsForLogSend()
   const loggedOut = ConfigConstants.useConfigState(s => !s.loggedIn)
-  const _push = PushConstants.useState(s => s.token)
+  const _push = C.usePushState(s => s.token)
   const push = {pushToken: _push}
 
   const deviceID = C.useCurrentUserState(s => s.deviceID)

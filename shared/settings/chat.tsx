@@ -1,7 +1,6 @@
 import * as Constants from '../constants/settings'
 import * as C from '../constants'
 import * as ConfigConstants from '../constants/config'
-import * as PushConstants from '../constants/push'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Platform from '../constants/platform'
@@ -28,7 +27,7 @@ export default () => {
   const allowEdit = Constants.useNotifState(s => s.allowEdit)
   const contactSettingsError = Constants.useChatState(s => s.contactSettings.error)
   const groups = Constants.useNotifState(s => s.groups)
-  const mobileHasPermissions = PushConstants.useState(s => s.hasPermissions)
+  const mobileHasPermissions = C.usePushState(s => s.hasPermissions)
   const sound = ConfigConstants.useConfigState(s => s.notifySound) // desktop
   const _teamMeta = TeamConstants.useState(s => s.teamMeta)
   const unfurlError = Constants.useChatState(s => s.unfurl.unfurlError)

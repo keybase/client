@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/push'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
@@ -175,13 +174,13 @@ const listenForNativeAndroidIntentNotifications = async () => {
   const pushToken = await androidGetRegistrationToken()
   logger.debug('[PushToken] received new token: ', pushToken)
 
-  Constants.useState.getState().dispatch.setPushToken(pushToken)
+  C.usePushState.getState().dispatch.setPushToken(pushToken)
 
   const RNEmitter = getNativeEmitter()
   RNEmitter.addListener('initialIntentFromNotification', evt => {
     const notification = evt && normalizePush(evt)
     if (notification) {
-      Constants.useState.getState().dispatch.handlePush(notification)
+      C.usePushState.getState().dispatch.handlePush(notification)
     }
   })
 
@@ -203,7 +202,7 @@ const listenForNativeAndroidIntentNotifications = async () => {
 const iosListenForPushNotificationsFromJS = () => {
   const onRegister = (token: string) => {
     logger.debug('[PushToken] received new token: ', token)
-    Constants.useState.getState().dispatch.setPushToken(token)
+    C.usePushState.getState().dispatch.setPushToken(token)
   }
 
   const onNotification = (n: Object) => {
@@ -213,7 +212,7 @@ const iosListenForPushNotificationsFromJS = () => {
       return
     }
 
-    Constants.useState.getState().dispatch.handlePush(notification)
+    C.usePushState.getState().dispatch.handlePush(notification)
   }
 
   isIOS && PushNotificationIOS.addEventListener('notification', onNotification)
@@ -277,7 +276,7 @@ export const initPushListener = () => {
       return
     }
     logger.debug(`[PushCheck] checking on foreground`)
-    Constants.useState
+    C.usePushState
       .getState()
       .dispatch.checkPermissions()
       .then(() => {})
@@ -287,7 +286,7 @@ export const initPushListener = () => {
   // Token handling
   C.useLogoutState.subscribe((s, old) => {
     if (s.version === old.version) return
-    Constants.useState.getState().dispatch.deleteToken(s.version)
+    C.usePushState.getState().dispatch.deleteToken(s.version)
   })
 
   let lastCount = -1
@@ -303,7 +302,7 @@ export const initPushListener = () => {
     lastCount = count
   })
 
-  Constants.useState.getState().dispatch.initialPermissionsCheck()
+  C.usePushState.getState().dispatch.initialPermissionsCheck()
 
   C.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return

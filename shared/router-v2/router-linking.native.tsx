@@ -1,8 +1,7 @@
+import * as C from '../constants'
 import * as ChatConstants from '../constants/chat2'
 import * as ConfigConstants from '../constants/config'
-import * as PushConstants from '../constants/push'
 import * as Container from '../util/container'
-import * as C from '../constants'
 import * as Shared from './router.shared'
 import * as Tabs from '../constants/tabs'
 import {getStateFromPath} from '@react-navigation/native'
@@ -157,7 +156,7 @@ export const useReduxToLinking = (appState: Shared.AppState) => {
   if (!ChatConstants.isValidConversationIDKey(startupConversation)) {
     startupConversation = ''
   }
-  const {justSignedUp, showPushPrompt, hasPermissions} = PushConstants.useState.getState()
+  const {justSignedUp, showPushPrompt, hasPermissions} = C.usePushState.getState()
   const showMonster =
     ConfigConstants.useConfigState.getState().loggedIn && !justSignedUp && showPushPrompt && !hasPermissions
 

@@ -4,7 +4,6 @@ import * as SettingsConstants from '../../constants/settings'
 import * as C from '../../constants'
 import * as Constants from '../../constants/signup'
 import * as Platform from '../../constants/platform'
-import * as PushConstants from '../../constants/push'
 import EnterEmail, {type Props} from '.'
 
 type WatcherProps = Props & {
@@ -36,9 +35,7 @@ const WatchForSuccess = (props: WatcherProps) => {
 }
 
 const ConnectedEnterEmail = () => {
-  const _showPushPrompt = PushConstants.useState(
-    s => Platform.isMobile && !s.hasPermissions && s.showPushPrompt
-  )
+  const _showPushPrompt = C.usePushState(s => Platform.isMobile && !s.hasPermissions && s.showPushPrompt)
   const addedEmail = SettingsConstants.useEmailState(s => s.addedEmail)
   const error = SettingsConstants.useEmailState(s => s.error)
   const initialEmail = Constants.useState(s => s.email)
