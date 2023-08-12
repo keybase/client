@@ -1,4 +1,4 @@
-import {getModalStack, useRouterState} from '..'
+import * as C from '..'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Tabs from '../tabs'
 import * as LinksConstants from '../deeplinks'
@@ -478,7 +478,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       // only one pending conversation state.
       // The fix involves being able to make multiple pending conversations
       const f = async () => {
-        const username = ConfigConstants.useCurrentUserState.getState().username
+        const username = C.useCurrentUserState.getState().username
         if (!username) {
           logger.error('Making a convo while logged out?')
           return
@@ -558,7 +558,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     inboxRefresh: reason => {
       const f = async () => {
-        const {username} = ConfigConstants.useCurrentUserState.getState()
+        const {username} = C.useCurrentUserState.getState()
         const {loggedIn} = ConfigConstants.useConfigState.getState()
         if (!loggedIn || !username) {
           return
@@ -895,7 +895,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     messageSendByUsername: (username, text, waitingKey) => {
       const f = async () => {
-        const tlfName = `${ConfigConstants.useCurrentUserState.getState().username},${username}`
+        const tlfName = `${C.useCurrentUserState.getState().username},${username}`
         try {
           const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
             {
@@ -939,8 +939,8 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
     },
     navigateToInbox: () => {
-      useRouterState.getState().dispatch.navUpToScreen('chatRoot')
-      useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
+      C.useRouterState.getState().dispatch.navUpToScreen('chatRoot')
+      C.useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
     },
     onEngineConnected: () => {
       const f = async () => {
@@ -1159,8 +1159,8 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     onRouteChanged: (prev, next) => {
       const maybeChangeChatSelection = () => {
-        const wasModal = prev && getModalStack(prev).length > 0
-        const isModal = next && getModalStack(next).length > 0
+        const wasModal = prev && C.getModalStack(prev).length > 0
+        const isModal = next && C.getModalStack(next).length > 0
         // ignore if changes involve a modal
         if (wasModal || isModal) {
           return
@@ -1248,7 +1248,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
         // if stellar just search first, could do others maybe
         if ((reason === 'requestedPayment' || reason === 'sentPayment') && participants.length === 1) {
-          const username = ConfigConstants.useCurrentUserState.getState().username
+          const username = C.useCurrentUserState.getState().username
           const toFind = participants[0]
           for (const cs of stores.values()) {
             const p = cs.getState().participants

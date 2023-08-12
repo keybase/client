@@ -25,7 +25,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
     git.teamname ? TeamConstants.getTeamID(s, git.teamname) : undefined
   )
   const isNew = React.useContext(NewContext).has(id)
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const setTeamRepoSettings = C.useGitState(s => s.dispatch.setTeamRepoSettings)
   const _onBrowseGitRepo = (path: FsTypes.Path) => {
     C.makeActionForOpenPathInFilesTab(path)

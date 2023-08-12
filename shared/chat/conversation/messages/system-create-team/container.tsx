@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
-import * as ConfigConstants from '../../../../constants/config'
 import * as React from 'react'
 import * as TeamConstants from '../../../../constants/teams'
 import SystemCreateTeam from '.'
@@ -15,7 +14,7 @@ const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(
   const {conversationIDKey, creator} = message
   const {teamID, teamname} = Constants.useContext(s => s.meta)
   const role = TeamConstants.useState(s => TeamConstants.getRole(s, teamID))
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const isAdmin = TeamConstants.isAdmin(role) || TeamConstants.isOwner(role)
   const team = teamname
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

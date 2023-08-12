@@ -1,13 +1,12 @@
+import * as C from '.'
 import {useRouterState} from '.'
 import * as Platform from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as UserConstants from './current-user'
 import * as Z from '../util/zustand'
 import HiddenString from '../util/hidden-string'
 import logger from '../logger'
 import type * as Types from './types/crypto'
 import type * as TeamBuildingTypes from './types/team-building'
-import * as ConfigConstants from './config'
 import {RPCError} from '../util/errors'
 
 export const saltpackDocumentation = 'https://saltpack.org'
@@ -272,7 +271,7 @@ export const useState = Z.createZustand<State>((set, get) => {
   const encrypt = (destinationDir: string = '') => {
     const f = async () => {
       const start = get().encrypt
-      const username = UserConstants.useCurrentUserState.getState().username
+      const username = C.useCurrentUserState.getState().username
       const signed = start.options.sign
       const inputType = start.inputType
       const input = start.input.stringValue()
@@ -398,7 +397,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
         const output = await (inputType === 'text' ? callText() : callFile())
 
-        const username = UserConstants.useCurrentUserState.getState().username
+        const username = C.useCurrentUserState.getState().username
         set(s => {
           onSuccess(s.sign, s.sign.input.stringValue() === input, '', output, inputType, true, username, '')
         })
@@ -576,7 +575,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
       // User set themselves as a recipient, so don't show 'includeSelf' option
       // However we don't want to set hideIncludeSelf if we are also encrypting to an SBS user (since we must force includeSelf)
-      const currentUser = ConfigConstants.useCurrentUserState.getState().username
+      const currentUser = C.useCurrentUserState.getState().username
       const {options} = get().encrypt
       if (usernames.includes(currentUser) && !hasSBS) {
         get().dispatch.setEncryptOptions(options, true)

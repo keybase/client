@@ -1,8 +1,8 @@
+import * as C from '../constants'
 import * as React from 'react'
 import * as Constants from '../constants/people'
 import * as SignupConstants from '../constants/signup'
 import * as ProfileConstants from '../constants/profile'
-import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import People from '.'
@@ -12,7 +12,7 @@ const waitToRefresh = 1000 * 60 * 5
 
 const PeopleReloadable = () => {
   const followSuggestions = Constants.useState(s => s.followSuggestions)
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const newItems = Constants.useState(s => s.newItems)
   const oldItems = Constants.useState(s => s.oldItems)
   const signupEmail = SignupConstants.useState(s => s.justSignedUpEmail)

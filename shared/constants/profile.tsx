@@ -1,5 +1,4 @@
-import {useRouterState} from '.'
-import * as ConfigConstants from './config'
+import * as C from '.'
 import * as More from './types/more'
 import * as RPCTypes from './types/rpc-gen'
 import * as TrackerConstants from './tracker2'
@@ -212,7 +211,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           s.proofFound = true
           s.proofStatus = RPCTypes.ProofStatus.ok
         })
-        useRouterState.getState().dispatch.navigateAppend('profileConfirmOrPending')
+        C.useRouterState.getState().dispatch.navigateAppend('profileConfirmOrPending')
       } catch (_error) {
         if (_error instanceof RPCError) {
           const error = _error
@@ -244,14 +243,14 @@ export const useState = Z.createZustand<State>((set, get) => {
         // Special cases
         switch (service) {
           case 'dnsOrGenericWebSite':
-            useRouterState.getState().dispatch.navigateAppend('profileProveWebsiteChoice')
+            C.useRouterState.getState().dispatch.navigateAppend('profileProveWebsiteChoice')
             return
           case 'zcash': //  fallthrough
           case 'btc':
-            useRouterState.getState().dispatch.navigateAppend('profileProveEnterUsername')
+            C.useRouterState.getState().dispatch.navigateAppend('profileProveEnterUsername')
             return
           case 'pgp':
-            useRouterState.getState().dispatch.navigateAppend('profilePgp')
+            C.useRouterState.getState().dispatch.navigateAppend('profilePgp')
             return
           default:
         }
@@ -273,7 +272,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
         const loadAfter = () =>
           TrackerConstants.useState.getState().dispatch.load({
-            assertion: ConfigConstants.useCurrentUserState.getState().username,
+            assertion: C.useCurrentUserState.getState().username,
             guiID: TrackerConstants.generateGUIID(),
             inTracker: false,
             reason: '',
@@ -338,7 +337,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     set(s => {
                       s.proofText = proof
                     })
-                    useRouterState.getState().dispatch.navigateAppend('profilePostProof')
+                    C.useRouterState.getState().dispatch.navigateAppend('profilePostProof')
                   } else if (proof) {
                     set(s => {
                       s.platformGenericURL = proof
@@ -387,12 +386,12 @@ export const useState = Z.createZustand<State>((set, get) => {
                     })
                   }
                   if (service) {
-                    useRouterState.getState().dispatch.navigateAppend('profileProveEnterUsername')
+                    C.useRouterState.getState().dispatch.navigateAppend('profileProveEnterUsername')
                   } else if (genericService && parameters) {
                     set(s => {
                       s.platformGenericParams = toProveGenericParams(parameters)
                     })
-                    useRouterState.getState().dispatch.navigateAppend('profileGenericEnterUsername')
+                    C.useRouterState.getState().dispatch.navigateAppend('profileGenericEnterUsername')
                   }
                 },
               },
@@ -441,7 +440,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                   .dispatch.setLinkError(
                     "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
                   )
-                useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
+                C.useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
               }
               Z.ignorePromise(f())
             }
@@ -464,8 +463,8 @@ export const useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     backToProfile: () => {
-      useRouterState.getState().dispatch.clearModals()
-      get().dispatch.showUserProfile(ConfigConstants.useCurrentUserState.getState().username)
+      C.useRouterState.getState().dispatch.clearModals()
+      get().dispatch.showUserProfile(C.useCurrentUserState.getState().username)
     },
     checkProof: () => {
       set(s => {
@@ -494,7 +493,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               s.proofStatus = status
             })
             if (!isGeneric) {
-              useRouterState.getState().dispatch.navigateAppend('profileConfirmOrPending')
+              C.useRouterState.getState().dispatch.navigateAppend('profileConfirmOrPending')
             }
           }
         } catch (_) {
@@ -523,15 +522,15 @@ export const useState = Z.createZustand<State>((set, get) => {
     editProfile: (bio, fullName, location) => {
       const f = async () => {
         await RPCTypes.userProfileEditRpcPromise({bio, fullName, location}, TrackerConstants.waitingKey)
-        get().dispatch.showUserProfile(ConfigConstants.useCurrentUserState.getState().username)
+        get().dispatch.showUserProfile(C.useCurrentUserState.getState().username)
       }
       Z.ignorePromise(f())
     },
     finishRevoking: () => {
-      const username = ConfigConstants.useCurrentUserState.getState().username
+      const username = C.useCurrentUserState.getState().username
       get().dispatch.showUserProfile(username)
       TrackerConstants.useState.getState().dispatch.load({
-        assertion: ConfigConstants.useCurrentUserState.getState().username,
+        assertion: C.useCurrentUserState.getState().username,
         guiID: TrackerConstants.generateGUIID(),
         inTracker: false,
         reason: '',
@@ -550,7 +549,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           username: pgpFullName || '',
         }))
 
-        useRouterState.getState().dispatch.navigateAppend('profileGenerate')
+        C.useRouterState.getState().dispatch.navigateAppend('profileGenerate')
         // We allow the UI to cancel this call. Just stash this intention and nav away and response with an error to the rpc
         set(s => {
           s.dispatch.dynamic.cancelPgpGen = () => {
@@ -573,7 +572,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                   }
                 },
                 'keybase.1.pgpUi.shouldPushPrivate': ({prompt}, response) => {
-                  useRouterState.getState().dispatch.navigateAppend('profileFinished')
+                  C.useRouterState.getState().dispatch.navigateAppend('profileFinished')
                   set(s => {
                     s.promptShouldStoreKeyOnServer = prompt
                     s.dispatch.dynamic.finishedWithKeyGen = (shouldStoreKeyOnServer: boolean) => {
@@ -631,7 +630,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         await RPCTypes.proveCheckProofRpcPromise({sigID}, waitingKey)
         TrackerConstants.useState
           .getState()
-          .dispatch.showUser(ConfigConstants.useCurrentUserState.getState().username, false)
+          .dispatch.showUser(C.useCurrentUserState.getState().username, false)
       }
       Z.ignorePromise(f())
     },
@@ -644,9 +643,9 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     showUserProfile: username => {
       if (isMobile) {
-        useRouterState.getState().dispatch.clearModals()
+        C.useRouterState.getState().dispatch.clearModals()
       }
-      useRouterState.getState().dispatch.navigateAppend({props: {username}, selected: 'profile'})
+      C.useRouterState.getState().dispatch.navigateAppend({props: {username}, selected: 'profile'})
     },
     submitBTCAddress: () => {
       submitCryptoAddress('bitcoin')
@@ -684,7 +683,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         const you = TrackerConstants.getDetails(
           TrackerConstants.useState.getState(),
-          ConfigConstants.useCurrentUserState.getState().username
+          C.useCurrentUserState.getState().username
         )
         if (!you.assertions) return
         const proof = [...you.assertions.values()].find(a => a.sigID === proofId)
@@ -764,7 +763,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await RPCTypes.userUploadUserAvatarRpcPromise({crop, filename}, uploadAvatarWaitingKey)
-          useRouterState.getState().dispatch.navigateUp()
+          C.useRouterState.getState().dispatch.navigateUp()
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return

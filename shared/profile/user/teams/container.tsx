@@ -1,4 +1,3 @@
-import * as ConfigConstants from '../../../constants/config'
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/tracker2'
 import * as TeamsConstants from '../../../constants/teams'
@@ -14,7 +13,7 @@ const noTeams = new Array<Types.TeamShowcase>()
 
 export default (ownProps: OwnProps) => {
   const d = Constants.useState(s => Constants.getDetails(s, ownProps.username))
-  const _isYou = ConfigConstants.useCurrentUserState(s => s.username === ownProps.username)
+  const _isYou = C.useCurrentUserState(s => s.username === ownProps.username)
   const _roles = TeamsConstants.useState(s => s.teamRoleMap.roles)
   const _teamNameToID = TeamsConstants.useState(s => s.teamNameToID)
   const _youAreInTeams = TeamsConstants.useState(s => s.teamnames.size > 0)

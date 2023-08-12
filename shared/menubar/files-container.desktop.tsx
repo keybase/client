@@ -1,5 +1,5 @@
+import * as C from '../constants'
 import * as Container from '../util/container'
-import * as ConfigConstants from '../constants/config'
 import * as ProfileConstants from '../constants/profile'
 import * as FsTypes from '../constants/types/fs'
 import * as RemoteGen from '../actions/remote-gen'
@@ -11,7 +11,7 @@ import type {DeserializeProps} from '../menubar/remote-serializer.desktop'
 const FilesContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
   const {remoteTlfUpdates} = state
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const dispatch = Container.useDispatch()
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   return (

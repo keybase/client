@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
-import * as ConfigConstants from '../../../../constants/config'
 import type * as Types from '../../../../constants/types/chat2'
 import * as TeamConstants from '../../../../constants/teams'
 import SystemAddedToTeam from '.'
@@ -21,7 +20,7 @@ const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
   const authorIsOwner = TeamConstants.useState(s =>
     TeamConstants.userIsRoleInTeam(s, teamID, author, 'owner')
   )
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const isAdmin = authorIsAdmin || authorIsOwner
   const isTeam = teamType === 'big' || teamType === 'small'
 

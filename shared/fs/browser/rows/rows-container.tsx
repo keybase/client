@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
 import * as Types from '../../../constants/types/fs'
 import * as RowTypes from './types'
-import * as ConfigConstants from '../../../constants/config'
 import {isMobile} from '../../../constants/platform'
 import {sortRowItems, type SortableRowItem} from './sort'
 import Rows, {type Props} from './rows'
@@ -180,7 +179,7 @@ export default (o: OwnProps) => {
   const _pathItems = C.useFSState(s => s.pathItems)
   const _sortSetting = C.useFSState(s => Constants.getPathUserSetting(s.pathUserSettings, o.path).sort)
   const _tlfs = C.useFSState(s => s.tlfs)
-  const _username = ConfigConstants.useCurrentUserState(s => s.username)
+  const _username = C.useCurrentUserState(s => s.username)
 
   const s = {
     _edits,

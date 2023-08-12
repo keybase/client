@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/teams'
 import * as ChatConstants from '../../../../constants/chat2'
 import * as UsersConstants from '../../../../constants/users'
-import * as ConfigConstants from '../../../../constants/config'
 import * as ProfileConstants from '../../../../constants/profile'
 import * as TrackerConstants from '../../../../constants/tracker2'
 import type * as Types from '../../../../constants/types/teams'
@@ -23,7 +22,7 @@ export default (ownProps: OwnProps) => {
   const {teamname} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const info = members.get(username) || blankInfo
 
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const fullName = you ? 'You' : info.fullName
   const needsPUK = info.needsPUK
   const roleType = info.type

@@ -1,3 +1,4 @@
+import * as C from '.'
 import * as ChatTypes from './types/chat2'
 import * as DarkMode from './darkmode'
 import * as DeviceTypes from './types/devices'
@@ -21,7 +22,6 @@ import {defaultUseNativeFrame, runMode, isMobile} from './platform'
 import {noConversationIDKey} from './types/chat2/common'
 import {type CommonResponseHandler} from '../engine/types'
 import {useAvatarState} from '../common-adapters/avatar-zus'
-import {useCurrentUserState} from './current-user'
 import {useDaemonState} from './daemon'
 import {initPlatformListener} from '../actions/platform-specific'
 import {mapGetEnsureValue} from '../util/map'
@@ -611,7 +611,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
       if (phase === 'startupOrReloginButNotInARush') {
         const getFollowerInfo = () => {
-          const {uid} = useCurrentUserState.getState()
+          const {uid} = C.useCurrentUserState.getState()
           logger.info(`getFollowerInfo: init; uid=${uid}`)
           if (uid) {
             // request follower info in the background
@@ -644,7 +644,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         const updateChat = async () => {
           const ChatConstants = await import('./chat2')
           // On login lets load the untrusted inbox. This helps make some flows easier
-          if (useCurrentUserState.getState().username) {
+          if (C.useCurrentUserState.getState().username) {
             const {inboxRefresh} = ChatConstants.useState.getState().dispatch
             inboxRefresh('bootstrap')
           }
@@ -840,7 +840,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         }
         case EngineGen.keybase1NotifyTrackingTrackingInfo: {
           const {uid, followers: _newFollowers, followees: _newFollowing} = action.payload.params
-          if (useCurrentUserState.getState().uid !== uid) {
+          if (C.useCurrentUserState.getState().uid !== uid) {
             return
           }
           const newFollowers = new Set(_newFollowers)
@@ -937,7 +937,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }))
     },
     revoke: name => {
-      const wasCurrentDevice = useCurrentUserState.getState().deviceName === name
+      const wasCurrentDevice = C.useCurrentUserState.getState().deviceName === name
       if (wasCurrentDevice) {
         const {configuredAccounts, defaultUsername} = get()
         const acc = configuredAccounts.find(n => n.username !== defaultUsername)
@@ -1327,4 +1327,3 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 export {useDaemonState, maxHandshakeTries} from './daemon'
 export {useFollowerState} from './followers'
 export {useLogoutState} from './logout'
-export {useCurrentUserState}

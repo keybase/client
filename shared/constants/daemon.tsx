@@ -1,3 +1,4 @@
+import * as C from '.'
 import {getNavigator} from '.'
 import logger from '../logger'
 import * as RPCTypes from './types/rpc-gen'
@@ -228,7 +229,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         const Constants = await import('./config')
         const ChatConstants = await import('./chat2')
-        const {setBootstrap} = Constants.useCurrentUserState.getState().dispatch
+        const {setBootstrap} = C.useCurrentUserState.getState().dispatch
         const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
         const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
         const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s

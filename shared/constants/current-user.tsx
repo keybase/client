@@ -31,7 +31,7 @@ type State = Store & {
   }
 }
 
-export const useCurrentUserState = Z.createZustand<State>(set => {
+export const useState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
     replaceUsername: u => {
       set(s => {

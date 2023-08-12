@@ -1,6 +1,6 @@
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as ChatConstants from '../../../constants/chat2'
-import * as ConfigConstants from '../../../constants/config'
 import * as ProfileConstants from '../../../constants/profile'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
@@ -142,7 +142,7 @@ const SectionList = createAnimatedComponent<SectionListProps<Section>>(Kb.Sectio
 const TeamMember = (props: OwnProps) => {
   const username = props.username
   const teamID = props.teamID ?? Types.noTeamID
-  const isMe = username === ConfigConstants.useCurrentUserState(s => s.username)
+  const isMe = username === C.useCurrentUserState(s => s.username)
   const loading = Constants.useState(s => {
     const memberships = s.teamMemberToTreeMemberships.get(teamID)?.get(username)
     if (!memberships || !memberships.expectedCount) {
@@ -429,7 +429,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     Constants.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
   )
   const amLastOwner = Constants.useState(s => Constants.isLastOwner(s, props.node.teamID))
-  const isMe = props.username == ConfigConstants.useCurrentUserState(s => s.username)
+  const isMe = props.username == C.useCurrentUserState(s => s.username)
   const changingRole = Container.useAnyWaiting(
     Constants.editMembershipWaitingKey(props.node.teamID, props.username)
   )
@@ -614,7 +614,7 @@ export const TeamMemberHeader = (props: Props) => {
 
   const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
-  const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
+  const yourUsername = C.useCurrentUserState(s => s.username)
 
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)

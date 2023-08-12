@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -5,8 +6,6 @@ import * as Kb from '../../common-adapters'
 import * as Kbfs from '../../fs/common'
 import * as Styles from '../../styles'
 import * as ChatConstants from '../../constants/chat2'
-import * as ConfigConstants from '../../constants/config'
-import * as C from '../../constants'
 import type * as ChatTypes from '../../constants/types/chat2'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
@@ -84,7 +83,7 @@ const DesktopSendToChat = (props: Props) => {
   const [title, setTitle] = React.useState('')
   const [conversationIDKey, setConversationIDKey] = React.useState(ChatConstants.noConversationIDKey)
   const [convName, setConvName] = React.useState('')
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     clearModals()

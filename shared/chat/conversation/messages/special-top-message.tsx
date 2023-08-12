@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/chat2'
 import * as FsTypes from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
@@ -107,7 +106,7 @@ const ErrorMessage = () => {
 
 const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const conversationIDKey = React.useContext(ConvoIDContext)
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const loadMoreType = Constants.useContext(s => (s.moreToLoad ? 'moreToLoad' : 'noMoreToLoad'))
   const ordinals = Constants.useContext(s => s.messageOrdinals)
   const data = Constants.useContext(s => {

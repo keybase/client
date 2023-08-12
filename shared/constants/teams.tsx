@@ -1,4 +1,4 @@
-import {useRouterState, getTab} from '.'
+import * as C from '.'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as ChatTypes from './types/chat2'
 import * as ConfigConstants from './config'
@@ -411,7 +411,7 @@ export const getDisabledReasonsForRolePicker = (
     theyAreOwner = membersToModify.some(username => members.get(username)?.type === 'owner')
   }
 
-  const myUsername = ConfigConstants.useCurrentUserState.getState().username
+  const myUsername = C.useCurrentUserState.getState().username
   const you = members.get(myUsername)
   // Fallback to the lowest role, although this shouldn't happen
   const yourRole = you?.type ?? 'reader'
@@ -1269,7 +1269,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
         })
 
-        useRouterState.getState().dispatch.navigateAppend('teamAddToTeamConfirm')
+        C.useRouterState.getState().dispatch.navigateAppend('teamAddToTeamConfirm')
       }
       Z.ignorePromise(f())
     },
@@ -1384,7 +1384,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           if (res.notAdded && res.notAdded.length > 0) {
             const usernames = res.notAdded.map(elem => elem.username)
             TeamBuildingConstants.stores.get('teams')?.getState().dispatch.finishedTeamBuilding()
-            useRouterState.getState().dispatch.navigateAppend({
+            C.useRouterState.getState().dispatch.navigateAppend({
               props: {source: 'teamAddSomeFailed', usernames},
               selected: 'contactRestricted',
             })
@@ -1408,7 +1408,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               .map(elem => elem?.value)
             const usernames = users?.[0]?.split(',') ?? []
             TeamBuildingConstants.stores.get('teams')?.getState().dispatch.finishedTeamBuilding()
-            useRouterState.getState().dispatch.navigateAppend({
+            C.useRouterState.getState().dispatch.navigateAppend({
               props: {source: 'teamAddAllFailed', usernames},
               selected: 'contactRestricted',
             })
@@ -1491,7 +1491,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.addMembersWizard = {...addMembersWizardEmptyState}
       })
-      useRouterState.getState().dispatch.clearModals()
+      C.useRouterState.getState().dispatch.clearModals()
     },
     channelSetMemberSelected: (conversationIDKey, username, selected, clearAll) => {
       set(s => {
@@ -1583,7 +1583,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           // Dismiss the create channel dialog.
           const visibleScreen = Router2Constants.getVisibleScreen()
           if (visibleScreen && visibleScreen.name === 'chatCreateChannel') {
-            useRouterState.getState().dispatch.clearModals()
+            C.useRouterState.getState().dispatch.clearModals()
           }
           // Reload on team page
           get().dispatch.loadTeamChannelList(teamID)
@@ -1663,7 +1663,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
 
           if (fromChat) {
-            useRouterState.getState().dispatch.clearModals()
+            C.useRouterState.getState().dispatch.clearModals()
             const f = async () => {
               const ChatConstants = await import('./chat2')
               const {previewConversation, navigateToInbox} = ChatConstants.useState.getState().dispatch
@@ -1672,10 +1672,10 @@ export const useState = Z.createZustand<State>((set, get) => {
             }
             Z.ignorePromise(f())
           } else {
-            useRouterState.getState().dispatch.clearModals()
-            useRouterState.getState().dispatch.navigateAppend({props: {teamID}, selected: 'team'})
+            C.useRouterState.getState().dispatch.clearModals()
+            C.useRouterState.getState().dispatch.navigateAppend({props: {teamID}, selected: 'team'})
             if (isMobile) {
-              useRouterState
+              C.useRouterState
                 .getState()
                 .dispatch.navigateAppend({props: {createdTeam: true, teamID}, selected: 'profileEditAvatar'})
             }
@@ -1696,7 +1696,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         const ChatConstants = await import('./chat2')
-        const me = ConfigConstants.useCurrentUserState.getState().username
+        const me = C.useCurrentUserState.getState().username
         const participantInfo = ChatConstants.getConvoState(conversationIDKey).participants
         // exclude bots from the newly created team, they can be added back later.
         const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
@@ -1721,7 +1721,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           teamWaitingKey(teamID)
         )
         get().dispatch.loadTeamChannelList(teamID)
-        useRouterState.getState().dispatch.clearModals()
+        C.useRouterState.getState().dispatch.clearModals()
       }
       Z.ignorePromise(f())
     },
@@ -1738,7 +1738,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           )
         }
         get().dispatch.loadTeamChannelList(teamID)
-        useRouterState.getState().dispatch.clearModals()
+        C.useRouterState.getState().dispatch.clearModals()
       }
       Z.ignorePromise(f())
     },
@@ -1847,8 +1847,8 @@ export const useState = Z.createZustand<State>((set, get) => {
             s.newTeamWizard = newTeamWizardEmptyState
             s.addMembersWizard = {...addMembersWizardEmptyState, justFinished: true}
           })
-          useRouterState.getState().dispatch.clearModals()
-          useRouterState.getState().dispatch.navigateAppend({props: {teamID}, selected: 'team'})
+          C.useRouterState.getState().dispatch.clearModals()
+          C.useRouterState.getState().dispatch.navigateAppend({props: {teamID}, selected: 'team'})
         } catch (error) {
           set(s => {
             if (error instanceof RPCError) {
@@ -1863,7 +1863,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.addMembersWizard = {...addMembersWizardEmptyState, justFinished: true}
       })
-      useRouterState.getState().dispatch.clearModals()
+      C.useRouterState.getState().dispatch.clearModals()
     },
     getActivityForTeams: () => {
       const f = async () => {
@@ -1975,7 +1975,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
 
       const f = async () => {
-        const username = ConfigConstants.useCurrentUserState.getState().username
+        const username = C.useCurrentUserState.getState().username
         const loggedIn = ConfigConstants.useConfigState.getState().loggedIn
         if (!username || !loggedIn) {
           logger.warn('getTeams while logged out')
@@ -2055,7 +2055,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             get().dispatch.resetErrorInEmailInvite()
             if (!isMobile) {
               // mobile does not nav away
-              useRouterState.getState().dispatch.clearModals()
+              C.useRouterState.getState().dispatch.clearModals()
             }
           }
         } catch (error) {
@@ -2146,7 +2146,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     s.teamInviteDetails.inviteDetails = params.details
                   })
                   if (!deeplink) {
-                    useRouterState.getState().dispatch.navigateAppend('teamInviteLinkJoin', true)
+                    C.useRouterState.getState().dispatch.navigateAppend('teamInviteLinkJoin', true)
                   }
                   set(s => {
                     s.dispatch.dynamic.respondToInviteLink = accept => {
@@ -2199,9 +2199,9 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
 
       if (subteamOf) {
-        useRouterState.getState().dispatch.navigateAppend('teamWizard2TeamInfo')
+        C.useRouterState.getState().dispatch.navigateAppend('teamWizard2TeamInfo')
       } else {
-        useRouterState.getState().dispatch.navigateAppend('teamWizard1TeamPurpose')
+        C.useRouterState.getState().dispatch.navigateAppend('teamWizard1TeamPurpose')
       }
     },
     leaveTeam: (teamname, permanent, context) => {
@@ -2210,8 +2210,8 @@ export const useState = Z.createZustand<State>((set, get) => {
         try {
           await RPCTypes.teamsTeamLeaveRpcPromise({name: teamname, permanent}, leaveTeamWaitingKey(teamname))
           logger.info(`leaveTeam: left ${teamname} successfully`)
-          useRouterState.getState().dispatch.clearModals()
-          useRouterState.getState().dispatch.navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
+          C.useRouterState.getState().dispatch.clearModals()
+          C.useRouterState.getState().dispatch.navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
           get().dispatch.getTeams()
         } catch (error) {
           if (error instanceof RPCError) {
@@ -2343,7 +2343,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
     },
     manageChatChannels: teamID => {
-      useRouterState.getState().dispatch.navigateAppend({props: {teamID}, selected: 'teamAddToChannels'})
+      C.useRouterState.getState().dispatch.navigateAppend({props: {teamID}, selected: 'teamAddToChannels'})
     },
     notifyTeamTeamRoleMapChanged: (newVersion: number) => {
       const loadedVersion = get().teamRoleMap.loadedVersion
@@ -2468,13 +2468,13 @@ export const useState = Z.createZustand<State>((set, get) => {
           break
         case EngineGen.keybase1NotifyTeamTeamDeleted:
           // likely wrong?
-          if (getTab()) {
-            useRouterState.getState().dispatch.navUpToScreen('teamsRoot')
+          if (C.getTab()) {
+            C.useRouterState.getState().dispatch.navUpToScreen('teamsRoot')
           }
           break
         case EngineGen.keybase1NotifyTeamTeamExit:
-          if (getTab()) {
-            useRouterState.getState().dispatch.navUpToScreen('teamsRoot')
+          if (C.getTab()) {
+            C.useRouterState.getState().dispatch.navUpToScreen('teamsRoot')
           }
           break
         default:
@@ -2517,7 +2517,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.teamInviteDetails.inviteID = inviteID
         s.teamInviteDetails.inviteKey = inviteKey
       })
-      useRouterState.getState().dispatch.navigateAppend('teamInviteLinkJoin')
+      C.useRouterState.getState().dispatch.navigateAppend('teamInviteLinkJoin')
     },
     reAddToTeam: (teamID, username) => {
       const f = async () => {
@@ -2921,7 +2921,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           const parentTeamMeta = getTeamMeta(get(), parentTeamID ?? '')
           // If it's just you, don't show the subteam members screen empty
           if (parentTeamMeta.memberCount > 1) {
-            useRouterState.getState().dispatch.navigateAppend('teamWizardSubteamMembers')
+            C.useRouterState.getState().dispatch.navigateAppend('teamWizardSubteamMembers')
             return
           } else {
             get().dispatch.startAddMembersWizard(Types.newTeamWizardTeamID)
@@ -2933,10 +2933,10 @@ export const useState = Z.createZustand<State>((set, get) => {
           get().dispatch.startAddMembersWizard(Types.newTeamWizardTeamID)
           return
         case 'project':
-          useRouterState.getState().dispatch.navigateAppend('teamWizard5Channels')
+          C.useRouterState.getState().dispatch.navigateAppend('teamWizard5Channels')
           return
         case 'community':
-          useRouterState.getState().dispatch.navigateAppend('teamWizard4TeamSize')
+          C.useRouterState.getState().dispatch.navigateAppend('teamWizard4TeamSize')
           return
       }
     },
@@ -2944,7 +2944,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.newTeamWizard.channels = channels
       })
-      useRouterState.getState().dispatch.navigateAppend('teamWizard6Subteams')
+      C.useRouterState.getState().dispatch.navigateAppend('teamWizard6Subteams')
     },
     setTeamWizardNameDescription: p => {
       set(s => {
@@ -2955,7 +2955,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.newTeamWizard.profileShowcase = p.profileShowcase
         s.newTeamWizard.addYourself = p.addYourself
       })
-      useRouterState.getState().dispatch.navigateAppend({
+      C.useRouterState.getState().dispatch.navigateAppend({
         props: {createdTeam: true, teamID: Types.newTeamWizardTeamID, wizard: true},
         selected: 'profileEditAvatar',
       })
@@ -2968,7 +2968,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           teamID: Types.newTeamWizardTeamID,
         }
       })
-      useRouterState.getState().dispatch.navigateAppend('teamAddToTeamConfirm')
+      C.useRouterState.getState().dispatch.navigateAppend('teamAddToTeamConfirm')
     },
     setTeamWizardSubteams: subteams => {
       set(s => {
@@ -2981,7 +2981,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.newTeamWizard.isBig = isBig
       })
       if (isBig) {
-        useRouterState.getState().dispatch.navigateAppend('teamWizard5Channels')
+        C.useRouterState.getState().dispatch.navigateAppend('teamWizard5Channels')
       } else {
         get().dispatch.startAddMembersWizard(Types.newTeamWizardTeamID)
       }
@@ -2990,7 +2990,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.newTeamWizard.teamType = teamType
       })
-      useRouterState.getState().dispatch.navigateAppend('teamWizard2TeamInfo')
+      C.useRouterState.getState().dispatch.navigateAppend('teamWizard2TeamInfo')
     },
     setTeamsWithChosenChannels: teamsWithChosenChannels => {
       set(s => {
@@ -3028,9 +3028,11 @@ export const useState = Z.createZustand<State>((set, get) => {
           logger.info(`team="${teamname}" cannot be loaded:`, err)
           // navigate to team page for team we're not in
           logger.info(`showing external team page, join=${join}`)
-          useRouterState.getState().dispatch.navigateAppend({props: {teamname}, selected: 'teamExternalTeam'})
+          C.useRouterState
+            .getState()
+            .dispatch.navigateAppend({props: {teamname}, selected: 'teamExternalTeam'})
           if (join) {
-            useRouterState
+            C.useRouterState
               .getState()
               .dispatch.navigateAppend({props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'})
           }
@@ -3054,10 +3056,10 @@ export const useState = Z.createZustand<State>((set, get) => {
             return
           }
         }
-        useRouterState.getState().dispatch.switchTab(Tabs.teamsTab)
-        useRouterState.getState().dispatch.navigateAppend({props: {initialTab, teamID}, selected: 'team'})
+        C.useRouterState.getState().dispatch.switchTab(Tabs.teamsTab)
+        C.useRouterState.getState().dispatch.navigateAppend({props: {initialTab, teamID}, selected: 'team'})
         if (addMembers) {
-          useRouterState.getState().dispatch.navigateAppend({
+          C.useRouterState.getState().dispatch.navigateAppend({
             props: {namespace: 'teams', teamID, title: ''},
             selected: 'teamsTeamBuilder',
           })
@@ -3069,7 +3071,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.addMembersWizard = {...addMembersWizardEmptyState, teamID}
       })
-      useRouterState.getState().dispatch.navigateAppend('teamAddToTeamFromWhere')
+      C.useRouterState.getState().dispatch.navigateAppend('teamAddToTeamFromWhere')
     },
     teamChangedByID: c => {
       const {teamID, latestHiddenSeqno, latestOffchainSeqno, latestSeqno} = c
@@ -3179,7 +3181,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             {crop, filename, sendChatNotification, teamname},
             ProfileConstants.uploadAvatarWaitingKey
           )
-          useRouterState.getState().dispatch.navigateUp()
+          C.useRouterState.getState().dispatch.navigateUp()
         } catch (error) {
           if (error instanceof RPCError) {
             // error displayed in component

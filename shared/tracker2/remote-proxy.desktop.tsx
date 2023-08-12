@@ -1,4 +1,5 @@
 // A mirror of the remote tracker windows.
+import * as C from '../constants'
 import {useAvatarState} from '../common-adapters/avatar-zus'
 import * as React from 'react'
 import * as Constants from '../constants/tracker2'
@@ -23,7 +24,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const blockMap = UsersConstants.useState(s => s.blockMap)
   const followers = Followers.useFollowerState(s => s.followers)
   const following = Followers.useFollowerState(s => s.following)
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details

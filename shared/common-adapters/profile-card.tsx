@@ -1,10 +1,10 @@
+import * as C from '../constants'
 import * as React from 'react'
 import * as Followers from '../constants/followers'
 import * as Styles from '../styles'
 import * as Platforms from '../util/platforms'
 import * as TrackerConstants from '../constants/tracker2'
 import * as ProfileConstants from '../constants/profile'
-import * as ConfigConstants from '../constants/config'
 import type * as Tracker2Types from '../constants/types/tracker2'
 import capitalize from 'lodash/capitalize'
 import Box, {Box2} from './box'
@@ -133,7 +133,7 @@ const ProfileCard = ({
   const userDetails = TrackerConstants.useState(s => TrackerConstants.getDetails(s, username))
   const followThem = Followers.useFollowerState(s => s.following.has(username))
   const followsYou = Followers.useFollowerState(s => s.followers.has(username))
-  const isSelf = ConfigConstants.useCurrentUserState(s => s.username === username)
+  const isSelf = C.useCurrentUserState(s => s.username === username)
   const hasBrokenProof = [...(userDetails.assertions || new Map()).values()].find(
     assertion => assertion.state !== 'valid'
   )
@@ -248,7 +248,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   const [showing, setShowing] = React.useState(false)
   const [remeasureHint, setRemeasureHint] = React.useState(0)
   const onLayoutChange = React.useCallback(() => setRemeasureHint(Date.now()), [setRemeasureHint])
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const isSelf = you === username
   const onShow = React.useCallback(() => {
     setShowing(true)

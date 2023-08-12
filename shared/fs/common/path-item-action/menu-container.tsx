@@ -3,7 +3,6 @@ import * as Types from '../../../constants/types/fs'
 import * as React from 'react'
 import * as Constants from '../../../constants/fs'
 import * as ChatConstants from '../../../constants/chat2'
-import * as ConfigConstants from '../../../constants/config'
 import * as Container from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
 import {memoize} from '../../../util/memoize'
@@ -67,7 +66,7 @@ export default (ownProps: OwnProps) => {
   const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
   const _downloadID = _pathItemActionMenu.downloadID
   const _sfmiEnabled = C.useFSState(s => s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled)
-  const _username = ConfigConstants.useCurrentUserState(s => s.username)
+  const _username = C.useCurrentUserState(s => s.username)
   const _view = _pathItemActionMenu.view
   const _cancel = cancelDownload
 

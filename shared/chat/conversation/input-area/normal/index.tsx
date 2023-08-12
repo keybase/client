@@ -1,5 +1,5 @@
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
-import * as ConfigConstants from '../../../../constants/config'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
@@ -33,7 +33,7 @@ const useHintText = (p: {
   minWriterRole: Types.ConversationMeta['minWriterRole']
 }) => {
   const {minWriterRole, isExploding, isEditing, cannotWrite} = p
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const {teamType, teamname, channelname} = Constants.useContext(s => s.meta)
   const participantInfoName = Constants.useContext(s => s.participants.name)
   if (Styles.isMobile && isExploding) {

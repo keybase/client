@@ -1,7 +1,7 @@
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/chat2'
-import * as ConfigConstants from '../../constants/config'
 import * as ProfileConstants from '../../constants/profile'
 import * as Container from '../../util/container'
 import * as Chat2Gen from '../../actions/chat2-gen'
@@ -18,7 +18,7 @@ const BlockButtons = (props: Props) => {
     return teamID ? blockButtonsMap.get(teamID) : undefined
   })
   const participantInfo = Constants.useContext(s => s.participants)
-  const currentUser = ConfigConstants.useCurrentUserState(s => s.username)
+  const currentUser = C.useCurrentUserState(s => s.username)
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   if (!blockButtonInfo) {
     return null

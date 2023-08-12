@@ -1,3 +1,4 @@
+import * as C from '../constants'
 import * as ConfigConstants from '../constants/config'
 import * as UsersConstants from '../constants/users'
 import * as ChatConstants from '../constants/chat2'
@@ -38,7 +39,7 @@ const RemoteContainer = () => {
   ConfigConstants.useDaemonState(s => s.dispatch.setState)(daemonHandshakeState)
   Followers.useFollowerState(s => s.dispatch.replace)(followers, following)
   UsersConstants.useState(s => s.dispatch.replace)(infoMap)
-  ConfigConstants.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
+  C.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
   ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
   ConfigConstants.useConfigState(s => s.dispatch.setOutOfDate)(outOfDate)
   ConfigConstants.useConfigState(s => s.dispatch.setLoggedIn)(loggedIn, false)

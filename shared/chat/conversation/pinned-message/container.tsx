@@ -1,5 +1,5 @@
+import * as C from '../../../constants'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/chat2'
 import * as TeamsConstants from '../../../constants/teams'
 import * as Container from '../../../util/container'
@@ -12,7 +12,7 @@ type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
 const PinnedMessageContainer = React.memo(function PinnedMessageContainer(p: OwnProps) {
   const {conversationIDKey} = p
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const {teamname, pinnedMsg} = Constants.useContext(s => s.meta)
   const message = pinnedMsg?.message
   const yourOperations = TeamsConstants.useState(s => getCanPerform(s, teamname))

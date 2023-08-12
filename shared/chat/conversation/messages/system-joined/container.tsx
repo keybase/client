@@ -1,4 +1,4 @@
-import * as ConfigConstants from '../../../../constants/config'
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import * as TeamsConstants from '../../../../constants/teams'
 import * as ProfileConstants from '../../../../constants/profile'
@@ -15,7 +15,7 @@ const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
   const meta = Constants.useContext(s => s.meta)
   const {channelname, teamType, teamname, teamID} = meta
 
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const authorIsYou = you === author
 
   const manageChatChannels = TeamsConstants.useState(s => s.dispatch.manageChatChannels)

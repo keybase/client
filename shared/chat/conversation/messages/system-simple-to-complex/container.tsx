@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
 import * as TeamsConstants from '../../../../constants/teams'
 import * as React from 'react'
@@ -11,7 +10,7 @@ type OwnProps = {message: Types.MessageSystemSimpleToComplex}
 const SystemSimpleToComplexContainer = React.memo(function SystemSimpleToComplexContainer(p: OwnProps) {
   const {message} = p
   const teamID = Constants.useContext(s => s.meta.teamID)
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const manageChatChannels = TeamsConstants.useState(s => s.dispatch.manageChatChannels)
   const onManageChannels = React.useCallback(() => {
     manageChatChannels(teamID)

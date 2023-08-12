@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import capitalize from 'lodash/capitalize'
 import {
   FSErrorType,
@@ -7,7 +8,6 @@ import {
 } from '../../constants/types/rpc-gen'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {pathSep} from '../../constants/platform'
-import * as ConfigConstants from '../../constants/config'
 
 type DecodedKBFSError = {
   title: string
@@ -196,7 +196,7 @@ export function kbfsNotification(notification: FSNotification, notify: any) {
 
   let title = `KBFS: ${action}`
   let body = `Chat or files with ${usernames} ${notification.status}`
-  const user = ConfigConstants.useCurrentUserState.getState().username
+  const user = C.useCurrentUserState.getState().username
   let rateLimitKey
 
   const isError = notification.statusCode === FSStatusCode.error

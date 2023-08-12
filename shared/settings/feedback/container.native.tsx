@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
 import * as PushConstants from '../../constants/push'
 import * as Kb from '../../common-adapters'
@@ -110,9 +111,9 @@ const Connected = (ownProps: OwnProps) => {
   const _push = PushConstants.useState(s => s.token)
   const push = {pushToken: _push}
 
-  const deviceID = ConfigConstants.useCurrentUserState(s => s.deviceID)
-  const uid = ConfigConstants.useCurrentUserState(s => s.uid)
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const deviceID = C.useCurrentUserState(s => s.deviceID)
+  const uid = C.useCurrentUserState(s => s.uid)
+  const username = C.useCurrentUserState(s => s.username)
   const status = {
     appVersionCode,
     appVersionName,

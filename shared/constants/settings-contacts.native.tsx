@@ -1,4 +1,4 @@
-import {useRouterState} from '.'
+import * as C from '.'
 import * as Contacts from 'expo-contacts'
 import * as RPCTypes from './types/rpc-gen'
 import * as WaitingConstants from './waiting'
@@ -12,7 +12,7 @@ import {getDefaultCountryCode} from 'react-native-kb'
 import {getE164} from './settings-phone'
 import {isIOS} from './platform'
 import {pluralize} from '../util/string'
-import {useConfigState, useCurrentUserState} from './config'
+import {useConfigState} from './config'
 
 export const importContactsWaitingKey = 'settings:importContacts'
 
@@ -83,7 +83,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         })
       }
       const f = async () => {
-        const username = useCurrentUserState.getState().username
+        const username = C.useCurrentUserState.getState().username
         if (!username) {
           logger.warn('no username')
           return
@@ -106,7 +106,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         if (!useConfigState.getState().loggedIn) {
           return
         }
-        const username = useCurrentUserState.getState().username
+        const username = C.useCurrentUserState.getState().username
         if (!username) {
           logger.warn('no username')
           return
@@ -230,7 +230,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               s.waitingToShowJoinedModal = false
             })
             if (resolved.length) {
-              useRouterState.getState().dispatch.navigateAppend('settingsContactsJoined')
+              C.useRouterState.getState().dispatch.navigateAppend('settingsContactsJoined')
             }
           }
         } catch (_error) {

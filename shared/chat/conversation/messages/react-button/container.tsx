@@ -1,7 +1,6 @@
-import * as ConfigConstants from '../../../../constants/config'
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import * as React from 'react'
-import * as C from '../../../../constants'
 import ReactButton, {NewReactionButton} from '.'
 import shallowEqual from 'shallowequal'
 import type {StylesCrossPlatform} from '../../../../styles'
@@ -22,7 +21,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   const ordinal = React.useContext(OrdinalContext)
   const {emoji, className} = p
   const {getAttachmentRef, onLongPress, onShowPicker, showBorder, style} = p
-  const me = ConfigConstants.useCurrentUserState(s => s.username)
+  const me = C.useCurrentUserState(s => s.username)
   const {active, count, decorated} = Constants.useContext(s => {
     const message = s.messageMap.get(ordinal)
     const reaction = message?.reactions?.get(emoji || '')

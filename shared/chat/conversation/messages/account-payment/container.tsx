@@ -1,4 +1,4 @@
-import * as ConfigConstants from '../../../../constants/config'
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import * as Styles from '../../../../styles'
 import AccountPayment from '.'
@@ -67,7 +67,7 @@ const getRequestMessageInfo = (
 }
 
 const ConnectedAccountPayment = (ownProps: OwnProps) => {
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const accountsInfoMap = Constants.useContext(s => s.accountsInfoMap)
 
   const stateProps = (() => {

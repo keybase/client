@@ -42,7 +42,7 @@ export default (ownProps: OwnProps) => {
   const _teamMembers = TeamsConstants.useState(s => s.teamIDToMembers.get(meta.teamID))
   const _label = Constants.getConversationLabel(participantInfo, meta, true)
   const _teamID = meta.teamID
-  const _you = ConfigConstants.useCurrentUserState(s => s.username)
+  const _you = C.useCurrentUserState(s => s.username)
   const pending = !!message.transferState
 
   const dispatch = Container.useDispatch()

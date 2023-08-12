@@ -1,12 +1,11 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
 import Banner from './index'
-import * as ConfigConstants from '../../../constants/config'
 import * as Types from '../../../constants/types/fs'
 
 const ConnectedBanner = () => {
   const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
-  const _name = ConfigConstants.useCurrentUserState(s => s.username)
+  const _name = C.useCurrentUserState(s => s.username)
   const _overallSyncStatus = C.useFSState(s => s.overallSyncStatus)
 
   const loadPathMetadata = C.useFSState(s => s.dispatch.loadPathMetadata)

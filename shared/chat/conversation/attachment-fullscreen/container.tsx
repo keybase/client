@@ -4,7 +4,6 @@ import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
-import * as ConfigConstants from '../../../constants/config'
 import Fullscreen from '.'
 import * as Container from '../../../util/container'
 import shallowEqual from 'shallowequal'
@@ -21,8 +20,8 @@ const Connected = (props: OwnProps) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
   const inOrdinal = props.ordinal
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
-  const currentDeviceName = ConfigConstants.useCurrentUserState(s => s.deviceName)
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const currentDeviceName = C.useCurrentUserState(s => s.deviceName)
+  const username = C.useCurrentUserState(s => s.username)
   const ordinals = Constants.useContext(s => s.messageOrdinals)
   const data = Constants.useContext(s => {
     const m = s.messageMap.get(ordinal)
