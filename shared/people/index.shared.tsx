@@ -1,5 +1,5 @@
+import * as C from '../constants'
 import * as React from 'react'
-import * as Constants from '../constants/people'
 import * as SignupConstants from '../constants/signup'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
@@ -86,8 +86,8 @@ const EmailVerificationBanner = () => {
 }
 
 const ResentEmailVerificationBanner = () => {
-  const resentEmail = Constants.useState(s => s.resentEmail)
-  const setResentEmail = Constants.useState(s => s.dispatch.setResentEmail)
+  const resentEmail = C.usePeopleState(s => s.resentEmail)
+  const setResentEmail = C.usePeopleState(s => s.dispatch.setResentEmail)
   React.useEffect(
     () =>
       // Only have a cleanup function

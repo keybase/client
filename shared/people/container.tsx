@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as Constants from '../constants/people'
 import * as SignupConstants from '../constants/signup'
 import * as ProfileConstants from '../constants/profile'
 import * as Container from '../util/container'
@@ -11,14 +10,14 @@ let lastRefresh: number = 0
 const waitToRefresh = 1000 * 60 * 5
 
 const PeopleReloadable = () => {
-  const followSuggestions = Constants.useState(s => s.followSuggestions)
+  const followSuggestions = C.usePeopleState(s => s.followSuggestions)
   const username = C.useCurrentUserState(s => s.username)
-  const newItems = Constants.useState(s => s.newItems)
-  const oldItems = Constants.useState(s => s.oldItems)
+  const newItems = C.usePeopleState(s => s.newItems)
+  const oldItems = C.usePeopleState(s => s.oldItems)
   const signupEmail = SignupConstants.useState(s => s.justSignedUpEmail)
-  const waiting = Container.useAnyWaiting(Constants.getPeopleDataWaitingKey)
+  const waiting = Container.useAnyWaiting(C.getPeopleDataWaitingKey)
 
-  const loadPeople = Constants.useState(s => s.dispatch.loadPeople)
+  const loadPeople = C.usePeopleState(s => s.dispatch.loadPeople)
   // const wotUpdates = Container.useSelector(state => state.people.wotUpdates)
 
   const getData = React.useCallback(
@@ -42,7 +41,7 @@ const PeopleReloadable = () => {
   )
 
   return (
-    <Kb.Reloadable onReload={onReload} reloadOnMount={true} waitingKeys={Constants.getPeopleDataWaitingKey}>
+    <Kb.Reloadable onReload={onReload} reloadOnMount={true} waitingKeys={C.getPeopleDataWaitingKey}>
       <People
         followSuggestions={followSuggestions}
         getData={getData}
