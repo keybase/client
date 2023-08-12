@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Container from '../util/container'
-import * as Followers from '../constants/followers'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/team-building'
 import * as SettingsConstants from '../constants/settings'
@@ -243,7 +242,7 @@ export const ListBody = (
   const contactsPermissionStatus = SettingsConstants.useContactsState(s => s.permissionStatus)
 
   const username = C.useCurrentUserState(s => s.username)
-  const following = Followers.useFollowerState(s => s.following)
+  const following = C.useFollowerState(s => s.following)
 
   const maybeTeamDetails = TeamsConstants.useState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
   const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap

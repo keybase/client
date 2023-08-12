@@ -5,7 +5,6 @@ import * as ChatConstants from '../constants/chat2'
 import * as UsersConstants from '../constants/users'
 import * as NotifConstants from '../constants/notifications'
 import * as FSTypes from '../constants/types/fs'
-import * as Followers from '../constants/followers'
 import * as React from 'react'
 import * as Styles from '../styles'
 import KB2 from '../util/electron.desktop'
@@ -91,8 +90,8 @@ const convoDiff = (a: ChatConstants.ConvoState, b: ChatConstants.ConvoState) => 
 
 // TODO could make this render less
 const RemoteProxy = React.memo(function MenubarRemoteProxy() {
-  const following = Followers.useFollowerState(s => s.following)
-  const followers = Followers.useFollowerState(s => s.followers)
+  const following = C.useFollowerState(s => s.following)
+  const followers = C.useFollowerState(s => s.followers)
   const username = C.useCurrentUserState(s => s.username)
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
   const windowShownCount = ConfigConstants.useConfigState(s => s.windowShownCount)

@@ -1,6 +1,6 @@
+import * as C from '../../constants'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/settings'
-import * as Followers from '../../constants/followers'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import type * as RPCTypes from '../../constants/types/rpc-gen'
@@ -12,7 +12,7 @@ const Item = ({item}: {item: RPCTypes.ProcessedContact}) => {
   const username = item.username
   const label = item.contactName || item.component?.phoneNumber || item.component?.email || ''
 
-  const followThem = Followers.useFollowerState(s => s.following.has(username))
+  const followThem = C.useFollowerState(s => s.following.has(username))
   if (followThem) {
     return null
   }

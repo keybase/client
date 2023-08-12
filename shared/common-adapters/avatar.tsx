@@ -1,10 +1,10 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
+import * as C from '../constants'
 import * as React from 'react'
 import Avatar from './avatar.render'
 import {iconTypeToImgSet, urlsToImgSet, type IconType, type IconStyle} from './icon'
 import * as Styles from '../styles'
 import * as AvatarZus from './avatar-zus'
-import * as Followers from '../constants/followers'
 import * as ConfigConstants from '../constants/config'
 import * as UsersConstants from '../constants/users'
 import * as ProfileConstants from '../constants/profile'
@@ -114,10 +114,10 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
   const {username, showFollowingStatus, teamname} = ownProps
   const isTeam = ownProps.isTeam || !!teamname
   const counter = AvatarZus.useAvatarState(s => s.counts.get(username || teamname || '') ?? 0)
-  const following = Followers.useFollowerState(s =>
+  const following = C.useFollowerState(s =>
     showFollowingStatus && username ? s.following.has(username) : false
   )
-  const followsYou = Followers.useFollowerState(s =>
+  const followsYou = C.useFollowerState(s =>
     showFollowingStatus && username ? s.followers.has(username) : false
   )
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)

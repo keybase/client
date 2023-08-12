@@ -1,6 +1,6 @@
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as UsersConstants from '../../../constants/users'
-import * as Followers from '../../../constants/followers'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import openSMS from '../../../util/sms'
@@ -45,7 +45,7 @@ const Invite = () => {
 }
 
 const Broken = () => {
-  const following = Followers.useFollowerState(s => s.following)
+  const following = C.useFollowerState(s => s.following)
   const infoMap = UsersConstants.useState(s => s.infoMap)
   const participantInfo = Constants.useContext(s => s.participants)
   const users = participantInfo.all.filter(p => following.has(p) && infoMap.get(p)?.broken)
@@ -53,7 +53,7 @@ const Broken = () => {
 }
 
 const BannerContainer = React.memo(function BannerContainer() {
-  const following = Followers.useFollowerState(s => s.following)
+  const following = C.useFollowerState(s => s.following)
   const infoMap = UsersConstants.useState(s => s.infoMap)
   const dismissed = Constants.useContext(s => s.dismissedInviteBanners)
   const participantInfo = Constants.useContext(s => s.participants)

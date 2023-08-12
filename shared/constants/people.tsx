@@ -1,6 +1,6 @@
+import * as C from '.'
 import * as ConfigConstants from './config'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as Followers from './followers'
 import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
 import invert from 'lodash/invert'
@@ -389,7 +389,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             {markViewed, numFollowSuggestionsWanted},
             getPeopleDataWaitingKey
           )
-          const {following, followers} = Followers.useFollowerState.getState()
+          const {following, followers} = C.useFollowerState.getState()
           const oldItems: Array<Types.PeopleScreenItem> = (data.items ?? [])
             .filter(item => !item.badged && item.data.t !== RPCTypes.HomeScreenItemType.todo)
             .reduce(reduceRPCItemToPeopleItem, [])
