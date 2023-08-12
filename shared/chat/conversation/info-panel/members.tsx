@@ -29,7 +29,7 @@ const MembersTab = (props: Props) => {
     return {channelname, teamID, teamname}
   }, shallowEqual)
 
-  const teamMembers = TeamConstants.useState(s => s.teamIDToMembers.get(teamID))
+  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && !teamMembers
   const refreshParticipants = Container.useRPC(RPCChatTypes.localRefreshParticipantsRpcPromise)

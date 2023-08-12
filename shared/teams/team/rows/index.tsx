@@ -82,9 +82,9 @@ export const useBotSections = (
 }
 
 export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDetails): Array<Section> => {
-  const invitesCollapsed = Constants.useState(s => s.invitesCollapsed)
+  const invitesCollapsed = C.useTeamsState(s => s.invitesCollapsed)
   const collapsed = invitesCollapsed.has(teamID)
-  const toggleInvitesCollapsed = Constants.useState(s => s.dispatch.toggleInvitesCollapsed)
+  const toggleInvitesCollapsed = C.useTeamsState(s => s.dispatch.toggleInvitesCollapsed)
   const onToggleCollapsed = () => toggleInvitesCollapsed(teamID)
 
   const sections: Array<Section> = []
@@ -133,8 +133,8 @@ export const useChannelsSections = (
   yourOperations: Types.TeamOperations
 ): Array<Section> => {
   const isBig = ChatConstants.useState(s => ChatConstants.isBigTeam(s, teamID))
-  const channels = Constants.useState(s => s.channelInfo.get(teamID))
-  const canCreate = Constants.useState(s => Constants.getCanPerformByID(s, teamID).createChannel)
+  const channels = C.useTeamsState(s => s.channelInfo.get(teamID))
+  const canCreate = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID).createChannel)
 
   if (!isBig) {
     return [makeSingleRow('channel-empty', () => <EmptyRow type="channelsEmpty" teamID={teamID} />)]
@@ -170,7 +170,7 @@ export const useSubteamsSections = (
   details: Types.TeamDetails,
   yourOperations: Types.TeamOperations
 ): Array<Section> => {
-  const subteamsFiltered = Constants.useState(s => s.subteamsFiltered)
+  const subteamsFiltered = C.useTeamsState(s => s.subteamsFiltered)
   const subteams = [...(subteamsFiltered ?? details.subteams)].sort()
   const sections: Array<Section> = []
 

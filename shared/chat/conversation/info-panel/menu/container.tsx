@@ -61,11 +61,8 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
         (participants.length === 1 && (infoMap.get(participants[0]!) || {fullname: ''}).fullname) || ''
       const {teamID, teamname, channelname, membershipType, status, isMuted, teamType} = meta
       // TODO getCanPerformByID not reactive here
-      const yourOperations = TeamConstants.getCanPerformByID(TeamConstants.useState.getState(), teamID)
-      const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(
-        TeamConstants.useState.getState(),
-        teamname
-      )
+      const yourOperations = TeamConstants.getCanPerformByID(C.useTeamsState.getState(), teamID)
+      const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(C.useTeamsState.getState(), teamname)
       const canAddPeople = yourOperations.manageMembers
       const isInChannel = membershipType !== 'youArePreviewing'
       const ignored = status === RPCChatTypes.ConversationStatus.ignored
@@ -86,15 +83,12 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     } else if (pteamID) {
       const teamID = pteamID
       //TODO not reactive
-      const teamMeta = TeamConstants.getTeamMeta(TeamConstants.useState.getState(), teamID)
+      const teamMeta = TeamConstants.getTeamMeta(C.useTeamsState.getState(), teamID)
       //TODO not reactive
-      const yourOperations = TeamConstants.getCanPerformByID(TeamConstants.useState.getState(), teamID)
+      const yourOperations = TeamConstants.getCanPerformByID(C.useTeamsState.getState(), teamID)
       const canAddPeople = yourOperations.manageMembers
       const {teamname} = teamMeta
-      const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(
-        TeamConstants.useState.getState(),
-        teamname
-      )
+      const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(C.useTeamsState.getState(), teamname)
       return {...common, badgeSubscribe, canAddPeople, teamID, teamname, yourOperations}
     }
     return {...common}
@@ -102,7 +96,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
 
   const {teamname, teamID, badgeSubscribe, canAddPeople, channelname, isInChannel, ignored} = data
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
-  const startAddMembersWizard = TeamConstants.useState(s => s.dispatch.startAddMembersWizard)
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onAddPeople = React.useCallback(() => {
     teamID && startAddMembersWizard(teamID)
   }, [startAddMembersWizard, teamID])
@@ -129,8 +123,8 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     () => teamID && navigateAppend({props: {teamID}, selected: 'teamReallyLeaveTeam'}),
     [navigateAppend, teamID]
   )
-  const addTeamWithChosenChannels = TeamConstants.useState(s => s.dispatch.addTeamWithChosenChannels)
-  const manageChatChannels = TeamConstants.useState(s => s.dispatch.manageChatChannels)
+  const addTeamWithChosenChannels = C.useTeamsState(s => s.dispatch.addTeamWithChosenChannels)
+  const manageChatChannels = C.useTeamsState(s => s.dispatch.manageChatChannels)
   const onManageChannels = React.useCallback(() => {
     manageChatChannels(teamID)
     addTeamWithChosenChannels(teamID)

@@ -1,6 +1,6 @@
+import * as C from '../constants'
 import * as React from 'react'
 import * as Container from '../util/container'
-import * as Constants from '../constants/teams'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {HeaderRightActions} from './main/header'
@@ -9,7 +9,7 @@ const Root = React.lazy(async () => import('./container'))
 
 const useHeaderActions = () => {
   const nav = Container.useSafeNavigation()
-  const launchNewTeamWizardOrModal = Constants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
+  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
     onCreateTeam: () => launchNewTeamWizardOrModal(),
     onJoinTeam: () => nav.safeNavigateAppend({props: {}, selected: 'teamJoinTeamDialog'}),
@@ -17,9 +17,9 @@ const useHeaderActions = () => {
 }
 
 const TeamsFilter = () => {
-  const filterValue = Constants.useState(s => s.teamListFilter)
-  const numTeams = Constants.useState(s => s.teamMeta.size)
-  const setTeamListFilterSort = Constants.useState(s => s.dispatch.setTeamListFilterSort)
+  const filterValue = C.useTeamsState(s => s.teamListFilter)
+  const numTeams = C.useTeamsState(s => s.teamMeta.size)
+  const setTeamListFilterSort = C.useTeamsState(s => s.dispatch.setTeamListFilterSort)
   const setFilter = (filter: string) => setTeamListFilterSort(filter)
   return numTeams >= 20 ? (
     <Kb.SearchFilter

@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
-import * as SignupConstants from '../../constants/signup'
 import Intro from '.'
 
 export default () => {
@@ -22,7 +21,7 @@ export default () => {
   }
   const checkIsOnline = loadIsOnline
   const onLogin = C.useProvisionState(s => s.dispatch.startProvision)
-  const requestAutoInvite = SignupConstants.useState(s => s.dispatch.requestAutoInvite)
+  const requestAutoInvite = C.useSignupState(s => s.dispatch.requestAutoInvite)
   const onSignup = () => {
     requestAutoInvite()
   }

@@ -1,3 +1,4 @@
+import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/teams'
 import {TeamInviteRow} from '.'
 import type {InviteInfo, TeamID, TeamRoleType} from '../../../../../constants/types/teams'
@@ -18,10 +19,10 @@ const labelledInviteRegex = /^(.+?) \((.+)\)$/
 // TODO: when removing flags.teamsRedesign, move this into the component itself
 export default (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const _invites = teamDetails?.invites
 
-  const removePendingInvite = Constants.useState(s => s.dispatch.removePendingInvite)
+  const removePendingInvite = C.useTeamsState(s => s.dispatch.removePendingInvite)
   const _onCancelInvite = (inviteID: string) => {
     removePendingInvite(teamID, inviteID)
   }

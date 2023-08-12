@@ -28,7 +28,7 @@ export default () => {
   const groups = C.useSettingsNotifState(s => s.groups)
   const mobileHasPermissions = C.usePushState(s => s.hasPermissions)
   const sound = ConfigConstants.useConfigState(s => s.notifySound) // desktop
-  const _teamMeta = TeamConstants.useState(s => s.teamMeta)
+  const _teamMeta = C.useTeamsState(s => s.teamMeta)
   const unfurlError = C.useSettingsChatState(s => s.unfurl.unfurlError)
   const unfurlMode = C.useSettingsChatState(s => s.unfurl.unfurlMode)
   const contactSettingsSaved = C.useSettingsChatState(s => s.dispatch.contactSettingsSaved)

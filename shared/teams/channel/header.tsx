@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -31,11 +32,11 @@ type HeaderTitleProps = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
-  const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
-  const channelInfo = Constants.useState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const teamname = C.useTeamsState(s => Constants.getTeamMeta(s, teamID).teamname)
+  const channelInfo = C.useTeamsState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname, description} = channelInfo
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
-  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
   const canDelete = yourOperations.deleteChannel && channelname !== 'general'
 
   const editChannelProps = {
@@ -49,7 +50,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const onAddMembers = () =>
     nav.safeNavigateAppend({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'})
   const onNavToTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
-  const activityLevel = Constants.useState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
+  const activityLevel = C.useTeamsState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
   const newMemberCount = useRecentJoins(conversationIDKey)
 
   const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
@@ -69,7 +70,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
-  const deleteChannelConfirmed = Constants.useState(s => s.dispatch.deleteChannelConfirmed)
+  const deleteChannelConfirmed = C.useTeamsState(s => s.dispatch.deleteChannelConfirmed)
 
   const menuItems: Array<Kb.MenuItem> = React.useMemo(
     () => [

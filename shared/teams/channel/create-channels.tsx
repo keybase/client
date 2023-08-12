@@ -1,27 +1,27 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/teams'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
 import CreateChannelsModal from '../new-team/wizard/create-channels'
 
 type Props = {teamID: Types.TeamID}
 
 const CreateChannels = (props: Props) => {
   const teamID = props.teamID ?? Types.noTeamID
-  const setChannelCreationError = Constants.useState(s => s.dispatch.setChannelCreationError)
+  const setChannelCreationError = C.useTeamsState(s => s.dispatch.setChannelCreationError)
   React.useEffect(
     () => () => {
       setChannelCreationError('')
     },
     [teamID, setChannelCreationError]
   )
-  const waiting = Constants.useState(s => s.creatingChannels)
-  const error = Constants.useState(s => s.errorInChannelCreation)
+  const waiting = C.useTeamsState(s => s.creatingChannels)
+  const error = C.useTeamsState(s => s.errorInChannelCreation)
   const prevWaiting = Container.usePrevious(waiting)
 
-  const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
-  const createChannels = Constants.useState(s => s.dispatch.createChannels)
+  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
+  const createChannels = C.useTeamsState(s => s.dispatch.createChannels)
   React.useEffect(() => {
     if (prevWaiting === true && !waiting) {
       loadTeamChannelList(teamID)

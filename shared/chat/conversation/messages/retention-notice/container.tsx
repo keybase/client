@@ -1,3 +1,4 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import type * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamConstants from '../../../../constants/teams'
@@ -11,7 +12,7 @@ const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer(p:
   const {conversationIDKey} = p
   const meta = Constants.useContext(s => s.meta)
   const {teamType, retentionPolicy, teamRetentionPolicy} = meta
-  const canChange = TeamConstants.useState(s => {
+  const canChange = C.useTeamsState(s => {
     return meta.teamType !== 'adhoc'
       ? TeamConstants.getCanPerformByID(s, meta.teamID).setRetentionPolicy
       : true

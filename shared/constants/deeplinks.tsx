@@ -1,9 +1,7 @@
 import * as C from '.'
 import * as ConfigConstants from './config'
 import * as CryptoConstants from './crypto'
-import * as ProfileConstants from './profile'
 import * as Tabs from './tabs'
-import * as TeamsConstants from './teams'
 import * as Z from '../util/zustand'
 import * as EngineGen from '../actions/engine-gen-gen'
 import type HiddenString from '../util/hidden-string'
@@ -48,10 +46,10 @@ type State = Store & {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const handleShowUserProfileLink = (username: string) => {
     C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
-    ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+    C.useProfileState.getState().dispatch.showUserProfile(username)
   }
 
   const isKeybaseIoUrl = (url: URL<string>) => {
@@ -111,7 +109,7 @@ export const useState = Z.createZustand<State>((set, get) => {
   }
 
   const handleTeamPageLink = (teamname: string, action?: TeamPageAction) => {
-    TeamsConstants.useState
+    C.useTeamsState
       .getState()
       .dispatch.showTeamByName(
         teamname,
@@ -156,10 +154,8 @@ export const useState = Z.createZustand<State>((set, get) => {
       switch (parts[0]) {
         case 'profile':
           if (parts[1] === 'new-proof' && (parts.length === 3 || parts.length === 4)) {
-            parts.length === 4 &&
-              parts[3] &&
-              ProfileConstants.useState.getState().dispatch.showUserProfile(parts[3])
-            ProfileConstants.useState.getState().dispatch.addProof(parts[2]!, 'appLink')
+            parts.length === 4 && parts[3] && C.useProfileState.getState().dispatch.showUserProfile(parts[3])
+            C.useProfileState.getState().dispatch.addProof(parts[2]!, 'appLink')
             return
           } else if (parts[1] === 'show' && parts.length === 3) {
             // Username is basically a team name part, we can use the same logic to
@@ -257,7 +253,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           C.useRouterState.getState().dispatch.navigateAppend('incomingShareNew')
           return
         case 'team-invite-link':
-          TeamsConstants.useState.getState().dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
+          C.useTeamsState.getState().dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
           return
         default:
         // Fall through to the error return below.
@@ -283,7 +279,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         )
         return
       }
-      const {onSaltpackOpenFile} = CryptoConstants.useState.getState().dispatch
+      const {onSaltpackOpenFile} = C.useCryptoState.getState().dispatch
       onSaltpackOpenFile(operation, path)
       C.useRouterState.getState().dispatch.switchTab(Tabs.cryptoTab)
     },

@@ -1,5 +1,5 @@
-import * as Constants from '../../constants/teams'
 import * as C from '../../constants'
+import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as React from 'react'
 import AddToTeam, {type AddToTeamProps} from '.'
@@ -106,17 +106,17 @@ export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTea
 type OwnProps = {username: string}
 export default (ownProps: OwnProps) => {
   const _them = ownProps.username
-  const _roles = Constants.useState(s => s.teamRoleMap.roles)
-  const _teams = Constants.useState(s => s.teamMeta)
-  const addUserToTeamsResults = Constants.useState(s => s.addUserToTeamsResults)
-  const addUserToTeamsState = Constants.useState(s => s.addUserToTeamsState)
-  const clearAddUserToTeamsResults = Constants.useState(s => s.dispatch.clearAddUserToTeamsResults)
-  const addUserToTeams = Constants.useState(s => s.dispatch.addUserToTeams)
-  const teamProfileAddList = Constants.useState(s => s.teamProfileAddList)
+  const _roles = C.useTeamsState(s => s.teamRoleMap.roles)
+  const _teams = C.useTeamsState(s => s.teamMeta)
+  const addUserToTeamsResults = C.useTeamsState(s => s.addUserToTeamsResults)
+  const addUserToTeamsState = C.useTeamsState(s => s.addUserToTeamsState)
+  const clearAddUserToTeamsResults = C.useTeamsState(s => s.dispatch.clearAddUserToTeamsResults)
+  const addUserToTeams = C.useTeamsState(s => s.dispatch.addUserToTeams)
+  const teamProfileAddList = C.useTeamsState(s => s.teamProfileAddList)
   const waiting = Container.useAnyWaiting(Constants.teamProfileAddListWaitingKey)
   const _onAddToTeams = addUserToTeams
-  const getTeamProfileAddList = Constants.useState(s => s.dispatch.getTeamProfileAddList)
-  const resetTeamProfileAddList = Constants.useState(s => s.dispatch.resetTeamProfileAddList)
+  const getTeamProfileAddList = C.useTeamsState(s => s.dispatch.getTeamProfileAddList)
+  const resetTeamProfileAddList = C.useTeamsState(s => s.dispatch.resetTeamProfileAddList)
   const loadTeamList = () => {
     getTeamProfileAddList(_them)
   }

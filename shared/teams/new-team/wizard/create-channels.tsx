@@ -1,8 +1,8 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
-import * as Constants from '../../../constants/teams'
 import * as Styles from '../../../styles'
 import {pluralize} from '../../../util/string'
 import {ModalTitle} from '../../common'
@@ -20,7 +20,7 @@ const CreateChannel = (props: Props) => {
   const {onSubmitChannels, waiting} = props
   const nav = Container.useSafeNavigation()
   const teamID = props.teamID || Types.newTeamWizardTeamID
-  const initialChannels = Constants.useState(s => s.newTeamWizard.channels) ?? ['hellos', 'random', '']
+  const initialChannels = C.useTeamsState(s => s.newTeamWizard.channels) ?? ['hellos', 'random', '']
 
   const [channels, setChannels] = React.useState<Array<string>>([...initialChannels])
   const setChannel = (i: number) => (value: string) => {
@@ -37,7 +37,7 @@ const CreateChannel = (props: Props) => {
   }
 
   const filteredChannels = channels.filter(c => c.trim())
-  const setTeamWizardChannels = Constants.useState(s => s.dispatch.setTeamWizardChannels)
+  const setTeamWizardChannels = C.useTeamsState(s => s.dispatch.setTeamWizardChannels)
   const onContinue = () =>
     onSubmitChannels ? onSubmitChannels(filteredChannels) : setTeamWizardChannels(filteredChannels)
   const onBack = () => nav.safeNavigateUp()

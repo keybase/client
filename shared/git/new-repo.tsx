@@ -10,13 +10,13 @@ type OwnProps = {isTeam: boolean}
 export default (ownProps: OwnProps) => {
   const {isTeam} = ownProps
   const error = C.useGitState(s => s.error)
-  const teamnames = TeamsConstants.useState(s => s.teamnames)
+  const teamnames = C.useTeamsState(s => s.teamnames)
   const teams = [...teamnames].sort(TeamsConstants.sortTeamnames)
 
   const waitingKey = C.gitWaitingKey
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const getTeams = TeamsConstants.useState(s => s.dispatch.getTeams)
+  const getTeams = C.useTeamsState(s => s.dispatch.getTeams)
   const loadTeams = getTeams
   const onClose = () => {
     navigateUp()
@@ -32,7 +32,7 @@ export default (ownProps: OwnProps) => {
     }
     navigateUp()
   }
-  const launchNewTeamWizardOrModal = TeamsConstants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
+  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onNewTeam = () => {
     switchTab(teamsTab)

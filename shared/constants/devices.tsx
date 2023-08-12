@@ -17,7 +17,7 @@ type State = Types.State & {
   }
 }
 
-export const useState = Z.createZustand<State>(set => {
+export const _useState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
     clearBadges: () => {
       Z.ignorePromise(RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise())
@@ -81,7 +81,7 @@ const makeDevice = (d?: Partial<Types.Device>): Types.Device =>
 export const waitingKey = 'devices:devicesPage'
 
 export const useActiveDeviceCounts = () => {
-  const ds = useState(s => s.deviceMap)
+  const ds = _useState(s => s.deviceMap)
   return [...ds.values()].reduce((c, v) => {
     if (!v.revokedAt) {
       ++c
@@ -91,7 +91,7 @@ export const useActiveDeviceCounts = () => {
 }
 
 export const useRevokedDeviceCounts = () => {
-  const ds = useState(s => s.deviceMap)
+  const ds = _useState(s => s.deviceMap)
   return [...ds.values()].reduce((c, v) => {
     if (v.revokedAt) {
       ++c
@@ -107,7 +107,7 @@ export const useRevokedDeviceCounts = () => {
 export const numBackgrounds = 10
 
 export const useDeviceIconNumber = (deviceID: Types.DeviceID) => {
-  const devices = useState(s => s.deviceMap)
+  const devices = _useState(s => s.deviceMap)
   return (((devices.get(deviceID)?.deviceNumberOfType ?? 0) % numBackgrounds) + 1) as Types.IconNumber
 }
 
@@ -122,6 +122,6 @@ const getNextDeviceIconNumberInner = memoize((devices: Map<Types.DeviceID, Types
   return {desktop: (result.desktop % numBackgrounds) + 1, mobile: (result.mobile % numBackgrounds) + 1}
 })
 export const useNextDeviceIconNumber = () => {
-  const dm = useState(s => s.deviceMap)
+  const dm = _useState(s => s.deviceMap)
   return getNextDeviceIconNumberInner(dm)
 }

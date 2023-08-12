@@ -1,6 +1,5 @@
-import {useRouterState} from '.'
+import * as C from '.'
 import * as ProvisionConstants from './provision'
-import * as ARConstants from './autoreset'
 import * as RPCTypes from './types/rpc-gen'
 import {useConfigState} from './config'
 import * as Z from '../util/zustand'
@@ -47,7 +46,7 @@ export type State = Store & {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     dynamic: {
       cancel: undefined,
@@ -75,7 +74,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
       const f = async () => {
         if (p.abortProvisioning) {
-          ProvisionConstants.useState.getState().dispatch.dynamic.cancel?.()
+          C.useProvisionState.getState().dispatch.dynamic.cancel?.()
         }
         let hadError = false
         try {
@@ -95,7 +94,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     const cancel = () => {
                       clear()
                       response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
-                      useRouterState.getState().dispatch.navigateUp()
+                      C.useRouterState.getState().dispatch.navigateUp()
                     }
                     s.devices = devices
                     s.dispatch.dynamic.cancel = cancel
@@ -109,7 +108,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                       }
                     }
                   })
-                  useRouterState
+                  C.useRouterState
                     .getState()
                     .dispatch.navigateAppend('recoverPasswordDeviceSelector', !!replaceRoute)
                 },
@@ -117,7 +116,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                 // This same RPC is called at the beginning and end of the 7-day wait by the service.
                 'keybase.1.loginUi.promptResetAccount': (params, response) => {
                   if (params.prompt.t == RPCTypes.ResetPromptType.enterResetPw) {
-                    useRouterState.getState().dispatch.navigateAppend('recoverPasswordPromptResetPassword')
+                    C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordPromptResetPassword')
                     const clear = () => {
                       set(s => {
                         s.dispatch.dynamic.submitResetPassword = undefined
@@ -131,16 +130,16 @@ export const useState = Z.createZustand<State>((set, get) => {
                         set(s => {
                           s.resetEmailSent = true
                         })
-                        useRouterState.getState().dispatch.navigateUp()
+                        C.useRouterState.getState().dispatch.navigateUp()
                       }
                       s.dispatch.dynamic.cancel = () => {
                         clear()
                         response.result(RPCTypes.ResetPromptResponse.nothing)
-                        useRouterState.getState().dispatch.navigateUp()
+                        C.useRouterState.getState().dispatch.navigateUp()
                       }
                     })
                   } else {
-                    const {startAccountReset} = ARConstants.useState.getState().dispatch
+                    const {startAccountReset} = C.useAutoResetState.getState().dispatch
                     startAccountReset(true, '')
                     response.result(RPCTypes.ResetPromptResponse.nothing)
                   }
@@ -168,7 +167,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                         response.result({passphrase, storeSecret: false})
                       }
                     })
-                    useRouterState.getState().dispatch.navigateAppend('recoverPasswordPaperKey', true)
+                    C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordPaperKey', true)
                   } else {
                     const clear = () => {
                       set(s => {
@@ -191,7 +190,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                         }
                       })
                       // TODO maybe wait for loggedIn, for now the service promises to send this after login.
-                      useRouterState.getState().dispatch.navigateAppend('recoverPasswordSetPassword')
+                      C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordSetPassword')
                     }
                   }
                 },
@@ -201,7 +200,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.explainedDevice = {name: params.name, type: params.kind}
                   })
-                  useRouterState.getState().dispatch.navigateAppend('recoverPasswordExplainDevice', true)
+                  C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordExplainDevice', true)
                 },
               },
               params: {username: p.username},
@@ -227,7 +226,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             set(s => {
               s.error = msg
             })
-            useRouterState
+            C.useRouterState
               .getState()
               .dispatch.navigateAppend(
                 useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
@@ -245,7 +244,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
         logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
         if (!hadError) {
-          useRouterState.getState().dispatch.clearModals()
+          C.useRouterState.getState().dispatch.clearModals()
         }
       }
       Z.ignorePromise(f())

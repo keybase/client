@@ -1,7 +1,6 @@
 import * as C from '../../../../../constants'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
-import * as TeamsConstants from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
 import {linkFromConvAndMessage} from '../../../../../constants'
 import * as ConfigConstants from '../../../../../constants/config'
@@ -32,7 +31,7 @@ export default (ownProps: OwnProps) => {
   const message = m ? m : emptyMessage
   const meta = Constants.useContext(s => s.meta)
   const participantInfo = Constants.useContext(s => s.participants)
-  const yourOperations = TeamsConstants.useState(s => getCanPerformByID(s, meta.teamID))
+  const yourOperations = C.useTeamsState(s => getCanPerformByID(s, meta.teamID))
   const _canDeleteHistory = yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations.deleteOtherMessages
   const _label = Constants.getConversationLabel(participantInfo, meta, true)
@@ -43,10 +42,8 @@ export default (ownProps: OwnProps) => {
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
   const _canReplyPrivately =
     message.type === 'text' && (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
-  const authorIsBot = TeamsConstants.useState(s =>
-    Constants.messageAuthorIsBot(s, meta, message, participantInfo)
-  )
-  const _teamMembers = TeamsConstants.useState(s => s.teamIDToMembers.get(meta.teamID))
+  const authorIsBot = C.useTeamsState(s => Constants.messageAuthorIsBot(s, meta, message, participantInfo))
+  const _teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(meta.teamID))
   const _authorIsBot = authorIsBot
   const _isDeleteable = message.isDeleteable
   const _isEditable = message.isEditable

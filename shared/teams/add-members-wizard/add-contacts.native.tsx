@@ -1,7 +1,7 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
 import * as Styles from '../../styles'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {pluralize} from '../../util/string'
@@ -11,7 +11,7 @@ import ContactsList, {useContacts, EnableContactsPopup, type Contact} from '../c
 const AddContacts = () => {
   const nav = Container.useSafeNavigation()
   const onBack = () => nav.safeNavigateUp()
-  const teamID = Constants.useState(s => s.addMembersWizard.teamID)
+  const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
   const [search, setSearch] = React.useState('')
   const [selectedPhones, setSelectedPhones] = React.useState(new Set<string>())
   const [selectedEmails, setSelectedEmails] = React.useState(new Set<string>())
@@ -31,7 +31,7 @@ const AddContacts = () => {
   const [waiting, setWaiting] = React.useState(false)
   const toAssertionsRPC = Container.useRPC(RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
 
-  const addMembersWizardPushMembers = Constants.useState(s => s.dispatch.addMembersWizardPushMembers)
+  const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
 
   const onDone = () => {
     if (waiting) {

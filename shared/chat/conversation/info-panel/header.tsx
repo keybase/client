@@ -1,5 +1,5 @@
-import * as React from 'react'
 import * as C from '../../../constants'
+import * as React from 'react'
 import * as TeamConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import * as Constants from '../../../constants/chat2'
@@ -22,7 +22,7 @@ const TeamHeader = (props: SmallProps) => {
   const onJoinChannel = Constants.useContext(s => s.dispatch.joinConversation)
   const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(participants, meta)
 
-  const yourOperations = TeamConstants.useState(s =>
+  const yourOperations = C.useTeamsState(s =>
     teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined
   )
   const admin = yourOperations?.manageMembers ?? false

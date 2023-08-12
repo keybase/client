@@ -1,8 +1,8 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {ModalTitle} from '../common'
 
@@ -19,8 +19,8 @@ const AddEmail = (props: Props) => {
   const onBack = () => nav.safeNavigateUp()
   const disabled = invitees.length < 1
   const waiting = Container.useAnyWaiting(waitingKey)
-  const teamID = Constants.useState(s => s.addMembersWizard.teamID)
-  const addMembersWizardPushMembers = Constants.useState(s => s.dispatch.addMembersWizardPushMembers)
+  const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
+  const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
 
   const emailsToAssertionsRPC = Container.useRPC(RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
   const onContinue = () => {

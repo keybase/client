@@ -1,3 +1,4 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
@@ -5,7 +6,6 @@ import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as RPCGen from '../../../constants/types/rpc-gen'
 import * as Styles from '../../../styles'
-import * as C from '../../../constants'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import {ModalTitle} from '../../common'
 import {FloatingRolePicker} from '../../role-picker'
@@ -70,9 +70,9 @@ const GenerateLinkModal = (props: Props) => {
   const [teamRole, setTeamRole] = React.useState<Types.TeamRoleType>('reader')
   const [inviteLinkURL, setInviteLinkURL] = React.useState('')
   const nav = Container.useSafeNavigation()
-  const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
+  const teamname = C.useTeamsState(s => Constants.getTeamMeta(s, teamID).teamname)
   useTeamDetailsSubscribe(teamID)
-  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const inviteLinks = teamDetails?.inviteLinks
   const inviteLink = [...(inviteLinks || [])].find(i => i.url == inviteLinkURL)
 

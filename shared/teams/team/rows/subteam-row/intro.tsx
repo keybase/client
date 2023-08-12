@@ -1,3 +1,4 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../../constants/teams'
 import * as ConfigConstants from '../../../../constants/config'
@@ -10,8 +11,8 @@ export type Props = {
 }
 
 const Banner = ({teamID}: Props) => {
-  const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
-  const shouldRender = Constants.useState(s => !s.sawSubteamsBanner)
+  const teamname = C.useTeamsState(s => Constants.getTeamMeta(s, teamID).teamname)
+  const shouldRender = C.useTeamsState(s => !s.sawSubteamsBanner)
   const updateGregorCategory = ConfigConstants.useConfigState(s => s.dispatch.updateGregorCategory)
   const onHide = React.useCallback(
     () => updateGregorCategory('sawSubteamsBanner', 'true'),

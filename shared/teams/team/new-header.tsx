@@ -13,7 +13,7 @@ import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import type * as Types from '../../constants/types/teams'
 
 const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
-  const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onAdd = () => startAddMembersWizard(teamID)
   return (
     <Kb.Button
@@ -28,9 +28,9 @@ const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
 }
 type FeatureTeamCardProps = {teamID: Types.TeamID}
 const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
-  const setMemberPublicity = Constants.useState(s => s.dispatch.setMemberPublicity)
+  const setMemberPublicity = C.useTeamsState(s => s.dispatch.setMemberPublicity)
   const onFeature = () => setMemberPublicity(teamID, true)
-  const setJustFinishedAddMembersWizard = Constants.useState(s => s.dispatch.setJustFinishedAddMembersWizard)
+  const setJustFinishedAddMembersWizard = C.useTeamsState(s => s.dispatch.setJustFinishedAddMembersWizard)
   const onNoThanks = React.useCallback(() => {
     setJustFinishedAddMembersWizard(false)
   }, [setJustFinishedAddMembersWizard])
@@ -89,12 +89,12 @@ const roleDisplay = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID} = props
-  const meta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
-  const details = Constants.useState(s => s.teamDetails.get(teamID))
-  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
-  const justFinishedAddWizard = Constants.useState(s => s.addMembersWizard.justFinished)
+  const meta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const details = C.useTeamsState(s => s.teamDetails.get(teamID))
+  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
+  const justFinishedAddWizard = C.useTeamsState(s => s.addMembersWizard.justFinished)
   useActivityLevels()
-  const activityLevel = Constants.useState(s => s.activityLevels.teams.get(teamID) || 'none')
+  const activityLevel = C.useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
   const newMemberCount = 0 // TODO plumbing
 
   const callbacks = useHeaderCallbacks(teamID)
@@ -290,11 +290,11 @@ export default HeaderTitle
 
 const useHeaderCallbacks = (teamID: TeamID) => {
   const nav = Container.useSafeNavigation()
-  const meta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
+  const meta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
   const yourUsername = C.useCurrentUserState(s => s.username)
-  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
-  const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
-  const addMembersWizardPushMembers = Constants.useState(s => s.dispatch.addMembersWizardPushMembers)
+  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
 
   const onAddSelf = () => {
     startAddMembersWizard(teamID)

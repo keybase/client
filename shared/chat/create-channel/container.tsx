@@ -1,7 +1,7 @@
+import * as C from '../../constants'
 import * as Container from '../../util/container'
 import * as React from 'react'
 import * as TeamsConstants from '../../constants/teams'
-import * as C from '../../constants'
 import * as TeamsTypes from '../../constants/types/teams'
 import CreateChannel from '.'
 import upperFirst from 'lodash/upperFirst'
@@ -14,20 +14,20 @@ type OwnProps = {
 const Wrapped = (p: OwnProps) => {
   const teamID = p.teamID ?? TeamsTypes.noTeamID
   const navToChatOnSuccess = p.navToChatOnSuccess ?? true
-  const errorText = TeamsConstants.useState(s => upperFirst(s.errorInChannelCreation))
-  const teamname = TeamsConstants.useState(s => TeamsConstants.getTeamNameFromID(s, teamID) ?? '')
+  const errorText = C.useTeamsState(s => upperFirst(s.errorInChannelCreation))
+  const teamname = C.useTeamsState(s => TeamsConstants.getTeamNameFromID(s, teamID) ?? '')
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
   const [channelname, onChannelnameChange] = React.useState<string>('')
   const [description, onDescriptionChange] = React.useState<string>('')
-  const createChannel = TeamsConstants.useState(s => s.dispatch.createChannel)
+  const createChannel = C.useTeamsState(s => s.dispatch.createChannel)
   const onSubmit = React.useCallback(() => {
     if (channelname) {
       createChannel({channelname, description, navToChatOnSuccess, teamID})
     }
   }, [createChannel, navToChatOnSuccess, channelname, description, teamID])
 
-  const setChannelCreationError = TeamsConstants.useState(s => s.dispatch.setChannelCreationError)
+  const setChannelCreationError = C.useTeamsState(s => s.dispatch.setChannelCreationError)
   Container.useOnMountOnce(() => {
     setChannelCreationError('')
   })

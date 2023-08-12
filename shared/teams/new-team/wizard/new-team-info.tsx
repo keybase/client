@@ -1,5 +1,5 @@
-import * as React from 'react'
 import * as C from '../../../constants'
+import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
@@ -30,8 +30,8 @@ const cannotJoinAsOwner = {admin: `Users can't join open teams as admins`}
 
 const NewTeamInfo = () => {
   const nav = Container.useSafeNavigation()
-  const teamWizardState = Constants.useState(s => s.newTeamWizard)
-  const parentName = Constants.useState(s =>
+  const teamWizardState = C.useTeamsState(s => s.newTeamWizard)
+  const parentName = C.useTeamsState(s =>
     teamWizardState.parentTeamID ? Constants.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined
   )
 
@@ -93,7 +93,7 @@ const NewTeamInfo = () => {
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => clearModals()
 
-  const setTeamWizardNameDescription = Constants.useState(s => s.dispatch.setTeamWizardNameDescription)
+  const setTeamWizardNameDescription = C.useTeamsState(s => s.dispatch.setTeamWizardNameDescription)
 
   const onContinue = () =>
     setTeamWizardNameDescription({

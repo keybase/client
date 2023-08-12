@@ -34,14 +34,14 @@ const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
   const infoMap = UsersConstants.useState(s => s.infoMap)
   const participantInfo = ChatConstants.useConvoState(conversationIDKey, s => s.participants)
-  const teamMemberInfo = Constants.useState(
+  const teamMemberInfo = C.useTeamsState(
     s => s.teamDetails.get(teamID)?.members?.get(username) ?? Constants.initialMemberInfo
   )
   const you = C.useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type
-  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
   const crown = React.useMemo(() => {
     return active && roleType && showCrown[roleType] ? (
       <Kb.Icon
@@ -68,11 +68,11 @@ const ChannelMemberRow = (props: Props) => {
   const roleLabel = !!active && !!teamMemberInfo.type && Constants.typeToLabel[teamMemberInfo.type]
   const isYou = you === username
 
-  const channelSelectedMembers = Constants.useState(s => s.channelSelectedMembers.get(conversationIDKey))
+  const channelSelectedMembers = C.useTeamsState(s => s.channelSelectedMembers.get(conversationIDKey))
   const anySelected = !!channelSelectedMembers?.size
   const memberSelected = !!channelSelectedMembers?.has(username)
 
-  const channelSetMemberSelected = Constants.useState(s => s.dispatch.channelSetMemberSelected)
+  const channelSetMemberSelected = C.useTeamsState(s => s.dispatch.channelSetMemberSelected)
 
   const onSelect = (selected: boolean) => {
     channelSetMemberSelected(conversationIDKey, username, selected)

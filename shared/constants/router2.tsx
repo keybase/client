@@ -253,7 +253,7 @@ export type State = Store & {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearModals: () => {
       const n = _getNavigator()
@@ -363,9 +363,8 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       updateTeamBuilding()
 
-      const updateFS = async () => {
-        const FS = await import('./fs')
-        const {criticalUpdate, dispatch} = FS.useState.getState()
+      const updateFS = () => {
+        const {criticalUpdate, dispatch} = C.useFSState.getState()
         // Clear critical update when we nav away from tab
         if (criticalUpdate && prev && getTab(prev) === Tabs.fsTab && next && getTab(next) !== Tabs.fsTab) {
           dispatch.setCriticalUpdate(false)
@@ -381,38 +380,35 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(updateFS())
+      updateFS()
 
-      const updateSignup = async () => {
-        const Signup = await import('./signup')
+      const updateSignup = () => {
         // Clear "just signed up email" when you leave the people tab after signup
         if (
-          Signup.useState.getState().justSignedUpEmail &&
+          C.useSignupState.getState().justSignedUpEmail &&
           prev &&
           getTab(prev) === Tabs.peopleTab &&
           next &&
           getTab(next) !== Tabs.peopleTab
         ) {
-          Signup.useState.getState().dispatch.clearJustSignedUpEmail()
+          C.useSignupState.getState().dispatch.clearJustSignedUpEmail()
         }
       }
-      Z.ignorePromise(updateSignup())
+      updateSignup()
 
-      const updatePeople = async () => {
+      const updatePeople = () => {
         if (prev && getTab(prev) === Tabs.peopleTab && next && getTab(next) !== Tabs.peopleTab) {
-          const People = await import('./people')
-          People.useState.getState().dispatch.markViewed()
+          C.usePeopleState.getState().dispatch.markViewed()
         }
       }
-      Z.ignorePromise(updatePeople())
+      updatePeople()
 
-      const updateTeams = async () => {
-        const Teams = await import('./teams')
+      const updateTeams = () => {
         if (prev && getTab(prev) === Tabs.teamsTab && next && getTab(next) !== Tabs.teamsTab) {
-          Teams.useState.getState().dispatch.clearNavBadges()
+          C.useTeamsState.getState().dispatch.clearNavBadges()
         }
       }
-      Z.ignorePromise(updateTeams())
+      updateTeams()
 
       const updateSettings = () => {
         // Clear "check your inbox" in settings when you leave the settings tab

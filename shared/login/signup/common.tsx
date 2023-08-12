@@ -1,5 +1,5 @@
+import * as C from '../../constants'
 import * as React from 'react'
-import * as Constants from '../../constants/signup'
 import {Box2, Avatar, WaitingButton, Input as CommonInput, ButtonBar} from '../../common-adapters'
 import {styleSheetCreate, isMobile, globalMargins, globalColors} from '../../styles'
 
@@ -36,7 +36,7 @@ export const ContinueButton = ({
 }) => (
   <ButtonBar fullWidth={true} style={styles.buttonBar}>
     <WaitingButton
-      waitingKey={Constants.waitingKey}
+      waitingKey={C.signupWaitingKey}
       label={label || 'Continue'}
       disabled={disabled}
       fullWidth={true}
@@ -74,5 +74,5 @@ export const styles = styleSheetCreate(
       inputErrorStyle: {minHeight: 0},
       inputInnerStyle: {width: '100%'},
       wrapper: {paddingLeft: globalMargins.medium, paddingRight: globalMargins.medium},
-    } as const)
+    }) as const
 )

@@ -1,14 +1,13 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
-import * as TeamsConstants from '../../../../constants/teams'
-import * as C from '../../../../constants'
 import {teamsTab} from '../../../../constants/tabs'
 
 const BuildTeam = React.memo(function BuildTeam() {
   const nav = Container.useSafeNavigation()
-  const launchNewTeamWizardOrModal = TeamsConstants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
+  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onCreateTeam = () => {
     switchTab(teamsTab)

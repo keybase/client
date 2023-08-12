@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
 import * as TrackerConstants from '../../../../constants/tracker2'
-import * as TeamsConstants from '../../../../constants/teams'
 import * as Container from '../../../../util/container'
 import type * as Types from '../../../../constants/types/chat2'
 import SystemChangeRetention from '.'
@@ -18,7 +17,7 @@ const SystemChangeRetentionContainer = React.memo(function SystemChangeRetention
 
   const you = C.useCurrentUserState(s => s.username)
   const meta = Constants.useContext(s => s.meta)
-  const canManage = TeamsConstants.useState(s =>
+  const canManage = C.useTeamsState(s =>
     meta.teamType === 'adhoc' ? true : getCanPerform(s, meta.teamname).setRetentionPolicy
   )
 

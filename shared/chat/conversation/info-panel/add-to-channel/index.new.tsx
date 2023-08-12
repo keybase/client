@@ -1,3 +1,4 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
@@ -31,11 +32,9 @@ const AddToChannel = (props: Props) => {
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.toLowerCase()
 
-  const {channelname} = TeamConstants.useState(s =>
-    TeamConstants.getTeamChannelInfo(s, teamID, conversationIDKey)
-  )
+  const {channelname} = C.useTeamsState(s => TeamConstants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const participants = useChannelParticipants(teamID, conversationIDKey)
-  const teamDetails = TeamConstants.useState(s => s.teamDetails.get(teamID)) ?? TeamConstants.emptyTeamDetails
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? TeamConstants.emptyTeamDetails
   const allMembers = sortMembers(teamDetails.members)
   const membersFiltered = allMembers.filter(
     m => m.username.toLowerCase().includes(filterLCase) || m.fullName.toLowerCase().includes(filterLCase)
@@ -48,7 +47,7 @@ const AddToChannel = (props: Props) => {
   const addToChannel = Container.useRPC(RPCChatGen.localBulkAddToConvRpcPromise)
 
   const onClose = () => nav.safeNavigateUp()
-  const loadTeamChannelList = TeamConstants.useState(s => s.dispatch.loadTeamChannelList)
+  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
   const onAdd = () => {
     setWaiting(true)
     addToChannel(

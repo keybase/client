@@ -3,7 +3,6 @@ import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/chat2'
 import * as TrackerConstants from '../../../constants/tracker2'
-import * as TeamsConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import type * as Types from '../../../constants/types/chat2'
@@ -214,7 +213,7 @@ const useRedux = (ordinal: Types.Ordinal) => {
     const {author, timestamp} = m
     const {teamID, botAliases, teamType} = meta
     // TODO not reactive
-    const authorRoleInTeam = TeamsConstants.useState
+    const authorRoleInTeam = C.useTeamsState
       .getState()
       .teamIDToMembers.get(teamID ?? '')
       ?.get(author)?.type

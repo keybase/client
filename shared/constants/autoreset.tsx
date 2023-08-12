@@ -40,7 +40,7 @@ type State = Store & {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     cancelReset: () => {
       set(s => {
@@ -160,17 +160,13 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     resetState: 'default',
     startAccountReset: (skipPassword, _username) => {
-      const f = async () => {
-        const RecoverConstants = await import('./recover-password')
-        const username = _username || RecoverConstants.useState.getState().username
-        set(s => {
-          s.skipPassword = skipPassword
-          s.error = ''
-          s.username = username
-        })
-        C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordPromptResetAccount', true)
-      }
-      Z.ignorePromise(f())
+      const username = _username || C.useRecoverState.getState().username
+      set(s => {
+        s.skipPassword = skipPassword
+        s.error = ''
+        s.username = username
+      })
+      C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordPromptResetAccount', true)
     },
     updateARState: (active, endTime) => {
       set(s => {

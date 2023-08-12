@@ -74,7 +74,7 @@ const makeContactsResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     editContactImportEnabled: (enable, fromSettings) => {
       if (fromSettings) {

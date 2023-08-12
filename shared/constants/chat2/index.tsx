@@ -1,8 +1,6 @@
 import * as C from '..'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Tabs from '../tabs'
-import * as LinksConstants from '../deeplinks'
-import * as TeamsConstants from '../teams'
 import * as UsersConstants from '../users'
 import * as EngineGen from '../../actions/engine-gen-gen'
 import * as ConfigConstants from '../config'
@@ -118,7 +116,7 @@ export const getBotsAndParticipants = (
   sort?: boolean
 ) => {
   const isAdhocTeam = meta.teamType === 'adhoc'
-  const teamMembers = TeamConstants.useState.getState().teamIDToMembers.get(meta.teamID) ?? new Map()
+  const teamMembers = C.useTeamsState.getState().teamIDToMembers.get(meta.teamID) ?? new Map()
   let bots: Array<string> = []
   if (isAdhocTeam) {
     bots = participantInfo.all.filter(p => !participantInfo.name.includes(p))
@@ -933,8 +931,8 @@ export const useState = Z.createZustand<State>((set, get) => {
       const meta = getConvoState(selectedConversation).meta
       if (meta.conversationIDKey === selectedConversation) {
         const {teamID} = meta
-        if (!TeamsConstants.useState.getState().teamIDToMembers.get(teamID) && meta.teamname) {
-          TeamsConstants.useState.getState().dispatch.getMembers(teamID)
+        if (!C.useTeamsState.getState().teamIDToMembers.get(teamID) && meta.teamname) {
+          C.useTeamsState.getState().dispatch.getMembers(teamID)
         }
       }
     },
@@ -1125,7 +1123,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                 cs.dispatch.setMeta(meta)
               }
             })
-            TeamsConstants.useState.getState().dispatch.updateTeamRetentionPolicy(metas)
+            C.useTeamsState.getState().dispatch.updateTeamRetentionPolicy(metas)
           }
           // this is a more serious problem, but we don't need to bug the user about it
           logger.error(
@@ -1308,12 +1306,12 @@ export const useState = Z.createZustand<State>((set, get) => {
           const first = resultMetas[0]
           if (!first) {
             if (p.reason === 'appLink') {
-              LinksConstants.useState
+              C.useDeepLinksState
                 .getState()
                 .dispatch.setLinkError(
                   "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."
                 )
-              Router2.useState.getState().dispatch.navigateAppend('keybaseLinkError')
+              C.useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
               return
             } else {
               return
@@ -1338,12 +1336,12 @@ export const useState = Z.createZustand<State>((set, get) => {
             error.code === RPCTypes.StatusCode.scteamnotfound &&
             reason === 'appLink'
           ) {
-            LinksConstants.useState
+            C.useDeepLinksState
               .getState()
               .dispatch.setLinkError(
                 "We couldn't find this team. Please check that you're a member of the team and the channel exists."
               )
-            Router2.useState.getState().dispatch.navigateAppend('keybaseLinkError')
+            C.useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
             return
           } else {
             throw error
@@ -1474,11 +1472,11 @@ export const useState = Z.createZustand<State>((set, get) => {
         const visibleScreen = Router2.getVisibleScreen()
         if ((visibleScreen?.name === 'chatInfoPanel') !== show) {
           if (show) {
-            Router2.useState
+            C.useRouterState
               .getState()
               .dispatch.navigateAppend({props: {conversationIDKey, tab}, selected: 'chatInfoPanel'})
           } else {
-            Router2.useState.getState().dispatch.navigateUp()
+            C.useRouterState.getState().dispatch.navigateUp()
             conversationIDKey && getConvoState(conversationIDKey).dispatch.clearAttachmentView()
           }
         }

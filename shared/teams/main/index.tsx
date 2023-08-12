@@ -1,8 +1,8 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import type * as Types from '../../constants/types/teams'
-import * as Constants from '../../constants/teams'
 import Banner from './banner'
 import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
@@ -141,7 +141,7 @@ const sortOrderToTitle = {
   role: 'Your role',
 }
 const SortHeader = () => {
-  const setTeamListFilterSort = Constants.useState(s => s.dispatch.setTeamListFilterSort)
+  const setTeamListFilterSort = C.useTeamsState(s => s.dispatch.setTeamListFilterSort)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
@@ -173,7 +173,7 @@ const SortHeader = () => {
   )
 
   const {popup, toggleShowingPopup, popupAnchor} = Kb.usePopup2(makePopup)
-  const sortOrder = Constants.useState(s => s.teamListSort)
+  const sortOrder = C.useTeamsState(s => s.teamListSort)
   return (
     <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>
       <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
@@ -302,7 +302,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: -1,
       },
-    } as const)
+    }) as const
 )
 
 export default Teams

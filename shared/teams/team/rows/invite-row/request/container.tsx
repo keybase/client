@@ -61,16 +61,16 @@ class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, Stat
 
 export default (ownProps: OwnProps) => {
   const {teamID, username, reset, fullName} = ownProps
-  const {teamname} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
+  const {teamname} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
   const _notifLabel = ChatConstants.useState(s =>
     ChatConstants.isBigTeam(s, teamID) ? `Announce them in #general` : `Announce them in team chat`
   )
-  const disabledReasonsForRolePicker = Constants.useState(s =>
+  const disabledReasonsForRolePicker = C.useTeamsState(s =>
     Constants.getDisabledReasonsForRolePicker(s, teamID, username)
   )
   const waiting = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
-  const removeMember = Constants.useState(s => s.dispatch.removeMember)
-  const ignoreRequest = Constants.useState(s => s.dispatch.ignoreRequest)
+  const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
+  const ignoreRequest = C.useTeamsState(s => s.dispatch.ignoreRequest)
 
   const _onIgnoreRequest = (teamname: string) => {
     if (reset) {
@@ -80,7 +80,7 @@ export default (ownProps: OwnProps) => {
     }
   }
 
-  const addToTeam = Constants.useState(s => s.dispatch.addToTeam)
+  const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
   const letIn = (sendNotification: boolean, role: Types.TeamRoleType) => {
     addToTeam(teamID, [{assertion: username, role}], sendNotification)
   }

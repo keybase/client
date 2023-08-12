@@ -1,8 +1,7 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
-import * as TeamsConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
-import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import type * as TeamTypes from '../../../constants/types/teams'
 import type * as Types from '../../../constants/types/chat2'
@@ -78,7 +77,7 @@ type OwnProps = {
 const AddPeople = (ownProps: OwnProps) => {
   const meta = Constants.useContext(s => s.meta)
   const teamID = meta.teamID
-  const startAddMembersWizard = TeamsConstants.useState(s => s.dispatch.startAddMembersWizard)
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const _onAddPeople = (teamID: TeamTypes.TeamID) => {
     startAddMembersWizard(teamID)
   }

@@ -14,22 +14,19 @@ type State = Store & {
   }
 }
 
-export const useState = Z.createZustand<State>(() => {
+export const _useState = Z.createZustand<State>(() => {
   const dispatch: State['dispatch'] = {
     onEngineConnected: () => {
       const f = async () => {
         const ChatConstants = await import('./chat2')
         const ConfigConstants = await import('./config')
-        const NotifConstants = await import('./notifications')
-        const PeopleConstants = await import('./people')
-        const PinentryConstants = await import('./pinentry')
         const TrackerConstants = await import('./tracker2')
         const UnlockFolderConstants = await import('./unlock-folders')
         ChatConstants.useState.getState().dispatch.onEngineConnected()
         ConfigConstants.useConfigState.getState().dispatch.onEngineConnected()
-        NotifConstants.useState.getState().dispatch.onEngineConnected()
-        PeopleConstants.useState.getState().dispatch.onEngineConnected()
-        PinentryConstants.useState.getState().dispatch.onEngineConnected()
+        C.useNotifState.getState().dispatch.onEngineConnected()
+        C.usePeopleState.getState().dispatch.onEngineConnected()
+        C.usePinentryState.getState().dispatch.onEngineConnected()
         TrackerConstants.useState.getState().dispatch.onEngineConnected()
         UnlockFolderConstants.useState.getState().dispatch.onEngineConnected()
       }
@@ -46,12 +43,6 @@ export const useState = Z.createZustand<State>(() => {
       const f = async () => {
         const ChatConstants = await import('./chat2')
         const ConfigConstants = await import('./config')
-        const NotifConstants = await import('./notifications')
-        const PeopleConstants = await import('./people')
-        const PinConstants = await import('./pinentry')
-        const SettingsConstants = await import('./settings')
-        const SignupConstants = await import('./signup')
-        const TeamsConstants = await import('./teams')
         const TrackerConstants = await import('./tracker2')
         const UnlockConstants = await import('./unlock-folders')
         const UsersConstants = await import('./users')
@@ -62,12 +53,12 @@ export const useState = Z.createZustand<State>(() => {
         ConfigConstants.useConfigState.getState().dispatch.onEngineIncoming(action)
         C.useDeepLinksState.getState().dispatch.onEngineIncoming(action)
         C.useFSState.getState().dispatch.onEngineIncoming(action)
-        NotifConstants.useState.getState().dispatch.onEngineIncoming(action)
-        PeopleConstants.useState.getState().dispatch.onEngineIncoming(action)
-        PinConstants.useState.getState().dispatch.onEngineIncoming(action)
-        SettingsConstants.useState.getState().dispatch.onEngineIncoming(action)
-        SignupConstants.useState.getState().dispatch.onEngineIncoming(action)
-        TeamsConstants.useState.getState().dispatch.onEngineIncoming(action)
+        C.useNotifState.getState().dispatch.onEngineIncoming(action)
+        C.usePeopleState.getState().dispatch.onEngineIncoming(action)
+        C.usePinentryState.getState().dispatch.onEngineIncoming(action)
+        C.useSettingsState.getState().dispatch.onEngineIncoming(action)
+        C.useSignupState.getState().dispatch.onEngineIncoming(action)
+        C.useTeamsState.getState().dispatch.onEngineIncoming(action)
         TrackerConstants.useState.getState().dispatch.onEngineIncoming(action)
         UnlockConstants.useState.getState().dispatch.onEngineIncoming(action)
         UsersConstants.useState.getState().dispatch.onEngineIncoming(action)

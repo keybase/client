@@ -8,14 +8,14 @@ type OwnProps = {subteamOf?: Types.TeamID}
 
 export default (ownProps: OwnProps) => {
   const subteamOf = ownProps.subteamOf ?? Types.noTeamID
-  const baseTeam = Constants.useState(s => Constants.getTeamMeta(s, subteamOf).teamname)
-  const errorText = Constants.useState(s => upperFirst(s.errorInTeamCreation))
+  const baseTeam = C.useTeamsState(s => Constants.getTeamMeta(s, subteamOf).teamname)
+  const errorText = C.useTeamsState(s => upperFirst(s.errorInTeamCreation))
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }
-  const resetErrorInTeamCreation = Constants.useState(s => s.dispatch.resetErrorInTeamCreation)
-  const createNewTeam = Constants.useState(s => s.dispatch.createNewTeam)
+  const resetErrorInTeamCreation = C.useTeamsState(s => s.dispatch.resetErrorInTeamCreation)
+  const createNewTeam = C.useTeamsState(s => s.dispatch.createNewTeam)
   const onClearError = resetErrorInTeamCreation
   const onSubmit = (teamname: string, joinSubteam: boolean) => {
     createNewTeam(teamname, joinSubteam)

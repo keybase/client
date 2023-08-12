@@ -1,6 +1,5 @@
 import * as C from '.'
 import * as Z from '../util/zustand'
-import * as FsConstants from './fs'
 import * as ConfigConstants from './config'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as RPCTypes from './types/rpc-gen'
@@ -58,7 +57,7 @@ const badgeStateToBadgeCounts = (bs: RPCTypes.BadgeState) => {
   const teamsWithResetUsers = bs.teamsWithResetUsers ?? []
   const wotUpdates = bs.wotUpdates ?? new Map<string, RPCTypes.WotUpdate>()
 
-  if (useState.getState().badgeVersion >= inboxVers) {
+  if (_useState.getState().badgeVersion >= inboxVers) {
     return undefined
   }
 
@@ -83,7 +82,7 @@ const badgeStateToBadgeCounts = (bs: RPCTypes.BadgeState) => {
 
   return counts
 }
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const updateWidgetBadge = (s: State) => {
     let widgetBadge: BadgeType = 'regular'
     const {keyState} = s
@@ -175,7 +174,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
           const counts = badgeStateToBadgeCounts(badgeState)
           if (!isMobile && shouldTriggerTlfLoad(badgeState)) {
-            FsConstants.useState.getState().dispatch.favoritesLoad()
+            C.useFSState.getState().dispatch.favoritesLoad()
           }
           if (counts) {
             get().dispatch.setBadgeCounts(counts)

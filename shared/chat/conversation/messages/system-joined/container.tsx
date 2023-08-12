@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
-import * as TeamsConstants from '../../../../constants/teams'
 import * as React from 'react'
 import Joined from '.'
 import type * as Types from '../../../../constants/types/chat2'
@@ -17,7 +16,7 @@ const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
   const you = C.useCurrentUserState(s => s.username)
   const authorIsYou = you === author
 
-  const manageChatChannels = TeamsConstants.useState(s => s.dispatch.manageChatChannels)
+  const manageChatChannels = C.useTeamsState(s => s.dispatch.manageChatChannels)
   const onManageChannels = React.useCallback(() => {
     manageChatChannels(teamID)
   }, [manageChatChannels, teamID])

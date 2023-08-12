@@ -1,3 +1,4 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
@@ -98,7 +99,7 @@ export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter
     TeamsConstants.getChannelsWaitingKey(teamID),
     Constants.waitingKeyMutualTeams(conversationIDKey),
   ])
-  const teamMeta = TeamsConstants.useState(s => s.teamMeta)
+  const teamMeta = C.useTeamsState(s => s.teamMeta)
   return Constants.useContext(s => {
     const fil = filter.toLowerCase()
     // don't include 'small' here to ditch the single #general suggestion

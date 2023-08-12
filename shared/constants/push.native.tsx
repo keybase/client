@@ -1,5 +1,4 @@
 import * as C from '.'
-import * as ProfileConstants from './profile'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as Tabs from './tabs'
@@ -29,7 +28,7 @@ const initialStore: Store = {
 }
 
 const monsterStorageKey = 'shownMonsterPushPrompt'
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const neverShowMonsterAgain = async () => {
     await RPCTypes.configGuiSetValueRpcPromise({
       path: `ui.${monsterStorageKey}`,
@@ -169,7 +168,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               if (notification.userInteraction) {
                 const {username} = notification
                 logger.info('[Push] follower: ', username)
-                ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+                C.useProfileState.getState().dispatch.showUserProfile(username)
               }
               break
             case 'chat.extension':

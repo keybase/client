@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as TrackerConstants from '../../constants/tracker2'
-import * as TeamsConstants from '../../constants/teams'
 import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
 import openURL from '../../util/open-url'
@@ -144,7 +143,7 @@ const PaperKeyConnector = (props: TodoOwnProps) => {
 
 const TeamConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const launchNewTeamWizardOrModal = TeamsConstants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
+  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onConfirm = () => {
     switchTab(Tabs.teamsTab)
     launchNewTeamWizardOrModal()

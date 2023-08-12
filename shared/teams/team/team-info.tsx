@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
@@ -11,8 +12,8 @@ type Props = {teamID: Types.TeamID}
 const TeamInfo = (props: Props) => {
   const nav = Container.useSafeNavigation()
   const teamID = props.teamID ?? Types.noTeamID
-  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
-  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
+  const teamMeta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const teamname = teamMeta.teamname
   const lastDot = teamname.lastIndexOf('.')
   const isSubteam = lastDot !== -1
@@ -28,12 +29,12 @@ const TeamInfo = (props: Props) => {
   const waiting = Container.useAnyWaiting([Constants.teamWaitingKey(teamID), Constants.teamRenameWaitingKey])
 
   const errors = {
-    desc: Constants.useState(s => s.errorInEditDescription),
+    desc: C.useTeamsState(s => s.errorInEditDescription),
     rename: Container.useAnyErrors(Constants.teamRenameWaitingKey)?.message,
   }
 
-  const editTeamDescription = Constants.useState(s => s.dispatch.editTeamDescription)
-  const renameTeam = Constants.useState(s => s.dispatch.renameTeam)
+  const editTeamDescription = C.useTeamsState(s => s.dispatch.editTeamDescription)
+  const renameTeam = C.useTeamsState(s => s.dispatch.renameTeam)
   const onBack = () => nav.safeNavigateUp()
   const onSave = () => {
     if (newName !== _leafName) {

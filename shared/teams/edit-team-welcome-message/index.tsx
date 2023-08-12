@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -21,8 +22,8 @@ const EditTeamWelcomeMessage = (props: Props) => {
 
   const waitingKey = Constants.setWelcomeMessageWaitingKey(teamID)
   const waiting = Container.useAnyWaiting(waitingKey)
-  const error = Constants.useState(s => s.errorInEditWelcomeMessage)
-  const origWelcomeMessage = Constants.useState(s => s.teamIDToWelcomeMessage.get(teamID))
+  const error = C.useTeamsState(s => s.errorInEditWelcomeMessage)
+  const origWelcomeMessage = C.useTeamsState(s => s.teamIDToWelcomeMessage.get(teamID))
 
   const [welcomeMessage, setWelcomeMessage] = React.useState({
     raw: origWelcomeMessage?.raw ?? '',
@@ -30,7 +31,7 @@ const EditTeamWelcomeMessage = (props: Props) => {
   })
   const showNoWelcomeMessage = welcomeMessage.set && welcomeMessage.raw.length === 0
 
-  const _setWelcomeMessage = Constants.useState(s => s.dispatch.setWelcomeMessage)
+  const _setWelcomeMessage = C.useTeamsState(s => s.dispatch.setWelcomeMessage)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onSave = () => _setWelcomeMessage(teamID, welcomeMessage)

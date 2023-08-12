@@ -13,7 +13,7 @@ const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(
   const {message} = p
   const {conversationIDKey, creator} = message
   const {teamID, teamname} = Constants.useContext(s => s.meta)
-  const role = TeamConstants.useState(s => TeamConstants.getRole(s, teamID))
+  const role = C.useTeamsState(s => TeamConstants.getRole(s, teamID))
   const you = C.useCurrentUserState(s => s.username)
   const isAdmin = TeamConstants.isAdmin(role) || TeamConstants.isOwner(role)
   const team = teamname

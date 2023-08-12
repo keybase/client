@@ -1,9 +1,9 @@
+import * as C from '../../../constants'
 import type * as ChatTypes from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/teams'
 import {ModalTitle} from '../../common'
@@ -34,8 +34,8 @@ const EditChannel = (props: Props) => {
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => clearModals()
 
-  const updateChannelName = Constants.useState(s => s.dispatch.updateChannelName)
-  const updateTopic = Constants.useState(s => s.dispatch.updateTopic)
+  const updateChannelName = C.useTeamsState(s => s.dispatch.updateChannelName)
+  const updateTopic = C.useTeamsState(s => s.dispatch.updateTopic)
 
   const onSave = () => {
     if (oldName !== name) {
@@ -49,7 +49,7 @@ const EditChannel = (props: Props) => {
   const wasWaiting = Container.usePrevious(waiting)
 
   const triggerEditUpdated = useEditState(s => s.dispatch.triggerEditUpdated)
-  const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
+  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
   React.useEffect(() => {
     if (wasWaiting && !waiting) {
       nav.safeNavigateUp()

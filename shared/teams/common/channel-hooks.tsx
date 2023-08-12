@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
 import type * as Types from '../../constants/types/teams'
@@ -13,7 +14,7 @@ export const useChannelParticipants = (
   conversationIDKey: ChatTypes.ConversationIDKey
 ) => {
   const participants = ChatConstants.useConvoState(conversationIDKey, s => s.participants.all)
-  const teamMembers = Constants.useState(s => s.teamDetails.get(teamID)?.members)
+  const teamMembers = C.useTeamsState(s => s.teamDetails.get(teamID)?.members)
   return React.useMemo(
     () =>
       participants.filter(username => {
@@ -34,7 +35,7 @@ export const useAllChannelMetas = (
 } => {
   const getConversations = Container.useRPC(RPCChatTypes.localGetTLFConversationsLocalRpcPromise)
 
-  const teamname = Constants.useState(s => Constants.getTeamNameFromID(s, teamID) ?? '')
+  const teamname = C.useTeamsState(s => Constants.getTeamNameFromID(s, teamID) ?? '')
   const [channelMetas, setChannelMetas] = React.useState(
     new Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>()
   )

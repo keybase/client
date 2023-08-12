@@ -10,9 +10,9 @@ import {useConfigState} from './config'
 import * as Tabs from './tabs'
 import logger from '../logger'
 import {pprofDir} from '../constants/platform'
-import {useState as usePhoneState} from './settings-phone'
-import {useState as useEmailState} from './settings-email'
-import {useState as usePasswordState} from './settings-password'
+import {_useState as usePhoneState} from './settings-phone'
+import {_useState as useEmailState} from './settings-email'
+import {_useState as usePasswordState} from './settings-password'
 
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
@@ -103,7 +103,7 @@ export type State = Store & {
 }
 
 let maybeLoadAppLinkOnce = false
-export const useState = Z.createZustand<State>(set => {
+export const _useState = Z.createZustand<State>(set => {
   const maybeLoadAppLink = () => {
     const phones = usePhoneState.getState().phones
     if (!phones || phones.size > 0) {

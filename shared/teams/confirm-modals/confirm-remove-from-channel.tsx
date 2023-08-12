@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
@@ -21,14 +22,14 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const channelInfo = Constants.useState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const channelInfo = C.useTeamsState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
 
   const nav = Container.useSafeNavigation()
   const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
 
-  const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
-  const channelSetMemberSelected = Constants.useState(s => s.dispatch.channelSetMemberSelected)
+  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
+  const channelSetMemberSelected = C.useTeamsState(s => s.dispatch.channelSetMemberSelected)
   const removeFromChannel = Container.useRPC(RPCChatGen.localRemoveFromConversationLocalRpcPromise)
 
   const onRemove = () => {

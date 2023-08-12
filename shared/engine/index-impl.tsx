@@ -64,8 +64,8 @@ class Engine {
   constructor(dispatch: TypedDispatch, dispatchBatch: (changes: BatchParams) => void) {
     const f = async () => {
       this._engineConstantsIncomingCall = (
-        await import('../constants/engine')
-      ).useState.getState().dispatch.onEngineIncoming
+        await import('../constants')
+      ).useEngineState.getState().dispatch.onEngineIncoming
     }
     f()
       .then(() => {})

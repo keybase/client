@@ -26,6 +26,6 @@ export type State = Store & {
   }
 }
 
-declare const useState: UseBoundStore<StoreApi<State>>
+declare const _useState: UseBoundStore<StoreApi<State>>
 
 declare const importContactsWaitingKey: string

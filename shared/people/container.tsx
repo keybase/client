@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as SignupConstants from '../constants/signup'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import People from '.'
@@ -13,7 +12,7 @@ const PeopleReloadable = () => {
   const username = C.useCurrentUserState(s => s.username)
   const newItems = C.usePeopleState(s => s.newItems)
   const oldItems = C.usePeopleState(s => s.oldItems)
-  const signupEmail = SignupConstants.useState(s => s.justSignedUpEmail)
+  const signupEmail = C.useSignupState(s => s.justSignedUpEmail)
   const waiting = Container.useAnyWaiting(C.getPeopleDataWaitingKey)
 
   const loadPeople = C.usePeopleState(s => s.dispatch.loadPeople)

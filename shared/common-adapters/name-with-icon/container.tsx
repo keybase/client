@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
-import * as TeamsConstants from '../../constants/teams'
 import * as TrackerConstants from '../../constants/tracker2'
 import NameWithIcon, {type NameWithIconProps} from '.'
 
@@ -13,7 +12,7 @@ type OwnProps = ConnectedNameWithIconProps
 
 const ConnectedNameWithIcon = (p: OwnProps) => {
   const {onClick, username, teamname, ...props} = p
-  const teamID = TeamsConstants.useState(s => s.teamNameToID.get(teamname ?? ''))
+  const teamID = C.useTeamsState(s => s.teamNameToID.get(teamname ?? ''))
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onOpenTeamProfile = React.useCallback(() => {

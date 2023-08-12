@@ -1,3 +1,4 @@
+import * as C from '../../../../constants'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
@@ -18,9 +19,7 @@ const MinWriterRole = (props: Props) => {
   const meta = Constants.useContext(s => s.meta)
   const {teamname} = meta
 
-  const canPerform = TeamConstants.useState(s =>
-    teamname ? TeamConstants.getCanPerform(s, teamname) : undefined
-  )
+  const canPerform = C.useTeamsState(s => (teamname ? TeamConstants.getCanPerform(s, teamname) : undefined))
   const canSetMinWriterRole = canPerform ? canPerform.setMinWriterRole : false
   const minWriterRole = meta.minWriterRole ?? 'reader'
 

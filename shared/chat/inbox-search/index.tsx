@@ -1,9 +1,8 @@
+import * as C from '../../constants'
 import * as Constants from '../../constants/chat2'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as C from '../../constants'
 import * as Styles from '../../styles'
-import * as TeamsConstants from '../../constants/teams'
 import Rover from './background'
 import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
 import SelectableSmallTeam from '../selectable-small-team-container'
@@ -388,8 +387,8 @@ const OpenTeamRow = (p: OpenTeamProps) => {
   const [hovering, setHovering] = React.useState(false)
   const {name, description, memberCount, publicAdmins, inTeam, isSelected} = p
   const showingDueToSelect = React.useRef(false)
-  const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
-  const showTeamByName = TeamsConstants.useState(s => s.dispatch.showTeamByName)
+  const joinTeam = C.useTeamsState(s => s.dispatch.joinTeam)
+  const showTeamByName = C.useTeamsState(s => s.dispatch.showTeamByName)
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const makePopup = React.useCallback(
