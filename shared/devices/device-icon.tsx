@@ -1,12 +1,12 @@
 import * as Kb from '../common-adapters'
 import type * as Types from '../constants/types/devices'
-import {type Device} from '../constants/provision'
 import * as Constants from '../constants/devices'
+import type * as C from '../constants'
 import type {IconStyle} from '../common-adapters/icon'
 
 export type Props = {
   current?: boolean
-  device: Types.Device | Device
+  device: Types.Device | C.ProvisionDevice
   size: 32 | 64 | 96
   style?: IconStyle
 }

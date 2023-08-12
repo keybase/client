@@ -1,7 +1,6 @@
-import {useRouterState} from '.'
+import * as C from '.'
 import * as Z from '../util/zustand'
 import * as RPCGen from '../constants/types/rpc-gen'
-import * as ProvisionConstants from './provision'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
 
@@ -107,13 +106,13 @@ export const useState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.error = ''
                   })
-                  ProvisionConstants.useState.getState().dispatch.startProvision(get().username, true)
+                  C.useProvisionState.getState().dispatch.startProvision(get().username, true)
                 } else {
-                  useRouterState.getState().dispatch.navUpToScreen('login')
+                  C.useRouterState.getState().dispatch.navUpToScreen('login')
                 }
               }
             })
-            useRouterState.getState().dispatch.navigateAppend('resetConfirm', true)
+            C.useRouterState.getState().dispatch.navigateAppend('resetConfirm', true)
           } else {
             logger.info('Starting account reset process')
             get().dispatch.startAccountReset(true, '')
@@ -130,7 +129,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                       s.endTime = params.endTime * 1000
                     })
                   }
-                  useRouterState
+                  C.useRouterState
                     .getState()
                     .dispatch.navigateAppend(
                       {props: {pipelineStarted: !params.needVerify}, selected: 'resetWaiting'},
@@ -169,7 +168,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           s.error = ''
           s.username = username
         })
-        useRouterState.getState().dispatch.navigateAppend('recoverPasswordPromptResetAccount', true)
+        C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordPromptResetAccount', true)
       }
       Z.ignorePromise(f())
     },

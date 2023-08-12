@@ -1,6 +1,5 @@
 import * as Constants from '../constants/signup'
 import * as C from '../constants'
-import * as ProvisionConstants from '../constants/provision'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Platform from '../constants/platform'
@@ -23,7 +22,7 @@ const ConnectedEnterUsername = () => {
   }
   const onContinue = checkUsername
 
-  const startProvision = ProvisionConstants.useState(s => s.dispatch.startProvision)
+  const startProvision = C.useProvisionState(s => s.dispatch.startProvision)
   const onLogin = (initUsername: string) => {
     startProvision(initUsername)
   }

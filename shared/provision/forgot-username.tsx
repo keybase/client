@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
-import * as Constants from '../constants/provision'
 import * as SettingsConstants from '../constants/settings'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
@@ -15,10 +14,10 @@ const ForgotUsername = () => {
     !defaultCountry && loadDefaultPhoneCountry()
   }, [defaultCountry, loadDefaultPhoneCountry])
 
-  const forgotUsernameResult = Constants.useState(s => s.forgotUsernameResult)
+  const forgotUsernameResult = C.useProvisionState(s => s.forgotUsernameResult)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
-  const waiting = Container.useAnyWaiting(Constants.forgotUsernameWaitingKey)
+  const waiting = Container.useAnyWaiting(C.forgotUsernameWaitingKey)
 
   const [emailSelected, setEmailSelected] = React.useState(true)
   const [email, setEmail] = React.useState('')
@@ -27,7 +26,7 @@ const ForgotUsername = () => {
   // truthy when it's valid. This is used in the form validation logic in the code.
   const [phoneNumber, setPhoneNumber] = React.useState<string | undefined>()
 
-  const forgotUsername = Constants.useState(s => s.dispatch.forgotUsername)
+  const forgotUsername = C.useProvisionState(s => s.dispatch.forgotUsername)
 
   const onSubmit = React.useCallback(() => {
     if (!emailSelected && phoneNumber) {

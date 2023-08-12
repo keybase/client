@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
-import * as Constants from '../../constants/provision'
 import * as SignupConstants from '../../constants/signup'
 import * as Container from '../../util/container'
 import * as React from 'react'
@@ -110,7 +109,7 @@ export default () => {
   const onLogin = ConfigConstants.useConfigState(s => s.dispatch.login)
   const requestAutoInvite = SignupConstants.useState(s => s.dispatch.requestAutoInvite)
   const onSignup = () => requestAutoInvite()
-  const onSomeoneElse = Constants.useState(s => s.dispatch.startProvision)
+  const onSomeoneElse = C.useProvisionState(s => s.dispatch.startProvision)
   const props = {
     error: error?.desc || '',
     loggedInMap: new Map<string, boolean>(_users.map(account => [account.username, account.hasStoredSecret])),

@@ -1,12 +1,11 @@
 import * as React from 'react'
-import * as Constants from '../../constants/provision'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
 import {isAndroid} from '../../constants/platform'
 import Troubleshooting from '../troubleshooting'
-import {type Device} from '../../constants/provision'
 import type * as DeviceTypes from '../../constants/types/devices'
 
 export type DeviceType = 'mobile' | 'desktop'
@@ -20,7 +19,7 @@ type Props = {
   currentDeviceAlreadyProvisioned: boolean
   currentDeviceName: string
   iconNumber: number
-  otherDevice: Device
+  otherDevice: C.ProvisionDevice
   tabOverride?: Tab
   textCode: string
   onBack: () => void
@@ -192,7 +191,7 @@ class CodePage2 extends React.Component<Props, State> {
               onClick={this._onSubmitTextCode}
               disabled={!this.state.code || this.props.waiting}
               style={styles.enterTextButton}
-              waitingKey={Constants.waitingKey}
+              waitingKey={C.provisionWaitingKey}
             />
           )}
           {this.state.tab !== 'enterText' && this._inModal() && !Styles.isMobile && (
@@ -203,7 +202,7 @@ class CodePage2 extends React.Component<Props, State> {
               onClick={this.props.onBack}
               onlyDisable={true}
               style={styles.closeButton}
-              waitingKey={Constants.waitingKey}
+              waitingKey={C.provisionWaitingKey}
             />
           )}
           {showHeyWaitInFooter && this._heyWaitBanner()}
@@ -651,6 +650,6 @@ const styles = Styles.styleSheetCreate(
           paddingTop: 20,
         },
       }),
-    } as const)
+    }) as const
 )
 export default CodePage2

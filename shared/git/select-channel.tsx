@@ -1,5 +1,5 @@
 import * as TConstants from '../constants/teams'
-import * as Constants from '../constants/git'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -22,7 +22,7 @@ const SelectChannel = (ownProps: OwnProps) => {
   const channelNames = channelMetas ? [...channelMetas.values()].map(info => info.channelname) : []
   const [selected, setSelected] = React.useState(_selected)
   const nav = Container.useSafeNavigation()
-  const setTeamRepoSettings = Constants.useState(s => s.dispatch.setTeamRepoSettings)
+  const setTeamRepoSettings = C.useGitState(s => s.dispatch.setTeamRepoSettings)
   const onSubmit = (channelName: string) => setTeamRepoSettings(channelName, teamname, repoID, false)
   const onCancel = () => nav.safeNavigateUp()
 

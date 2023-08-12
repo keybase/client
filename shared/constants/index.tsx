@@ -12,3 +12,10 @@ export {
 } from './router2'
 export {useState as useDeepLinksState, linkFromConvAndMessage} from './deeplinks'
 export {Provider as TBProvider, useContext as useTBContext, stores as TBstores} from './team-building'
+export {useState as useGitState, loadingWaitingKey as gitWaitingKey, makeGitInfo} from './git'
+export {
+  useState as useProvisionState,
+  type Device as ProvisionDevice,
+  waitingKey as provisionWaitingKey,
+  forgotUsernameWaitingKey,
+} from './provision'

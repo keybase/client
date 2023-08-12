@@ -1,4 +1,3 @@
-import * as Constants from '../constants/git'
 import * as C from '../constants'
 import * as TeamsConstants from '../constants/teams'
 import * as Kb from '../common-adapters'
@@ -10,11 +9,11 @@ type OwnProps = {isTeam: boolean}
 
 export default (ownProps: OwnProps) => {
   const {isTeam} = ownProps
-  const error = Constants.useState(s => s.error)
+  const error = C.useGitState(s => s.error)
   const teamnames = TeamsConstants.useState(s => s.teamnames)
   const teams = [...teamnames].sort(TeamsConstants.sortTeamnames)
 
-  const waitingKey = Constants.loadingWaitingKey
+  const waitingKey = C.gitWaitingKey
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const getTeams = TeamsConstants.useState(s => s.dispatch.getTeams)
@@ -23,8 +22,8 @@ export default (ownProps: OwnProps) => {
     navigateUp()
   }
 
-  const createPersonalRepo = Constants.useState(s => s.dispatch.createPersonalRepo)
-  const createTeamRepo = Constants.useState(s => s.dispatch.createTeamRepo)
+  const createPersonalRepo = C.useGitState(s => s.dispatch.createPersonalRepo)
+  const createTeamRepo = C.useGitState(s => s.dispatch.createTeamRepo)
   const onCreate = (name: string, teamname: string, notifyTeam: boolean) => {
     if (isTeam && teamname) {
       createTeamRepo(name, teamname, notifyTeam)

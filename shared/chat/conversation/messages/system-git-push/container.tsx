@@ -2,7 +2,7 @@ import * as Container from '../../../../util/container'
 import * as FsConstants from '../../../../constants/fs'
 import * as TrackerConstants from '../../../../constants/tracker2'
 import * as FsTypes from '../../../../constants/types/fs'
-import * as GitConstants from '../../../../constants/git'
+import * as C from '../../../../constants'
 import * as ProfileConstants from '../../../../constants/profile'
 import * as React from 'react'
 import Git from '.'
@@ -36,7 +36,7 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
     },
     [showUser, showUserProfile]
   )
-  const navigateToTeamRepo = GitConstants.useState(s => s.dispatch.navigateToTeamRepo)
+  const navigateToTeamRepo = C.useGitState(s => s.dispatch.navigateToTeamRepo)
   const onViewGitRepo = React.useCallback(
     (repoID: string, teamname: string) => {
       navigateToTeamRepo(teamname, repoID)
