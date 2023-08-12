@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import * as Constants from '../constants/provision'
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as DevicesConstants from '../constants/devices'
@@ -57,7 +56,7 @@ const Troubleshooting = (props: Props) => {
     navUpToScreen('login')
   }, [navUpToScreen])
 
-  const device = Constants.useState(s => s.codePageOtherDevice)
+  const device = C.useProvisionState(s => s.codePageOtherDevice)
   const deviceIconNo = (device.deviceNumberOfType % DevicesConstants.numBackgrounds) + 1
 
   // If we can't load the device icon, show the wrong one instead of erroring the whole page.

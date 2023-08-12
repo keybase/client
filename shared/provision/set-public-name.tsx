@@ -11,13 +11,13 @@ import {SignupScreen, errorBanner} from '../signup/common'
 import {defaultDevicename} from '../constants/signup'
 
 const PublicNameContainer = () => {
-  const devices = Constants.useState(s => s.devices)
-  const error = Constants.useState(s => s.error)
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
+  const devices = C.useProvisionState(s => s.devices)
+  const error = C.useProvisionState(s => s.error)
+  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, !!error)
-  const setDeviceName = Constants.useState(s => s.dispatch.dynamic.setDeviceName)
+  const setDeviceName = C.useProvisionState(s => s.dispatch.dynamic.setDeviceName)
   const onSubmit = React.useCallback(
     (name: string) => {
       !waiting && setDeviceName?.(name)

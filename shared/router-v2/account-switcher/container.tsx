@@ -2,7 +2,6 @@ import * as ConfigConstants from '../../constants/config'
 import * as C from '../../constants'
 import * as UsersConstants from '../../constants/users'
 import * as ProfileConstants from '../../constants/profile'
-import * as ProvisionConstants from '../../constants/provision'
 import * as Container from '../../util/container'
 import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
@@ -20,7 +19,7 @@ export default () => {
   const fullname = TrackerConstants.useState(s => TrackerConstants.getDetails(s, you).fullname || '')
   const waiting = Container.useAnyWaiting(ConfigConstants.loginWaitingKey)
   const _onProfileClick = ProfileConstants.useState(s => s.dispatch.showUserProfile)
-  const onAddAccount = ProvisionConstants.useState(s => s.dispatch.startProvision)
+  const onAddAccount = C.useProvisionState(s => s.dispatch.startProvision)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()

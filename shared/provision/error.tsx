@@ -1,6 +1,5 @@
 import * as Constants from '../constants/autoreset'
 import * as C from '../constants'
-import * as ProvisionConstants from '../constants/provision'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -13,7 +12,7 @@ import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../styles
 
 const ConnectedRenderError = () => {
   const _username = Constants.useState(s => s.username)
-  const error = ProvisionConstants.useState(s => s.finalError)
+  const error = C.useProvisionState(s => s.finalError)
   const startAccountReset = Constants.useState(s => s.dispatch.startAccountReset)
   const _onAccountReset = (username: string) => {
     startAccountReset(false, username)

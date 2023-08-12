@@ -1,6 +1,5 @@
 import './tab-bar.css'
 import * as ConfigConstants from '../constants/config'
-import * as ProvisionConstants from '../constants/provision'
 import * as Container from '../util/container'
 import * as C from '../constants'
 import * as FsConstants from '../constants/fs'
@@ -47,7 +46,7 @@ const Header = () => {
     onProfileClick()
   }
 
-  const startProvision = ProvisionConstants.useState(s => s.dispatch.startProvision)
+  const startProvision = C.useProvisionState(s => s.dispatch.startProvision)
   const stop = SettingsConstants.useState(s => s.dispatch.stop)
   const onAddAccount = () => {
     startProvision()

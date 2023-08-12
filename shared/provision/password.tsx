@@ -1,4 +1,3 @@
-import * as Constants from '../constants/provision'
 import * as C from '../constants'
 import * as RecoverConstants from '../constants/recover-password'
 import * as Container from '../util/container'
@@ -10,10 +9,10 @@ import {SignupScreen, errorBanner} from '../signup/common'
 import {isMobile} from '../constants/platform'
 
 export default () => {
-  const error = Constants.useState(s => s.error)
+  const error = C.useProvisionState(s => s.error)
   const resetEmailSent = RecoverConstants.useState(s => s.resetEmailSent)
-  const username = Constants.useState(s => s.username)
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
+  const username = C.useProvisionState(s => s.username)
+  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const startRecoverPassword = RecoverConstants.useState(s => s.dispatch.startRecoverPassword)
   const _onForgotPassword = (username: string) => {
@@ -22,7 +21,7 @@ export default () => {
   const onBack = () => {
     navigateUp()
   }
-  const onSubmit = Constants.useState(s => s.dispatch.dynamic.setPassphrase)
+  const onSubmit = C.useProvisionState(s => s.dispatch.dynamic.setPassphrase)
   const props = {
     error,
     onBack,

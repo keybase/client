@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
-import * as Constants from '../../constants/provision'
 import * as Container from '../../util/container'
 import * as SignupConstants from '../../constants/signup'
 import Intro from '.'
@@ -22,7 +21,7 @@ export default () => {
     navigateAppend({props: {}, selected: 'feedback'})
   }
   const checkIsOnline = loadIsOnline
-  const onLogin = Constants.useState(s => s.dispatch.startProvision)
+  const onLogin = C.useProvisionState(s => s.dispatch.startProvision)
   const requestAutoInvite = SignupConstants.useState(s => s.dispatch.requestAutoInvite)
   const onSignup = () => {
     requestAutoInvite()
