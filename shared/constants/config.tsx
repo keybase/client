@@ -1327,5 +1327,4 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 export {useDaemonState, maxHandshakeTries} from './daemon'
 export {useFollowerState} from './followers'
 export {useLogoutState} from './logout'
-export {useActiveState} from './active'
 export {useCurrentUserState}

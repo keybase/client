@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as AutoresetConstants from '../../constants/autoreset'
+import * as C from '../../constants'
 import * as Constants from '../../constants/recover-password'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {SignupScreen} from '../../signup/common'
@@ -14,9 +14,9 @@ export type Props = {
 
 const PromptReset = (props: Props) => {
   const nav = Container.useSafeNavigation()
-  const skipPassword = AutoresetConstants.useState(s => s.skipPassword)
-  const error = AutoresetConstants.useState(s => s.error)
-  const resetAccount = AutoresetConstants.useState(s => s.dispatch.resetAccount)
+  const skipPassword = C.useAutoResetState(s => s.skipPassword)
+  const error = C.useAutoResetState(s => s.error)
+  const resetAccount = C.useAutoResetState(s => s.dispatch.resetAccount)
   const {resetPassword} = props
 
   const submitResetPassword = Constants.useState(s => s.dispatch.dynamic.submitResetPassword)
@@ -49,7 +49,7 @@ const PromptReset = (props: Props) => {
           label: props.resetPassword ? 'Send a link' : 'Start account reset',
           onClick: onContinue,
           type: 'Default' as ButtonType,
-          waitingKey: AutoresetConstants.enterPipelineWaitingKey,
+          waitingKey: C.enterPipelineWaitingKey,
         },
       ]}
       banners={
