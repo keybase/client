@@ -221,8 +221,7 @@ const BotTab = (props: Props) => {
   }
 
   const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
-  const featuredBots = C.useBotsState
-    .getFeaturedSorted(featuredBotsMap)
+  const featuredBots = C.getFeaturedSorted(featuredBotsMap)
     .filter(
       k =>
         !botUsernames.includes(k.botUsername) &&
