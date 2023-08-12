@@ -10,7 +10,7 @@ import logger from '../logger'
 import type * as Types from './types/push'
 import {isDevApplePushToken} from '../local-debug'
 import {isIOS} from './platform'
-import {useConfigState, useLogoutState} from './config'
+import {useConfigState} from './config'
 import {
   iosGetHasShownPushPrompt,
   androidRequestPushPermissions,
@@ -122,7 +122,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     deleteToken: version => {
       const f = async () => {
         const waitKey = 'push:deleteToken'
-        useLogoutState.getState().dispatch.wait(waitKey, version, true)
+        C.useLogoutState.getState().dispatch.wait(waitKey, version, true)
         try {
           const deviceID = C.useCurrentUserState.getState().deviceID
           if (!deviceID) {
@@ -140,7 +140,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         } catch (e) {
           logger.error('[PushToken] delete failed', e)
         } finally {
-          useLogoutState.getState().dispatch.wait(waitKey, version, false)
+          C.useLogoutState.getState().dispatch.wait(waitKey, version, false)
         }
       }
       Z.ignorePromise(f())

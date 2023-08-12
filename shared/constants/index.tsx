@@ -23,3 +23,5 @@ export {useState as useDevicesState, waitingKey as devicesWaitingKey} from './de
 export {useState as useEngineState} from './engine'
 export {useState as useFollowerState} from './followers'
 export {bodyToJSON} from './gregor'
+export {useState as useLogoutState} from './logout'
+export {useState as useNotifState} from './notifications'

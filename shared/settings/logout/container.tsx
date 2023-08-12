@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/settings'
-import * as ConfigConstants from '../../constants/config'
 import * as C from '../../constants'
 import LogOut from '.'
 
@@ -22,7 +21,7 @@ const LogoutContainer = () => {
   }, [resetCheckPassword, navigateUp])
   const onCheckPassword = checkPassword
 
-  const requestLogout = ConfigConstants.useLogoutState(s => s.dispatch.requestLogout)
+  const requestLogout = C.useLogoutState(s => s.dispatch.requestLogout)
 
   const _onLogout = React.useCallback(() => {
     requestLogout()

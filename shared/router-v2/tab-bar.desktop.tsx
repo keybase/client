@@ -3,7 +3,6 @@ import './tab-bar.css'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as ProfileConstants from '../constants/profile'
-import * as NotifConstants from '../constants/notifications'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
 import * as Platforms from '../constants/platform'
@@ -202,7 +201,7 @@ type TabProps = {
 
 const TabBadge = (p: {name: Tabs.Tab}) => {
   const {name} = p
-  const badgeNumbers = NotifConstants.useState(s => s.navBadges)
+  const badgeNumbers = C.useNotifState(s => s.navBadges)
   const fsCriticalUpdate = C.useFSState(s => s.criticalUpdate)
   const badge = (badgeNumbers.get(name) ?? 0) + (name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
   return badge ? <Kb.Badge className="tab-badge" badgeNumber={badge} /> : null
