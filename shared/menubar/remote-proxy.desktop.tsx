@@ -1,7 +1,6 @@
 // A mirror of the remote menubar windows.
-import * as ConfigConstants from '../constants/config'
-import * as DarkMode from '../constants/darkmode'
 import * as C from '../constants'
+import * as ConfigConstants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
 import * as UsersConstants from '../constants/users'
 import * as NotifConstants from '../constants/notifications'
@@ -22,7 +21,7 @@ import {useAvatarState} from '../common-adapters/avatar-zus'
 const {showTray} = KB2.functions
 
 const getIcons = (iconType: NotifConstants.BadgeType, isBadged: boolean) => {
-  return _getIcons(iconType, isBadged, DarkMode.useDarkModeState.getState().systemDarkMode)
+  return _getIcons(iconType, isBadged, C.useDarkModeState.getState().systemDarkMode)
 }
 
 type WidgetProps = {
@@ -32,7 +31,7 @@ type WidgetProps = {
 
 function useWidgetBrowserWindow(p: WidgetProps) {
   const {widgetBadge, desktopAppBadgeCount} = p
-  const systemDarkMode = DarkMode.useDarkModeState(s => s.systemDarkMode)
+  const systemDarkMode = C.useDarkModeState(s => s.systemDarkMode)
   React.useEffect(() => {
     const icon = getIcons(widgetBadge, desktopAppBadgeCount > 0)
     showTray?.(desktopAppBadgeCount, icon)

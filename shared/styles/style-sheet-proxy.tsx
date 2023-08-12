@@ -1,4 +1,4 @@
-import * as DarkMode from '../constants/darkmode'
+import * as C from '../constants'
 import type {StylesCrossPlatform} from '.'
 
 // Support a closure to enable simple dark mode.
@@ -12,7 +12,7 @@ const styleSheetCreate = (f: () => MapToStyles, transform: Transform) => {
   let lightCached: MapToStyles | undefined
   let darkCached: MapToStyles | undefined
 
-  let darkModePrefCached = DarkMode.useDarkModeState.getState().darkModePreference
+  let darkModePrefCached = C.useDarkModeState.getState().darkModePreference
 
   const keys = Object.keys(f())
   const sheet = {}
@@ -23,14 +23,14 @@ const styleSheetCreate = (f: () => MapToStyles, transform: Transform) => {
       enumerable: true,
       get() {
         // if this changes we should kill our caches
-        const darkModePref = DarkMode.useDarkModeState.getState().darkModePreference
+        const darkModePref = C.useDarkModeState.getState().darkModePreference
         if (darkModePrefCached !== darkModePref) {
           darkModePrefCached = darkModePref
           darkCached = undefined
           lightCached = undefined
         }
 
-        if (DarkMode.useDarkModeState.getState().isDarkMode()) {
+        if (C.useDarkModeState.getState().isDarkMode()) {
           darkCached = darkCached || transform(f())
           return darkCached[key]
         } else {

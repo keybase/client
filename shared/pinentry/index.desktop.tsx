@@ -1,4 +1,4 @@
-import * as DarkMode from '../constants/darkmode'
+import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
@@ -40,7 +40,7 @@ class Pinentry extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    DarkMode.useDarkModeState
+    C.useDarkModeState
       .getState()
       .dispatch.setDarkModePreference(this.props.darkMode ? 'alwaysDark' : 'alwaysLight')
   }

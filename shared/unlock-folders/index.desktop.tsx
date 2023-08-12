@@ -1,4 +1,4 @@
-import * as DarkMode from '../constants/darkmode'
+import * as C from '../constants'
 import * as React from 'react'
 import * as Styles from '../styles'
 import DeviceList from './device-list.desktop'
@@ -24,9 +24,7 @@ export type Props = {
 const UnlockFolders = (props: Props) => {
   const {darkMode} = props
   React.useEffect(() => {
-    DarkMode.useDarkModeState
-      .getState()
-      .dispatch.setDarkModePreference(darkMode ? 'alwaysDark' : 'alwaysLight')
+    C.useDarkModeState.getState().dispatch.setDarkModePreference(darkMode ? 'alwaysDark' : 'alwaysLight')
   }, [darkMode])
 
   let innerComponent: React.ReactNode

@@ -6,7 +6,6 @@ import * as Constants from '../constants/tracker2'
 import * as UsersConstants from '../constants/users'
 import * as WaitConstants from '../constants/waiting'
 import * as ConfigConstants from '../constants/config'
-import * as DarkMode from '../constants/darkmode'
 import * as Followers from '../constants/followers'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
@@ -43,7 +42,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
     return new Map([[trackerUsername, avatarCount]])
   }, [trackerUsername, avatarCount])
 
-  const darkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
+  const darkMode = C.useDarkModeState(s => s.isDarkMode())
 
   const p: ProxyProps = {
     assertions,

@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as RemoteGen from '../remote-gen'
 import * as Clipboard from 'expo-clipboard'
 import * as ConfigConstants from '../../constants/config'
@@ -5,14 +6,12 @@ import * as ProfileConstants from '../../constants/profile'
 import * as ChatConstants from '../../constants/chat2'
 import * as EngineConstants from '../../constants/engine'
 import * as Container from '../../util/container'
-import * as DarkMode from '../../constants/darkmode'
 import * as EngineGen from '../engine-gen-gen'
 import * as ExpoLocation from 'expo-location'
 import * as ExpoTaskManager from 'expo-task-manager'
 import * as MediaLibrary from 'expo-media-library'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as C from '../../constants'
 import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
 import * as Types from '../../constants/types/chat2'
@@ -533,9 +532,9 @@ export const initPlatformListener = () => {
 
   // Location
   if (isAndroid) {
-    DarkMode.useDarkModeState.subscribe((s, old) => {
+    C.useDarkModeState.subscribe((s, old) => {
       if (s.darkModePreference === old.darkModePreference) return
-      const {darkModePreference} = DarkMode.useDarkModeState.getState()
+      const {darkModePreference} = C.useDarkModeState.getState()
       androidAppColorSchemeChanged?.(darkModePreference)
     })
   }

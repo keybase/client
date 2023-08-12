@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as ConfigConstants from '../constants/config'
 import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
-import * as DarkMode from '../constants/darkmode'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
 import * as React from 'react'
@@ -40,9 +39,9 @@ const useConnectNavToRedux = () => {
 // if dark mode changes we should redraw
 // on ios if dark mode changes and we're on system, ignore as it will thrash and we don't want that
 const useDarkNeedsRedraw = () => {
-  const isDarkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   const darkChanged = Container.usePrevious(isDarkMode) !== isDarkMode
-  const darkModePreference = DarkMode.useDarkModeState(s => s.darkModePreference)
+  const darkModePreference = C.useDarkModeState(s => s.darkModePreference)
   const darkModePreferenceChanged = Container.usePrevious(darkModePreference) !== darkModePreference
 
   if (Styles.isIOS) {
@@ -65,7 +64,7 @@ const useNavKey = (appState: AppState, key: React.MutableRefObject<number>) => {
 }
 
 const useIsDarkChanged = () => {
-  const isDarkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
   const darkChanged = Container.usePrevious(isDarkMode) !== isDarkMode
   return darkChanged
 }
@@ -155,15 +154,13 @@ export const theme: Theme = {
   colors: {
     get background() {
       // return themed.fastBlank as string
-      return (DarkMode.useDarkModeState.getState().isDarkMode() ? darkColors.white : colors.white) as string
+      return (C.useDarkModeState.getState().isDarkMode() ? darkColors.white : colors.white) as string
     },
     get border() {
       return themed.black_10 as string
     },
     get card() {
-      return (
-        DarkMode.useDarkModeState.getState().isDarkMode() ? darkColors.fastBlank : colors.fastBlank
-      ) as string
+      return (C.useDarkModeState.getState().isDarkMode() ? darkColors.fastBlank : colors.fastBlank) as string
     },
     get notification() {
       return themed.black as string
@@ -172,7 +169,7 @@ export const theme: Theme = {
       return themed.black as string
     },
     get text() {
-      return (DarkMode.useDarkModeState.getState().isDarkMode() ? darkColors.black : colors.black) as string
+      return (C.useDarkModeState.getState().isDarkMode() ? darkColors.black : colors.black) as string
     },
   },
   dark: false,

@@ -1,6 +1,5 @@
 import * as C from '.'
 import * as ChatTypes from './types/chat2'
-import * as DarkMode from './darkmode'
 import * as DeviceTypes from './types/devices'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Followers from './followers'
@@ -516,7 +515,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           get().dispatch.windowShown(action.payload.component)
           break
         case RemoteGen.setSystemDarkMode:
-          DarkMode.useDarkModeState.getState().dispatch.setSystemDarkMode(action.payload.dark)
+          C.useDarkModeState.getState().dispatch.setSystemDarkMode(action.payload.dark)
           break
         case RemoteGen.previewConversation:
           {
