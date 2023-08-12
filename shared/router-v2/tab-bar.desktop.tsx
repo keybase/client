@@ -35,7 +35,7 @@ const Header = () => {
   const attachmentRef = React.useRef<Kb.Box2>(null)
   const getAttachmentRef = () => attachmentRef.current
   const username = C.useCurrentUserState(s => s.username)
-  const fullname = TrackerConstants.useState(s => TrackerConstants.getDetails(s, username).fullname || '')
+  const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, username).fullname || '')
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onProfileClick = () => showUserProfile(username)
   const onClickWrapper = () => {

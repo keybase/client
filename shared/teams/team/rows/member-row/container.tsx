@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/teams'
 import * as ChatConstants from '../../../../constants/chat2'
 import * as UsersConstants from '../../../../constants/users'
-import * as TrackerConstants from '../../../../constants/tracker2'
 import type * as Types from '../../../../constants/types/teams'
 import {TeamMemberRow} from '.'
 import * as Container from '../../../../util/container'
@@ -53,7 +52,7 @@ export default (ownProps: OwnProps) => {
   const onRemoveFromTeam = () => {
     removeMember(teamID, username)
   }
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onShowTracker = () => {
     if (Container.isMobile) {
       showUserProfile(username)

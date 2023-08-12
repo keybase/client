@@ -11,7 +11,7 @@ type OwnProps = {
 const noTeams = new Array<Types.TeamShowcase>()
 
 export default (ownProps: OwnProps) => {
-  const d = Constants.useState(s => Constants.getDetails(s, ownProps.username))
+  const d = C.useTrackerState(s => Constants.getDetails(s, ownProps.username))
   const _isYou = C.useCurrentUserState(s => s.username === ownProps.username)
   const _roles = C.useTeamsState(s => s.teamRoleMap.roles)
   const _teamNameToID = C.useTeamsState(s => s.teamNameToID)

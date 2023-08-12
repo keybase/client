@@ -1,6 +1,5 @@
 import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/teams'
-import * as TrackerConstants from '../../../../../constants/tracker2'
 import * as Container from '../../../../../util/container'
 import type * as RPCTypes from '../../../../../constants/types/rpc-gen'
 import type * as Types from '../../../../../constants/types/teams'
@@ -40,7 +39,7 @@ export default (ownProps: OwnProps) => {
   const status = info.status
   const username = info.username
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const _onShowTracker = (username: string) => {
     if (Container.isMobile) {
       showUserProfile(username)

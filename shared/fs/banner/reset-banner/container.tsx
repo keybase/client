@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as React from 'react'
-import * as TrackerConstants from '../../../constants/tracker2'
 import * as Types from '../../../constants/types/fs'
 import type * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Container from '../../../util/container'
@@ -34,7 +33,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   )
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
 
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onViewProfile = React.useCallback(
     (username: string) => () => {
       Container.isMobile ? showUserProfile(username) : showUser(username, true)

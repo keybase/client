@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/chat2'
-import * as TrackerConstants from '../../../constants/tracker2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import type * as Types from '../../../constants/types/chat2'
@@ -68,7 +67,7 @@ type LProps = {
 const LeftSide = React.memo(function LeftSide(p: LProps) {
   const {username} = p
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onAuthorClick = React.useCallback(() => {
     if (!username) return
     if (Container.isMobile) {
@@ -100,7 +99,7 @@ type TProps = {
 const TopSide = React.memo(function TopSide(p: TProps) {
   const {timestamp, botAlias, showUsername, authorIsBot, authorRoleInTeam, teamType} = p
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onAuthorClick = React.useCallback(() => {
     if (Container.isMobile) {
       showUsername && showUserProfile(showUsername)

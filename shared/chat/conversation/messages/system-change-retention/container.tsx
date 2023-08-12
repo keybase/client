@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
-import * as TrackerConstants from '../../../../constants/tracker2'
 import * as Container from '../../../../util/container'
 import type * as Types from '../../../../constants/types/chat2'
 import SystemChangeRetention from '.'
@@ -22,7 +21,7 @@ const SystemChangeRetentionContainer = React.memo(function SystemChangeRetention
   )
 
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onClickUserAvatar = React.useCallback(() => {
     Container.isMobile ? showUserProfile(user) : showUser(user, true)
   }, [showUserProfile, showUser, user])

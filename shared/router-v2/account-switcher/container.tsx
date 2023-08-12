@@ -15,7 +15,7 @@ export default () => {
   const _fullnames = UsersConstants.useState(s => s.infoMap)
   const _accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
   const you = C.useCurrentUserState(s => s.username)
-  const fullname = TrackerConstants.useState(s => TrackerConstants.getDetails(s, you).fullname || '')
+  const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, you).fullname || '')
   const waiting = Container.useAnyWaiting(ConfigConstants.loginWaitingKey)
   const _onProfileClick = C.useProfileState(s => s.dispatch.showUserProfile)
   const onAddAccount = C.useProvisionState(s => s.dispatch.startProvision)

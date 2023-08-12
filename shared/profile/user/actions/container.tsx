@@ -9,7 +9,7 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const username = ownProps.username
-  const d = Constants.useState(s => Constants.getDetails(s, username))
+  const d = C.useTrackerState(s => Constants.getDetails(s, username))
   const followThem = C.useFollowerState(s => s.following.has(username))
   const followsYou = C.useFollowerState(s => s.followers.has(username))
   const isBot = C.useBotsState(s => s.featuredBotsMap.has(username))
@@ -26,8 +26,8 @@ export default (ownProps: OwnProps) => {
     C.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${username}`))
   const _onEditProfile = () => navigateAppend('profileEdit')
 
-  const changeFollow = Constants.useState(s => s.dispatch.changeFollow)
-  const ignore = Constants.useState(s => s.dispatch.ignore)
+  const changeFollow = C.useTrackerState(s => s.dispatch.changeFollow)
+  const ignore = C.useTrackerState(s => s.dispatch.ignore)
   const _onFollow = changeFollow
   const _onIgnoreFor24Hours = ignore
   const _onInstallBot = (username: string) => {
@@ -37,7 +37,7 @@ export default (ownProps: OwnProps) => {
     navigateAppend({props: {username}, selected: 'chatBlockingModal'})
   const _onOpenPrivateFolder = (myUsername: string, theirUsername: string) =>
     C.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/private/${theirUsername},${myUsername}`))
-  const showUser = Constants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const _onReload = (username: string) => {
     showUser(username, false)
   }

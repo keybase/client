@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
-import * as TrackerConstants from '../../../constants/tracker2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
 import Normal from '.'
@@ -65,7 +64,7 @@ const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
     toggleThreadSearch()
   }, [toggleThreadSearch])
 
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onShowTracker = React.useCallback(
     (username: string) => {
       showUser(username, true)

@@ -128,7 +128,7 @@ const ProfileCard = ({
   onLayoutChange,
   username,
 }: Props) => {
-  const userDetails = TrackerConstants.useState(s => TrackerConstants.getDetails(s, username))
+  const userDetails = C.useTrackerState(s => TrackerConstants.getDetails(s, username))
   const followThem = C.useFollowerState(s => s.following.has(username))
   const followsYou = C.useFollowerState(s => s.followers.has(username))
   const isSelf = C.useCurrentUserState(s => s.username === username)
@@ -152,7 +152,7 @@ const ProfileCard = ({
     bio: userDetailsBio,
     fullname: userDetailsFullname,
   } = userDetails
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   React.useEffect(() => {
     userDetailsState === 'unknown' && showUser(username, false, true)
   }, [showUser, username, userDetailsState])
@@ -168,7 +168,7 @@ const ProfileCard = ({
     showFollowButton,
   ])
 
-  const changeFollow = TrackerConstants.useState(s => s.dispatch.changeFollow)
+  const changeFollow = C.useTrackerState(s => s.dispatch.changeFollow)
   const _changeFollow = React.useCallback(
     (follow: boolean) => changeFollow(userDetails.guiID, follow),
     [changeFollow, userDetails]

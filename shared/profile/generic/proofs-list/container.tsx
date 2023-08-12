@@ -1,10 +1,9 @@
 import * as C from '../../../constants'
-import * as TrackerConstants from '../../../constants/tracker2'
 import ProofsList from '.'
 import * as Styles from '../../../styles'
 
 export default () => {
-  const _proofSuggestions = TrackerConstants.useState(s => s.proofSuggestions)
+  const _proofSuggestions = C.useTrackerState(s => s.proofSuggestions)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()

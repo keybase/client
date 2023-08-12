@@ -20,14 +20,13 @@ export const _useState = Z.createZustand<State>(() => {
       const f = async () => {
         const ChatConstants = await import('./chat2')
         const ConfigConstants = await import('./config')
-        const TrackerConstants = await import('./tracker2')
         const UnlockFolderConstants = await import('./unlock-folders')
         ChatConstants.useState.getState().dispatch.onEngineConnected()
         ConfigConstants.useConfigState.getState().dispatch.onEngineConnected()
         C.useNotifState.getState().dispatch.onEngineConnected()
         C.usePeopleState.getState().dispatch.onEngineConnected()
         C.usePinentryState.getState().dispatch.onEngineConnected()
-        TrackerConstants.useState.getState().dispatch.onEngineConnected()
+        C.useTrackerState.getState().dispatch.onEngineConnected()
         UnlockFolderConstants.useState.getState().dispatch.onEngineConnected()
       }
       Z.ignorePromise(f())
@@ -43,7 +42,6 @@ export const _useState = Z.createZustand<State>(() => {
       const f = async () => {
         const ChatConstants = await import('./chat2')
         const ConfigConstants = await import('./config')
-        const TrackerConstants = await import('./tracker2')
         const UnlockConstants = await import('./unlock-folders')
         const UsersConstants = await import('./users')
         C.useBotsState.getState().dispatch.onEngineIncoming(action)
@@ -59,7 +57,7 @@ export const _useState = Z.createZustand<State>(() => {
         C.useSettingsState.getState().dispatch.onEngineIncoming(action)
         C.useSignupState.getState().dispatch.onEngineIncoming(action)
         C.useTeamsState.getState().dispatch.onEngineIncoming(action)
-        TrackerConstants.useState.getState().dispatch.onEngineIncoming(action)
+        C.useTrackerState.getState().dispatch.onEngineIncoming(action)
         UnlockConstants.useState.getState().dispatch.onEngineIncoming(action)
         UsersConstants.useState.getState().dispatch.onEngineIncoming(action)
       }
