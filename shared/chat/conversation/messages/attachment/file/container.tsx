@@ -1,6 +1,5 @@
 import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/chat2'
-import * as CryptoConstants from '../../../../../constants/crypto'
 import * as Container from '../../../../../util/container'
 import * as React from 'react'
 import * as Tabs from '../../../../../constants/tabs'
@@ -33,7 +32,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     return m?.type === 'attachment' ? m : missingMessage
   })
 
-  const saltpackOpenFile = CryptoConstants.useState(s => s.dispatch.onSaltpackOpenFile)
+  const saltpackOpenFile = C.useCryptoState(s => s.dispatch.onSaltpackOpenFile)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onSaltpackFileOpen = React.useCallback(
     (path: string, operation: CryptoTypes.Operations) => {

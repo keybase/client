@@ -15,3 +15,4 @@ export {useState as useAutoResetState, enterPipelineWaitingKey} from './autorese
 export {actuallyResetWaitingKey, cancelResetWaitingKey} from './autoreset'
 export {useState as useBotsState, getFeaturedSorted} from './bots'
 export {waitingKeyBotSearchUsers, waitingKeyBotSearchFeatured} from './bots'
+export {useState as useCryptoState} from './crypto'
