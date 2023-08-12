@@ -51,7 +51,7 @@ type State = Store & {
   }
 }
 
-export const useDaemonState = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const restartHandshake = () => {
     get().dispatch.onRestartHandshakeNative()
     get().dispatch.setState('starting')

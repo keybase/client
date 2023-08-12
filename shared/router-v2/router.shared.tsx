@@ -83,7 +83,7 @@ export const useShared = () => {
   useConnectNavToRedux()
   // We use useRef and usePrevious so we can understand how our state has changed and do the right thing
   // if we use useEffect and useState we'll have to deal with extra renders which look really bad
-  const loggedInLoaded = ConfigConstants.useDaemonState(s => s.handshakeState === 'done')
+  const loggedInLoaded = C.useDaemonState(s => s.handshakeState === 'done')
   const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
   const navContainerKey = React.useRef(1)
   // keep track if we went to an init route yet or not

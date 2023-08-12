@@ -185,14 +185,14 @@ export const initPlatformListener = () => {
     }
   })
 
-  ConfigConstants.useDaemonState.subscribe((s, old) => {
+  C.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return
     if (!isWindows) return
 
     const f = async () => {
       const waitKey = 'pipeCheckFail'
       const version = s.handshakeVersion
-      const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+      const {wait} = C.useDaemonState.getState().dispatch
       wait(waitKey, version, true)
       try {
         logger.info('Checking RPC ownership')
@@ -251,7 +251,7 @@ export const initPlatformListener = () => {
     Container.ignorePromise(f())
   })
 
-  ConfigConstants.useDaemonState.subscribe((s, old) => {
+  C.useDaemonState.subscribe((s, old) => {
     if (s.handshakeState === old.handshakeState || s.handshakeState !== 'done') return
     ConfigConstants.useConfigState.getState().dispatch.setStartupDetailsLoaded()
   })
@@ -273,9 +273,9 @@ export const initPlatformListener = () => {
 
   initializeInputMonitor()
 
-  DaemonConstants.useDaemonState.setState(s => {
+  C.useDaemonState.setState(s => {
     s.dispatch.onRestartHandshakeNative = () => {
-      const {handshakeFailedReason} = ConfigConstants.useDaemonState.getState()
+      const {handshakeFailedReason} = C.useDaemonState.getState()
       if (isWindows && handshakeFailedReason === ConfigConstants.noKBFSFailReason) {
         requestWindowsStartService?.()
       }

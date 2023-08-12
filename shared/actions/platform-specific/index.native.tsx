@@ -431,7 +431,7 @@ export const initPlatformListener = () => {
     }
   })
 
-  ConfigConstants.useDaemonState.subscribe((s, old) => {
+  C.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return
 
     // loadStartupDetails finished already
@@ -439,7 +439,7 @@ export const initPlatformListener = () => {
       afterStartupDetails = (_inc: boolean) => {}
     } else {
       // Else we have to wait for the loadStartupDetails to finish
-      const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+      const {wait} = C.useDaemonState.getState().dispatch
       const version = s.handshakeVersion
       const startupDetailsWaiting = 'platform.native-waitStartupDetails'
       afterStartupDetails = (inc: boolean) => {

@@ -1,12 +1,11 @@
 import * as C from '../../constants'
-import * as Constants from '../../constants/config'
 import * as Container from '../../util/container'
 import Splash from '.'
 
 const SplashContainer = () => {
-  const failedReason = Constants.useDaemonState(s => s.handshakeFailedReason)
-  const retriesLeft = Constants.useDaemonState(s => s.handshakeRetriesLeft)
-  const startHandshake = Constants.useDaemonState(s => s.dispatch.startHandshake)
+  const failedReason = C.useDaemonState(s => s.handshakeFailedReason)
+  const retriesLeft = C.useDaemonState(s => s.handshakeRetriesLeft)
+  const startHandshake = C.useDaemonState(s => s.dispatch.startHandshake)
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onFeedback = () => {
@@ -23,7 +22,7 @@ const SplashContainer = () => {
   // Totally failed
   if (retriesLeft === 0) {
     failed = failedReason
-  } else if (retriesLeft === Constants.maxHandshakeTries) {
+  } else if (retriesLeft === C.maxHandshakeTries) {
     // First try
     status = 'Loading...'
   } else {

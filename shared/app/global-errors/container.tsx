@@ -7,7 +7,7 @@ import {settingsTab} from '../../constants/tabs'
 
 const Connected = () => {
   const loggedIn = Constants.useConfigState(s => s.loggedIn)
-  const daemonError = Constants.useDaemonState(s => s.error)
+  const daemonError = C.useDaemonState(s => s.error)
   const error = Constants.useConfigState(s => s.globalError)
   const setGlobalError = Constants.useConfigState(s => s.dispatch.setGlobalError)
 

@@ -304,7 +304,7 @@ export const initPushListener = () => {
 
   Constants.useState.getState().dispatch.initialPermissionsCheck()
 
-  ConfigConstants.useDaemonState.subscribe((s, old) => {
+  C.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return
 
     const f = async () => {
