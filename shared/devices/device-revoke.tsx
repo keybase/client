@@ -46,7 +46,7 @@ const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: ()
       fullWidth={Styles.isMobile}
       type="Danger"
       label="Yes, delete it"
-      waitingKey={C.deviceRevokeWaitingKey}
+      waitingKey={C.devicesWaitingKey}
       onClick={onSubmit}
     />
     <Kb.Button fullWidth={Styles.isMobile} type="Dim" onClick={onCancel} label="Cancel" />
@@ -80,7 +80,7 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
   try {
     const tlfs = await RPCTypes.rekeyGetRevokeWarningRpcPromise(
       {actingDevice, targetDevice},
-      C.deviceRevokeWaitingKey
+      C.devicesWaitingKey
     )
     return tlfs.endangeredTLFs?.map(t => t.name) ?? []
   } catch (e) {
