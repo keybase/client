@@ -1,4 +1,3 @@
-import * as Constants from '../constants/devices'
 import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
@@ -22,10 +21,10 @@ const splitAndSortDevices = (deviceMap: Map<string, Types.Device>) =>
   partition([...deviceMap.values()].sort(sortDevices), d => d.revokedAt)
 
 const ReloadableDevices = () => {
-  const deviceMap = Constants.useState(s => s.deviceMap)
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const {load, clearBadges} = Constants.useState(s => s.dispatch)
-  const storeSet = Constants.useState(s => s.isNew)
+  const deviceMap = C.useDevicesState(s => s.deviceMap)
+  const waiting = Container.useAnyWaiting(C.devicesWaitingKey)
+  const {load, clearBadges} = C.useDevicesState(s => s.dispatch)
+  const storeSet = C.useDevicesState(s => s.isNew)
   const {badged} = useLocalBadging(storeSet, clearBadges)
 
   const newlyChangedItemIds = badged
@@ -76,7 +75,7 @@ const ReloadableDevices = () => {
   return (
     <Kb.Reloadable
       onBack={Container.isMobile ? onBack : undefined}
-      waitingKeys={Constants.waitingKey}
+      waitingKeys={C.devicesWaitingKey}
       onReload={load}
       reloadOnMount={true}
       title={''}

@@ -1,5 +1,5 @@
-import * as React from 'react'
 import * as C from '../../constants'
+import * as React from 'react'
 import * as Container from '../../util/container'
 import * as DevicesConstants from '../../constants/devices'
 import CodePage2 from '.'
@@ -11,8 +11,7 @@ const CodePageContainer = () => {
   const provisionDeviceName = C.useProvisionState(s => s.deviceName)
   const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
   const deviceID = C.useCurrentUserState(s => s.deviceID)
-  const currentDevice =
-    DevicesConstants.useState(s => s.deviceMap.get(deviceID)) ?? DevicesConstants.emptyDevice
+  const currentDevice = C.useDevicesState(s => s.deviceMap.get(deviceID)) ?? DevicesConstants.emptyDevice
   const error = C.useProvisionState(s => s.error)
 
   const otherDevice = C.useProvisionState(s => s.codePageOtherDevice)
