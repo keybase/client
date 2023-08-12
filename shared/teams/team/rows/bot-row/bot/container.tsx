@@ -1,6 +1,5 @@
 import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/teams'
-import * as BotsConstants from '../../../../../constants/bots'
 import * as TrackerConstants from '../../../../../constants/tracker2'
 import * as ProfileConstants from '../../../../../constants/profile'
 import * as Container from '../../../../../util/container'
@@ -21,7 +20,7 @@ export default (ownProps: OwnProps) => {
   const canManageBots = Constants.useState(s => Constants.getCanPerformByID(s, teamID).manageBots)
   const map = teamDetails?.members
   const info: Types.MemberInfo = map?.get(ownProps.username) || blankInfo
-  const bot: RPCTypes.FeaturedBot = BotsConstants.useState(
+  const bot: RPCTypes.FeaturedBot = C.useBotsState(
     s =>
       s.featuredBotsMap.get(ownProps.username) ?? {
         botAlias: info.fullName,

@@ -1,4 +1,3 @@
-import * as Constants from '../../../constants/bots'
 import * as C from '../../../constants'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
@@ -26,22 +25,17 @@ const SearchBotPopup = (props: Props) => {
   const conversationIDKey = props.conversationIDKey
   const teamID = props.teamID
   const [lastQuery, setLastQuery] = React.useState('')
-  const featuredBotsMap = Constants.useState(s => s.featuredBotsMap)
-  const botSearchResults = Constants.useState(s => s.botSearchResults)
-  const waiting = Container.useAnyWaiting([
-    Constants.waitingKeyBotSearchUsers,
-    Constants.waitingKeyBotSearchFeatured,
-  ])
+  const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
+  const botSearchResults = C.useBotsState(s => s.botSearchResults)
+  const waiting = Container.useAnyWaiting([C.waitingKeyBotSearchUsers, C.waitingKeyBotSearchFeatured])
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
   }
 
-  const searchFeaturedAndUsers = Constants.useState(s => s.dispatch.searchFeaturedAndUsers)
-  const getFeaturedBots = Constants.useState(s => s.dispatch.getFeaturedBots)
-  const setSearchFeaturedAndUsersResults = Constants.useState(
-    s => s.dispatch.setSearchFeaturedAndUsersResults
-  )
+  const searchFeaturedAndUsers = C.useBotsState(s => s.dispatch.searchFeaturedAndUsers)
+  const getFeaturedBots = C.useBotsState(s => s.dispatch.getFeaturedBots)
+  const setSearchFeaturedAndUsersResults = C.useBotsState(s => s.dispatch.setSearchFeaturedAndUsersResults)
 
   const onSearch = debounce((query: string) => {
     setLastQuery(query)
@@ -67,7 +61,7 @@ const SearchBotPopup = (props: Props) => {
   const botData: Array<RPCTypes.FeaturedBot | string> =
     lastQuery.length > 0
       ? botSearchResults?.get(lastQuery)?.bots.slice() ?? []
-      : Constants.getFeaturedSorted(featuredBotsMap)
+      : C.getFeaturedSorted(featuredBotsMap)
   if (!botData.length && !waiting) {
     botData.push(resultEmptyPlaceholder)
   }

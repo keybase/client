@@ -13,3 +13,5 @@ export {isFolder, makeActionsForDestinationPickerOpen, isTeamPath, pathTypeToTex
 export {useState as useActiveState} from './active'
 export {useState as useAutoResetState, enterPipelineWaitingKey} from './autoreset'
 export {actuallyResetWaitingKey, cancelResetWaitingKey} from './autoreset'
+export {useState as useBotsState, getFeaturedSorted} from './bots'
+export {waitingKeyBotSearchUsers, waitingKeyBotSearchFeatured} from './bots'

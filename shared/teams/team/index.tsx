@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import * as BotsConstants from '../../constants/bots'
+import * as C from '../../constants'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -72,8 +72,8 @@ const getBots = memoize((members: Map<string, Types.MemberInfo>) =>
   [...members.values()].filter(m => m.type === 'restrictedbot' || m.type === 'bot')
 )
 const useLoadFeaturedBots = (teamDetails: Types.TeamDetails, shouldLoad: boolean) => {
-  const featuredBotsMap = BotsConstants.useState(s => s.featuredBotsMap)
-  const searchFeaturedBots = BotsConstants.useState(s => s.dispatch.searchFeaturedBots)
+  const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
+  const searchFeaturedBots = C.useBotsState(s => s.dispatch.searchFeaturedBots)
   const _bots = getBots(teamDetails.members)
   React.useEffect(() => {
     if (shouldLoad) {

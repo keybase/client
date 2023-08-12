@@ -1,12 +1,11 @@
-import * as BotsConstants from '../../../constants/bots'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as UsersConstants from '../../../constants/users'
-import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as TeamConstants from '../../../constants/teams'
+import type * as Container from '../../../util/container'
 import type * as RPCTypes from '../../../constants/types/rpc-gen'
 import type * as Types from '../../../constants/types/chat2'
 import type {Section as _Section} from '../../../common-adapters/section-list'
@@ -221,8 +220,9 @@ const BotTab = (props: Props) => {
       .sort((l, r) => l.localeCompare(r))
   }
 
-  const featuredBotsMap = BotsConstants.useState(s => s.featuredBotsMap)
-  const featuredBots = BotsConstants.getFeaturedSorted(featuredBotsMap)
+  const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
+  const featuredBots = C.useBotsState
+    .getFeaturedSorted(featuredBotsMap)
     .filter(
       k =>
         !botUsernames.includes(k.botUsername) &&
@@ -230,7 +230,7 @@ const BotTab = (props: Props) => {
     )
     .map((bot, index) => ({...bot, index}))
   const infoMap = UsersConstants.useState(s => s.infoMap)
-  const loadedAllBots = BotsConstants.useState(s => s.featuredBotsLoaded)
+  const loadedAllBots = C.useBotsState(s => s.featuredBotsLoaded)
 
   const usernamesToFeaturedBots = (usernames: string[]) =>
     usernames.map((b, index) => ({
@@ -262,7 +262,7 @@ const BotTab = (props: Props) => {
       selected: 'chatInstallBot',
     })
   }
-  const loadNextBotPage = BotsConstants.useState(s => s.dispatch.loadNextBotPage)
+  const loadNextBotPage = C.useBotsState(s => s.dispatch.loadNextBotPage)
   const onLoadMoreBots = () => loadNextBotPage()
   const loadingBots = !featuredBotsMap.size
 

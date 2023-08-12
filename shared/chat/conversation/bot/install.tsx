@@ -1,7 +1,6 @@
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as BotsConstants from '../../../constants/bots'
-import * as C from '../../../constants'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -85,7 +84,7 @@ const InstallBotPopup = (props: Props) => {
     return commands.length > 0 ? convCommands : botPublicCommands
   }, [meta, botPublicCommands, botUsername])
 
-  const featured = BotsConstants.useState(s => s.featuredBotsMap.get(botUsername))
+  const featured = C.useBotsState(s => s.featuredBotsMap.get(botUsername))
   const teamRole = Constants.useContext(s => s.botTeamRoleMap.get(botUsername))
   const inTeam = teamRole !== undefined ? !!teamRole : undefined
   const inTeamUnrestricted = inTeam && teamRole === 'bot'
