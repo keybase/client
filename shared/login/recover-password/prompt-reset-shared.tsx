@@ -1,9 +1,8 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as C from '../../constants'
-import * as Constants from '../../constants/recover-password'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {SignupScreen} from '../../signup/common'
 import type {ButtonType} from '../../common-adapters/button'
@@ -19,9 +18,9 @@ const PromptReset = (props: Props) => {
   const resetAccount = C.useAutoResetState(s => s.dispatch.resetAccount)
   const {resetPassword} = props
 
-  const submitResetPassword = Constants.useState(s => s.dispatch.dynamic.submitResetPassword)
-  const startRecoverPassword = Constants.useState(s => s.dispatch.startRecoverPassword)
-  const username = Constants.useState(s => s.username)
+  const submitResetPassword = C.useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
+  const startRecoverPassword = C.useRecoverState(s => s.dispatch.startRecoverPassword)
+  const username = C.useRecoverState(s => s.username)
 
   const onContinue = React.useCallback(() => {
     if (resetPassword) {

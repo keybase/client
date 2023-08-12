@@ -1,13 +1,12 @@
-import * as ConfigConstants from '../../constants/config'
 import * as C from '../../constants'
-import * as Constants from '../../constants/recover-password'
+import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import type {ButtonType} from '../../common-adapters/button'
 import {SignupScreen} from '../../signup/common'
 
 const useConn = () => {
   const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
-  const error = Constants.useState(s => s.error)
+  const error = C.useRecoverState(s => s.error)
   const popStack = C.useRouterState(s => s.dispatch.popStack)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {

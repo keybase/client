@@ -29,3 +29,4 @@ export {useState as usePeopleState, getPeopleDataWaitingKey, todoTypes} from './
 export {useState as usePinentryState} from './pinentry'
 export {useState as useProfileState, uploadAvatarWaitingKey, waitingKey as profileWaitingKey} from './profile'
 export {useState as usePushState, permissionsRequestingWaitingKey} from './push'
+export {useState as useRecoverState, waitingKey as recoverWaitingKey} from './recover-password'

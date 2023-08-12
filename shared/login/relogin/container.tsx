@@ -3,7 +3,6 @@ import * as ConfigConstants from '../../constants/config'
 import * as SignupConstants from '../../constants/signup'
 import * as Container from '../../util/container'
 import * as React from 'react'
-import * as RecoverConstants from '../../constants/recover-password'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
 import type * as ConfigTypes from '../../constants/types/config'
@@ -98,7 +97,7 @@ export default () => {
   const _users = ConfigConstants.useConfigState(s => s.configuredAccounts)
   const error = ConfigConstants.useConfigState(s => s.loginError)
   const selectedUser = ConfigConstants.useConfigState(s => s.defaultUsername)
-  const startRecoverPassword = RecoverConstants.useState(s => s.dispatch.startRecoverPassword)
+  const startRecoverPassword = C.useRecoverState(s => s.dispatch.startRecoverPassword)
   const onForgotPassword = (username: string) => {
     startRecoverPassword({username})
   }
