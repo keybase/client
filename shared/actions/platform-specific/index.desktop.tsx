@@ -48,7 +48,7 @@ const initializeInputMonitor = () => {
     if (skipAppFocusActions) {
       console.log('Skipping app focus actions!')
     } else {
-      ConfigConstants.useActiveState.getState().dispatch.setActive(userActive)
+      C.useActiveState.getState().dispatch.setActive(userActive)
       // let node thread save file
       activeChanged?.(Date.now(), userActive)
     }

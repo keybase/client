@@ -1,3 +1,4 @@
+import * as C from '..'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as ConfigConstants from '../config'
 import {isMobile, isTablet} from '../platform'
@@ -100,7 +101,7 @@ export const isUserActivelyLookingAtThisThread = (conversationIDKey: Types.Conve
   }
 
   const {appFocused} = ConfigConstants.useConfigState.getState()
-  const {active: userActive} = ConfigConstants.useActiveState.getState()
+  const {active: userActive} = C.useActiveState.getState()
 
   return (
     appFocused && // app focused?

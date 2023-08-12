@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as ARConstants from '../constants/autoreset'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -15,7 +14,7 @@ const SelectOtherDeviceContainer = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, false)
-  const startAccountReset = ARConstants.useState(s => s.dispatch.startAccountReset)
+  const startAccountReset = C.useAutoResetState(s => s.dispatch.startAccountReset)
   const onResetAccount = React.useCallback(() => {
     startAccountReset(false, username)
   }, [startAccountReset, username])

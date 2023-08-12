@@ -1,19 +1,18 @@
-import * as React from 'react'
 import * as C from '../../constants'
+import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Constants from '../../constants/autoreset'
 import {formatDurationForAutoreset} from '../../util/timestamp'
 
 const ResetModal = () => {
-  const isResetActive = Constants.useState(s => s.active)
+  const isResetActive = C.useAutoResetState(s => s.active)
   return isResetActive ? <ResetModalImpl /> : null
 }
 
 const ResetModalImpl = () => {
-  const active = Constants.useState(s => s.active)
-  const endTime = Constants.useState(s => s.endTime)
-  const error = Constants.useState(s => s.error)
+  const active = C.useAutoResetState(s => s.active)
+  const endTime = C.useAutoResetState(s => s.endTime)
+  const error = C.useAutoResetState(s => s.error)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   React.useEffect(() => {
     if (!active) {
@@ -28,7 +27,7 @@ const ResetModalImpl = () => {
       ? 'This account is eligible to be reset.'
       : `This account will reset in ${formatDurationForAutoreset(timeLeft)}.`
 
-  const onCancelReset = Constants.useState(s => s.dispatch.cancelReset)
+  const onCancelReset = C.useAutoResetState(s => s.dispatch.cancelReset)
 
   return (
     <Kb.SafeAreaView
@@ -49,7 +48,7 @@ const ResetModalImpl = () => {
               type="Danger"
               fullWidth={true}
               onClick={onCancelReset}
-              waitingKey={Constants.cancelResetWaitingKey}
+              waitingKey={C.cancelResetWaitingKey}
               label="Cancel account reset"
             />
           ),

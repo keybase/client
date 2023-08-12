@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as BotsConstants from '../../constants/bots'
+import * as C from '../../constants'
 import * as ChatConstants from '../../constants/chat2'
 import * as UsersConstants from '../../constants/users'
 import type * as ChatTypes from '../../constants/types/chat2'
@@ -36,7 +36,7 @@ const useLoadDataForChannelPage = (
 ) => {
   const dispatch = Container.useDispatch()
   const prevSelectedTab = Container.usePrevious(selectedTab)
-  const featuredBotsMap = BotsConstants.useState(s => s.featuredBotsMap)
+  const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
   const getMembers = Constants.useState(s => s.dispatch.getMembers)
   const getBlockState = UsersConstants.useState(s => s.dispatch.getBlockState)
   const unboxRows = ChatConstants.useState(s => s.dispatch.unboxRows)
@@ -60,7 +60,7 @@ const useLoadDataForChannelPage = (
     participants,
     teamID,
   ])
-  const searchFeaturedBots = BotsConstants.useState(s => s.dispatch.searchFeaturedBots)
+  const searchFeaturedBots = C.useBotsState(s => s.dispatch.searchFeaturedBots)
   React.useEffect(() => {
     if (selectedTab !== prevSelectedTab && selectedTab === 'bots') {
       // Load any bots that aren't in the featured bots map already

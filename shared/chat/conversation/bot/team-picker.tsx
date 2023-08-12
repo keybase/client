@@ -1,9 +1,8 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import * as C from '../../../constants'
-import * as BotsConstants from '../../../constants/bots'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../constants/types/chat2'
 import {Avatars, TeamAvatar} from '../../avatars'
@@ -53,7 +52,7 @@ const BotTeamPicker = (props: Props) => {
     })
   }
 
-  const getFeaturedBots = BotsConstants.useState(s => s.dispatch.getFeaturedBots)
+  const getFeaturedBots = C.useBotsState(s => s.dispatch.getFeaturedBots)
   Container.useOnMountOnce(() => {
     getFeaturedBots()
   })

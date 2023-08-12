@@ -1,5 +1,5 @@
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/tracker2'
-import * as BotsConstants from '../../../constants/bots'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
@@ -42,7 +42,7 @@ type DropdownProps = Pick<
 }
 
 const Actions = (p: Props) => {
-  const getFeaturedBots = BotsConstants.useState(s => s.dispatch.getFeaturedBots)
+  const getFeaturedBots = C.useBotsState(s => s.dispatch.getFeaturedBots)
   // load featured bots on first render
   React.useEffect(() => {
     // TODO likely don't do this all the time, just once
