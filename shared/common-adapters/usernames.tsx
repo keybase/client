@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as ProfileConstants from '../constants/profile'
 import * as TrackerConstants from '../constants/tracker2'
 import * as UsersConstants from '../constants/users'
 import * as Styles from '../styles'
@@ -90,7 +89,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
   const following = C.useFollowerState(s => colorFollowing && s.following.has(username))
   const broken = UsersConstants.useState(s => (colorBroken && s.infoMap.get(username)?.broken) ?? false)
 
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = React.useCallback(
     (evt: any) => {
       evt?.stopPropagation()

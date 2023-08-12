@@ -1,7 +1,7 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Constants from '../../constants/profile'
 import Modal from '../modal'
 import type {PlatformsExpandedType} from '../../constants/types/more'
 
@@ -60,14 +60,14 @@ class EnterUsername extends React.Component<Props, State> {
           <UsernameTips platform={this.props.platform} />
           <Kb.Box2 direction="horizontal" gap="small">
             <Kb.WaitingButton
-              waitingKey={Constants.waitingKey}
+              waitingKey={C.profileWaitingKey}
               onlyDisable={true}
               type="Dim"
               onClick={this.props.onCancel}
               label="Cancel"
             />
             <Kb.WaitingButton
-              waitingKey={Constants.waitingKey}
+              waitingKey={C.profileWaitingKey}
               disabled={!this.state.canSubmit}
               onClick={this._submit}
               label="Continue"

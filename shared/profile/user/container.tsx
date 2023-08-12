@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
-import * as ProfileConstants from '../../constants/profile'
 import * as Styles from '../../styles'
 import type * as Types from '../../constants/types/tracker2'
 import {memoize} from '../../util/memoize'
@@ -110,7 +109,7 @@ const Connected = (ownProps: OwnProps) => {
     }
   })()
 
-  const editAvatar = ProfileConstants.useState(s => s.dispatch.editAvatar)
+  const editAvatar = C.useProfileState(s => s.dispatch.editAvatar)
   const _onEditAvatar = editAvatar
   // const _onIKnowThem = (username: string, guiID: string) => {
   //   dispatch(

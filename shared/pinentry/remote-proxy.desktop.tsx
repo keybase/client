@@ -1,6 +1,5 @@
 // Manages remote pinentry windows
 import * as C from '../constants'
-import * as Constants from '../constants/pinentry'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
@@ -28,7 +27,7 @@ const Pinentry = (p: ProxyProps) => {
 const PinentryMemo = React.memo(Pinentry)
 
 const PinentryProxy = () => {
-  const {cancelLabel, prompt, retryLabel, showTyping, submitLabel, type, windowTitle} = Constants.useState(
+  const {cancelLabel, prompt, retryLabel, showTyping, submitLabel, type, windowTitle} = C.usePinentryState(
     s => {
       const {cancelLabel, prompt, retryLabel, showTyping, submitLabel, type, windowTitle} = s
       return {

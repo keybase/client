@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/chat2'
-import * as ProfileConstants from '../../constants/profile'
 import * as Container from '../../util/container'
 import * as Chat2Gen from '../../actions/chat2-gen'
 type Props = {conversationID: string}
@@ -19,7 +18,7 @@ const BlockButtons = (props: Props) => {
   })
   const participantInfo = Constants.useContext(s => s.participants)
   const currentUser = C.useCurrentUserState(s => s.username)
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   if (!blockButtonInfo) {
     return null
   }

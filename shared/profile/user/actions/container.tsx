@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/tracker2'
-import * as ProfileConstants from '../../../constants/profile'
 import * as FsTypes from '../../../constants/types/fs'
 import Actions from '.'
 
@@ -42,7 +41,7 @@ export default (ownProps: OwnProps) => {
   const _onReload = (username: string) => {
     showUser(username, false)
   }
-  const submitUnblockUser = ProfileConstants.useState(s => s.dispatch.submitUnblockUser)
+  const submitUnblockUser = C.useProfileState(s => s.dispatch.submitUnblockUser)
   const _onUnblock = (username: string, guiID: string) => {
     submitUnblockUser(username, guiID)
   }

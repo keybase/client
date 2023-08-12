@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/settings'
-import * as ProfileConstants from '../../constants/profile'
 import type {PendingInvite} from '../../constants/settings-invites'
 import Invites from '.'
 import * as Container from '../../util/container'
@@ -27,7 +26,7 @@ export default () => {
     navigateAppend({props: {email: invite.email, link: invite.url}, selected: 'inviteSent'})
   }
 
-  const onSelectUser = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const onSelectUser = C.useProfileState(s => s.dispatch.showUserProfile)
   const props = {
     acceptedInvites: acceptedInvites,
     error: error,

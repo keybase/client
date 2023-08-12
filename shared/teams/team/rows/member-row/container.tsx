@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/teams'
 import * as ChatConstants from '../../../../constants/chat2'
 import * as UsersConstants from '../../../../constants/users'
-import * as ProfileConstants from '../../../../constants/profile'
 import * as TrackerConstants from '../../../../constants/tracker2'
 import type * as Types from '../../../../constants/types/teams'
 import {TeamMemberRow} from '.'
@@ -42,7 +41,7 @@ export default (ownProps: OwnProps) => {
   const onClick = () => {
     navigateAppend({props: {teamID, username}, selected: 'teamMember'})
   }
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = () => {
     username && showUserProfile(username)
   }

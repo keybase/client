@@ -1,14 +1,14 @@
+import * as C from '../../constants'
 import ConfirmOrPending from '.'
 import {ProofStatus} from '../../constants/types/rpc-gen'
 import {globalColors} from '../../styles'
-import * as Constants from '../../constants/profile'
 
 export default () => {
-  const proofFound = Constants.useState(s => s.proofFound)
-  const proofStatus = Constants.useState(s => s.proofStatus)
-  const platform = Constants.useState(s => s.platform)
-  const username = Constants.useState(s => s.username)
-  const backToProfile = Constants.useState(s => s.dispatch.backToProfile)
+  const proofFound = C.useProfileState(s => s.proofFound)
+  const proofStatus = C.useProfileState(s => s.proofStatus)
+  const platform = C.useProfileState(s => s.platform)
+  const username = C.useProfileState(s => s.username)
+  const backToProfile = C.useProfileState(s => s.dispatch.backToProfile)
 
   const isGood = proofFound && proofStatus === ProofStatus.ok
   const isPending = !isGood && !proofFound && !!proofStatus && proofStatus <= ProofStatus.baseHardError

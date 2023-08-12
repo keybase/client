@@ -1,10 +1,9 @@
 import * as C from '../../constants'
 import ProveWebsiteChoice from '.'
-import * as Constants from '../../constants/profile'
 
 export default () => {
-  const cancelAddProof = Constants.useState(s => s.dispatch.dynamic.cancelAddProof)
-  const addProof = Constants.useState(s => s.dispatch.addProof)
+  const cancelAddProof = C.useProfileState(s => s.dispatch.dynamic.cancelAddProof)
+  const addProof = C.useProfileState(s => s.dispatch.addProof)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     cancelAddProof?.()

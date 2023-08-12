@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as ChatConstants from '../../../constants/chat2'
-import * as ProfileConstants from '../../../constants/profile'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
@@ -616,7 +615,7 @@ export const TeamMemberHeader = (props: Props) => {
   const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
   const yourUsername = C.useCurrentUserState(s => s.username)
 
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
   const onChat = () => previewConversation({participants: [username], reason: 'memberView'})
   const onViewProfile = () => showUserProfile(username)

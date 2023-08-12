@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
-import * as ProfileConstants from '../../constants/profile'
 import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -262,7 +261,7 @@ export const initPlatformListener = () => {
   ConfigConstants.useConfigState.getState().dispatch.initOpenAtLogin()
   ConfigConstants.useConfigState.getState().dispatch.initAppUpdateLoop()
 
-  ProfileConstants.useState.setState(s => {
+  C.useProfileState.setState(s => {
     s.dispatch.editAvatar = () => {
       C.useRouterState
         .getState()

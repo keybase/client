@@ -1,5 +1,5 @@
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
-import * as ProfileConstants from '../../../../constants/profile'
 import ResetUser from '.'
 
 export default () => {
@@ -9,7 +9,7 @@ export default () => {
   const resetLetThemIn = Constants.useContext(s => s.dispatch.resetLetThemIn)
   const _participants = participantInfo.all
   const _resetParticipants = meta.resetParticipants
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const _viewProfile = showUserProfile
   const username = (_resetParticipants && [..._resetParticipants][0]) || ''
   const nonResetUsers = new Set(_participants)

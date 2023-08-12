@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as RemoteGen from '../remote-gen'
 import * as Clipboard from 'expo-clipboard'
 import * as ConfigConstants from '../../constants/config'
-import * as ProfileConstants from '../../constants/profile'
 import * as ChatConstants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
@@ -471,7 +470,7 @@ export const initPlatformListener = () => {
     }
   })
 
-  ProfileConstants.useState.setState(s => {
+  C.useProfileState.setState(s => {
     s.dispatch.editAvatar = () => {
       const f = async () => {
         try {

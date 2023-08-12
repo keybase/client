@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Container from '../util/container'
-import * as ProfileConstants from '../constants/profile'
 import * as FsTypes from '../constants/types/fs'
 import * as RemoteGen from '../actions/remote-gen'
 import * as FsUtil from '../util/kbfs'
@@ -13,7 +12,7 @@ const FilesContainer = () => {
   const {remoteTlfUpdates} = state
   const username = C.useCurrentUserState(s => s.username)
   const dispatch = Container.useDispatch()
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   return (
     <FilesPreview
       userTlfUpdates={

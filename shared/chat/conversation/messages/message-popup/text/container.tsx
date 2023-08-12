@@ -2,7 +2,6 @@ import * as C from '../../../../../constants'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as TeamsConstants from '../../../../../constants/teams'
-import * as ProfileConstants from '../../../../../constants/profile'
 import * as Container from '../../../../../util/container'
 import {linkFromConvAndMessage} from '../../../../../constants'
 import * as ConfigConstants from '../../../../../constants/config'
@@ -177,7 +176,7 @@ export default (ownProps: OwnProps) => {
     })
   }
 
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const _onViewProfile = showUserProfile
   const yourMessage = message.author === _you
   const isDeleteable = !!(_isDeleteable && (yourMessage || _canAdminDelete))
