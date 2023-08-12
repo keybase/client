@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as C from '../constants'
 import * as ConfigConstants from '../constants/config'
 
 const Loading = React.lazy(async () => import('./loading/container'))

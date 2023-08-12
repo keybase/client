@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
 import * as ProfileConstants from '../../constants/profile'
-import * as DaemonConstants from '../../constants/daemon'
 import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'

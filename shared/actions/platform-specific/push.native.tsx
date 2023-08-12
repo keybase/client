@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
