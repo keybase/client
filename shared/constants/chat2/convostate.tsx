@@ -2077,26 +2077,23 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     onMessagesUpdated: messagesUpdated => {
       const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
-      const f = async () => {
-        const username = C.useCurrentUserState.getState().username
-        const devicename = C.useCurrentUserState.getState().deviceName
-        const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
-        for (const msg of messagesUpdated.updates ?? []) {
-          const messageID = Message.getMessageID(msg)
-          if (!messageID) {
-            return
-          }
-          const message = Message.uiMessageToMessage(get().id, msg, username, getLastOrdinal, devicename)
-          if (!message) {
-            return
-          }
-          const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID)
-          if (ordinal) {
-            dispatch.updateMessage(ordinal, message)
-          }
+      const username = C.useCurrentUserState.getState().username
+      const devicename = C.useCurrentUserState.getState().deviceName
+      const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+      for (const msg of messagesUpdated.updates ?? []) {
+        const messageID = Message.getMessageID(msg)
+        if (!messageID) {
+          return
+        }
+        const message = Message.uiMessageToMessage(get().id, msg, username, getLastOrdinal, devicename)
+        if (!message) {
+          return
+        }
+        const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID)
+        if (ordinal) {
+          dispatch.updateMessage(ordinal, message)
         }
       }
-      Z.ignorePromise(f())
     },
     openFolder: () => {
       const f = async () => {
