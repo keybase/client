@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
-import * as ProfileConstants from '../../../constants/profile'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as UsersConstants from '../../../constants/users'
@@ -86,7 +85,7 @@ const UsernameHeader = () => {
 
     return {participants, theirFullname}
   }, shallowEqual)
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onShowProfile = React.useCallback(
     (username: string) => {
       showUserProfile(username)

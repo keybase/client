@@ -1,8 +1,8 @@
+import * as C from '../../../constants'
 import * as Container from '../../../util/container'
 import * as TeamConstants from '../../../constants/teams'
 import * as Constants from '../../../constants/chat2'
 import * as UsersConstants from '../../../constants/users'
-import * as ProfileConstants from '../../../constants/profile'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/chat2'
@@ -73,7 +73,7 @@ const MembersTab = (props: Props) => {
       return l.username.localeCompare(r.username)
     })
 
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onShowProfile = showUserProfile
 
   const sections = showSpinner

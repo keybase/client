@@ -1,7 +1,6 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
-import * as ProfileConstants from '../../constants/profile'
-import * as C from '../../constants'
 import * as TeamsConstants from '../../constants/teams'
 import * as TrackerConstants from '../../constants/tracker2'
 import NameWithIcon, {type NameWithIconProps} from '.'
@@ -27,7 +26,7 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
   const onOpenTracker = React.useCallback(() => {
     username && showUser(username, true)
   }, [showUser, username])
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onOpenUserProfile = React.useCallback(() => {
     username && showUserProfile(username)
   }, [username, showUserProfile])

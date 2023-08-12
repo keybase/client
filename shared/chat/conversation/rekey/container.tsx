@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Constants from '../../../constants/chat2'
-import * as ProfileConstants from '../../../constants/profile'
 import * as Container from '../../../util/container'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
@@ -44,7 +43,7 @@ export default () => {
     )
   }
 
-  const onShowProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const onShowProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const props = {
     onBack,
     onEnterPaperkey,

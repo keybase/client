@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import * as TeamsConstants from '../../../../constants/teams'
-import * as ProfileConstants from '../../../../constants/profile'
 import * as React from 'react'
 import Joined from '.'
 import type * as Types from '../../../../constants/types/chat2'
@@ -26,7 +25,7 @@ const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
   const onManageNotifications = React.useCallback(() => {
     showInfoPanel(true, 'settings', conversationIDKey)
   }, [showInfoPanel, conversationIDKey])
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onAuthorClick = (username: string) => {
     showUserProfile(username)
   }

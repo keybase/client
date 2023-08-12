@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Container from '../../util/container'
 import * as TrackerConstants from '../../constants/tracker2'
 import * as TeamsConstants from '../../constants/teams'
-import * as ProfileConstants from '../../constants/profile'
 import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
 import openURL from '../../util/open-url'
@@ -86,7 +85,7 @@ const AvatarTeamConnector = (props: TodoOwnProps) => {
 }
 
 const AvatarUserConnector = (props: TodoOwnProps) => {
-  const editAvatar = ProfileConstants.useState(s => s.dispatch.editAvatar)
+  const editAvatar = C.useProfileState(s => s.dispatch.editAvatar)
   const onConfirm = editAvatar
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel)
   return <Task {...props} buttons={buttons} />
@@ -105,7 +104,7 @@ const BioConnector = (props: TodoOwnProps) => {
 
 const ProofConnector = (props: TodoOwnProps) => {
   const myUsername = C.useCurrentUserState(s => s.username)
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onConfirm = showUserProfile
   const onDismiss = useOnSkipTodo('proof')
   const buttons = makeDefaultButtons(() => onConfirm(myUsername), props.confirmLabel, onDismiss)

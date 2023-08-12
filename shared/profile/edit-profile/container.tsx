@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
-import * as ProfileConstants from '../../constants/profile'
 import EditProfile from '.'
 
 export default () => {
@@ -15,7 +14,7 @@ export default () => {
     navigateUp()
   }
 
-  const editProfile = ProfileConstants.useState(s => s.dispatch.editProfile)
+  const editProfile = C.useProfileState(s => s.dispatch.editProfile)
   const onSubmit = (bio: string, fullname: string, location: string) => {
     editProfile(bio, fullname, location)
     navigateUp()

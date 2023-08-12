@@ -1,14 +1,13 @@
-import * as Kb from '../../../common-adapters'
 import * as C from '../../../constants'
+import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as Constants from '../../../constants/profile'
 import Modal from '../../modal'
 import shallowEqual from 'shallowequal'
 
 const Info = () => {
-  const updatePgpInfo = Constants.useState(s => s.dispatch.updatePgpInfo)
-  const generatePgp = Constants.useState(s => s.dispatch.generatePgp)
-  const data = Constants.useState(s => {
+  const updatePgpInfo = C.useProfileState(s => s.dispatch.updatePgpInfo)
+  const generatePgp = C.useProfileState(s => s.dispatch.generatePgp)
+  const data = C.useProfileState(s => {
     const {pgpEmail1, pgpEmail2, pgpEmail3, pgpErrorText, pgpFullName} = s
     const {pgpErrorEmail1, pgpErrorEmail2, pgpErrorEmail3} = s
     return {

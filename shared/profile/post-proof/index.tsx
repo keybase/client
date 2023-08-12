@@ -1,5 +1,5 @@
+import * as C from '../../constants'
 import * as React from 'react'
-import * as Constants from '../../constants/profile'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {subtitle} from '../../util/platforms'
@@ -194,7 +194,7 @@ class PostProof extends React.Component<Props, State> {
                 <Kb.WaitingButton
                   onClick={props.onSubmit}
                   label={onCompleteText || ''}
-                  waitingKey={Constants.waitingKey}
+                  waitingKey={C.profileWaitingKey}
                 />
               ) : (
                 <Kb.Button

@@ -1,6 +1,6 @@
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Constants from '../../constants/profile'
 import capitalize from 'lodash/capitalize'
 import {subtitle as platformSubtitle} from '../../util/platforms'
 import {SiteIcon} from '../generic/shared'
@@ -53,13 +53,13 @@ const Revoke = (props: Props) => {
             type="Dim"
             onClick={props.onCancel}
             label="Cancel"
-            waitingKey={Constants.waitingKey}
+            waitingKey={C.profileWaitingKey}
           />
           <Kb.WaitingButton
             type="Danger"
             onClick={props.onRevoke}
             label={props.platform === 'pgp' ? 'Yes, drop it' : 'Yes, revoke it'}
-            waitingKey={Constants.waitingKey}
+            waitingKey={C.profileWaitingKey}
           />
         </Kb.ButtonBar>
       </Kb.Box>
@@ -110,7 +110,7 @@ const styles = Styles.styleSheetCreate(
       reminderText: {marginTop: Styles.globalMargins.tiny},
       revokeIcon: {bottom: -8, position: 'absolute', right: -10},
       siteIcon: Styles.isMobile ? {height: 64, width: 64} : {height: 48, width: 48},
-    } as const)
+    }) as const
 )
 
 function formatMessage(platform: PlatformsExpandedType) {

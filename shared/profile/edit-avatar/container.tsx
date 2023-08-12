@@ -1,7 +1,6 @@
 import EditAvatar from '.'
 import * as C from '../../constants'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Constants from '../../constants/profile'
 import * as TeamsConstants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
@@ -21,9 +20,9 @@ export default (ownProps: OwnProps) => {
   const teamID = ownProps.teamID
   const createdTeam = ownProps.createdTeam ?? false
   const image = ownProps.image
-  const sperror = Container.useAnyErrors(Constants.uploadAvatarWaitingKey)
+  const sperror = Container.useAnyErrors(C.uploadAvatarWaitingKey)
   const sendChatNotification = ownProps.sendChatNotification ?? false
-  const submitting = Container.useAnyWaiting(Constants.uploadAvatarWaitingKey)
+  const submitting = Container.useAnyWaiting(C.uploadAvatarWaitingKey)
   const teamname = TeamsConstants.useState(
     s => (teamID ? TeamsConstants.getTeamNameFromID(s, teamID) : undefined) ?? ''
   )
@@ -31,12 +30,12 @@ export default (ownProps: OwnProps) => {
   const dispatchClearWaiting = Container.useDispatchClearWaiting()
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatchClearWaiting(Constants.uploadAvatarWaitingKey)
+    dispatchClearWaiting(C.uploadAvatarWaitingKey)
     navigateUp()
   }
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
-    dispatchClearWaiting(Constants.uploadAvatarWaitingKey)
+    dispatchClearWaiting(C.uploadAvatarWaitingKey)
     clearModals()
   }
   const uploadTeamAvatar = TeamsConstants.useState(s => s.dispatch.uploadTeamAvatar)
@@ -50,7 +49,7 @@ export default (ownProps: OwnProps) => {
     uploadTeamAvatar(teamname, filename, sendChatNotification, crop)
   }
 
-  const uploadAvatar = Constants.useState(s => s.dispatch.uploadAvatar)
+  const uploadAvatar = C.useProfileState(s => s.dispatch.uploadAvatar)
 
   const onSaveUserAvatar = (_filename: string, crop?: RPCTypes.ImageCropRect) => {
     const filename = Styles.unnormalizePath(_filename)
@@ -82,7 +81,7 @@ export default (ownProps: OwnProps) => {
     onClose,
     sendChatNotification,
     submitting,
-    waitingKey: Constants.uploadAvatarWaitingKey,
+    waitingKey: C.uploadAvatarWaitingKey,
   }
   const props = teamID
     ? {

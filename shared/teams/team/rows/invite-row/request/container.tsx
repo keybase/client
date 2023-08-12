@@ -1,6 +1,6 @@
+import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/teams'
 import * as ChatConstants from '../../../../../constants/chat2'
-import * as ProfileConstants from '../../../../../constants/profile'
 import * as Container from '../../../../../util/container'
 import * as React from 'react'
 import type * as Types from '../../../../../constants/types/teams'
@@ -88,7 +88,7 @@ export default (ownProps: OwnProps) => {
   const onChat = () => {
     username && previewConversation({participants: [username], reason: 'teamInvite'})
   }
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = () => {
     showUserProfile(username)
   }

@@ -7,7 +7,6 @@ import * as Styles from '../styles'
 import * as AvatarZus from './avatar-zus'
 import * as ConfigConstants from '../constants/config'
 import * as UsersConstants from '../constants/users'
-import * as ProfileConstants from '../constants/profile'
 import type * as Types from '../constants/types/teams'
 import './avatar.css'
 
@@ -122,7 +121,7 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
   )
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
   const blocked = UsersConstants.useState(s => s.blockMap?.get(username || teamname || '')?.chatBlocked)
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const goToProfile = React.useCallback(
     () => username && showUserProfile(username),
     [showUserProfile, username]

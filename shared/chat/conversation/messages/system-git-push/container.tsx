@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as Container from '../../../../util/container'
 import * as TrackerConstants from '../../../../constants/tracker2'
 import * as FsTypes from '../../../../constants/types/fs'
-import * as ProfileConstants from '../../../../constants/profile'
 import * as React from 'react'
 import Git from '.'
 import type * as Types from '../../../../constants/types/chat2'
@@ -27,7 +26,7 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
     },
     [message]
   )
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const onClickUserAvatar = React.useCallback(
     (username: string) => {

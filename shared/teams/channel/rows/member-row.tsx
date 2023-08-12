@@ -6,7 +6,6 @@ import type * as Types from '../../../constants/types/teams'
 import type * as ChatTypes from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/teams'
 import * as UsersConstants from '../../../constants/users'
-import * as ProfileConstants from '../../../constants/profile'
 import * as ChatConstants from '../../../constants/chat2'
 import MenuHeader from '../../team/rows/menu-header.new'
 
@@ -124,7 +123,7 @@ const ChannelMemberRow = (props: Props) => {
     </Kb.Box2>
   )
 
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const setUserBlocks = UsersConstants.useState(s => s.dispatch.setUserBlocks)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {

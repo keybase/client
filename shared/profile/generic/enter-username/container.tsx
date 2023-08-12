@@ -1,18 +1,17 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/profile'
 import openURL from '../../../util/open-url'
 import EnterUsername from '.'
 import shallowEqual from 'shallowequal'
 
 const ConnectedEnterUsername = () => {
-  const {platformGenericChecking, platformGenericParams, platformGenericURL, username} = Constants.useState(
+  const {platformGenericChecking, platformGenericParams, platformGenericURL, username} = C.useProfileState(
     s => {
       const {platformGenericChecking, platformGenericParams, platformGenericURL, username} = s
       return {platformGenericChecking, platformGenericParams, platformGenericURL, username}
     },
     shallowEqual
   )
-  const errorText = Constants.useState(s => s.errorText)
+  const errorText = C.useProfileState(s => s.errorText)
   const _platformURL = platformGenericURL
   const error = errorText
   const serviceIcon = platformGenericParams?.logoBlack ?? []
@@ -24,9 +23,9 @@ const ConnectedEnterUsername = () => {
   const unreachable = !!platformGenericURL
   const waiting = platformGenericChecking
 
-  const cancelAddProof = Constants.useState(s => s.dispatch.dynamic.cancelAddProof)
-  const updateUsername = Constants.useState(s => s.dispatch.updateUsername)
-  const submitUsername = Constants.useState(s => s.dispatch.dynamic.submitUsername)
+  const cancelAddProof = C.useProfileState(s => s.dispatch.dynamic.cancelAddProof)
+  const updateUsername = C.useProfileState(s => s.dispatch.updateUsername)
+  const submitUsername = C.useProfileState(s => s.dispatch.dynamic.submitUsername)
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onBack = () => {

@@ -2,7 +2,6 @@ import * as C from '../constants'
 import './tab-bar.css'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
-import * as ProfileConstants from '../constants/profile'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
 import * as Platforms from '../constants/platform'
@@ -37,7 +36,7 @@ const Header = () => {
   const getAttachmentRef = () => attachmentRef.current
   const username = C.useCurrentUserState(s => s.username)
   const fullname = TrackerConstants.useState(s => TrackerConstants.getDetails(s, username).fullname || '')
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onProfileClick = () => showUserProfile(username)
   const onClickWrapper = () => {
     setShowingMenu(false)

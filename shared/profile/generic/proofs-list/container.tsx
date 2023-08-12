@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/profile'
 import * as TrackerConstants from '../../../constants/tracker2'
 import ProofsList from '.'
 import * as Styles from '../../../styles'
@@ -10,7 +9,7 @@ export default () => {
   const onCancel = () => {
     navigateUp()
   }
-  const addProof = Constants.useState(s => s.dispatch.addProof)
+  const addProof = C.useProfileState(s => s.dispatch.addProof)
   const providerClicked = (key: string) => {
     addProof(key, 'profile')
   }

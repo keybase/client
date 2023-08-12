@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
-import * as ProfileConstants from '../../constants/profile'
 import type * as Types from '../../constants/types/tracker2'
 import Assertion from '.'
 import openUrl from '../../util/open-url'
@@ -77,9 +76,9 @@ export default (ownProps: OwnProps) => {
   const timestamp = a.timestamp
   const type = a.type
   const value = a.value
-  const addProof = ProfileConstants.useState(s => s.dispatch.addProof)
-  const hideStellar = ProfileConstants.useState(s => s.dispatch.hideStellar)
-  const recheckProof = ProfileConstants.useState(s => s.dispatch.recheckProof)
+  const addProof = C.useProfileState(s => s.dispatch.addProof)
+  const hideStellar = C.useProfileState(s => s.dispatch.hideStellar)
+  const recheckProof = C.useProfileState(s => s.dispatch.recheckProof)
   const _onCreateProof = (type: string) => {
     addProof(type, 'profile')
   }

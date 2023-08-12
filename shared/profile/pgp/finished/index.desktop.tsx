@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as Constants from '../../../constants/profile'
 import Modal from '../../modal'
 
 type Props = {
@@ -85,9 +84,9 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default () => {
-  const pgpKeyString = Constants.useState(s => s.pgpPublicKey || 'Error getting public key...')
-  const promptShouldStoreKeyOnServer = Constants.useState(s => s.promptShouldStoreKeyOnServer)
-  const finishedWithKeyGen = Constants.useState(s => s.dispatch.dynamic.finishedWithKeyGen)
+  const pgpKeyString = C.useProfileState(s => s.pgpPublicKey || 'Error getting public key...')
+  const promptShouldStoreKeyOnServer = C.useProfileState(s => s.promptShouldStoreKeyOnServer)
+  const finishedWithKeyGen = C.useProfileState(s => s.dispatch.dynamic.finishedWithKeyGen)
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onDone = (shouldStoreKeyOnServer: boolean) => {

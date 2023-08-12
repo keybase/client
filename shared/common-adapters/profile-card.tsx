@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import * as Platforms from '../util/platforms'
 import * as TrackerConstants from '../constants/tracker2'
-import * as ProfileConstants from '../constants/profile'
 import type * as Tracker2Types from '../constants/types/tracker2'
 import capitalize from 'lodash/capitalize'
 import Box, {Box2} from './box'
@@ -175,7 +174,7 @@ const ProfileCard = ({
     [changeFollow, userDetails]
   )
 
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const openProfile = React.useCallback(() => {
     showUserProfile(username)
     onHide?.()

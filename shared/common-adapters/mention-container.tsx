@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as ProfileConstants from '../constants/profile'
 import * as TrackerConstants from '../constants/tracker2'
 import Mention, {type OwnProps} from './mention'
 import {isSpecialMention} from '../constants/chat2'
@@ -23,7 +22,7 @@ export default (ownProps: OwnProps) => {
     }
   })()
 
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const _onClick = () => {
     if (Container.isMobile) {

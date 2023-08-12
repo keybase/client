@@ -1,16 +1,15 @@
 import * as C from '../../constants'
-import * as Constants from '../../constants/profile'
 import ProveEnterUsername from '.'
 
 export default () => {
-  const platform = Constants.useState(s => s.platform)
-  const username = Constants.useState(s => s.username)
-  const _errorText = Constants.useState(s => s.errorText)
-  const updateUsername = Constants.useState(s => s.dispatch.updateUsername)
-  const cancelAddProof = Constants.useState(s => s.dispatch.dynamic.cancelAddProof)
-  const submitBTCAddress = Constants.useState(s => s.dispatch.submitBTCAddress)
-  const submitZcashAddress = Constants.useState(s => s.dispatch.submitZcashAddress)
-  const submitUsername = Constants.useState(s => s.dispatch.dynamic.submitUsername)
+  const platform = C.useProfileState(s => s.platform)
+  const username = C.useProfileState(s => s.username)
+  const _errorText = C.useProfileState(s => s.errorText)
+  const updateUsername = C.useProfileState(s => s.dispatch.updateUsername)
+  const cancelAddProof = C.useProfileState(s => s.dispatch.dynamic.cancelAddProof)
+  const submitBTCAddress = C.useProfileState(s => s.dispatch.submitBTCAddress)
+  const submitZcashAddress = C.useProfileState(s => s.dispatch.submitZcashAddress)
+  const submitUsername = C.useProfileState(s => s.dispatch.dynamic.submitUsername)
 
   if (!platform) {
     throw new Error('No platform passed to prove enter username')

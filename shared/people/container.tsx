@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as SignupConstants from '../constants/signup'
-import * as ProfileConstants from '../constants/profile'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import People from '.'
@@ -31,7 +30,7 @@ const PeopleReloadable = () => {
     [loadPeople]
   )
 
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
 
   const onClickUser = React.useCallback((username: string) => showUserProfile(username), [showUserProfile])
 

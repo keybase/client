@@ -1,6 +1,5 @@
-import * as Constants from '../../constants/profile'
-import * as Container from '../../util/container'
 import * as C from '../../constants'
+import * as Container from '../../util/container'
 import Revoke from '.'
 import type {PlatformsExpandedType} from '../../constants/types/more'
 import type {SiteIconSet} from '../../constants/types/tracker2'
@@ -16,10 +15,10 @@ const noIcon: SiteIconSet = []
 export default (ownProps: OwnProps) => {
   const {platformHandle, platform, proofId} = ownProps
   const icon = ownProps.icon ?? noIcon
-  const errorMessage = Constants.useState(s => s.revokeError)
-  const finishRevoking = Constants.useState(s => s.dispatch.finishRevoking)
-  const submitRevokeProof = Constants.useState(s => s.dispatch.submitRevokeProof)
-  const isWaiting = Container.useAnyWaiting(Constants.waitingKey)
+  const errorMessage = C.useProfileState(s => s.revokeError)
+  const finishRevoking = C.useProfileState(s => s.dispatch.finishRevoking)
+  const submitRevokeProof = C.useProfileState(s => s.dispatch.submitRevokeProof)
+  const isWaiting = Container.useAnyWaiting(C.profileWaitingKey)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     finishRevoking()
