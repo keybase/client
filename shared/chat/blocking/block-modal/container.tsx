@@ -1,8 +1,7 @@
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/users'
 import * as ChatConstants from '../../../constants/chat2'
-import * as TeamsConstants from '../../../constants/teams'
 import * as Container from '../../../util/container'
-import * as C from '../../../constants'
 import * as React from 'react'
 import BlockModal, {type BlockModalContext, type BlockType, type NewBlocksMap, type ReportSettings} from '.'
 import {leaveTeamWaitingKey} from '../../../constants/teams'
@@ -55,7 +54,7 @@ export default (ownProps: OwnProps) => {
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onClose = navigateUp
-  const leaveTeam = TeamsConstants.useState(s => s.dispatch.leaveTeam)
+  const leaveTeam = C.useTeamsState(s => s.dispatch.leaveTeam)
   const leaveTeamAndBlock = React.useCallback(
     (teamname: string) => {
       leaveTeam(teamname, true, 'chat')

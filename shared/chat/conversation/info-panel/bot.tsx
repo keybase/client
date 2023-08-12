@@ -192,7 +192,7 @@ const BotTab = (props: Props) => {
   const {renderTabs, conversationIDKey} = props
   const meta = Constants.useContext(s => s.meta)
   const {teamID, teamname, teamType, botAliases} = meta
-  const yourOperations = TeamConstants.useState(s =>
+  const yourOperations = C.useTeamsState(s =>
     teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined
   )
   let canManageBots = false
@@ -203,7 +203,7 @@ const BotTab = (props: Props) => {
   }
   const adhocTeam = teamType === 'adhoc'
   const participantInfo = Constants.useContext(s => s.participants)
-  const teamMembers = TeamConstants.useState(s => s.teamIDToMembers.get(teamID)) ?? new Map()
+  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID)) ?? new Map()
   const participantsAll = participantInfo.all
 
   let botUsernames: Array<string> = []

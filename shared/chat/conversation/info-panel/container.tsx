@@ -1,3 +1,4 @@
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import * as TeamConstants from '../../../constants/teams'
@@ -21,7 +22,7 @@ const InfoPanelConnector = (props: Props) => {
 
   const meta = Constants.useConvoState(conversationIDKey, s => s.meta)
   const shouldNavigateOut = meta.conversationIDKey === Constants.noConversationIDKey
-  const yourRole = TeamConstants.useState(s => TeamConstants.getRole(s, meta.teamID))
+  const yourRole = C.useTeamsState(s => TeamConstants.getRole(s, meta.teamID))
   const isPreview = meta.membershipType === 'youArePreviewing'
   const channelname = meta.channelname
   const smallTeam = meta.teamType !== 'big'
