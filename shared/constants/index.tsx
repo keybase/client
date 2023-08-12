@@ -54,3 +54,9 @@ export {useState as useSettingsPasswordState} from './settings-password'
 export {useState as useSettingsInvitesState} from './settings-invites'
 export {useState as useSettingsNotifState, refreshNotificationsWaitingKey} from './settings-notifications'
 export {useState as useSettingsContactsState, importContactsWaitingKey} from './settings-contacts'
+export {
+  useState as useSignupState,
+  waitingKey as signupWaitingKey,
+  maxUsernameLength,
+  defaultDevicename,
+} from './signup'

@@ -8,7 +8,6 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {defaultDevicename} from '../constants/signup'
 
 const PublicNameContainer = () => {
   const devices = C.useProvisionState(s => s.devices)
@@ -51,7 +50,7 @@ type Props = {
 }
 
 const SetPublicName = (props: Props) => {
-  const [deviceName, setDeviceName] = React.useState(defaultDevicename)
+  const [deviceName, setDeviceName] = React.useState(C.defaultDevicename)
   const [readyToShowError, setReadyToShowError] = React.useState(false)
   const debouncedSetReadyToShowError = debounce(ready => setReadyToShowError(ready), 1000)
   const cleanDeviceName = Constants.cleanDeviceName(deviceName)

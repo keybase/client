@@ -1,11 +1,11 @@
+import * as C from '../../constants'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/signup'
 import * as Kb from '../../common-adapters'
 import {Wrapper, ContinueButton} from './common'
 
 const ConnectedSignupError = () => {
-  const error = Constants.useState(s => s.signupError)
-  const goBackAndClearErrors = Constants.useState(s => s.dispatch.goBackAndClearErrors)
+  const error = C.useSignupState(s => s.signupError)
+  const goBackAndClearErrors = C.useSignupState(s => s.dispatch.goBackAndClearErrors)
   const onBack = goBackAndClearErrors
   let header = 'Ah Shoot! Something went wrong, try again?'
   let body = error ? error.desc : ''

@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as SignupConstants from '../constants/signup'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import type * as Types from '../constants/types/people'
@@ -62,8 +61,8 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
 }
 
 const EmailVerificationBanner = () => {
-  const clearJustSignedUpEmail = SignupConstants.useState(s => s.dispatch.clearJustSignedUpEmail)
-  const signupEmail = SignupConstants.useState(s => s.justSignedUpEmail)
+  const clearJustSignedUpEmail = C.useSignupState(s => s.dispatch.clearJustSignedUpEmail)
+  const signupEmail = C.useSignupState(s => s.justSignedUpEmail)
   React.useEffect(
     () =>
       // Only have a cleanup function

@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
-import * as SignupConstants from '../../constants/signup'
 import * as Container from '../../util/container'
 import * as React from 'react'
 import Login from '.'
@@ -106,7 +105,7 @@ export default () => {
     navigateAppend({props: {}, selected: 'feedback'})
   }
   const onLogin = ConfigConstants.useConfigState(s => s.dispatch.login)
-  const requestAutoInvite = SignupConstants.useState(s => s.dispatch.requestAutoInvite)
+  const requestAutoInvite = C.useSignupState(s => s.dispatch.requestAutoInvite)
   const onSignup = () => requestAutoInvite()
   const onSomeoneElse = C.useProvisionState(s => s.dispatch.startProvision)
   const props = {

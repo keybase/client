@@ -48,7 +48,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const onBack = Container.useSafeSubmit(_onBack, hasError)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onForgotUsername = React.useCallback(() => navigateAppend('forgotUsername'), [navigateAppend])
-  const requestAutoInvite = SignupConstants.useState(s => s.dispatch.requestAutoInvite)
+  const requestAutoInvite = C.useSignupState(s => s.dispatch.requestAutoInvite)
   const onGoToSignup = requestAutoInvite
   const setUsername = C.useProvisionState(s => s.dispatch.dynamic.setUsername)
   const onSubmit = React.useCallback(

@@ -1,4 +1,3 @@
-import * as Constants from '../constants/signup'
 import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
@@ -6,16 +5,15 @@ import * as Platform from '../constants/platform'
 import * as React from 'react'
 import * as Styles from '../styles'
 import {SignupScreen, errorBanner} from './common'
-import {maxUsernameLength} from '../constants/signup'
 
 const ConnectedEnterUsername = () => {
-  const error = Constants.useState(s => s.usernameError)
-  const initialUsername = Constants.useState(s => s.username)
-  const usernameTaken = Constants.useState(s => s.usernameTaken)
-  const checkUsername = Constants.useState(s => s.dispatch.checkUsername)
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
+  const error = C.useSignupState(s => s.usernameError)
+  const initialUsername = C.useSignupState(s => s.username)
+  const usernameTaken = C.useSignupState(s => s.usernameTaken)
+  const checkUsername = C.useSignupState(s => s.dispatch.checkUsername)
+  const waiting = Container.useAnyWaiting(C.signupWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const restartSignup = Constants.useState(s => s.dispatch.restartSignup)
+  const restartSignup = C.useSignupState(s => s.dispatch.restartSignup)
   const onBack = () => {
     restartSignup()
     navigateUp()
@@ -108,7 +106,7 @@ const EnterUsername = (props: Props) => {
               autoFocus={true}
               containerStyle={styles.input}
               placeholder="Pick a username"
-              maxLength={maxUsernameLength}
+              maxLength={C.maxUsernameLength}
               onChangeText={onChangeUsername}
               onEnterKeyDown={onContinue}
               value={username}
