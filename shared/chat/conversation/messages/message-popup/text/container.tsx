@@ -78,7 +78,7 @@ export default (ownProps: OwnProps) => {
     messageDelete(message.ordinal)
   }
   const _onDeleteMessageHistory = (message: Types.Message) => {
-    Constants.getConvoState(message.conversationIDKey).dispatch.navigateToThread('misc')
+    C.getConvoState(message.conversationIDKey).dispatch.navigateToThread('misc')
     navigateAppend({
       props: {conversationIDKey: message.conversationIDKey},
       selected: 'chatDeleteHistoryWarning',

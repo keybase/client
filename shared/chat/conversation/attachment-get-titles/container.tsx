@@ -1,5 +1,5 @@
-import * as Constants from '../../../constants/chat2'
 import * as C from '../../../constants'
+import * as Constants from '../../../constants/chat2'
 import * as FsTypes from '../../../constants/types/fs'
 import GetTitles, {type Info} from '.'
 import type * as Types from '../../../constants/types/chat2'
@@ -45,7 +45,7 @@ export default (ownProps: OwnProps) => {
     clearModals()
 
     if (selectConversationWithReason) {
-      Constants.getConvoState(conversationIDKey).dispatch.navigateToThread(selectConversationWithReason)
+      C.getConvoState(conversationIDKey).dispatch.navigateToThread(selectConversationWithReason)
     }
   }
   const props = {

@@ -1684,19 +1684,15 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.errorInTeamCreation = ''
       })
-      const f = async () => {
-        const ChatConstants = await import('./chat2')
-        const me = C.useCurrentUserState.getState().username
-        const participantInfo = ChatConstants.getConvoState(conversationIDKey).participants
-        // exclude bots from the newly created team, they can be added back later.
-        const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
-        const users = participants.map(assertion => ({
-          assertion,
-          role: assertion === me ? ('admin' as const) : ('writer' as const),
-        }))
-        get().dispatch.createNewTeam(teamname, false, true, {sendChatNotification: true, users})
-      }
-      Z.ignorePromise(f())
+      const me = C.useCurrentUserState.getState().username
+      const participantInfo = C.getConvoState(conversationIDKey).participants
+      // exclude bots from the newly created team, they can be added back later.
+      const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
+      const users = participants.map(assertion => ({
+        assertion,
+        role: assertion === me ? ('admin' as const) : ('writer' as const),
+      }))
+      get().dispatch.createNewTeam(teamname, false, true, {sendChatNotification: true, users})
     },
     deleteChannelConfirmed: (teamID, conversationIDKey) => {
       const f = async () => {

@@ -124,7 +124,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const [remakeChat, setRemakeChat] = React.useState(0)
   React.useEffect(() => {
     const unsubs = widgetList?.map(v => {
-      return ChatConstants.stores.get(v.convID)?.subscribe((s, old) => {
+      return C.chatStores.get(v.convID)?.subscribe((s, old) => {
         if (convoDiff(s, old)) {
           setRemakeChat(c => c + 1)
         }
@@ -142,7 +142,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     () =>
       widgetList?.map(v => {
         remakeChat // implied dependency
-        const {badge, unread, participants, meta} = ChatConstants.getConvoState(v.convID)
+        const {badge, unread, participants, meta} = C.getConvoState(v.convID)
         const c = meta
         return {
           channelname: c.channelname,

@@ -1,3 +1,4 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
@@ -14,7 +15,7 @@ export const useActions = (p: {conversationIDKey: Types.ConversationIDKey}) => {
       logger.info('bail on not looking at this thread anymore?')
       return
     }
-    Constants.getConvoState(conversationIDKey).dispatch.markThreadAsRead()
+    C.getConvoState(conversationIDKey).dispatch.markThreadAsRead()
   }, [conversationIDKey])
 
   return {markInitiallyLoadedThreadAsRead}

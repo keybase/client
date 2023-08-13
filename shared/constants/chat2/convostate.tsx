@@ -362,10 +362,10 @@ const messageIDToOrdinal = (
 
 const getClientPrev = (conversationIDKey: Types.ConversationIDKey): Types.MessageID => {
   let clientPrev: undefined | Types.MessageID
-  const mm = getConvoState(conversationIDKey).messageMap
+  const mm = C.getConvoState(conversationIDKey).messageMap
   if (mm) {
     // find last valid messageid we know about
-    const goodOrdinal = findLast(getConvoState(conversationIDKey).messageOrdinals ?? [], o => {
+    const goodOrdinal = findLast(_getConvoState(conversationIDKey).messageOrdinals ?? [], o => {
       const m = mm.get(o)
       return !!m?.id
     })
@@ -713,7 +713,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         try {
           await RPCChatTypes.localTrackGiphySelectRpcPromise({result})
         } catch {}
-        getConvoState(conversationIDKey).dispatch.injectIntoInput('')
+        _getConvoState(conversationIDKey).dispatch.injectIntoInput('')
         get().dispatch.messageSend(result.targetUrl, replyTo)
       }
       Z.ignorePromise(f())
@@ -1372,9 +1372,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
 
         const text = Common.formatTextForQuoting(message.text.stringValue())
-        getConvoState(conversationIDKey).dispatch.injectIntoInput(text)
+        _getConvoState(conversationIDKey).dispatch.injectIntoInput(text)
         C.useChatState.getState().dispatch.metasReceived([meta])
-        getConvoState(conversationIDKey).dispatch.navigateToThread('createdMessagePrivately')
+        _getConvoState(conversationIDKey).dispatch.navigateToThread('createdMessagePrivately')
       }
       Z.ignorePromise(f())
     },
@@ -2280,7 +2280,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const ensureSelectedTeamLoaded = () => {
         const selectedConversation = Common.getSelectedConversation()
-        const meta = getConvoState(selectedConversation).meta
+        const meta = _getConvoState(selectedConversation).meta
         if (meta.conversationIDKey === selectedConversation) {
           const {teamID, teamname} = meta
           if (teamname) {
@@ -2968,20 +2968,20 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 }
 
 type MadeStore = UseBoundStore<StoreApi<ConvoState>>
-export const stores = new Map<Types.ConversationIDKey, MadeStore>()
+export const _stores = new Map<Types.ConversationIDKey, MadeStore>()
 
 const createConvoStore = (id: Types.ConversationIDKey) => {
-  const existing = stores.get(id)
+  const existing = _stores.get(id)
   if (existing) return existing
   const next = Z.createZustand<ConvoState>(createSlice)
   next.setState({id})
-  stores.set(id, next)
+  _stores.set(id, next)
   next.getState().dispatch.setupSubscriptions()
   return next
 }
 
 // non reactive call, used in actions/dispatches
-export function getConvoState(id: Types.ConversationIDKey) {
+export function _getConvoState(id: Types.ConversationIDKey) {
   const store = createConvoStore(id)
   return store.getState()
 }

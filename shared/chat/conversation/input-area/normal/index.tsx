@@ -168,7 +168,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
       if (!text) return
 
       // non reactive on purpose
-      const cs = Constants.getConvoState(conversationIDKey)
+      const cs = C.getConvoState(conversationIDKey)
       const editOrdinal = cs.editing
       if (editOrdinal) {
         messageSend(text, replyTo)
@@ -225,7 +225,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     } else {
       // look at draft and unsent once
       // not reactive, just once per change
-      const draft = Constants.getConvoState(conversationIDKey).draft
+      const draft = C.getConvoState(conversationIDKey).draft
       // prefer injection
       if (unsentText) {
         injectText(unsentText)

@@ -286,18 +286,14 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.appFocused = f
       })
 
-      const updateChat = async () => {
-        if (!isMobile || !f) {
-          return
-        }
-        const ChatConstants = await import('./chat2')
-        const {dispatch} = ChatConstants.getConvoState(ChatConstants.getSelectedConversation())
-        dispatch.loadMoreMessages({
-          reason: 'foregrounding',
-        })
-        dispatch.markThreadAsRead()
+      if (!isMobile || !f) {
+        return
       }
-      Z.ignorePromise(updateChat())
+      const {dispatch} = C.getConvoState(C.getSelectedConversation())
+      dispatch.loadMoreMessages({
+        reason: 'foregrounding',
+      })
+      dispatch.markThreadAsRead()
     },
     checkForUpdate: () => {
       const f = async () => {
@@ -929,17 +925,16 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       updateTeams()
 
-      const updateChat = async () => {
+      const updateChat = () => {
         if (!b) return
-        const ChatConstants = await import('./chat2')
         b.conversations?.forEach(c => {
           const id = ChatTypes.conversationIDToKey(c.convID)
-          ChatConstants.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
-          ChatConstants.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
+          C.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
+          C.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
         })
         C.useChatState.getState().dispatch.badgesUpdated(b.bigTeamBadgeCount, b.smallTeamBadgeCount)
       }
-      Z.ignorePromise(updateChat())
+      updateChat()
     },
     setDefaultUsername: u => {
       set(s => {

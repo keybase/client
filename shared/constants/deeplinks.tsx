@@ -183,11 +183,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         case 'convid':
           if (parts.length === 2) {
-            const f = async () => {
-              const ChatConstants = await import('./chat2')
-              ChatConstants.getConvoState(parts[1]!).dispatch.navigateToThread('navChanged')
-            }
-            Z.ignorePromise(f())
+            C.getConvoState(parts[1]!).dispatch.navigateToThread('navChanged')
             return
           }
           break

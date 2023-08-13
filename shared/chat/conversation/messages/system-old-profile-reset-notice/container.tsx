@@ -10,7 +10,7 @@ export default () => {
   const nextConversationIDKey = meta.supersededBy
   const username = meta.wasFinalizedBy || ''
   const onOpenConversation = (conversationIDKey: Types.ConversationIDKey) => {
-    Constants.getConvoState(conversationIDKey).dispatch.navigateToThread('jumpFromReset')
+    C.getConvoState(conversationIDKey).dispatch.navigateToThread('jumpFromReset')
   }
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const startConversation = (participants: Array<string>) => {

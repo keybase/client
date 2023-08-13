@@ -68,7 +68,7 @@ export const MobileSendToChat = (props: Props) => {
         selected: 'chatAttachmentGetTitles',
       })
     } else {
-      ChatConstants.getConvoState(conversationIDKey).dispatch.navigateToThread(
+      C.getConvoState(conversationIDKey).dispatch.navigateToThread(
         isFromShareExtension ? 'extension' : 'files'
       )
     }
@@ -98,7 +98,7 @@ const DesktopSendToChat = (props: Props) => {
       attachmentsUpload([{path: Types.pathToString(path)}], [title], `${username},${convName.split('#')[0]}`)
     )
     clearModals()
-    ChatConstants.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
+    C.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
   }
   return (
     <Kb.PopupWrapper>

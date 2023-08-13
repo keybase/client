@@ -31,9 +31,7 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props?: Pr
     if (needSelectConvoID) {
       // hack to select the convo after we render
       setTimeout(() => {
-        Constants.getConvoState(needSelectConvoID).dispatch.navigateToThread(
-          'findNewestConversationFromLayout'
-        )
+        C.getConvoState(needSelectConvoID).dispatch.navigateToThread('findNewestConversationFromLayout')
       }, 1)
     }
   })
