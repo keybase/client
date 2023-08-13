@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import * as Constants from '../../../../constants/chat2'
 import {SnippetContext, SnippetDecorationContext} from './contexts'
 
 type Props = {
@@ -109,15 +108,15 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Sty
 const BottomLine = React.memo(function BottomLine(p: Props) {
   const {isSelected, backgroundColor, isInWidget, isDecryptingSnippet} = p
 
-  const isTypingSnippet = Constants.useContext(s => {
+  const isTypingSnippet = C.useChatContext(s => {
     const typers = !isInWidget ? s.typing : undefined
     return !!typers?.size
   })
 
   const you = C.useCurrentUserState(s => s.username)
-  const hasUnread = Constants.useContext(s => s.unread > 0)
-  const _draft = Constants.useContext(s => s.draft)
-  const meta = Constants.useContext(s => s.meta)
+  const hasUnread = C.useChatContext(s => s.unread > 0)
+  const _draft = C.useChatContext(s => s.draft)
+  const meta = C.useChatContext(s => s.meta)
   const youAreReset = meta.membershipType === 'youAreReset'
   const participantNeedToRekey = (meta.rekeyers.size ?? 0) > 0
   const youNeedToRekey = meta.rekeyers.has(you) ?? false

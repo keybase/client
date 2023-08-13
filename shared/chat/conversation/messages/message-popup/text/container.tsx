@@ -27,10 +27,10 @@ const emptyMessage = makeMessageText({})
 
 export default (ownProps: OwnProps) => {
   const {ordinal} = ownProps
-  const m = Constants.useContext(s => s.messageMap.get(ordinal))
+  const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const message = m ? m : emptyMessage
-  const meta = Constants.useContext(s => s.meta)
-  const participantInfo = Constants.useContext(s => s.participants)
+  const meta = C.useChatContext(s => s.meta)
+  const participantInfo = C.useChatContext(s => s.participants)
   const yourOperations = C.useTeamsState(s => getCanPerformByID(s, meta.teamID))
   const _canDeleteHistory = yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations.deleteOtherMessages
@@ -73,18 +73,18 @@ export default (ownProps: OwnProps) => {
   const _onCopyLink = (label: string, message: Types.Message) => {
     copyToClipboard(linkFromConvAndMessage(label, message.id))
   }
-  const messageDelete = Constants.useContext(s => s.dispatch.messageDelete)
+  const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
   const _onDelete = (message: Types.Message) => {
     messageDelete(message.ordinal)
   }
   const _onDeleteMessageHistory = (message: Types.Message) => {
-    Constants.getConvoState(message.conversationIDKey).dispatch.navigateToThread('misc')
+    C.getConvoState(message.conversationIDKey).dispatch.navigateToThread('misc')
     navigateAppend({
       props: {conversationIDKey: message.conversationIDKey},
       selected: 'chatDeleteHistoryWarning',
     })
   }
-  const setEditing = Constants.useContext(s => s.dispatch.setEditing)
+  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const _onEdit = (message: Types.Message) => {
     setEditing(message.ordinal)
   }
@@ -100,7 +100,7 @@ export default (ownProps: OwnProps) => {
   const _onKick = (teamID: TeamTypes.TeamID, username: string) => {
     navigateAppend({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'})
   }
-  const setMarkAsUnread = Constants.useContext(s => s.dispatch.setMarkAsUnread)
+  const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
   const _onMarkAsUnread = (message: Types.Message) => {
     setMarkAsUnread(message.id)
   }
@@ -112,15 +112,15 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
-  const toggleMessageReaction = Constants.useContext(s => s.dispatch.toggleMessageReaction)
+  const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const _onReact = (message: Types.Message, emoji: string) => {
     toggleMessageReaction(message.ordinal, emoji)
   }
-  const setReplyTo = Constants.useContext(s => s.dispatch.setReplyTo)
+  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
   const _onReply = (message: Types.Message) => {
     setReplyTo(message.ordinal)
   }
-  const messageReplyPrivately = Constants.useContext(s => s.dispatch.messageReplyPrivately)
+  const messageReplyPrivately = C.useChatContext(s => s.dispatch.messageReplyPrivately)
   const _onReplyPrivately = (message: Types.Message) => {
     messageReplyPrivately(message.ordinal)
   }

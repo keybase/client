@@ -22,7 +22,7 @@ const spinnerItem = 'spinner item'
 const MembersTab = (props: Props) => {
   const {conversationIDKey} = props
   const infoMap = C.useUsersState(s => s.infoMap)
-  const {channelname, teamID, teamname} = Constants.useContext(s => {
+  const {channelname, teamID, teamname} = C.useChatContext(s => {
     const {meta} = s
     const {teamID, channelname, teamname} = meta
     return {channelname, teamID, teamname}
@@ -32,8 +32,8 @@ const MembersTab = (props: Props) => {
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && !teamMembers
   const refreshParticipants = Container.useRPC(RPCChatTypes.localRefreshParticipantsRpcPromise)
-  const participantInfo = Constants.useContext(s => s.participants)
-  const participants = Constants.useContext(
+  const participantInfo = C.useChatContext(s => s.participants)
+  const participants = C.useChatContext(
     s => Constants.getBotsAndParticipants(s.meta, s.participants).participants
   )
   const [lastCID, setLastCID] = React.useState(conversationIDKey)

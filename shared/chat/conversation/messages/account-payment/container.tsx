@@ -68,7 +68,7 @@ const getRequestMessageInfo = (
 
 const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const you = C.useCurrentUserState(s => s.username)
-  const accountsInfoMap = Constants.useContext(s => s.accountsInfoMap)
+  const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
 
   const stateProps = (() => {
     const youAreSender = ownProps.message.author === you

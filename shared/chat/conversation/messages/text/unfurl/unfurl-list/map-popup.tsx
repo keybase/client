@@ -1,7 +1,6 @@
+import * as C from '../../../../../../constants'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as ConfigConstants from '../../../../../../constants/config'
-import * as C from '../../../../../../constants'
-import * as Constants from '../../../../../../constants/chat2'
 import * as Styles from '../../../../../../styles'
 import type * as Types from '../../../../../../constants/types/chat2'
 import openURL from '../../../../../../util/open-url'
@@ -29,7 +28,7 @@ const UnfurlMapPopup = (props: Props) => {
     onClose()
     openURL(url)
   }
-  const messageSend = Constants.useContext(s => s.dispatch.messageSend)
+  const messageSend = C.useChatContext(s => s.dispatch.messageSend)
   const onStopSharing = () => {
     onClose()
     messageSend('/location stop')

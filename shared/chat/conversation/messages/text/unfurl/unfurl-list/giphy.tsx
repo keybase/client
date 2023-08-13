@@ -1,4 +1,4 @@
-import * as Constants from '../../../../../../constants/chat2'
+import * as C from '../../../../../../constants'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as React from 'react'
 import * as Styles from '../../../../../../styles'
@@ -13,7 +13,7 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
 
-  const data = Constants.useContext(s => {
+  const data = C.useChatContext(s => {
     const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(s, ordinal, idx)
     if (unfurl?.unfurlType !== RPCChatTypes.UnfurlType.giphy) {
       return null

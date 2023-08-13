@@ -8,7 +8,6 @@ import Emoji from './emoji'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import type * as ChatTypes from '../constants/types/chat2'
-import * as Constants from '../constants/chat2'
 import logger from '../logger'
 
 const Kb = {
@@ -39,7 +38,7 @@ export const WaveButton = (props: Props) => {
   const [waved, setWaved] = React.useState(false)
   const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
   const waving = Container.useAnyWaiting(waitingKey)
-  const messageSend = Constants.useContext(s => s.dispatch.messageSend)
+  const messageSend = C.useChatContext(s => s.dispatch.messageSend)
   const messageSendByUsername = C.useChatState(s => s.dispatch.messageSendByUsername)
   const onWave = () => {
     if (props.username) {

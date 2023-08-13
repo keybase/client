@@ -32,8 +32,8 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const username = C.useCurrentUserState(s => s.username)
 
   const infoMap = C.useUsersState(s => s.infoMap)
-  const participantInfo = ChatConstants.useContext(s => s.participants)
-  const meta = ChatConstants.useContext(s => s.meta)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const meta = C.useChatContext(s => s.meta)
   const data = (() => {
     const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
     const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
@@ -116,8 +116,8 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     teamID && navigateAppend({props: {teamID}, selected})
   }, [navigateAppend, teamID])
 
-  const onJoinChannel = ChatConstants.useContext(s => s.dispatch.joinConversation)
-  const onLeaveChannel = ChatConstants.useContext(s => s.dispatch.leaveConversation)
+  const onJoinChannel = C.useChatContext(s => s.dispatch.joinConversation)
+  const onLeaveChannel = C.useChatContext(s => s.dispatch.leaveConversation)
   const onLeaveTeam = React.useCallback(
     () => teamID && navigateAppend({props: {teamID}, selected: 'teamReallyLeaveTeam'}),
     [navigateAppend, teamID]
@@ -129,12 +129,12 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     addTeamWithChosenChannels(teamID)
   }, [manageChatChannels, addTeamWithChosenChannels, teamID])
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const markTeamAsRead = ChatConstants.useContext(s => s.dispatch.markTeamAsRead)
+  const markTeamAsRead = C.useChatContext(s => s.dispatch.markTeamAsRead)
   const onMarkAsRead = React.useCallback(() => {
     clearModals()
     markTeamAsRead(teamID)
   }, [clearModals, markTeamAsRead, teamID])
-  const setMarkAsUnread = ChatConstants.useContext(s => s.dispatch.setMarkAsUnread)
+  const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
   const onMarkAsUnread = React.useCallback(() => {
     clearModals()
     setMarkAsUnread()
@@ -143,11 +143,11 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     clearModals()
     navigateAppend({props: {teamID}, selected: 'team'})
   }, [clearModals, navigateAppend, teamID])
-  const hideConversation = ChatConstants.useContext(s => s.dispatch.hideConversation)
+  const hideConversation = C.useChatContext(s => s.dispatch.hideConversation)
   const onHideConv = React.useCallback(() => {
     hideConversation(true)
   }, [hideConversation])
-  const onMuteConv = ChatConstants.useContext(s => s.dispatch.mute)
+  const onMuteConv = C.useChatContext(s => s.dispatch.mute)
   const onUnhideConv = React.useCallback(() => {
     hideConversation(false)
   }, [hideConversation])

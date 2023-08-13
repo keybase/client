@@ -1,9 +1,9 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import type * as ChatTypes from '../../../../constants/types/chat2'
 import type * as TeamTypes from '../../../../constants/types/teams'
-import * as Constants from '../../../../constants/chat2'
 import * as InfoPanelCommon from '../common'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import {TeamsSubscriberMountOnly} from '../../../../teams/subscriber'
@@ -50,8 +50,8 @@ type AdhocHeaderProps = {
 }
 
 const AdhocHeader = (props: AdhocHeaderProps) => {
-  const meta = Constants.useContext(s => s.meta)
-  const participants = Constants.useContext(s => s.participants)
+  const meta = C.useChatContext(s => s.meta)
+  const participants = C.useChatContext(s => s.participants)
   const {channelHumans} = InfoPanelCommon.useHumans(participants, meta)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>

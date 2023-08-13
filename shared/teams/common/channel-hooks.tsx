@@ -13,7 +13,7 @@ export const useChannelParticipants = (
   teamID: Types.TeamID,
   conversationIDKey: ChatTypes.ConversationIDKey
 ) => {
-  const participants = ChatConstants.useConvoState(conversationIDKey, s => s.participants.all)
+  const participants = C.useConvoState(conversationIDKey, s => s.participants.all)
   const teamMembers = C.useTeamsState(s => s.teamDetails.get(teamID)?.members)
   return React.useMemo(
     () =>

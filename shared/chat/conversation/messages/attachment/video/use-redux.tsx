@@ -1,3 +1,4 @@
+import * as C from '../../../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../../../constants/chat2'
 import {OrdinalContext} from '../../ids-context'
@@ -6,7 +7,7 @@ import shallowEqual from 'shallowequal'
 
 export const useRedux = () => {
   const ordinal = React.useContext(OrdinalContext)
-  return Constants.useContext(s => {
+  return C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const message = m?.type === 'attachment' ? m : missingMessage
     const {previewURL, previewHeight, previewWidth} = message

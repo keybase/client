@@ -1,3 +1,4 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
 import type * as Types from '../../../../constants/types/chat2'
@@ -23,9 +24,9 @@ type OwnProps = {
 
 const SetExplodePopup = React.memo(function SetExplodePopup(p: OwnProps) {
   const {onHidden, visible, attachTo, onAfterSelect} = p
-  const _meta = Constants.useContext(s => s.meta)
-  const selected = Constants.useContext(s => s.getExplodingMode())
-  const setExplodingMode = Constants.useContext(s => s.dispatch.setExplodingMode)
+  const _meta = C.useChatContext(s => s.meta)
+  const selected = C.useChatContext(s => s.getExplodingMode())
+  const setExplodingMode = C.useChatContext(s => s.dispatch.setExplodingMode)
   const onSelect = React.useCallback(
     (seconds: number) => {
       setExplodingMode(seconds)

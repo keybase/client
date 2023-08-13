@@ -1,6 +1,6 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Constants from '../../../../constants/chat2'
 import * as Styles from '../../../../styles'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import {formatTimeForConversationList} from '../../../../util/timestamp'
@@ -16,7 +16,7 @@ type Props = {
 
 const Timestamp = React.memo(function Timestamp() {
   const layoutTime = React.useContext(TimeContext)
-  const timeNum = Constants.useContext(s => s.meta.timestamp || layoutTime)
+  const timeNum = C.useChatContext(s => s.meta.timestamp || layoutTime)
   const timestamp = timeNum ? formatTimeForConversationList(timeNum) : ''
   return <>{timestamp}</>
 })
@@ -78,8 +78,8 @@ const Names = React.memo(function Names(p: {isSelected?: boolean; showBold: bool
 
 const SimpleTopLine = React.memo(function SimpleTopLine(p: Props) {
   const {isSelected, isInWidget} = p
-  const hasUnread = Constants.useContext(s => s.unread > 0)
-  const hasBadge = Constants.useContext(s => s.badge > 0)
+  const hasUnread = C.useChatContext(s => s.unread > 0)
+  const hasBadge = C.useChatContext(s => s.badge > 0)
   const props = {
     hasBadge,
     hasUnread,

@@ -191,8 +191,8 @@ const useReduxFast = (trailingItem: Types.Ordinal, leadingItem: Types.Ordinal) =
     leadingItem = sm.get(trailingItem) ?? 0
   }
   const you = C.useCurrentUserState(s => s.username)
-  const orangeOrdinal = Constants.useContext(s => s.orangeLine)
-  return Constants.useContext(s => {
+  const orangeOrdinal = C.useChatContext(s => s.orangeLine)
+  return C.useChatContext(s => {
     let ordinal = trailingItem
     let previous = leadingItem
 
@@ -205,9 +205,9 @@ const useReduxFast = (trailingItem: Types.Ordinal, leadingItem: Types.Ordinal) =
 }
 
 const useRedux = (ordinal: Types.Ordinal) => {
-  const participantInfoNames = Constants.useContext(s => s.participants.name)
-  const meta = Constants.useContext(s => s.meta)
-  const d = Constants.useContext(s => {
+  const participantInfoNames = C.useChatContext(s => s.participants.name)
+  const meta = C.useChatContext(s => s.meta)
+  const d = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal) ?? missingMessage
     const {author, timestamp} = m
     const {teamID, botAliases, teamType} = meta

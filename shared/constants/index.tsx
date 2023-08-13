@@ -54,4 +54,11 @@ export {_useState as useUsersState} from './users'
 export {_useState as useWaitingState} from './waiting'
 export {_useState as useWalletsState} from './wallets'
 export {_useState as useWNState} from './whats-new'
-export {_useState as useChatState} from './chat2'
+export {
+  _useState as useChatState,
+  _useConvoState as useConvoState,
+  _stores as chatStores,
+  _getConvoState as getConvoState,
+  getSelectedConversation,
+  _useContext as useChatContext,
+} from './chat2'

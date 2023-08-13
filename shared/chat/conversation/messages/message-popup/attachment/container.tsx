@@ -27,11 +27,11 @@ const emptyMessage = makeMessageAttachment({})
 
 export default (ownProps: OwnProps) => {
   const {ordinal} = ownProps
-  const m = Constants.useContext(s => s.messageMap.get(ordinal))
+  const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const message = m?.type === 'attachment' ? m : emptyMessage
-  const meta = Constants.useContext(s => s.meta)
+  const meta = C.useChatContext(s => s.meta)
   const isTeam = !!meta.teamname
-  const participantInfo = Constants.useContext(s => s.participants)
+  const participantInfo = C.useChatContext(s => s.participants)
   const yourOperations = C.useTeamsState(s => getCanPerformByID(s, meta.teamID))
   const _canAdminDelete = yourOperations.deleteOtherMessages
   const _canPinMessage = !isTeam || yourOperations.pinMessage
@@ -65,16 +65,16 @@ export default (ownProps: OwnProps) => {
   const _onCopyLink = (label: string, message: Types.Message) => {
     copyToClipboard(linkFromConvAndMessage(label, message.id))
   }
-  const messageDelete = Constants.useContext(s => s.dispatch.messageDelete)
+  const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
   const _onDelete = (message: Types.Message) => {
     messageDelete(message.ordinal)
     clearModals()
   }
-  const attachmentDownload = Constants.useContext(s => s.dispatch.attachmentDownload)
+  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
   const _onDownload = (message: Types.MessageAttachment) => {
     attachmentDownload(message.id)
   }
-  const setEditing = Constants.useContext(s => s.dispatch.setEditing)
+  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const _onEdit = (message: Types.Message) => {
     setEditing(message.ordinal)
   }
@@ -90,7 +90,7 @@ export default (ownProps: OwnProps) => {
   const _onKick = (teamID: TeamTypes.TeamID, username: string) => {
     navigateAppend({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'})
   }
-  const setMarkAsUnread = Constants.useContext(s => s.dispatch.setMarkAsUnread)
+  const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
   const _onMarkAsUnread = (message: Types.Message) => {
     setMarkAsUnread(message.id)
   }
@@ -102,18 +102,18 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
-  const toggleMessageReaction = Constants.useContext(s => s.dispatch.toggleMessageReaction)
+  const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const _onReact = (message: Types.Message, emoji: string) => {
     toggleMessageReaction(message.ordinal, emoji)
   }
 
-  const setReplyTo = Constants.useContext(s => s.dispatch.setReplyTo)
+  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
   const _onReply = (message: Types.Message) => {
     setReplyTo(message.ordinal)
   }
 
-  const messageAttachmentNativeSave = Constants.useContext(s => s.dispatch.messageAttachmentNativeSave)
-  const messageAttachmentNativeShare = Constants.useContext(s => s.dispatch.messageAttachmentNativeShare)
+  const messageAttachmentNativeSave = C.useChatContext(s => s.dispatch.messageAttachmentNativeSave)
+  const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
   const _onSaveAttachment = (message: Types.MessageAttachment) => {
     messageAttachmentNativeSave(message)
   }

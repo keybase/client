@@ -115,8 +115,8 @@ const Channel = (props: OwnProps) => {
   const conversationIDKey = props.conversationIDKey
   const providedTab = props.selectedTab
 
-  const meta = ChatConstants.useConvoState(conversationIDKey, s => s.meta)
-  const {bots, participants: _participants} = ChatConstants.useConvoState(
+  const meta = C.useConvoState(conversationIDKey, s => s.meta)
+  const {bots, participants: _participants} = C.useConvoState(
     conversationIDKey,
     s => ChatConstants.getBotsAndParticipants(meta, s.participants, true /* sort */),
     isEqual // do a deep comparison so as to not render thrash

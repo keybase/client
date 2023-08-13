@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as ConfigConstants from '../constants/config'
-import * as ChatConstants from '../constants/chat2'
 import * as Container from '../util/container'
 import Menubar from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
@@ -21,13 +20,13 @@ const RemoteContainer = () => {
   ConfigConstants.useConfigState(s => s.dispatch.setOutOfDate)(outOfDate)
   ConfigConstants.useConfigState(s => s.dispatch.setLoggedIn)(loggedIn, false)
   for (const [id, unread] of unreadMap) {
-    ChatConstants.getConvoState(id).dispatch.unreadUpdated(unread)
+    C.getConvoState(id).dispatch.unreadUpdated(unread)
   }
   for (const [id, badge] of badgeMap) {
-    ChatConstants.getConvoState(id).dispatch.badgesUpdated(badge)
+    C.getConvoState(id).dispatch.badgesUpdated(badge)
   }
   for (const [id, meta] of metaMap) {
-    ChatConstants.getConvoState(id).dispatch.updateMeta(meta)
+    C.getConvoState(id).dispatch.updateMeta(meta)
   }
   return (
     <Menubar

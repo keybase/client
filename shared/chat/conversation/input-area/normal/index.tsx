@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
@@ -34,8 +33,8 @@ const useHintText = (p: {
 }) => {
   const {minWriterRole, isExploding, isEditing, cannotWrite} = p
   const username = C.useCurrentUserState(s => s.username)
-  const {teamType, teamname, channelname} = Constants.useContext(s => s.meta)
-  const participantInfoName = Constants.useContext(s => s.participants.name)
+  const {teamType, teamname, channelname} = C.useChatContext(s => s.meta)
+  const participantInfoName = C.useChatContext(s => s.participants.name)
   if (Styles.isMobile && isExploding) {
     return isLargeScreen ? `Write an exploding message` : 'Exploding message'
   } else if (cannotWrite) {
@@ -78,10 +77,10 @@ const Input = (p: Props) => {
   const {jumpToRecent, focusInputCounter} = p
   const {onRequestScrollDown, onRequestScrollUp, onRequestScrollToBottom} = p
 
-  const showGiphySearch = Constants.useContext(s => s.giphyWindow)
-  const showCommandMarkdown = Constants.useContext(s => !!s.commandMarkdown)
-  const showCommandStatus = Constants.useContext(s => !!s.commandStatus)
-  const showReplyTo = Constants.useContext(s => !!s.messageMap.get(s.replyTo)?.id)
+  const showGiphySearch = C.useChatContext(s => s.giphyWindow)
+  const showCommandMarkdown = C.useChatContext(s => !!s.commandMarkdown)
+  const showCommandStatus = C.useChatContext(s => !!s.commandStatus)
+  const showReplyTo = C.useChatContext(s => !!s.messageMap.get(s.replyTo)?.id)
   return (
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
       {showReplyTo && <ReplyPreview />}
@@ -109,28 +108,28 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     | 'onRequestScrollToBottom'
   >
 ) {
-  const conversationIDKey = Constants.useContext(s => s.id)
+  const conversationIDKey = C.useChatContext(s => s.id)
   const {focusInputCounter, onRequestScrollToBottom} = p
   const {onRequestScrollDown, onRequestScrollUp, jumpToRecent} = p
-  const isTyping = Constants.useContext(s => s.typing.size > 0)
+  const isTyping = C.useChatContext(s => s.typing.size > 0)
   const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
-  const suggestBotCommandsUpdateStatus = Constants.useContext(s => s.botCommandsUpdateStatus)
-  const explodingModeSeconds = Constants.useContext(s => s.getExplodingMode())
-  const showGiphySearch = Constants.useContext(s => s.giphyWindow)
-  const showCommandMarkdown = Constants.useContext(s => !!s.commandMarkdown)
+  const suggestBotCommandsUpdateStatus = C.useChatContext(s => s.botCommandsUpdateStatus)
+  const explodingModeSeconds = C.useChatContext(s => s.getExplodingMode())
+  const showGiphySearch = C.useChatContext(s => s.giphyWindow)
+  const showCommandMarkdown = C.useChatContext(s => !!s.commandMarkdown)
   const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown
-  const {cannotWrite, minWriterRole} = Constants.useContext(s => s.meta)
-  const replyTo = Constants.useContext(s => s.messageMap.get(s.replyTo)?.id)
-  const editOrdinal = Constants.useContext(s => s.editing)
-  const isEditExploded = Constants.useContext(s =>
+  const {cannotWrite, minWriterRole} = C.useChatContext(s => s.meta)
+  const replyTo = C.useChatContext(s => s.messageMap.get(s.replyTo)?.id)
+  const editOrdinal = C.useChatContext(s => s.editing)
+  const isEditExploded = C.useChatContext(s =>
     editOrdinal ? s.messageMap.get(editOrdinal)?.exploded ?? false : false
   )
   const isEditing = !!editOrdinal
-  const unsentText = Constants.useContext(s => s.unsentText)
-  const sendTyping = Constants.useContext(s => s.dispatch.sendTyping)
-  const resetUnsentText = Constants.useContext(s => s.dispatch.resetUnsentText)
-  const updateDraft = Constants.useContext(s => s.dispatch.updateDraft)
-  const setExplodingModeLocked = Constants.useContext(s => s.dispatch.setExplodingModeLocked)
+  const unsentText = C.useChatContext(s => s.unsentText)
+  const sendTyping = C.useChatContext(s => s.dispatch.sendTyping)
+  const resetUnsentText = C.useChatContext(s => s.dispatch.resetUnsentText)
+  const updateDraft = C.useChatContext(s => s.dispatch.updateDraft)
+  const setExplodingModeLocked = C.useChatContext(s => s.dispatch.setExplodingModeLocked)
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
   const lastTextRef = React.useRef('')
 
@@ -162,13 +161,13 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     [inputRef]
   )
 
-  const messageSend = Constants.useContext(s => s.dispatch.messageSend)
+  const messageSend = C.useChatContext(s => s.dispatch.messageSend)
   const onSubmit = React.useCallback(
     (text: string) => {
       if (!text) return
 
       // non reactive on purpose
-      const cs = Constants.getConvoState(conversationIDKey)
+      const cs = C.getConvoState(conversationIDKey)
       const editOrdinal = cs.editing
       if (editOrdinal) {
         messageSend(text, replyTo)
@@ -192,7 +191,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     inputRef.current?.focus()
   }, [inputRef, focusInputCounter, isEditing])
 
-  const setEditing = Constants.useContext(s => s.dispatch.setEditing)
+  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const onCancelEditing = React.useCallback(() => {
     setEditing(false)
     injectText('')
@@ -225,7 +224,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     } else {
       // look at draft and unsent once
       // not reactive, just once per change
-      const draft = Constants.getConvoState(conversationIDKey).draft
+      const draft = C.getConvoState(conversationIDKey).draft
       // prefer injection
       if (unsentText) {
         injectText(unsentText)

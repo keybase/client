@@ -5,7 +5,6 @@ import * as Styles from '../../../styles'
 import type * as Types from '../../../constants/types/teams'
 import type * as ChatTypes from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/teams'
-import * as ChatConstants from '../../../constants/chat2'
 import MenuHeader from '../../team/rows/menu-header.new'
 
 type Props = {
@@ -32,7 +31,7 @@ const showCrown: Types.BoolTypeMap = {
 const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
   const infoMap = C.useUsersState(s => s.infoMap)
-  const participantInfo = ChatConstants.useConvoState(conversationIDKey, s => s.participants)
+  const participantInfo = C.useConvoState(conversationIDKey, s => s.participants)
   const teamMemberInfo = C.useTeamsState(
     s => s.teamDetails.get(teamID)?.members?.get(username) ?? Constants.initialMemberInfo
   )

@@ -16,10 +16,10 @@ const gearIconSize = Styles.isMobile ? 24 : 16
 
 const TeamHeader = (props: SmallProps) => {
   const {conversationIDKey} = props
-  const meta = Constants.useContext(s => s.meta)
+  const meta = C.useChatContext(s => s.meta)
   const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
-  const participants = Constants.useContext(s => s.participants)
-  const onJoinChannel = Constants.useContext(s => s.dispatch.joinConversation)
+  const participants = C.useChatContext(s => s.participants)
+  const onJoinChannel = C.useChatContext(s => s.dispatch.joinConversation)
   const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(participants, meta)
 
   const yourOperations = C.useTeamsState(s =>

@@ -31,12 +31,12 @@ const emptyMessage = makeMessageText({})
 export default (ownProps: OwnProps) => {
   const {ordinal} = ownProps
   // TODO remove
-  const m = Constants.useContext(s => s.messageMap.get(ordinal))
+  const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const message = m?.type === 'text' || m?.type === 'attachment' ? m : emptyMessage
   const you = C.useCurrentUserState(s => s.username)
   const yourMessage = message.author === you
-  const meta = Constants.useContext(s => s.meta)
-  const participantInfo = Constants.useContext(s => s.participants)
+  const meta = C.useChatContext(s => s.meta)
+  const participantInfo = C.useChatContext(s => s.participants)
   const _canDeleteHistory = C.useTeamsState(
     s => meta.teamType === 'adhoc' || TeamConstants.getCanPerformByID(s, meta.teamID).deleteChatHistory
   )
@@ -84,15 +84,15 @@ export default (ownProps: OwnProps) => {
   const _onCopy = (h: Container.HiddenString) => {
     copyToClipboard(h.stringValue())
   }
-  const attachmentDownload = Constants.useContext(s => s.dispatch.attachmentDownload)
+  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
   const _onDownload = (message: Types.Message) => {
     attachmentDownload(message.id)
   }
-  const setEditing = Constants.useContext(s => s.dispatch.setEditing)
+  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const _onEdit = () => {
     setEditing(ownProps.ordinal)
   }
-  const messageDelete = Constants.useContext(s => s.dispatch.messageDelete)
+  const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
   const _onExplodeNow = () => {
     messageDelete(ownProps.ordinal)
   }
@@ -108,7 +108,7 @@ export default (ownProps: OwnProps) => {
   const _onKick = (teamID: TeamTypes.TeamID, username: string) => {
     navigateAppend({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'})
   }
-  const setMarkAsUnread = Constants.useContext(s => s.dispatch.setMarkAsUnread)
+  const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
   const _onMarkAsUnread = (id: number) => {
     setMarkAsUnread(id)
   }
@@ -120,20 +120,20 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
-  const toggleMessageReaction = Constants.useContext(s => s.dispatch.toggleMessageReaction)
+  const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const _onReact = (emoji: string) => {
     toggleMessageReaction(ownProps.ordinal, emoji)
   }
-  const setReplyTo = Constants.useContext(s => s.dispatch.setReplyTo)
+  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
   const _onReply = () => {
     setReplyTo(ownProps.ordinal)
   }
-  const messageReplyPrivately = Constants.useContext(s => s.dispatch.messageReplyPrivately)
+  const messageReplyPrivately = C.useChatContext(s => s.dispatch.messageReplyPrivately)
   const _onReplyPrivately = () => {
     messageReplyPrivately(ownProps.ordinal)
   }
-  const messageAttachmentNativeSave = Constants.useContext(s => s.dispatch.messageAttachmentNativeSave)
-  const messageAttachmentNativeShare = Constants.useContext(s => s.dispatch.messageAttachmentNativeShare)
+  const messageAttachmentNativeSave = C.useChatContext(s => s.dispatch.messageAttachmentNativeSave)
+  const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
   const _onSaveAttachment = (message: Types.Message) => {
     messageAttachmentNativeSave(message)
   }

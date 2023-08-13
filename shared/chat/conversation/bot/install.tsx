@@ -70,7 +70,7 @@ const InstallBotPopup = (props: Props) => {
   const [disableDone, setDisableDone] = React.useState(false)
 
   const botPublicCommands = C.useChatState(s => s.botPublicCommands.get(botUsername))
-  const meta = Constants.useContext(s => s.meta)
+  const meta = C.useChatContext(s => s.meta)
   const commands = React.useMemo(() => {
     const {botCommands} = meta
     const commands = (
@@ -85,7 +85,7 @@ const InstallBotPopup = (props: Props) => {
   }, [meta, botPublicCommands, botUsername])
 
   const featured = C.useBotsState(s => s.featuredBotsMap.get(botUsername))
-  const teamRole = Constants.useContext(s => s.botTeamRoleMap.get(botUsername))
+  const teamRole = C.useChatContext(s => s.botTeamRoleMap.get(botUsername))
   const inTeam = teamRole !== undefined ? !!teamRole : undefined
   const inTeamUnrestricted = inTeam && teamRole === 'bot'
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
@@ -93,7 +93,7 @@ const InstallBotPopup = (props: Props) => {
   const readOnly = C.useTeamsState(s =>
     meta?.teamname ? !TeamConstants.getCanPerformByID(s, meta.teamID).manageBots : false
   )
-  const settings = Constants.useContext(s => s.botSettings.get(botUsername) ?? undefined)
+  const settings = C.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
   let teamname: string | undefined
   let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
   if (meta?.teamname) {
@@ -106,7 +106,7 @@ const InstallBotPopup = (props: Props) => {
   // dispatch
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const addBotMember = Constants.useContext(s => s.dispatch.addBotMember)
+  const addBotMember = C.useChatContext(s => s.dispatch.addBotMember)
   const onClose = () => {
     Styles.isMobile ? navigateUp() : clearModals()
   }
@@ -126,7 +126,7 @@ const InstallBotPopup = (props: Props) => {
     }
     addBotMember(botUsername, installWithCommands, installWithMentions, installWithRestrict, installInConvs)
   }
-  const editBotSettings = Constants.useContext(s => s.dispatch.editBotSettings)
+  const editBotSettings = C.useChatContext(s => s.dispatch.editBotSettings)
   const onEdit = () => {
     if (!conversationIDKey) {
       return
@@ -147,8 +147,8 @@ const InstallBotPopup = (props: Props) => {
     navigateAppend({props: {}, selected: 'feedback'})
   }
 
-  const refreshBotSettings = Constants.useContext(s => s.dispatch.refreshBotSettings)
-  const refreshBotRoleInConv = Constants.useContext(s => s.dispatch.refreshBotRoleInConv)
+  const refreshBotSettings = C.useChatContext(s => s.dispatch.refreshBotSettings)
+  const refreshBotRoleInConv = C.useChatContext(s => s.dispatch.refreshBotRoleInConv)
 
   // lifecycle
   React.useEffect(() => {

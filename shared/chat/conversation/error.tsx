@@ -1,9 +1,9 @@
-import * as Constants from '../../constants/chat2'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 const ConversationError = () => {
-  const text = Constants.useContext(s => s.meta.snippet ?? '')
+  const text = C.useChatContext(s => s.meta.snippet ?? '')
   return (
     <Kb.Box style={styles.container}>
       <Kb.Text type="Header">There was an error loading this conversation.</Kb.Text>

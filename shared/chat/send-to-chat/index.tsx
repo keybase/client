@@ -54,7 +54,7 @@ const MobileSendToChatRoutable = (props: Props) => {
 export const MobileSendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const injectIntoInput = ChatConstants.useContext(s => s.dispatch.injectIntoInput)
+  const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
   const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, tlfName: string) => {
     text && injectIntoInput(text)
     if (sendPaths?.length) {
@@ -68,7 +68,7 @@ export const MobileSendToChat = (props: Props) => {
         selected: 'chatAttachmentGetTitles',
       })
     } else {
-      ChatConstants.getConvoState(conversationIDKey).dispatch.navigateToThread(
+      C.getConvoState(conversationIDKey).dispatch.navigateToThread(
         isFromShareExtension ? 'extension' : 'files'
       )
     }
@@ -92,13 +92,13 @@ const DesktopSendToChat = (props: Props) => {
     setConversationIDKey(convID)
     setConvName(convname)
   }
-  const attachmentsUpload = ChatConstants.useContext(s => s.dispatch.attachmentsUpload)
+  const attachmentsUpload = C.useChatContext(s => s.dispatch.attachmentsUpload)
   const onSend = () => {
     sendPaths?.forEach(path =>
       attachmentsUpload([{path: Types.pathToString(path)}], [title], `${username},${convName.split('#')[0]}`)
     )
     clearModals()
-    ChatConstants.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
+    C.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
   }
   return (
     <Kb.PopupWrapper>

@@ -1,3 +1,4 @@
+import * as C from '../../../../constants'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
@@ -78,7 +79,7 @@ export const getEditStyle = (isEditing: boolean) => {
 
 export const Title = () => {
   const ordinal = React.useContext(OrdinalContext)
-  const title = Constants.useContext(s => {
+  const title = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m.decoratedText?.stringValue() ?? m.title ?? '' : ''
   })
@@ -107,7 +108,7 @@ export const Title = () => {
 
 const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
   const ordinal = React.useContext(OrdinalContext)
-  const isCollapsed = Constants.useContext(s => {
+  const isCollapsed = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const message = m?.type === 'attachment' ? m : missingMessage
     const {isCollapsed} = message
@@ -176,15 +177,15 @@ export const useCollapseIcon = Container.isMobile ? useCollapseIconMobile : useC
 export const useAttachmentRedux = () => {
   const ordinal = React.useContext(OrdinalContext)
   const getIds = React.useContext(GetIdsContext)
-  const attachmentPreviewSelect = Constants.useContext(s => s.dispatch.attachmentPreviewSelect)
+  const attachmentPreviewSelect = C.useChatContext(s => s.dispatch.attachmentPreviewSelect)
   const openFullscreen = React.useCallback(() => {
     const {ordinal} = getIds()
     attachmentPreviewSelect(ordinal)
   }, [attachmentPreviewSelect, getIds])
 
-  const editInfo = Constants.useContext(s => s.getEditInfo())
+  const editInfo = C.useChatContext(s => s.getEditInfo())
   const {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState} =
-    Constants.useContext(s => {
+    C.useChatContext(s => {
       const m = s.messageMap.get(ordinal)
       const message = m?.type === 'attachment' ? m : missingMessage
       const {isCollapsed, title, fileName: fileNameRaw, transferProgress} = message

@@ -404,7 +404,7 @@ export const useAttachmentSections = (
   )
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
-  const loadAttachmentView = Constants.useContext(s => s.dispatch.loadAttachmentView)
+  const loadAttachmentView = C.useChatContext(s => s.dispatch.loadAttachmentView)
 
   Container.useOnMountOnce(() => {
     loadAttachmentView(selectedAttachmentView)
@@ -417,7 +417,7 @@ export const useAttachmentSections = (
     }
   }
 
-  const attachmentView = Constants.useContext(s => s.attachmentViewMap)
+  const attachmentView = C.useChatContext(s => s.attachmentViewMap)
   const attachmentInfo = attachmentView.get(selectedAttachmentView)
   const fromMsgID = attachmentInfo ? getFromMsgID(attachmentInfo) : undefined
 
@@ -431,11 +431,11 @@ export const useAttachmentSections = (
     loadAttachmentView(selectedAttachmentView)
   }
 
-  const attachmentPreviewSelect = Constants.useContext(s => s.dispatch.attachmentPreviewSelect)
+  const attachmentPreviewSelect = C.useChatContext(s => s.dispatch.attachmentPreviewSelect)
   const onMediaClick = (message: Types.MessageAttachment) => attachmentPreviewSelect(message.id)
 
-  const attachmentDownload = Constants.useContext(s => s.dispatch.attachmentDownload)
-  const messageAttachmentNativeShare = Constants.useContext(s => s.dispatch.messageAttachmentNativeShare)
+  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
+  const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
 
   const onDocDownload = (message: Types.MessageAttachment) => {
     if (Styles.isMobile) {

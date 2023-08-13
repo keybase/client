@@ -18,16 +18,16 @@ const missingMessage = Constants.makeMessageAttachment({})
 
 const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const ordinal = React.useContext(OrdinalContext)
-  const isEditing = Constants.useContext(s => !!s.editing)
+  const isEditing = C.useChatContext(s => !!s.editing)
 
-  const {fileType, downloadPath, transferState, transferErrMsg, fileName} = Constants.useContext(s => {
+  const {fileType, downloadPath, transferState, transferErrMsg, fileName} = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal) ?? missingMessage
     const {downloadPath, fileName, fileType, transferErrMsg, transferState} = m
     return {downloadPath, fileName, fileType, transferErrMsg, transferState}
   }, shallowEqual)
 
   // TODO not message
-  const message = Constants.useContext(s => {
+  const message = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m : missingMessage
   })
@@ -49,8 +49,8 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   }, [openLocalPathInSystemFileManagerDesktop, downloadPath])
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const attachmentDownload = Constants.useContext(s => s.dispatch.attachmentDownload)
-  const messageAttachmentNativeShare = Constants.useContext(s => s.dispatch.messageAttachmentNativeShare)
+  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
+  const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
   const onDownload = React.useCallback(() => {
     if (Container.isMobile) {
       message && messageAttachmentNativeShare(message)

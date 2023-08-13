@@ -1,5 +1,5 @@
-import * as Constants from '../../../constants/chat2'
 import * as C from '../../../constants'
+import * as Constants from '../../../constants/chat2'
 import * as FsTypes from '../../../constants/types/fs'
 import GetTitles, {type Info} from '.'
 import type * as Types from '../../../constants/types/chat2'
@@ -23,7 +23,7 @@ export default (ownProps: OwnProps) => {
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const attachmentUploadCanceled = Constants.useContext(s => s.dispatch.attachmentUploadCanceled)
+  const attachmentUploadCanceled = C.useChatContext(s => s.dispatch.attachmentUploadCanceled)
   const onCancel = () => {
     attachmentUploadCanceled(
       pathAndOutboxIDs.reduce((l: Array<RPCChatTypes.OutboxID>, {outboxID}) => {
@@ -36,8 +36,8 @@ export default (ownProps: OwnProps) => {
     navigateUp()
   }
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const attachmentsUpload = Constants.useContext(s => s.dispatch.attachmentsUpload)
-  const attachFromDragAndDrop = Constants.useContext(s => s.dispatch.attachFromDragAndDrop)
+  const attachmentsUpload = C.useChatContext(s => s.dispatch.attachmentsUpload)
+  const attachFromDragAndDrop = C.useChatContext(s => s.dispatch.attachFromDragAndDrop)
   const onSubmit = (titles: Array<string>) => {
     tlfName || noDragDrop
       ? attachmentsUpload(pathAndOutboxIDs, titles, tlfName)
@@ -45,7 +45,7 @@ export default (ownProps: OwnProps) => {
     clearModals()
 
     if (selectConversationWithReason) {
-      Constants.getConvoState(conversationIDKey).dispatch.navigateToThread(selectConversationWithReason)
+      C.getConvoState(conversationIDKey).dispatch.navigateToThread(selectConversationWithReason)
     }
   }
   const props = {

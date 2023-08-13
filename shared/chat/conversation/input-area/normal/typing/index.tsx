@@ -1,7 +1,7 @@
+import * as C from '../../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import * as Constants from '../../../../../constants/chat2'
 
 const Names = (props: {names?: Set<string>}) => {
   const textType = 'BodyTinySemibold'
@@ -43,7 +43,7 @@ const Names = (props: {names?: Set<string>}) => {
 }
 
 const Typing = React.memo(function Typing() {
-  const names = Constants.useContext(s => s.typing)
+  const names = C.useChatContext(s => s.typing)
   return (
     <Kb.Box style={styles.isTypingContainer}>
       {(names?.size ?? 0) > 0 && (

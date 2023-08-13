@@ -1,5 +1,5 @@
+import * as C from '../../../../../constants'
 import {OrdinalContext} from '../../ids-context'
-import * as Constants from '../../../../../constants/chat2'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
@@ -41,21 +41,21 @@ const shownEncryptingSet = new Set()
 
 const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
   const ordinal = React.useContext(OrdinalContext)
-  const isExploding = Constants.useContext(s => {
+  const isExploding = C.useChatContext(s => {
     const message = s.messageMap.get(ordinal)
     return !!message?.exploding
   })
-  const sent = Constants.useContext(s => {
+  const sent = C.useChatContext(s => {
     const message = s.messageMap.get(ordinal)
     return (
       (message?.type !== 'text' && message?.type !== 'attachment') || !message.submitState || message.exploded
     )
   })
-  const failed = Constants.useContext(s => {
+  const failed = C.useChatContext(s => {
     const message = s.messageMap.get(ordinal)
     return (message?.type === 'text' || message?.type === 'attachment') && message.submitState === 'failed'
   })
-  const id = Constants.useContext(s => {
+  const id = C.useChatContext(s => {
     const message = s.messageMap.get(ordinal)
     return message?.timestamp
   })

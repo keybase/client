@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
@@ -10,8 +9,8 @@ const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
 
 const ShhIcon = () => {
-  const isMuted = Constants.useContext(s => s.meta.isMuted)
-  const mute = Constants.useContext(s => s.dispatch.mute)
+  const isMuted = C.useChatContext(s => s.meta.isMuted)
+  const mute = C.useChatContext(s => s.dispatch.mute)
   const unMuteConversation = React.useCallback(() => {
     mute(false)
   }, [mute])
@@ -27,7 +26,7 @@ const ShhIcon = () => {
 }
 
 const ChannelHeader = () => {
-  const {channelname, smallTeam, teamname, teamID} = Constants.useContext(s => {
+  const {channelname, smallTeam, teamname, teamID} = C.useChatContext(s => {
     const meta = s.meta
     const {channelname, teamname, teamType, teamID} = meta
     const smallTeam = teamType !== 'big'
@@ -71,8 +70,8 @@ const emptyArray = new Array<string>()
 const UsernameHeader = () => {
   const you = C.useCurrentUserState(s => s.username)
   const infoMap = C.useUsersState(s => s.infoMap)
-  const participantInfo = Constants.useContext(s => s.participants)
-  const {participants, theirFullname} = Constants.useContext(s => {
+  const participantInfo = C.useChatContext(s => s.participants)
+  const {participants, theirFullname} = C.useChatContext(s => {
     const meta = s.meta
     const participants = meta.teamname ? emptyArray : participantInfo.name
     const theirFullname =
@@ -118,8 +117,8 @@ const UsernameHeader = () => {
 }
 
 const PhoneOrEmailHeader = () => {
-  const participantInfo = Constants.useContext(s => s.participants)
-  const meta = Constants.useContext(s => s.meta)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const meta = C.useChatContext(s => s.meta)
   const participants = (meta.teamname ? null : participantInfo.name) || emptyArray
   const phoneOrEmail = participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
   const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)

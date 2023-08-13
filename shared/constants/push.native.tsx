@@ -77,8 +77,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     const {conversationIDKey, unboxPayload, membersType} = notification
 
     logger.warn('push selecting ', conversationIDKey)
-    const ChatConstants = await import('./chat2')
-    ChatConstants.getConvoState(conversationIDKey).dispatch.navigateToThread('push', undefined, unboxPayload)
+    C.getConvoState(conversationIDKey).dispatch.navigateToThread('push', undefined, unboxPayload)
     if (unboxPayload && membersType && !isIOS) {
       logger.info('[Push] unboxing message')
       try {
@@ -173,11 +172,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             case 'chat.extension':
               {
                 const {conversationIDKey} = notification
-                const f = async () => {
-                  const ChatConstants = await import('./chat2')
-                  ChatConstants.getConvoState(conversationIDKey).dispatch.navigateToThread('extension')
-                }
-                Z.ignorePromise(f())
+                C.getConvoState(conversationIDKey).dispatch.navigateToThread('extension')
               }
               break
             case 'settings.contacts':

@@ -1,6 +1,6 @@
+import * as C from '../../../../../../constants'
 import * as React from 'react'
 import {ConvoIDContext, OrdinalContext} from '../../../ids-context'
-import * as Constants from '../../../../../../constants/chat2'
 import * as Chat2Gen from '../../../../../../actions/chat2-gen'
 import * as Types from '../../../../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
@@ -12,9 +12,9 @@ const noMessageID = Types.numberToMessageID(0)
 const UnfurlPromptListContainer = React.memo(function UnfurlPromptListContainer() {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const message = Constants.useContext(s => s.messageMap.get(ordinal))
+  const message = C.useChatContext(s => s.messageMap.get(ordinal))
   const messageID = message && message.type === 'text' ? message.id : noMessageID
-  const promptDomains = Constants.useContext(s => s.unfurlPrompt).get(messageID)
+  const promptDomains = C.useChatContext(s => s.unfurlPrompt).get(messageID)
   const dispatch = Container.useDispatch()
   const _setPolicy = (
     messageID: Types.MessageID,

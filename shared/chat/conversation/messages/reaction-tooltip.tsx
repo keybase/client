@@ -48,7 +48,7 @@ const ReactionTooltip = (p: OwnProps) => {
   const {conversationIDKey, ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
 
   const infoMap = C.useUsersState(s => s.infoMap)
-  const {_reactions, good} = Constants.useContext(s => {
+  const {_reactions, good} = C.useChatContext(s => {
     const message = s.messageMap.get(ordinal)
     if (message && Constants.isMessageWithReactions(message)) {
       const _reactions = message.reactions

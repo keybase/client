@@ -1,5 +1,5 @@
+import * as C from '../../../../../constants'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import Journeycard from '.'
@@ -19,7 +19,7 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {ordinal} = ownProps
-  const cardType = Constants.useContext(
+  const cardType = C.useChatContext(
     s => s.messageMap.get(ordinal)?.cardType ?? RPCChatTypes.JourneycardType.unused
   )
 

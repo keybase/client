@@ -16,12 +16,12 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {conversationIDKey} = ownProps
-  const _hasBadge = Constants.useConvoState(conversationIDKey, s => s.badge > 0)
-  const _hasUnread = Constants.useConvoState(conversationIDKey, s => s.unread > 0)
-  const _meta = Constants.useConvoState(conversationIDKey, s => s.meta)
-  const _participantInfo = Constants.useConvoState(conversationIDKey, s => s.participants)
+  const _hasBadge = C.useConvoState(conversationIDKey, s => s.badge > 0)
+  const _hasUnread = C.useConvoState(conversationIDKey, s => s.unread > 0)
+  const _meta = C.useConvoState(conversationIDKey, s => s.meta)
+  const _participantInfo = C.useConvoState(conversationIDKey, s => s.participants)
   const _username = C.useCurrentUserState(s => s.username)
-  const isMuted = Constants.useConvoState(conversationIDKey, s => s.muted)
+  const isMuted = C.useConvoState(conversationIDKey, s => s.muted)
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
   const styles = Constants.getRowStyles(isSelected, _hasUnread)
   const participantNeedToRekey = _meta.rekeyers.size > 0

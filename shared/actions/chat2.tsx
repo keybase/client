@@ -14,10 +14,10 @@ import {RPCError} from '../util/errors'
 
 const getClientPrev = (conversationIDKey: Types.ConversationIDKey): Types.MessageID => {
   let clientPrev: undefined | Types.MessageID
-  const mm = Constants.getConvoState(conversationIDKey).messageMap
+  const mm = C.getConvoState(conversationIDKey).messageMap
   if (mm) {
     // find last valid messageid we know about
-    const goodOrdinal = findLast(Constants.getConvoState(conversationIDKey).messageOrdinals ?? [], o => {
+    const goodOrdinal = findLast(C.getConvoState(conversationIDKey).messageOrdinals ?? [], o => {
       const m = mm.get(o)
       return !!m?.id
     })
@@ -64,7 +64,7 @@ const onGetInboxConvsUnboxed = (_: unknown, action: EngineGen.Chat1ChatUiChatInb
       inboxUIItem.participants ?? []
     )
     if (participantInfo.all.length > 0) {
-      Constants.getConvoState(Types.stringToConversationIDKey(inboxUIItem.convID)).dispatch.setParticipants(
+      C.getConvoState(Types.stringToConversationIDKey(inboxUIItem.convID)).dispatch.setParticipants(
         participantInfo
       )
     }
@@ -90,7 +90,7 @@ const onGetInboxConvsUnboxed = (_: unknown, action: EngineGen.Chat1ChatUiChatInb
 }
 
 const maybeChangeSelectedConv = () => {
-  const selectedConversation = Constants.getSelectedConversation()
+  const selectedConversation = C.getSelectedConversation()
   const {inboxLayout} = C.useChatState.getState()
   if (!inboxLayout || !inboxLayout.reselectInfo) {
     return
@@ -112,13 +112,11 @@ const maybeChangeSelectedConv = () => {
     }
     if (reselectInfo.newConvID) {
       logger.info(`maybeChangeSelectedConv: selecting new conv: ${reselectInfo.newConvID}`)
-      Constants.getConvoState(reselectInfo.newConvID).dispatch.navigateToThread('findNewestConversation')
+      C.getConvoState(reselectInfo.newConvID).dispatch.navigateToThread('findNewestConversation')
       return
     } else {
       logger.info(`maybeChangeSelectedConv: deselecting conv, service provided no new conv`)
-      Constants.getConvoState(Constants.noConversationIDKey).dispatch.navigateToThread(
-        'findNewestConversation'
-      )
+      C.getConvoState(Constants.noConversationIDKey).dispatch.navigateToThread('findNewestConversation')
       return
     }
   } else {
@@ -139,7 +137,7 @@ const onChatIdentifyUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatI
 
 const onChatPromptUnfurl = (_: unknown, action: EngineGen.Chat1NotifyChatChatPromptUnfurlPayload) => {
   const {convID, domain, msgID} = action.payload.params
-  Constants.getConvoState(Types.conversationIDToKey(convID)).dispatch.unfurlTogglePrompt(
+  C.getConvoState(Types.conversationIDToKey(convID)).dispatch.unfurlTogglePrompt(
     Types.numberToMessageID(msgID),
     domain,
     true
@@ -174,7 +172,7 @@ const onChatInboxSynced = (
     // We got some new messages appended
     case RPCChatTypes.SyncInboxResType.incremental: {
       const items = syncRes.incremental.items || []
-      const selectedConversation = Constants.getSelectedConversation()
+      const selectedConversation = C.getSelectedConversation()
       let loadMore = false
       const metas = items.reduce<Array<Types.ConversationMeta>>((arr, i) => {
         const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv)
@@ -187,7 +185,7 @@ const onChatInboxSynced = (
         return arr
       }, [])
       if (loadMore) {
-        Constants.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
+        C.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
       }
       const removals = syncRes.incremental.removals?.map(Types.stringToConversationIDKey)
       // Update new untrusted
@@ -218,7 +216,7 @@ const onChatPaymentInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatPaym
     throw new Error(errMsg)
   }
   C.useChatState.getState().dispatch.paymentInfoReceived(paymentInfo)
-  Constants.getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
+  C.getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
 }
 
 const onChatRequestInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatRequestInfoPayload) => {
@@ -231,7 +229,7 @@ const onChatRequestInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatRequ
     logger.error(errMsg)
     throw new Error(errMsg)
   }
-  Constants.getConvoState(conversationIDKey).dispatch.requestInfoReceived(msgID, requestInfo)
+  C.getConvoState(conversationIDKey).dispatch.requestInfoReceived(msgID, requestInfo)
 }
 
 const onChatSubteamRename = (_: unknown, action: EngineGen.Chat1NotifyChatChatSubteamRenamePayload) => {
@@ -257,7 +255,7 @@ const onChatThreadStale = (_: unknown, action: EngineGen.Chat1NotifyChatChatThre
     }
   }
   let loadMore = false
-  const selectedConversation = Constants.getSelectedConversation()
+  const selectedConversation = C.getSelectedConversation()
   keys.forEach(key => {
     const conversationIDKeys = (updates || []).reduce<Array<string>>((arr, u) => {
       const cid = Types.conversationIDToKey(u.convID)
@@ -279,15 +277,13 @@ const onChatThreadStale = (_: unknown, action: EngineGen.Chat1NotifyChatChatThre
       C.useChatState.getState().dispatch.unboxRows(conversationIDKeys, true)
 
       if (RPCChatTypes.StaleUpdateType[key] === RPCChatTypes.StaleUpdateType.clear) {
-        conversationIDKeys.forEach(convID =>
-          Constants.getConvoState(convID).dispatch.replaceMessageMap(new Map())
-        )
-        conversationIDKeys.forEach(convID => Constants.getConvoState(convID).dispatch.setMessageOrdinals())
+        conversationIDKeys.forEach(convID => C.getConvoState(convID).dispatch.replaceMessageMap(new Map()))
+        conversationIDKeys.forEach(convID => C.getConvoState(convID).dispatch.setMessageOrdinals())
       }
     }
   })
   if (loadMore) {
-    const {dispatch} = Constants.getConvoState(selectedConversation)
+    const {dispatch} = C.getConvoState(selectedConversation)
     dispatch.loadMoreMessages({reason: 'got stale'})
   }
 }
@@ -318,8 +314,8 @@ const sendAudioRecording = async (_: unknown, action: Chat2Gen.SendAudioRecordin
   const {conversationIDKey, amps, path, duration} = action.payload
   const outboxID = Constants.generateOutboxID()
   const clientPrev = getClientPrev(conversationIDKey)
-  const ephemeralLifetime = Constants.getConvoState(conversationIDKey).explodingMode
-  const meta = Constants.getConvoState(conversationIDKey).meta
+  const ephemeralLifetime = C.getConvoState(conversationIDKey).explodingMode
+  const meta = C.getConvoState(conversationIDKey).meta
   if (meta.conversationIDKey !== conversationIDKey) {
     logger.warn('sendAudioRecording: no meta for send')
     return
@@ -363,7 +359,7 @@ const dismissJourneycard = (_: unknown, action: Chat2Gen.DismissJourneycardPaylo
       logger.error(`Failed to dismiss journeycard: ${error.message}`)
     }
   })
-  Constants.getConvoState(conversationIDKey).dispatch.messagesWereDeleted({ordinals: [ordinal]})
+  C.getConvoState(conversationIDKey).dispatch.messagesWereDeleted({ordinals: [ordinal]})
 }
 
 const fetchUserEmoji = async (_: unknown, action: Chat2Gen.FetchUserEmojiPayload) => {
@@ -391,7 +387,7 @@ const ensureWidgetMetas = () => {
     return
   }
   const missing = inboxLayout.widgetList.reduce<Array<Types.ConversationIDKey>>((l, v) => {
-    if (Constants.getConvoState(v.convID).meta.conversationIDKey !== v.convID) {
+    if (C.getConvoState(v.convID).meta.conversationIDKey !== v.convID) {
       l.push(v.convID)
     }
     return l
@@ -436,7 +432,7 @@ const updateNotificationSettings = async (_: unknown, action: Chat2Gen.UpdateNot
 
 const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageCollapsePayload) => {
   const {conversationIDKey, messageID, ordinal} = action.payload
-  const m = Constants.getConvoState(conversationIDKey).messageMap.get(ordinal)
+  const m = C.getConvoState(conversationIDKey).messageMap.get(ordinal)
   let isCollapsed = false
 
   if (messageID !== ordinal) {
@@ -467,7 +463,7 @@ const setMinWriterRole = async (_: unknown, action: Chat2Gen.SetMinWriterRolePay
 
 const unfurlRemove = async (_: unknown, action: Chat2Gen.UnfurlRemovePayload) => {
   const {conversationIDKey, messageID} = action.payload
-  const meta = Constants.getConvoState(conversationIDKey).meta
+  const meta = C.getConvoState(conversationIDKey).meta
   if (meta.conversationIDKey !== conversationIDKey) {
     logger.debug('unfurl remove no meta found, aborting!')
     return
@@ -488,7 +484,7 @@ const unfurlRemove = async (_: unknown, action: Chat2Gen.UnfurlRemovePayload) =>
 
 const unfurlDismissPrompt = (_: unknown, action: Chat2Gen.UnfurlResolvePromptPayload) => {
   const {conversationIDKey, messageID, domain} = action.payload
-  Constants.getConvoState(conversationIDKey).dispatch.unfurlTogglePrompt(messageID, domain, false)
+  C.getConvoState(conversationIDKey).dispatch.unfurlTogglePrompt(messageID, domain, false)
 }
 
 const unfurlResolvePrompt = async (_: unknown, action: Chat2Gen.UnfurlResolvePromptPayload) => {
@@ -503,17 +499,17 @@ const unfurlResolvePrompt = async (_: unknown, action: Chat2Gen.UnfurlResolvePro
 
 const onGiphyResults = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphySearchResultsPayload) => {
   const {convID, results} = action.payload.params
-  Constants.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyGotSearchResult(results)
+  C.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyGotSearchResult(results)
 }
 
 const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyToggleResultWindowPayload) => {
   const {convID, show, clearInput} = action.payload.params
   const conversationIDKey = Types.stringToConversationIDKey(convID)
   if (clearInput) {
-    Constants.getConvoState(conversationIDKey).dispatch.injectIntoInput('')
+    C.getConvoState(conversationIDKey).dispatch.injectIntoInput('')
   }
 
-  Constants.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyToggleWindow(show)
+  C.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyToggleWindow(show)
 }
 
 const resolveMaybeMention = async (_: unknown, action: Chat2Gen.ResolveMaybeMentionPayload) => {
@@ -559,9 +555,7 @@ const openChatFromWidget = (
   {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
 ) => {
   ConfigConstants.useConfigState.getState().dispatch.showMain()
-  Constants.getConvoState(conversationIDKey ?? Constants.noConversationIDKey).dispatch.navigateToThread(
-    'inboxSmall'
-  )
+  C.getConvoState(conversationIDKey ?? Constants.noConversationIDKey).dispatch.navigateToThread('inboxSmall')
 }
 
 const addUsersToChannel = async (_: unknown, action: Chat2Gen.AddUsersToChannelPayload) => {
@@ -587,7 +581,7 @@ const addUserToChannel = async (_: unknown, action: Chat2Gen.AddUserToChannelPay
       {convID: Types.keyToConversationID(conversationIDKey), usernames: [username]},
       Constants.waitingKeyAddUserToChannel(username, conversationIDKey)
     )
-    Constants.getConvoState(conversationIDKey).dispatch.navigateToThread('addedToChannel')
+    C.getConvoState(conversationIDKey).dispatch.navigateToThread('addedToChannel')
   } catch (error) {
     if (error instanceof RPCError) {
       logger.error(`addUserToChannel: ${error.message}`) // surfaced in UI via waiting key
@@ -622,11 +616,11 @@ const initChat = () => {
   })
 
   Container.listenAction(Chat2Gen.jumpToRecent, () => {
-    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
+    const {dispatch} = C.getConvoState(C.getSelectedConversation())
     dispatch.loadMoreMessages({forceClear: true, reason: 'jump to recent'})
   })
   Container.listenAction(Chat2Gen.tabSelected, () => {
-    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
+    const {dispatch} = C.getConvoState(C.getSelectedConversation())
     dispatch.loadMoreMessages({reason: 'tab selected'})
   })
 
@@ -638,11 +632,11 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.unfurlRemove, unfurlRemove)
 
   Container.listenAction(Chat2Gen.updateUnreadline, (_, a) => {
-    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
+    const {dispatch} = C.getConvoState(C.getSelectedConversation())
     dispatch.markThreadAsRead(a.payload.messageID)
   })
   Container.listenAction(Chat2Gen.tabSelected, () => {
-    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
+    const {dispatch} = C.getConvoState(C.getSelectedConversation())
     dispatch.markThreadAsRead()
   })
 
@@ -681,12 +675,12 @@ const initChat = () => {
   Container.listenAction(EngineGen.chat1ChatUiChatCommandMarkdown, (_, action) => {
     const {convID, md} = action.payload.params
     const conversationIDKey = Types.stringToConversationIDKey(convID)
-    Constants.getConvoState(conversationIDKey).dispatch.setCommandMarkdown(md || undefined)
+    C.getConvoState(conversationIDKey).dispatch.setCommandMarkdown(md || undefined)
   })
   Container.listenAction(EngineGen.chat1ChatUiChatCommandStatus, (_, action) => {
     const {convID, displayText, typ, actions} = action.payload.params
     const conversationIDKey = Types.stringToConversationIDKey(convID)
-    Constants.getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
+    C.getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
       actions: actions || [],
       displayText,
       displayType: typ,
@@ -700,7 +694,7 @@ const initChat = () => {
   })
 
   Container.listenAction(Chat2Gen.replyJump, (_, action) => {
-    Constants.getConvoState(action.payload.conversationIDKey).dispatch.loadMessagesCentered(
+    C.getConvoState(action.payload.conversationIDKey).dispatch.loadMessagesCentered(
       action.payload.messageID,
       'flash'
     )
@@ -720,7 +714,7 @@ const initChat = () => {
   Container.listenAction(EngineGen.chat1ChatUiChatBotCommandsUpdateStatus, (_, a) => {
     const {convID, status} = a.payload.params
     const conversationIDKey = Types.stringToConversationIDKey(convID)
-    Constants.getConvoState(conversationIDKey).dispatch.botCommandsUpdateStatus(status)
+    C.getConvoState(conversationIDKey).dispatch.botCommandsUpdateStatus(status)
   })
 
   Container.listenAction(EngineGen.chat1NotifyChatChatParticipantsInfo, (_, a) => {
@@ -729,7 +723,7 @@ const initChat = () => {
       const participants = participantMap[convIDStr]
       const conversationIDKey = Types.stringToConversationIDKey(convIDStr)
       if (participants) {
-        Constants.getConvoState(conversationIDKey).dispatch.setParticipants(
+        C.getConvoState(conversationIDKey).dispatch.setParticipants(
           Constants.uiParticipantsToParticipantInfo(participants)
         )
       }
@@ -740,12 +734,12 @@ const initChat = () => {
     const {convID, msgID, bytesComplete, bytesTotal} = a.payload.params
     const conversationIDKey = Types.conversationIDToKey(convID)
     const ratio = bytesComplete / bytesTotal
-    Constants.getConvoState(conversationIDKey).dispatch.updateAttachmentViewTransfer(msgID, ratio)
+    C.getConvoState(conversationIDKey).dispatch.updateAttachmentViewTransfer(msgID, ratio)
   })
 
   Container.listenAction([Chat2Gen.replyJump, Chat2Gen.jumpToRecent], (_, a) => {
     const {conversationIDKey} = a.payload
-    Constants.getConvoState(conversationIDKey).dispatch.setMessageCenterOrdinal()
+    C.getConvoState(conversationIDKey).dispatch.setMessageCenterOrdinal()
   })
 
   // Backend gives us messageIDs sometimes so we need to find our ordinal
@@ -777,7 +771,7 @@ const initChat = () => {
   Container.listenAction(EngineGen.chat1NotifyChatChatAttachmentDownloadComplete, (_, action) => {
     const {convID, msgID} = action.payload.params
     const conversationIDKey = Types.conversationIDToKey(convID)
-    const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
+    const {pendingOutboxToOrdinal, dispatch, messageMap} = C.getConvoState(conversationIDKey)
     const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, msgID)
     if (!ordinal) {
       logger.info(
@@ -802,7 +796,7 @@ const initChat = () => {
   Container.listenAction(EngineGen.chat1NotifyChatChatAttachmentDownloadProgress, (_, action) => {
     const {convID, msgID, bytesComplete, bytesTotal} = action.payload.params
     const conversationIDKey = Types.conversationIDToKey(convID)
-    const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
+    const {pendingOutboxToOrdinal, dispatch, messageMap} = C.getConvoState(conversationIDKey)
     const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, msgID)
     if (!ordinal) {
       logger.info(

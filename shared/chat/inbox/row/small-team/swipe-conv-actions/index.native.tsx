@@ -1,5 +1,5 @@
+import * as C from '../../../../../constants'
 import * as Container from '../../../../../util/container'
-import * as Constants from '../../../../../constants/chat2'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
@@ -41,7 +41,7 @@ const Action = (p: {
 
 const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   const {swipeCloseRef, children, onClick} = p
-  const conversationIDKey = Constants.useContext(s => s.id)
+  const conversationIDKey = C.useChatContext(s => s.id)
   const [extraData, setExtraData] = React.useState(0)
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
   if (lastCID !== conversationIDKey) {
@@ -52,22 +52,22 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
     }
   }
 
-  const setMarkAsUnread = Constants.useContext(s => s.dispatch.setMarkAsUnread)
+  const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
   const onMarkConversationAsUnread = Container.useEvent(() => {
     setMarkAsUnread()
   })
 
-  const mute = Constants.useContext(s => s.dispatch.mute)
+  const mute = C.useChatContext(s => s.dispatch.mute)
   const onMuteConversation = Container.useEvent(() => {
     mute(!isMuted)
   })
 
-  const hideConversation = Constants.useContext(s => s.dispatch.hideConversation)
+  const hideConversation = C.useChatContext(s => s.dispatch.hideConversation)
   const onHideConversation = Container.useEvent(() => {
     hideConversation(true)
   })
 
-  const isMuted = Constants.useContext(s => s.muted)
+  const isMuted = C.useChatContext(s => s.muted)
 
   const onMarkAsUnread = Container.useEvent(() => {
     onMarkConversationAsUnread()

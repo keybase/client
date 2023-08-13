@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import PaymentStatus, {type Props} from '.'
 import type * as WalletTypes from '../../../constants/types/wallets'
@@ -39,7 +38,7 @@ const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: Own
 
   const you = C.useCurrentUserState(s => s.username)
   // TODO remove
-  const message = Constants.useContext(s => s.messageMap.get(ordinal))
+  const message = C.useChatContext(s => s.messageMap.get(ordinal))
   const author = message?.author
   const allowPopup =
     status === 'completed' || status === 'pending' || status === 'claimable' || author === you

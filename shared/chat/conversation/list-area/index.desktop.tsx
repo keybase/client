@@ -1,4 +1,4 @@
-import * as Constants from '../../../constants/chat2'
+import * as C from '../../../constants'
 import * as ConfigConstants from '../../../constants/config'
 import * as Container from '../../../util/container'
 import * as Hooks from './hooks'
@@ -144,8 +144,8 @@ const useScrolling = (
 ) => {
   const {conversationIDKey, requestScrollUpRef, requestScrollToBottomRef, requestScrollDownRef} = p
   const {listRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
-  const editingOrdinal = Constants.useContext(s => s.editing)
-  const loadNewerMessagesDueToScroll = Constants.useContext(s => s.dispatch.loadNewerMessagesDueToScroll)
+  const editingOrdinal = C.useChatContext(s => s.editing)
+  const loadNewerMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
   const loadNewerMessages = Container.useThrottledCallback(
     React.useCallback(() => {
       loadNewerMessagesDueToScroll()
@@ -163,7 +163,7 @@ const useScrolling = (
     lastLoadOrdinal.current = -1
   }
   const oldestOrdinal = messageOrdinals[0] ?? -1
-  const loadOlderMessagesDueToScroll = Constants.useContext(s => s.dispatch.loadOlderMessagesDueToScroll)
+  const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const loadOlderMessages = React.useCallback(() => {
     // already loaded and nothing has changed
     if (lastLoadOrdinal.current === oldestOrdinal) {
@@ -527,11 +527,11 @@ const useItems = (p: {
 const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
   const {conversationIDKey, onFocusInput} = p
   const {requestScrollDownRef, requestScrollToBottomRef, requestScrollUpRef} = p
-  const editingOrdinal = Constants.useContext(s => s.editing)
-  const centeredOrdinal = Constants.useContext(s => s.messageCenterOrdinal)?.ordinal
-  const containsLatestMessage = Constants.useContext(s => s.containsLatestMessage) ?? false
-  const messageTypeMap = Constants.useContext(s => s.messageTypeMap)
-  const messageOrdinals = Constants.useContext(s => s.messageOrdinals) ?? []
+  const editingOrdinal = C.useChatContext(s => s.editing)
+  const centeredOrdinal = C.useChatContext(s => s.messageCenterOrdinal)?.ordinal
+  const containsLatestMessage = C.useChatContext(s => s.containsLatestMessage) ?? false
+  const messageTypeMap = C.useChatContext(s => s.messageTypeMap)
+  const messageOrdinals = C.useChatContext(s => s.messageOrdinals) ?? []
   const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const {isLockedToBottom, scrollToBottom, setListRef, pointerWrapperRef} = useScrolling({

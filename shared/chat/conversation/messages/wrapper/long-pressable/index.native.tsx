@@ -1,4 +1,4 @@
-import * as Constants from '../../../../../constants/chat2'
+import * as C from '../../../../../constants'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../../styles'
@@ -42,8 +42,8 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
     )
   }, [])
 
-  const toggleThreadSearch = Constants.useContext(s => s.dispatch.toggleThreadSearch)
-  const setReplyTo = Constants.useContext(s => s.dispatch.setReplyTo)
+  const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
   const onSwipeLeft = React.useCallback(() => {
     const {ordinal} = getIds()
     setReplyTo(ordinal)

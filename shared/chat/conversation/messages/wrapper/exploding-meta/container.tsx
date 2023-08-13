@@ -1,3 +1,4 @@
+import * as C from '../../../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../../../constants/chat2'
 import {OrdinalContext} from '../../ids-context'
@@ -12,7 +13,7 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
 
   const ordinal = React.useContext(OrdinalContext)
 
-  const message = Constants.useContext(s => s.messageMap.get(ordinal))
+  const message = C.useChatContext(s => s.messageMap.get(ordinal))
   if (!message || (message.type !== 'text' && message.type !== 'attachment') || !message.exploding) {
     return null
   }

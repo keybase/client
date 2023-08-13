@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
-import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
@@ -23,7 +22,7 @@ const Rekey = (props: Props) =>
 
 export default () => {
   const _you = C.useCurrentUserState(s => s.username)
-  const rekeyers = Constants.useContext(s => s.meta.rekeyers)
+  const rekeyers = C.useChatContext(s => s.meta.rekeyers)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onBack = () => {

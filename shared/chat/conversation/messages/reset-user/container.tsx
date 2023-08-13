@@ -1,12 +1,11 @@
 import * as C from '../../../../constants'
-import * as Constants from '../../../../constants/chat2'
 import ResetUser from '.'
 
 export default () => {
-  const meta = Constants.useContext(s => s.meta)
-  const participantInfo = Constants.useContext(s => s.participants)
-  const resetChatWithoutThem = Constants.useContext(s => s.dispatch.resetChatWithoutThem)
-  const resetLetThemIn = Constants.useContext(s => s.dispatch.resetLetThemIn)
+  const meta = C.useChatContext(s => s.meta)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const resetChatWithoutThem = C.useChatContext(s => s.dispatch.resetChatWithoutThem)
+  const resetLetThemIn = C.useChatContext(s => s.dispatch.resetLetThemIn)
   const _participants = participantInfo.all
   const _resetParticipants = meta.resetParticipants
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)

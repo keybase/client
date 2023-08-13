@@ -1,4 +1,4 @@
-import * as Constants from '../../../../constants/chat2'
+import * as C from '../../../../constants'
 import * as React from 'react'
 import shallowEqual from 'shallowequal'
 import type * as Types from '../../../../constants/types/chat2'
@@ -14,7 +14,7 @@ type Props = {
 }
 
 export const useBottom = (ordinal: Types.Ordinal, toggleShowingPopup: () => void) => {
-  const {id, hasCoinFlip, hasUnfurlList} = Constants.useContext(s => {
+  const {id, hasCoinFlip, hasUnfurlList} = C.useChatContext(s => {
     const message = s.messageMap.get(ordinal)
     const hasCoinFlip = message?.type === 'text' && !!message.flipGameID
     const hasUnfurlList = (message?.unfurls?.size ?? 0) > 0
@@ -22,7 +22,7 @@ export const useBottom = (ordinal: Types.Ordinal, toggleShowingPopup: () => void
     return {hasCoinFlip, hasUnfurlList, id}
   }, shallowEqual)
 
-  const hasUnfurlPrompts = Constants.useContext(s => !!id && !!s.unfurlPrompt.get(id)?.size)
+  const hasUnfurlPrompts = C.useChatContext(s => !!id && !!s.unfurlPrompt.get(id)?.size)
 
   return React.useMemo(
     () => (

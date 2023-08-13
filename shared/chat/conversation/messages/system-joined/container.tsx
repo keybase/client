@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as Constants from '../../../../constants/chat2'
 import * as React from 'react'
 import Joined from '.'
 import type * as Types from '../../../../constants/types/chat2'
@@ -10,7 +9,7 @@ const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
   const {message} = p
   const {joiners, author, conversationIDKey, leavers, timestamp} = message
 
-  const meta = Constants.useContext(s => s.meta)
+  const meta = C.useChatContext(s => s.meta)
   const {channelname, teamType, teamname, teamID} = meta
 
   const you = C.useCurrentUserState(s => s.username)

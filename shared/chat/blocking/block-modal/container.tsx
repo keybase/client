@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/users'
-import * as ChatConstants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as React from 'react'
 import BlockModal, {type BlockModalContext, type BlockType, type NewBlocksMap, type ReportSettings} from '.'
@@ -76,7 +75,7 @@ export default (ownProps: OwnProps) => {
     },
     [_reportUser]
   )
-  const setConversationStatus = ChatConstants.useContext(s => s.dispatch.blockConversation)
+  const setConversationStatus = C.useChatContext(s => s.dispatch.blockConversation)
   const _setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
   const setUserBlocks = React.useCallback(
     (newBlocks: NewBlocksMap) => {

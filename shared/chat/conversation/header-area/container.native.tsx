@@ -43,7 +43,7 @@ export const HeaderAreaRight = (props: OwnProps) => {
     () => showInfoPanel(true, undefined, conversationIDKey),
     [showInfoPanel, conversationIDKey]
   )
-  const toggleThreadSearch = Constants.useContext(s => s.dispatch.toggleThreadSearch)
+  const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = React.useCallback(() => {
     // fix a race with the keyboard going away and coming back quickly
     Keyboard.dismiss()
@@ -67,8 +67,8 @@ enum HeaderType {
 }
 
 const HeaderBranchContainer = React.memo(function HeaderBranchContainer() {
-  const participantInfo = Constants.useContext(s => s.participants)
-  const type = Constants.useContext(s => {
+  const participantInfo = C.useChatContext(s => s.participants)
+  const type = C.useChatContext(s => {
     const meta = s.meta
     const teamName = meta.teamname
     if (teamName) {

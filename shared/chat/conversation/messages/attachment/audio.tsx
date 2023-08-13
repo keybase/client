@@ -1,8 +1,8 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Constants from '../../../../constants/chat2'
-import * as C from '../../../../constants'
 import {OrdinalContext} from '../ids-context'
 import AudioPlayer from '../../../audio/audio-player'
 
@@ -11,7 +11,7 @@ const AudioAttachment = () => {
   const ordinal = React.useContext(OrdinalContext)
 
   // TODO not message
-  const message = Constants.useContext(s => {
+  const message = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m : missingMessage
   })

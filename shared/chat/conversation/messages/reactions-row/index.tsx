@@ -1,4 +1,4 @@
-import * as Constants from '../../../../constants/chat2'
+import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
@@ -30,7 +30,7 @@ const getOrderedReactions = (reactions?: Types.Reactions) => {
 
 const ReactionsRowContainer = React.memo(function ReactonsRowContainer() {
   const ordinal = React.useContext(OrdinalContext)
-  const reactions = Constants.useContext(s => {
+  const reactions = C.useChatContext(s => {
     const message = s.messageMap.get(ordinal)
     const reactions = message?.reactions
     return reactions

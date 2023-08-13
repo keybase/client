@@ -54,8 +54,8 @@ export const useCommon = (ordinal: Types.Ordinal) => {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const showCenteredHighlight = useHighlightMode(ordinal)
 
-  const accountsInfoMap = Constants.useContext(s => s.accountsInfoMap)
-  const {type, shouldShowPopup} = Constants.useContext(s => {
+  const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
+  const {type, shouldShowPopup} = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const type = m?.type
     const shouldShowPopup = Constants.shouldShowPopup(accountsInfoMap, m ?? undefined)
@@ -147,10 +147,10 @@ const useRedux = (ordinal: Types.Ordinal) => {
 
   const you = C.useCurrentUserState(s => s.username)
   const paymentStatusMap = C.useChatState(s => s.paymentStatusMap)
-  const accountsInfoMap = Constants.useContext(s => s.accountsInfoMap)
-  const ordinals = Constants.useContext(s => s.messageOrdinals)
-  const isEditing = Constants.useContext(s => s.editing === ordinal)
-  const d = Constants.useContext(s => {
+  const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
+  const ordinals = C.useChatContext(s => s.messageOrdinals)
+  const isEditing = C.useChatContext(s => s.editing === ordinal)
+  const d = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal) ?? missingMessage
     const {exploded, submitState, author, id, botUsername} = m
     const youSent = m.author === you && m.ordinal !== m.id
@@ -298,7 +298,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
 })
 
 const useHighlightMode = (ordinal: Types.Ordinal) => {
-  const centeredOrdinalType = Constants.useContext(s => {
+  const centeredOrdinalType = C.useChatContext(s => {
     const i = s.messageCenterOrdinal
     return i?.ordinal === ordinal ? i.highlightMode : undefined
   })
@@ -316,22 +316,22 @@ enum EditCancelRetryType {
 const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
   const {ecrType} = p
   const ordinal = React.useContext(OrdinalContext)
-  const {failureDescription, outboxID} = Constants.useContext(s => {
+  const {failureDescription, outboxID} = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const outboxID = m?.outboxID
     const reason = m?.errorReason ?? ''
     const failureDescription = `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`
     return {failureDescription, outboxID}
   }, shallowEqual)
-  const messageDelete = Constants.useContext(s => s.dispatch.messageDelete)
+  const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
   const onCancel = React.useCallback(() => {
     messageDelete(ordinal)
   }, [messageDelete, ordinal])
-  const setEditing = Constants.useContext(s => s.dispatch.setEditing)
+  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const onEdit = React.useCallback(() => {
     setEditing(ordinal)
   }, [setEditing, ordinal])
-  const messageRetry = Constants.useContext(s => s.dispatch.messageRetry)
+  const messageRetry = C.useChatContext(s => s.dispatch.messageRetry)
   const onRetry = React.useCallback(() => {
     outboxID && messageRetry(outboxID)
   }, [messageRetry, outboxID])

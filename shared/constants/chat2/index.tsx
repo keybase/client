@@ -22,7 +22,6 @@ import {
 } from '../types/chat2/common'
 import type * as TeamBuildingTypes from '../types/team-building'
 import * as Z from '../../util/zustand'
-import {getConvoState, stores} from './convostate'
 import {
   explodingModeGregorKeyPrefix,
   getSelectedConversation,
@@ -440,7 +439,7 @@ export type State = Store & {
 
 // Only get the untrusted conversations out
 const untrustedConversationIDKeys = (ids: Array<Types.ConversationIDKey>) =>
-  ids.filter(id => getConvoState(id).meta.trustedState === 'untrusted')
+  ids.filter(id => C.getConvoState(id).meta.trustedState === 'untrusted')
 
 // generic chat store
 export const _useState = Z.createZustand<State>((set, get) => {
@@ -456,7 +455,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       })
     },
     clearMetas: () => {
-      for (const [, cs] of stores) {
+      for (const [, cs] of C.chatStores) {
         cs.getState().dispatch.setMeta()
       }
     },
@@ -505,11 +504,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
               uiConv.participants ?? []
             )
             if (participantInfo.all.length > 0) {
-              getConvoState(Types.stringToConversationIDKey(uiConv.convID)).dispatch.setParticipants(
+              C.getConvoState(Types.stringToConversationIDKey(uiConv.convID)).dispatch.setParticipants(
                 participantInfo
               )
             }
-            getConvoState(conversationIDKey).dispatch.navigateToThread('justCreated', highlightMessageID)
+            C.getConvoState(conversationIDKey).dispatch.navigateToThread('justCreated', highlightMessageID)
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -523,7 +522,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             }
             const allowedUsers = participants.filter(x => !disallowedUsers?.includes(x))
             get().dispatch.conversationErrored(allowedUsers, disallowedUsers, error.code, error.desc)
-            getConvoState(pendingErrorConversationIDKey).dispatch.navigateToThread(
+            C.getConvoState(pendingErrorConversationIDKey).dispatch.navigateToThread(
               'justCreated',
               highlightMessageID
             )
@@ -573,7 +572,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           get().dispatch.clearMetas()
         }
         if (clearExistingMessages) {
-          for (const [, cs] of stores) {
+          for (const [, cs] of C.chatStores) {
             cs.getState().dispatch.setMessageOrdinals()
             cs.getState().dispatch.replaceMessageMap(new Map())
           }
@@ -614,7 +613,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
 
           const missingMetas = results.reduce<Array<Types.ConversationIDKey>>((arr, r) => {
-            if (getConvoState(r.conversationIDKey).meta.conversationIDKey !== r.conversationIDKey) {
+            if (C.getConvoState(r.conversationIDKey).meta.conversationIDKey !== r.conversationIDKey) {
               arr.push(r.conversationIDKey)
             }
             return arr
@@ -689,7 +688,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             }
           })
 
-          if (getConvoState(result.conversationIDKey).meta.conversationIDKey === noConversationIDKey) {
+          if (C.getConvoState(result.conversationIDKey).meta.conversationIDKey === noConversationIDKey) {
             get().dispatch.unboxRows([result.conversationIDKey], true)
           }
         }
@@ -822,9 +821,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
         query = selected?.query
       }
 
-      getConvoState(conversationIDKey).dispatch.navigateToThread('inboxSearch')
+      C.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxSearch')
       if (query) {
-        const cs = getConvoState(conversationIDKey)
+        const cs = C.getConvoState(conversationIDKey)
         cs.dispatch.setThreadSearchQuery(query)
         cs.dispatch.toggleThreadSearch(false)
         cs.dispatch.threadSearch(query)
@@ -904,7 +903,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             },
             waitingKey
           )
-          getConvoState(Types.conversationIDToKey(result.conv.info.id)).dispatch.messageSend(
+          C.getConvoState(Types.conversationIDToKey(result.conv.info.id)).dispatch.messageSend(
             text,
             undefined,
             waitingKey
@@ -919,15 +918,15 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     metasReceived: (metas, removals) => {
       removals?.forEach(r => {
-        getConvoState(r).dispatch.setMeta()
+        C.getConvoState(r).dispatch.setMeta()
       })
       metas.forEach(m => {
-        const {meta: oldMeta, dispatch} = getConvoState(m.conversationIDKey)
+        const {meta: oldMeta, dispatch} = C.getConvoState(m.conversationIDKey)
         dispatch.setMeta(oldMeta.conversationIDKey === m.conversationIDKey ? updateMeta(oldMeta, m) : m)
       })
 
       const selectedConversation = getSelectedConversation()
-      const meta = getConvoState(selectedConversation).meta
+      const meta = C.getConvoState(selectedConversation).meta
       if (meta.conversationIDKey === selectedConversation) {
         const {teamID} = meta
         if (!C.useTeamsState.getState().teamIDToMembers.get(teamID) && meta.teamname) {
@@ -959,7 +958,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         case EngineGen.chat1NotifyChatChatAttachmentUploadProgress: {
           const {convID} = action.payload.params
           const conversationIDKey = Types.conversationIDToKey(convID)
-          getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
+          C.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
           break
         }
         case EngineGen.chat1NotifyChatNewChatActivity: {
@@ -968,7 +967,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             case RPCChatTypes.ChatActivityType.incomingMessage: {
               const {incomingMessage} = activity
               const conversationIDKey = Types.conversationIDToKey(incomingMessage.convID)
-              getConvoState(conversationIDKey).dispatch.onIncomingMessage(incomingMessage)
+              C.getConvoState(conversationIDKey).dispatch.onIncomingMessage(incomingMessage)
               get().dispatch.onIncomingInboxUIItem(incomingMessage.conv ?? undefined)
               break
             }
@@ -994,7 +993,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 const outboxID = Types.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
                 // This is temp until fixed by CORE-7112. We get this error but not the call to let us show the red banner
                 const reason = Message.rpcErrorToString(error)
-                getConvoState(conversationIDKey).dispatch.onMessageErrored(outboxID, reason, error.typ)
+                C.getConvoState(conversationIDKey).dispatch.onMessageErrored(outboxID, reason, error.typ)
 
                 if (error.typ === RPCChatTypes.OutboxErrorType.identify) {
                   // Find out the user who failed identify
@@ -1016,7 +1015,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               const {setAppNotificationSettings} = activity
               const conversationIDKey = Types.conversationIDToKey(setAppNotificationSettings.convID)
               const settings = setAppNotificationSettings.settings
-              const cs = getConvoState(conversationIDKey)
+              const cs = C.getConvoState(conversationIDKey)
               if (cs.meta.conversationIDKey === conversationIDKey) {
                 cs.dispatch.updateMeta(parseNotificationSettings(settings))
               }
@@ -1030,7 +1029,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               // The types here are askew. It confuses frontend MessageType with protocol MessageType.
               // Placeholder is an example where it doesn't make sense.
               const deletableMessageTypes = staticConfig?.deletableByDeleteHistory || allMessageTypes
-              getConvoState(conversationIDKey).dispatch.messagesWereDeleted({
+              C.getConvoState(conversationIDKey).dispatch.messagesWereDeleted({
                 deletableMessageTypes,
                 upToMessageID: expunge.expunge.upto,
               })
@@ -1048,7 +1047,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 return arr
               }, [])
 
-              !!messageIDs && getConvoState(conversationIDKey).dispatch.messagesExploded(messageIDs)
+              !!messageIDs && C.getConvoState(conversationIDKey).dispatch.messagesExploded(messageIDs)
               break
             }
             case RPCChatTypes.ChatActivityType.reactionUpdate: {
@@ -1064,14 +1063,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 targetMsgID: ru.targetMsgID,
               }))
               logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
-              getConvoState(conversationIDKey).dispatch.updateReactions(updates)
+              C.getConvoState(conversationIDKey).dispatch.updateReactions(updates)
               get().dispatch.updateUserReacjis(reactionUpdate.userReacjis)
               break
             }
             case RPCChatTypes.ChatActivityType.messagesUpdated: {
               const {messagesUpdated} = activity
               const conversationIDKey = Types.conversationIDToKey(messagesUpdated.convID)
-              getConvoState(conversationIDKey).dispatch.onMessagesUpdated(messagesUpdated)
+              C.getConvoState(conversationIDKey).dispatch.onMessagesUpdated(messagesUpdated)
               break
             }
             default:
@@ -1081,7 +1080,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         case EngineGen.chat1NotifyChatChatTypingUpdate: {
           const {typingUpdates} = action.payload.params
           typingUpdates?.forEach(u => {
-            getConvoState(Types.conversationIDToKey(u.convID)).dispatch.setTyping(
+            C.getConvoState(Types.conversationIDToKey(u.convID)).dispatch.setTyping(
               new Set(u.typers?.map(t => t.username))
             )
           })
@@ -1098,7 +1097,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             logger.warn(`onChatSetConvRetention: no meta found for ${convID.toString()}`)
             return
           }
-          const cs = getConvoState(meta.conversationIDKey)
+          const cs = C.getConvoState(meta.conversationIDKey)
           // only insert if the convo is already in the inbox
           if (cs.meta.conversationIDKey === meta.conversationIDKey) {
             cs.dispatch.setMeta(meta)
@@ -1116,7 +1115,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }, [])
           if (metas.length) {
             metas.forEach(meta => {
-              const cs = getConvoState(meta.conversationIDKey)
+              const cs = C.getConvoState(meta.conversationIDKey)
               // only insert if the convo is already in the inbox
               if (cs.meta.conversationIDKey === meta.conversationIDKey) {
                 cs.dispatch.setMeta(meta)
@@ -1180,7 +1179,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         // same? ignore
         if (wasChat && isChat && wasID === isID) {
           // if we've never loaded anything, keep going so we load it
-          if (!isID || getConvoState(isID).containsLatestMessage !== undefined) {
+          if (!isID || C.getConvoState(isID).containsLatestMessage !== undefined) {
             return
           }
         }
@@ -1195,7 +1194,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         // still chatting? just select new one
         if (wasChat && isChat && isID && Types.isValidConversationIDKey(isID)) {
           deselectAction()
-          getConvoState(isID).dispatch.selectedConversation()
+          C.getConvoState(isID).dispatch.selectedConversation()
           return
         }
 
@@ -1208,7 +1207,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         // going into a chat
         if (isChat && isID && Types.isValidConversationIDKey(isID)) {
           deselectAction()
-          getConvoState(isID).dispatch.selectedConversation()
+          C.getConvoState(isID).dispatch.selectedConversation()
           return
         }
       }
@@ -1226,7 +1225,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         // need to let the mdoal hide first else its thrashy
         await Z.timeoutPromise(500)
-        getConvoState(pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
+        C.getConvoState(pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
         get().dispatch.createConversation([...users].map(u => u.id))
       }
       Z.ignorePromise(f())
@@ -1247,19 +1246,19 @@ export const _useState = Z.createZustand<State>((set, get) => {
         if ((reason === 'requestedPayment' || reason === 'sentPayment') && participants.length === 1) {
           const username = C.useCurrentUserState.getState().username
           const toFind = participants[0]
-          for (const cs of stores.values()) {
+          for (const cs of C.chatStores.values()) {
             const p = cs.getState().participants
             if (p.name.length === 2) {
               const other = p.name.filter(n => n !== username)
               if (other[0] === toFind) {
-                getConvoState(cs.getState().id).dispatch.navigateToThread('justCreated')
+                C.getConvoState(cs.getState().id).dispatch.navigateToThread('justCreated')
                 return
               }
             }
           }
         }
 
-        getConvoState(pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
+        C.getConvoState(pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
         get().dispatch.createConversation(participants, highlightMessageID)
       }
 
@@ -1279,7 +1278,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             })
           }
 
-          getConvoState(conversationIDKey).dispatch.navigateToThread('previewResolved', highlightMessageID)
+          C.getConvoState(conversationIDKey).dispatch.navigateToThread('previewResolved', highlightMessageID)
           return
         }
 
@@ -1325,7 +1324,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             _useState.getState().dispatch.metasReceived([meta])
           }
 
-          getConvoState(first.conversationIDKey).dispatch.navigateToThread(
+          C.getConvoState(first.conversationIDKey).dispatch.navigateToThread(
             'previewResolved',
             highlightMessageID
           )
@@ -1476,7 +1475,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               .dispatch.navigateAppend({props: {conversationIDKey, tab}, selected: 'chatInfoPanel'})
           } else {
             C.useRouterState.getState().dispatch.navigateUp()
-            conversationIDKey && getConvoState(conversationIDKey).dispatch.clearAttachmentView()
+            conversationIDKey && C.getConvoState(conversationIDKey).dispatch.clearAttachmentView()
           }
         }
       }
@@ -1520,7 +1519,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           ? ids
           : ids.reduce((arr: Array<string>, id) => {
               if (id && Types.isValidConversationIDKey(id)) {
-                const cs = getConvoState(id)
+                const cs = C.getConvoState(id)
                 const trustedState = cs.meta.trustedState
                 if (trustedState !== 'requesting' && trustedState !== 'trusted') {
                   arr.push(id)
@@ -1569,13 +1568,13 @@ export const _useState = Z.createZustand<State>((set, get) => {
             // on first layout, initialize any drafts and muted status
             // After the first layout, any other updates will come in the form of meta updates.
             layout.smallTeams?.forEach(t => {
-              const cs = getConvoState(t.convID)
+              const cs = C.getConvoState(t.convID)
               cs.dispatch.setMuted(t.isMuted)
               cs.dispatch.setDraft(t.draft ?? '')
             })
             layout.bigTeams?.forEach(t => {
               if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
-                const cs = getConvoState(t.channel.convID)
+                const cs = C.getConvoState(t.channel.convID)
                 cs.dispatch.setMuted(t.channel.isMuted)
                 cs.dispatch.setDraft(t.channel.draft ?? '')
               }
@@ -1607,7 +1606,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const explodingItems = items.filter(i => i.item.category.startsWith(explodingModeGregorKeyPrefix))
       if (!explodingItems.length) {
         // No conversations have exploding modes, clear out what is set
-        for (const s of stores.values()) {
+        for (const s of C.chatStores.values()) {
           s.getState().dispatch.setExplodingMode(0, true)
         }
       } else {
@@ -1623,7 +1622,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             }
             const _conversationIDKey = category.substring(explodingModeGregorKeyPrefix.length)
             const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
-            getConvoState(conversationIDKey).dispatch.setExplodingMode(seconds, true)
+            C.getConvoState(conversationIDKey).dispatch.setExplodingMode(seconds, true)
           } catch (e) {
             logger.info('Error parsing exploding' + e)
           }
@@ -1666,7 +1665,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     getBadgeMap: badgeCountsChanged => {
       badgeCountsChanged // this param is just to ensure the selector reruns on a change
       const badgeMap = new Map()
-      stores.forEach(s => {
+      C.chatStores.forEach(s => {
         const {id, badge} = s.getState()
         badgeMap.set(id, badge)
       })
@@ -1675,7 +1674,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     getUnreadMap: badgeCountsChanged => {
       badgeCountsChanged // this param is just to ensure the selector reruns on a change
       const unreadMap = new Map()
-      stores.forEach(s => {
+      C.chatStores.forEach(s => {
         const {id, unread} = s.getState()
         unreadMap.set(id, unread)
       })
