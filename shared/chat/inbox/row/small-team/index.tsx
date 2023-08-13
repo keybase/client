@@ -37,7 +37,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime} = p
   const {conversationIDKey, isInWidget, swipeCloseRef} = p
 
-  const typingSnippet = Constants.useContext(s => {
+  const typingSnippet = C.useChatContext(s => {
     const typers = !isInWidget ? s.typing : undefined
     if (!typers?.size) return undefined
     return typers.size === 1
@@ -45,7 +45,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       : 'Multiple people typing...'
   })
 
-  const {isDecryptingSnippet, snippet, snippetDecoration} = Constants.useContext(s => {
+  const {isDecryptingSnippet, snippet, snippetDecoration} = C.useChatContext(s => {
     const {meta} = s
     // only use layout if we don't have the meta at all
     const maybeLayoutSnippet =
@@ -61,9 +61,9 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   }, shallowEqual)
 
   const you = C.useCurrentUserState(s => s.username)
-  const participantInfo = Constants.useContext(s => s.participants)
-  const navigateToThread = Constants.useContext(s => s.dispatch.navigateToThread)
-  const participants = Constants.useContext(s => {
+  const participantInfo = C.useChatContext(s => s.participants)
+  const navigateToThread = C.useChatContext(s => s.dispatch.navigateToThread)
+  const participants = C.useChatContext(s => {
     const {meta} = s
     const teamname = (meta.teamname || layoutIsTeam ? layoutName : '') || ''
     const channelname = isInWidget ? meta.channelname ?? '' : ''
@@ -154,9 +154,9 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   const {backgroundColor, isSelected} = p
   const layoutIsTeam = React.useContext(IsTeamContext)
   const participants = React.useContext(ParticipantsContext)
-  const isMuted = Constants.useContext(s => s.muted)
+  const isMuted = C.useChatContext(s => s.muted)
   const you = C.useCurrentUserState(s => s.username)
-  const isLocked = Constants.useContext(s => {
+  const isLocked = C.useChatContext(s => {
     const {meta} = s
     const isLocked = meta.rekeyers.has(you) || meta.rekeyers.size > 0 || !!meta.wasFinalizedBy
     return isLocked

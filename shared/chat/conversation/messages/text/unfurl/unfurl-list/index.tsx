@@ -1,4 +1,4 @@
-import * as Constants from '../../../../../../constants/chat2'
+import * as C from '../../../../../../constants'
 import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as Styles from '../../../../../../styles'
@@ -61,7 +61,7 @@ const renderTypeToClass = new Map<UnfurlRenderType, React.ExoticComponent<{idx: 
 
 const UnfurlListContainer = React.memo(function UnfurlListContainer() {
   const ordinal = React.useContext(OrdinalContext)
-  const unfurlTypes: Array<UnfurlRenderType | 'none'> = Constants.useContext(
+  const unfurlTypes: Array<UnfurlRenderType | 'none'> = C.useChatContext(
     s =>
       [...(s.messageMap.get(ordinal)?.unfurls?.values() ?? [])].map(u => {
         const ut = u.unfurl.unfurlType

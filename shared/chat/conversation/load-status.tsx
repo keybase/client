@@ -1,8 +1,8 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Styles from '../../styles'
-import * as Constants from '../../constants/chat2'
 
 const ValidatedStatus = () => {
   const [visible, setVisible] = React.useState(true)
@@ -31,7 +31,7 @@ const getBkgColor = (status: RPCChatTypes.UIChatThreadStatusTyp) => {
 }
 
 const ThreadLoadStatus = () => {
-  const status = Constants.useContext(s => s.threadLoadStatus)
+  const status = C.useChatContext(s => s.threadLoadStatus)
 
   if (status === RPCChatTypes.UIChatThreadStatusTyp.none) {
     return null

@@ -1,4 +1,4 @@
-import * as Constants from '../../../constants/chat2'
+import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
@@ -15,14 +15,14 @@ type Props = {
 
 const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
   const {selected, layoutChannelname} = props
-  const channelname = Constants.useContext(s => s.meta.channelname) || layoutChannelname
-  const isError = Constants.useContext(s => s.meta.trustedState === 'error')
-  const snippetDecoration = Constants.useContext(s => s.meta.snippetDecoration)
-  const hasBadge = Constants.useContext(s => s.badge > 0)
-  const hasDraft = Constants.useContext(s => !!s.draft)
-  const hasUnread = Constants.useContext(s => s.unread > 0)
-  const isMuted = Constants.useContext(s => s.muted)
-  const navigateToThread = Constants.useContext(s => s.dispatch.navigateToThread)
+  const channelname = C.useChatContext(s => s.meta.channelname) || layoutChannelname
+  const isError = C.useChatContext(s => s.meta.trustedState === 'error')
+  const snippetDecoration = C.useChatContext(s => s.meta.snippetDecoration)
+  const hasBadge = C.useChatContext(s => s.badge > 0)
+  const hasDraft = C.useChatContext(s => !!s.draft)
+  const hasUnread = C.useChatContext(s => s.unread > 0)
+  const isMuted = C.useChatContext(s => s.muted)
+  const navigateToThread = C.useChatContext(s => s.dispatch.navigateToThread)
 
   const onSelectConversation = () => navigateToThread('inboxBig')
 

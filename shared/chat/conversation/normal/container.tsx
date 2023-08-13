@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as React from 'react'
-import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
 import Normal from '.'
@@ -32,8 +31,8 @@ const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
     requestScrollToBottomRef.current?.()
   }, [])
 
-  const showThreadSearch = Constants.useContext(s => s.threadSearchInfo.visible)
-  const {cannotWrite, minWriterReason, threadLoadedOffline} = Constants.useContext(s => {
+  const showThreadSearch = C.useChatContext(s => s.threadSearchInfo.visible)
+  const {cannotWrite, minWriterReason, threadLoadedOffline} = C.useChatContext(s => {
     const meta = s.meta
     const {cannotWrite, offline, minWriterRole} = meta
     const threadLoadedOffline = offline
@@ -58,8 +57,8 @@ const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
     dispatch(Chat2Gen.createJumpToRecent({conversationIDKey}))
   }, [conversationIDKey, dispatch])
 
-  const onPaste = Constants.useContext(s => s.dispatch.attachmentPasted)
-  const toggleThreadSearch = Constants.useContext(s => s.dispatch.toggleThreadSearch)
+  const onPaste = C.useChatContext(s => s.dispatch.attachmentPasted)
+  const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = React.useCallback(() => {
     toggleThreadSearch()
   }, [toggleThreadSearch])

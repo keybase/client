@@ -9,7 +9,7 @@ import {showShareActionSheet} from '../../../actions/platform-specific'
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
 const Invite = () => {
-  const participantInfo = Constants.useContext(s => s.participants)
+  const participantInfo = C.useChatContext(s => s.participants)
   const participantInfoAll = participantInfo.all
   const users = participantInfoAll.filter(p => p.includes('@'))
 
@@ -30,7 +30,7 @@ const Invite = () => {
 
   const usernameToContactName = participantInfo.contactName
 
-  const onDismiss = Constants.useContext(s => s.dispatch.dismissBottomBanner)
+  const onDismiss = C.useChatContext(s => s.dispatch.dismissBottomBanner)
 
   return (
     <InviteBanner
@@ -46,7 +46,7 @@ const Invite = () => {
 const Broken = () => {
   const following = C.useFollowerState(s => s.following)
   const infoMap = C.useUsersState(s => s.infoMap)
-  const participantInfo = Constants.useContext(s => s.participants)
+  const participantInfo = C.useChatContext(s => s.participants)
   const users = participantInfo.all.filter(p => following.has(p) && infoMap.get(p)?.broken)
   return <Kb.ProofBrokenBanner users={users} />
 }
@@ -54,9 +54,9 @@ const Broken = () => {
 const BannerContainer = React.memo(function BannerContainer() {
   const following = C.useFollowerState(s => s.following)
   const infoMap = C.useUsersState(s => s.infoMap)
-  const dismissed = Constants.useContext(s => s.dismissedInviteBanners)
-  const participantInfo = Constants.useContext(s => s.participants)
-  const type = Constants.useContext(s => {
+  const dismissed = C.useChatContext(s => s.dismissedInviteBanners)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const type = C.useChatContext(s => {
     const teamType = s.meta.teamType
     if (teamType !== 'adhoc') {
       return 'none'

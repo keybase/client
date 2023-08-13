@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
@@ -16,7 +15,7 @@ type Props = {conversationIDKey: Types.ConversationIDKey}
 const MinWriterRole = (props: Props) => {
   const {conversationIDKey} = props
   const dispatch = Container.useDispatch()
-  const meta = Constants.useContext(s => s.meta)
+  const meta = C.useChatContext(s => s.meta)
   const {teamname} = meta
 
   const canPerform = C.useTeamsState(s => (teamname ? TeamConstants.getCanPerform(s, teamname) : undefined))

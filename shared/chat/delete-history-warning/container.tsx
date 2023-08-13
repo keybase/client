@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Constants from '../../constants/chat2'
 import type * as Types from '../../constants/types/chat2'
 import DeleteHistoryWarning from '.'
 
@@ -12,7 +11,7 @@ export default (_ownProps: OwnProps) => {
     navigateUp()
   }
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const messageDeleteHistory = Constants.useContext(s => s.dispatch.messageDeleteHistory)
+  const messageDeleteHistory = C.useChatContext(s => s.dispatch.messageDeleteHistory)
   const onDeleteHistory = () => {
     clearModals()
     messageDeleteHistory()

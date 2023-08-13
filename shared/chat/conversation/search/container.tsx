@@ -1,3 +1,4 @@
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import ThreadSearch from '.'
 import type * as Styles from '../../../styles'
@@ -10,20 +11,20 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {conversationIDKey, style} = ownProps
-  const info = Constants.useContext(s => s.threadSearchInfo)
+  const info = C.useChatContext(s => s.threadSearchInfo)
   const _hits = info.hits
   const status = info.status
-  const initialText = Constants.useContext(s => s.threadSearchQuery)
-  const loadMessagesCentered = Constants.useContext(s => s.dispatch.loadMessagesCentered)
+  const initialText = C.useChatContext(s => s.threadSearchQuery)
+  const loadMessagesCentered = C.useChatContext(s => s.dispatch.loadMessagesCentered)
   const _loadSearchHit = (messageID: Types.MessageID) => {
     loadMessagesCentered(messageID, 'always')
   }
-  const setThreadSearchQuery = Constants.useContext(s => s.dispatch.setThreadSearchQuery)
+  const setThreadSearchQuery = C.useChatContext(s => s.dispatch.setThreadSearchQuery)
   const clearInitialText = () => {
     setThreadSearchQuery('')
   }
-  const toggleThreadSearch = Constants.useContext(s => s.dispatch.toggleThreadSearch)
-  const threadSearch = Constants.useContext(s => s.dispatch.threadSearch)
+  const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const threadSearch = C.useChatContext(s => s.dispatch.threadSearch)
   const onSearch = threadSearch
   const onCancel = () => {
     toggleThreadSearch()

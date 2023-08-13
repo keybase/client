@@ -75,7 +75,7 @@ type OwnProps = {
 }
 
 const AddPeople = (ownProps: OwnProps) => {
-  const meta = Constants.useContext(s => s.meta)
+  const meta = C.useChatContext(s => s.meta)
   const teamID = meta.teamID
   const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const _onAddPeople = (teamID: TeamTypes.TeamID) => {

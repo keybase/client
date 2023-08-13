@@ -22,8 +22,8 @@ const Connected = (props: OwnProps) => {
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
   const currentDeviceName = C.useCurrentUserState(s => s.deviceName)
   const username = C.useCurrentUserState(s => s.username)
-  const ordinals = Constants.useContext(s => s.messageOrdinals)
-  const data = Constants.useContext(s => {
+  const ordinals = C.useChatContext(s => s.messageOrdinals)
+  const data = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const lastOrdinal = ordinals?.[ordinals.length - 1] ?? 0
     const message = m?.type === 'attachment' ? m : blankMessage
@@ -93,7 +93,7 @@ const Connected = (props: OwnProps) => {
   )
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
-  const attachmentDownload = Constants.useContext(s => s.dispatch.attachmentDownload)
+  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
   return (
     <Fullscreen
       message={message}

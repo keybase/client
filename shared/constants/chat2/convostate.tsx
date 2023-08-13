@@ -2997,7 +2997,7 @@ export function Provider({canBeNull, children, ...props}: ConvoProviderProps) {
 }
 
 // use this if in doubt
-export function useContext<T>(
+export function _useContext<T>(
   selector: (state: ConvoState) => T,
   equalityFn?: (left: T, right: T) => boolean
 ): T {

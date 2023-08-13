@@ -141,8 +141,8 @@ const getTeams = (layout?: RPCChatTypes.UIInboxLayout) => {
 
 const useDataUsers = () => {
   const infoMap = C.useUsersState(s => s.infoMap)
-  const participantInfo = Constants.useContext(s => s.participants)
-  return Constants.useContext(s => {
+  const participantInfo = C.useChatContext(s => s.participants)
+  return C.useChatContext(s => {
     const {teamID, teamType} = s.meta
     // TODO not reactive
     const teamMembers = C.useTeamsState.getState().teamIDToMembers.get(teamID)

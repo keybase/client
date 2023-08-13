@@ -1,3 +1,4 @@
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import type * as Types from '../../../constants/types/chat2'
@@ -17,8 +18,8 @@ type OwnProps = {
 const InputAreaContainer = (p: OwnProps) => {
   const {conversationIDKey, focusInputCounter, jumpToRecent} = p
   const {onRequestScrollUp, onRequestScrollDown, onRequestScrollToBottom} = p
-  const showThreadSearch = Constants.useContext(s => s.threadSearchInfo.visible)
-  const {membershipType, resetParticipants, wasFinalizedBy} = Constants.useContext(s => s.meta)
+  const showThreadSearch = C.useChatContext(s => s.threadSearchInfo.visible)
+  const {membershipType, resetParticipants, wasFinalizedBy} = C.useChatContext(s => s.meta)
 
   let noInput = resetParticipants.size > 0 || !!wasFinalizedBy
   if (

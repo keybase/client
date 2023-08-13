@@ -17,7 +17,7 @@ type SettingsPanelProps = {conversationIDKey: Types.ConversationIDKey; isPreview
 const SettingsPanel = (props: SettingsPanelProps) => {
   const {conversationIDKey, isPreview} = props
   const username = C.useCurrentUserState(s => s.username)
-  const meta = Constants.useContext(s => s.meta)
+  const meta = C.useChatContext(s => s.meta)
   const {status, teamname, teamType, channelname, teamID} = meta
   const yourOperations = C.useTeamsState(s =>
     teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined
@@ -38,7 +38,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   }
 
   const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
-  const participantInfo = Constants.useContext(s => s.participants)
+  const participantInfo = C.useChatContext(s => s.participants)
   const membersForBlock = (teamMembers?.size ? [...teamMembers.keys()] : participantInfo.name).filter(
     u => u !== username && !Constants.isAssertion(u)
   )
@@ -48,7 +48,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     navigateAppend({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'})
   }
 
-  const hideConversation = Constants.useContext(s => s.dispatch.hideConversation)
+  const hideConversation = C.useChatContext(s => s.dispatch.hideConversation)
   const onHideConv = () => hideConversation(true)
   const onUnhideConv = () => hideConversation(false)
   const onShowBlockConversationDialog = membersForBlock.length
@@ -65,7 +65,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
       }
     : onHideConv
 
-  const leaveConversation = Constants.useContext(s => s.dispatch.leaveConversation)
+  const leaveConversation = C.useChatContext(s => s.dispatch.leaveConversation)
   const onLeaveConversation = () => {
     leaveConversation()
   }

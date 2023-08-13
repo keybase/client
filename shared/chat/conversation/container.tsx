@@ -12,7 +12,7 @@ type SwitchProps = {conversationIDKey?: Types.ConversationIDKey}
 
 const Conversation = React.memo(function Conversation(p: SwitchProps) {
   const conversationIDKey = p.conversationIDKey ?? Constants.noConversationIDKey
-  const type = Constants.useContext(s => {
+  const type = C.useChatContext(s => {
     const meta = s.meta
     switch (conversationIDKey) {
       case Constants.noConversationIDKey:

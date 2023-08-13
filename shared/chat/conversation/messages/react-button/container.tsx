@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as Constants from '../../../../constants/chat2'
 import * as React from 'react'
 import ReactButton, {NewReactionButton} from '.'
 import shallowEqual from 'shallowequal'
@@ -22,7 +21,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   const {emoji, className} = p
   const {getAttachmentRef, onLongPress, onShowPicker, showBorder, style} = p
   const me = C.useCurrentUserState(s => s.username)
-  const {active, count, decorated} = Constants.useContext(s => {
+  const {active, count, decorated} = C.useChatContext(s => {
     const message = s.messageMap.get(ordinal)
     const reaction = message?.reactions?.get(emoji || '')
     const active = [...(reaction?.users ?? [])].some(r => r.username === me)
@@ -33,7 +32,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
     }
   }, shallowEqual)
 
-  const toggleMessageReaction = Constants.useContext(s => s.dispatch.toggleMessageReaction)
+  const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const onAddReaction = React.useCallback(
     (emoji: string) => {
       toggleMessageReaction(ordinal, emoji)

@@ -1,10 +1,10 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import type * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
 
 export type SaveStateType = 'same' | 'saving' | 'justSaved'
 export type Props = {
@@ -109,7 +109,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
 const Notifications = (props: Props) => {
   const {conversationIDKey} = props
   const dispatch = Container.useDispatch()
-  const meta = Constants.useContext(s => s.meta)
+  const meta = C.useChatContext(s => s.meta)
   const [channelWide, setChannelWide] = React.useState(meta.notificationsGlobalIgnoreMentions)
   const [desktop, setDesktop] = React.useState(meta.notificationsDesktop)
   const [mobile, setMobile] = React.useState(meta.notificationsMobile)
@@ -132,7 +132,7 @@ const Notifications = (props: Props) => {
     )
     delayUnsave()
   }
-  const mute = Constants.useContext(s => s.dispatch.mute)
+  const mute = C.useChatContext(s => s.dispatch.mute)
   const saveMuted = (muted: boolean) => {
     setSaving(true)
     mute(muted)

@@ -23,8 +23,8 @@ const Header2 = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
   const username = C.useCurrentUserState(s => s.username)
   const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
-  const participantInfo = Constants.useContext(s => s.participants)
-  const meta = Constants.useContext(s => s.meta)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const meta = C.useChatContext(s => s.meta)
   const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
   // TODO not reactive
   const canEditDesc = TeamConstants.getCanPerform(C.useTeamsState.getState(), teamname).editChannelDescription
@@ -35,12 +35,12 @@ const Header2 = (props: Props) => {
   const desc = (otherInfo?.bio && otherInfo.bio.replace(/(\r\n|\n|\r)/gm, ' ')) || descriptionDecorated
   const fullName = otherInfo?.fullname
 
-  const onOpenFolder = Constants.useContext(s => s.dispatch.openFolder)
-  const toggleThreadSearch = Constants.useContext(s => s.dispatch.toggleThreadSearch)
+  const onOpenFolder = C.useChatContext(s => s.dispatch.openFolder)
+  const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = React.useCallback(() => {
     toggleThreadSearch()
   }, [toggleThreadSearch])
-  const mute = Constants.useContext(s => s.dispatch.mute)
+  const mute = C.useChatContext(s => s.dispatch.mute)
   const unMuteConversation = React.useCallback(() => {
     mute(false)
   }, [mute])

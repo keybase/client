@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Constants from '../../constants/chat2'
 import {downloadFolder} from '../../constants/platform'
 import type {Props} from '.'
 
@@ -13,7 +12,7 @@ const ChatPDF = (props: Props) => {
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
 
-  const attachmentDownload = Constants.useContext(s => s.dispatch.attachmentDownload)
+  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
   const onDownload = React.useCallback(() => {
     message && attachmentDownload(message.id)
     openLocalPathInSystemFileManagerDesktop?.(downloadFolder)

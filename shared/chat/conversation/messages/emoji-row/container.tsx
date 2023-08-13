@@ -18,7 +18,7 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
 
-  const {hasUnfurls, type} = Constants.useContext(s => {
+  const {hasUnfurls, type} = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const hasUnfurls = (m?.unfurls?.size ?? 0) > 0
     const type = m?.type
@@ -27,7 +27,7 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
 
   const emojis = C.useChatState(s => s.userReacjis.topReacjis.slice(0, 5), shallowEqual)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const toggleMessageReaction = Constants.useContext(s => s.dispatch.toggleMessageReaction)
+  const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const onForward = React.useCallback(() => {
     navigateAppend({props: {ordinal, srcConvID: conversationIDKey}, selected: 'chatForwardMsgPick'})
   }, [navigateAppend, conversationIDKey, ordinal])
@@ -37,7 +37,7 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
     },
     [toggleMessageReaction, ordinal]
   )
-  const setReplyTo = Constants.useContext(s => s.dispatch.setReplyTo)
+  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
   const onReply = React.useCallback(() => {
     setReplyTo(ordinal)
   }, [setReplyTo, ordinal])

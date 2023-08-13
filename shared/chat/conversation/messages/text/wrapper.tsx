@@ -1,4 +1,4 @@
-import * as Constants from '../../../../constants/chat2'
+import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
@@ -32,7 +32,7 @@ const getStyle = (
 const MessageMarkdown = (p: {style: Styles.StylesCrossPlatform}) => {
   const {style} = p
   const ordinal = React.useContext(OrdinalContext)
-  const text = Constants.useContext(s => {
+  const text = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     if (m?.type !== 'text') return ''
     const decoratedText = m.decoratedText
@@ -60,8 +60,8 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   const bottomChildren = useBottom(ordinal, toggleShowingPopup)
   const reply = useReply(ordinal)
 
-  const editInfo = Constants.useContext(s => s.getEditInfo())
-  const {isEditing, textType, hasReactions} = Constants.useContext(s => {
+  const editInfo = C.useChatContext(s => s.getEditInfo())
+  const {isEditing, textType, hasReactions} = C.useChatContext(s => {
     const isEditing = !!(editInfo && editInfo.ordinal === ordinal)
     const m = s.messageMap.get(ordinal)
     const errorReason = m?.errorReason

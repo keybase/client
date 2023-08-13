@@ -10,13 +10,13 @@ const BlockButtons = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const teamname = Constants.useContext(s => s.meta.teamname)
-  const teamID = Constants.useContext(s => s.meta.teamID)
+  const teamname = C.useChatContext(s => s.meta.teamname)
+  const teamID = C.useChatContext(s => s.meta.teamID)
   const blockButtonInfo = C.useChatState(s => {
     const blockButtonsMap = s.blockButtonsMap
     return teamID ? blockButtonsMap.get(teamID) : undefined
   })
-  const participantInfo = Constants.useContext(s => s.participants)
+  const participantInfo = C.useChatContext(s => s.participants)
   const currentUser = C.useCurrentUserState(s => s.username)
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   if (!blockButtonInfo) {

@@ -1,3 +1,4 @@
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
@@ -8,7 +9,7 @@ import {OrdinalContext, GetIdsContext, HighlightedContext} from '../ids-context'
 import type * as Types from '../../../../constants/types/chat2'
 
 export const useReply = (ordinal: Types.Ordinal) => {
-  const showReplyTo = Constants.useContext(s => !!s.messageMap.get(ordinal)?.replyTo)
+  const showReplyTo = C.useChatContext(s => !!s.messageMap.get(ordinal)?.replyTo)
   return showReplyTo ? <Reply /> : null
 }
 
@@ -124,7 +125,7 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
 
 const Reply = React.memo(function Reply() {
   const ordinal = React.useContext(OrdinalContext)
-  const replyTo = Constants.useContext(s => {
+  const replyTo = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     return m?.replyTo ?? emptyMessage
   })

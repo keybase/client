@@ -76,7 +76,7 @@ export default (ownProps: OwnProps) => {
     },
     [_reportUser]
   )
-  const setConversationStatus = ChatConstants.useContext(s => s.dispatch.blockConversation)
+  const setConversationStatus = C.useChatContext(s => s.dispatch.blockConversation)
   const _setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
   const setUserBlocks = React.useCallback(
     (newBlocks: NewBlocksMap) => {

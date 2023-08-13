@@ -1,3 +1,4 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
@@ -5,8 +6,8 @@ import * as Styles from '../../../styles'
 import type * as Types from '../../../constants/types/chat2'
 
 const ReplyPreview = () => {
-  const rordinal = Constants.useContext(s => s.replyTo)
-  const message = Constants.useContext(s => {
+  const rordinal = C.useChatContext(s => s.replyTo)
+  const message = C.useChatContext(s => {
     return rordinal ? s.messageMap.get(rordinal) : null
   })
   let text = ''
@@ -32,7 +33,7 @@ const ReplyPreview = () => {
   const imageWidth = attachment?.previewWidth
   const username = message?.author ?? ''
   const sizing = imageWidth && imageHeight ? Constants.zoomImage(imageWidth, imageHeight, 80) : null
-  const setReplyTo = Constants.useContext(s => s.dispatch.setReplyTo)
+  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
   const onCancel = React.useCallback(() => {
     setReplyTo(0)
   }, [setReplyTo])

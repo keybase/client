@@ -90,7 +90,7 @@ const onGetInboxConvsUnboxed = (_: unknown, action: EngineGen.Chat1ChatUiChatInb
 }
 
 const maybeChangeSelectedConv = () => {
-  const selectedConversation = Constants.getSelectedConversation()
+  const selectedConversation = C.getSelectedConversation()
   const {inboxLayout} = C.useChatState.getState()
   if (!inboxLayout || !inboxLayout.reselectInfo) {
     return
@@ -172,7 +172,7 @@ const onChatInboxSynced = (
     // We got some new messages appended
     case RPCChatTypes.SyncInboxResType.incremental: {
       const items = syncRes.incremental.items || []
-      const selectedConversation = Constants.getSelectedConversation()
+      const selectedConversation = C.getSelectedConversation()
       let loadMore = false
       const metas = items.reduce<Array<Types.ConversationMeta>>((arr, i) => {
         const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv)
@@ -255,7 +255,7 @@ const onChatThreadStale = (_: unknown, action: EngineGen.Chat1NotifyChatChatThre
     }
   }
   let loadMore = false
-  const selectedConversation = Constants.getSelectedConversation()
+  const selectedConversation = C.getSelectedConversation()
   keys.forEach(key => {
     const conversationIDKeys = (updates || []).reduce<Array<string>>((arr, u) => {
       const cid = Types.conversationIDToKey(u.convID)
@@ -616,11 +616,11 @@ const initChat = () => {
   })
 
   Container.listenAction(Chat2Gen.jumpToRecent, () => {
-    const {dispatch} = C.getConvoState(Constants.getSelectedConversation())
+    const {dispatch} = C.getConvoState(C.getSelectedConversation())
     dispatch.loadMoreMessages({forceClear: true, reason: 'jump to recent'})
   })
   Container.listenAction(Chat2Gen.tabSelected, () => {
-    const {dispatch} = C.getConvoState(Constants.getSelectedConversation())
+    const {dispatch} = C.getConvoState(C.getSelectedConversation())
     dispatch.loadMoreMessages({reason: 'tab selected'})
   })
 
@@ -632,11 +632,11 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.unfurlRemove, unfurlRemove)
 
   Container.listenAction(Chat2Gen.updateUnreadline, (_, a) => {
-    const {dispatch} = C.getConvoState(Constants.getSelectedConversation())
+    const {dispatch} = C.getConvoState(C.getSelectedConversation())
     dispatch.markThreadAsRead(a.payload.messageID)
   })
   Container.listenAction(Chat2Gen.tabSelected, () => {
-    const {dispatch} = C.getConvoState(Constants.getSelectedConversation())
+    const {dispatch} = C.getConvoState(C.getSelectedConversation())
     dispatch.markThreadAsRead()
   })
 

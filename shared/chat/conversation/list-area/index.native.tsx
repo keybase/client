@@ -1,4 +1,4 @@
-import * as Constants from '../../../constants/chat2'
+import * as C from '../../../constants'
 import * as Container from '../../../util/container'
 import * as Hooks from './hooks'
 import * as Kb from '../../../common-adapters'
@@ -46,7 +46,7 @@ const useScrolling = (p: {
   const {cidChanged, listRef, centeredOrdinal} = p
   const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
   const oldestOrdinal = messageOrdinals[messageOrdinals.length - 1] ?? -1
-  const loadOlderMessagesDueToScroll = Constants.useContext(s => s.dispatch.loadOlderMessagesDueToScroll)
+  const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
 
   const loadOlderMessages = Container.useEvent(() => {
     // already loaded and nothing has changed
@@ -121,9 +121,9 @@ const ConversationList = React.memo(function ConversationList(p: {
   const [extraData, setExtraData] = React.useState(0)
   const [lastED, setLastED] = React.useState(extraData)
 
-  const centeredOrdinal = Constants.useContext(s => s.messageCenterOrdinal)?.ordinal ?? -1
-  const messageTypeMap = Constants.useContext(s => s.messageTypeMap)
-  const _messageOrdinals = Constants.useContext(s => s.messageOrdinals)
+  const centeredOrdinal = C.useChatContext(s => s.messageCenterOrdinal)?.ordinal ?? -1
+  const messageTypeMap = C.useChatContext(s => s.messageTypeMap)
+  const _messageOrdinals = C.useChatContext(s => s.messageOrdinals)
 
   const messageOrdinals = React.useMemo(() => {
     return [...(_messageOrdinals ?? [])].reverse()

@@ -47,7 +47,7 @@ type RoutableProps = {
 const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
   const topReacjis = C.useChatState(s => s.userReacjis.topReacjis)
   const [filter, setFilter] = React.useState('')
-  const toggleMessageReaction = Constants.useContext(s => s.dispatch.toggleMessageReaction)
+  const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const onChoose = React.useCallback(
     (emoji: string, renderableEmoji: RenderableEmoji) => {
       if (conversationIDKey !== Constants.noConversationIDKey && onPickAddToMessageOrdinal) {
@@ -112,7 +112,7 @@ const useCustomReacji = (
 }
 
 const useCanManageEmoji = () => {
-  const canManageEmoji = Constants.useContext(s => {
+  const canManageEmoji = C.useChatContext(s => {
     const meta = s.meta
     // TODO not reactive
     return !meta.teamname || Teams.getCanPerformByID(C.useTeamsState.getState(), meta.teamID).manageEmojis

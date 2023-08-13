@@ -1,11 +1,10 @@
 import * as C from '../../../../constants'
-import * as Constants from '../../../../constants/chat2'
 import type * as Types from '../../../../constants/types/chat2'
 import OldProfileResetNotice from '.'
 
 export default () => {
-  const participantInfo = Constants.useContext(s => s.participants)
-  const meta = Constants.useContext(s => s.meta)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const meta = C.useChatContext(s => s.meta)
   const _participants = participantInfo.all
   const nextConversationIDKey = meta.supersededBy
   const username = meta.wasFinalizedBy || ''

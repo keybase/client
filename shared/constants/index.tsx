@@ -60,4 +60,5 @@ export {
   _stores as chatStores,
   _getConvoState as getConvoState,
   getSelectedConversation,
+  _useContext as useChatContext,
 } from './chat2'

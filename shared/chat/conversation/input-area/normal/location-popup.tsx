@@ -17,7 +17,7 @@ const LocationPopup = (props: Props) => {
   const username = C.useCurrentUserState(s => s.username)
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
   const location = C.useChatState(s => s.lastCoord)
-  const locationDenied = Constants.useContext(
+  const locationDenied = C.useChatContext(
     s => s.commandStatus?.displayType == RPCChatTypes.UICommandStatusDisplayTyp.error
   )
   const [mapLoaded, setMapLoaded] = React.useState(false)
@@ -27,7 +27,7 @@ const LocationPopup = (props: Props) => {
     clearModals()
   }
   const onSettings = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppSettings)
-  const messageSend = Constants.useContext(s => s.dispatch.messageSend)
+  const messageSend = C.useChatContext(s => s.dispatch.messageSend)
   const onLocationShare = (duration: string) => {
     onClose()
     messageSend(duration ? `/location live ${duration}` : '/location')

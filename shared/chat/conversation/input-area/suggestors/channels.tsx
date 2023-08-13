@@ -86,13 +86,13 @@ const getChannelSuggestions = (
 export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
 
-  const channelSuggestionsTriggered = Constants.useContext(s => s.dispatch.channelSuggestionsTriggered)
+  const channelSuggestionsTriggered = C.useChatContext(s => s.dispatch.channelSuggestionsTriggered)
   if (lastCID !== conversationIDKey) {
     setLastCID(conversationIDKey)
     channelSuggestionsTriggered()
   }
 
-  const meta = Constants.useContext(s => s.meta)
+  const meta = C.useChatContext(s => s.meta)
   const {teamID} = meta
 
   const suggestChannelsLoading = Container.useAnyWaiting([
@@ -100,7 +100,7 @@ export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter
     Constants.waitingKeyMutualTeams(conversationIDKey),
   ])
   const teamMeta = C.useTeamsState(s => s.teamMeta)
-  return Constants.useContext(s => {
+  return C.useChatContext(s => {
     const fil = filter.toLowerCase()
     // don't include 'small' here to ditch the single #general suggestion
     const teamname = meta.teamType === 'big' ? meta.teamname : ''

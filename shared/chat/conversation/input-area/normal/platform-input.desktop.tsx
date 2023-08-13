@@ -1,7 +1,6 @@
-import * as Constants from '../../../../constants/chat2'
+import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as C from '../../../../constants'
 import * as Styles from '../../../../styles'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import Typing from './typing'
@@ -122,7 +121,7 @@ const EmojiButton = (p: EmojiButtonProps) => {
 }
 
 const GiphyButton = () => {
-  const toggleGiphyPrefill = Constants.useContext(s => s.dispatch.toggleGiphyPrefill)
+  const toggleGiphyPrefill = C.useChatContext(s => s.dispatch.toggleGiphyPrefill)
   const onGiphyToggle = toggleGiphyPrefill
 
   return (
@@ -198,7 +197,7 @@ const useKeyboard = (p: UseKeyboardProps) => {
   const {htmlInputRef, focusInput, isEditing, onKeyDown, onCancelEditing} = p
   const {onChangeText, onEditLastMessage, onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const lastText = React.useRef('')
-  const setReplyTo = Constants.useContext(s => s.dispatch.setReplyTo)
+  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
   const onCancelReply = React.useCallback(() => {
     setReplyTo(0)
   }, [setReplyTo])
@@ -349,7 +348,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const focusInput = React.useCallback(() => {
     inputRef.current?.focus()
   }, [inputRef])
-  const setEditing = Constants.useContext(s => s.dispatch.setEditing)
+  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const onEditLastMessage = React.useCallback(() => {
     setEditing(true)
   }, [setEditing])

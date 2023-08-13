@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as React from 'react'
@@ -23,8 +22,8 @@ type Props = {
 
 const MessagePopup = React.memo(function MessagePopup(p: Props) {
   const {conversationIDKey, ordinal, attachTo, onHidden, position, style, visible} = p
-  const exploding = Constants.useContext(s => s.messageMap.get(ordinal)?.exploding)
-  const type = Constants.useContext(s => s.messageMap.get(ordinal)?.type)
+  const exploding = C.useChatContext(s => s.messageMap.get(ordinal)?.exploding)
+  const type = C.useChatContext(s => s.messageMap.get(ordinal)?.type)
   switch (type) {
     case 'text':
       if (exploding) {

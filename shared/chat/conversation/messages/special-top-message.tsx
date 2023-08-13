@@ -107,9 +107,9 @@ const ErrorMessage = () => {
 const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const username = C.useCurrentUserState(s => s.username)
-  const loadMoreType = Constants.useContext(s => (s.moreToLoad ? 'moreToLoad' : 'noMoreToLoad'))
-  const ordinals = Constants.useContext(s => s.messageOrdinals)
-  const data = Constants.useContext(s => {
+  const loadMoreType = C.useChatContext(s => (s.moreToLoad ? 'moreToLoad' : 'noMoreToLoad'))
+  const ordinals = C.useChatContext(s => s.messageOrdinals)
+  const data = C.useChatContext(s => {
     const hasLoadedEver = ordinals !== undefined
     const ordinal = ordinals?.[0] ?? 0
 
@@ -150,7 +150,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   }, [])
 
   // could not expose this and just return an enum for the is*convos
-  const participantInfoAll = Constants.useContext(s => s.participants.all)
+  const participantInfoAll = C.useChatContext(s => s.participants.all)
 
   let pendingState: 'waiting' | 'error' | 'done'
   switch (conversationIDKey) {

@@ -6,7 +6,6 @@ import * as Container from '../../../util/container'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Types from '../../../constants/types/chat2'
-import * as Constants from '../../../constants/chat2'
 import {Avatars, TeamAvatar} from '../../avatars'
 import debounce from 'lodash/debounce'
 import logger from '../../../logger'
@@ -21,7 +20,7 @@ type PickerState = 'picker' | 'title'
 const TeamPicker = (props: Props) => {
   const srcConvID = props.srcConvID
   const ordinal = props.ordinal
-  const message = Constants.useContext(s => s.messageMap.get(ordinal))
+  const message = C.useChatContext(s => s.messageMap.get(ordinal))
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
   const dstConvIDRef = React.useRef<Buffer | undefined>()

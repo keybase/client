@@ -1,5 +1,4 @@
 import * as C from '../../../../../../constants'
-import * as Constants from '../../../../../../constants/chat2'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
@@ -17,7 +16,7 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const ordinal = React.useContext(OrdinalContext)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
-  const data = Constants.useContext(s => {
+  const data = C.useChatContext(s => {
     const {unfurl, youAreAuthor, author} = getUnfurlInfo(s, ordinal, idx)
     if (unfurl?.unfurlType !== RPCChatTypes.UnfurlType.generic) {
       return null

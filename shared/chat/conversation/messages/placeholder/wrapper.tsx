@@ -1,7 +1,7 @@
+import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {WrapperMessage, type Props} from '../wrapper/wrapper'
@@ -22,7 +22,7 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
 
   const forceListRedraw = React.useContext(ForceListRedrawContext)
 
-  const type = Constants.useContext(s => s.messageMap.get(ordinal)?.type)
+  const type = C.useChatContext(s => s.messageMap.get(ordinal)?.type)
   const [lastType, setLastType] = React.useState(type)
 
   useChatDebugDump(

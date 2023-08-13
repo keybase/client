@@ -1,10 +1,10 @@
-import * as Constants from '../../../../constants/chat2'
+import * as C from '../../../../constants'
 import ChannelPreview from '.'
 
 export default () => {
-  const meta = Constants.useContext(s => s.meta)
-  const onJoinChannel = Constants.useContext(s => s.dispatch.joinConversation)
-  const onLeaveChannel = Constants.useContext(s => s.dispatch.leaveConversation)
+  const meta = C.useChatContext(s => s.meta)
+  const onJoinChannel = C.useChatContext(s => s.dispatch.joinConversation)
+  const onLeaveChannel = C.useChatContext(s => s.dispatch.leaveConversation)
   const {channelname} = meta
   const props = {
     channelname,

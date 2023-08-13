@@ -18,8 +18,8 @@ type Section = _Section<string | RPCTypes.FeaturedBot, Extra> | _Section<{key: s
 
 const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
-  const settings = Constants.useContext(s => s.botSettings.get(username))
-  const editBotSettings = Constants.useContext(s => s.dispatch.editBotSettings)
+  const settings = C.useChatContext(s => s.botSettings.get(username))
+  const editBotSettings = C.useChatContext(s => s.dispatch.editBotSettings)
   return (
     <Kb.WaitingButton
       disabled={!settings}
@@ -58,7 +58,7 @@ export const Bot = (props: BotProps) => {
   const {ownerTeam, ownerUser} = props
   const {onClick, firstItem} = props
   const {conversationIDKey, showChannelAdd, showTeamAdd} = props
-  const refreshBotSettings = Constants.useContext(s => s.dispatch.refreshBotSettings)
+  const refreshBotSettings = C.useChatContext(s => s.dispatch.refreshBotSettings)
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
   if (conversationIDKey !== lastCID) {
     setLastCID(conversationIDKey)
@@ -189,7 +189,7 @@ const featuredBotSpinner = 'bots: featured spinners'
 
 const BotTab = (props: Props) => {
   const {renderTabs, conversationIDKey} = props
-  const meta = Constants.useContext(s => s.meta)
+  const meta = C.useChatContext(s => s.meta)
   const {teamID, teamname, teamType, botAliases} = meta
   const yourOperations = C.useTeamsState(s =>
     teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined
@@ -201,7 +201,7 @@ const BotTab = (props: Props) => {
     canManageBots = true
   }
   const adhocTeam = teamType === 'adhoc'
-  const participantInfo = Constants.useContext(s => s.participants)
+  const participantInfo = C.useChatContext(s => s.participants)
   const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID)) ?? new Map()
   const participantsAll = participantInfo.all
 

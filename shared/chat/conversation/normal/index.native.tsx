@@ -71,7 +71,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
   )
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const injectIntoInput = Constants.useContext(s => s.dispatch.injectIntoInput)
+  const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
   const onDropped = React.useCallback(
     (items: DropItems) => {
       let {attach, texts} = items.reduce(

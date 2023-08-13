@@ -54,7 +54,7 @@ const MobileSendToChatRoutable = (props: Props) => {
 export const MobileSendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const injectIntoInput = ChatConstants.useContext(s => s.dispatch.injectIntoInput)
+  const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
   const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, tlfName: string) => {
     text && injectIntoInput(text)
     if (sendPaths?.length) {
@@ -92,7 +92,7 @@ const DesktopSendToChat = (props: Props) => {
     setConversationIDKey(convID)
     setConvName(convname)
   }
-  const attachmentsUpload = ChatConstants.useContext(s => s.dispatch.attachmentsUpload)
+  const attachmentsUpload = C.useChatContext(s => s.dispatch.attachmentsUpload)
   const onSend = () => {
     sendPaths?.forEach(path =>
       attachmentsUpload([{path: Types.pathToString(path)}], [title], `${username},${convName.split('#')[0]}`)

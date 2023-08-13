@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as Constants from '../../../../constants/chat2'
 import * as React from 'react'
 import * as TeamConstants from '../../../../constants/teams'
 import SystemCreateTeam from '.'
@@ -12,7 +11,7 @@ type OwnProps = {
 const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(p: OwnProps) {
   const {message} = p
   const {conversationIDKey, creator} = message
-  const {teamID, teamname} = Constants.useContext(s => s.meta)
+  const {teamID, teamname} = C.useChatContext(s => s.meta)
   const role = C.useTeamsState(s => TeamConstants.getRole(s, teamID))
   const you = C.useCurrentUserState(s => s.username)
   const isAdmin = TeamConstants.isAdmin(role) || TeamConstants.isOwner(role)

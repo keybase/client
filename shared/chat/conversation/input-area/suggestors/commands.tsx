@@ -29,8 +29,8 @@ const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
 const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
   const {conversationIDKey, selected, item: command} = p
   const prefix = getCommandPrefix(command)
-  const botSettings = Constants.useContext(s => s.botSettings)
-  const enabled = Constants.useContext(s => {
+  const botSettings = C.useChatContext(s => s.botSettings)
+  const enabled = C.useChatContext(s => {
     const {botCommands} = s.meta
     const suggestBotCommands =
       botCommands.typ === RPCChatTypes.ConversationCommandGroupsTyp.custom
@@ -102,9 +102,9 @@ const getMaxCmdLength = memoize(
 export const useDataSource = (p: UseDataSourceProps) => {
   const {filter, inputRef, lastTextRef} = p
   const staticConfig = C.useChatState(s => s.staticConfig)
-  const showGiphySearch = Constants.useContext(s => s.giphyWindow)
-  const showCommandMarkdown = Constants.useContext(s => !!s.commandMarkdown)
-  return Constants.useContext(s => {
+  const showGiphySearch = C.useChatContext(s => s.giphyWindow)
+  const showCommandMarkdown = C.useChatContext(s => !!s.commandMarkdown)
+  return C.useChatContext(s => {
     if (showCommandMarkdown || showGiphySearch) {
       return []
     }
