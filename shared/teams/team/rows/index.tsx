@@ -132,7 +132,7 @@ export const useChannelsSections = (
   teamID: Types.TeamID,
   yourOperations: Types.TeamOperations
 ): Array<Section> => {
-  const isBig = ChatConstants.useState(s => ChatConstants.isBigTeam(s, teamID))
+  const isBig = C.useChatState(s => ChatConstants.isBigTeam(s, teamID))
   const channels = C.useTeamsState(s => s.channelInfo.get(teamID))
   const canCreate = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID).createChannel)
 
@@ -193,10 +193,8 @@ export const useSubteamsSections = (
 
 const useGeneralConversationIDKey = (teamID?: Types.TeamID) => {
   const [conversationIDKey, setConversationIDKey] = React.useState<Chat2Types.ConversationIDKey | undefined>()
-  const generalConvID = ChatConstants.useState(s =>
-    teamID ? s.teamIDToGeneralConvID.get(teamID) : undefined
-  )
-  const findGeneralConvIDFromTeamID = ChatConstants.useState(s => s.dispatch.findGeneralConvIDFromTeamID)
+  const generalConvID = C.useChatState(s => (teamID ? s.teamIDToGeneralConvID.get(teamID) : undefined))
+  const findGeneralConvIDFromTeamID = C.useChatState(s => s.dispatch.findGeneralConvIDFromTeamID)
   React.useEffect(() => {
     if (!conversationIDKey && teamID) {
       if (!generalConvID) {

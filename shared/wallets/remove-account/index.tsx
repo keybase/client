@@ -1,4 +1,3 @@
-import * as Constants from '../../constants/wallets'
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -8,7 +7,7 @@ type OwnProps = {accountID: string}
 
 export default (ownProps: OwnProps) => {
   const {accountID} = ownProps
-  const account = Constants.useState(s => s.accountMap.get(accountID))
+  const account = C.useWalletsState(s => s.accountMap.get(accountID))
   const balance = account?.balanceDescription ?? 'Error loading account'
   const name = account?.name ?? ''
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

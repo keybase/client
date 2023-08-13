@@ -62,7 +62,7 @@ class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, Stat
 export default (ownProps: OwnProps) => {
   const {teamID, username, reset, fullName} = ownProps
   const {teamname} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
-  const _notifLabel = ChatConstants.useState(s =>
+  const _notifLabel = C.useChatState(s =>
     ChatConstants.isBigTeam(s, teamID) ? `Announce them in #general` : `Announce them in team chat`
   )
   const disabledReasonsForRolePicker = C.useTeamsState(s =>
@@ -84,7 +84,7 @@ export default (ownProps: OwnProps) => {
   const letIn = (sendNotification: boolean, role: Types.TeamRoleType) => {
     addToTeam(teamID, [{assertion: username, role}], sendNotification)
   }
-  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => {
     username && previewConversation({participants: [username], reason: 'teamInvite'})
   }

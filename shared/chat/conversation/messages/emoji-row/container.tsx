@@ -25,7 +25,7 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
     return {hasUnfurls, type}
   }, shallowEqual)
 
-  const emojis = Constants.useState(s => s.userReacjis.topReacjis.slice(0, 5), shallowEqual)
+  const emojis = C.useChatState(s => s.userReacjis.topReacjis.slice(0, 5), shallowEqual)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const toggleMessageReaction = Constants.useContext(s => s.dispatch.toggleMessageReaction)
   const onForward = React.useCallback(() => {

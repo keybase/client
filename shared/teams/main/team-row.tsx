@@ -3,7 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
-import * as ChatConstants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import type * as Types from '../../constants/types/teams'
 import TeamMenu from '../team/menu-container'
@@ -27,7 +26,7 @@ const TeamRow = (props: Props) => {
 
   const activity = <Activity level={activityLevel} />
 
-  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => previewConversation({reason: 'teamRow', teamname: teamMeta.teamname})
 
   const makePopup = React.useCallback(

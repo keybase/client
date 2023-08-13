@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import ChatInboxHeader from '.'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
@@ -9,16 +8,16 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const hasLoadedEmptyInbox = Constants.useState(
+  const hasLoadedEmptyInbox = C.useChatState(
     s =>
       s.inboxHasLoaded &&
       !!s.inboxLayout &&
       (s.inboxLayout.smallTeams || []).length === 0 &&
       (s.inboxLayout.bigTeams || []).length === 0
   )
-  const showEmptyInbox = Constants.useState(s => !s.inboxSearch && hasLoadedEmptyInbox)
+  const showEmptyInbox = C.useChatState(s => !s.inboxSearch && hasLoadedEmptyInbox)
   const showStartNewChat = !Container.isMobile && showEmptyInbox
-  const isSearching = Constants.useState(s => !!s.inboxSearch)
+  const isSearching = C.useChatState(s => !!s.inboxSearch)
   const showFilter = !showEmptyInbox
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -26,9 +25,9 @@ export default (ownProps: OwnProps) => {
     navigateUp()
   }
 
-  const inboxSearchSelect = Constants.useState(s => s.dispatch.inboxSearchSelect)
-  const inboxSearch = Constants.useState(s => s.dispatch.inboxSearch)
-  const inboxSearchMoveSelectedIndex = Constants.useState(s => s.dispatch.inboxSearchMoveSelectedIndex)
+  const inboxSearchSelect = C.useChatState(s => s.dispatch.inboxSearchSelect)
+  const inboxSearch = C.useChatState(s => s.dispatch.inboxSearch)
+  const inboxSearchMoveSelectedIndex = C.useChatState(s => s.dispatch.inboxSearchMoveSelectedIndex)
   const onEnsureSelection = () => {
     inboxSearchSelect()
   }

@@ -1,3 +1,4 @@
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import type * as Types from '../../../../constants/types/chat2'
 import OldProfileResetNotice from '.'
@@ -11,7 +12,7 @@ export default () => {
   const onOpenConversation = (conversationIDKey: Types.ConversationIDKey) => {
     Constants.getConvoState(conversationIDKey).dispatch.navigateToThread('jumpFromReset')
   }
-  const previewConversation = Constants.useState(s => s.dispatch.previewConversation)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const startConversation = (participants: Array<string>) => {
     previewConversation({participants, reason: 'fromAReset'})
   }

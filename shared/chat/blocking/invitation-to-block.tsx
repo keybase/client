@@ -12,7 +12,7 @@ const BlockButtons = (props: Props) => {
 
   const teamname = Constants.useContext(s => s.meta.teamname)
   const teamID = Constants.useContext(s => s.meta.teamID)
-  const blockButtonInfo = Constants.useState(s => {
+  const blockButtonInfo = C.useChatState(s => {
     const blockButtonsMap = s.blockButtonsMap
     return teamID ? blockButtonsMap.get(teamID) : undefined
   })

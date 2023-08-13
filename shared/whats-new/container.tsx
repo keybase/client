@@ -2,7 +2,7 @@ import * as ConfigConstants from '../constants/config'
 import * as C from '../constants'
 import type * as Tabs from '../constants/tabs'
 import openURL from '../util/open-url'
-import {currentVersion, useState} from '../constants/whats-new'
+import {currentVersion} from '../constants/whats-new'
 import {Current, Last, LastLast} from './versions'
 import WhatsNew from '.'
 
@@ -25,8 +25,8 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
   const _onUpdateLastSeenVersion = (lastSeenVersion: string) => {
     updateGregorCategory('whatsNewLastSeenVersion', lastSeenVersion)
   }
-  const seenVersions = useState(s => s.getSeenVersions())
-  const newRelease = useState(s => s.anyVersionsUnseen())
+  const seenVersions = C.useWNState(s => s.getSeenVersions())
+  const newRelease = C.useWNState(s => s.anyVersionsUnseen())
   const onBack = () => {
     if (newRelease) {
       _onUpdateLastSeenVersion(currentVersion)

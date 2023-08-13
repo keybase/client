@@ -132,10 +132,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const name = 'config.getBootstrapStatus'
         const {wait} = get().dispatch
         wait(name, version, true)
-        const ChatConstants = await import('./chat2')
         await get().dispatch.loadDaemonBootstrapStatus()
         C.useDarkModeState.getState().dispatch.loadDarkPrefs()
-        ChatConstants.useState.getState().dispatch.loadStaticConfig()
+        C.useChatState.getState().dispatch.loadStaticConfig()
         wait(name, version, false)
       }
       Z.ignorePromise(f())
@@ -226,7 +225,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
       const f = async () => {
         const Constants = await import('./config')
-        const ChatConstants = await import('./chat2')
         const {setBootstrap} = C.useCurrentUserState.getState().dispatch
         const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
         const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
@@ -241,7 +239,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
         logger.info(`[Bootstrap] loggedIn: ${loggedIn ? 1 : 0}`)
         Constants.useConfigState.getState().dispatch.setLoggedIn(loggedIn, false)
-        ChatConstants.useState.getState().dispatch.updateUserReacjis(userReacjis)
+        C.useChatState.getState().dispatch.updateUserReacjis(userReacjis)
 
         // set HTTP srv info
         if (s.httpSrvInfo) {

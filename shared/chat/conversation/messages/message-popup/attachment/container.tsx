@@ -56,7 +56,7 @@ export default (ownProps: OwnProps) => {
     })
   }
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
   const _onAllMedia = (conversationIDKey: Types.ConversationIDKey) => {
     clearModals()
     showInfoPanel(true, 'attachments', conversationIDKey)

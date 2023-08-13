@@ -595,8 +595,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     blockConversation: reportUser => {
       const f = async () => {
-        const Constants = await import('.')
-        Constants.useState.getState().dispatch.navigateToInbox()
+        C.useChatState.getState().dispatch.navigateToInbox()
         useConfigState.getState().dispatch.dynamic.persistRoute?.()
         await RPCChatTypes.localSetConversationStatusLocalRpcPromise({
           conversationID: Types.keyToConversationID(get().id),
@@ -658,10 +657,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           title += `#${meta.channelname}`
         }
 
-        const Constants = await import('.')
         const onClick = () => {
           useConfigState.getState().dispatch.showMain()
-          Constants.useState.getState().dispatch.navigateToInbox()
+          C.useChatState.getState().dispatch.navigateToInbox()
           get().dispatch.navigateToThread('desktopNotification')
         }
         const onClose = () => {}
@@ -728,12 +726,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     hideConversation: hide => {
       const conversationIDKey = get().id
       const f = async () => {
-        const Constants = await import('.')
         if (hide) {
           // Nav to inbox but don't use findNewConversation since changeSelectedConversation
           // does that with better information. It knows the conversation is hidden even before
           // that state bounces back.
-          const {showInfoPanel, navigateToInbox} = Constants.useState.getState().dispatch
+          const {showInfoPanel, navigateToInbox} = C.useChatState.getState().dispatch
           navigateToInbox()
           showInfoPanel(false, undefined, conversationIDKey)
         }
@@ -902,7 +899,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       // we get a thread-is-stale notification, or when you scroll up and want more
       // messages
       const f = async () => {
-        const Constants = await import('.')
         // Get the conversationIDKey
         const {id: conversationIDKey, meta, messageOrdinals, dispatch} = get()
 
@@ -1009,7 +1005,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             logger.warn(error.desc)
             // no longer in team
             if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
-              const {inboxRefresh, navigateToInbox} = Constants.useState.getState().dispatch
+              const {inboxRefresh, navigateToInbox} = C.useChatState.getState().dispatch
               inboxRefresh('maybeKickedFromTeam')
               navigateToInbox()
             }
@@ -1044,7 +1040,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     loadOrangeLine: () => {
       const f = async () => {
-        const Constants = await import('.')
         const conversationIDKey = get().id
         if (!Types.isValidConversationIDKey(conversationIDKey)) {
           logger.info('Load unreadline bail: no conversationIDKey')
@@ -1075,7 +1070,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         } catch (error) {
           if (error instanceof RPCError) {
             if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
-              const {inboxRefresh, navigateToInbox} = Constants.useState.getState().dispatch
+              const {inboxRefresh, navigateToInbox} = C.useChatState.getState().dispatch
               inboxRefresh('maybeKickedFromTeam')
               navigateToInbox()
             }
@@ -1376,10 +1371,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
 
-        const Constants = await import('.')
         const text = Common.formatTextForQuoting(message.text.stringValue())
         getConvoState(conversationIDKey).dispatch.injectIntoInput(text)
-        Constants.useState.getState().dispatch.metasReceived([meta])
+        C.useChatState.getState().dispatch.metasReceived([meta])
         getConvoState(conversationIDKey).dispatch.navigateToThread('createdMessagePrivately')
       }
       Z.ignorePromise(f())
@@ -1462,8 +1456,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
 
         // If there are block buttons on this conversation, clear them.
-        const Constants = await import('.')
-        if (Constants.useState.getState().blockButtonsMap.has(meta.teamID)) {
+        if (C.useChatState.getState().blockButtonsMap.has(meta.teamID)) {
           reduxDispatch(Chat2Gen.createDismissBlockButtons({teamID: meta.teamID}))
         }
 
@@ -2208,19 +2201,15 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     resetChatWithoutThem: () => {
       // Implicit teams w/ reset users we can invite them back in or chat w/o them
-      const f = async () => {
-        const meta = get().meta
-        const participantInfo = get().participants
-        // remove all bad people
-        const goodParticipants = new Set(participantInfo.all)
-        meta.resetParticipants.forEach(r => goodParticipants.delete(r))
-        const Constants = await import('.')
-        Constants.useState.getState().dispatch.previewConversation({
-          participants: [...goodParticipants],
-          reason: 'resetChatWithoutThem',
-        })
-      }
-      Z.ignorePromise(f())
+      const meta = get().meta
+      const participantInfo = get().participants
+      // remove all bad people
+      const goodParticipants = new Set(participantInfo.all)
+      meta.resetParticipants.forEach(r => goodParticipants.delete(r))
+      C.useChatState.getState().dispatch.previewConversation({
+        participants: [...goodParticipants],
+        reason: 'resetChatWithoutThem',
+      })
     },
     resetLetThemIn: username => {
       // let them back in after they reset
@@ -2239,81 +2228,77 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     selectedConversation: () => {
-      const f = async () => {
-        const Constants = await import('.')
-        const conversationIDKey = get().id
+      const conversationIDKey = get().id
 
-        const fetchConversationBio = () => {
-          const participantInfo = get().participants
-          const username = C.useCurrentUserState.getState().username
-          const otherParticipants = Meta.getRowParticipants(participantInfo, username || '')
-          if (otherParticipants.length === 1) {
-            // we're in a one-on-one convo
-            const username = otherParticipants[0] || ''
+      const fetchConversationBio = () => {
+        const participantInfo = get().participants
+        const username = C.useCurrentUserState.getState().username
+        const otherParticipants = Meta.getRowParticipants(participantInfo, username || '')
+        if (otherParticipants.length === 1) {
+          // we're in a one-on-one convo
+          const username = otherParticipants[0] || ''
 
-            // if this is an SBS/phone/email convo or we get a garbage username, don't do anything
-            if (username === '' || username.includes('@')) {
-              return
-            }
-
-            C.useUsersState.getState().dispatch.getBio(username)
+          // if this is an SBS/phone/email convo or we get a garbage username, don't do anything
+          if (username === '' || username.includes('@')) {
+            return
           }
-        }
 
-        const updateOrangeAfterSelected = () => {
-          get().dispatch.setContainsLatestMessage(true)
-          const {readMsgID, maxVisibleMsgID} = get().meta
-          logger.info(
-            `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
-          )
-          if (maxVisibleMsgID > readMsgID) {
-            // Store the message ID that will display the orange line above it,
-            // which is the first message after the last read message. We can't
-            // just increment `readMsgID` since that msgID might be a
-            // non-visible (edit, delete, reaction...) message so we scan the
-            // ordinals for the appropriate value.
-            const messageMap = get().messageMap
-            const ordinals = get().messageOrdinals
-            const ord = ordinals?.find(o => {
-              const message = messageMap.get(o)
-              return !!(message && message.id >= readMsgID + 1)
-            })
-            const message = ord ? messageMap.get(ord) : null
-            if (message?.id) {
-              get().dispatch.setOrangeLine(message.id)
-            } else {
-              get().dispatch.setOrangeLine(0)
-            }
+          C.useUsersState.getState().dispatch.getBio(username)
+        }
+      }
+
+      const updateOrangeAfterSelected = () => {
+        get().dispatch.setContainsLatestMessage(true)
+        const {readMsgID, maxVisibleMsgID} = get().meta
+        logger.info(
+          `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
+        )
+        if (maxVisibleMsgID > readMsgID) {
+          // Store the message ID that will display the orange line above it,
+          // which is the first message after the last read message. We can't
+          // just increment `readMsgID` since that msgID might be a
+          // non-visible (edit, delete, reaction...) message so we scan the
+          // ordinals for the appropriate value.
+          const messageMap = get().messageMap
+          const ordinals = get().messageOrdinals
+          const ord = ordinals?.find(o => {
+            const message = messageMap.get(o)
+            return !!(message && message.id >= readMsgID + 1)
+          })
+          const message = ord ? messageMap.get(ord) : null
+          if (message?.id) {
+            get().dispatch.setOrangeLine(message.id)
           } else {
-            // If there aren't any new messages, we don't want to display an
-            // orange line so remove its entry from orangeLineMap
             get().dispatch.setOrangeLine(0)
           }
+        } else {
+          // If there aren't any new messages, we don't want to display an
+          // orange line so remove its entry from orangeLineMap
+          get().dispatch.setOrangeLine(0)
         }
+      }
 
-        const ensureSelectedTeamLoaded = () => {
-          const selectedConversation = Common.getSelectedConversation()
-          const meta = getConvoState(selectedConversation).meta
-          if (meta.conversationIDKey === selectedConversation) {
-            const {teamID, teamname} = meta
-            if (teamname) {
-              C.useTeamsState.getState().dispatch.getMembers(teamID)
-            }
+      const ensureSelectedTeamLoaded = () => {
+        const selectedConversation = Common.getSelectedConversation()
+        const meta = getConvoState(selectedConversation).meta
+        if (meta.conversationIDKey === selectedConversation) {
+          const {teamID, teamname} = meta
+          if (teamname) {
+            C.useTeamsState.getState().dispatch.getMembers(teamID)
           }
         }
-        ensureSelectedTeamLoaded()
-        get().dispatch.loadOrangeLine()
-        const meta = get().meta
-        const participantInfo = get().participants
-        const force = meta.conversationIDKey !== conversationIDKey || participantInfo.all.length === 0
-        Constants.useState.getState().dispatch.unboxRows([conversationIDKey], force)
-        get().dispatch.setThreadLoadStatus(RPCChatTypes.UIChatThreadStatusTyp.none)
-        get().dispatch.setMessageCenterOrdinal()
-        updateOrangeAfterSelected()
-        fetchConversationBio()
-        Constants.useState.getState().dispatch.resetConversationErrored()
       }
-      Z.ignorePromise(f())
+      ensureSelectedTeamLoaded()
+      get().dispatch.loadOrangeLine()
+      const meta = get().meta
+      const participantInfo = get().participants
+      const force = meta.conversationIDKey !== conversationIDKey || participantInfo.all.length === 0
+      C.useChatState.getState().dispatch.unboxRows([conversationIDKey], force)
+      get().dispatch.setThreadLoadStatus(RPCChatTypes.UIChatThreadStatusTyp.none)
+      get().dispatch.setMessageCenterOrdinal()
+      updateOrangeAfterSelected()
+      fetchConversationBio()
+      C.useChatState.getState().dispatch.resetConversationErrored()
     },
     sendTyping: throttle(typing => {
       const f = async () => {

@@ -1,5 +1,5 @@
-import * as Constants from '../../../constants/chat2'
 import * as C from '../../../constants'
+import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import type * as Types from '../../../constants/types/chat2'
@@ -38,7 +38,7 @@ export const HeaderAreaRight = (props: OwnProps) => {
     </>
   ) : null
 
-  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
   const onShowInfoPanel = React.useCallback(
     () => showInfoPanel(true, undefined, conversationIDKey),
     [showInfoPanel, conversationIDKey]
@@ -95,10 +95,10 @@ export default HeaderBranchContainer
 const BadgeHeaderLeftArray = ({conversationIDKey, ...rest}: any) => {
   const visiblePath = C.getVisiblePath()
   const onTopOfInbox = visiblePath?.[(visiblePath.length ?? 0) - 2]?.name === 'chatRoot'
-  const badgeCountsChanged = Constants.useState(s => s.badgeCountsChanged)
+  const badgeCountsChanged = C.useChatState(s => s.badgeCountsChanged)
   const badgeNumber = React.useMemo(() => {
     if (!onTopOfInbox) return 0
-    const badgeMap = Constants.useState.getState().getBadgeMap(badgeCountsChanged)
+    const badgeMap = C.useChatState.getState().getBadgeMap(badgeCountsChanged)
     return [...badgeMap.entries()].reduce(
       (res, [currentConvID, currentValue]) =>
         // only show sum of badges that aren't for the current conversation

@@ -14,7 +14,7 @@ type Props = {
 }>
 
 const InfoPanelConnector = (props: Props) => {
-  const storeSelectedTab = Constants.useState(s => s.infoPanelSelectedTab)
+  const storeSelectedTab = C.useChatState(s => s.infoPanelSelectedTab)
   const initialTab = props.tab ?? storeSelectedTab
 
   const conversationIDKey: Types.ConversationIDKey =
@@ -31,13 +31,13 @@ const InfoPanelConnector = (props: Props) => {
   const [selectedTab, onSelectTab] = React.useState<Panel | undefined>(initialTab)
   const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
 
-  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
   const clearAttachmentView = Constants.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
   const onCancel = () => {
     showInfoPanel(false, undefined, conversationIDKey)
     clearAttachmentView()
   }
-  const onGoToInbox = Constants.useState(s => s.dispatch.navigateToInbox)
+  const onGoToInbox = C.useChatState(s => s.dispatch.navigateToInbox)
 
   if (lastSNO !== shouldNavigateOut) {
     setLastSNO(shouldNavigateOut)

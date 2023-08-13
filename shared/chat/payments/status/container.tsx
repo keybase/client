@@ -34,7 +34,7 @@ const reduceStatus = (status: string): Status => {
 const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: OwnProps) {
   const {error, paymentID, text, allowFontScaling} = p
   const ordinal = React.useContext(OrdinalContext)
-  const paymentInfo = Constants.useState(s => (paymentID ? s.paymentStatusMap.get(paymentID) : undefined))
+  const paymentInfo = C.useChatState(s => (paymentID ? s.paymentStatusMap.get(paymentID) : undefined))
   const status = error ? 'error' : paymentInfo?.status ?? 'pending'
 
   const you = C.useCurrentUserState(s => s.username)

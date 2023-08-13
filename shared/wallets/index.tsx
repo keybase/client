@@ -107,7 +107,7 @@ export default () => {
   const [acceptedDisclaimer, setAcceptedDisclaimer] = React.useState(false)
   const checkDisclaimer = Container.useRPC(RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise)
 
-  const load = Constants.useState(s => s.dispatch.load)
+  const load = C.useWalletsState(s => s.dispatch.load)
 
   useFocusEffect(
     React.useCallback(() => {
@@ -125,7 +125,7 @@ export default () => {
     }, [load, checkDisclaimer])
   )
 
-  const accountMap = Constants.useState(s => s.accountMap)
+  const accountMap = C.useWalletsState(s => s.accountMap)
   const accounts = React.useMemo(() => {
     return [...accountMap.values()].sort((a, b) => {
       if (a.isDefault) return -1

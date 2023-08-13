@@ -76,7 +76,7 @@ const ChannelMemberRow = (props: Props) => {
   const onSelect = (selected: boolean) => {
     channelSetMemberSelected(conversationIDKey, username, selected)
   }
-  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onChat = React.useCallback(() => {
     username && previewConversation({participants: [username], reason: 'teamMember'})
   }, [username, previewConversation])

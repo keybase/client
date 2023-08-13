@@ -373,21 +373,17 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         }
       })
       const {finishedTeam, namespace} = get()
-      const f = async () => {
-        switch (namespace) {
-          case 'crypto': {
-            C.useCryptoState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
-            break
-          }
-          case 'chat2': {
-            const ChatConstants = await import('./chat2')
-            ChatConstants.useState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
-            break
-          }
-          default:
+      switch (namespace) {
+        case 'crypto': {
+          C.useCryptoState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
+          break
         }
+        case 'chat2': {
+          C.useChatState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
+          break
+        }
+        default:
       }
-      Z.ignorePromise(f())
       get().dispatch.closeTeamBuilding()
     },
     removeUsersFromTeamSoFar: users => {

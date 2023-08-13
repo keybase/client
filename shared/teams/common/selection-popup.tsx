@@ -204,7 +204,7 @@ const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
 )
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   const membersSet = C.useTeamsState(s => s.teamSelectedMembers.get(teamID))
-  const isBigTeam = ChatConstants.useState(s => ChatConstants.isBigTeam(s, teamID))
+  const isBigTeam = C.useChatState(s => ChatConstants.isBigTeam(s, teamID))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   if (!membersSet) {
     // we shouldn't be rendered

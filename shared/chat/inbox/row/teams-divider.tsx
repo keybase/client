@@ -1,4 +1,4 @@
-import * as Constants from '../../../constants/chat2'
+import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
@@ -32,11 +32,11 @@ const getRowCounts = memoize((badges: Types.ConversationCountMap, rows: Array<Ty
 
 const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
   const {rows, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
-  const smallTeamBadgeCount = Constants.useState(s => s.smallTeamBadgeCount)
-  const totalSmallTeams = Constants.useState(s => s.inboxLayout?.totalSmallTeams ?? 0)
-  const badgeCountsChanged = Constants.useState(s => s.badgeCountsChanged)
+  const smallTeamBadgeCount = C.useChatState(s => s.smallTeamBadgeCount)
+  const totalSmallTeams = C.useChatState(s => s.inboxLayout?.totalSmallTeams ?? 0)
+  const badgeCountsChanged = C.useChatState(s => s.badgeCountsChanged)
   const badges = React.useMemo(() => {
-    return Constants.useState.getState().getBadgeMap(badgeCountsChanged)
+    return C.useChatState.getState().getBadgeMap(badgeCountsChanged)
   }, [badgeCountsChanged])
   // we remove the badge count of the stuff we're showing
   let {badgeCount, hiddenCount} = getRowCounts(badges, rows)

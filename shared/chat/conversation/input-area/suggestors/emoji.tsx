@@ -1,3 +1,4 @@
+import * as C from '../../../../constants'
 import * as Common from './common'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
@@ -56,7 +57,7 @@ export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter
   }
 
   const userEmojisLoading = Container.useAnyWaiting(Constants.waitingKeyLoadingEmoji)
-  const userEmojis = Constants.useState(s => s.userEmojisForAutocomplete)
+  const userEmojis = C.useChatState(s => s.userEmojisForAutocomplete)
 
   if (!emojiPrepass.test(filter)) {
     return {

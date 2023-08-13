@@ -16,8 +16,8 @@ import shallowEqual from 'shallowequal'
 import {usingFlashList} from '../list-area/flashlist-config'
 
 const ErrorMessage = () => {
-  const createConversationError = Constants.useState(s => s.createConversationError)
-  const createConversation = Constants.useState(s => s.dispatch.createConversation)
+  const createConversationError = C.useChatState(s => s.createConversationError)
+  const createConversation = C.useChatState(s => s.dispatch.createConversation)
 
   const _onCreateWithoutThem = React.useCallback(
     (allowedUsers: Array<string>) => {
@@ -26,7 +26,7 @@ const ErrorMessage = () => {
     [createConversation]
   )
 
-  const onBack = Constants.useState(s => (Styles.isMobile ? s.dispatch.navigateToInbox : null))
+  const onBack = C.useChatState(s => (Styles.isMobile ? s.dispatch.navigateToInbox : null))
 
   let createConversationDisallowedUsers: Array<string> = []
   let createConversationErrorDescription = ''

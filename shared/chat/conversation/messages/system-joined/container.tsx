@@ -20,7 +20,7 @@ const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
   const onManageChannels = React.useCallback(() => {
     manageChatChannels(teamID)
   }, [manageChatChannels, teamID])
-  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
   const onManageNotifications = React.useCallback(() => {
     showInfoPanel(true, 'settings', conversationIDKey)
   }, [showInfoPanel, conversationIDKey])

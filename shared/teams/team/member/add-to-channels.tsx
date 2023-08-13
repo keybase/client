@@ -453,7 +453,7 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, user
     s => s.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
   )
   const allInChannel = usernames.every(member => participants.includes(member))
-  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onPreviewChannel = () =>
     previewConversation({
       conversationIDKey: channelMeta.conversationIDKey,

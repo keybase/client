@@ -1,3 +1,4 @@
+import * as C from '../constants'
 import * as React from 'react'
 import {Box2, Box} from './box'
 import Icon from './icon'
@@ -39,7 +40,7 @@ export const WaveButton = (props: Props) => {
   const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
   const waving = Container.useAnyWaiting(waitingKey)
   const messageSend = Constants.useContext(s => s.dispatch.messageSend)
-  const messageSendByUsername = Constants.useState(s => s.dispatch.messageSendByUsername)
+  const messageSendByUsername = C.useChatState(s => s.dispatch.messageSendByUsername)
   const onWave = () => {
     if (props.username) {
       messageSendByUsername(props.username, ':wave:', waitingKey)

@@ -76,7 +76,7 @@ export default (ownProps: OwnProps) => {
       selected: 'chatChooseEmoji',
     })
   }
-  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
   const _onAllMedia = () => {
     showInfoPanel(true, 'attachments', ownProps.conversationIDKey)
   }

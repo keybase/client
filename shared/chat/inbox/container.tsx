@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/chat2'
@@ -71,11 +72,11 @@ type WrapperProps = Pick<
 
 const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   const dispatch = Container.useDispatch()
-  const inboxHasLoaded = Constants.useState(s => s.inboxHasLoaded)
-  const queueMetaToRequest = Constants.useState(s => s.dispatch.queueMetaToRequest)
+  const inboxHasLoaded = C.useChatState(s => s.inboxHasLoaded)
+  const queueMetaToRequest = C.useChatState(s => s.dispatch.queueMetaToRequest)
   const isFocused = useIsFocused()
-  const inboxNumSmallRows = Constants.useState(s => s.inboxNumSmallRows ?? 5)
-  const allowShowFloatingButton = Constants.useState(s => {
+  const inboxNumSmallRows = C.useChatState(s => s.inboxNumSmallRows ?? 5)
+  const allowShowFloatingButton = C.useChatState(s => {
     const {inboxLayout} = s
     const inboxNumSmallRows = s.inboxNumSmallRows ?? 5
     return inboxLayout
@@ -89,8 +90,8 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   }, [])
   const onUntrustedInboxVisible = queueMetaToRequest
 
-  const setInboxNumSmallRows = Constants.useState(s => s.dispatch.setInboxNumSmallRows)
-  const toggleSmallTeamsExpanded = Constants.useState(s => s.dispatch.toggleSmallTeamsExpanded)
+  const setInboxNumSmallRows = C.useChatState(s => s.dispatch.setInboxNumSmallRows)
+  const toggleSmallTeamsExpanded = C.useChatState(s => s.dispatch.toggleSmallTeamsExpanded)
   const [lastIsFocused, setLastIsFocused] = React.useState(isFocused)
 
   if (lastIsFocused !== isFocused) {
@@ -102,7 +103,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
     }
   }
 
-  const inboxRefresh = Constants.useState(s => s.dispatch.inboxRefresh)
+  const inboxRefresh = C.useChatState(s => s.dispatch.inboxRefresh)
 
   Container.useOnMountOnce(() => {
     if (!Container.isMobile) {
@@ -128,19 +129,19 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
 })
 
 const Connected = (ownProps: OwnProps) => {
-  const inboxLayout = Constants.useState(s => s.inboxLayout)
-  const inboxHasLoaded = Constants.useState(s => s.inboxHasLoaded)
+  const inboxLayout = C.useChatState(s => s.inboxLayout)
+  const inboxHasLoaded = C.useChatState(s => s.inboxHasLoaded)
   const {conversationIDKey} = ownProps
   const neverLoaded = !inboxHasLoaded
-  const inboxNumSmallRows = Constants.useState(s => s.inboxNumSmallRows ?? 5)
-  const badgeCountsChanged = Constants.useState(s => s.badgeCountsChanged)
+  const inboxNumSmallRows = C.useChatState(s => s.inboxNumSmallRows ?? 5)
+  const badgeCountsChanged = C.useChatState(s => s.badgeCountsChanged)
   const _badgeMap = React.useMemo(() => {
-    return Constants.useState.getState().getBadgeMap(badgeCountsChanged)
+    return C.useChatState.getState().getBadgeMap(badgeCountsChanged)
   }, [badgeCountsChanged])
   const _inboxLayout = inboxLayout
   const _selectedConversationIDKey = conversationIDKey ?? Constants.noConversationIDKey
-  const isSearching = Constants.useState(s => !!s.inboxSearch)
-  const smallTeamsExpanded = Constants.useState(s => s.smallTeamsExpanded)
+  const isSearching = C.useChatState(s => !!s.inboxSearch)
+  const smallTeamsExpanded = C.useChatState(s => s.smallTeamsExpanded)
   const {navKey} = ownProps
   const bigTeams = _inboxLayout ? _inboxLayout.bigTeams || [] : []
   const showAllSmallRows = smallTeamsExpanded || !bigTeams.length

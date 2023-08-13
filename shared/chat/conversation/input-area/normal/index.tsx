@@ -113,7 +113,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const {focusInputCounter, onRequestScrollToBottom} = p
   const {onRequestScrollDown, onRequestScrollUp, jumpToRecent} = p
   const isTyping = Constants.useContext(s => s.typing.size > 0)
-  const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
+  const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
   const suggestBotCommandsUpdateStatus = Constants.useContext(s => s.botCommandsUpdateStatus)
   const explodingModeSeconds = Constants.useContext(s => s.getExplodingMode())
   const showGiphySearch = Constants.useContext(s => s.giphyWindow)

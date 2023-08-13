@@ -22,7 +22,7 @@ export default (ownProps: OwnProps) => {
   const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
   const error = C.useTeamsState(s => s.errorInSettings)
   const ignoreAccessRequests = teamDetails.settings.tarsDisabled
-  const isBigTeam = ChatConstants.useState(s => ChatConstants.isBigTeam(s, teamID))
+  const isBigTeam = C.useChatState(s => ChatConstants.isBigTeam(s, teamID))
   const openTeam = settings.open
   const openTeamRole = teamDetails.settings.openJoinAs
   const teamname = teamMeta.teamname

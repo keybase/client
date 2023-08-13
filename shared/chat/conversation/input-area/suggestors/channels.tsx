@@ -58,7 +58,7 @@ const getChannelSuggestions = (
       return noChannel
     }
     // TODO not reactive
-    const suggestions = (Constants.useState.getState().inboxLayout?.bigTeams ?? []).reduce<
+    const suggestions = (C.useChatState.getState().inboxLayout?.bigTeams ?? []).reduce<
       Array<{channelname: string; teamname: string}>
     >((arr, t) => {
       t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel &&
@@ -71,7 +71,7 @@ const getChannelSuggestions = (
   }
   // TODO: get all the channels in the team, too, for this
   // TODO not reactive
-  const suggestions = (Constants.useState.getState().inboxLayout?.bigTeams ?? []).reduce<
+  const suggestions = (C.useChatState.getState().inboxLayout?.bigTeams ?? []).reduce<
     Array<{channelname: string}>
   >((arr, t) => {
     t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel &&

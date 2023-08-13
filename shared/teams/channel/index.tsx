@@ -38,7 +38,7 @@ const useLoadDataForChannelPage = (
   const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
   const getMembers = C.useTeamsState(s => s.dispatch.getMembers)
   const getBlockState = C.useUsersState(s => s.dispatch.getBlockState)
-  const unboxRows = ChatConstants.useState(s => s.dispatch.unboxRows)
+  const unboxRows = C.useChatState(s => s.dispatch.unboxRows)
   React.useEffect(() => {
     if (selectedTab !== prevSelectedTab && selectedTab === 'members') {
       if (meta.conversationIDKey === 'EMPTY') {

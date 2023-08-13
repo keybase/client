@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import Announcement from '.'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
-import * as ChatConstants from '../../constants/chat2'
 import * as SettingsTabs from '../../constants/settings'
 import openURL from '../../util/open-url'
 import * as Container from '../../util/container'
@@ -24,7 +23,7 @@ export default (ownProps: OwnProps) => {
   const dismissAnnouncement = C.usePeopleState(s => s.dispatch.dismissAnnouncement)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const navigateToInbox = ChatConstants.useState(s => s.dispatch.navigateToInbox)
+  const navigateToInbox = C.useChatState(s => s.dispatch.navigateToInbox)
   const onConfirm = () => {
     if (url) {
       openURL(url)

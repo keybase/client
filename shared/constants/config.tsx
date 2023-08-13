@@ -329,11 +329,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         case RemoteGen.resetStore:
           break
         case RemoteGen.inboxRefresh: {
-          const f = async () => {
-            const ChatConstants = await import('./chat2')
-            ChatConstants.useState.getState().dispatch.inboxRefresh('widgetRefresh')
-          }
-          Z.ignorePromise(f())
+          C.useChatState.getState().dispatch.inboxRefresh('widgetRefresh')
           break
         }
         case RemoteGen.engineConnection: {
@@ -457,13 +453,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           break
         case RemoteGen.previewConversation:
           {
-            const f = async () => {
-              const ChatConstants = await import('./chat2')
-              ChatConstants.useState
-                .getState()
-                .dispatch.previewConversation({participants: [action.payload.participant], reason: 'tracker'})
-            }
-            Z.ignorePromise(f())
+            C.useChatState
+              .getState()
+              .dispatch.previewConversation({participants: [action.payload.participant], reason: 'tracker'})
           }
           break
       }
@@ -572,16 +564,15 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         }
 
         const updateChat = async () => {
-          const ChatConstants = await import('./chat2')
           // On login lets load the untrusted inbox. This helps make some flows easier
           if (C.useCurrentUserState.getState().username) {
-            const {inboxRefresh} = ChatConstants.useState.getState().dispatch
+            const {inboxRefresh} = C.useChatState.getState().dispatch
             inboxRefresh('bootstrap')
           }
           const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
           const ri = rows?.i ?? -1
           if (ri > 0) {
-            ChatConstants.useState.getState().dispatch.setInboxNumSmallRows(ri, true)
+            C.useChatState.getState().dispatch.setInboxNumSmallRows(ri, true)
           }
         }
 
@@ -946,7 +937,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           ChatConstants.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
           ChatConstants.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
         })
-        ChatConstants.useState.getState().dispatch.badgesUpdated(b.bigTeamBadgeCount, b.smallTeamBadgeCount)
+        C.useChatState.getState().dispatch.badgesUpdated(b.bigTeamBadgeCount, b.smallTeamBadgeCount)
       }
       Z.ignorePromise(updateChat())
     },
@@ -984,21 +975,13 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.gregorPushState = goodState
       })
 
-      const f = async () => {
-        const items = goodState
-        const allowAnimatedEmojis = !items.find(i => i.item.category === 'emojianimations')
-        get().dispatch.setAllowAnimatedEmojis(allowAnimatedEmojis)
+      const allowAnimatedEmojis = !goodState.find(i => i.item.category === 'emojianimations')
+      get().dispatch.setAllowAnimatedEmojis(allowAnimatedEmojis)
 
-        const lastSeenItem = items.find(i => i.item.category === 'whatsNewLastSeenVersion')
-        const WhatsNew = await import('./whats-new')
-        WhatsNew.useState.getState().dispatch.updateLastSeen(lastSeenItem)
-
-        C.useTeamsState.getState().dispatch.onGregorPushState(items)
-
-        const ChatConstants = await import('./chat2')
-        ChatConstants.useState.getState().dispatch.updatedGregor(items)
-      }
-      Z.ignorePromise(f())
+      const lastSeenItem = goodState.find(i => i.item.category === 'whatsNewLastSeenVersion')
+      C.useWNState.getState().dispatch.updateLastSeen(lastSeenItem)
+      C.useTeamsState.getState().dispatch.onGregorPushState(goodState)
+      C.useChatState.getState().dispatch.updatedGregor(goodState)
     },
     setGregorReachable: (r: Store['gregorReachable']) => {
       const old = get().gregorReachable
@@ -1073,13 +1056,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.mobileAppState = nextAppState
       })
-      const updateChat = async () => {
-        const ChatConstants = await import('./chat2')
-        if (nextAppState === 'background' && ChatConstants.useState.getState().inboxSearch) {
-          ChatConstants.useState.getState().dispatch.toggleInboxSearch(false)
-        }
+      if (nextAppState === 'background' && C.useChatState.getState().inboxSearch) {
+        C.useChatState.getState().dispatch.toggleInboxSearch(false)
       }
-      Z.ignorePromise(updateChat())
     },
     setNavigatorExists: () => {
       get().dispatch.dynamic.setNavigatorExistsNative?.()

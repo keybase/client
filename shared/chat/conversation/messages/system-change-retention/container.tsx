@@ -25,7 +25,7 @@ const SystemChangeRetentionContainer = React.memo(function SystemChangeRetention
   const onClickUserAvatar = React.useCallback(() => {
     Container.isMobile ? showUserProfile(user) : showUser(user, true)
   }, [showUserProfile, showUser, user])
-  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
   const onManageRetention = React.useCallback(() => {
     showInfoPanel(true, 'settings', conversationIDKey)
   }, [showInfoPanel, conversationIDKey])

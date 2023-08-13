@@ -4,7 +4,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as ChatConstants from '../../constants/chat2'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import {type ConversationIDKey, keyToConversationID} from '../../constants/types/chat2'
 import type {TeamID} from '../../constants/types/teams'
@@ -53,7 +52,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const activityLevel = C.useTeamsState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
   const newMemberCount = useRecentJoins(conversationIDKey)
 
-  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => previewConversation({conversationIDKey, reason: 'channelHeader'})
 
   const topDescriptors = (

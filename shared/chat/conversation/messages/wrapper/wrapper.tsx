@@ -146,7 +146,7 @@ const useRedux = (ordinal: Types.Ordinal) => {
   }
 
   const you = C.useCurrentUserState(s => s.username)
-  const paymentStatusMap = Constants.useState(s => s.paymentStatusMap)
+  const paymentStatusMap = C.useChatState(s => s.paymentStatusMap)
   const accountsInfoMap = Constants.useContext(s => s.accountsInfoMap)
   const ordinals = Constants.useContext(s => s.messageOrdinals)
   const isEditing = Constants.useContext(s => s.editing === ordinal)

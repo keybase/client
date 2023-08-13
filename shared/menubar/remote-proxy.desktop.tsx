@@ -107,7 +107,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     return {desktopAppBadgeCount, navBadges, widgetBadge}
   }, shallowEqual)
   const infoMap = C.useUsersState(s => s.infoMap)
-  const widgetList = ChatConstants.useState(s => s.inboxLayout?.widgetList)
+  const widgetList = C.useChatState(s => s.inboxLayout?.widgetList)
   const darkMode = Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === 'enabled'

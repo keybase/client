@@ -163,7 +163,7 @@ const useDataUsers = () => {
 }
 
 const useDataTeams = () => {
-  const inboxLayout = Constants.useState(s => s.inboxLayout)
+  const inboxLayout = C.useChatState(s => s.inboxLayout)
   const teams = React.useMemo(() => getTeams(inboxLayout), [inboxLayout])
   const allChannels = React.useMemo(
     () =>

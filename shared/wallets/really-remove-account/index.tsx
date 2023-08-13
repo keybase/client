@@ -1,5 +1,5 @@
-import * as ConfigConstants from '../../constants/config'
 import * as C from '../../constants'
+import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
@@ -13,7 +13,7 @@ type OwnProps = {accountID: string}
 const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const {accountID} = props
   const waiting = Container.useAnyWaiting(Constants.loadAccountsWaitingKey)
-  const name = Constants.useState(s => s.accountMap.get(accountID)?.name) ?? ''
+  const name = C.useWalletsState(s => s.accountMap.get(accountID)?.name) ?? ''
   const [showingToast, setShowToast] = React.useState(false)
   const attachmentRef = React.useRef<Kb.ClickableBox>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
@@ -27,7 +27,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const onCancel = () => {
     navigateUp()
   }
-  const removeAccount = Constants.useState(s => s.dispatch.removeAccount)
+  const removeAccount = C.useWalletsState(s => s.dispatch.removeAccount)
   const onFinish = () => {
     removeAccount(accountID)
     navigateUp()

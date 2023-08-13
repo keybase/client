@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as Types from '../../../constants/types/fs'
 import * as React from 'react'
 import * as Constants from '../../../constants/fs'
-import * as ChatConstants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
 import {memoize} from '../../../util/memoize'
@@ -90,7 +89,7 @@ export default (ownProps: OwnProps) => {
   const _newFolder = React.useCallback(() => {
     newFolderRow(path)
   }, [newFolderRow, path])
-  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const _openChat = () => {
     previewConversation({
       reason: 'files',

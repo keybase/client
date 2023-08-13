@@ -1587,17 +1587,13 @@ export const _useState = Z.createZustand<State>((set, get) => {
           get().dispatch.loadTeamChannelList(teamID)
           // Select the new channel, and switch to the chat tab.
           if (navToChatOnSuccess) {
-            const f = async () => {
-              const ChatConstants = await import('./chat2')
-              const {previewConversation} = ChatConstants.useState.getState().dispatch
-              previewConversation({
-                channelname,
-                conversationIDKey: newConversationIDKey,
-                reason: 'newChannel',
-                teamname,
-              })
-            }
-            Z.ignorePromise(f())
+            const {previewConversation} = C.useChatState.getState().dispatch
+            previewConversation({
+              channelname,
+              conversationIDKey: newConversationIDKey,
+              reason: 'newChannel',
+              teamname,
+            })
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -1662,13 +1658,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
           if (fromChat) {
             C.useRouterState.getState().dispatch.clearModals()
-            const f = async () => {
-              const ChatConstants = await import('./chat2')
-              const {previewConversation, navigateToInbox} = ChatConstants.useState.getState().dispatch
-              navigateToInbox()
-              previewConversation({channelname: 'general', reason: 'convertAdHoc', teamname})
-            }
-            Z.ignorePromise(f())
+            const {previewConversation, navigateToInbox} = C.useChatState.getState().dispatch
+            navigateToInbox()
+            previewConversation({channelname: 'general', reason: 'convertAdHoc', teamname})
           } else {
             C.useRouterState.getState().dispatch.clearModals()
             C.useRouterState.getState().dispatch.navigateAppend({props: {teamID}, selected: 'team'})

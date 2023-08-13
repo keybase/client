@@ -4,7 +4,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as ChatConstants from '../../constants/chat2'
 import TeamMenu from './menu-container'
 import type {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
@@ -300,7 +299,7 @@ const useHeaderCallbacks = (teamID: TeamID) => {
     startAddMembersWizard(teamID)
     addMembersWizardPushMembers([{assertion: yourUsername, role: 'writer'}])
   }
-  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => previewConversation({reason: 'teamHeader', teamname: meta.teamname})
   const onEditAvatar = yourOperations.editTeamDescription
     ? () =>

@@ -1,3 +1,4 @@
+import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/chat2'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
@@ -15,7 +16,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
   const isSendError = message?.type === 'text' ? !!message.errorReason : false
   const text = message?.type === 'text' ? message.text : undefined
   const flipGameID = (message?.type === 'text' && message.flipGameID) || ''
-  const status = Constants.useState(s => s.flipStatusMap.get(flipGameID))
+  const status = C.useChatState(s => s.flipStatusMap.get(flipGameID))
   const messageSend = Constants.useContext(s => s.dispatch.messageSend)
   const onFlipAgain = React.useCallback(() => {
     text && messageSend(text.stringValue())
