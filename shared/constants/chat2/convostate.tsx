@@ -3007,7 +3007,7 @@ export function useContext<T>(
 }
 
 // unusual, usually you useContext, but maybe in teams
-export function useConvoState<T>(
+export function _useConvoState<T>(
   id: Types.ConversationIDKey,
   selector: (state: ConvoState) => T,
   equalityFn?: (left: T, right: T) => boolean

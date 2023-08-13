@@ -447,7 +447,7 @@ type ChannelRowProps = {
 }
 const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, usernames}: ChannelRowProps) => {
   const selfMode = mode === 'self'
-  const info = ChatConstants.useConvoState(channelMeta.conversationIDKey, s => s.participants)
+  const info = C.useConvoState(channelMeta.conversationIDKey, s => s.participants)
   const participants = info.name.length ? info.name : info.all
   const activityLevel = C.useTeamsState(
     s => s.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'

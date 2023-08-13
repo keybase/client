@@ -27,7 +27,7 @@ export default (ownProps: OwnProps) => {
     throw new Error(`RetentionPicker needs a conversationIDKey to set ${entityType} retention policies`)
   }
   const conversationIDKey = _cid ?? ChatConstants.noConversationIDKey
-  let policy = ChatConstants.useConvoState(conversationIDKey, s =>
+  let policy = C.useConvoState(conversationIDKey, s =>
     _cid ? s.meta.retentionPolicy : Constants.retentionPolicies.policyRetain
   )
   const tempPolicy = C.useTeamsState(s => Constants.getTeamRetentionPolicyByID(s, teamID))
@@ -50,10 +50,7 @@ export default (ownProps: OwnProps) => {
   const showInheritOption = entityType === 'channel'
   const showOverrideNotice = entityType === 'big team'
   const setTeamRetentionPolicy = C.useTeamsState(s => s.dispatch.setTeamRetentionPolicy)
-  const setConvRetentionPolicy = ChatConstants.useConvoState(
-    conversationIDKey,
-    s => s.dispatch.setConvRetentionPolicy
-  )
+  const setConvRetentionPolicy = C.useConvoState(conversationIDKey, s => s.dispatch.setConvRetentionPolicy)
   const saveRetentionPolicy = (policy: RetentionPolicy) => {
     if (['small team', 'big team'].includes(entityType)) {
       setTeamRetentionPolicy(teamID, policy)
