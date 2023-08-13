@@ -2241,7 +2241,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     selectedConversation: () => {
       const f = async () => {
         const Constants = await import('.')
-        const UsersConstants = await import('../users')
         const conversationIDKey = get().id
 
         const fetchConversationBio = () => {
@@ -2257,7 +2256,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               return
             }
 
-            UsersConstants.useState.getState().dispatch.getBio(username)
+            C.useUsersState.getState().dispatch.getBio(username)
           }
         }
 

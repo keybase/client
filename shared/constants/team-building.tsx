@@ -1,7 +1,6 @@
 import * as C from '.'
 import * as RPCTypes from './types/rpc-gen'
 import * as React from 'react'
-import * as UsersConstants from './users'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import trim from 'lodash/trim'
@@ -448,7 +447,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           }
           return arr
         }, new Array<{info: {fullname: string}; name: string}>())
-        UsersConstants.useState.getState().dispatch.updates(updates)
+        C.useUsersState.getState().dispatch.updates(updates)
         const blocks = users.reduce((arr, {serviceMap}) => {
           const {keybase} = serviceMap
           if (keybase) {
@@ -456,7 +455,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           }
           return arr
         }, new Array<string>())
-        blocks.length && UsersConstants.useState.getState().dispatch.getBlockState(blocks)
+        blocks.length && C.useUsersState.getState().dispatch.getBlockState(blocks)
       }
       Z.ignorePromise(f())
     },

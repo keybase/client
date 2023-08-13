@@ -1,7 +1,6 @@
 import * as C from '..'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Tabs from '../tabs'
-import * as UsersConstants from '../users'
 import * as EngineGen from '../../actions/engine-gen-gen'
 import * as ConfigConstants from '../config'
 import * as Message from './message'
@@ -1002,7 +1001,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                   const match = error.message.match(/"(.*)"/)
                   const tempForceRedBox = match?.[1]
                   if (tempForceRedBox) {
-                    UsersConstants.useState
+                    C.useUsersState
                       .getState()
                       .dispatch.updates([{info: {broken: true}, name: tempForceRedBox}])
                   }
@@ -1144,7 +1143,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         return map
       }, {})
 
-      UsersConstants.useState.getState().dispatch.updates(
+      C.useUsersState.getState().dispatch.updates(
         Object.keys(usernameToFullname).map(name => ({
           info: {fullname: usernameToFullname[name]},
           name,

@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as ChatConstants from '../../../../constants/chat2'
-import * as UsersConstants from '../../../../constants/users'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
@@ -32,7 +31,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
 
   const username = C.useCurrentUserState(s => s.username)
 
-  const infoMap = UsersConstants.useState(s => s.infoMap)
+  const infoMap = C.useUsersState(s => s.infoMap)
   const participantInfo = ChatConstants.useContext(s => s.participants)
   const meta = ChatConstants.useContext(s => s.meta)
   const data = (() => {

@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as Common from './common'
 import * as Constants from '../../../../constants/chat2'
-import * as UsersConstants from '../../../../constants/users'
 import * as Kb from '../../../../common-adapters'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
@@ -141,7 +140,7 @@ const getTeams = (layout?: RPCChatTypes.UIInboxLayout) => {
 }
 
 const useDataUsers = () => {
-  const infoMap = UsersConstants.useState(s => s.infoMap)
+  const infoMap = C.useUsersState(s => s.infoMap)
   const participantInfo = Constants.useContext(s => s.participants)
   return Constants.useContext(s => {
     const {teamID, teamType} = s.meta

@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as Container from '../../../util/container'
 import * as TeamConstants from '../../../constants/teams'
 import * as Constants from '../../../constants/chat2'
-import * as UsersConstants from '../../../constants/users'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/chat2'
@@ -22,7 +21,7 @@ const spinnerItem = 'spinner item'
 
 const MembersTab = (props: Props) => {
   const {conversationIDKey} = props
-  const infoMap = UsersConstants.useState(s => s.infoMap)
+  const infoMap = C.useUsersState(s => s.infoMap)
   const {channelname, teamID, teamname} = Constants.useContext(s => {
     const {meta} = s
     const {teamID, channelname, teamname} = meta

@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as UsersConstants from '../../../constants/users'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -48,7 +47,7 @@ const emptyStateProps = {
 const ReactionTooltip = (p: OwnProps) => {
   const {conversationIDKey, ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
 
-  const infoMap = UsersConstants.useState(s => s.infoMap)
+  const infoMap = C.useUsersState(s => s.infoMap)
   const {_reactions, good} = Constants.useContext(s => {
     const message = s.messageMap.get(ordinal)
     if (message && Constants.isMessageWithReactions(message)) {

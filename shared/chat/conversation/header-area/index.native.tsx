@@ -3,7 +3,6 @@ import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import * as UsersConstants from '../../../constants/users'
 import shallowEqual from 'shallowequal'
 import {assertionToDisplay} from '../../../common-adapters/usernames'
 
@@ -71,7 +70,7 @@ const ChannelHeader = () => {
 const emptyArray = new Array<string>()
 const UsernameHeader = () => {
   const you = C.useCurrentUserState(s => s.username)
-  const infoMap = UsersConstants.useState(s => s.infoMap)
+  const infoMap = C.useUsersState(s => s.infoMap)
   const participantInfo = Constants.useContext(s => s.participants)
   const {participants, theirFullname} = Constants.useContext(s => {
     const meta = s.meta

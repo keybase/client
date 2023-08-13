@@ -2,7 +2,6 @@ import * as C from '.'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as ChatTypes from './types/chat2'
 import * as ConfigConstants from './config'
-import * as UsersConstants from './users'
 import * as ProfileConstants from './profile'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
@@ -1907,7 +1906,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.teamIDToMembers.set(teamID, members)
           })
-          UsersConstants.useState.getState().dispatch.updates(
+          C.useUsersState.getState().dispatch.updates(
             [...members.values()].map(m => ({
               info: {fullname: m.fullName},
               name: m.username,

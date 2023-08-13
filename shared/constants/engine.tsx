@@ -41,7 +41,6 @@ export const _useState = Z.createZustand<State>(() => {
       const f = async () => {
         const ChatConstants = await import('./chat2')
         const ConfigConstants = await import('./config')
-        const UsersConstants = await import('./users')
         C.useBotsState.getState().dispatch.onEngineIncoming(action)
         ChatConstants.useState.getState().dispatch.onEngineIncoming(action)
         ConfigConstants.useConfigState.getState().dispatch.dynamic.onEngineIncomingDesktop?.(action)
@@ -57,7 +56,7 @@ export const _useState = Z.createZustand<State>(() => {
         C.useTeamsState.getState().dispatch.onEngineIncoming(action)
         C.useTrackerState.getState().dispatch.onEngineIncoming(action)
         C.useUFState.getState().dispatch.onEngineIncoming(action)
-        UsersConstants.useState.getState().dispatch.onEngineIncoming(action)
+        C.useUsersState.getState().dispatch.onEngineIncoming(action)
       }
       Z.ignorePromise(f())
     },
