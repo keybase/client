@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as UsersConstants from '../../../constants/users'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
@@ -228,7 +227,7 @@ const BotTab = (props: Props) => {
         !(!adhocTeam && TeamConstants.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
     )
     .map((bot, index) => ({...bot, index}))
-  const infoMap = UsersConstants.useState(s => s.infoMap)
+  const infoMap = C.useUsersState(s => s.infoMap)
   const loadedAllBots = C.useBotsState(s => s.featuredBotsLoaded)
 
   const usernamesToFeaturedBots = (usernames: string[]) =>

@@ -1,11 +1,10 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/teams'
 import * as Tracker2Constants from '../../constants/tracker2'
-import * as WaitingConstants from '../../constants/waiting'
 import Render from '.'
 
 export default () => {
-  const waiting = WaitingConstants.useWaitingState(s => s.counts)
+  const waiting = C.useWaitingState(s => s.counts)
   const _you = C.useCurrentUserState(s => s.username)
   const teamMeta = C.useTeamsState(s => s.teamMeta)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as UsersConstants from '../../../constants/users'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import openSMS from '../../../util/sms'
@@ -46,7 +45,7 @@ const Invite = () => {
 
 const Broken = () => {
   const following = C.useFollowerState(s => s.following)
-  const infoMap = UsersConstants.useState(s => s.infoMap)
+  const infoMap = C.useUsersState(s => s.infoMap)
   const participantInfo = Constants.useContext(s => s.participants)
   const users = participantInfo.all.filter(p => following.has(p) && infoMap.get(p)?.broken)
   return <Kb.ProofBrokenBanner users={users} />
@@ -54,7 +53,7 @@ const Broken = () => {
 
 const BannerContainer = React.memo(function BannerContainer() {
   const following = C.useFollowerState(s => s.following)
-  const infoMap = UsersConstants.useState(s => s.infoMap)
+  const infoMap = C.useUsersState(s => s.infoMap)
   const dismissed = Constants.useContext(s => s.dismissedInviteBanners)
   const participantInfo = Constants.useContext(s => s.participants)
   const type = Constants.useContext(s => {

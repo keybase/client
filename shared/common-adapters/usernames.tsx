@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as UsersConstants from '../constants/users'
 import * as Styles from '../styles'
 import Text, {
   type TextType,
@@ -86,7 +85,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
   const you = p.you === username
 
   const following = C.useFollowerState(s => colorFollowing && s.following.has(username))
-  const broken = UsersConstants.useState(s => (colorBroken && s.infoMap.get(username)?.broken) ?? false)
+  const broken = C.useUsersState(s => (colorBroken && s.infoMap.get(username)?.broken) ?? false)
 
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = React.useCallback(

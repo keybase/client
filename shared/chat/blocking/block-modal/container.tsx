@@ -35,7 +35,7 @@ export default (ownProps: OwnProps) => {
     others = undefined
   }
 
-  const _allKnownBlocks = Constants.useState(s => s.blockMap)
+  const _allKnownBlocks = C.useUsersState(s => s.blockMap)
   const loadingWaiting = Container.useAnyWaiting(Constants.getUserBlocksWaitingKey)
   const stateProps = {
     _allKnownBlocks,
@@ -61,8 +61,8 @@ export default (ownProps: OwnProps) => {
     },
     [leaveTeam]
   )
-  const getBlockState = Constants.useState(s => s.dispatch.getBlockState)
-  const _reportUser = Constants.useState(s => s.dispatch.reportUser)
+  const getBlockState = C.useUsersState(s => s.dispatch.getBlockState)
+  const _reportUser = C.useUsersState(s => s.dispatch.reportUser)
   const refreshBlocksFor = getBlockState
   const reportUser = React.useCallback(
     (username: string, convID: string | undefined, report: ReportSettings) => {
@@ -77,7 +77,7 @@ export default (ownProps: OwnProps) => {
     [_reportUser]
   )
   const setConversationStatus = ChatConstants.useContext(s => s.dispatch.blockConversation)
-  const _setUserBlocks = Constants.useState(s => s.dispatch.setUserBlocks)
+  const _setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
   const setUserBlocks = React.useCallback(
     (newBlocks: NewBlocksMap) => {
       // Convert our state block array to action payload.

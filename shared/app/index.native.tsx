@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Styles from '../styles'
-import * as WaitingConstants from '../constants/waiting'
 import * as ConfigConstants from '../constants/config'
 import * as React from 'react'
 import {chatDebugEnabled} from '../constants/chat2/debug'
@@ -99,7 +98,7 @@ const ensureStore = () => {
     global.DEBUGStore = _store
   }
 
-  const {batch} = WaitingConstants.useWaitingState.getState().dispatch
+  const {batch} = C.useWaitingState.getState().dispatch
   const eng = makeEngine(_store.store.dispatch, batch)
   _store.initListeners()
   eng.listenersAreReady()

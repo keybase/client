@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
-import * as UsersConstants from '../../constants/users'
 import * as Container from '../../util/container'
 import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
@@ -12,7 +11,7 @@ const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolea
 ): Array<T> => accountRows.filter(account => account.username !== myUsername)
 
 export default () => {
-  const _fullnames = UsersConstants.useState(s => s.infoMap)
+  const _fullnames = C.useUsersState(s => s.infoMap)
   const _accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
   const you = C.useCurrentUserState(s => s.username)
   const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, you).fullname || '')

@@ -1,5 +1,5 @@
+import * as C from '../../constants'
 import * as Constants from '../../constants/chat2'
-import * as WaitingConstants from '../../constants/waiting'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
@@ -290,9 +290,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
 }
 
 const NoRowsBuildTeam = () => {
-  const isLoading = WaitingConstants.useWaitingState(s =>
-    [...s.counts.keys()].some(k => k.startsWith('chat:'))
-  )
+  const isLoading = C.useWaitingState(s => [...s.counts.keys()].some(k => k.startsWith('chat:')))
   return isLoading ? null : <BuildTeam />
 }
 
@@ -350,7 +348,7 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.large,
       },
-    } as const)
+    }) as const
 )
 
 export default Inbox

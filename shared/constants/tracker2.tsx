@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as UsersConstants from './users'
 import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
 import logger from '../logger'
@@ -376,7 +375,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             d.followersCount = d.followers.size
           })
           if (fs.users) {
-            UsersConstants.useState
+            C.useUsersState
               .getState()
               .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
           }
@@ -398,7 +397,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             d.followingCount = d.following.size
           })
           if (fs.users) {
-            UsersConstants.useState
+            C.useUsersState
               .getState()
               .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
           }
@@ -492,9 +491,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         d.hidFromFollowers = hidFromFollowers
       })
       username &&
-        UsersConstants.useState
-          .getState()
-          .dispatch.updates([{info: {fullname: card.fullName}, name: username}])
+        C.useUsersState.getState().dispatch.updates([{info: {fullname: card.fullName}, name: username}])
     },
     notifyReset: guiID => {
       set(s => {

@@ -1,7 +1,6 @@
 import * as C from '.'
 import * as Contacts from 'expo-contacts'
 import * as RPCTypes from './types/rpc-gen'
-import * as WaitingConstants from './waiting'
 import * as Z from '../util/zustand'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../logger'
@@ -246,7 +245,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     requestPermissions: (thenToggleImportOn?: boolean, fromSettings?: boolean) => {
       const f = async () => {
-        const {decrement, increment} = WaitingConstants.useWaitingState.getState().dispatch
+        const {decrement, increment} = C.useWaitingState.getState().dispatch
         increment(importContactsWaitingKey)
         const status = (await Contacts.requestPermissionsAsync()).status
 

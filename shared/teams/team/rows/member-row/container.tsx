@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/teams'
 import * as ChatConstants from '../../../../constants/chat2'
-import * as UsersConstants from '../../../../constants/users'
 import type * as Types from '../../../../constants/types/teams'
 import {TeamMemberRow} from '.'
 import * as Container from '../../../../util/container'
@@ -28,7 +27,7 @@ export default (ownProps: OwnProps) => {
   const waitingForAdd = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
   const waitingForRemove = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, username))
   const youCanManageMembers = C.useTeamsState(s => Constants.getCanPerform(s, teamname).manageMembers)
-  const setUserBlocks = UsersConstants.useState(s => s.dispatch.setUserBlocks)
+  const setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
   const onBlock = () => {
     username && setUserBlocks([{setChatBlock: true, setFollowBlock: true, username}])
   }

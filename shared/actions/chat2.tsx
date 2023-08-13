@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigConstants from '../constants/config'
-import * as UsersConstants from '../constants/users'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
@@ -9,7 +8,6 @@ import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from './../constants/types/rpc-gen'
 import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
-import * as WaitingConstants from '../constants/waiting'
 import {findLast} from '../util/arrays'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
@@ -50,7 +48,7 @@ const onGetInboxUnverifiedConvs = (_: unknown, action: EngineGen.Chat1ChatUiChat
 
 const onGetInboxConvsUnboxed = (_: unknown, action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => {
   // TODO not reactive
-  const {infoMap} = UsersConstants.useState.getState()
+  const {infoMap} = C.useUsersState.getState()
   const actions: Array<Container.TypedActions> = []
   const {convs} = action.payload.params
   const inboxUIItems = JSON.parse(convs) as Array<RPCChatTypes.InboxUIItem>
@@ -79,7 +77,7 @@ const onGetInboxConvsUnboxed = (_: unknown, action: EngineGen.Chat1ChatUiChatInb
     })
   })
   if (added) {
-    UsersConstants.useState
+    C.useUsersState
       .getState()
       .dispatch.updates(
         Object.keys(usernameToFullname).map(name => ({info: {fullname: usernameToFullname[name]}, name}))
@@ -136,7 +134,7 @@ const onChatIdentifyUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatI
   const usernames = update.CanonicalName.split(',')
   const broken = (update.breaks.breaks || []).map(b => b.user.username)
   const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
-  UsersConstants.useState.getState().dispatch.updates(updates)
+  C.useUsersState.getState().dispatch.updates(updates)
 }
 
 const onChatPromptUnfurl = (_: unknown, action: EngineGen.Chat1NotifyChatChatPromptUnfurlPayload) => {
@@ -149,7 +147,7 @@ const onChatPromptUnfurl = (_: unknown, action: EngineGen.Chat1NotifyChatChatPro
 }
 
 const onChatInboxSyncStarted = () => {
-  const {increment} = WaitingConstants.useWaitingState.getState().dispatch
+  const {increment} = C.useWaitingState.getState().dispatch
   increment(Constants.waitingKeyInboxSyncStarted)
 }
 
@@ -160,7 +158,7 @@ const onChatInboxSynced = (
 ) => {
   const {syncRes} = action.payload.params
 
-  const {clear} = WaitingConstants.useWaitingState.getState().dispatch
+  const {clear} = C.useWaitingState.getState().dispatch
   const {inboxRefresh} = Constants.useState.getState().dispatch
   clear(Constants.waitingKeyInboxSyncStarted)
   const actions: Array<Container.TypedActions> = []

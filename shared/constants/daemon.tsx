@@ -189,8 +189,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             setDefaultUsername(currentName)
           }
           setAccounts(nextConfiguredAccounts)
-          const UsersConstants = await import('../constants/users')
-          UsersConstants.useState.getState().dispatch.updates(
+          C.useUsersState.getState().dispatch.updates(
             Object.keys(usernameToFullname).map(name => ({
               info: {fullname: usernameToFullname[name]},
               name,
