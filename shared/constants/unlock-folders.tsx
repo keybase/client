@@ -27,7 +27,7 @@ export type State = Store & {
 }
 
 // this store is only in play in the remote window, its launched by ConfigConstants.unlockFoldersDevices
-export const useState = Z.createZustand<State>((set, _get) => {
+export const _useState = Z.createZustand<State>((set, _get) => {
   const dispatch: State['dispatch'] = {
     onBackFromPaperKey: () => {
       set(s => {
