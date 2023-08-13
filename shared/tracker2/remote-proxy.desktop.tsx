@@ -3,7 +3,6 @@ import * as C from '../constants'
 import {useAvatarState} from '../common-adapters/avatar-zus'
 import * as React from 'react'
 import * as Constants from '../constants/tracker2'
-import * as WaitConstants from '../constants/waiting'
 import * as ConfigConstants from '../constants/config'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
@@ -26,11 +25,9 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details
   const counts = new Map([
-    [Constants.waitingKey, WaitConstants.useWaitingState(s => s.counts.get(Constants.waitingKey) ?? 0)],
+    [Constants.waitingKey, C.useWaitingState(s => s.counts.get(Constants.waitingKey) ?? 0)],
   ])
-  const errors = new Map([
-    [Constants.waitingKey, WaitConstants.useWaitingState(s => s.errors.get(Constants.waitingKey))],
-  ])
+  const errors = new Map([[Constants.waitingKey, C.useWaitingState(s => s.errors.get(Constants.waitingKey))]])
   const trackerUsernames = new Set([trackerUsername])
   const blocked = blockMap.get(trackerUsername)?.chatBlocked || false
 

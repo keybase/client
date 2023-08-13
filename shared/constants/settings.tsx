@@ -2,7 +2,6 @@ import * as C from '.'
 import {useRouterState} from '.'
 import * as RPCTypes from './types/rpc-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as WaitingConstants from './waiting'
 import openURL from '../util/open-url'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
@@ -247,7 +246,7 @@ export const _useState = Z.createZustand<State>(set => {
           logDirForMobile: pprofDir,
           profileDurationSeconds,
         })
-        const {decrement, increment} = WaitingConstants.useWaitingState.getState().dispatch
+        const {decrement, increment} = C.useWaitingState.getState().dispatch
         increment(processorProfileInProgressKey)
         await Z.timeoutPromise(profileDurationSeconds * 1_000)
         decrement(processorProfileInProgressKey)
@@ -305,7 +304,7 @@ export const _useState = Z.createZustand<State>(set => {
           logDirForMobile: pprofDir,
           traceDurationSeconds: durationSeconds,
         })
-        const {decrement, increment} = WaitingConstants.useWaitingState.getState().dispatch
+        const {decrement, increment} = C.useWaitingState.getState().dispatch
         increment(traceInProgressKey)
         await Z.timeoutPromise(durationSeconds * 1_000)
         decrement(traceInProgressKey)

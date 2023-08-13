@@ -2,7 +2,6 @@
 import Main from '../../app/main.desktop'
 // order of the above must NOT change. needed for patching / hot loading to be correct
 import * as C from '../../constants'
-import * as WaitingConstants from '../../constants/waiting'
 import * as ConfigConstants from '../../constants/config'
 import * as RemoteGen from '../../actions/remote-gen'
 import * as React from 'react'
@@ -69,7 +68,7 @@ const setupStore = () => {
 const setupApp = (store: any, initListeners: any) => {
   disableDragDrop()
 
-  const {batch} = WaitingConstants.useWaitingState.getState().dispatch
+  const {batch} = C.useWaitingState.getState().dispatch
   const eng = makeEngine(store.dispatch, batch)
   initListeners()
   eng.listenersAreReady()

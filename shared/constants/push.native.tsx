@@ -2,7 +2,6 @@ import * as C from '.'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as Tabs from './tabs'
-import * as WaitingConstants from './waiting'
 import * as Z from '../util/zustand'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../logger'
@@ -249,7 +248,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         try {
           ConfigConstants.useConfigState.getState().dispatch.dynamic.openAppSettings?.()
-          const {increment} = WaitingConstants.useWaitingState.getState().dispatch
+          const {increment} = C.useWaitingState.getState().dispatch
           increment(permissionsRequestingWaitingKey)
           logger.info('[PushRequesting] asking native')
           await requestPermissionsFromNative()
@@ -267,7 +266,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             })
           }
         } finally {
-          const {decrement} = WaitingConstants.useWaitingState.getState().dispatch
+          const {decrement} = C.useWaitingState.getState().dispatch
           decrement(permissionsRequestingWaitingKey)
           get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
         }

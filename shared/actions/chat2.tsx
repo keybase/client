@@ -8,7 +8,6 @@ import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from './../constants/types/rpc-gen'
 import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
-import * as WaitingConstants from '../constants/waiting'
 import {findLast} from '../util/arrays'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
@@ -148,7 +147,7 @@ const onChatPromptUnfurl = (_: unknown, action: EngineGen.Chat1NotifyChatChatPro
 }
 
 const onChatInboxSyncStarted = () => {
-  const {increment} = WaitingConstants.useWaitingState.getState().dispatch
+  const {increment} = C.useWaitingState.getState().dispatch
   increment(Constants.waitingKeyInboxSyncStarted)
 }
 
@@ -159,7 +158,7 @@ const onChatInboxSynced = (
 ) => {
   const {syncRes} = action.payload.params
 
-  const {clear} = WaitingConstants.useWaitingState.getState().dispatch
+  const {clear} = C.useWaitingState.getState().dispatch
   const {inboxRefresh} = Constants.useState.getState().dispatch
   clear(Constants.waitingKeyInboxSyncStarted)
   const actions: Array<Container.TypedActions> = []
