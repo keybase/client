@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as Constants from '../../../../constants/chat2'
 import * as React from 'react'
 import EmojiRow from '.'
 import type {Position, StylesCrossPlatform} from '../../../../styles'

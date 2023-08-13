@@ -1,6 +1,6 @@
+import * as C from '../../constants'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/chat2'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Kb from '../../common-adapters'
 import * as KbMobile from '../../common-adapters/mobile.native'

@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as React from 'react'
-import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import type * as TeamTypes from '../../../constants/types/teams'

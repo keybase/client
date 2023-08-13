@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
