@@ -1,3 +1,4 @@
+import * as C from '../../../constants'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
@@ -64,7 +65,7 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {name, channel} = ownProps
-  const info = Constants.useState(s => s.maybeMentionMap.get(Constants.getTeamMentionName(name, channel)))
+  const info = C.useChatState(s => s.maybeMentionMap.get(Constants.getTeamMentionName(name, channel)))
   const dispatch = Container.useDispatch()
   const onResolve = () => {
     dispatch(Chat2Gen.createResolveMaybeMention({channel, name}))

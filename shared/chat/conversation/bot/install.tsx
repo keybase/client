@@ -17,8 +17,8 @@ const RestrictedItem = '---RESTRICTED---'
 
 export const useBotConversationIDKey = (inConvIDKey?: Types.ConversationIDKey, teamID?: TeamTypes.TeamID) => {
   const [conversationIDKey, setConversationIDKey] = React.useState(inConvIDKey)
-  const generalConvID = Constants.useState(s => teamID && s.teamIDToGeneralConvID.get(teamID))
-  const findGeneralConvIDFromTeamID = Constants.useState(s => s.dispatch.findGeneralConvIDFromTeamID)
+  const generalConvID = C.useChatState(s => teamID && s.teamIDToGeneralConvID.get(teamID))
+  const findGeneralConvIDFromTeamID = C.useChatState(s => s.dispatch.findGeneralConvIDFromTeamID)
   React.useEffect(() => {
     if (!conversationIDKey && teamID) {
       if (!generalConvID) {
@@ -69,7 +69,7 @@ const InstallBotPopup = (props: Props) => {
   const [installInConvs, setInstallInConvs] = React.useState<string[]>([])
   const [disableDone, setDisableDone] = React.useState(false)
 
-  const botPublicCommands = Constants.useState(s => s.botPublicCommands.get(botUsername))
+  const botPublicCommands = C.useChatState(s => s.botPublicCommands.get(botUsername))
   const meta = Constants.useContext(s => s.meta)
   const commands = React.useMemo(() => {
     const {botCommands} = meta
@@ -162,7 +162,7 @@ const InstallBotPopup = (props: Props) => {
   const noCommands = !commands?.commands
 
   const dispatchClearWaiting = Container.useDispatchClearWaiting()
-  const refreshBotPublicCommands = Constants.useState(s => s.dispatch.refreshBotPublicCommands)
+  const refreshBotPublicCommands = C.useChatState(s => s.dispatch.refreshBotPublicCommands)
   React.useEffect(() => {
     dispatchClearWaiting([Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove])
     if (noCommands) {

@@ -1,9 +1,9 @@
+import * as C from './../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import type {LayoutEvent} from './../../common-adapters/box'
 import * as Constants from './../../constants/chat2'
-import * as C from './../../constants'
 import * as Types from './../../constants/types/chat2'
 import * as TeamsTypes from './../../constants/types/teams'
 import * as Teams from './../../constants/teams'
@@ -45,7 +45,7 @@ type RoutableProps = {
 }
 
 const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
-  const topReacjis = Constants.useState(s => s.userReacjis.topReacjis)
+  const topReacjis = C.useChatState(s => s.userReacjis.topReacjis)
   const [filter, setFilter] = React.useState('')
   const toggleMessageReaction = Constants.useContext(s => s.dispatch.toggleMessageReaction)
   const onChoose = React.useCallback(
@@ -67,9 +67,9 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
 }
 
 const useSkinTone = () => {
-  const currentSkinTone = Types.EmojiSkinToneFromRPC(Constants.useState(s => s.userReacjis.skinTone))
+  const currentSkinTone = Types.EmojiSkinToneFromRPC(C.useChatState(s => s.userReacjis.skinTone))
   const rpc = useRPC(RPCChatGen.localPutReacjiSkinToneRpcPromise)
-  const updateUserReacjis = Constants.useState(s => s.dispatch.updateUserReacjis)
+  const updateUserReacjis = C.useChatState(s => s.dispatch.updateUserReacjis)
   const setSkinTone = (emojiSkinTone: undefined | Types.EmojiSkinTone) => {
     rpc(
       [
@@ -91,7 +91,7 @@ const useCustomReacji = (
   onlyInTeam: boolean | undefined,
   disabled?: boolean
 ) => {
-  const customEmojiGroups = Constants.useState(s => s.userEmojis)
+  const customEmojiGroups = C.useChatState(s => s.userEmojis)
   const waiting = Container.useAnyWaiting(Constants.waitingKeyLoadingEmoji)
   const dispatch = Container.useDispatch()
 

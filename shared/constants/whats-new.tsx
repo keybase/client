@@ -102,7 +102,7 @@ type State = Store & {
   anyVersionsUnseen: () => boolean
   getSeenVersions: () => SeenVersionsMap
 }
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     resetState: 'default',
     updateLastSeen: lastSeenItem => {

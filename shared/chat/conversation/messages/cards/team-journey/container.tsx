@@ -141,7 +141,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const welcomeMessage = {display: '', raw: '', set: false}
   const _teamID = teamID
   const canShowcase = C.useTeamsState(s => TeamConstants.canShowcase(s, teamID))
-  const isBigTeam = Constants.useState(s => Constants.isBigTeam(s, teamID))
+  const isBigTeam = C.useChatState(s => Constants.isBigTeam(s, teamID))
 
   const dispatch = Container.useDispatch()
 
@@ -156,7 +156,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
     cardType: RPCChatTypes.JourneycardType,
     ordinal: ChatTypes.Ordinal
   ) => dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal}))
-  const previewConversation = Constants.useState(s => s.dispatch.previewConversation)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const _onGoToChannel = (channelname: string, teamname: string) =>
     previewConversation({channelname, reason: 'journeyCardPopular', teamname})
   const manageChatChannels = C.useTeamsState(s => s.dispatch.manageChatChannels)

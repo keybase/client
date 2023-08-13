@@ -1,11 +1,11 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Constants from '../../constants/chat2'
 import {appendNewChatBuilder} from '../../actions/typed-routes'
 
 const HeaderNewChatButton = () => {
-  const hide = Constants.useState(
+  const hide = C.useChatState(
     s =>
       s.inboxHasLoaded &&
       !!s.inboxLayout &&

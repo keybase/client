@@ -1,5 +1,5 @@
+import * as C from '../../../constants'
 import * as React from 'react'
-import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as RowSizes from './sizes'
@@ -12,7 +12,7 @@ type Props = {
 
 const BigTeamsDivider = React.memo(function BigTeamsDivider(props: Props) {
   const {toggle} = props
-  const badgeCount = Constants.useState(s => s.bigTeamBadgeCount)
+  const badgeCount = C.useChatState(s => s.bigTeamBadgeCount)
   return (
     <Kb.ClickableBox
       title="Teams with multiple channels."

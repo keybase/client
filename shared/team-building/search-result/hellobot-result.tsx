@@ -1,13 +1,13 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/team-building'
-import * as ChatConstants from '../../constants/chat2'
 import CommonResult, {type ResultProps} from './common-result'
 
 const HellobotResult = React.memo(function HellobotResult(props: ResultProps) {
   const cancelTeamBuilding = Constants.useContext(s => s.dispatch.cancelTeamBuilding)
-  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onSelfChat = () => {
     cancelTeamBuilding()
     setTimeout(() => {

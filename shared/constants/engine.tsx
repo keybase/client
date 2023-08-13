@@ -18,9 +18,8 @@ export const _useState = Z.createZustand<State>(() => {
   const dispatch: State['dispatch'] = {
     onEngineConnected: () => {
       const f = async () => {
-        const ChatConstants = await import('./chat2')
         const ConfigConstants = await import('./config')
-        ChatConstants.useState.getState().dispatch.onEngineConnected()
+        C.useChatState.getState().dispatch.onEngineConnected()
         ConfigConstants.useConfigState.getState().dispatch.onEngineConnected()
         C.useNotifState.getState().dispatch.onEngineConnected()
         C.usePeopleState.getState().dispatch.onEngineConnected()
@@ -39,10 +38,9 @@ export const _useState = Z.createZustand<State>(() => {
     },
     onEngineIncoming: action => {
       const f = async () => {
-        const ChatConstants = await import('./chat2')
         const ConfigConstants = await import('./config')
         C.useBotsState.getState().dispatch.onEngineIncoming(action)
-        ChatConstants.useState.getState().dispatch.onEngineIncoming(action)
+        C.useChatState.getState().dispatch.onEngineIncoming(action)
         ConfigConstants.useConfigState.getState().dispatch.dynamic.onEngineIncomingDesktop?.(action)
         ConfigConstants.useConfigState.getState().dispatch.dynamic.onEngineIncomingNative?.(action)
         ConfigConstants.useConfigState.getState().dispatch.onEngineIncoming(action)

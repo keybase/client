@@ -16,7 +16,7 @@ const LocationPopup = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
   const username = C.useCurrentUserState(s => s.username)
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
-  const location = Constants.useState(s => s.lastCoord)
+  const location = C.useChatState(s => s.lastCoord)
   const locationDenied = Constants.useContext(
     s => s.commandStatus?.displayType == RPCChatTypes.UICommandStatusDisplayTyp.error
   )

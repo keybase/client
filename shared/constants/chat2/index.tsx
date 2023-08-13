@@ -443,7 +443,7 @@ const untrustedConversationIDKeys = (ids: Array<Types.ConversationIDKey>) =>
   ids.filter(id => getConvoState(id).meta.trustedState === 'untrusted')
 
 // generic chat store
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   // We keep a set of conversations to unbox
   let metaQueue = new Set<Types.ConversationIDKey>()
 
@@ -1026,7 +1026,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               // Get actions to update messagemap / metamap when retention policy expunge happens
               const {expunge} = activity
               const conversationIDKey = Types.conversationIDToKey(expunge.convID)
-              const staticConfig = useState.getState().staticConfig
+              const staticConfig = get().staticConfig
               // The types here are askew. It confuses frontend MessageType with protocol MessageType.
               // Placeholder is an example where it doesn't make sense.
               const deletableMessageTypes = staticConfig?.deletableByDeleteHistory || allMessageTypes
@@ -1065,7 +1065,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               }))
               logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
               getConvoState(conversationIDKey).dispatch.updateReactions(updates)
-              useState.getState().dispatch.updateUserReacjis(reactionUpdate.userReacjis)
+              get().dispatch.updateUserReacjis(reactionUpdate.userReacjis)
               break
             }
             case RPCChatTypes.ChatActivityType.messagesUpdated: {
@@ -1188,7 +1188,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         // deselect if there was one
         const deselectAction = () => {
           if (wasChat && wasID && Types.isValidConversationIDKey(wasID)) {
-            useState.getState().dispatch.unboxRows([wasID], true)
+            get().dispatch.unboxRows([wasID], true)
           }
         }
 
@@ -1322,7 +1322,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
           const meta = inboxUIItemToConversationMeta(results2.conv)
           if (meta) {
-            useState.getState().dispatch.metasReceived([meta])
+            _useState.getState().dispatch.metasReceived([meta])
           }
 
           getConvoState(first.conversationIDKey).dispatch.navigateToThread(

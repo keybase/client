@@ -11,9 +11,9 @@ type OwnProps = {
 const emptySearch = Constants.makeInboxSearchInfo()
 
 export default (ownProps: OwnProps) => {
-  const _inboxSearch = Constants.useState(s => s.inboxSearch ?? emptySearch)
-  const toggleInboxSearch = Constants.useState(s => s.dispatch.toggleInboxSearch)
-  const inboxSearchSelect = Constants.useState(s => s.dispatch.inboxSearchSelect)
+  const _inboxSearch = C.useChatState(s => s.inboxSearch ?? emptySearch)
+  const toggleInboxSearch = C.useChatState(s => s.dispatch.toggleInboxSearch)
+  const inboxSearchSelect = C.useChatState(s => s.dispatch.inboxSearchSelect)
   const onCancel = () => {
     toggleInboxSearch(false)
   }

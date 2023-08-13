@@ -424,11 +424,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       updateSettings()
 
-      const updateChat = async () => {
-        const ChatConstants = await import('./chat2')
-        ChatConstants.useState.getState().dispatch.onRouteChanged(prev, next)
-      }
-      Z.ignorePromise(updateChat())
+      C.useChatState.getState().dispatch.onRouteChanged(prev, next)
     },
     switchTab: name => {
       const n = _getNavigator()

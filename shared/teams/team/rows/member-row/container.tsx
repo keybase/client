@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/teams'
-import * as ChatConstants from '../../../../constants/chat2'
 import type * as Types from '../../../../constants/types/teams'
 import {TeamMemberRow} from '.'
 import * as Container from '../../../../util/container'
@@ -31,7 +30,7 @@ export default (ownProps: OwnProps) => {
   const onBlock = () => {
     username && setUserBlocks([{setChatBlock: true, setFollowBlock: true, username}])
   }
-  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => {
     username && previewConversation({participants: [username], reason: 'teamMember'})
   }

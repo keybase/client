@@ -22,7 +22,7 @@ const Header = (props: Props) => {
 const Header2 = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
   const username = C.useCurrentUserState(s => s.username)
-  const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
+  const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
   const participantInfo = Constants.useContext(s => s.participants)
   const meta = Constants.useContext(s => s.meta)
   const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
@@ -45,7 +45,7 @@ const Header2 = (props: Props) => {
     mute(false)
   }, [mute])
 
-  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
   const onToggleInfoPanel = React.useCallback(() => {
     showInfoPanel(!infoPanelShowing, undefined, conversationIDKey)
   }, [showInfoPanel, conversationIDKey, infoPanelShowing])

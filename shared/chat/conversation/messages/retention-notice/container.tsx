@@ -18,7 +18,7 @@ const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer(p:
       : true
   })
 
-  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
   const onChange = React.useCallback(
     () => showInfoPanel(true, 'settings', conversationIDKey),
     [showInfoPanel, conversationIDKey]

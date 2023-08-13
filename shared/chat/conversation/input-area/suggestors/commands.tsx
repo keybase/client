@@ -1,3 +1,4 @@
+import * as C from '../../../../constants'
 import * as Common from './common'
 import * as Constants from '../../../../constants/chat2'
 import {memoize} from '../../../../util/memoize'
@@ -100,7 +101,7 @@ const getMaxCmdLength = memoize(
 
 export const useDataSource = (p: UseDataSourceProps) => {
   const {filter, inputRef, lastTextRef} = p
-  const staticConfig = Constants.useState(s => s.staticConfig)
+  const staticConfig = C.useChatState(s => s.staticConfig)
   const showGiphySearch = Constants.useContext(s => s.giphyWindow)
   const showCommandMarkdown = Constants.useContext(s => !!s.commandMarkdown)
   return Constants.useContext(s => {

@@ -1,4 +1,5 @@
 // Just for desktop and tablet, we show inbox and conversation side by side
+import * as C from '../constants'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
@@ -15,10 +16,10 @@ type Props = {conversationIDKey?: Types.ConversationIDKey; navKey?: string}
 const InboxAndConversation = React.memo(function InboxAndConversation(props?: Props) {
   const conversationIDKey = props?.conversationIDKey ?? Constants.noConversationIDKey
   const navKey = props?.navKey ?? ''
-  const inboxSearch = Constants.useState(s => s.inboxSearch)
-  const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
+  const inboxSearch = C.useChatState(s => s.inboxSearch)
+  const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
   const validConvoID = conversationIDKey && conversationIDKey !== Constants.noConversationIDKey
-  const needSelectConvoID = Constants.useState(s => {
+  const needSelectConvoID = C.useChatState(s => {
     if (validConvoID) {
       return null
     }

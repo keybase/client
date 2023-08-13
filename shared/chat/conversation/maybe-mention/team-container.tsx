@@ -16,7 +16,7 @@ const noAdmins: Array<string> = []
 
 export default (ownProps: OwnProps) => {
   const {allowFontScaling, name, channel, style} = ownProps
-  const maybeMentionInfo = Constants.useState(s =>
+  const maybeMentionInfo = C.useChatState(s =>
     s.maybeMentionMap.get(Constants.getTeamMentionName(name, channel))
   )
   const mentionInfo =
@@ -31,7 +31,7 @@ export default (ownProps: OwnProps) => {
   const publicAdmins = mentionInfo?.publicAdmins || noAdmins
   const resolved = !!mentionInfo
 
-  const previewConversation = Constants.useState(s => s.dispatch.previewConversation)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const _onChat = (conversationIDKey: Types.ConversationIDKey) => {
     previewConversation({conversationIDKey, reason: 'teamMention'})
   }

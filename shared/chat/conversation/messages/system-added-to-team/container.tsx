@@ -20,7 +20,7 @@ const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
   const isAdmin = authorIsAdmin || authorIsOwner
   const isTeam = teamType === 'big' || teamType === 'small'
 
-  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
   const onManageNotifications = React.useCallback(() => {
     showInfoPanel(true, 'settings', conversationIDKey)
   }, [showInfoPanel, conversationIDKey])

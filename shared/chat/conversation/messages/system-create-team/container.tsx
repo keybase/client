@@ -18,7 +18,7 @@ const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(
   const isAdmin = TeamConstants.isAdmin(role) || TeamConstants.isOwner(role)
   const team = teamname
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
   const onViewTeam = React.useCallback(() => {
     if (teamID) {
       navigateAppend({props: {teamID}, selected: 'team'})

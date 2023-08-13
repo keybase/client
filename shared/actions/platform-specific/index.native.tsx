@@ -300,7 +300,7 @@ ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
     return
   }
   const pos = locations[locations.length - 1]
-  ChatConstants.useState.getState().dispatch.updateLastCoord({
+  C.useChatState.getState().dispatch.updateLastCoord({
     accuracy: Math.floor(pos?.coords.accuracy ?? 0),
     lat: pos?.coords.latitude ?? 0,
     lon: pos?.coords.longitude ?? 0,
@@ -327,7 +327,7 @@ export const watchPositionForMap = async (conversationIDKey: Types.ConversationI
           lat: location.coords.latitude,
           lon: location.coords.longitude,
         }
-        ChatConstants.useState.getState().dispatch.updateLastCoord(coord)
+        C.useChatState.getState().dispatch.updateLastCoord(coord)
       }
     )
     return () => sub.remove()

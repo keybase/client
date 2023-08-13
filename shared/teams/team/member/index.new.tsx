@@ -436,7 +436,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     Constants.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
   )
 
-  const isSmallTeam = !ChatConstants.useState(s => ChatConstants.isBigTeam(s, props.node.teamID))
+  const isSmallTeam = !C.useChatState(s => ChatConstants.isBigTeam(s, props.node.teamID))
 
   const channelsJoined = isSmallTeam
     ? []
@@ -616,7 +616,7 @@ export const TeamMemberHeader = (props: Props) => {
   const yourUsername = C.useCurrentUserState(s => s.username)
 
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
-  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => previewConversation({participants: [username], reason: 'memberView'})
   const onViewProfile = () => showUserProfile(username)
   const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})

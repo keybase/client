@@ -41,9 +41,9 @@ const onGetInboxUnverifiedConvs = (_: unknown, action: EngineGen.Chat1ChatUiChat
     m && arr.push(m)
     return arr
   }, [])
-  Constants.useState.getState().dispatch.setTrustedInboxHasLoaded()
+  C.useChatState.getState().dispatch.setTrustedInboxHasLoaded()
   // Check if some of our existing stored metas might no longer be valid
-  Constants.useState.getState().dispatch.metasReceived(metas)
+  C.useChatState.getState().dispatch.metasReceived(metas)
 }
 
 const onGetInboxConvsUnboxed = (_: unknown, action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => {
@@ -84,14 +84,14 @@ const onGetInboxConvsUnboxed = (_: unknown, action: EngineGen.Chat1ChatUiChatInb
       )
   }
   if (metas.length > 0) {
-    Constants.useState.getState().dispatch.metasReceived(metas)
+    C.useChatState.getState().dispatch.metasReceived(metas)
   }
   return actions
 }
 
 const maybeChangeSelectedConv = () => {
   const selectedConversation = Constants.getSelectedConversation()
-  const {inboxLayout} = Constants.useState.getState()
+  const {inboxLayout} = C.useChatState.getState()
   if (!inboxLayout || !inboxLayout.reselectInfo) {
     return
   }
@@ -104,7 +104,7 @@ const maybeChangeSelectedConv = () => {
       // on mobile just head back to the inbox if we have something selected
       if (Constants.isValidConversationIDKey(selectedConversation)) {
         logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
-        Constants.useState.getState().dispatch.navigateToInbox()
+        C.useChatState.getState().dispatch.navigateToInbox()
         return
       }
       logger.info(`maybeChangeSelectedConv: mobile: ignoring conv change, no conv selected`)
@@ -159,7 +159,7 @@ const onChatInboxSynced = (
   const {syncRes} = action.payload.params
 
   const {clear} = C.useWaitingState.getState().dispatch
-  const {inboxRefresh} = Constants.useState.getState().dispatch
+  const {inboxRefresh} = C.useChatState.getState().dispatch
   clear(Constants.waitingKeyInboxSyncStarted)
   const actions: Array<Container.TypedActions> = []
 
@@ -192,10 +192,10 @@ const onChatInboxSynced = (
       const removals = syncRes.incremental.removals?.map(Types.stringToConversationIDKey)
       // Update new untrusted
       if (metas.length || removals?.length) {
-        Constants.useState.getState().dispatch.metasReceived(metas, removals)
+        C.useChatState.getState().dispatch.metasReceived(metas, removals)
       }
 
-      Constants.useState.getState().dispatch.unboxRows(
+      C.useChatState.getState().dispatch.unboxRows(
         items.filter(i => i.shouldUnbox).map(i => Types.stringToConversationIDKey(i.conv.convID)),
         true
       )
@@ -217,7 +217,7 @@ const onChatPaymentInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatPaym
     logger.error(errMsg)
     throw new Error(errMsg)
   }
-  Constants.useState.getState().dispatch.paymentInfoReceived(paymentInfo)
+  C.useChatState.getState().dispatch.paymentInfoReceived(paymentInfo)
   Constants.getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
 }
 
@@ -237,7 +237,7 @@ const onChatRequestInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatRequ
 const onChatSubteamRename = (_: unknown, action: EngineGen.Chat1NotifyChatChatSubteamRenamePayload) => {
   const {convs} = action.payload.params
   const conversationIDKeys = (convs ?? []).map(c => Types.stringToConversationIDKey(c.convID))
-  Constants.useState.getState().dispatch.unboxRows(conversationIDKeys, true)
+  C.useChatState.getState().dispatch.unboxRows(conversationIDKeys, true)
 }
 
 const onChatChatTLFFinalizePayload = (
@@ -245,7 +245,7 @@ const onChatChatTLFFinalizePayload = (
   action: EngineGen.Chat1NotifyChatChatTLFFinalizePayload
 ) => {
   const {convID} = action.payload.params
-  Constants.useState.getState().dispatch.unboxRows([Types.conversationIDToKey(convID)])
+  C.useChatState.getState().dispatch.unboxRows([Types.conversationIDToKey(convID)])
 }
 
 const onChatThreadStale = (_: unknown, action: EngineGen.Chat1NotifyChatChatThreadsStalePayload) => {
@@ -276,7 +276,7 @@ const onChatThreadStale = (_: unknown, action: EngineGen.Chat1NotifyChatChatThre
         `onChatThreadStale: dispatching thread reload actions for ${conversationIDKeys.length} convs of type ${key}`
       )
 
-      Constants.useState.getState().dispatch.unboxRows(conversationIDKeys, true)
+      C.useChatState.getState().dispatch.unboxRows(conversationIDKeys, true)
 
       if (RPCChatTypes.StaleUpdateType[key] === RPCChatTypes.StaleUpdateType.clear) {
         conversationIDKeys.forEach(convID =>
@@ -297,7 +297,7 @@ const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvU
   if (conv) {
     const meta = Constants.inboxUIItemToConversationMeta(conv)
     if (meta) {
-      Constants.useState.getState().dispatch.metasReceived([meta])
+      C.useChatState.getState().dispatch.metasReceived([meta])
     }
   }
 }
@@ -382,11 +382,11 @@ const fetchUserEmoji = async (_: unknown, action: Chat2Gen.FetchUserEmojiPayload
     },
     Constants.waitingKeyLoadingEmoji
   )
-  Constants.useState.getState().dispatch.loadedUserEmoji(results)
+  C.useChatState.getState().dispatch.loadedUserEmoji(results)
 }
 
 const ensureWidgetMetas = () => {
-  const {inboxLayout} = Constants.useState.getState()
+  const {inboxLayout} = C.useChatState.getState()
   if (!inboxLayout?.widgetList) {
     return
   }
@@ -400,7 +400,7 @@ const ensureWidgetMetas = () => {
     return
   }
 
-  Constants.useState.getState().dispatch.unboxRows(missing, true)
+  C.useChatState.getState().dispatch.unboxRows(missing, true)
 }
 
 const updateNotificationSettings = async (_: unknown, action: Chat2Gen.UpdateNotificationSettingsPayload) => {
@@ -608,7 +608,7 @@ const dismissBlockButtons = async (_: unknown, action: Chat2Gen.DismissBlockButt
 const initChat = () => {
   // Refresh the inbox
   Container.listenAction(EngineGen.chat1NotifyChatChatInboxStale, () => {
-    Constants.useState.getState().dispatch.inboxRefresh('inboxStale')
+    C.useChatState.getState().dispatch.inboxRefresh('inboxStale')
   })
 
   // Actually try and unbox conversations
@@ -618,7 +618,7 @@ const initChat = () => {
   Container.listenAction(EngineGen.chat1ChatUiChatInboxLayout, ensureWidgetMetas)
   // TODO move to engine constants
   Container.listenAction(EngineGen.chat1ChatUiChatInboxLayout, (_, action) => {
-    Constants.useState.getState().dispatch.updateInboxLayout(action.payload.params.layout)
+    C.useChatState.getState().dispatch.updateInboxLayout(action.payload.params.layout)
   })
 
   Container.listenAction(Chat2Gen.jumpToRecent, () => {
@@ -676,7 +676,7 @@ const initChat = () => {
   })
   Container.listenAction(EngineGen.chat1ChatUiChatCoinFlipStatus, (_, action) => {
     const {statuses} = action.payload.params
-    Constants.useState.getState().dispatch.updateCoinFlipStatus(statuses || [])
+    C.useChatState.getState().dispatch.updateCoinFlipStatus(statuses || [])
   })
   Container.listenAction(EngineGen.chat1ChatUiChatCommandMarkdown, (_, action) => {
     const {convID, md} = action.payload.params
@@ -694,7 +694,7 @@ const initChat = () => {
   })
   Container.listenAction(EngineGen.chat1ChatUiChatMaybeMentionUpdate, (_, action) => {
     const {teamName, channel, info} = action.payload.params
-    Constants.useState
+    C.useChatState
       .getState()
       .dispatch.setMaybeMentionInfo(Constants.getTeamMentionName(teamName, channel), info)
   })

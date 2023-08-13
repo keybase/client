@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/crypto'
-import * as ChatConstants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Path from '../util/path'
@@ -15,22 +14,10 @@ import {getStyle} from '../common-adapters/text'
 import {humanizeBytes} from '../constants/fs'
 import {pickFiles} from '../util/pick-files'
 
-type OutputProps = {
-  operation: Types.Operations
-}
-
-type OutputActionsBarProps = {
-  operation: Types.Operations
-}
-
-type SignedSenderProps = {
-  operation: Types.Operations
-}
-
-type OutputProgressProps = {
-  operation: Types.Operations
-}
-
+type OutputProps = {operation: Types.Operations}
+type OutputActionsBarProps = {operation: Types.Operations}
+type SignedSenderProps = {operation: Types.Operations}
+type OutputProgressProps = {operation: Types.Operations}
 type OutputInfoProps = {
   operation: Types.Operations
   children:
@@ -204,7 +191,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   }
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onReplyInChat = (username: Container.HiddenString) => {
     navigateUp()
     previewConversation({participants: [username.stringValue()], reason: 'search'})

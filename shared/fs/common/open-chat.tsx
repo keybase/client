@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
-import * as ChatConstants from '../../constants/chat2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Util from '../../util/kbfs'
@@ -35,7 +34,7 @@ const styles = Styles.styleSheetCreate(
 export default (ownProps: OwnProps) => {
   const {path} = ownProps
   const isTeam = C.isTeamPath(path)
-  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const _onChat = () => {
     previewConversation({
       reason: 'files',
