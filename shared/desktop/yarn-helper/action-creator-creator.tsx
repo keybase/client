@@ -116,7 +116,9 @@ function compileActionPayloads(_: ActionNS, actionName: ActionName) {
   return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
 }
 
-function compileActionCreator(_: ActionNS, actionName: ActionName, desc: ActionDesc) {
+function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
+  // don't make action creators for this
+  const allowCreate = ns !== 'engine-gen'
   const hasPayload = !!payloadKeys(desc).length
   const assignPayload = payloadOptional(desc)
   const comment = desc['_description']
@@ -128,7 +130,7 @@ function compileActionCreator(_: ActionNS, actionName: ActionName, desc: ActionD
   const payload = hasPayload
     ? `payload: ${printPayload(desc)}${assignPayload ? ' = {}' : ''}`
     : 'payload?: undefined'
-  return `${comment}export const create${capitalize(actionName)} = (${payload}) => (
+  return `${comment}${allowCreate ? 'export ' : ''}const create${capitalize(actionName)} = (${payload}) => (
   {payload, type: ${actionName} as typeof ${actionName}}
 )`
 }

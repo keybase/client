@@ -77,7 +77,6 @@ class Engine {
       () => this._onConnected(),
       () => this._onDisconnect()
     )
-    this._setupIgnoredHandlers()
     this._setupDebugging()
   }
 
@@ -88,7 +87,7 @@ class Engine {
 
     if (typeof window !== 'undefined') {
       logger.info('DEV MODE ENGINE AVAILABLE AS window.DEBUGengine')
-      // @ts-ignore codemode issue
+      // @ts-ignore
       window.DEBUGengine = this
     }
 
@@ -100,10 +99,6 @@ class Engine {
         }
       }, 10 * 1000)
     }
-  }
-
-  _setupIgnoredHandlers() {
-    // Any messages we want to ignore go here
   }
 
   _onDisconnect() {
@@ -157,12 +152,10 @@ class Engine {
   }
 
   // An incoming rpc call
-  _rpcIncoming(payload: {method: MethodKey; param: Array<Object>; response?: Object}) {
+  _rpcIncoming(payload: {method: MethodKey; param: Array<Object>; response?: any}) {
     const {method, param: incomingParam, response} = payload
-    const param = incomingParam?.length ? incomingParam[0] || {} : {}
-    // @ts-ignore codemode issue
+    const param: any = incomingParam?.length ? incomingParam[0] || {} : {}
     const {seqid, cancelled} = response || {cancelled: false, seqid: 0}
-    // @ts-ignore codemode issue
     const {sessionID} = param
 
     if (cancelled) {
@@ -175,11 +168,11 @@ class Engine {
         // Dispatch as an action
         const extra = {}
         if (this._customResponseAction[method]) {
-          // @ts-ignore codemode issue
+          // @ts-ignore
           extra.response = response
         } else {
           // Not a custom response so we auto handle it
-          // @ts-ignore codemode issue
+          // @ts-ignore
           response && response.result()
         }
         const type = method
@@ -190,9 +183,6 @@ class Engine {
 
         const act = {payload: {params: param, ...extra}, type: `engine-gen:${type}`}
         this._engineConstantsIncomingCall(act as any)
-
-        // @ts-ignore can't really type this easily
-        // this._dispatch(act)
       }
     }
   }
@@ -280,7 +270,6 @@ class Engine {
 
   // Reset the engine
   reset() {
-    // TODO not working on mobile yet
     if (isMobile) {
       return
     }
