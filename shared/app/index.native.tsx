@@ -98,7 +98,7 @@ const ensureStore = () => {
   }
 
   const {batch} = C.useWaitingState.getState().dispatch
-  const eng = makeEngine(_store.store.dispatch, batch, c => {
+  const eng = makeEngine(batch, c => {
     if (c) {
       C.useEngineState.getState().dispatch.onEngineConnected()
     } else {

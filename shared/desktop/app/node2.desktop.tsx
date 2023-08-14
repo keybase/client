@@ -437,7 +437,7 @@ const plumbEvents = () => {
 
   // we use this engine to proxy calls to the service from the renderer
   const nodeEngine = makeEngine(
-    mainWindowDispatch,
+    // no waiting on node side
     () => {},
     (c: boolean) => {
       mainWindowDispatch(RemoteGen.createEngineConnection({connected: c}))

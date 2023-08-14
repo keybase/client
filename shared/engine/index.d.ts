@@ -25,8 +25,7 @@ export declare class Engine {
 }
 export declare function getEngine(): Engine
 export declare function makeEngine(
-  dispatch: (a: any) => any,
-  dispatchBatch: (b: BatchParams) => void,
+  emitWaiting: (b: BatchParams) => void,
   onConnected: (c: boolean) => void
 ): Engine
 export default getEngine

@@ -5,7 +5,6 @@ import logger from '../logger'
 import throttle from 'lodash/throttle'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from '.'
 import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
-import type {TypedDispatch} from '../util/container'
 import {initEngine, initEngineListener} from './require'
 import {isMobile} from '../constants/platform'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
@@ -47,8 +46,7 @@ class Engine {
   // App tells us when the listeners are done loading so we can start emitting events
   _listenersAreReady: boolean = false
 
-  // _dispatch: TypedDispatch
-  _dispatchBatch: (changes: BatchParams) => void
+  _emitWaiting: (changes: BatchParams) => void
 
   _queuedChanges: Array<{error: RPCError; increment: boolean; key: WaitingKey}> = []
   dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error: RPCError) => {
@@ -59,14 +57,10 @@ class Engine {
   _throttledDispatchWaitingAction = throttle(() => {
     const changes = this._queuedChanges
     this._queuedChanges = []
-    this._dispatchBatch(changes)
+    this._emitWaiting(changes)
   }, 500)
 
-  constructor(
-    _dispatch: TypedDispatch,
-    dispatchBatch: (changes: BatchParams) => void,
-    onConnected: (c: boolean) => void
-  ) {
+  constructor(emitWaiting: (changes: BatchParams) => void, onConnected: (c: boolean) => void) {
     this._onConnectedCB = onConnected
     const f = async () => {
       this._engineConstantsIncomingCall = (
@@ -77,15 +71,7 @@ class Engine {
       .then(() => {})
       .catch(() => {})
 
-    // setup some static vars
-    // if (DEFER_INCOMING_DURING_DEBUG) {
-    //   this._dispatch = a => setTimeout(() => dispatch(a), 1)
-    // } else {
-    //   this._dispatch = dispatch
-    // }
-
-    this._dispatchBatch = dispatchBatch
-
+    this._emitWaiting = emitWaiting
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload),
       () => this._onConnected(),
@@ -352,19 +338,13 @@ if (__DEV__) {
   engine = global.DEBUGEngine
 }
 
-const makeEngine = (
-  dispatch: TypedDispatch,
-  dispatchBatch: (b: BatchParams) => void,
-  onConnected: (c: boolean) => void
-) => {
+const makeEngine = (emitWaiting: (b: BatchParams) => void, onConnected: (c: boolean) => void) => {
   if (__DEV__ && engine) {
     logger.warn('makeEngine called multiple times')
   }
 
   if (!engine) {
-    engine = isTesting
-      ? (new FakeEngine() as unknown as Engine)
-      : new Engine(dispatch, dispatchBatch, onConnected)
+    engine = isTesting ? (new FakeEngine() as unknown as Engine) : new Engine(emitWaiting, onConnected)
     if (__DEV__) {
       global.DEBUGEngine = engine
     }
