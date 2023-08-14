@@ -1,12 +1,7 @@
-remove engine-gen dispatch in index-impl when chat2 is done
-move chat actions engine stuff to engineconstants
-
 remove ConversationIDKeyContext
 remove hiddenstring
 remove convid as param
     use .at() instead of length-1
-    remove other meta related actions
-    remove chat.init in configure listeners
     move all constant includes to C
     move all types into T
     make dispatch only emit remotegen
