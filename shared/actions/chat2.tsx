@@ -401,16 +401,6 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
   C.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyToggleWindow(show)
 }
 
-const dismissBlockButtons = async (_: unknown, action: Chat2Gen.DismissBlockButtonsPayload) => {
-  try {
-    await RPCTypes.userDismissBlockButtonsRpcPromise({tlfID: action.payload.teamID})
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(`Couldn't dismiss block buttons: ${error.message}`)
-    }
-  }
-}
-
 const initChat = () => {
   // Refresh the inbox
   Container.listenAction(EngineGen.chat1NotifyChatChatInboxStale, () => {
@@ -472,7 +462,6 @@ const initChat = () => {
   })
 
   Container.listenAction(Chat2Gen.sendAudioRecording, sendAudioRecording)
-  Container.listenAction(Chat2Gen.dismissBlockButtons, dismissBlockButtons)
   Container.listenAction(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate)
 
   Container.listenAction(EngineGen.chat1ChatUiChatBotCommandsUpdateStatus, (_, a) => {

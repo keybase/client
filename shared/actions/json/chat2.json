@@ -4,9 +4,6 @@
     "import type * as Types from '../constants/types/chat2'"
   ],
   "actions": {
-    "dismissBlockButtons": {
-      "teamID": "RPCTypes.TeamID"
-    },
     "sendAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey",
       "duration": "number",

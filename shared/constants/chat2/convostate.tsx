@@ -1,5 +1,4 @@
 import * as C from '..'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Styles from '../../styles'
 import * as Common from './common'
 import * as Tabs from '../tabs'
@@ -179,6 +178,7 @@ export type ConvoState = ConvoStore & {
     clearAttachmentView: () => void
     clearMessageTypeMap: () => void
     dismissBottomBanner: () => void
+    dismissBlockButtons: (teamID: RPCTypes.TeamID) => void
     desktopNotification: (author: string, body: string) => void
     editBotSettings: (
       username: string,
@@ -405,7 +405,6 @@ export const numMessagesOnInitialLoad = isMobile ? 20 : 100
 export const numMessagesOnScrollback = isMobile ? 100 : 100
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
   const closeBotModal = () => {
     C.useRouterState.getState().dispatch.clearModals()
     const meta = get().meta
@@ -687,6 +686,18 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const sound = C.useConfigState.getState().notifySound
 
       NotifyPopup(title, {body, sound}, -1, author, onClick, onClose)
+    },
+    dismissBlockButtons: teamID => {
+      const f = async () => {
+        try {
+          await RPCTypes.userDismissBlockButtonsRpcPromise({tlfID: teamID})
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(`Couldn't dismiss block buttons: ${error.message}`)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     dismissBottomBanner: () => {
       set(s => {
@@ -1483,7 +1494,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         // If there are block buttons on this conversation, clear them.
         if (C.useChatState.getState().blockButtonsMap.has(meta.teamID)) {
-          reduxDispatch(Chat2Gen.createDismissBlockButtons({teamID: meta.teamID}))
+          get().dispatch.dismissBlockButtons(meta.teamID)
         }
 
         // Do some logging to track down the root cause of a bug causing

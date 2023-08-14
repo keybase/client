@@ -1,12 +1,11 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import type * as RPCTypes from '../constants/types/rpc-gen'
+
 import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import type * as Types from '../constants/types/chat2'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'chat2:'
-export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
@@ -26,10 +25,6 @@ export const createDismissJourneycard = (payload: {
 export const createFetchUserEmoji = (
   payload: {readonly conversationIDKey?: Types.ConversationIDKey; readonly onlyInTeam?: boolean} = {}
 ) => ({payload, type: fetchUserEmoji as typeof fetchUserEmoji})
-export const createDismissBlockButtons = (payload: {readonly teamID: RPCTypes.TeamID}) => ({
-  payload,
-  type: dismissBlockButtons as typeof dismissBlockButtons,
-})
 export const createSendAudioRecording = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly duration: number
@@ -38,7 +33,6 @@ export const createSendAudioRecording = (payload: {
 }) => ({payload, type: sendAudioRecording as typeof sendAudioRecording})
 
 // Action Payloads
-export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockButtons>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
@@ -46,7 +40,6 @@ export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecordi
 // All Actions
 // prettier-ignore
 export type Actions =
-  | DismissBlockButtonsPayload
   | DismissJourneycardPayload
   | FetchUserEmojiPayload
   | SendAudioRecordingPayload
