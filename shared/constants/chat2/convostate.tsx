@@ -251,13 +251,7 @@ export type ConvoState = ConvoStore & {
     mute: (m: boolean) => void
     navigateToThread: (reason: NavReason, highlightMessageID?: number, pushBody?: string) => void
     openFolder: () => void
-    onEngineIncoming: (
-      action:
-        | EngineGen.Chat1ChatUiChatInboxFailedPayload
-        | EngineGen.Chat1NotifyChatChatSetConvSettingsPayload
-        | EngineGen.Chat1NotifyChatChatAttachmentUploadProgressPayload
-        | EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload
-    ) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     onIncomingMessage: (incoming: RPCChatTypes.IncomingMessage) => void
     onMessageErrored: (outboxID: Types.OutboxID, reason: string, errorTyp?: number) => void
     onMessagesUpdated: (messagesUpdated: RPCChatTypes.MessagesUpdated) => void
@@ -1929,6 +1923,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     onEngineIncoming: action => {
       switch (action.type) {
+        case EngineGen.chat1NotifyChatChatPromptUnfurl: {
+          const {domain, msgID} = action.payload.params
+          get().dispatch.unfurlTogglePrompt(Types.numberToMessageID(msgID), domain, true)
+          break
+        }
         case EngineGen.chat1ChatUiChatInboxFailed: {
           const username = C.useCurrentUserState.getState().username
           const {convID, error} = action.payload.params

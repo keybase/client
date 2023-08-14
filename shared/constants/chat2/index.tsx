@@ -1020,6 +1020,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         case EngineGen.chat1ChatUiChatInboxFailed: // fallthrough
         case EngineGen.chat1NotifyChatChatSetConvSettings: // fallthrough
         case EngineGen.chat1NotifyChatChatAttachmentUploadStart: // fallthrough
+        case EngineGen.chat1NotifyChatChatPromptUnfurl: // fallthrought
         case EngineGen.chat1NotifyChatChatAttachmentUploadProgress: {
           const {convID} = action.payload.params
           const conversationIDKey = Types.conversationIDToKey(convID)
@@ -1032,6 +1033,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         case EngineGen.chat1ChatUiChatInboxLayout:
           get().dispatch.maybeChangeSelectedConv()
           get().dispatch.ensureWidgetMetas()
+          get().dispatch.updateInboxLayout(action.payload.params.layout)
           break
         case EngineGen.chat1NotifyChatChatInboxStale:
           get().dispatch.inboxRefresh('inboxStale')

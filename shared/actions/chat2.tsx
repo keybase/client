@@ -16,15 +16,6 @@ const onChatIdentifyUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatI
   C.useUsersState.getState().dispatch.updates(updates)
 }
 
-const onChatPromptUnfurl = (_: unknown, action: EngineGen.Chat1NotifyChatChatPromptUnfurlPayload) => {
-  const {convID, domain, msgID} = action.payload.params
-  C.getConvoState(Types.conversationIDToKey(convID)).dispatch.unfurlTogglePrompt(
-    Types.numberToMessageID(msgID),
-    domain,
-    true
-  )
-}
-
 const onChatInboxSyncStarted = () => {
   const {increment} = C.useWaitingState.getState().dispatch
   increment(Constants.waitingKeyInboxSyncStarted)
@@ -195,12 +186,6 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
 }
 
 const initChat = () => {
-  // TODO move to engine constants
-  Container.listenAction(EngineGen.chat1ChatUiChatInboxLayout, (_, action) => {
-    C.useChatState.getState().dispatch.updateInboxLayout(action.payload.params.layout)
-  })
-
-  Container.listenAction(EngineGen.chat1NotifyChatChatPromptUnfurl, onChatPromptUnfurl)
   Container.listenAction(EngineGen.chat1NotifyChatChatIdentifyUpdate, onChatIdentifyUpdate)
   Container.listenAction(EngineGen.chat1NotifyChatChatInboxSyncStarted, onChatInboxSyncStarted)
   Container.listenAction(EngineGen.chat1NotifyChatChatInboxSynced, onChatInboxSynced)
