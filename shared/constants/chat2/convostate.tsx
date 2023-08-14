@@ -179,6 +179,7 @@ export type ConvoState = ConvoStore & {
     clearMessageTypeMap: () => void
     dismissBottomBanner: () => void
     dismissBlockButtons: (teamID: RPCTypes.TeamID) => void
+    dismissJourneycard: (cardType: RPCChatTypes.JourneycardType, ordinal: Types.Ordinal) => void
     desktopNotification: (author: string, body: string) => void
     editBotSettings: (
       username: string,
@@ -704,6 +705,20 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.dismissedInviteBanners = true
       })
+    },
+    dismissJourneycard: (cardType, ordinal) => {
+      const f = async () => {
+        await RPCChatTypes.localDismissJourneycardRpcPromise({
+          cardType: cardType,
+          convID: Types.keyToConversationID(get().id),
+        }).catch((error: unknown) => {
+          if (error instanceof RPCError) {
+            logger.error(`Failed to dismiss journeycard: ${error.message}`)
+          }
+        })
+        get().dispatch.messagesWereDeleted({ordinals: [ordinal]})
+      }
+      Z.ignorePromise(f())
     },
     editBotSettings: (username, allowCommands, allowMentions, convs) => {
       const f = async () => {
