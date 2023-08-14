@@ -5,13 +5,6 @@
     "import type * as TeamsTypes from '../constants/types/teams'"
   ],
   "actions": {
-    "updateNotificationSettings": {
-      "_description": "We're changing the notification settings",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "notificationsDesktop": "Types.NotificationsType",
-      "notificationsMobile": "Types.NotificationsType",
-      "notificationsGlobalIgnoreMentions": "boolean"
-    },
     "setMinWriterRole": {
       "_description": "Set the minimum role required to write into a conversation. Valid only for team conversations.",
       "conversationIDKey": "Types.ConversationIDKey",

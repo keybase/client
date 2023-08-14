@@ -398,37 +398,6 @@ const ensureWidgetMetas = () => {
   C.useChatState.getState().dispatch.unboxRows(missing, true)
 }
 
-const updateNotificationSettings = async (_: unknown, action: Chat2Gen.UpdateNotificationSettingsPayload) => {
-  const {notificationsGlobalIgnoreMentions, notificationsMobile, notificationsDesktop} = action.payload
-  const {conversationIDKey} = action.payload
-  await RPCChatTypes.localSetAppNotificationSettingsLocalRpcPromise({
-    channelWide: notificationsGlobalIgnoreMentions,
-    convID: Types.keyToConversationID(conversationIDKey),
-    settings: [
-      {
-        deviceType: RPCTypes.DeviceType.desktop,
-        enabled: notificationsDesktop === 'onWhenAtMentioned',
-        kind: RPCChatTypes.NotificationKind.atmention,
-      },
-      {
-        deviceType: RPCTypes.DeviceType.desktop,
-        enabled: notificationsDesktop === 'onAnyActivity',
-        kind: RPCChatTypes.NotificationKind.generic,
-      },
-      {
-        deviceType: RPCTypes.DeviceType.mobile,
-        enabled: notificationsMobile === 'onWhenAtMentioned',
-        kind: RPCChatTypes.NotificationKind.atmention,
-      },
-      {
-        deviceType: RPCTypes.DeviceType.mobile,
-        enabled: notificationsMobile === 'onAnyActivity',
-        kind: RPCChatTypes.NotificationKind.generic,
-      },
-    ],
-  })
-}
-
 const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageCollapsePayload) => {
   const {conversationIDKey, messageID, ordinal} = action.payload
   const m = C.getConvoState(conversationIDKey).messageMap.get(ordinal)
@@ -638,8 +607,6 @@ const initChat = () => {
     const {dispatch} = C.getConvoState(C.getSelectedConversation())
     dispatch.markThreadAsRead()
   })
-
-  Container.listenAction(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
 
   Container.listenAction(Chat2Gen.toggleMessageCollapse, toggleMessageCollapse)
   Container.listenAction(Chat2Gen.openChatFromWidget, openChatFromWidget)

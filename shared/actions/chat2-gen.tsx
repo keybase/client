@@ -26,7 +26,6 @@ export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unpinMessage = 'chat2:unpinMessage'
-export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateUnreadline = 'chat2:updateUnreadline'
 
 // Action Creators
@@ -148,15 +147,6 @@ export const createConfirmScreenResponse = (payload: {readonly accept: boolean})
   payload,
   type: confirmScreenResponse as typeof confirmScreenResponse,
 })
-/**
- * We're changing the notification settings
- */
-export const createUpdateNotificationSettings = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly notificationsDesktop: Types.NotificationsType
-  readonly notificationsMobile: Types.NotificationsType
-  readonly notificationsGlobalIgnoreMentions: boolean
-}) => ({payload, type: updateNotificationSettings as typeof updateNotificationSettings})
 export const createDismissBlockButtons = (payload: {readonly teamID: RPCTypes.TeamID}) => ({
   payload,
   type: dismissBlockButtons as typeof dismissBlockButtons,
@@ -191,7 +181,6 @@ export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessage
 export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
 export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePrompt>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
-export type UpdateNotificationSettingsPayload = ReturnType<typeof createUpdateNotificationSettings>
 export type UpdateUnreadlinePayload = ReturnType<typeof createUpdateUnreadline>
 
 // All Actions
@@ -216,6 +205,5 @@ export type Actions =
   | UnfurlRemovePayload
   | UnfurlResolvePromptPayload
   | UnpinMessagePayload
-  | UpdateNotificationSettingsPayload
   | UpdateUnreadlinePayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

@@ -313,6 +313,11 @@ export type ConvoState = ConvoStore & {
     updateAttachmentViewTransfered: (msgId: number, path: string) => void
     updateMessage: (ordinal: Types.Ordinal, m: Partial<Types.Message>) => void
     updateMeta: (m: Partial<Types.ConversationMeta>) => void
+    updateNotificationSettings: (
+      notificationsDesktop: Types.NotificationsType,
+      notificationsMobile: Types.NotificationsType,
+      notificationsGlobalIgnoreMentions: boolean
+    ) => void
     updateReactions: (
       updates: Array<{targetMsgID: RPCChatTypes.MessageID; reactions: Types.Reactions}>
     ) => void
@@ -2904,6 +2909,42 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
       get().dispatch.setDraft(get().meta.draft)
       get().dispatch.setMuted(get().meta.isMuted)
+    },
+    updateNotificationSettings: (
+      notificationsDesktop,
+      notificationsMobile,
+      notificationsGlobalIgnoreMentions
+    ) => {
+      const f = async () => {
+        const conversationIDKey = get().id
+        await RPCChatTypes.localSetAppNotificationSettingsLocalRpcPromise({
+          channelWide: notificationsGlobalIgnoreMentions,
+          convID: Types.keyToConversationID(conversationIDKey),
+          settings: [
+            {
+              deviceType: RPCTypes.DeviceType.desktop,
+              enabled: notificationsDesktop === 'onWhenAtMentioned',
+              kind: RPCChatTypes.NotificationKind.atmention,
+            },
+            {
+              deviceType: RPCTypes.DeviceType.desktop,
+              enabled: notificationsDesktop === 'onAnyActivity',
+              kind: RPCChatTypes.NotificationKind.generic,
+            },
+            {
+              deviceType: RPCTypes.DeviceType.mobile,
+              enabled: notificationsMobile === 'onWhenAtMentioned',
+              kind: RPCChatTypes.NotificationKind.atmention,
+            },
+            {
+              deviceType: RPCTypes.DeviceType.mobile,
+              enabled: notificationsMobile === 'onAnyActivity',
+              kind: RPCChatTypes.NotificationKind.generic,
+            },
+          ],
+        })
+      }
+      Z.ignorePromise(f())
     },
     updateReactions: updates => {
       const {pendingOutboxToOrdinal, dispatch, messageMap} = get()

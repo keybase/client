@@ -1,10 +1,8 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import type * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as Container from '../../../../util/container'
 
 export type SaveStateType = 'same' | 'saving' | 'justSaved'
 export type Props = {
@@ -106,9 +104,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
   )
 }
 
-const Notifications = (props: Props) => {
-  const {conversationIDKey} = props
-  const dispatch = Container.useDispatch()
+const Notifications = () => {
   const meta = C.useChatContext(s => s.meta)
   const [channelWide, setChannelWide] = React.useState(meta.notificationsGlobalIgnoreMentions)
   const [desktop, setDesktop] = React.useState(meta.notificationsDesktop)
@@ -116,20 +112,14 @@ const Notifications = (props: Props) => {
   const [muted, setMuted] = React.useState(meta.isMuted)
   const [saving, setSaving] = React.useState(false)
   const delayUnsave = Kb.useTimeout(() => setSaving(false), 100)
+  const updateNotificationSettings = C.useChatContext(s => s.dispatch.updateNotificationSettings)
   const saveNotifications = (
     desktop: Types.NotificationsType,
     mobile: Types.NotificationsType,
     channelWide: boolean
   ) => {
     setSaving(true)
-    dispatch(
-      Chat2Gen.createUpdateNotificationSettings({
-        conversationIDKey,
-        notificationsDesktop: desktop,
-        notificationsGlobalIgnoreMentions: channelWide,
-        notificationsMobile: mobile,
-      })
-    )
+    updateNotificationSettings(desktop, mobile, channelWide)
     delayUnsave()
   }
   const mute = C.useChatContext(s => s.dispatch.mute)
