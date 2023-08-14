@@ -1,13 +1,6 @@
 // helpers for redux / zustand
-import type {TypedActions} from '../actions/typed-actions-gen'
 import {create as _create, type StateCreator} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
-
-type TypedDispatch = (action: TypedActions) => void
-
-// TODO remove eventually
-export const getReduxDispatch: () => TypedDispatch = () => (a: TypedActions) =>
-  require('../store/configure-store').getGlobalStore().dispatch(a)
 
 export const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -25,20 +18,6 @@ export const timeoutPromise = async (timeMs: number) =>
   new Promise<void>(resolve => {
     setTimeout(() => resolve(), timeMs)
   })
-
-export const dummyListenerApi = {
-  delay: async () => Promise.resolve(),
-  dispatch: () => {},
-  fork: () => {
-    throw new Error('dummy')
-  },
-  getState: () => {
-    throw new Error('dummy')
-  },
-  take: () => {
-    throw new Error('dummy')
-  },
-}
 
 type HasReset = {dispatch: {resetState: 'default' | (() => void)}}
 

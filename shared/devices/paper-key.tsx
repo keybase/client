@@ -10,24 +10,21 @@ const PaperKey = () => {
   const [wroteItDown, setWroteItDown] = React.useState(false)
 
   Container.useOnMountOnce(() => {
-    RPCTypes.loginPaperKeyRpcListener(
-      {
-        customResponseIncomingCallMap: {
-          'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
-            response.result(false)
-            return false
-          },
+    RPCTypes.loginPaperKeyRpcListener({
+      customResponseIncomingCallMap: {
+        'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
+          response.result(false)
+          return false
         },
-        incomingCallMap: {
-          'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) => {
-            setPaperkey(phrase)
-          },
-        },
-        params: undefined,
-        waitingKey: C.devicesWaitingKey,
       },
-      Container.dummyListenerApi
-    )
+      incomingCallMap: {
+        'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) => {
+          setPaperkey(phrase)
+        },
+      },
+      params: undefined,
+      waitingKey: C.devicesWaitingKey,
+    })
       .then(() => {})
       .catch(() => {})
   })

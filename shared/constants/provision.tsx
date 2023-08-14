@@ -237,54 +237,51 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       const f = async () => {
         try {
-          await RPCTypes.deviceDeviceAddRpcListener(
-            {
-              customResponseIncomingCallMap: {
-                'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
-                  if (isCanceled(response)) return
-                  const {phrase, previousErr} = params
-                  setupCancel(response)
-                  set(s => {
-                    s.error = previousErr
-                    s.codePageIncomingTextCode = phrase
-                    s.dispatch.dynamic.submitTextCode = (code: string) => {
-                      set(s => {
-                        s.dispatch.dynamic.submitTextCode = _submitTextCode
-                      })
-                      resetErrorAndCancel()
-                      const good = code.replace(/\W+/g, ' ').trim()
-                      response.result({phrase: good, secret: null as any})
-                    }
-                  })
-                  C.useRouterState.getState().dispatch.navigateAppend('codePage')
-                },
-                'keybase.1.provisionUi.chooseDeviceType': (_params, response) => {
-                  const {type} = get().codePageOtherDevice
-                  switch (type) {
-                    case 'mobile':
-                      response.result(RPCTypes.DeviceType.mobile)
-                      break
-                    case 'desktop':
-                      response.result(RPCTypes.DeviceType.desktop)
-                      break
-                    default:
-                      response.error()
-                      throw new Error('Tried to add a device but of unknown type' + type)
+          await RPCTypes.deviceDeviceAddRpcListener({
+            customResponseIncomingCallMap: {
+              'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
+                if (isCanceled(response)) return
+                const {phrase, previousErr} = params
+                setupCancel(response)
+                set(s => {
+                  s.error = previousErr
+                  s.codePageIncomingTextCode = phrase
+                  s.dispatch.dynamic.submitTextCode = (code: string) => {
+                    set(s => {
+                      s.dispatch.dynamic.submitTextCode = _submitTextCode
+                    })
+                    resetErrorAndCancel()
+                    const good = code.replace(/\W+/g, ' ').trim()
+                    response.result({phrase: good, secret: null as any})
                   }
-                },
+                })
+                C.useRouterState.getState().dispatch.navigateAppend('codePage')
               },
-              incomingCallMap: {
-                'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-                  C.useWaitingState.getState().dispatch.increment(waitingKey)
-                },
-                'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
-                'keybase.1.provisionUi.ProvisionerSuccess': () => {},
+              'keybase.1.provisionUi.chooseDeviceType': (_params, response) => {
+                const {type} = get().codePageOtherDevice
+                switch (type) {
+                  case 'mobile':
+                    response.result(RPCTypes.DeviceType.mobile)
+                    break
+                  case 'desktop':
+                    response.result(RPCTypes.DeviceType.desktop)
+                    break
+                  default:
+                    response.error()
+                    throw new Error('Tried to add a device but of unknown type' + type)
+                }
               },
-              params: undefined,
-              waitingKey,
             },
-            Z.dummyListenerApi
-          )
+            incomingCallMap: {
+              'keybase.1.provisionUi.DisplaySecretExchanged': () => {
+                C.useWaitingState.getState().dispatch.increment(waitingKey)
+              },
+              'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
+              'keybase.1.provisionUi.ProvisionerSuccess': () => {},
+            },
+            params: undefined,
+            waitingKey,
+          })
         } catch {
         } finally {
           set(s => {
@@ -396,143 +393,140 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
 
         try {
-          await RPCTypes.loginLoginRpcListener(
-            {
-              customResponseIncomingCallMap: {
-                'keybase.1.gpgUi.selectKey': cancelOnCallback,
-                'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
-                'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
-                  if (isCanceled(response)) return
-                  const {phrase, previousErr} = params
-                  setupCancel(response)
-                  set(s => {
-                    s.error = previousErr
-                    s.codePageIncomingTextCode = phrase
-                    s.dispatch.dynamic.submitTextCode = (code: string) => {
-                      set(s => {
-                        s.dispatch.dynamic.submitTextCode = _submitTextCode
-                      })
-                      resetErrorAndCancel()
-                      const good = code.replace(/\W+/g, ' ').trim()
-                      response.result({phrase: good, secret: null as any})
-                    }
-                  })
-
-                  // we ignore the return as we never autosubmit, but we want things to increment
-                  shouldAutoSubmit(!!previousErr, {type: 'promptSecret'})
-                  C.useRouterState.getState().dispatch.navigateAppend('codePage')
-                },
-                'keybase.1.provisionUi.PromptNewDeviceName': (params, response) => {
-                  if (isCanceled(response)) return
-                  const {errorMessage, existingDevices} = params
-                  setupCancel(response)
-                  set(s => {
-                    s.error = errorMessage
-                    s.existingDevices = existingDevices ?? []
-                    s.dispatch.dynamic.setDeviceName = (name: string) => {
-                      set(s => {
-                        s.dispatch.dynamic.setDeviceName = _setDeviceName
-                      })
-                      _setDeviceName(name, false)
-                      resetErrorAndCancel()
-                      response.result(name)
-                    }
-                  })
-
-                  if (shouldAutoSubmit(!!errorMessage, {type: 'deviceName'})) {
-                    console.log('Provision: auto submit device name')
-                    get().dispatch.dynamic.setDeviceName?.(get().deviceName)
-                  } else {
-                    C.useRouterState.getState().dispatch.navigateAppend('setPublicName')
+          await RPCTypes.loginLoginRpcListener({
+            customResponseIncomingCallMap: {
+              'keybase.1.gpgUi.selectKey': cancelOnCallback,
+              'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
+              'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
+                if (isCanceled(response)) return
+                const {phrase, previousErr} = params
+                setupCancel(response)
+                set(s => {
+                  s.error = previousErr
+                  s.codePageIncomingTextCode = phrase
+                  s.dispatch.dynamic.submitTextCode = (code: string) => {
+                    set(s => {
+                      s.dispatch.dynamic.submitTextCode = _submitTextCode
+                    })
+                    resetErrorAndCancel()
+                    const good = code.replace(/\W+/g, ' ').trim()
+                    response.result({phrase: good, secret: null as any})
                   }
-                },
-                'keybase.1.provisionUi.chooseDevice': (params, response) => {
-                  if (isCanceled(response)) return
-                  const {devices: _devices} = params
-                  const devices = _devices?.map(d => rpcDeviceToDevice(d)) ?? []
-                  setupCancel(response)
-                  set(s => {
-                    s.error = ''
-                    s.devices = devices
-                    s.dispatch.dynamic.submitDeviceSelect = (device: string) => {
-                      set(s => {
-                        s.dispatch.dynamic.submitDeviceSelect = _submitDeviceSelect
-                      })
-                      _submitDeviceSelect(device, false)
-                      const id = get().codePageOtherDevice.id
-                      resetErrorAndCancel()
-                      response.result(id)
-                    }
-                  })
+                })
 
-                  if (shouldAutoSubmit(false, {devices, type: 'chooseDevice'})) {
-                    console.log('Provision: auto submit passphrase')
-                    get().dispatch.dynamic.submitDeviceSelect?.(get().codePageOtherDevice.name)
-                  } else {
-                    C.useRouterState.getState().dispatch.navigateAppend('selectOtherDevice')
+                // we ignore the return as we never autosubmit, but we want things to increment
+                shouldAutoSubmit(!!previousErr, {type: 'promptSecret'})
+                C.useRouterState.getState().dispatch.navigateAppend('codePage')
+              },
+              'keybase.1.provisionUi.PromptNewDeviceName': (params, response) => {
+                if (isCanceled(response)) return
+                const {errorMessage, existingDevices} = params
+                setupCancel(response)
+                set(s => {
+                  s.error = errorMessage
+                  s.existingDevices = existingDevices ?? []
+                  s.dispatch.dynamic.setDeviceName = (name: string) => {
+                    set(s => {
+                      s.dispatch.dynamic.setDeviceName = _setDeviceName
+                    })
+                    _setDeviceName(name, false)
+                    resetErrorAndCancel()
+                    response.result(name)
                   }
-                },
-                'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
-                'keybase.1.provisionUi.switchToGPGSignOK': cancelOnCallback,
-                'keybase.1.secretUi.getPassphrase': (params, response) => {
-                  if (isCanceled(response)) return
-                  const {pinentry} = params
-                  const {retryLabel, type} = pinentry
+                })
 
-                  setupCancel(response)
-                  // Service asking us again due to an error?
-                  set(s => {
-                    s.error =
-                      retryLabel === ConfigConstants.invalidPasswordErrorString
-                        ? 'Incorrect password.'
-                        : retryLabel
-                    s.dispatch.dynamic.setPassphrase = (passphrase: string) => {
-                      set(s => {
-                        s.dispatch.dynamic.setPassphrase = _setPassphrase
-                      })
-                      _setPassphrase(passphrase, false)
-                      resetErrorAndCancel()
-                      response.result({passphrase, storeSecret: false})
-                    }
-                  })
-
-                  if (shouldAutoSubmit(!!retryLabel, {type: 'passphrase'})) {
-                    console.log('Provision: auto submit passphrase')
-                    get().dispatch.dynamic.setPassphrase?.(get().passphrase)
-                  } else {
-                    switch (type) {
-                      case RPCTypes.PassphraseType.passPhrase:
-                        C.useRouterState.getState().dispatch.navigateAppend('password')
-                        break
-                      case RPCTypes.PassphraseType.paperKey:
-                        C.useRouterState.getState().dispatch.navigateAppend('paperkey')
-                        break
-                      default:
-                        throw new Error('Got confused about password entry. Please send a log to us!')
-                    }
+                if (shouldAutoSubmit(!!errorMessage, {type: 'deviceName'})) {
+                  console.log('Provision: auto submit device name')
+                  get().dispatch.dynamic.setDeviceName?.(get().deviceName)
+                } else {
+                  C.useRouterState.getState().dispatch.navigateAppend('setPublicName')
+                }
+              },
+              'keybase.1.provisionUi.chooseDevice': (params, response) => {
+                if (isCanceled(response)) return
+                const {devices: _devices} = params
+                const devices = _devices?.map(d => rpcDeviceToDevice(d)) ?? []
+                setupCancel(response)
+                set(s => {
+                  s.error = ''
+                  s.devices = devices
+                  s.dispatch.dynamic.submitDeviceSelect = (device: string) => {
+                    set(s => {
+                      s.dispatch.dynamic.submitDeviceSelect = _submitDeviceSelect
+                    })
+                    _submitDeviceSelect(device, false)
+                    const id = get().codePageOtherDevice.id
+                    resetErrorAndCancel()
+                    response.result(id)
                   }
-                },
+                })
+
+                if (shouldAutoSubmit(false, {devices, type: 'chooseDevice'})) {
+                  console.log('Provision: auto submit passphrase')
+                  get().dispatch.dynamic.submitDeviceSelect?.(get().codePageOtherDevice.name)
+                } else {
+                  C.useRouterState.getState().dispatch.navigateAppend('selectOtherDevice')
+                }
               },
-              incomingCallMap: {
-                'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
-                'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-                  C.useWaitingState.getState().dispatch.increment(waitingKey)
-                },
-                'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
-                'keybase.1.provisionUi.ProvisionerSuccess': () => {},
+              'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
+              'keybase.1.provisionUi.switchToGPGSignOK': cancelOnCallback,
+              'keybase.1.secretUi.getPassphrase': (params, response) => {
+                if (isCanceled(response)) return
+                const {pinentry} = params
+                const {retryLabel, type} = pinentry
+
+                setupCancel(response)
+                // Service asking us again due to an error?
+                set(s => {
+                  s.error =
+                    retryLabel === ConfigConstants.invalidPasswordErrorString
+                      ? 'Incorrect password.'
+                      : retryLabel
+                  s.dispatch.dynamic.setPassphrase = (passphrase: string) => {
+                    set(s => {
+                      s.dispatch.dynamic.setPassphrase = _setPassphrase
+                    })
+                    _setPassphrase(passphrase, false)
+                    resetErrorAndCancel()
+                    response.result({passphrase, storeSecret: false})
+                  }
+                })
+
+                if (shouldAutoSubmit(!!retryLabel, {type: 'passphrase'})) {
+                  console.log('Provision: auto submit passphrase')
+                  get().dispatch.dynamic.setPassphrase?.(get().passphrase)
+                } else {
+                  switch (type) {
+                    case RPCTypes.PassphraseType.passPhrase:
+                      C.useRouterState.getState().dispatch.navigateAppend('password')
+                      break
+                    case RPCTypes.PassphraseType.paperKey:
+                      C.useRouterState.getState().dispatch.navigateAppend('paperkey')
+                      break
+                    default:
+                      throw new Error('Got confused about password entry. Please send a log to us!')
+                  }
+                }
               },
-              params: {
-                clientType: RPCTypes.ClientType.guiMain,
-                deviceName: '',
-                deviceType: isMobile ? 'mobile' : 'desktop',
-                doUserSwitch: true,
-                paperKey: '',
-                username,
-              },
-              waitingKey,
             },
-            Z.dummyListenerApi
-          )
+            incomingCallMap: {
+              'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
+              'keybase.1.provisionUi.DisplaySecretExchanged': () => {
+                C.useWaitingState.getState().dispatch.increment(waitingKey)
+              },
+              'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
+              'keybase.1.provisionUi.ProvisionerSuccess': () => {},
+            },
+            params: {
+              clientType: RPCTypes.ClientType.guiMain,
+              deviceName: '',
+              deviceType: isMobile ? 'mobile' : 'desktop',
+              doUserSwitch: true,
+              paperKey: '',
+              username,
+            },
+            waitingKey,
+          })
           get().dispatch.resetState()
         } catch (_finalError) {
           if (!(_finalError instanceof RPCError)) {

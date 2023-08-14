@@ -19,12 +19,8 @@ const Waiting = (props: Props) => {
   const [formattedTime, setFormattedTime] = React.useState('a bit')
   const [hasSentAgain, setHasSentAgain] = React.useState(false)
   const [sendAgainSuccess, setSendAgainSuccess] = React.useState(false)
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
   const onClose = React.useCallback(() => nav.safeNavigateAppend('login', true), [nav])
-
   const resetAccount = C.useAutoResetState(s => s.dispatch.resetAccount)
   const onSendAgain = React.useCallback(() => {
     setHasSentAgain(true)
@@ -58,7 +54,7 @@ const Waiting = (props: Props) => {
     return function cleanup() {
       removeTicker(tickerID)
     }
-  }, [endTime, setFormattedTime, formattedTime, pipelineStarted, dispatch, nav])
+  }, [endTime, setFormattedTime, formattedTime, pipelineStarted, nav])
 
   return (
     <SignupScreen

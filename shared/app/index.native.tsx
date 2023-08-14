@@ -98,7 +98,13 @@ const ensureStore = () => {
   }
 
   const {batch} = C.useWaitingState.getState().dispatch
-  const eng = makeEngine(_store.store.dispatch, batch)
+  const eng = makeEngine(batch, c => {
+    if (c) {
+      C.useEngineState.getState().dispatch.onEngineConnected()
+    } else {
+      C.useEngineState.getState().dispatch.onEngineDisconnected()
+    }
+  })
   _store.initListeners()
   eng.listenersAreReady()
 

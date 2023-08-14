@@ -843,46 +843,43 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         const conversationIDKey = get().id
         try {
-          const res = await RPCChatTypes.localLoadGalleryRpcListener(
-            {
-              incomingCallMap: {
-                'chat.1.chatUi.chatLoadGalleryHit': (
-                  hit: RPCChatTypes.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
-                ) => {
-                  const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
-                  const username = C.useCurrentUserState.getState().username
-                  const devicename = C.useCurrentUserState.getState().deviceName
-                  const message = Message.uiMessageToMessage(
-                    conversationIDKey,
-                    hit.message,
-                    username,
-                    getLastOrdinal,
-                    devicename
-                  )
+          const res = await RPCChatTypes.localLoadGalleryRpcListener({
+            incomingCallMap: {
+              'chat.1.chatUi.chatLoadGalleryHit': (
+                hit: RPCChatTypes.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
+              ) => {
+                const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+                const username = C.useCurrentUserState.getState().username
+                const devicename = C.useCurrentUserState.getState().deviceName
+                const message = Message.uiMessageToMessage(
+                  conversationIDKey,
+                  hit.message,
+                  username,
+                  getLastOrdinal,
+                  devicename
+                )
 
-                  if (message) {
-                    set(s => {
-                      const info = mapGetEnsureValue(s.attachmentViewMap, viewType, makeAttachmentViewInfo())
-                      if (!info.messages.find((item: any) => item.id === message.id)) {
-                        info.messages = info.messages.concat(message).sort((l, r) => r.id - l.id)
-                      }
-                      // inject them into the message map
-                      info.messages.forEach(m => {
-                        s.messageMap.set(m.id, m)
-                      })
+                if (message) {
+                  set(s => {
+                    const info = mapGetEnsureValue(s.attachmentViewMap, viewType, makeAttachmentViewInfo())
+                    if (!info.messages.find((item: any) => item.id === message.id)) {
+                      info.messages = info.messages.concat(message).sort((l, r) => r.id - l.id)
+                    }
+                    // inject them into the message map
+                    info.messages.forEach(m => {
+                      s.messageMap.set(m.id, m)
                     })
-                  }
-                },
-              },
-              params: {
-                convID: Types.keyToConversationID(conversationIDKey),
-                fromMsgID,
-                num: 50,
-                typ: viewType,
+                  })
+                }
               },
             },
-            Z.dummyListenerApi
-          )
+            params: {
+              convID: Types.keyToConversationID(conversationIDKey),
+              fromMsgID,
+              num: 50,
+              typ: viewType,
+            },
+          })
           set(s => {
             const info = mapGetEnsureValue(s.attachmentViewMap, viewType, makeAttachmentViewInfo())
             info.last = !!res.last
@@ -1012,44 +1009,41 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         try {
           let validated = false
-          const results = await RPCChatTypes.localGetThreadNonblockRpcListener(
-            {
-              incomingCallMap: {
-                'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
-                'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
-                'chat.1.chatUi.chatThreadStatus': p => {
-                  // if we're validated, never undo that
-                  if (p.status.typ === RPCChatTypes.UIChatThreadStatusTyp.validated) {
-                    validated = true
-                  } else if (validated) {
-                    return
-                  }
-                  if (p) {
-                    get().dispatch.setThreadLoadStatus(p.status.typ)
-                  }
-                },
+          const results = await RPCChatTypes.localGetThreadNonblockRpcListener({
+            incomingCallMap: {
+              'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
+              'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
+              'chat.1.chatUi.chatThreadStatus': p => {
+                // if we're validated, never undo that
+                if (p.status.typ === RPCChatTypes.UIChatThreadStatusTyp.validated) {
+                  validated = true
+                } else if (validated) {
+                  return
+                }
+                if (p) {
+                  get().dispatch.setThreadLoadStatus(p.status.typ)
+                }
               },
-              params: {
-                cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
-                conversationID: Types.keyToConversationID(conversationIDKey),
-                identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-                knownRemotes,
-                pagination,
-                pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
-                query: {
-                  disablePostProcessThread: false,
-                  disableResolveSupersedes: false,
-                  enableDeletePlaceholders: true,
-                  markAsRead: false,
-                  messageIDControl,
-                  messageTypes: Common.loadThreadMessageTypes,
-                },
-                reason: Common.reasonToRPCReason(reason),
-              },
-              waitingKey: loadingKey,
             },
-            Z.dummyListenerApi
-          )
+            params: {
+              cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
+              conversationID: Types.keyToConversationID(conversationIDKey),
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              knownRemotes,
+              pagination,
+              pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
+              query: {
+                disablePostProcessThread: false,
+                disableResolveSupersedes: false,
+                enableDeletePlaceholders: true,
+                markAsRead: false,
+                messageIDControl,
+                messageTypes: Common.loadThreadMessageTypes,
+              },
+              reason: Common.reasonToRPCReason(reason),
+            },
+            waitingKey: loadingKey,
+          })
           if (get().meta.conversationIDKey === conversationIDKey) {
             get().dispatch.updateMeta({offline: results.offline})
           }
@@ -1462,44 +1456,41 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
         const confirmRouteName = 'chatPaymentsConfirm'
         try {
-          await RPCChatTypes.localPostTextNonblockRpcListener(
-            {
-              customResponseIncomingCallMap: {
-                'chat.1.chatUi.chatStellarDataConfirm': (_, response) => {
-                  response.result(false) // immediate fail
-                },
-                'chat.1.chatUi.chatStellarDataError': (_, response) => {
-                  response.result(false) // immediate fail
-                },
+          await RPCChatTypes.localPostTextNonblockRpcListener({
+            customResponseIncomingCallMap: {
+              'chat.1.chatUi.chatStellarDataConfirm': (_, response) => {
+                response.result(false) // immediate fail
               },
-              incomingCallMap: {
-                'chat.1.chatUi.chatStellarDone': ({canceled}) => {
-                  const visibleScreen = C.getVisibleScreen()
-                  if (visibleScreen && visibleScreen.name === confirmRouteName) {
-                    C.useRouterState.getState().dispatch.clearModals()
-                    return
-                  }
-                  if (canceled) {
-                    get().dispatch.injectIntoInput(text)
-                  }
-                },
-                'chat.1.chatUi.chatStellarShowConfirm': () => {},
+              'chat.1.chatUi.chatStellarDataError': (_, response) => {
+                response.result(false) // immediate fail
               },
-              params: {
-                ...ephemeralData,
-                body: text,
-                clientPrev,
-                conversationID: Types.keyToConversationID(conversationIDKey),
-                identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-                outboxID: undefined,
-                replyTo,
-                tlfName,
-                tlfPublic: false,
-              },
-              waitingKey: waitingKey || Common.waitingKeyPost,
             },
-            Z.dummyListenerApi
-          )
+            incomingCallMap: {
+              'chat.1.chatUi.chatStellarDone': ({canceled}) => {
+                const visibleScreen = C.getVisibleScreen()
+                if (visibleScreen && visibleScreen.name === confirmRouteName) {
+                  C.useRouterState.getState().dispatch.clearModals()
+                  return
+                }
+                if (canceled) {
+                  get().dispatch.injectIntoInput(text)
+                }
+              },
+              'chat.1.chatUi.chatStellarShowConfirm': () => {},
+            },
+            params: {
+              ...ephemeralData,
+              body: text,
+              clientPrev,
+              conversationID: Types.keyToConversationID(conversationIDKey),
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              outboxID: undefined,
+              replyTo,
+              tlfName,
+              tlfPublic: false,
+            },
+            waitingKey: waitingKey || Common.waitingKeyPost,
+          })
           logger.info('success')
         } catch (_) {
           logger.info('error')
@@ -2738,32 +2729,29 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                   resolve()
                 } catch {}
               }
-              RPCChatTypes.localGetThreadNonblockRpcListener(
-                {
-                  incomingCallMap: {
-                    'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
-                    'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
-                  },
-                  params: {
-                    cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
-                    conversationID: Types.keyToConversationID(conversationIDKey),
-                    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-                    knownRemotes: [],
-                    pagination,
-                    pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
-                    query: {
-                      disablePostProcessThread: false,
-                      disableResolveSupersedes: false,
-                      enableDeletePlaceholders: true,
-                      markAsRead: false,
-                      messageIDControl: null,
-                      messageTypes: Common.loadThreadMessageTypes,
-                    },
-                    reason: Common.reasonToRPCReason(''),
-                  },
+              RPCChatTypes.localGetThreadNonblockRpcListener({
+                incomingCallMap: {
+                  'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
+                  'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
                 },
-                Z.dummyListenerApi
-              )
+                params: {
+                  cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
+                  conversationID: Types.keyToConversationID(conversationIDKey),
+                  identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+                  knownRemotes: [],
+                  pagination,
+                  pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
+                  query: {
+                    disablePostProcessThread: false,
+                    disableResolveSupersedes: false,
+                    enableDeletePlaceholders: true,
+                    markAsRead: false,
+                    messageIDControl: null,
+                    messageTypes: Common.loadThreadMessageTypes,
+                  },
+                  reason: Common.reasonToRPCReason(''),
+                },
+              })
                 .then(() => {})
                 .catch(() => {
                   resolve()
@@ -2900,80 +2888,77 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           })
         }
         try {
-          await RPCChatTypes.localSearchInboxRpcListener(
-            {
-              incomingCallMap: {
-                'chat.1.chatUi.chatSearchDone': onDone,
-                'chat.1.chatUi.chatSearchHit': hit => {
-                  const message = Message.uiMessageToMessage(
+          await RPCChatTypes.localSearchInboxRpcListener({
+            incomingCallMap: {
+              'chat.1.chatUi.chatSearchDone': onDone,
+              'chat.1.chatUi.chatSearchHit': hit => {
+                const message = Message.uiMessageToMessage(
+                  conversationIDKey,
+                  hit.searchHit.hitMessage,
+                  username,
+                  getLastOrdinal,
+                  devicename
+                )
+
+                if (message) {
+                  set(s => {
+                    s.threadSearchInfo.hits = [message]
+                  })
+                }
+              },
+              'chat.1.chatUi.chatSearchInboxDone': onDone,
+              'chat.1.chatUi.chatSearchInboxHit': resp => {
+                const messages = (resp.searchHit.hits || []).reduce<Array<Types.Message>>((l, h) => {
+                  const uiMsg = Message.uiMessageToMessage(
                     conversationIDKey,
-                    hit.searchHit.hitMessage,
+                    h.hitMessage,
                     username,
                     getLastOrdinal,
                     devicename
                   )
-
-                  if (message) {
-                    set(s => {
-                      s.threadSearchInfo.hits = [message]
-                    })
+                  if (uiMsg) {
+                    l.push(uiMsg)
                   }
-                },
-                'chat.1.chatUi.chatSearchInboxDone': onDone,
-                'chat.1.chatUi.chatSearchInboxHit': resp => {
-                  const messages = (resp.searchHit.hits || []).reduce<Array<Types.Message>>((l, h) => {
-                    const uiMsg = Message.uiMessageToMessage(
-                      conversationIDKey,
-                      h.hitMessage,
-                      username,
-                      getLastOrdinal,
-                      devicename
-                    )
-                    if (uiMsg) {
-                      l.push(uiMsg)
-                    }
-                    return l
-                  }, [])
-                  set(s => {
-                    if (messages.length > 0) {
-                      s.threadSearchInfo.hits = messages
-                    }
-                  })
-                },
-                'chat.1.chatUi.chatSearchInboxStart': () => {
-                  set(s => {
-                    s.threadSearchInfo.status = 'inprogress'
-                  })
-                },
+                  return l
+                }, [])
+                set(s => {
+                  if (messages.length > 0) {
+                    s.threadSearchInfo.hits = messages
+                  }
+                })
               },
-              params: {
-                identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-                namesOnly: false,
-                opts: {
-                  afterContext: 0,
-                  beforeContext: 0,
-                  convID: Types.keyToConversationID(conversationIDKey),
-                  isRegex: false,
-                  matchMentions: false,
-                  maxBots: 0,
-                  maxConvsHit: 0,
-                  maxConvsSearched: 0,
-                  maxHits: 1000,
-                  maxMessages: -1,
-                  maxNameConvs: 0,
-                  maxTeams: 0,
-                  reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
-                  sentAfter: 0,
-                  sentBefore: 0,
-                  sentBy: '',
-                  sentTo: '',
-                  skipBotCache: false,
-                },
-                query,
+              'chat.1.chatUi.chatSearchInboxStart': () => {
+                set(s => {
+                  s.threadSearchInfo.status = 'inprogress'
+                })
               },
             },
-            Z.dummyListenerApi
-          )
+            params: {
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              namesOnly: false,
+              opts: {
+                afterContext: 0,
+                beforeContext: 0,
+                convID: Types.keyToConversationID(conversationIDKey),
+                isRegex: false,
+                matchMentions: false,
+                maxBots: 0,
+                maxConvsHit: 0,
+                maxConvsSearched: 0,
+                maxHits: 1000,
+                maxMessages: -1,
+                maxNameConvs: 0,
+                maxTeams: 0,
+                reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
+                sentAfter: 0,
+                sentBefore: 0,
+                sentBy: '',
+                sentTo: '',
+                skipBotCache: false,
+              },
+              query,
+            },
+          })
         } catch (error) {
           if (error instanceof RPCError) {
             logger.error('search failed: ' + error.message)

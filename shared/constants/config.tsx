@@ -338,7 +338,6 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         case RemoteGen.engineConnection: {
           if (action.payload.connected) {
             C.useEngineState.getState().dispatch.onEngineConnected()
-            get().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
           } else {
             C.useEngineState.getState().dispatch.onEngineDisconnected()
           }
@@ -593,56 +592,53 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       const ignoreCallback = () => {}
       const f = async () => {
         try {
-          await RPCTypes.loginLoginRpcListener(
-            {
-              customResponseIncomingCallMap: {
-                'keybase.1.gpgUi.selectKey': cancelOnCallback,
-                'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
-                'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
-                'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
-                  cancelOnCallback(undefined, response)
-                  C.useProvisionState.getState().dispatch.dynamic.setUsername?.(username)
-                },
-                'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
-                'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
-                'keybase.1.secretUi.getPassphrase': (params, response) => {
-                  if (params.pinentry.type === RPCTypes.PassphraseType.passPhrase) {
-                    // Service asking us again due to a bad passphrase?
-                    if (params.pinentry.retryLabel) {
-                      cancelOnCallback(params, response)
-                      let retryLabel = params.pinentry.retryLabel
-                      if (retryLabel === invalidPasswordErrorString) {
-                        retryLabel = 'Incorrect password.'
-                      }
-                      const error = new RPCError(retryLabel, RPCTypes.StatusCode.scinputerror)
-                      get().dispatch.loginError(error)
-                    } else {
-                      response.result({passphrase, storeSecret: false})
-                    }
-                  } else {
+          await RPCTypes.loginLoginRpcListener({
+            customResponseIncomingCallMap: {
+              'keybase.1.gpgUi.selectKey': cancelOnCallback,
+              'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
+              'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
+              'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
+                cancelOnCallback(undefined, response)
+                C.useProvisionState.getState().dispatch.dynamic.setUsername?.(username)
+              },
+              'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
+              'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
+              'keybase.1.secretUi.getPassphrase': (params, response) => {
+                if (params.pinentry.type === RPCTypes.PassphraseType.passPhrase) {
+                  // Service asking us again due to a bad passphrase?
+                  if (params.pinentry.retryLabel) {
                     cancelOnCallback(params, response)
+                    let retryLabel = params.pinentry.retryLabel
+                    if (retryLabel === invalidPasswordErrorString) {
+                      retryLabel = 'Incorrect password.'
+                    }
+                    const error = new RPCError(retryLabel, RPCTypes.StatusCode.scinputerror)
+                    get().dispatch.loginError(error)
+                  } else {
+                    response.result({passphrase, storeSecret: false})
                   }
-                },
+                } else {
+                  cancelOnCallback(params, response)
+                }
               },
-              // cancel if we get any of these callbacks, we're logging in, not provisioning
-              incomingCallMap: {
-                'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
-                'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
-                'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
-                'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
-              },
-              params: {
-                clientType: RPCTypes.ClientType.guiMain,
-                deviceName: '',
-                deviceType: isMobile ? 'mobile' : 'desktop',
-                doUserSwitch: true,
-                paperKey: '',
-                username,
-              },
-              waitingKey: loginWaitingKey,
             },
-            Z.dummyListenerApi
-          )
+            // cancel if we get any of these callbacks, we're logging in, not provisioning
+            incomingCallMap: {
+              'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
+              'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
+              'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
+              'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
+            },
+            params: {
+              clientType: RPCTypes.ClientType.guiMain,
+              deviceName: '',
+              deviceType: isMobile ? 'mobile' : 'desktop',
+              doUserSwitch: true,
+              paperKey: '',
+              username,
+            },
+            waitingKey: loginWaitingKey,
+          })
           logger.info('login call succeeded')
           get().dispatch.setLoggedIn(true, false)
         } catch (error) {
@@ -706,6 +702,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(registerForGregorNotifications())
 
       get().dispatch.dynamic.onEngineConnectedDesktop?.()
+      C.useConfigState.getState().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
     },
     onEngineDisonnected: () => {
       const f = async () => {

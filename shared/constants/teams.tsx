@@ -1729,18 +1729,15 @@ export const _useState = Z.createZustand<State>((set, get) => {
     deleteTeam: teamID => {
       const f = async () => {
         try {
-          await RPCTypes.teamsTeamDeleteRpcListener(
-            {
-              customResponseIncomingCallMap: {
-                'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
-                'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
-              },
-              incomingCallMap: {},
-              params: {teamID},
-              waitingKey: deleteTeamWaitingKey(teamID),
+          await RPCTypes.teamsTeamDeleteRpcListener({
+            customResponseIncomingCallMap: {
+              'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
+              'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
             },
-            Z.dummyListenerApi
-          )
+            incomingCallMap: {},
+            params: {teamID},
+            waitingKey: deleteTeamWaitingKey(teamID),
+          })
         } catch (error) {
           if (error instanceof RPCError) {
             // handled through waiting store
@@ -2122,32 +2119,29 @@ export const _useState = Z.createZustand<State>((set, get) => {
         // do the nav in the modal.
         get().dispatch.resetTeamJoin()
         try {
-          const result = await RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcListener(
-            {
-              customResponseIncomingCallMap: {
-                'keybase.1.teamsUi.confirmInviteLinkAccept': (params, response) => {
-                  set(s => {
-                    s.teamInviteDetails.inviteDetails = params.details
-                  })
-                  if (!deeplink) {
-                    C.useRouterState.getState().dispatch.navigateAppend('teamInviteLinkJoin', true)
+          const result = await RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcListener({
+            customResponseIncomingCallMap: {
+              'keybase.1.teamsUi.confirmInviteLinkAccept': (params, response) => {
+                set(s => {
+                  s.teamInviteDetails.inviteDetails = params.details
+                })
+                if (!deeplink) {
+                  C.useRouterState.getState().dispatch.navigateAppend('teamInviteLinkJoin', true)
+                }
+                set(s => {
+                  s.dispatch.dynamic.respondToInviteLink = accept => {
+                    set(s => {
+                      s.dispatch.dynamic.respondToInviteLink = undefined
+                    })
+                    response.result(accept)
                   }
-                  set(s => {
-                    s.dispatch.dynamic.respondToInviteLink = accept => {
-                      set(s => {
-                        s.dispatch.dynamic.respondToInviteLink = undefined
-                      })
-                      response.result(accept)
-                    }
-                  })
-                },
+                })
               },
-              incomingCallMap: {},
-              params: {tokenOrName: teamname},
-              waitingKey: joinTeamWaitingKey,
             },
-            Z.dummyListenerApi
-          )
+            incomingCallMap: {},
+            params: {tokenOrName: teamname},
+            waitingKey: joinTeamWaitingKey,
+          })
           set(s => {
             s.teamJoinSuccess = true
             s.teamJoinSuccessOpen = result?.wasOpenTeam ?? false
@@ -2666,8 +2660,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
             try {
               const convID = ChatTypes.keyToConversationID(conversationIDKey)
               await RPCChatTypes.localJoinConversationByIDLocalRpcPromise({convID}, waitingKey)
-              // nothing is hooked up to this???
-              // reduxDispatch(TeamsGen.createAddParticipant({conversationIDKey, teamID}))
             } catch (error) {
               C.useConfigState.getState().dispatch.setGlobalError(error)
             }
@@ -2675,8 +2667,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
             try {
               const convID = ChatTypes.keyToConversationID(conversationIDKey)
               await RPCChatTypes.localLeaveConversationLocalRpcPromise({convID}, waitingKey)
-              // nothing is hooked up to this???
-              // reduxDispatch(TeamsGen.createRemoveParticipant({conversationIDKey, teamID}))
             } catch (error) {
               C.useConfigState.getState().dispatch.setGlobalError(error)
             }

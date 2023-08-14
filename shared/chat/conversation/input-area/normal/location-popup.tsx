@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as Container from '../../../../util/container'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type * as Types from '../../../../constants/types/chat2'
 import LocationMap from '../../../location-map'
@@ -19,7 +18,6 @@ const LocationPopup = (props: Props) => {
     s => s.commandStatus?.displayType == RPCChatTypes.UICommandStatusDisplayTyp.error
   )
   const [mapLoaded, setMapLoaded] = React.useState(false)
-  const dispatch = Container.useDispatch()
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
@@ -41,7 +39,7 @@ const LocationPopup = (props: Props) => {
     return () => {
       unwatch?.()
     }
-  }, [dispatch, conversationIDKey])
+  }, [conversationIDKey])
 
   const width = Math.ceil(Styles.dimensionWidth)
   const height = Math.ceil(Styles.dimensionHeight - 320)

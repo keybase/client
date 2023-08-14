@@ -68,7 +68,9 @@ const setupApp = (store: any, initListeners: any) => {
   disableDragDrop()
 
   const {batch} = C.useWaitingState.getState().dispatch
-  const eng = makeEngine(store.dispatch, batch)
+  const eng = makeEngine(batch, () => {
+    // do nothing we wait for the remote version from node
+  })
   initListeners()
   eng.listenersAreReady()
 
