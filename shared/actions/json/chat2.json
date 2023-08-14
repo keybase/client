@@ -4,21 +4,6 @@
     "import type * as Types from '../constants/types/chat2'"
   ],
   "actions": {
-    "confirmScreenResponse": {
-      "_description": "User responded to the chat Stellar confirm screen",
-      "accept": "boolean"
-    },
-    "updateUnreadline": {
-      "_description": "Update the unreadline line position for a conversation",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID"
-    },
-    "toggleMessageCollapse": {
-      "_description": "Toggle the collapse status of a message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID",
-      "ordinal": "Types.Ordinal"
-    },
     "addUsersToChannel": {
       "_description": "Add a list of users to a conversation. Creates a SystemBulkAddToConv message.",
       "conversationIDKey": "Types.ConversationIDKey",

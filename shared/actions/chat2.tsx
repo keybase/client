@@ -297,18 +297,6 @@ const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvU
   }
 }
 
-type StellarConfirmWindowResponse = {result: (b: boolean) => void}
-let _stellarConfirmWindowResponse: StellarConfirmWindowResponse | undefined
-
-function storeStellarConfirmWindowResponse(accept: boolean, response?: StellarConfirmWindowResponse) {
-  _stellarConfirmWindowResponse?.result(accept)
-  _stellarConfirmWindowResponse = response
-}
-
-const confirmScreenResponse = (_: unknown, action: Chat2Gen.ConfirmScreenResponsePayload) => {
-  storeStellarConfirmWindowResponse(action.payload.accept)
-}
-
 const sendAudioRecording = async (_: unknown, action: Chat2Gen.SendAudioRecordingPayload) => {
   const {conversationIDKey, amps, path, duration} = action.payload
   const outboxID = Constants.generateOutboxID()
@@ -396,28 +384,6 @@ const ensureWidgetMetas = () => {
   }
 
   C.useChatState.getState().dispatch.unboxRows(missing, true)
-}
-
-const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageCollapsePayload) => {
-  const {conversationIDKey, messageID, ordinal} = action.payload
-  const m = C.getConvoState(conversationIDKey).messageMap.get(ordinal)
-  let isCollapsed = false
-
-  if (messageID !== ordinal) {
-    const unfurlInfos = [...(m?.unfurls?.values() ?? [])]
-    const ui = unfurlInfos.find(u => u.unfurlMessageID === messageID)
-
-    if (ui) {
-      isCollapsed = ui.isCollapsed
-    }
-  } else {
-    isCollapsed = m?.isCollapsed ?? false
-  }
-  await RPCChatTypes.localToggleMessageCollapseRpcPromise({
-    collapse: !isCollapsed,
-    convID: Types.keyToConversationID(conversationIDKey),
-    msgID: messageID,
-  })
 }
 
 const onGiphyResults = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphySearchResultsPayload) => {
@@ -540,18 +506,11 @@ const initChat = () => {
   })
 
   Container.listenAction(Chat2Gen.dismissJourneycard, dismissJourneycard)
-  Container.listenAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)
 
-  Container.listenAction(Chat2Gen.updateUnreadline, (_, a) => {
-    const {dispatch} = C.getConvoState(C.getSelectedConversation())
-    dispatch.markThreadAsRead(a.payload.messageID)
-  })
   Container.listenAction(Chat2Gen.tabSelected, () => {
     const {dispatch} = C.getConvoState(C.getSelectedConversation())
     dispatch.markThreadAsRead()
   })
-
-  Container.listenAction(Chat2Gen.toggleMessageCollapse, toggleMessageCollapse)
 
   Container.listenAction(Chat2Gen.fetchUserEmoji, fetchUserEmoji)
 

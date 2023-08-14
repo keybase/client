@@ -8,7 +8,6 @@ export const resetStore = 'common:resetStore' // not a part of chat2 but is hand
 export const typePrefix = 'chat2:'
 export const addUserToChannel = 'chat2:addUserToChannel'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
-export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
@@ -19,9 +18,7 @@ export const replyJump = 'chat2:replyJump'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const tabSelected = 'chat2:tabSelected'
-export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const unpinMessage = 'chat2:unpinMessage'
-export const updateUnreadline = 'chat2:updateUnreadline'
 
 // Action Creators
 /**
@@ -91,33 +88,11 @@ export const createResolveMaybeMention = (payload: {readonly name: string; reado
   type: resolveMaybeMention as typeof resolveMaybeMention,
 })
 /**
- * Toggle the collapse status of a message
- */
-export const createToggleMessageCollapse = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: Types.MessageID
-  readonly ordinal: Types.Ordinal
-}) => ({payload, type: toggleMessageCollapse as typeof toggleMessageCollapse})
-/**
  * Unpin a message
  */
 export const createUnpinMessage = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
   payload,
   type: unpinMessage as typeof unpinMessage,
-})
-/**
- * Update the unreadline line position for a conversation
- */
-export const createUpdateUnreadline = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: Types.MessageID
-}) => ({payload, type: updateUnreadline as typeof updateUnreadline})
-/**
- * User responded to the chat Stellar confirm screen
- */
-export const createConfirmScreenResponse = (payload: {readonly accept: boolean}) => ({
-  payload,
-  type: confirmScreenResponse as typeof confirmScreenResponse,
 })
 export const createDismissBlockButtons = (payload: {readonly teamID: RPCTypes.TeamID}) => ({
   payload,
@@ -133,7 +108,6 @@ export const createSendAudioRecording = (payload: {
 // Action Payloads
 export type AddUserToChannelPayload = ReturnType<typeof createAddUserToChannel>
 export type AddUsersToChannelPayload = ReturnType<typeof createAddUsersToChannel>
-export type ConfirmScreenResponsePayload = ReturnType<typeof createConfirmScreenResponse>
 export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockButtons>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
@@ -144,16 +118,13 @@ export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
 export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMention>
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
-export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
-export type UpdateUnreadlinePayload = ReturnType<typeof createUpdateUnreadline>
 
 // All Actions
 // prettier-ignore
 export type Actions =
   | AddUserToChannelPayload
   | AddUsersToChannelPayload
-  | ConfirmScreenResponsePayload
   | DismissBlockButtonsPayload
   | DismissJourneycardPayload
   | FetchUserEmojiPayload
@@ -164,7 +135,5 @@ export type Actions =
   | ResolveMaybeMentionPayload
   | SendAudioRecordingPayload
   | TabSelectedPayload
-  | ToggleMessageCollapsePayload
   | UnpinMessagePayload
-  | UpdateUnreadlinePayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

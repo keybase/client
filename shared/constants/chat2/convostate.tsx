@@ -299,6 +299,13 @@ export type ConvoState = ConvoStore & {
     setupSubscriptions: () => void
     threadSearch: (query: string) => void
     toggleGiphyPrefill: () => void
+    toggleLocalReaction: (p: {
+      decorated: string
+      emoji: string
+      targetOrdinal: Types.Ordinal
+      username: string
+    }) => void
+    toggleMessageCollapse: (messageID: Types.MessageID, ordinal: Types.Ordinal) => void
     toggleMessageReaction: (ordinal: Types.Ordinal, emoji: string) => void
     toggleThreadSearch: (hide?: boolean) => void
     unfurlResolvePrompt: (
@@ -308,16 +315,11 @@ export type ConvoState = ConvoStore & {
     ) => void
     unfurlRemove: (messageID: Types.MessageID) => void
     updateDraft: (text: string) => void
-    toggleLocalReaction: (p: {
-      decorated: string
-      emoji: string
-      targetOrdinal: Types.Ordinal
-      username: string
-    }) => void
     unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
     unreadUpdated: (unread: number) => void
     updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
     updateAttachmentViewTransfered: (msgId: number, path: string) => void
+    updateUnreadline: (messageID: Types.MessageID) => void
     updateMessage: (ordinal: Types.Ordinal, m: Partial<Types.Message>) => void
     updateMeta: (m: Partial<Types.ConversationMeta>) => void
     updateNotificationSettings: (
@@ -1068,10 +1070,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           })
           const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
           logger.info(`marking unreadline ${conversationIDKey} ${unreadlineID}`)
-          Chat2Gen.createUpdateUnreadline({
-            conversationIDKey,
-            messageID: Types.numberToMessageID(unreadlineID),
-          })
+          get().dispatch.updateUnreadline(Types.numberToMessageID(unreadlineID))
           if (get().markedAsUnread) {
             // Remove the force unread bit for the next time we view the thread.
             get().dispatch.setMarkAsUnread(false)
@@ -2781,6 +2780,28 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       })
     },
+    toggleMessageCollapse: (messageID, ordinal) => {
+      const f = async () => {
+        const m = get().messageMap.get(ordinal)
+        let isCollapsed = false
+
+        if (messageID !== ordinal) {
+          const unfurlInfos = [...(m?.unfurls?.values() ?? [])]
+          const ui = unfurlInfos.find(u => u.unfurlMessageID === messageID)
+          if (ui) {
+            isCollapsed = ui.isCollapsed
+          }
+        } else {
+          isCollapsed = m?.isCollapsed ?? false
+        }
+        await RPCChatTypes.localToggleMessageCollapseRpcPromise({
+          collapse: !isCollapsed,
+          convID: Types.keyToConversationID(get().id),
+          msgID: messageID,
+        })
+      }
+      Z.ignorePromise(f())
+    },
     toggleMessageReaction: (ordinal, emoji) => {
       const f = async () => {
         // The service translates this to a delete if an identical reaction already exists
@@ -3018,6 +3039,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
       get().dispatch.markThreadAsRead()
+    },
+    updateUnreadline: messageID => {
+      get().dispatch.markThreadAsRead(messageID)
     },
   }
   return {
