@@ -555,7 +555,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     inboxRefresh: reason => {
       const f = async () => {
         const {username} = C.useCurrentUserState.getState()
-        const {loggedIn} = ConfigConstants.useConfigState.getState()
+        const {loggedIn} = C.useConfigState.getState()
         if (!loggedIn || !username) {
           return
         }
@@ -1509,8 +1509,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     unboxRows: (ids, force) => {
       // We want to unbox rows that have scroll into view
       const f = async () => {
-        const ConfigConstants = await import('../config')
-        if (!ConfigConstants.useConfigState.getState().loggedIn) {
+        if (!C.useConfigState.getState().loggedIn) {
           return
         }
 

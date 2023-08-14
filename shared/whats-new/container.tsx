@@ -1,4 +1,3 @@
-import * as ConfigConstants from '../constants/config'
 import * as C from '../constants'
 import type * as Tabs from '../constants/tabs'
 import openURL from '../util/open-url'
@@ -21,7 +20,7 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
     switchTab(tab)
   }
 
-  const updateGregorCategory = ConfigConstants.useConfigState(s => s.dispatch.updateGregorCategory)
+  const updateGregorCategory = C.useConfigState(s => s.dispatch.updateGregorCategory)
   const _onUpdateLastSeenVersion = (lastSeenVersion: string) => {
     updateGregorCategory('whatsNewLastSeenVersion', lastSeenVersion)
   }

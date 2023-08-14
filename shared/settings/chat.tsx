@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Platform from '../constants/platform'
@@ -27,7 +26,7 @@ export default () => {
   const contactSettingsError = C.useSettingsChatState(s => s.contactSettings.error)
   const groups = C.useSettingsNotifState(s => s.groups)
   const mobileHasPermissions = C.usePushState(s => s.hasPermissions)
-  const sound = ConfigConstants.useConfigState(s => s.notifySound) // desktop
+  const sound = C.useConfigState(s => s.notifySound) // desktop
   const _teamMeta = C.useTeamsState(s => s.teamMeta)
   const unfurlError = C.useSettingsChatState(s => s.unfurl.unfurlError)
   const unfurlMode = C.useSettingsChatState(s => s.unfurl.unfurlMode)
@@ -58,7 +57,7 @@ export default () => {
     unfurlSettingsRefresh()
   }
   const onToggle = notifToggle
-  const onToggleSound = ConfigConstants.useConfigState(s => s.dispatch.setNotifySound)
+  const onToggleSound = C.useConfigState(s => s.dispatch.setNotifySound)
   const onUnfurlSave = unfurlSettingsSaved
 
   const teamMeta = TeamConstants.sortTeamsByName(_teamMeta)

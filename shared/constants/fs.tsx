@@ -1,5 +1,4 @@
 import * as C from '.'
-import * as ConfigConstants from './config'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as SettingsConstants from './settings'
@@ -1580,7 +1579,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     favoritesLoad: () => {
       const f = async () => {
         try {
-          if (!ConfigConstants.useConfigState.getState().loggedIn) {
+          if (!C.useConfigState.getState().loggedIn) {
             return
           }
           const results = await RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise()
@@ -2204,7 +2203,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                   src: {
                     PathType: RPCTypes.PathType.local,
                     local: Types.getNormalizedLocalPath(
-                      ConfigConstants.useConfigState.getState().incomingShareUseOriginal
+                      C.useConfigState.getState().incomingShareUseOriginal
                         ? originalPath
                         : scaledPath || originalPath
                     ),

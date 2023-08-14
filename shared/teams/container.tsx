@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as React from 'react'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as ConfigConstants from '../constants/config'
 import * as FsTypes from '../constants/types/fs'
 import Teams, {type OwnProps as MainOwnProps} from './main'
 import openURL from '../util/open-url'
@@ -98,7 +97,7 @@ const Connected = () => {
   const sortOrder = C.useTeamsState(s => s.teamListSort)
   const teamIDToResetUsers = C.useTeamsState(s => s.teamIDToResetUsers)
 
-  const updateGregorCategory = ConfigConstants.useConfigState(s => s.dispatch.updateGregorCategory)
+  const updateGregorCategory = C.useConfigState(s => s.dispatch.updateGregorCategory)
   const onHideChatBanner = () => {
     updateGregorCategory('sawChatBanner', 'true')
   }

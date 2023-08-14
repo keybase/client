@@ -1,6 +1,5 @@
 import * as C from '.'
 import * as Z from '../util/zustand'
-import * as ConfigConstants from './config'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as RPCTypes from './types/rpc-gen'
 import {isMobile} from './platform'
@@ -152,7 +151,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     onEngineIncoming: action => {
       switch (action.type) {
         case EngineGen.keybase1NotifyAuditRootAuditError:
-          ConfigConstants.useConfigState
+          C.useConfigState
             .getState()
             .dispatch.setGlobalError(
               new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
@@ -160,7 +159,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
           break
         case EngineGen.keybase1NotifyAuditBoxAuditError:
-          ConfigConstants.useConfigState
+          C.useConfigState
             .getState()
             .dispatch.setGlobalError(
               new Error(
@@ -170,7 +169,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           break
         case EngineGen.keybase1NotifyBadgesBadgeState: {
           const badgeState = action.payload.params.badgeState
-          ConfigConstants.useConfigState.getState().dispatch.setBadgeState(badgeState)
+          C.useConfigState.getState().dispatch.setBadgeState(badgeState)
 
           const counts = badgeStateToBadgeCounts(badgeState)
           if (!isMobile && shouldTriggerTlfLoad(badgeState)) {

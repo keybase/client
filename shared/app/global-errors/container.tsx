@@ -1,4 +1,3 @@
-import * as Constants from '../../constants/config'
 import * as C from '../../constants'
 import * as Platform from '../../constants/platform'
 import * as React from 'react'
@@ -6,10 +5,10 @@ import GlobalError from '.'
 import {settingsTab} from '../../constants/tabs'
 
 const Connected = () => {
-  const loggedIn = Constants.useConfigState(s => s.loggedIn)
+  const loggedIn = C.useConfigState(s => s.loggedIn)
   const daemonError = C.useDaemonState(s => s.error)
-  const error = Constants.useConfigState(s => s.globalError)
-  const setGlobalError = Constants.useConfigState(s => s.dispatch.setGlobalError)
+  const error = C.useConfigState(s => s.globalError)
+  const setGlobalError = C.useConfigState(s => s.dispatch.setGlobalError)
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -30,7 +29,7 @@ const Connected = () => {
       navigateAppend({props: {}, selected: 'feedback'})
     }
   }, [navigateAppend, clearModals, loggedIn, setGlobalError])
-  const copyToClipboard = Constants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onDismiss = setGlobalError
 
   if (daemonError || error) {

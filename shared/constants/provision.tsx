@@ -567,15 +567,15 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     startProvision: (name = '', fromReset = false) => {
       get().dispatch.dynamic.cancel?.()
-      ConfigConstants.useConfigState.getState().dispatch.loginError()
-      ConfigConstants.useConfigState.getState().dispatch.resetRevokedSelf()
+      C.useConfigState.getState().dispatch.loginError()
+      C.useConfigState.getState().dispatch.resetRevokedSelf()
 
       set(s => {
         s.username = name
       })
       const f = async () => {
         // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-        if (ConfigConstants.useConfigState.getState().loggedIn) {
+        if (C.useConfigState.getState().loggedIn) {
           await RPCTypes.loginLogoutRpcPromise(
             {force: false, keepSecrets: true},
             ConfigConstants.loginAsOtherUserWaitingKey

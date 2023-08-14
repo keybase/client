@@ -1,10 +1,9 @@
 // A mirror of the remote menubar windows.
 import * as C from '../constants'
-import * as ConfigConstants from '../constants/config'
-import * as ChatConstants from '../constants/chat2'
 import * as FSTypes from '../constants/types/fs'
 import * as React from 'react'
 import * as Styles from '../styles'
+import type * as ChatConstants from '../constants/chat2'
 import KB2 from '../util/electron.desktop'
 import _getIcons from './icons'
 import shallowEqual from 'shallowequal'
@@ -92,10 +91,10 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const following = C.useFollowerState(s => s.following)
   const followers = C.useFollowerState(s => s.followers)
   const username = C.useCurrentUserState(s => s.username)
-  const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
-  const windowShownCount = ConfigConstants.useConfigState(s => s.windowShownCount)
-  const outOfDate = ConfigConstants.useConfigState(s => s.outOfDate)
-  const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
+  const httpSrv = C.useConfigState(s => s.httpSrv)
+  const windowShownCount = C.useConfigState(s => s.windowShownCount)
+  const outOfDate = C.useConfigState(s => s.outOfDate)
+  const loggedIn = C.useConfigState(s => s.loggedIn)
   const kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
   const overallSyncStatus = C.useFSState(s => s.overallSyncStatus)
   const pathItems = C.useFSState(s => s.pathItems)

@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as ConfigConstants from '../constants/config'
 import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
@@ -18,7 +17,7 @@ export enum AppState {
 
 const useConnectNavToRedux = () => {
   const setNavOnce = React.useRef(false)
-  const setNavigatorExists = ConfigConstants.useConfigState(s => s.dispatch.setNavigatorExists)
+  const setNavigatorExists = C.useConfigState(s => s.dispatch.setNavigatorExists)
   React.useEffect(() => {
     if (!setNavOnce.current) {
       if (RouterConstants.navigationRef_.isReady()) {
@@ -83,7 +82,7 @@ export const useShared = () => {
   // We use useRef and usePrevious so we can understand how our state has changed and do the right thing
   // if we use useEffect and useState we'll have to deal with extra renders which look really bad
   const loggedInLoaded = C.useDaemonState(s => s.handshakeState === 'done')
-  const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
+  const loggedIn = C.useConfigState(s => s.loggedIn)
   const navContainerKey = React.useRef(1)
   // keep track if we went to an init route yet or not
   const appState = React.useRef(loggedInLoaded ? AppState.NEEDS_INIT : AppState.UNINIT)

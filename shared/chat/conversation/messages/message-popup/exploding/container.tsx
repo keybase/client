@@ -2,7 +2,6 @@ import * as C from '../../../../../constants'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
-import * as ConfigConstants from '../../../../../constants/config'
 import * as React from 'react'
 import * as TeamConstants from '../../../../../constants/teams'
 import Exploding from '.'
@@ -80,7 +79,7 @@ export default (ownProps: OwnProps) => {
   const _onAllMedia = () => {
     showInfoPanel(true, 'attachments', ownProps.conversationIDKey)
   }
-  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const _onCopy = (h: Container.HiddenString) => {
     copyToClipboard(h.stringValue())
   }

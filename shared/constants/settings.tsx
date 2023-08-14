@@ -1,17 +1,12 @@
 import * as C from '.'
-import {useRouterState} from '.'
 import * as RPCTypes from './types/rpc-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import openURL from '../util/open-url'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
-import {useConfigState} from './config'
 import * as Tabs from './tabs'
 import logger from '../logger'
 import {pprofDir} from '../constants/platform'
-import {_useState as usePhoneState} from './settings-phone'
-import {_useState as useEmailState} from './settings-email'
-import {_useState as usePasswordState} from './settings-password'
 
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
@@ -104,21 +99,21 @@ export type State = Store & {
 let maybeLoadAppLinkOnce = false
 export const _useState = Z.createZustand<State>(set => {
   const maybeLoadAppLink = () => {
-    const phones = usePhoneState.getState().phones
+    const phones = C.useSettingsPhoneState.getState().phones
     if (!phones || phones.size > 0) {
       return
     }
 
     if (
       maybeLoadAppLinkOnce ||
-      !useConfigState.getState().startup.link ||
-      !useConfigState.getState().startup.link.endsWith('/phone-app')
+      !C.useConfigState.getState().startup.link ||
+      !C.useConfigState.getState().startup.link.endsWith('/phone-app')
     ) {
       return
     }
     maybeLoadAppLinkOnce = true
-    useRouterState.getState().dispatch.switchTab(Tabs.settingsTab)
-    useRouterState.getState().dispatch.navigateAppend('settingsAddPhone')
+    C.useRouterState.getState().dispatch.switchTab(Tabs.settingsTab)
+    C.useRouterState.getState().dispatch.navigateAppend('settingsAddPhone')
   }
 
   const dispatch: State['dispatch'] = {
@@ -149,14 +144,14 @@ export const _useState = Z.createZustand<State>(set => {
         }
 
         await RPCTypes.loginAccountDeleteRpcPromise({passphrase}, settingsWaitingKey)
-        useConfigState.getState().dispatch.setJustDeletedSelf(username)
-        useRouterState.getState().dispatch.navigateAppend(Tabs.loginTab)
+        C.useConfigState.getState().dispatch.setJustDeletedSelf(username)
+        C.useRouterState.getState().dispatch.navigateAppend(Tabs.loginTab)
       }
       Z.ignorePromise(f())
     },
     loadLockdownMode: () => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!C.useConfigState.getState().loggedIn) {
           return
         }
         try {
@@ -191,13 +186,13 @@ export const _useState = Z.createZustand<State>(set => {
     },
     loadSettings: () => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!C.useConfigState.getState().loggedIn) {
           return
         }
         try {
           const settings = await RPCTypes.userLoadMySettingsRpcPromise(undefined, loadSettingsWaitingKey)
-          useEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
-          usePhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
+          C.useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
+          C.useSettingsPhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
           maybeLoadAppLink()
         } catch (error) {
           if (!(error instanceof RPCError)) {
@@ -220,21 +215,21 @@ export const _useState = Z.createZustand<State>(set => {
       switch (action.type) {
         case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
           logger.info('email verified')
-          useEmailState.getState().dispatch.notifyEmailVerified(action.payload.params.emailAddress)
+          C.useSettingsEmailState.getState().dispatch.notifyEmailVerified(action.payload.params.emailAddress)
           break
         case EngineGen.keybase1NotifyUsersPasswordChanged: {
           const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
-          usePasswordState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
+          C.useSettingsPasswordState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
           break
         }
         case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {
           const {list} = action.payload.params
-          usePhoneState.getState().dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
+          C.useSettingsPhoneState.getState().dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
           break
         }
         case EngineGen.keybase1NotifyEmailAddressEmailsChanged: {
           const list = action.payload.params.list ?? []
-          useEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(list)
+          C.useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(list)
           break
         }
         default:
@@ -266,7 +261,7 @@ export const _useState = Z.createZustand<State>(set => {
     },
     setLockdownMode: enabled => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!C.useConfigState.getState().loggedIn) {
           return
         }
         try {

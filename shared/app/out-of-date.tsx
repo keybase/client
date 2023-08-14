@@ -1,7 +1,7 @@
+import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import * as ConfigConstants from '../constants/config'
 import * as React from 'react'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
@@ -64,7 +64,7 @@ export default () => {
     Container.ignorePromise(f())
   })
 
-  const onOpenAppStore = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppStore)
+  const onOpenAppStore = C.useConfigState(s => s.dispatch.dynamic.openAppStore)
 
   return status !== 'critical' ? null : (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>

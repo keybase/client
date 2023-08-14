@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
@@ -18,7 +17,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const attachmentRef = React.useRef<Kb.ClickableBox>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
 
-  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
 
   const [sk, setSK] = React.useState('')
   const loading = !sk

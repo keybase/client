@@ -3,7 +3,6 @@ import * as Z from '../../util/zustand'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as ConfigConstants from '../../constants/config'
 import * as Tabs from '../../constants/tabs'
 import {isWindows, isLinux, pathSep, isDarwin} from '../../constants/platform.desktop'
 import logger from '../../logger'
@@ -132,7 +131,7 @@ const onInstallCachedDokan = async () => {
 }
 
 const initPlatformSpecific = () => {
-  ConfigConstants.useConfigState.subscribe((s, old) => {
+  C.useConfigState.subscribe((s, old) => {
     if (s.appFocused === old.appFocused) return
     C.useFSState.getState().dispatch.onChangedFocus(s.appFocused)
   })
@@ -272,7 +271,7 @@ const initPlatformSpecific = () => {
     }
 
     s.dispatch.dynamic.openFilesFromWidgetDesktop = path => {
-      ConfigConstants.useConfigState.getState().dispatch.showMain()
+      C.useConfigState.getState().dispatch.showMain()
       if (path) {
         Constants.makeActionForOpenPathInFilesTab(path)
       } else {

@@ -1,6 +1,6 @@
 import * as C from '../constants'
 import * as ChatConstants from '../constants/chat2'
-import * as ConfigConstants from '../constants/config'
+import type * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as Shared from './router.shared'
 import * as Tabs from '../constants/tabs'
@@ -150,7 +150,7 @@ const makeLinking = (options: OptionsType) => {
 
 // gets state from redux used to make the linking object
 export const useReduxToLinking = (appState: Shared.AppState) => {
-  const {startup} = ConfigConstants.useConfigState.getState()
+  const {startup} = C.useConfigState.getState()
   const {tab: startupTab, followUser: startupFollowUser} = startup
   let {conversation: startupConversation} = startup
   if (!ChatConstants.isValidConversationIDKey(startupConversation)) {
@@ -158,9 +158,9 @@ export const useReduxToLinking = (appState: Shared.AppState) => {
   }
   const {justSignedUp, showPushPrompt, hasPermissions} = C.usePushState.getState()
   const showMonster =
-    ConfigConstants.useConfigState.getState().loggedIn && !justSignedUp && showPushPrompt && !hasPermissions
+    C.useConfigState.getState().loggedIn && !justSignedUp && showPushPrompt && !hasPermissions
 
-  const androidShare = ConfigConstants.useConfigState(s => s.androidShare)
+  const androidShare = C.useConfigState(s => s.androidShare)
 
   return appState === Shared.AppState.NEEDS_INIT
     ? makeLinking({

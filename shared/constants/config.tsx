@@ -252,7 +252,7 @@ type State = Store & {
 }
 
 export const openAtLoginKey = 'openAtLogin'
-export const useConfigState = Z.createZustand<State>((set, get) => {
+export const _useConfigState = Z.createZustand<State>((set, get) => {
   const nativeFrameKey = 'useNativeFrame'
   const notifySoundKey = 'notifySound'
 
@@ -906,7 +906,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       updateGit()
 
       const updateTeams = () => {
-        const loggedIn = useConfigState.getState().loggedIn
+        const loggedIn = get().loggedIn
         if (!loggedIn) {
           // Don't make any calls we don't have permission to.
           return

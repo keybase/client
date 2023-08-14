@@ -1,5 +1,5 @@
+import * as C from '../../constants'
 import * as React from 'react'
-import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
@@ -312,16 +312,16 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexGrow,
       },
       topRightContainer: {flex: 1, justifyContent: 'flex-end'},
-    } as const)
+    }) as const
 )
 
 type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame' | 'isMaximized'>
 
 const DesktopHeaderWrapper = (p: HeaderProps) => {
   const {options, back, style, params, navigation} = p
-  const useNativeFrame = ConfigConstants.useConfigState(s => s.useNativeFrame)
-  const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
-  const isMaximized = ConfigConstants.useConfigState(s => s.windowState.isMaximized)
+  const useNativeFrame = C.useConfigState(s => s.useNativeFrame)
+  const loggedIn = C.useConfigState(s => s.loggedIn)
+  const isMaximized = C.useConfigState(s => s.windowState.isMaximized)
 
   return (
     <DesktopHeader

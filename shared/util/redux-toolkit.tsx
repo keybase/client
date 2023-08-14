@@ -1,4 +1,4 @@
-import * as ConfigConstants from '../constants/config'
+import * as C from '../constants'
 import isArray from 'lodash/isArray'
 import type {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
 import {createListenerMiddleware, type ForkedTask} from '@reduxjs/toolkit'
@@ -61,7 +61,7 @@ const listenActionImpl = (
           act && listenerApi.dispatch(act)
         }
       } catch (e) {
-        ConfigConstants.useConfigState.getState().dispatch.setGlobalError(e)
+        C.useConfigState.getState().dispatch.setGlobalError(e)
       }
     },
     matcher,
@@ -77,7 +77,7 @@ export const spawn = (effect: (listenerApi: ListenerApi) => void | Promise<void>
         try {
           await effect(listenerApi as any)
         } catch (e) {
-          ConfigConstants.useConfigState.getState().dispatch.setGlobalError(e)
+          C.useConfigState.getState().dispatch.setGlobalError(e)
         }
         return
       })

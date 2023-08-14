@@ -1,9 +1,8 @@
-import {useRouterState} from '.'
+import * as C from '.'
 import type * as Types from './types/git'
 import * as dateFns from 'date-fns'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Z from '../util/zustand'
-import * as ConfigConstants from './config'
 
 const parseRepos = (results: Array<RPCTypes.GitRepoResult>) => {
   const errors: Array<Error> = []
@@ -101,7 +100,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
   const _load = async () => {
     const results = await RPCTypes.gitGetAllGitMetadataRpcPromise(undefined, loadingWaitingKey)
     const {errors, repos} = parseRepos(results || [])
-    const {setGlobalError} = ConfigConstants.useConfigState.getState().dispatch
+    const {setGlobalError} = C.useConfigState.getState().dispatch
     errors.forEach(e => setGlobalError(e))
     set(s => {
       s.idToInfo = repos
@@ -144,7 +143,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         await _load()
         for (const [, info] of get().idToInfo) {
           if (info.repoID === repoID && info.teamname === teamname) {
-            useRouterState
+            C.useRouterState
               .getState()
               .dispatch.navigateAppend({props: {expanded: info.id}, selected: 'gitRoot'})
             break

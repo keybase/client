@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as TabConstants from '../constants/tabs'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/settings'
-import * as ConfigConstants from '../constants/config'
 import * as Styles from '../styles'
 import {logPerfLogPointRpcPromise} from '../constants/types/rpc-gen'
 import {keybaseFM} from '../constants/whats-new'
@@ -62,7 +61,7 @@ const renderItem = ({item}: any) => {
 function SettingsNav() {
   const badgeNumbers = C.useNotifState(s => s.navBadges)
   const badgeNotifications = C.usePushState(s => !s.hasPermissions)
-  const statsShown = ConfigConstants.useConfigState(s => !!s.runtimeStats)
+  const statsShown = C.useConfigState(s => !!s.runtimeStats)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onTabChange = React.useCallback(
     (s: any) => {

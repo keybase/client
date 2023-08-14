@@ -2,7 +2,6 @@
 import * as C from '../constants'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Constants from '../constants/tracker2'
-import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import type * as Types from '../constants/types/tracker2'
 import Tracker from './index.desktop'
@@ -35,7 +34,7 @@ const RemoteContainer = () => {
   C.useFollowerState(s => s.dispatch.replace)(followers, following)
   C.useUsersState(s => s.dispatch.replace)(infoMap, blockMap)
   C.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
-  ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
+  C.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
   C.useTrackerState(s => s.dispatch.replace)(tracker2.usernameToDetails)
 
   return (

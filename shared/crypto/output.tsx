@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/crypto'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
@@ -197,7 +196,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     previewConversation({participants: [username.stringValue()], reason: 'search'})
   }
 
-  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopyOutput = () => {
     copyToClipboard(output.stringValue())
   }
