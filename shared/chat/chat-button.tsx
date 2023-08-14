@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as ChatConstants from '../constants/chat2'
-import * as ConfigConstants from '../constants/config'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 
@@ -12,7 +11,7 @@ type Props = {
 }
 
 const ChatButton = ({small, style, username, afterClick}: Props) => {
-  const showMain = ConfigConstants.useConfigState(s => s.dispatch.showMain)
+  const showMain = C.useConfigState(s => s.dispatch.showMain)
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const chat = () => {
     afterClick?.()

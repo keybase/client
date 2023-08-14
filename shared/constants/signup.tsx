@@ -7,7 +7,6 @@ import logger from '../logger'
 import trim from 'lodash/trim'
 import {RPCError} from '../util/errors'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
-import {useConfigState, createOtherAccountWaitingKey} from './config'
 
 export const maxUsernameLength = 16
 export const usernameHint =
@@ -283,10 +282,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-        if (useConfigState.getState().loggedIn) {
+        if (C.useConfigState.getState().loggedIn) {
           await RPCTypes.loginLogoutRpcPromise(
             {force: false, keepSecrets: true},
-            createOtherAccountWaitingKey
+            C.createOtherAccountWaitingKey
           )
         }
         try {

@@ -1,6 +1,5 @@
 import * as C from '../../../../../../constants'
 import * as Kb from '../../../../../../common-adapters/index'
-import * as ConfigConstants from '../../../../../../constants/config'
 import * as Styles from '../../../../../../styles'
 import type * as Types from '../../../../../../constants/types/chat2'
 import openURL from '../../../../../../util/open-url'
@@ -18,7 +17,7 @@ type Props = {
 const UnfurlMapPopup = (props: Props) => {
   const {coord, isAuthor, isLiveLocation, url} = props
   const author = props.author ?? ''
-  const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
+  const httpSrv = C.useConfigState(s => s.httpSrv)
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {

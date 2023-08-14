@@ -1,6 +1,6 @@
+import * as C from '.'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
-import {useConfigState} from './config'
 import * as Z from '../util/zustand'
 
 export const contactSettingsSaveWaitingKey = 'settings:contactSettingsSaveWaitingKey'
@@ -52,7 +52,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     contactSettingsRefresh: () => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!C.useConfigState.getState().loggedIn) {
           return
         }
         try {
@@ -73,7 +73,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     contactSettingsSaved: (enabled, indirectFollowees, teamsEnabled, teamsList) => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!C.useConfigState.getState().loggedIn) {
           return
         }
 
@@ -103,7 +103,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     resetState: 'default',
     unfurlSettingsRefresh: () => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!C.useConfigState.getState().loggedIn) {
           return
         }
         try {
@@ -128,7 +128,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         s.unfurl = {unfurlError: undefined, unfurlMode, unfurlWhitelist}
       })
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!C.useConfigState.getState().loggedIn) {
           return
         }
         try {

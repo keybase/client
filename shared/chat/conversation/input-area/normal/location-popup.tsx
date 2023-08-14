@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
-import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type * as Types from '../../../../constants/types/chat2'
@@ -15,7 +14,7 @@ type Props = {conversationIDKey: Types.ConversationIDKey}
 const LocationPopup = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
   const username = C.useCurrentUserState(s => s.username)
-  const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
+  const httpSrv = C.useConfigState(s => s.httpSrv)
   const location = C.useChatState(s => s.lastCoord)
   const locationDenied = C.useChatContext(
     s => s.commandStatus?.displayType == RPCChatTypes.UICommandStatusDisplayTyp.error
@@ -26,7 +25,7 @@ const LocationPopup = (props: Props) => {
   const onClose = () => {
     clearModals()
   }
-  const onSettings = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const onSettings = C.useConfigState(s => s.dispatch.dynamic.openAppSettings)
   const messageSend = C.useChatContext(s => s.dispatch.messageSend)
   const onLocationShare = (duration: string) => {
     onClose()

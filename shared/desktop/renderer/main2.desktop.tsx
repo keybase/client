@@ -2,7 +2,6 @@
 import Main from '../../app/main.desktop'
 // order of the above must NOT change. needed for patching / hot loading to be correct
 import * as C from '../../constants'
-import * as ConfigConstants from '../../constants/config'
 import * as RemoteGen from '../../actions/remote-gen'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
@@ -79,7 +78,7 @@ const setupApp = (store: any, initListeners: any) => {
     setTimeout(() => {
       try {
         if (action.type.startsWith(RemoteGen.typePrefix)) {
-          ConfigConstants.useConfigState.getState().dispatch.eventFromRemoteWindows(action as any)
+          C.useConfigState.getState().dispatch.eventFromRemoteWindows(action as any)
         } else {
           store.dispatch({
             payload: action.payload,

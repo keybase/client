@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as ConfigConstants from '../constants/config'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
@@ -8,7 +7,7 @@ import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import logger from '../logger'
 
 const Display = () => {
-  const allowAnimatedEmojis = ConfigConstants.useConfigState(s => s.allowAnimatedEmojis)
+  const allowAnimatedEmojis = C.useConfigState(s => s.allowAnimatedEmojis)
   const darkModePreference = C.useDarkModeState(s => s.darkModePreference)
   const toggleAnimatedEmoji = Container.useRPC(RPCChatTypes.localToggleEmojiAnimationsRpcPromise)
   const supported = C.useDarkModeState(s => s.supported)

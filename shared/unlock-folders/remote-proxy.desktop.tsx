@@ -1,4 +1,4 @@
-import * as ConfigConstants from '../constants/config'
+import * as C from '../constants'
 import * as WaitingConstants from '../constants/waiting'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -24,8 +24,8 @@ const UnlockFolders = React.memo(function (p: ProxyProps) {
 })
 
 const UnlockRemoteProxy = () => {
-  const devices = ConfigConstants.useConfigState(s => s.unlockFoldersDevices)
-  const paperKeyError = ConfigConstants.useConfigState(s => s.unlockFoldersError)
+  const devices = C.useConfigState(s => s.unlockFoldersDevices)
+  const paperKeyError = C.useConfigState(s => s.unlockFoldersError)
   const waiting = WaitingConstants.useAnyWaiting('unlock-folders:waiting')
   if (devices.length) {
     return (

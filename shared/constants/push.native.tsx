@@ -8,7 +8,6 @@ import logger from '../logger'
 import type * as Types from './types/push'
 import {isDevApplePushToken} from '../local-debug'
 import {isIOS} from './platform'
-import {useConfigState} from './config'
 import {
   iosGetHasShownPushPrompt,
   androidRequestPushPermissions,
@@ -176,7 +175,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               }
               break
             case 'settings.contacts':
-              if (useConfigState.getState().loggedIn) {
+              if (C.useConfigState.getState().loggedIn) {
                 C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
                 C.useRouterState.getState().dispatch.navUpToScreen('peopleRoot')
               }
@@ -231,18 +230,17 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     requestPermissions: () => {
       const f = async () => {
-        const ConfigConstants = await import('./config')
         if (isIOS) {
           const shownPushPrompt = await askNativeIfSystemPushPromptHasBeenShown()
           if (shownPushPrompt) {
             // we've already shown the prompt, take them to settings
-            ConfigConstants.useConfigState.getState().dispatch.dynamic.openAppSettings?.()
+            C.useConfigState.getState().dispatch.dynamic.openAppSettings?.()
             get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
             return
           }
         }
         try {
-          ConfigConstants.useConfigState.getState().dispatch.dynamic.openAppSettings?.()
+          C.useConfigState.getState().dispatch.dynamic.openAppSettings?.()
           const {increment} = C.useWaitingState.getState().dispatch
           increment(permissionsRequestingWaitingKey)
           logger.info('[PushRequesting] asking native')
@@ -309,7 +307,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         // We've just started up, we don't have the permissions, we're logged in and we
         // haven't just signed up. This handles the scenario where the push notifications
         // permissions checker finishes after the routeToInitialScreen is done.
-        if (p.show && useConfigState.getState().loggedIn && !get().justSignedUp && !get().hasPermissions) {
+        if (p.show && C.useConfigState.getState().loggedIn && !get().justSignedUp && !get().hasPermissions) {
           logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
           await Z.timeoutPromise(100)
           C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)

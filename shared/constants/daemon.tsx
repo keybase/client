@@ -105,18 +105,17 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
       if (!changed) return
 
-      const checkNav = async (version: number) => {
+      const checkNav = (version: number) => {
         // have one
         if (getNavigator()) return
-        const Constants = await import('./config')
         const name = 'nav'
         const {wait} = get().dispatch
         wait(name, version, true)
         logger.info('Waiting on nav')
-        Constants.useConfigState.setState(s => {
+        C.useConfigState.setState(s => {
           s.dispatch.dynamic.setNavigatorExistsNative = () => {
             if (getNavigator()) {
-              Constants.useConfigState.setState(s => {
+              C.useConfigState.setState(s => {
                 s.dispatch.dynamic.setNavigatorExistsNative = undefined
               })
               wait(name, version, false)
@@ -126,7 +125,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         })
       }
-      Z.ignorePromise(checkNav(version))
+      checkNav(version)
 
       const f = async () => {
         const name = 'config.getBootstrapStatus'
@@ -145,7 +144,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     loadDaemonAccounts: () => {
       const f = async () => {
-        const Constants = await import('./config')
         const version = get().handshakeVersion
 
         let handshakeWait = false
@@ -153,7 +151,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
         handshakeVersion = version
         // did we beat getBootstrapStatus?
-        if (!Constants.useConfigState.getState().loggedIn) {
+        if (!C.useConfigState.getState().loggedIn) {
           handshakeWait = true
         }
 
@@ -165,8 +163,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
           const configuredAccounts = (await RPCTypes.loginGetConfiguredAccountsRpcPromise()) ?? []
           // already have one?
-          const {defaultUsername} = Constants.useConfigState.getState()
-          const {setAccounts, setDefaultUsername} = Constants.useConfigState.getState().dispatch
+          const {defaultUsername} = C.useConfigState.getState()
+          const {setAccounts, setDefaultUsername} = C.useConfigState.getState().dispatch
 
           let existingDefaultFound = false
           let currentName = ''
@@ -224,9 +222,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
       loadDaemonBootstrapStatusDoneVersion = version
 
       const f = async () => {
-        const Constants = await import('./config')
         const {setBootstrap} = C.useCurrentUserState.getState().dispatch
-        const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
+        const {setDefaultUsername} = C.useConfigState.getState().dispatch
         const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
         const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
         setBootstrap({deviceID, deviceName, uid, username})
@@ -234,19 +231,17 @@ export const _useState = Z.createZustand<State>((set, get) => {
           setDefaultUsername(username)
         }
         if (loggedIn) {
-          Constants.useConfigState.getState().dispatch.setUserSwitching(false)
+          C.useConfigState.getState().dispatch.setUserSwitching(false)
         }
 
         logger.info(`[Bootstrap] loggedIn: ${loggedIn ? 1 : 0}`)
-        Constants.useConfigState.getState().dispatch.setLoggedIn(loggedIn, false)
+        C.useConfigState.getState().dispatch.setLoggedIn(loggedIn, false)
         C.useChatState.getState().dispatch.updateUserReacjis(userReacjis)
 
         // set HTTP srv info
         if (s.httpSrvInfo) {
           logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
-          Constants.useConfigState
-            .getState()
-            .dispatch.setHTTPSrvInfo(s.httpSrvInfo.address, s.httpSrvInfo.token)
+          C.useConfigState.getState().dispatch.setHTTPSrvInfo(s.httpSrvInfo.address, s.httpSrvInfo.token)
         } else {
           logger.info(`[Bootstrap] http server: no info given`)
         }
@@ -297,21 +292,16 @@ export const _useState = Z.createZustand<State>((set, get) => {
       if (ds !== 'done') return
 
       const emitStartupOnLoadNotInARush = async () => {
-        const Constants = await import('./config')
         await Z.timeoutPromise(1000)
         requestAnimationFrame(() => {
-          Constants.useConfigState.getState().dispatch.loadOnStart('startupOrReloginButNotInARush')
+          C.useConfigState.getState().dispatch.loadOnStart('startupOrReloginButNotInARush')
         })
       }
       Z.ignorePromise(emitStartupOnLoadNotInARush())
 
       if (!_emitStartupOnLoadDaemonConnectedOnce) {
         _emitStartupOnLoadDaemonConnectedOnce = true
-        const f = async () => {
-          const Constants = await import('./config')
-          Constants.useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
-        }
-        Z.ignorePromise(f())
+        C.useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
       }
     },
     startHandshake: () => {

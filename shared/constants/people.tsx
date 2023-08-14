@@ -1,5 +1,4 @@
 import * as C from '.'
-import * as ConfigConstants from './config'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
@@ -379,7 +378,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         logger.info(
           'getPeopleData: appFocused:',
           'loggedIn',
-          ConfigConstants.useConfigState.getState().loggedIn,
+          C.useConfigState.getState().loggedIn,
           'action',
           {markViewed, numFollowSuggestionsWanted}
         )

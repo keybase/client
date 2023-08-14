@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as ChatTypes from '../../constants/types/chat2'
-import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -186,7 +185,7 @@ const listenForNativeAndroidIntentNotifications = async () => {
 
   RNEmitter.addListener('onShareData', evt => {
     logger.debug('[ShareDataIntent]', evt)
-    const {setAndroidShare} = ConfigConstants.useConfigState.getState().dispatch
+    const {setAndroidShare} = C.useConfigState.getState().dispatch
 
     const text = evt.text
     const url = evt.localPath
@@ -268,7 +267,7 @@ const getInitialPushiOS = async () => {
 
 export const initPushListener = () => {
   // Permissions
-  ConfigConstants.useConfigState.subscribe((s, old) => {
+  C.useConfigState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     // Only recheck on foreground, not background
     if (s.mobileAppState !== 'active') {
@@ -290,7 +289,7 @@ export const initPushListener = () => {
   })
 
   let lastCount = -1
-  ConfigConstants.useConfigState.subscribe((s, old) => {
+  C.useConfigState.subscribe((s, old) => {
     if (s.badgeState === old.badgeState) return
     if (!s.badgeState) return
     const count = s.badgeState.bigTeamBadgeCount + s.badgeState.smallTeamBadgeCount

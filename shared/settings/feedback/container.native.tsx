@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import Feedback from '.'
@@ -106,7 +105,7 @@ class FeedbackContainer extends React.Component<Props, State> {
 const Connected = (ownProps: OwnProps) => {
   const feedback = ownProps.feedback ?? ''
   const chat = getExtraChatLogsForLogSend()
-  const loggedOut = ConfigConstants.useConfigState(s => !s.loggedIn)
+  const loggedOut = C.useConfigState(s => !s.loggedIn)
   const _push = C.usePushState(s => s.token)
   const push = {pushToken: _push}
 

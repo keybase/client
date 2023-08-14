@@ -1,19 +1,18 @@
 import * as C from '../../constants'
-import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
 import Intro from '.'
 
 export default () => {
-  const justDeletedSelf = ConfigConstants.useConfigState(s => s.justDeletedSelf)
-  const justRevokedSelf = ConfigConstants.useConfigState(s => s.justRevokedSelf)
+  const justDeletedSelf = C.useConfigState(s => s.justDeletedSelf)
+  const justRevokedSelf = C.useConfigState(s => s.justRevokedSelf)
   const bannerMessage = justDeletedSelf
     ? `Your Keybase account ${justDeletedSelf} has been deleted. Au revoir!`
     : justRevokedSelf
     ? `${justRevokedSelf} was revoked successfully`
     : ''
 
-  const isOnline = ConfigConstants.useConfigState(s => s.isOnline)
-  const loadIsOnline = ConfigConstants.useConfigState(s => s.dispatch.loadIsOnline)
+  const isOnline = C.useConfigState(s => s.isOnline)
+  const loadIsOnline = C.useConfigState(s => s.dispatch.loadIsOnline)
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onFeedback = () => {

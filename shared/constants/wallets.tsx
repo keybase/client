@@ -1,4 +1,4 @@
-import * as ConfigConstants from './config'
+import * as C from '.'
 import * as RPCStellarTypes from './types/rpc-stellar-gen'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import * as Types from './types/wallets'
@@ -57,7 +57,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     load: () => {
       const f = async () => {
-        if (!ConfigConstants.useConfigState.getState().loggedIn) {
+        if (!C.useConfigState.getState().loggedIn) {
           return
         }
         const res = await RPCStellarTypes.localGetWalletAccountsLocalRpcPromise(undefined, [

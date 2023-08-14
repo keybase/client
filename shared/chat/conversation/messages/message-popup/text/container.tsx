@@ -3,7 +3,6 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import {linkFromConvAndMessage} from '../../../../../constants'
-import * as ConfigConstants from '../../../../../constants/config'
 import Text from '.'
 import openURL from '../../../../../util/open-url'
 import * as React from 'react'
@@ -64,7 +63,7 @@ export default (ownProps: OwnProps) => {
       selected: 'chatChooseEmoji',
     })
   }
-  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const _onCopy = (message: Types.Message) => {
     if (message.type === 'text') {
       copyToClipboard(message.text.stringValue())

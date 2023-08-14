@@ -1,5 +1,4 @@
 import * as C from '.'
-import * as ConfigConstants from './config'
 import * as CryptoConstants from './crypto'
 import * as Tabs from './tabs'
 import * as Z from '../util/zustand'
@@ -252,7 +251,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     handleSaltPackOpen: _path => {
       const path = typeof _path === 'string' ? _path : _path.stringValue()
 
-      if (!ConfigConstants.useConfigState.getState().loggedIn) {
+      if (!C.useConfigState.getState().loggedIn) {
         console.warn('Tried to open a saltpack file before being logged in')
         return
       }

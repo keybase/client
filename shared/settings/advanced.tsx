@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Constants from '../constants/settings'
-import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -13,8 +12,8 @@ import {toggleRenderDebug} from '../router-v2/shim.shared'
 let initialUseNativeFrame: boolean | undefined
 
 const UseNativeFrame = () => {
-  const useNativeFrame = ConfigConstants.useConfigState(s => s.useNativeFrame)
-  const onChangeUseNativeFrame = ConfigConstants.useConfigState(s => s.dispatch.setUseNativeFrame)
+  const useNativeFrame = C.useConfigState(s => s.useNativeFrame)
+  const onChangeUseNativeFrame = C.useConfigState(s => s.dispatch.setUseNativeFrame)
   if (initialUseNativeFrame === undefined) {
     initialUseNativeFrame = useNativeFrame
   }
@@ -73,12 +72,12 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
 const Advanced = () => {
   const settingLockdownMode = Container.useAnyWaiting(Constants.setLockdownModeWaitingKey)
   const hasRandomPW = C.useSettingsPasswordState(s => !!s.randomPW)
-  const openAtLogin = ConfigConstants.useConfigState(s => s.openAtLogin)
+  const openAtLogin = C.useConfigState(s => s.openAtLogin)
   const rememberPassword = C.useSettingsPasswordState(s => s.rememberPassword)
   const setLockdownModeError = Container.useAnyErrors(Constants.setLockdownModeWaitingKey)?.message || ''
   const setRememberPassword = C.useSettingsPasswordState(s => s.dispatch.setRememberPassword)
   const onChangeRememberPassword = setRememberPassword
-  const onSetOpenAtLogin = ConfigConstants.useConfigState(s => s.dispatch.setOpenAtLogin)
+  const onSetOpenAtLogin = C.useConfigState(s => s.dispatch.setOpenAtLogin)
 
   const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
 
@@ -193,7 +192,7 @@ const Developer = () => {
 
   const setDebugLevel = C.useFSState(s => s.dispatch.setDebugLevel)
   const onExtraKBFSLogging = () => setDebugLevel('vlog2')
-  const onToggleRuntimeStats = ConfigConstants.useConfigState(s => s.dispatch.toggleRuntimeStats)
+  const onToggleRuntimeStats = C.useConfigState(s => s.dispatch.toggleRuntimeStats)
   const onLabelClick = () =>
     setClickCount(s => {
       const next = s + 1

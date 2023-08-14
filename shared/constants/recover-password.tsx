@@ -1,7 +1,6 @@
 import * as C from '.'
 import * as ProvisionConstants from './provision'
 import * as RPCTypes from './types/rpc-gen'
-import {useConfigState} from './config'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
@@ -229,7 +228,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             C.useRouterState
               .getState()
               .dispatch.navigateAppend(
-                useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
+                C.useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
                 true
               )
           }

@@ -1,8 +1,7 @@
-import * as React from 'react'
 import * as C from '../constants'
+import * as React from 'react'
 import * as Container from '../util/container'
 import * as Constants from '../constants/settings'
-import * as ConfigConstants from '../constants/config'
 import * as Tabs from '../constants/tabs'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
@@ -67,7 +66,7 @@ const ManageContactsBanner = () => {
   const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
   const importedCount = C.useSettingsContactsState(s => s.importedCount)
   const error = C.useSettingsContactsState(s => s.importError)
-  const onOpenAppSettings = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const onOpenAppSettings = C.useConfigState(s => s.dispatch.dynamic.openAppSettings)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onStartChat = React.useCallback(() => {
     switchTab(Tabs.chatTab)

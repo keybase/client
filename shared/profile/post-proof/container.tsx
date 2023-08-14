@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as ConfigConstants from '../../constants/config'
 import PostProof from '.'
 
 export default () => {
@@ -48,7 +47,7 @@ export default () => {
 
   const platformUserName = username
 
-  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     clearModals()

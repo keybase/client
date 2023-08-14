@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Styles from '../styles'
-import * as ConfigConstants from '../constants/config'
 import * as React from 'react'
 import {chatDebugEnabled} from '../constants/chat2/debug'
 import Main from './main.native'
@@ -28,7 +27,7 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
   const appStateRef = React.useRef('active')
   const {setSystemDarkMode} = C.useDarkModeState.getState().dispatch
   const handleAppLink = C.useDeepLinksState(s => s.dispatch.handleAppLink)
-  const setMobileAppState = ConfigConstants.useConfigState(s => s.dispatch.setMobileAppState)
+  const setMobileAppState = C.useConfigState(s => s.dispatch.setMobileAppState)
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
       appStateRef.current = nextAppState
@@ -104,7 +103,7 @@ const ensureStore = () => {
   eng.listenersAreReady()
 
   // On mobile there is no installer
-  ConfigConstants.useConfigState.getState().dispatch.installerRan()
+  C.useConfigState.getState().dispatch.installerRan()
 }
 
 // on android this can be recreated a bunch so our engine/store / etc should live outside

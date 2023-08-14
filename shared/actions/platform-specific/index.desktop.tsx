@@ -33,7 +33,7 @@ const handleWindowFocusEvents = () => {
     if (skipAppFocusActions) {
       console.log('Skipping app focus actions!')
     } else {
-      ConfigConstants.useConfigState.getState().dispatch.changedFocus(appFocused)
+      C.useConfigState.getState().dispatch.changedFocus(appFocused)
     }
   }
   window.addEventListener('focus', () => handle(true))
@@ -62,7 +62,7 @@ export const requestLocationPermission = async () => Promise.resolve()
 export const watchPositionForMap = async () => Promise.resolve(() => {})
 
 const maybePauseVideos = () => {
-  const {appFocused} = ConfigConstants.useConfigState.getState()
+  const {appFocused} = C.useConfigState.getState()
   const videos = document.querySelectorAll('video')
   const allVideos = Array.from(videos)
 
@@ -95,7 +95,7 @@ export const dumpLogs = async (reason?: string) => {
 }
 
 export const initPlatformListener = () => {
-  ConfigConstants.useConfigState.setState(s => {
+  C.useConfigState.setState(s => {
     s.dispatch.dynamic.dumpLogsNative = dumpLogs
     s.dispatch.dynamic.showMainNative = () => showMainWindow?.()
     s.dispatch.dynamic.copyToClipboard = s => copyToClipboard?.(s)
@@ -160,7 +160,7 @@ export const initPlatformListener = () => {
           const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
           NotifyPopup('Client out of date!', {body}, 60 * 60)
           // This is from the API server. Consider notifications from server always critical.
-          ConfigConstants.useConfigState
+          C.useConfigState
             .getState()
             .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
           break
@@ -170,14 +170,12 @@ export const initPlatformListener = () => {
     }
   })
 
-  ConfigConstants.useConfigState.subscribe((s, old) => {
+  C.useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
-    ConfigConstants.useConfigState
-      .getState()
-      .dispatch.osNetworkStatusChanged(navigator.onLine, 'notavailable', true)
+    C.useConfigState.getState().dispatch.osNetworkStatusChanged(navigator.onLine, 'notavailable', true)
   })
 
-  ConfigConstants.useConfigState.subscribe((s, prev) => {
+  C.useConfigState.subscribe((s, prev) => {
     if (s.appFocused !== prev.appFocused) {
       maybePauseVideos()
     }
@@ -212,15 +210,15 @@ export const initPlatformListener = () => {
 
   const setupReachabilityWatcher = () => {
     window.addEventListener('online', () =>
-      ConfigConstants.useConfigState.getState().dispatch.osNetworkStatusChanged(true, 'notavailable')
+      C.useConfigState.getState().dispatch.osNetworkStatusChanged(true, 'notavailable')
     )
     window.addEventListener('offline', () =>
-      ConfigConstants.useConfigState.getState().dispatch.osNetworkStatusChanged(false, 'notavailable')
+      C.useConfigState.getState().dispatch.osNetworkStatusChanged(false, 'notavailable')
     )
   }
   setupReachabilityWatcher()
 
-  ConfigConstants.useConfigState.subscribe((s, old) => {
+  C.useConfigState.subscribe((s, old) => {
     if (s.openAtLogin === old.openAtLogin) return
     const {openAtLogin} = s
     const f = async () => {
@@ -251,15 +249,15 @@ export const initPlatformListener = () => {
 
   C.useDaemonState.subscribe((s, old) => {
     if (s.handshakeState === old.handshakeState || s.handshakeState !== 'done') return
-    ConfigConstants.useConfigState.getState().dispatch.setStartupDetailsLoaded()
+    C.useConfigState.getState().dispatch.setStartupDetailsLoaded()
   })
 
   if (isLinux) {
-    ConfigConstants.useConfigState.getState().dispatch.initUseNativeFrame()
+    C.useConfigState.getState().dispatch.initUseNativeFrame()
   }
-  ConfigConstants.useConfigState.getState().dispatch.initNotifySound()
-  ConfigConstants.useConfigState.getState().dispatch.initOpenAtLogin()
-  ConfigConstants.useConfigState.getState().dispatch.initAppUpdateLoop()
+  C.useConfigState.getState().dispatch.initNotifySound()
+  C.useConfigState.getState().dispatch.initOpenAtLogin()
+  C.useConfigState.getState().dispatch.initAppUpdateLoop()
 
   C.useProfileState.setState(s => {
     s.dispatch.editAvatar = () => {

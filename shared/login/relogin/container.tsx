@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
 import * as React from 'react'
 import Login from '.'
@@ -36,7 +35,7 @@ const LoginWrapper = (props: Props) => {
     onLogin(selectedUser, password)
   }, [selectedUser, password, onLogin])
 
-  const loginError = ConfigConstants.useConfigState(s => s.dispatch.loginError)
+  const loginError = C.useConfigState(s => s.dispatch.loginError)
 
   const selectedUserChange = React.useCallback(
     (user: string) => {
@@ -93,9 +92,9 @@ const LoginWrapper = (props: Props) => {
 }
 
 export default () => {
-  const _users = ConfigConstants.useConfigState(s => s.configuredAccounts)
-  const error = ConfigConstants.useConfigState(s => s.loginError)
-  const selectedUser = ConfigConstants.useConfigState(s => s.defaultUsername)
+  const _users = C.useConfigState(s => s.configuredAccounts)
+  const error = C.useConfigState(s => s.loginError)
+  const selectedUser = C.useConfigState(s => s.defaultUsername)
   const startRecoverPassword = C.useRecoverState(s => s.dispatch.startRecoverPassword)
   const onForgotPassword = (username: string) => {
     startRecoverPassword({username})
@@ -104,7 +103,7 @@ export default () => {
   const onFeedback = () => {
     navigateAppend({props: {}, selected: 'feedback'})
   }
-  const onLogin = ConfigConstants.useConfigState(s => s.dispatch.login)
+  const onLogin = C.useConfigState(s => s.dispatch.login)
   const requestAutoInvite = C.useSignupState(s => s.dispatch.requestAutoInvite)
   const onSignup = () => requestAutoInvite()
   const onSomeoneElse = C.useProvisionState(s => s.dispatch.startProvision)

@@ -3,7 +3,6 @@ import * as C from '../constants'
 import {useAvatarState} from '../common-adapters/avatar-zus'
 import * as React from 'react'
 import * as Constants from '../constants/tracker2'
-import * as ConfigConstants from '../constants/config'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import {serialize, type ProxyProps} from './remote-serializer.desktop'
@@ -21,7 +20,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const followers = C.useFollowerState(s => s.followers)
   const following = C.useFollowerState(s => s.following)
   const username = C.useCurrentUserState(s => s.username)
-  const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
+  const httpSrv = C.useConfigState(s => s.httpSrv)
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details
   const counts = new Map([

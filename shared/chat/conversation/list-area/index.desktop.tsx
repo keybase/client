@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as ConfigConstants from '../../../constants/config'
 import * as Container from '../../../util/container'
 import * as Hooks from './hooks'
 import * as React from 'react'
@@ -532,7 +531,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
   const containsLatestMessage = C.useChatContext(s => s.containsLatestMessage) ?? false
   const messageTypeMap = C.useChatContext(s => s.messageTypeMap)
   const messageOrdinals = C.useChatContext(s => s.messageOrdinals) ?? []
-  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const {isLockedToBottom, scrollToBottom, setListRef, pointerWrapperRef} = useScrolling({
     centeredOrdinal,

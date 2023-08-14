@@ -1,8 +1,7 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as ConfigConstants from '../../constants/config'
-import * as C from '../../constants'
 import type {Props} from '.'
 
 const ChatPDF = (props: Props) => {
@@ -11,7 +10,7 @@ const ChatPDF = (props: Props) => {
   const [error, setError] = React.useState('')
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => navigateUp()
-  const showShareActionSheet = ConfigConstants.useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
+  const showShareActionSheet = C.useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
   const onShare = () => showShareActionSheet?.(url ?? '', '', 'application/pdf')
   const rightActions = [{icon: 'iconfont-share', onPress: onShare} as const]
   return (

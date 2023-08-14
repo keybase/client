@@ -1,6 +1,5 @@
 import * as C from '..'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
-import * as ConfigConstants from '../config'
 import {isMobile, isTablet} from '../platform'
 import * as Router2 from '../router2'
 import * as Types from '../types/chat2'
@@ -100,7 +99,7 @@ export const isUserActivelyLookingAtThisThread = (conversationIDKey: Types.Conve
         : maybeVisibleScreen.name) === threadRouteName
   }
 
-  const {appFocused} = ConfigConstants.useConfigState.getState()
+  const {appFocused} = C.useConfigState.getState()
   const {active: userActive} = C.useActiveState.getState()
 
   return (

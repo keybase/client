@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import Menubar from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
@@ -16,9 +15,9 @@ const RemoteContainer = () => {
   C.useFollowerState(s => s.dispatch.replace)(followers, following)
   C.useUsersState(s => s.dispatch.replace)(infoMap)
   C.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
-  ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
-  ConfigConstants.useConfigState(s => s.dispatch.setOutOfDate)(outOfDate)
-  ConfigConstants.useConfigState(s => s.dispatch.setLoggedIn)(loggedIn, false)
+  C.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
+  C.useConfigState(s => s.dispatch.setOutOfDate)(outOfDate)
+  C.useConfigState(s => s.dispatch.setLoggedIn)(loggedIn, false)
   for (const [id, unread] of unreadMap) {
     C.getConvoState(id).dispatch.unreadUpdated(unread)
   }

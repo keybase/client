@@ -1,8 +1,7 @@
+import * as C from '../../../../constants'
 import * as Container from '../../../../util/container'
-import * as ConfigConstants from '../../../../constants/config'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as C from '../../../../constants'
 import * as Styles from '../../../../styles'
 import AudioRecorder from '../../../audio/audio-recorder.native'
 import FilePickerPopup from '../filepicker-popup'
@@ -211,7 +210,7 @@ type ChatFilePickerProps = {
 }
 const ChatFilePicker = (p: ChatFilePickerProps) => {
   const {attachTo, showingPopup, toggleShowingPopup, conversationIDKey} = p
-  const filePickerError = ConfigConstants.useConfigState(s => s.dispatch.filePickerError)
+  const filePickerError = C.useConfigState(s => s.dispatch.filePickerError)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const launchNativeImagePicker = React.useCallback(
     (mediaType: 'photo' | 'video' | 'mixed', location: string) => {

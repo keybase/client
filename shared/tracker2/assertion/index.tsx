@@ -1,5 +1,5 @@
+import * as C from '../../constants'
 import * as React from 'react'
-import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import type * as Types from '../../constants/types/tracker2'
@@ -131,7 +131,7 @@ const assertionColorToColor = (c: Types.AssertionColor) => {
 const StellarValue = (p: Props) => {
   const {value, color} = p
 
-  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopyAddress = React.useCallback(() => {
     copyToClipboard(value)
   }, [copyToClipboard, value])

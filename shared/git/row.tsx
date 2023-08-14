@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as ConfigConstants from '../constants/config'
 import * as FsTypes from '../constants/types/fs'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -39,7 +38,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
   const _setDisableChat = (disabled: boolean, repoID: string, teamname: string) => {
     setTeamRepoSettings('', teamname, repoID, disabled)
   }
-  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const openUserTracker = (username: string) => {
     showUser(username, true)

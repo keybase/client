@@ -1,5 +1,5 @@
+import * as C from '../constants'
 import * as React from 'react'
-import * as ConfigConstants from '../constants/config'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 // import {isIPhoneX} from '../constants/platform'
@@ -83,7 +83,7 @@ const LogStats = (props: {num?: number}) => {
     []
   )
   const [, setDoRender] = React.useState(0)
-  const events = ConfigConstants.useConfigState(s => s.runtimeStats?.perfEvents)
+  const events = C.useConfigState(s => s.runtimeStats?.perfEvents)
   const lastEventsRef = React.useRef(new WeakSet<Array<RPCTypes.PerfEvent>>())
 
   const eventsRef = React.useRef<Array<RPCTypes.PerfEvent>>([])
@@ -392,7 +392,7 @@ const RuntimeStatsMobile = ({stats}: Props) => {
 }
 
 const RuntimeStats = () => {
-  const stats = ConfigConstants.useConfigState(s => s.runtimeStats)
+  const stats = C.useConfigState(s => s.runtimeStats)
   return stats ? (
     Styles.isMobile ? (
       <RuntimeStatsMobile stats={stats} />

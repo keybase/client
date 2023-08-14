@@ -5,7 +5,6 @@ import * as Kb from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as SettingsConstants from '../constants/settings'
-import * as ConfigConstants from '../constants/config'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import type * as Types from '../constants/types/devices'
@@ -102,7 +101,7 @@ const useRevoke = (deviceID = '') => {
         try {
           await RPCTypes.loginDeprovisionRpcPromise({doRevoke: true, username}, C.devicesWaitingKey)
           load()
-          ConfigConstants.useConfigState.getState().dispatch.revoke(deviceName)
+          C.useConfigState.getState().dispatch.revoke(deviceName)
         } catch {}
       } else {
         try {
@@ -111,7 +110,7 @@ const useRevoke = (deviceID = '') => {
             C.devicesWaitingKey
           )
           load()
-          ConfigConstants.useConfigState.getState().dispatch.revoke(deviceName)
+          C.useConfigState.getState().dispatch.revoke(deviceName)
           navUpToScreen(
             Container.isMobile
               ? Container.isTablet

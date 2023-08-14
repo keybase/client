@@ -1,5 +1,5 @@
+import * as C from '../constants'
 import * as React from 'react'
-import * as ConfigConstants from '../constants/config'
 import {Box2} from './box'
 import Icon from './icon'
 import Button, {type Props as ButtonProps} from './button'
@@ -52,8 +52,8 @@ const CopyText = (props: Props) => {
 
   const attachmentRef = React.useRef<Box2>(null)
   const textRef = React.useRef<Text>(null)
-  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-  const showShareActionSheet = ConfigConstants.useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const showShareActionSheet = C.useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
   const copy = React.useCallback(() => {
     if (!text) {
       if (!loadText) {

@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Chat2Gen from './chat2-gen'
-import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
@@ -554,7 +553,7 @@ const openChatFromWidget = (
   _: unknown,
   {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
 ) => {
-  ConfigConstants.useConfigState.getState().dispatch.showMain()
+  C.useConfigState.getState().dispatch.showMain()
   C.getConvoState(conversationIDKey ?? Constants.noConversationIDKey).dispatch.navigateToThread('inboxSmall')
 }
 

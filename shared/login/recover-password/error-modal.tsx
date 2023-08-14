@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
@@ -10,7 +9,7 @@ type Props = {
 }
 
 const useConn = () => {
-  const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
+  const loggedIn = C.useConfigState(s => s.loggedIn)
   const error = C.useRecoverState(s => s.error)
   const popStack = C.useRouterState(s => s.dispatch.popStack)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

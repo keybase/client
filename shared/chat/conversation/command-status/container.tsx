@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as ConfigConstants from '../../../constants/config'
 import CommandStatus from '.'
 
 const empty = {
@@ -13,7 +12,7 @@ export default () => {
   const info = C.useChatContext(s => s.commandStatus)
   const _info = info || empty
 
-  const onOpenAppSettings = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const onOpenAppSettings = C.useConfigState(s => s.dispatch.dynamic.openAppSettings)
   const setCommandStatusInfo = C.useChatContext(s => s.dispatch.setCommandStatusInfo)
   const onCancel = () => {
     setCommandStatusInfo()

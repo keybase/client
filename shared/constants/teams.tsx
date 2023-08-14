@@ -1,7 +1,6 @@
 import * as C from '.'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as ChatTypes from './types/chat2'
-import * as ConfigConstants from './config'
 import * as ProfileConstants from './profile'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
@@ -1962,7 +1961,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
       const f = async () => {
         const username = C.useCurrentUserState.getState().username
-        const loggedIn = ConfigConstants.useConfigState.getState().loggedIn
+        const loggedIn = C.useConfigState.getState().loggedIn
         if (!username || !loggedIn) {
           logger.warn('getTeams while logged out')
           return
@@ -2665,7 +2664,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               // nothing is hooked up to this???
               // reduxDispatch(TeamsGen.createAddParticipant({conversationIDKey, teamID}))
             } catch (error) {
-              ConfigConstants.useConfigState.getState().dispatch.setGlobalError(error)
+               C.useConfigState.getState().dispatch.setGlobalError(error)
             }
           } else {
             try {
@@ -2674,7 +2673,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               // nothing is hooked up to this???
               // reduxDispatch(TeamsGen.createRemoveParticipant({conversationIDKey, teamID}))
             } catch (error) {
-              ConfigConstants.useConfigState.getState().dispatch.setGlobalError(error)
+               C.useConfigState.getState().dispatch.setGlobalError(error)
             }
           }
         }
@@ -2791,7 +2790,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               waitingKey
             )
           } catch (payload) {
-            ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
+             C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
@@ -2801,7 +2800,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               waitingKey
             )
           } catch (payload) {
-            ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
+             C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (publicityAnyMember !== settings.publicityAnyMember) {
@@ -2811,7 +2810,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               waitingKey
             )
           } catch (payload) {
-            ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
+             C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (publicityMember !== settings.publicityMember) {
@@ -2821,7 +2820,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               waitingKey
             )
           } catch (payload) {
-            ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
+             C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (publicityTeam !== settings.publicityTeam) {
@@ -2831,7 +2830,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               waitingKey
             )
           } catch (payload) {
-            ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
+             C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
       }

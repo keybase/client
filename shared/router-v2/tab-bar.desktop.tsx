@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import './tab-bar.css'
-import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
@@ -49,7 +48,7 @@ const Header = () => {
     startProvision()
   }
   const onHelp = () => openURL('https://book.keybase.io')
-  const dumpLogs = ConfigConstants.useConfigState(s => s.dispatch.dumpLogs)
+  const dumpLogs = C.useConfigState(s => s.dispatch.dumpLogs)
   const onQuit = () => {
     if (!__DEV__) {
       if (isLinux) {
@@ -209,10 +208,10 @@ const TabBadge = (p: {name: Tabs.Tab}) => {
 const Tab = React.memo(function Tab(props: TabProps) {
   const {tab, index, isSelected, onSelectTab} = props
   const {label} = Tabs.desktopTabMeta[tab]
-  const accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
+  const accountRows = C.useConfigState(s => s.configuredAccounts)
   const current = C.useCurrentUserState(s => s.username)
-  const setUserSwitching = ConfigConstants.useConfigState(s => s.dispatch.setUserSwitching)
-  const login = ConfigConstants.useConfigState(s => s.dispatch.login)
+  const setUserSwitching = C.useConfigState(s => s.dispatch.setUserSwitching)
+  const login = C.useConfigState(s => s.dispatch.login)
   const onQuickSwitch = React.useMemo(
     () =>
       index === 0
