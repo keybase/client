@@ -7,64 +7,6 @@ import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
 import logger from '../logger'
 
-const onGetInboxUnverifiedConvs = (_: unknown, action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => {
-  const {inbox} = action.payload.params
-  const result = JSON.parse(inbox) as RPCChatTypes.UnverifiedInboxUIItems
-  const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items ?? []
-  // We get a subset of meta information from the cache even in the untrusted payload
-  const metas = items.reduce<Array<Types.ConversationMeta>>((arr, item) => {
-    const m = Constants.unverifiedInboxUIItemToConversationMeta(item)
-    m && arr.push(m)
-    return arr
-  }, [])
-  C.useChatState.getState().dispatch.setTrustedInboxHasLoaded()
-  // Check if some of our existing stored metas might no longer be valid
-  C.useChatState.getState().dispatch.metasReceived(metas)
-}
-
-const onGetInboxConvsUnboxed = (_: unknown, action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => {
-  // TODO not reactive
-  const {infoMap} = C.useUsersState.getState()
-  const actions: Array<Container.TypedActions> = []
-  const {convs} = action.payload.params
-  const inboxUIItems = JSON.parse(convs) as Array<RPCChatTypes.InboxUIItem>
-  const metas: Array<Types.ConversationMeta> = []
-  let added = false
-  const usernameToFullname: {[username: string]: string} = {}
-  inboxUIItems.forEach(inboxUIItem => {
-    const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
-    if (meta) {
-      metas.push(meta)
-    }
-    const participantInfo: Types.ParticipantInfo = Constants.uiParticipantsToParticipantInfo(
-      inboxUIItem.participants ?? []
-    )
-    if (participantInfo.all.length > 0) {
-      C.getConvoState(Types.stringToConversationIDKey(inboxUIItem.convID)).dispatch.setParticipants(
-        participantInfo
-      )
-    }
-    inboxUIItem.participants?.forEach((part: RPCChatTypes.UIParticipant) => {
-      const {assertion, fullName} = part
-      if (!infoMap.get(assertion) && fullName) {
-        added = true
-        usernameToFullname[assertion] = fullName
-      }
-    })
-  })
-  if (added) {
-    C.useUsersState
-      .getState()
-      .dispatch.updates(
-        Object.keys(usernameToFullname).map(name => ({info: {fullname: usernameToFullname[name]}, name}))
-      )
-  }
-  if (metas.length > 0) {
-    C.useChatState.getState().dispatch.metasReceived(metas)
-  }
-  return actions
-}
-
 const maybeChangeSelectedConv = () => {
   const selectedConversation = C.getSelectedConversation()
   const {inboxLayout} = C.useChatState.getState()
@@ -308,14 +250,7 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
 }
 
 const initChat = () => {
-  // Refresh the inbox
-  Container.listenAction(EngineGen.chat1NotifyChatChatInboxStale, () => {
-    C.useChatState.getState().dispatch.inboxRefresh('inboxStale')
-  })
-
   // Actually try and unbox conversations
-  Container.listenAction(EngineGen.chat1ChatUiChatInboxConversation, onGetInboxConvsUnboxed)
-  Container.listenAction(EngineGen.chat1ChatUiChatInboxUnverified, onGetInboxUnverifiedConvs)
   Container.listenAction(EngineGen.chat1ChatUiChatInboxLayout, maybeChangeSelectedConv)
   Container.listenAction(EngineGen.chat1ChatUiChatInboxLayout, ensureWidgetMetas)
   // TODO move to engine constants
