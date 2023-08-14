@@ -1,7 +1,5 @@
 import * as C from '../../../constants'
 import * as React from 'react'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Container from '../../../util/container'
 import JumpToRecent from './jump-to-recent'
 import type * as Types from '../../../constants/types/chat2'
 import logger from '../../../logger'
@@ -20,21 +18,16 @@ export const useActions = (p: {conversationIDKey: Types.ConversationIDKey}) => {
   return {markInitiallyLoadedThreadAsRead}
 }
 
-export const useJumpToRecent = (
-  conversationIDKey: Types.ConversationIDKey,
-  scrollToBottom: () => void,
-  numOrdinals: number
-) => {
-  const dispatch = Container.useDispatch()
-
+export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number) => {
   const containsLatestMessage = C.useChatContext(s => s.containsLatestMessage)
   const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const jumpToRecent = C.useChatContext(s => s.dispatch.jumpToRecent)
 
-  const jumpToRecent = React.useCallback(() => {
+  const onJump = React.useCallback(() => {
     scrollToBottom()
-    dispatch(Chat2Gen.createJumpToRecent({conversationIDKey}))
+    jumpToRecent()
     toggleThreadSearch(true)
-  }, [toggleThreadSearch, dispatch, conversationIDKey, scrollToBottom])
+  }, [toggleThreadSearch, jumpToRecent, scrollToBottom])
 
-  return !containsLatestMessage && numOrdinals > 0 && <JumpToRecent onClick={jumpToRecent} />
+  return !containsLatestMessage && numOrdinals > 0 && <JumpToRecent onClick={onJump} />
 }

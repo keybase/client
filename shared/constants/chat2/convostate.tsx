@@ -193,6 +193,7 @@ export type ConvoState = ConvoStore & {
     hideConversation: (hide: boolean) => void
     injectIntoInput: (text: string) => void
     joinConversation: () => void
+    jumpToRecent: () => void
     leaveConversation: (navToInbox?: boolean) => void
     loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
     loadMessagesCentered: (
@@ -265,6 +266,7 @@ export type ConvoState = ConvoStore & {
     refreshMutualTeamsInConv: () => void
     removeBotMember: (username: string) => void
     replaceMessageMap: (mm: ConvoStore['messageMap']) => void
+    replyJump: (messageID: Types.MessageID) => void
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
     resetChatWithoutThem: () => void
     resetLetThemIn: (username: string) => void
@@ -297,6 +299,7 @@ export type ConvoState = ConvoStore & {
     setThreadSearchQuery: (query: string) => void
     setTyping: (t: Set<string>) => void
     setupSubscriptions: () => void
+    tabSelected: () => void
     threadSearch: (query: string) => void
     toggleGiphyPrefill: () => void
     toggleLocalReaction: (p: {
@@ -776,6 +779,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         )
       }
       Z.ignorePromise(f())
+    },
+    jumpToRecent: () => {
+      get().dispatch.loadMoreMessages({forceClear: true, reason: 'jump to recent'})
+      get().dispatch.setMessageCenterOrdinal()
     },
     leaveConversation: (navToInbox = true) => {
       const f = async () => {
@@ -2196,6 +2203,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.messageMap = mm
       })
     },
+    replyJump: messageID => {
+      get().dispatch.setMessageCenterOrdinal()
+      get().dispatch.loadMessagesCentered(messageID, 'flash')
+    },
     requestInfoReceived: (messageID, requestInfo) => {
       set(s => {
         s.accountsInfoMap.set(messageID, requestInfo)
@@ -2651,6 +2662,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     setupSubscriptions: () => {
       // TODO
+    },
+    tabSelected: () => {
+      get().dispatch.loadMoreMessages({reason: 'tab selected'})
+      get().dispatch.markThreadAsRead()
     },
     threadSearch: query => {
       set(s => {

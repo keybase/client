@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/chat2'
 import * as Types from '../../constants/types/chat2'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import Inbox, {type Props} from '.'
 import {appendNewChatBuilder} from '../../actions/typed-routes'
@@ -71,7 +70,6 @@ type WrapperProps = Pick<
 >
 
 const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
-  const dispatch = Container.useDispatch()
   const inboxHasLoaded = C.useChatState(s => s.inboxHasLoaded)
   const queueMetaToRequest = C.useChatState(s => s.dispatch.queueMetaToRequest)
   const isFocused = useIsFocused()
@@ -98,7 +96,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
     setLastIsFocused(isFocused)
     if (Container.isMobile) {
       if (isFocused && Constants.isSplit) {
-        dispatch(Chat2Gen.createTabSelected())
+        C.getConvoState(C.getSelectedConversation()).dispatch.tabSelected()
       }
     }
   }
@@ -108,7 +106,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   Container.useOnMountOnce(() => {
     if (!Container.isMobile) {
       // On mobile this is taken care of by NavigationEvents.
-      dispatch(Chat2Gen.createTabSelected())
+      C.getConvoState(C.getSelectedConversation()).dispatch.tabSelected()
     }
     if (!inboxHasLoaded) {
       inboxRefresh('componentNeverLoaded')

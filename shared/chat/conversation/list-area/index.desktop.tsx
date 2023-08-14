@@ -544,7 +544,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
     requestScrollUpRef,
   })
 
-  const jumpToRecent = Hooks.useJumpToRecent(conversationIDKey, scrollToBottom, messageOrdinals.length)
+  const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
   const resizeObserve = useResizeObserver()
   const intersectionObserve = useIntersectionObserver()
   const unsubRef = React.useRef<(() => void) | undefined>()

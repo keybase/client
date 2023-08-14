@@ -193,7 +193,7 @@ const ConversationList = React.memo(function ConversationList(p: {
     requestScrollToBottomRef,
   })
 
-  const jumpToRecent = Hooks.useJumpToRecent(conversationIDKey, scrollToBottom, messageOrdinals.length)
+  const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
   Container.useDepChangeEffect(() => {
     centeredOrdinal && scrollToCentered()

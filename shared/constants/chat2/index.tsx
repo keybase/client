@@ -1,5 +1,4 @@
 import * as C from '..'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Tabs from '../tabs'
 import * as EngineGen from '../../actions/engine-gen-gen'
 import type * as ConfigConstants from '../config'
@@ -1213,9 +1212,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
 
       const maybeChatTabSelected = () => {
-        const reduxDispatch = Z.getReduxDispatch()
         if (Router2.getTab(prev) !== Tabs.chatTab && Router2.getTab(next) === Tabs.chatTab) {
-          reduxDispatch(Chat2Gen.createTabSelected())
+          const n = Router2.getVisibleScreen(next)
+          // @ts-ignore
+          const isID: string | undefined = n?.params?.conversationIDKey
+          isID && C.getConvoState(isID).dispatch.tabSelected()
         }
       }
       maybeChangeChatSelection()
