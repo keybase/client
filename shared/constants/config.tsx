@@ -6,6 +6,7 @@ import * as RPCTypes from './types/rpc-gen'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Stats from '../engine/stats'
 import * as Z from '../util/zustand'
+import {noConversationIDKey} from './chat2'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
 import type * as RPCTypesGregor from './types/rpc-gregor-gen'
@@ -152,7 +153,7 @@ const initialStore: Store = {
   remoteWindowNeedsProps: new Map(),
   revokedTrigger: 0,
   startup: {
-    conversation: C.noConversationIDKey,
+    conversation: noConversationIDKey,
     followUser: '',
     link: '',
     loaded: false,
