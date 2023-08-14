@@ -7,76 +7,6 @@ import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
 import logger from '../logger'
 
-// Some participants are broken/fixed now
-const onChatIdentifyUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatIdentifyUpdatePayload) => {
-  const {update} = action.payload.params
-  const usernames = update.CanonicalName.split(',')
-  const broken = (update.breaks.breaks || []).map(b => b.user.username)
-  const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
-  C.useUsersState.getState().dispatch.updates(updates)
-}
-
-const onChatInboxSyncStarted = () => {
-  const {increment} = C.useWaitingState.getState().dispatch
-  increment(Constants.waitingKeyInboxSyncStarted)
-}
-
-// Service tells us it's done syncing
-const onChatInboxSynced = (
-  _state: Container.TypedState,
-  action: EngineGen.Chat1NotifyChatChatInboxSyncedPayload
-) => {
-  const {syncRes} = action.payload.params
-
-  const {clear} = C.useWaitingState.getState().dispatch
-  const {inboxRefresh} = C.useChatState.getState().dispatch
-  clear(Constants.waitingKeyInboxSyncStarted)
-  const actions: Array<Container.TypedActions> = []
-
-  switch (syncRes.syncType) {
-    // Just clear it all
-    case RPCChatTypes.SyncInboxResType.clear:
-      inboxRefresh('inboxSyncedClear')
-      break
-    // We're up to date
-    case RPCChatTypes.SyncInboxResType.current:
-      break
-    // We got some new messages appended
-    case RPCChatTypes.SyncInboxResType.incremental: {
-      const items = syncRes.incremental.items || []
-      const selectedConversation = C.getSelectedConversation()
-      let loadMore = false
-      const metas = items.reduce<Array<Types.ConversationMeta>>((arr, i) => {
-        const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv)
-        if (meta) {
-          arr.push(meta)
-          if (meta.conversationIDKey === selectedConversation) {
-            loadMore = true
-          }
-        }
-        return arr
-      }, [])
-      if (loadMore) {
-        C.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
-      }
-      const removals = syncRes.incremental.removals?.map(Types.stringToConversationIDKey)
-      // Update new untrusted
-      if (metas.length || removals?.length) {
-        C.useChatState.getState().dispatch.metasReceived(metas, removals)
-      }
-
-      C.useChatState.getState().dispatch.unboxRows(
-        items.filter(i => i.shouldUnbox).map(i => Types.stringToConversationIDKey(i.conv.convID)),
-        true
-      )
-      break
-    }
-    default:
-      inboxRefresh('inboxSyncedUnknown')
-  }
-  return actions
-}
-
 const onChatPaymentInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatPaymentInfoPayload) => {
   const {convID, info, msgID} = action.payload.params
   const conversationIDKey = convID ? Types.conversationIDToKey(convID) : C.noConversationIDKey
@@ -186,9 +116,6 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
 }
 
 const initChat = () => {
-  Container.listenAction(EngineGen.chat1NotifyChatChatIdentifyUpdate, onChatIdentifyUpdate)
-  Container.listenAction(EngineGen.chat1NotifyChatChatInboxSyncStarted, onChatInboxSyncStarted)
-  Container.listenAction(EngineGen.chat1NotifyChatChatInboxSynced, onChatInboxSynced)
   Container.listenAction(EngineGen.chat1NotifyChatChatPaymentInfo, onChatPaymentInfo)
   Container.listenAction(EngineGen.chat1NotifyChatChatRequestInfo, onChatRequestInfo)
   Container.listenAction(EngineGen.chat1NotifyChatChatSubteamRename, onChatSubteamRename)

@@ -390,6 +390,7 @@ export type State = Store & {
     navigateToInbox: () => void
     onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
+    onChatInboxSynced: (action: EngineGen.Chat1NotifyChatChatInboxSyncedPayload) => void
     onGetInboxConvsUnboxed: (action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => void
     onGetInboxUnverifiedConvs: (action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => void
     onIncomingInboxUIItem: (inboxUIItem?: RPCChatTypes.InboxUIItem) => void
@@ -1003,6 +1004,54 @@ export const _useState = Z.createZustand<State>((set, get) => {
       C.useRouterState.getState().dispatch.navUpToScreen('chatRoot')
       C.useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
     },
+    onChatInboxSynced: action => {
+      const {syncRes} = action.payload.params
+      const {clear} = C.useWaitingState.getState().dispatch
+      const {inboxRefresh} = C.useChatState.getState().dispatch
+      clear(Common.waitingKeyInboxSyncStarted)
+
+      switch (syncRes.syncType) {
+        // Just clear it all
+        case RPCChatTypes.SyncInboxResType.clear:
+          inboxRefresh('inboxSyncedClear')
+          break
+        // We're up to date
+        case RPCChatTypes.SyncInboxResType.current:
+          break
+        // We got some new messages appended
+        case RPCChatTypes.SyncInboxResType.incremental: {
+          const items = syncRes.incremental.items || []
+          const selectedConversation = C.getSelectedConversation()
+          let loadMore = false
+          const metas = items.reduce<Array<Types.ConversationMeta>>((arr, i) => {
+            const meta = Meta.unverifiedInboxUIItemToConversationMeta(i.conv)
+            if (meta) {
+              arr.push(meta)
+              if (meta.conversationIDKey === selectedConversation) {
+                loadMore = true
+              }
+            }
+            return arr
+          }, [])
+          if (loadMore) {
+            C.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
+          }
+          const removals = syncRes.incremental.removals?.map(Types.stringToConversationIDKey)
+          // Update new untrusted
+          if (metas.length || removals?.length) {
+            C.useChatState.getState().dispatch.metasReceived(metas, removals)
+          }
+
+          C.useChatState.getState().dispatch.unboxRows(
+            items.filter(i => i.shouldUnbox).map(i => Types.stringToConversationIDKey(i.conv.convID)),
+            true
+          )
+          break
+        }
+        default:
+          inboxRefresh('inboxSyncedUnknown')
+      }
+    },
     onEngineConnected: () => {
       const f = async () => {
         try {
@@ -1027,8 +1076,25 @@ export const _useState = Z.createZustand<State>((set, get) => {
           C.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
           break
         }
+
+        case EngineGen.chat1NotifyChatChatIdentifyUpdate: {
+          // Some participants are broken/fixed now
+          const {update} = action.payload.params
+          const usernames = update.CanonicalName.split(',')
+          const broken = (update.breaks.breaks || []).map(b => b.user.username)
+          const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
+          C.useUsersState.getState().dispatch.updates(updates)
+          break
+        }
         case EngineGen.chat1ChatUiChatInboxUnverified:
           get().dispatch.onGetInboxUnverifiedConvs(action)
+          break
+        case EngineGen.chat1NotifyChatChatInboxSyncStarted:
+          C.useWaitingState.getState().dispatch.increment(Common.waitingKeyInboxSyncStarted)
+          break
+
+        case EngineGen.chat1NotifyChatChatInboxSynced:
+          get().dispatch.onChatInboxSynced(action)
           break
         case EngineGen.chat1ChatUiChatInboxLayout:
           get().dispatch.maybeChangeSelectedConv()
