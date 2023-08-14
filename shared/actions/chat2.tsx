@@ -4,31 +4,10 @@ import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
-import * as RPCTypes from './../constants/types/rpc-gen'
 import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
-import {findLast} from '../util/arrays'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
-
-const getClientPrev = (conversationIDKey: Types.ConversationIDKey): Types.MessageID => {
-  let clientPrev: undefined | Types.MessageID
-  const mm = C.getConvoState(conversationIDKey).messageMap
-  if (mm) {
-    // find last valid messageid we know about
-    const goodOrdinal = findLast(C.getConvoState(conversationIDKey).messageOrdinals ?? [], o => {
-      const m = mm.get(o)
-      return !!m?.id
-    })
-
-    if (goodOrdinal) {
-      const message = mm.get(goodOrdinal)
-      clientPrev = message && message.id
-    }
-  }
-
-  return clientPrev || 0
-}
 
 const onGetInboxUnverifiedConvs = (_: unknown, action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => {
   const {inbox} = action.payload.params
@@ -297,45 +276,6 @@ const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvU
   }
 }
 
-const sendAudioRecording = async (_: unknown, action: Chat2Gen.SendAudioRecordingPayload) => {
-  const {conversationIDKey, amps, path, duration} = action.payload
-  const outboxID = Constants.generateOutboxID()
-  const clientPrev = getClientPrev(conversationIDKey)
-  const ephemeralLifetime = C.getConvoState(conversationIDKey).explodingMode
-  const meta = C.getConvoState(conversationIDKey).meta
-  if (meta.conversationIDKey !== conversationIDKey) {
-    logger.warn('sendAudioRecording: no meta for send')
-    return
-  }
-
-  let callerPreview: RPCChatTypes.MakePreviewRes | undefined
-  if (amps) {
-    callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({amps, duration})
-  }
-  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  try {
-    await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
-      arg: {
-        ...ephemeralData,
-        callerPreview,
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        filename: path,
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        metadata: Buffer.from([]),
-        outboxID,
-        title: '',
-        tlfName: meta.tlfname,
-        visibility: RPCTypes.TLFVisibility.private,
-      },
-      clientPrev,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.warn('sendAudioRecording: failed to send attachment: ' + error.message)
-    }
-  }
-}
-
 const dismissJourneycard = (_: unknown, action: Chat2Gen.DismissJourneycardPayload) => {
   const {cardType, conversationIDKey, ordinal} = action.payload
   RPCChatTypes.localDismissJourneycardRpcPromise({
@@ -461,7 +401,6 @@ const initChat = () => {
       .dispatch.setMaybeMentionInfo(Constants.getTeamMentionName(teamName, channel), info)
   })
 
-  Container.listenAction(Chat2Gen.sendAudioRecording, sendAudioRecording)
   Container.listenAction(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate)
 
   Container.listenAction(EngineGen.chat1ChatUiChatBotCommandsUpdateStatus, (_, a) => {

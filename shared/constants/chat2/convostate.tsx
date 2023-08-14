@@ -276,6 +276,7 @@ export type ConvoState = ConvoStore & {
     resetUnsentText: () => void
     resolveMaybeMention: (name: string, channel: string) => void
     selectedConversation: () => void
+    sendAudioRecording: (path: string, duration: number, amps: Array<number>) => void
     sendTyping: (typing: boolean) => void
     setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: Types.CommandStatusInfo) => void
@@ -2359,6 +2360,47 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       updateOrangeAfterSelected()
       fetchConversationBio()
       C.useChatState.getState().dispatch.resetConversationErrored()
+    },
+    sendAudioRecording: (path, duration, amps) => {
+      const f = async () => {
+        const conversationIDKey = get().id
+        const outboxID = Common.generateOutboxID()
+        const clientPrev = getClientPrev(conversationIDKey)
+        const ephemeralLifetime = C.getConvoState(conversationIDKey).explodingMode
+        const meta = C.getConvoState(conversationIDKey).meta
+        if (meta.conversationIDKey !== conversationIDKey) {
+          logger.warn('sendAudioRecording: no meta for send')
+          return
+        }
+
+        let callerPreview: RPCChatTypes.MakePreviewRes | undefined
+        if (amps) {
+          callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({amps, duration})
+        }
+        const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+        try {
+          await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
+            arg: {
+              ...ephemeralData,
+              callerPreview,
+              conversationID: Types.keyToConversationID(conversationIDKey),
+              filename: path,
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              metadata: Buffer.from([]),
+              outboxID,
+              title: '',
+              tlfName: meta.tlfname,
+              visibility: RPCTypes.TLFVisibility.private,
+            },
+            clientPrev,
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.warn('sendAudioRecording: failed to send attachment: ' + error.message)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     sendTyping: throttle(typing => {
       const f = async () => {

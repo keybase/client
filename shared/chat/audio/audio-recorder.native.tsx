@@ -1,6 +1,4 @@
 import * as C from '../../constants'
-import * as Chat2Gen from '../../actions/chat2-gen'
-import * as Container from '../../util/container'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Kb from '../../common-adapters'
 import * as KbMobile from '../../common-adapters/mobile.native'
@@ -8,7 +6,6 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 // we need to use the raw colors to animate
 import {colors} from '../../styles/colors'
-import type * as Types from '../../constants/types/chat2'
 import * as Reanimated from 'react-native-reanimated'
 import {AmpTracker} from './amptracker'
 import {
@@ -32,7 +29,6 @@ const Animated = Reanimated.default
 type SVN = Reanimated.SharedValue<number>
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   showAudioSend: boolean
   setShowAudioSend: (s: boolean) => void
 }
@@ -362,19 +358,13 @@ const makeRecorder = async (onRecordingStatusUpdate: (s: Audio.RecordingStatus) 
 }
 
 // Hook for interfacing with the native recorder
-const useRecorder = (p: {
-  conversationIDKey: Types.ConversationIDKey
-  ampSV: SVN
-  setShowAudioSend: (s: boolean) => void
-  showAudioSend: boolean
-}) => {
-  const {conversationIDKey, ampSV, setShowAudioSend, showAudioSend} = p
+const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; showAudioSend: boolean}) => {
+  const {ampSV, setShowAudioSend, showAudioSend} = p
   const recordingRef = React.useRef<Audio.Recording | undefined>()
   const recordStartRef = React.useRef(0)
   const recordEndRef = React.useRef(0)
   const hasSetupRecording = React.useRef(false)
   const pathRef = React.useRef('')
-  const dispatch = Container.useDispatch()
   const ampTracker = React.useRef(new AmpTracker()).current
   const [staged, setStaged] = React.useState(false)
 
@@ -481,6 +471,8 @@ const useRecorder = (p: {
     return
   }, [setCommandStatusInfo, ampTracker, onReset, ampSV])
 
+  const sendAudioRecording = C.useChatContext(s => s.dispatch.sendAudioRecording)
+
   const sendRecording = React.useCallback(() => {
     const impl = async () => {
       await stopRecording()
@@ -489,14 +481,7 @@ const useRecorder = (p: {
       const path = pathRef.current
       const amps = ampTracker.getBucketedAmps(duration)
       if (duration > 500 && path && amps.length) {
-        dispatch(
-          Chat2Gen.createSendAudioRecording({
-            amps,
-            conversationIDKey,
-            duration,
-            path,
-          })
-        )
+        sendAudioRecording(path, duration, amps)
       } else {
         console.log('bail on too short or not path', duration, path)
       }
@@ -505,7 +490,7 @@ const useRecorder = (p: {
     impl()
       .then(() => {})
       .catch(() => {})
-  }, [dispatch, conversationIDKey, ampTracker, onReset, stopRecording])
+  }, [sendAudioRecording, ampTracker, onReset, stopRecording])
 
   const cancelRecording = React.useCallback(() => {
     onReset()
@@ -548,12 +533,11 @@ const useRecorder = (p: {
 }
 
 const AudioRecorder = React.memo(function AudioRecorder(props: Props) {
-  const {conversationIDKey, setShowAudioSend, showAudioSend} = props
+  const {setShowAudioSend, showAudioSend} = props
   const ampSV = useSharedValue(0)
 
   const {startRecording, cancelRecording, sendRecording, stageRecording, audioSend} = useRecorder({
     ampSV,
-    conversationIDKey,
     setShowAudioSend,
     showAudioSend,
   })

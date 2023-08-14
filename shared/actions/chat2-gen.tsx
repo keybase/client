@@ -8,7 +8,6 @@ export const resetStore = 'common:resetStore' // not a part of chat2 but is hand
 export const typePrefix = 'chat2:'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
-export const sendAudioRecording = 'chat2:sendAudioRecording'
 
 // Action Creators
 /**
@@ -25,22 +24,14 @@ export const createDismissJourneycard = (payload: {
 export const createFetchUserEmoji = (
   payload: {readonly conversationIDKey?: Types.ConversationIDKey; readonly onlyInTeam?: boolean} = {}
 ) => ({payload, type: fetchUserEmoji as typeof fetchUserEmoji})
-export const createSendAudioRecording = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly duration: number
-  readonly path: string
-  readonly amps: Array<number>
-}) => ({payload, type: sendAudioRecording as typeof sendAudioRecording})
 
 // Action Payloads
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
-export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 
 // All Actions
 // prettier-ignore
 export type Actions =
   | DismissJourneycardPayload
   | FetchUserEmojiPayload
-  | SendAudioRecordingPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}
