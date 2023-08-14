@@ -20,8 +20,6 @@ export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const tabSelected = 'chat2:tabSelected'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
-export const unfurlRemove = 'chat2:unfurlRemove'
-export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unpinMessage = 'chat2:unpinMessage'
 export const updateUnreadline = 'chat2:updateUnreadline'
 
@@ -86,28 +84,12 @@ export const createFetchUserEmoji = (
   payload: {readonly conversationIDKey?: Types.ConversationIDKey; readonly onlyInTeam?: boolean} = {}
 ) => ({payload, type: fetchUserEmoji as typeof fetchUserEmoji})
 /**
- * Remove an unfurl
- */
-export const createUnfurlRemove = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: Types.MessageID
-}) => ({payload, type: unfurlRemove as typeof unfurlRemove})
-/**
  * Resolve an unknown @ mention
  */
 export const createResolveMaybeMention = (payload: {readonly name: string; readonly channel: string}) => ({
   payload,
   type: resolveMaybeMention as typeof resolveMaybeMention,
 })
-/**
- * Response to an unfurl prompt
- */
-export const createUnfurlResolvePrompt = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: Types.MessageID
-  readonly domain: string
-  readonly result: RPCChatTypes.UnfurlPromptResult
-}) => ({payload, type: unfurlResolvePrompt as typeof unfurlResolvePrompt})
 /**
  * Toggle the collapse status of a message
  */
@@ -163,8 +145,6 @@ export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMen
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
-export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
-export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePrompt>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 export type UpdateUnreadlinePayload = ReturnType<typeof createUpdateUnreadline>
 
@@ -185,8 +165,6 @@ export type Actions =
   | SendAudioRecordingPayload
   | TabSelectedPayload
   | ToggleMessageCollapsePayload
-  | UnfurlRemovePayload
-  | UnfurlResolvePromptPayload
   | UnpinMessagePayload
   | UpdateUnreadlinePayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

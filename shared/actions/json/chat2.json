@@ -4,18 +4,6 @@
     "import type * as Types from '../constants/types/chat2'"
   ],
   "actions": {
-    "unfurlResolvePrompt": {
-      "_description": "Response to an unfurl prompt",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID",
-      "domain": "string",
-      "result": "RPCChatTypes.UnfurlPromptResult"
-    },
-    "unfurlRemove": {
-      "_description": "Remove an unfurl",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID"
-    },
     "confirmScreenResponse": {
       "_description": "User responded to the chat Stellar confirm screen",
       "accept": "boolean"

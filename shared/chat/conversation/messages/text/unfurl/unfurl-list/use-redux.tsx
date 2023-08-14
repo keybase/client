@@ -12,9 +12,10 @@ export const useActions = (
   ordinal: Types.Ordinal
 ) => {
   const dispatch = Container.useDispatch()
+  const unfurlRemove = C.useChatContext(s => s.dispatch.unfurlRemove)
   const onClose = React.useCallback(() => {
-    dispatch(Chat2Gen.createUnfurlRemove({conversationIDKey, messageID}))
-  }, [dispatch, conversationIDKey, messageID])
+    unfurlRemove(messageID)
+  }, [unfurlRemove, messageID])
   const onToggleCollapse = React.useCallback(() => {
     dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID, ordinal}))
   }, [dispatch, conversationIDKey, messageID, ordinal])

@@ -301,6 +301,12 @@ export type ConvoState = ConvoStore & {
     toggleGiphyPrefill: () => void
     toggleMessageReaction: (ordinal: Types.Ordinal, emoji: string) => void
     toggleThreadSearch: (hide?: boolean) => void
+    unfurlResolvePrompt: (
+      messageID: Types.MessageID,
+      domain: string,
+      result: RPCChatTypes.UnfurlPromptResult
+    ) => void
+    unfurlRemove: (messageID: Types.MessageID) => void
     updateDraft: (text: string) => void
     toggleLocalReaction: (p: {
       decorated: string
@@ -2835,6 +2841,41 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (!visible) {
           await RPCChatTypes.localCancelActiveSearchRpcPromise()
         }
+      }
+      Z.ignorePromise(f())
+    },
+    unfurlRemove: messageID => {
+      const f = async () => {
+        const conversationIDKey = get().id
+        const meta = C.getConvoState(conversationIDKey).meta
+        if (meta.conversationIDKey !== conversationIDKey) {
+          logger.debug('unfurl remove no meta found, aborting!')
+          return
+        }
+        await RPCChatTypes.localPostDeleteNonblockRpcPromise(
+          {
+            clientPrev: 0,
+            conversationID: Types.keyToConversationID(conversationIDKey),
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+            outboxID: null,
+            supersedes: messageID,
+            tlfName: meta.tlfname,
+            tlfPublic: false,
+          },
+          Common.waitingKeyDeletePost
+        )
+      }
+      Z.ignorePromise(f())
+    },
+    unfurlResolvePrompt: (messageID, domain, result) => {
+      const f = async () => {
+        get().dispatch.unfurlTogglePrompt(messageID, domain, false)
+        await RPCChatTypes.localResolveUnfurlPromptRpcPromise({
+          convID: Types.keyToConversationID(get().id),
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          msgID: Types.messageIDToNumber(messageID),
+          result,
+        })
       }
       Z.ignorePromise(f())
     },

@@ -420,42 +420,6 @@ const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageC
   })
 }
 
-const unfurlRemove = async (_: unknown, action: Chat2Gen.UnfurlRemovePayload) => {
-  const {conversationIDKey, messageID} = action.payload
-  const meta = C.getConvoState(conversationIDKey).meta
-  if (meta.conversationIDKey !== conversationIDKey) {
-    logger.debug('unfurl remove no meta found, aborting!')
-    return
-  }
-  await RPCChatTypes.localPostDeleteNonblockRpcPromise(
-    {
-      clientPrev: 0,
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      outboxID: null,
-      supersedes: messageID,
-      tlfName: meta.tlfname,
-      tlfPublic: false,
-    },
-    Constants.waitingKeyDeletePost
-  )
-}
-
-const unfurlDismissPrompt = (_: unknown, action: Chat2Gen.UnfurlResolvePromptPayload) => {
-  const {conversationIDKey, messageID, domain} = action.payload
-  C.getConvoState(conversationIDKey).dispatch.unfurlTogglePrompt(messageID, domain, false)
-}
-
-const unfurlResolvePrompt = async (_: unknown, action: Chat2Gen.UnfurlResolvePromptPayload) => {
-  const {conversationIDKey, messageID, result} = action.payload
-  await RPCChatTypes.localResolveUnfurlPromptRpcPromise({
-    convID: Types.keyToConversationID(conversationIDKey),
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    msgID: Types.messageIDToNumber(messageID),
-    result,
-  })
-}
-
 const onGiphyResults = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphySearchResultsPayload) => {
   const {convID, results} = action.payload.params
   C.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyGotSearchResult(results)
@@ -577,10 +541,6 @@ const initChat = () => {
 
   Container.listenAction(Chat2Gen.dismissJourneycard, dismissJourneycard)
   Container.listenAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)
-
-  Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlResolvePrompt)
-  Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
-  Container.listenAction(Chat2Gen.unfurlRemove, unfurlRemove)
 
   Container.listenAction(Chat2Gen.updateUnreadline, (_, a) => {
     const {dispatch} = C.getConvoState(C.getSelectedConversation())
