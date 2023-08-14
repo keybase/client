@@ -1,34 +1,11 @@
 import * as C from '../constants'
-import * as Chat2Gen from './chat2-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
-import * as RPCTypes from './../constants/types/rpc-gen'
 import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
-import {findLast} from '../util/arrays'
 import logger from '../logger'
-import {RPCError} from '../util/errors'
-
-const getClientPrev = (conversationIDKey: Types.ConversationIDKey): Types.MessageID => {
-  let clientPrev: undefined | Types.MessageID
-  const mm = C.getConvoState(conversationIDKey).messageMap
-  if (mm) {
-    // find last valid messageid we know about
-    const goodOrdinal = findLast(C.getConvoState(conversationIDKey).messageOrdinals ?? [], o => {
-      const m = mm.get(o)
-      return !!m?.id
-    })
-
-    if (goodOrdinal) {
-      const message = mm.get(goodOrdinal)
-      clientPrev = message && message.id
-    }
-  }
-
-  return clientPrev || 0
-}
 
 const onGetInboxUnverifiedConvs = (_: unknown, action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => {
   const {inbox} = action.payload.params
@@ -297,77 +274,6 @@ const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvU
   }
 }
 
-const sendAudioRecording = async (_: unknown, action: Chat2Gen.SendAudioRecordingPayload) => {
-  const {conversationIDKey, amps, path, duration} = action.payload
-  const outboxID = Constants.generateOutboxID()
-  const clientPrev = getClientPrev(conversationIDKey)
-  const ephemeralLifetime = C.getConvoState(conversationIDKey).explodingMode
-  const meta = C.getConvoState(conversationIDKey).meta
-  if (meta.conversationIDKey !== conversationIDKey) {
-    logger.warn('sendAudioRecording: no meta for send')
-    return
-  }
-
-  let callerPreview: RPCChatTypes.MakePreviewRes | undefined
-  if (amps) {
-    callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({amps, duration})
-  }
-  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  try {
-    await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
-      arg: {
-        ...ephemeralData,
-        callerPreview,
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        filename: path,
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        metadata: Buffer.from([]),
-        outboxID,
-        title: '',
-        tlfName: meta.tlfname,
-        visibility: RPCTypes.TLFVisibility.private,
-      },
-      clientPrev,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.warn('sendAudioRecording: failed to send attachment: ' + error.message)
-    }
-  }
-}
-
-const dismissJourneycard = (_: unknown, action: Chat2Gen.DismissJourneycardPayload) => {
-  const {cardType, conversationIDKey, ordinal} = action.payload
-  RPCChatTypes.localDismissJourneycardRpcPromise({
-    cardType: cardType,
-    convID: Types.keyToConversationID(conversationIDKey),
-  }).catch((error: unknown) => {
-    if (error instanceof RPCError) {
-      logger.error(`Failed to dismiss journeycard: ${error.message}`)
-    }
-  })
-  C.getConvoState(conversationIDKey).dispatch.messagesWereDeleted({ordinals: [ordinal]})
-}
-
-const fetchUserEmoji = async (_: unknown, action: Chat2Gen.FetchUserEmojiPayload) => {
-  const {conversationIDKey, onlyInTeam} = action.payload
-  const results = await RPCChatTypes.localUserEmojisRpcPromise(
-    {
-      convID:
-        conversationIDKey && conversationIDKey !== C.noConversationIDKey
-          ? Types.keyToConversationID(conversationIDKey)
-          : null,
-      opts: {
-        getAliases: true,
-        getCreationInfo: false,
-        onlyInTeam: onlyInTeam ?? false,
-      },
-    },
-    Constants.waitingKeyLoadingEmoji
-  )
-  C.useChatState.getState().dispatch.loadedUserEmoji(results)
-}
-
 const ensureWidgetMetas = () => {
   const {inboxLayout} = C.useChatState.getState()
   if (!inboxLayout?.widgetList) {
@@ -401,54 +307,6 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
   C.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyToggleWindow(show)
 }
 
-const resolveMaybeMention = async (_: unknown, action: Chat2Gen.ResolveMaybeMentionPayload) => {
-  await RPCChatTypes.localResolveMaybeMentionRpcPromise({
-    mention: {channel: action.payload.channel, name: action.payload.name},
-  })
-}
-
-const pinMessage = async (_: unknown, action: Chat2Gen.PinMessagePayload) => {
-  try {
-    await RPCChatTypes.localPinMessageRpcPromise({
-      convID: Types.keyToConversationID(action.payload.conversationIDKey),
-      msgID: action.payload.messageID,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(`pinMessage: ${error.message}`)
-    }
-  }
-}
-
-const unpinMessage = async (_: unknown, action: Chat2Gen.UnpinMessagePayload) => {
-  try {
-    await RPCChatTypes.localUnpinMessageRpcPromise(
-      {convID: Types.keyToConversationID(action.payload.conversationIDKey)},
-      Constants.waitingKeyUnpin(action.payload.conversationIDKey)
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(`unpinMessage: ${error.message}`)
-    }
-  }
-}
-
-const ignorePinnedMessage = async (_: unknown, action: Chat2Gen.IgnorePinnedMessagePayload) => {
-  await RPCChatTypes.localIgnorePinnedMessageRpcPromise({
-    convID: Types.keyToConversationID(action.payload.conversationIDKey),
-  })
-}
-
-const dismissBlockButtons = async (_: unknown, action: Chat2Gen.DismissBlockButtonsPayload) => {
-  try {
-    await RPCTypes.userDismissBlockButtonsRpcPromise({tlfID: action.payload.teamID})
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(`Couldn't dismiss block buttons: ${error.message}`)
-    }
-  }
-}
-
 const initChat = () => {
   // Refresh the inbox
   Container.listenAction(EngineGen.chat1NotifyChatChatInboxStale, () => {
@@ -464,9 +322,6 @@ const initChat = () => {
   Container.listenAction(EngineGen.chat1ChatUiChatInboxLayout, (_, action) => {
     C.useChatState.getState().dispatch.updateInboxLayout(action.payload.params.layout)
   })
-
-  Container.listenAction(Chat2Gen.dismissJourneycard, dismissJourneycard)
-  Container.listenAction(Chat2Gen.fetchUserEmoji, fetchUserEmoji)
 
   Container.listenAction(EngineGen.chat1NotifyChatChatPromptUnfurl, onChatPromptUnfurl)
   Container.listenAction(EngineGen.chat1NotifyChatChatIdentifyUpdate, onChatIdentifyUpdate)
@@ -508,16 +363,6 @@ const initChat = () => {
       .getState()
       .dispatch.setMaybeMentionInfo(Constants.getTeamMentionName(teamName, channel), info)
   })
-
-  Container.listenAction(Chat2Gen.resolveMaybeMention, resolveMaybeMention)
-
-  Container.listenAction(Chat2Gen.pinMessage, pinMessage)
-  Container.listenAction(Chat2Gen.unpinMessage, unpinMessage)
-  Container.listenAction(Chat2Gen.ignorePinnedMessage, ignorePinnedMessage)
-
-  Container.listenAction(Chat2Gen.sendAudioRecording, sendAudioRecording)
-
-  Container.listenAction(Chat2Gen.dismissBlockButtons, dismissBlockButtons)
 
   Container.listenAction(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate)
 

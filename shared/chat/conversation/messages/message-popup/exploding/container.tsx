@@ -1,5 +1,4 @@
 import * as C from '../../../../../constants'
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import * as React from 'react'
@@ -62,8 +61,6 @@ export default (ownProps: OwnProps) => {
   const explodesAt = message.explodingTime
   const hideTimer = message.submitState === 'pending' || message.submitState === 'failed'
   const timestamp = message.timestamp
-
-  const dispatch = Container.useDispatch()
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAddReaction = () => {
     navigateAppend({
@@ -111,14 +108,7 @@ export default (ownProps: OwnProps) => {
   const _onMarkAsUnread = (id: number) => {
     setMarkAsUnread(id)
   }
-  const _onPinMessage = (id: number) => {
-    dispatch(
-      Chat2Gen.createPinMessage({
-        conversationIDKey: ownProps.conversationIDKey,
-        messageID: id,
-      })
-    )
-  }
+  const _onPinMessage = C.useChatContext(s => s.dispatch.pinMessage)
   const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const _onReact = (emoji: string) => {
     toggleMessageReaction(ownProps.ordinal, emoji)

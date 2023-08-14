@@ -1,19 +1,13 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import type * as RPCTypes from '../constants/types/rpc-gen'
+
 import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import type * as Types from '../constants/types/chat2'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'chat2:'
-export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
-export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
-export const pinMessage = 'chat2:pinMessage'
-export const resolveMaybeMention = 'chat2:resolveMaybeMention'
-export const sendAudioRecording = 'chat2:sendAudioRecording'
-export const unpinMessage = 'chat2:unpinMessage'
 
 // Action Creators
 /**
@@ -25,68 +19,19 @@ export const createDismissJourneycard = (payload: {
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: dismissJourneycard as typeof dismissJourneycard})
 /**
- * Ignore pinned message
- */
-export const createIgnorePinnedMessage = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: ignorePinnedMessage as typeof ignorePinnedMessage})
-/**
- * Pin a message
- */
-export const createPinMessage = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: Types.MessageID
-}) => ({payload, type: pinMessage as typeof pinMessage})
-/**
  * Refresh user emoji and put it in store for picker
  */
 export const createFetchUserEmoji = (
   payload: {readonly conversationIDKey?: Types.ConversationIDKey; readonly onlyInTeam?: boolean} = {}
 ) => ({payload, type: fetchUserEmoji as typeof fetchUserEmoji})
-/**
- * Resolve an unknown @ mention
- */
-export const createResolveMaybeMention = (payload: {readonly name: string; readonly channel: string}) => ({
-  payload,
-  type: resolveMaybeMention as typeof resolveMaybeMention,
-})
-/**
- * Unpin a message
- */
-export const createUnpinMessage = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
-  payload,
-  type: unpinMessage as typeof unpinMessage,
-})
-export const createDismissBlockButtons = (payload: {readonly teamID: RPCTypes.TeamID}) => ({
-  payload,
-  type: dismissBlockButtons as typeof dismissBlockButtons,
-})
-export const createSendAudioRecording = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly duration: number
-  readonly path: string
-  readonly amps: Array<number>
-}) => ({payload, type: sendAudioRecording as typeof sendAudioRecording})
 
 // Action Payloads
-export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockButtons>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
-export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMessage>
-export type PinMessagePayload = ReturnType<typeof createPinMessage>
-export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMention>
-export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
-export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | DismissBlockButtonsPayload
   | DismissJourneycardPayload
   | FetchUserEmojiPayload
-  | IgnorePinnedMessagePayload
-  | PinMessagePayload
-  | ResolveMaybeMentionPayload
-  | SendAudioRecordingPayload
-  | UnpinMessagePayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

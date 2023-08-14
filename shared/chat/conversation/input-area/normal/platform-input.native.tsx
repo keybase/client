@@ -125,11 +125,7 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
       {!hasText && (
         <Kb.Box2 direction="horizontal" alignItems="flex-end">
           <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" fixOverdraw={true} />
-          <AudioRecorder
-            conversationIDKey={conversationIDKey}
-            showAudioSend={showAudioSend}
-            setShowAudioSend={setShowAudioSend}
-          />
+          <AudioRecorder showAudioSend={showAudioSend} setShowAudioSend={setShowAudioSend} />
           <Kb.Icon onClick={openMoreMenu} padding="tiny" type="iconfont-add" fixOverdraw={true} />
         </Kb.Box2>
       )}

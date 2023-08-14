@@ -3,11 +3,10 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
-import * as Chat2Gen from '../../actions/chat2-gen'
+
 type Props = {conversationID: string}
 
 const BlockButtons = (props: Props) => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
   const teamname = C.useChatContext(s => s.meta.teamname)
@@ -19,6 +18,7 @@ const BlockButtons = (props: Props) => {
   const participantInfo = C.useChatContext(s => s.participants)
   const currentUser = C.useCurrentUserState(s => s.username)
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const dismissBlockButtons = C.useChatContext(s => s.dispatch.dismissBlockButtons)
   if (!blockButtonInfo) {
     return null
   }
@@ -41,7 +41,7 @@ const BlockButtons = (props: Props) => {
       },
       selected: 'chatBlockingModal',
     })
-  const onDismiss = () => dispatch(Chat2Gen.createDismissBlockButtons({teamID}))
+  const onDismiss = () => dismissBlockButtons(teamID)
 
   const buttonRow = (
     <Kb.ButtonBar

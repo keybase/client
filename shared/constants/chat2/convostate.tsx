@@ -1,5 +1,4 @@
 import * as C from '..'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Styles from '../../styles'
 import * as Common from './common'
 import * as Tabs from '../tabs'
@@ -179,6 +178,8 @@ export type ConvoState = ConvoStore & {
     clearAttachmentView: () => void
     clearMessageTypeMap: () => void
     dismissBottomBanner: () => void
+    dismissBlockButtons: (teamID: RPCTypes.TeamID) => void
+    dismissJourneycard: (cardType: RPCChatTypes.JourneycardType, ordinal: Types.Ordinal) => void
     desktopNotification: (author: string, body: string) => void
     editBotSettings: (
       username: string,
@@ -261,6 +262,8 @@ export type ConvoState = ConvoStore & {
     onMessageErrored: (outboxID: Types.OutboxID, reason: string, errorTyp?: number) => void
     onMessagesUpdated: (messagesUpdated: RPCChatTypes.MessagesUpdated) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
+    pinMessage: (messageID?: Types.MessageID) => void
+    ignorePinnedMessage: () => void
     refreshBotRoleInConv: (username: string) => void
     refreshBotSettings: (username: string) => void
     refreshMutualTeamsInConv: () => void
@@ -272,7 +275,9 @@ export type ConvoState = ConvoStore & {
     resetLetThemIn: (username: string) => void
     resetState: 'default'
     resetUnsentText: () => void
+    resolveMaybeMention: (name: string, channel: string) => void
     selectedConversation: () => void
+    sendAudioRecording: (path: string, duration: number, amps: Array<number>) => void
     sendTyping: (typing: boolean) => void
     setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: Types.CommandStatusInfo) => void
@@ -402,7 +407,6 @@ export const numMessagesOnInitialLoad = isMobile ? 20 : 100
 export const numMessagesOnScrollback = isMobile ? 100 : 100
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
   const closeBotModal = () => {
     C.useRouterState.getState().dispatch.clearModals()
     const meta = get().meta
@@ -685,10 +689,36 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       NotifyPopup(title, {body, sound}, -1, author, onClick, onClose)
     },
+    dismissBlockButtons: teamID => {
+      const f = async () => {
+        try {
+          await RPCTypes.userDismissBlockButtonsRpcPromise({tlfID: teamID})
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(`Couldn't dismiss block buttons: ${error.message}`)
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
     dismissBottomBanner: () => {
       set(s => {
         s.dismissedInviteBanners = true
       })
+    },
+    dismissJourneycard: (cardType, ordinal) => {
+      const f = async () => {
+        await RPCChatTypes.localDismissJourneycardRpcPromise({
+          cardType: cardType,
+          convID: Types.keyToConversationID(get().id),
+        }).catch((error: unknown) => {
+          if (error instanceof RPCError) {
+            logger.error(`Failed to dismiss journeycard: ${error.message}`)
+          }
+        })
+        get().dispatch.messagesWereDeleted({ordinals: [ordinal]})
+      }
+      Z.ignorePromise(f())
     },
     editBotSettings: (username, allowCommands, allowMentions, convs) => {
       const f = async () => {
@@ -764,6 +794,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.threadSearchInfo.visible = false
       })
+    },
+    ignorePinnedMessage: () => {
+      const f = async () => {
+        await RPCChatTypes.localIgnorePinnedMessageRpcPromise({
+          convID: Types.keyToConversationID(get().id),
+        })
+      }
+      Z.ignorePromise(f())
     },
     injectIntoInput: text => {
       set(s => {
@@ -1472,7 +1510,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         // If there are block buttons on this conversation, clear them.
         if (C.useChatState.getState().blockButtonsMap.has(meta.teamID)) {
-          reduxDispatch(Chat2Gen.createDismissBlockButtons({teamID: meta.teamID}))
+          get().dispatch.dismissBlockButtons(meta.teamID)
         }
 
         // Do some logging to track down the root cause of a bug causing
@@ -2118,6 +2156,23 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.accountsInfoMap.set(messageID, paymentInfo)
       })
     },
+    pinMessage: msgID => {
+      const f = async () => {
+        const convID = Types.keyToConversationID(get().id)
+        try {
+          if (msgID) {
+            await RPCChatTypes.localPinMessageRpcPromise({convID, msgID})
+          } else {
+            await RPCChatTypes.localUnpinMessageRpcPromise({convID}, Common.waitingKeyUnpin(get().id))
+          }
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(`pinMessage: ${error.message}`)
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
     refreshBotRoleInConv: username => {
       const f = async () => {
         let role: RPCTypes.TeamRole | undefined
@@ -2240,6 +2295,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.unsentText = undefined
       })
     },
+    resolveMaybeMention: (channel, name) => {
+      const f = async () => {
+        await RPCChatTypes.localResolveMaybeMentionRpcPromise({
+          mention: {channel, name},
+        })
+      }
+      Z.ignorePromise(f())
+    },
     selectedConversation: () => {
       const conversationIDKey = get().id
 
@@ -2312,6 +2375,47 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       updateOrangeAfterSelected()
       fetchConversationBio()
       C.useChatState.getState().dispatch.resetConversationErrored()
+    },
+    sendAudioRecording: (path, duration, amps) => {
+      const f = async () => {
+        const conversationIDKey = get().id
+        const outboxID = Common.generateOutboxID()
+        const clientPrev = getClientPrev(conversationIDKey)
+        const ephemeralLifetime = C.getConvoState(conversationIDKey).explodingMode
+        const meta = C.getConvoState(conversationIDKey).meta
+        if (meta.conversationIDKey !== conversationIDKey) {
+          logger.warn('sendAudioRecording: no meta for send')
+          return
+        }
+
+        let callerPreview: RPCChatTypes.MakePreviewRes | undefined
+        if (amps) {
+          callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({amps, duration})
+        }
+        const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+        try {
+          await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
+            arg: {
+              ...ephemeralData,
+              callerPreview,
+              conversationID: Types.keyToConversationID(conversationIDKey),
+              filename: path,
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              metadata: Buffer.from([]),
+              outboxID,
+              title: '',
+              tlfName: meta.tlfname,
+              visibility: RPCTypes.TLFVisibility.private,
+            },
+            clientPrev,
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.warn('sendAudioRecording: failed to send attachment: ' + error.message)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     sendTyping: throttle(typing => {
       const f = async () => {

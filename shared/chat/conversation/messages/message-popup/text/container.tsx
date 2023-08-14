@@ -1,5 +1,4 @@
 import * as C from '../../../../../constants'
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import {linkFromConvAndMessage} from '../../../../../constants'
@@ -50,8 +49,6 @@ export default (ownProps: OwnProps) => {
   const _teamID = meta.teamID
   const _teamname = meta.teamname
   const _you = C.useCurrentUserState(s => s.username)
-
-  const dispatch = Container.useDispatch()
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAddReaction = (message: Types.Message) => {
     navigateAppend({
@@ -103,13 +100,9 @@ export default (ownProps: OwnProps) => {
   const _onMarkAsUnread = (message: Types.Message) => {
     setMarkAsUnread(message.id)
   }
+  const pinMessage = C.useChatContext(s => s.dispatch.pinMessage)
   const _onPinMessage = (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createPinMessage({
-        conversationIDKey: message.conversationIDKey,
-        messageID: message.id,
-      })
-    )
+    pinMessage(message.id)
   }
   const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const _onReact = (message: Types.Message, emoji: string) => {

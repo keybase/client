@@ -3,44 +3,5 @@
     "import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
     "import type * as Types from '../constants/types/chat2'"
   ],
-  "actions": {
-    "resolveMaybeMention": {
-      "_description": "Resolve an unknown @ mention",
-      "name": "string",
-      "channel": "string"
-    },
-    "pinMessage": {
-      "_description": "Pin a message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID"
-    },
-    "unpinMessage": {
-      "_description": "Unpin a message",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "ignorePinnedMessage": {
-      "_description": "Ignore pinned message",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "dismissBlockButtons": {
-      "teamID": "RPCTypes.TeamID"
-    },
-    "sendAudioRecording": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "duration": "number",
-      "path": "string",
-      "amps": "Array<number>"
-    },
-    "dismissJourneycard": {
-      "_description": "Dismiss a journeycard",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "cardType": "RPCChatTypes.JourneycardType",
-      "ordinal": "Types.Ordinal"
-    },
-    "fetchUserEmoji": {
-      "_description": "Refresh user emoji and put it in store for picker",
-      "conversationIDKey?": "Types.ConversationIDKey",
-      "onlyInTeam?": "boolean"
-    }
-  }
+  "actions": {}
 }

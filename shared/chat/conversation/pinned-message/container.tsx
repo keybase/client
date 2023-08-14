@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as React from 'react'
@@ -18,16 +17,14 @@ const PinnedMessageContainer = React.memo(function PinnedMessageContainer(p: Own
   const yourOperations = C.useTeamsState(s => getCanPerform(s, teamname))
   const unpinning = Container.useAnyWaiting(Constants.waitingKeyUnpin(conversationIDKey))
   const messageID = message?.id
-  const dispatch = Container.useDispatch()
   const onClick = React.useCallback(() => {
     messageID && replyJump(messageID)
   }, [replyJump, messageID])
-  const onIgnore = React.useCallback(() => {
-    dispatch(Chat2Gen.createIgnorePinnedMessage({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
+  const onIgnore = C.useChatContext(s => s.dispatch.ignorePinnedMessage)
+  const pinMessage = C.useChatContext(s => s.dispatch.pinMessage)
   const onUnpin = React.useCallback(() => {
-    dispatch(Chat2Gen.createUnpinMessage({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
+    pinMessage()
+  }, [pinMessage])
 
   if (!message || !(message.type === 'text' || message.type === 'attachment')) {
     return null

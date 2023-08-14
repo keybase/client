@@ -14,20 +14,9 @@ import type * as Wallet from '../types/wallets'
 import {RPCError} from '../../util/errors'
 import {inboxUIItemToConversationMeta, updateMeta, parseNotificationSettings} from './meta'
 import {isMobile, isPhone} from '../platform'
-import {
-  noConversationIDKey,
-  pendingWaitingConversationIDKey,
-  pendingErrorConversationIDKey,
-} from '../types/chat2/common'
 import type * as TeamBuildingTypes from '../types/team-building'
 import * as Z from '../../util/zustand'
-import {
-  explodingModeGregorKeyPrefix,
-  getSelectedConversation,
-  allMessageTypes,
-  threadRouteName,
-  waitingKeyCreating,
-} from './common'
+import * as Common from './common'
 
 export const defaultTopReacjis = [
   {name: ':+1:'},
@@ -367,6 +356,7 @@ export type State = Store & {
     ) => void
     createConversation: (participants: Array<string>, highlightMessageID?: number) => void
     findGeneralConvIDFromTeamID: (teamID: TeamsTypes.TeamID) => void
+    fetchUserEmoji: (conversationIDKey?: Types.ConversationIDKey, onlyInTeam?: boolean) => void
     inboxRefresh: (
       reason:
         | 'bootstrap'
@@ -487,7 +477,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               tlfVisibility: RPCTypes.TLFVisibility.private,
               topicType: RPCChatTypes.TopicType.chat,
             },
-            waitingKeyCreating
+            Common.waitingKeyCreating
           )
           const {conv, uiConv} = result
           const conversationIDKey = Types.conversationIDToKey(conv.info.id)
@@ -521,12 +511,32 @@ export const _useState = Z.createZustand<State>((set, get) => {
             }
             const allowedUsers = participants.filter(x => !disallowedUsers?.includes(x))
             get().dispatch.conversationErrored(allowedUsers, disallowedUsers, error.code, error.desc)
-            C.getConvoState(pendingErrorConversationIDKey).dispatch.navigateToThread(
+            C.getConvoState(C.pendingErrorConversationIDKey).dispatch.navigateToThread(
               'justCreated',
               highlightMessageID
             )
           }
         }
+      }
+      Z.ignorePromise(f())
+    },
+    fetchUserEmoji: (conversationIDKey, onlyInTeam) => {
+      const f = async () => {
+        const results = await RPCChatTypes.localUserEmojisRpcPromise(
+          {
+            convID:
+              conversationIDKey && conversationIDKey !== C.noConversationIDKey
+                ? Types.keyToConversationID(conversationIDKey)
+                : null,
+            opts: {
+              getAliases: true,
+              getCreationInfo: false,
+              onlyInTeam: onlyInTeam ?? false,
+            },
+          },
+          Common.waitingKeyLoadingEmoji
+        )
+        C.useChatState.getState().dispatch.loadedUserEmoji(results)
       }
       Z.ignorePromise(f())
     },
@@ -687,7 +697,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             }
           })
 
-          if (C.getConvoState(result.conversationIDKey).meta.conversationIDKey === noConversationIDKey) {
+          if (C.getConvoState(result.conversationIDKey).meta.conversationIDKey === C.noConversationIDKey) {
             get().dispatch.unboxRows([result.conversationIDKey], true)
           }
         }
@@ -924,7 +934,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         dispatch.setMeta(oldMeta.conversationIDKey === m.conversationIDKey ? updateMeta(oldMeta, m) : m)
       })
 
-      const selectedConversation = getSelectedConversation()
+      const selectedConversation = Common.getSelectedConversation()
       const meta = C.getConvoState(selectedConversation).meta
       if (meta.conversationIDKey === selectedConversation) {
         const {teamID} = meta
@@ -1027,7 +1037,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               const staticConfig = get().staticConfig
               // The types here are askew. It confuses frontend MessageType with protocol MessageType.
               // Placeholder is an example where it doesn't make sense.
-              const deletableMessageTypes = staticConfig?.deletableByDeleteHistory || allMessageTypes
+              const deletableMessageTypes = staticConfig?.deletableByDeleteHistory || Common.allMessageTypes
               C.getConvoState(conversationIDKey).dispatch.messagesWereDeleted({
                 deletableMessageTypes,
                 upToMessageID: expunge.expunge.upto,
@@ -1162,8 +1172,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         const p = Router2.getVisibleScreen(prev)
         const n = Router2.getVisibleScreen(next)
-        const wasChat = p?.name === threadRouteName
-        const isChat = n?.name === threadRouteName
+        const wasChat = p?.name === Common.threadRouteName
+        const isChat = n?.name === Common.threadRouteName
         // nothing to do with chat
         if (!wasChat && !isChat) {
           return
@@ -1226,7 +1236,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         // need to let the mdoal hide first else its thrashy
         await Z.timeoutPromise(500)
-        C.getConvoState(pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
+        C.getConvoState(C.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
         get().dispatch.createConversation([...users].map(u => u.id))
       }
       Z.ignorePromise(f())
@@ -1259,7 +1269,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
 
-        C.getConvoState(pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
+        C.getConvoState(C.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
         get().dispatch.createConversation(participants, highlightMessageID)
       }
 
@@ -1603,7 +1613,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
       })
     },
     updatedGregor: items => {
-      const explodingItems = items.filter(i => i.item.category.startsWith(explodingModeGregorKeyPrefix))
+      const explodingItems = items.filter(i =>
+        i.item.category.startsWith(Common.explodingModeGregorKeyPrefix)
+      )
       if (!explodingItems.length) {
         // No conversations have exploding modes, clear out what is set
         for (const s of C.chatStores.values()) {
@@ -1620,7 +1632,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
               return
             }
-            const _conversationIDKey = category.substring(explodingModeGregorKeyPrefix.length)
+            const _conversationIDKey = category.substring(Common.explodingModeGregorKeyPrefix.length)
             const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
             C.getConvoState(conversationIDKey).dispatch.setExplodingMode(seconds, true)
           } catch (e) {
