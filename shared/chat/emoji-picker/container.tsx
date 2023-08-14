@@ -7,7 +7,6 @@ import * as Constants from './../../constants/chat2'
 import * as Types from './../../constants/types/chat2'
 import * as TeamsTypes from './../../constants/types/teams'
 import * as Teams from './../../constants/teams'
-import * as Chat2Gen from './../../actions/chat2-gen'
 import * as Styles from './../../styles'
 import * as Data from './../../util/emoji'
 import startCase from 'lodash/startCase'
@@ -93,18 +92,17 @@ const useCustomReacji = (
 ) => {
   const customEmojiGroups = C.useChatState(s => s.userEmojis)
   const waiting = Container.useAnyWaiting(Constants.waitingKeyLoadingEmoji)
-  const dispatch = Container.useDispatch()
-
   const [lastCID, setLastCID] = React.useState('')
   const [lastOnlyInTeam, setLastOnlyInTeam] = React.useState(onlyInTeam)
   const [lastDisabled, setLastDisabled] = React.useState(disabled)
+  const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)
 
   if (lastCID !== conversationIDKey || lastOnlyInTeam !== onlyInTeam || lastDisabled !== disabled) {
     setLastCID(conversationIDKey)
     setLastOnlyInTeam(onlyInTeam)
     setLastDisabled(disabled)
     if (!disabled) {
-      dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey, onlyInTeam}))
+      fetchUserEmoji(conversationIDKey, onlyInTeam)
     }
   }
 

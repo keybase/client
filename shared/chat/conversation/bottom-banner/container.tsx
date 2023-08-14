@@ -3,7 +3,7 @@ import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import openSMS from '../../../util/sms'
 import {InviteBanner} from '.'
-import {showShareActionSheet} from '../../../actions/platform-specific'
+import {showShareActionSheet} from '../../../constants/platform-specific'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 

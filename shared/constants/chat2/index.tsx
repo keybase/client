@@ -12,7 +12,7 @@ import logger from '../../logger'
 import type * as TeamsTypes from '../types/teams'
 import type * as Wallet from '../types/wallets'
 import {RPCError} from '../../util/errors'
-import {inboxUIItemToConversationMeta, updateMeta, parseNotificationSettings} from './meta'
+import * as Meta from './meta'
 import {isMobile, isPhone} from '../platform'
 import type * as TeamBuildingTypes from '../types/team-building'
 import * as Z from '../../util/zustand'
@@ -355,6 +355,7 @@ export type State = Store & {
       message: string
     ) => void
     createConversation: (participants: Array<string>, highlightMessageID?: number) => void
+    ensureWidgetMetas: () => void
     findGeneralConvIDFromTeamID: (teamID: TeamsTypes.TeamID) => void
     fetchUserEmoji: (conversationIDKey?: Types.ConversationIDKey, onlyInTeam?: boolean) => void
     inboxRefresh: (
@@ -380,14 +381,19 @@ export type State = Store & {
     ) => void
     loadStaticConfig: () => void
     loadedUserEmoji: (results: RPCChatTypes.UserEmojiRes) => void
+    maybeChangeSelectedConv: () => void
     messageSendByUsername: (username: string, text: string, waitingKey?: string) => void
     metasReceived: (
       metas: Array<Types.ConversationMeta>,
       removals?: Array<Types.ConversationIDKey> // convs to remove
     ) => void
     navigateToInbox: () => void
+    onChatThreadStale: (action: EngineGen.Chat1NotifyChatChatThreadsStalePayload) => void
     onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
+    onChatInboxSynced: (action: EngineGen.Chat1NotifyChatChatInboxSyncedPayload) => void
+    onGetInboxConvsUnboxed: (action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => void
+    onGetInboxUnverifiedConvs: (action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => void
     onIncomingInboxUIItem: (inboxUIItem?: RPCChatTypes.InboxUIItem) => void
     onRouteChanged: (prev: Router2.NavState, next: Router2.NavState) => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
@@ -484,7 +490,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           if (!conversationIDKey) {
             logger.warn("Couldn't make a new conversation?")
           } else {
-            const meta = inboxUIItemToConversationMeta(uiConv)
+            const meta = Meta.inboxUIItemToConversationMeta(uiConv)
             if (meta) {
               get().dispatch.metasReceived([meta])
             }
@@ -520,6 +526,22 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    ensureWidgetMetas: () => {
+      const {inboxLayout} = get()
+      if (!inboxLayout?.widgetList) {
+        return
+      }
+      const missing = inboxLayout.widgetList.reduce<Array<Types.ConversationIDKey>>((l, v) => {
+        if (C.getConvoState(v.convID).meta.conversationIDKey !== v.convID) {
+          l.push(v.convID)
+        }
+        return l
+      }, [])
+      if (missing.length === 0) {
+        return
+      }
+      get().dispatch.unboxRows(missing, true)
+    },
     fetchUserEmoji: (conversationIDKey, onlyInTeam) => {
       const f = async () => {
         const results = await RPCChatTypes.localUserEmojisRpcPromise(
@@ -536,7 +558,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           },
           Common.waitingKeyLoadingEmoji
         )
-        C.useChatState.getState().dispatch.loadedUserEmoji(results)
+        get().dispatch.loadedUserEmoji(results)
       }
       Z.ignorePromise(f())
     },
@@ -544,7 +566,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           const conv = await RPCChatTypes.localFindGeneralConvFromTeamIDRpcPromise({teamID})
-          const meta = inboxUIItemToConversationMeta(conv)
+          const meta = Meta.inboxUIItemToConversationMeta(conv)
           if (!meta) {
             logger.info(`findGeneralConvIDFromTeamID: failed to convert to meta`)
             return
@@ -898,6 +920,42 @@ export const _useState = Z.createZustand<State>((set, get) => {
         s.userEmojis = results.emojis.emojis ?? []
       })
     },
+    maybeChangeSelectedConv: () => {
+      const selectedConversation = C.getSelectedConversation()
+      const {inboxLayout} = get()
+      if (!inboxLayout || !inboxLayout.reselectInfo) {
+        return
+      }
+      const {reselectInfo} = inboxLayout
+      if (
+        !Types.isValidConversationIDKey(selectedConversation) ||
+        selectedConversation === reselectInfo.oldConvID
+      ) {
+        if (isPhone) {
+          // on mobile just head back to the inbox if we have something selected
+          if (Types.isValidConversationIDKey(selectedConversation)) {
+            logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
+            get().dispatch.navigateToInbox()
+            return
+          }
+          logger.info(`maybeChangeSelectedConv: mobile: ignoring conv change, no conv selected`)
+          return
+        }
+        if (reselectInfo.newConvID) {
+          logger.info(`maybeChangeSelectedConv: selecting new conv: ${reselectInfo.newConvID}`)
+          C.getConvoState(reselectInfo.newConvID).dispatch.navigateToThread('findNewestConversation')
+          return
+        } else {
+          logger.info(`maybeChangeSelectedConv: deselecting conv, service provided no new conv`)
+          C.getConvoState(C.noConversationIDKey).dispatch.navigateToThread('findNewestConversation')
+          return
+        }
+      } else {
+        logger.info(
+          `maybeChangeSelectedConv: selected conv mismatch on reselect (ignoring): selected: ${selectedConversation} srvold: ${reselectInfo.oldConvID}`
+        )
+      }
+    },
     messageSendByUsername: (username, text, waitingKey) => {
       const f = async () => {
         const tlfName = `${C.useCurrentUserState.getState().username},${username}`
@@ -931,7 +989,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       })
       metas.forEach(m => {
         const {meta: oldMeta, dispatch} = C.getConvoState(m.conversationIDKey)
-        dispatch.setMeta(oldMeta.conversationIDKey === m.conversationIDKey ? updateMeta(oldMeta, m) : m)
+        dispatch.setMeta(oldMeta.conversationIDKey === m.conversationIDKey ? Meta.updateMeta(oldMeta, m) : m)
       })
 
       const selectedConversation = Common.getSelectedConversation()
@@ -946,6 +1004,94 @@ export const _useState = Z.createZustand<State>((set, get) => {
     navigateToInbox: () => {
       C.useRouterState.getState().dispatch.navUpToScreen('chatRoot')
       C.useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
+    },
+    onChatInboxSynced: action => {
+      const {syncRes} = action.payload.params
+      const {clear} = C.useWaitingState.getState().dispatch
+      const {inboxRefresh} = get().dispatch
+      clear(Common.waitingKeyInboxSyncStarted)
+
+      switch (syncRes.syncType) {
+        // Just clear it all
+        case RPCChatTypes.SyncInboxResType.clear:
+          inboxRefresh('inboxSyncedClear')
+          break
+        // We're up to date
+        case RPCChatTypes.SyncInboxResType.current:
+          break
+        // We got some new messages appended
+        case RPCChatTypes.SyncInboxResType.incremental: {
+          const items = syncRes.incremental.items || []
+          const selectedConversation = C.getSelectedConversation()
+          let loadMore = false
+          const metas = items.reduce<Array<Types.ConversationMeta>>((arr, i) => {
+            const meta = Meta.unverifiedInboxUIItemToConversationMeta(i.conv)
+            if (meta) {
+              arr.push(meta)
+              if (meta.conversationIDKey === selectedConversation) {
+                loadMore = true
+              }
+            }
+            return arr
+          }, [])
+          if (loadMore) {
+            C.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
+          }
+          const removals = syncRes.incremental.removals?.map(Types.stringToConversationIDKey)
+          // Update new untrusted
+          if (metas.length || removals?.length) {
+            get().dispatch.metasReceived(metas, removals)
+          }
+
+          get().dispatch.unboxRows(
+            items.filter(i => i.shouldUnbox).map(i => Types.stringToConversationIDKey(i.conv.convID)),
+            true
+          )
+          break
+        }
+        default:
+          inboxRefresh('inboxSyncedUnknown')
+      }
+    },
+    onChatThreadStale: (action: EngineGen.Chat1NotifyChatChatThreadsStalePayload) => {
+      const {updates} = action.payload.params
+      const keys = ['clear', 'newactivity'] as const
+      if (__DEV__) {
+        if (keys.length * 2 !== Object.keys(RPCChatTypes.StaleUpdateType).length) {
+          throw new Error('onChatThreadStale invalid enum')
+        }
+      }
+      let loadMore = false
+      const selectedConversation = C.getSelectedConversation()
+      keys.forEach(key => {
+        const conversationIDKeys = (updates || []).reduce<Array<string>>((arr, u) => {
+          const cid = Types.conversationIDToKey(u.convID)
+          if (u.updateType === RPCChatTypes.StaleUpdateType[key]) {
+            arr.push(cid)
+          }
+          // mentioned?
+          if (cid === selectedConversation) {
+            loadMore = true
+          }
+          return arr
+        }, [])
+        // load the inbox instead
+        if (conversationIDKeys.length > 0) {
+          logger.info(
+            `onChatThreadStale: dispatching thread reload actions for ${conversationIDKeys.length} convs of type ${key}`
+          )
+          get().dispatch.unboxRows(conversationIDKeys, true)
+          if (RPCChatTypes.StaleUpdateType[key] === RPCChatTypes.StaleUpdateType.clear) {
+            conversationIDKeys.forEach(convID =>
+              C.getConvoState(convID).dispatch.replaceMessageMap(new Map())
+            )
+            conversationIDKeys.forEach(convID => C.getConvoState(convID).dispatch.setMessageOrdinals())
+          }
+        }
+      })
+      if (loadMore) {
+        C.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
+      }
     },
     onEngineConnected: () => {
       const f = async () => {
@@ -964,12 +1110,100 @@ export const _useState = Z.createZustand<State>((set, get) => {
         case EngineGen.chat1ChatUiChatInboxFailed: // fallthrough
         case EngineGen.chat1NotifyChatChatSetConvSettings: // fallthrough
         case EngineGen.chat1NotifyChatChatAttachmentUploadStart: // fallthrough
+        case EngineGen.chat1NotifyChatChatPromptUnfurl: // fallthrough
+        case EngineGen.chat1NotifyChatChatPaymentInfo: // fallthrough
+        case EngineGen.chat1NotifyChatChatRequestInfo: // fallthrough
+        case EngineGen.chat1NotifyChatChatAttachmentDownloadProgress: //fallthrough
+        case EngineGen.chat1NotifyChatChatAttachmentDownloadComplete: //fallthrough
         case EngineGen.chat1NotifyChatChatAttachmentUploadProgress: {
           const {convID} = action.payload.params
           const conversationIDKey = Types.conversationIDToKey(convID)
           C.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
           break
         }
+        case EngineGen.chat1ChatUiChatCommandMarkdown: //fallthrough
+        case EngineGen.chat1ChatUiChatGiphyToggleResultWindow: // fallthrough
+        case EngineGen.chat1ChatUiChatCommandStatus: // fallthrough
+        case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus: //fallthrough
+        case EngineGen.chat1ChatUiChatGiphySearchResults: {
+          const {convID} = action.payload.params
+          const conversationIDKey = Types.stringToConversationIDKey(convID)
+          C.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
+          break
+        }
+        case EngineGen.chat1NotifyChatChatParticipantsInfo: {
+          const {participants: participantMap} = action.payload.params
+          Object.keys(participantMap).forEach(convIDStr => {
+            const participants = participantMap[convIDStr]
+            const conversationIDKey = Types.stringToConversationIDKey(convIDStr)
+            if (participants) {
+              C.getConvoState(conversationIDKey).dispatch.setParticipants(
+                uiParticipantsToParticipantInfo(participants)
+              )
+            }
+          })
+          break
+        }
+        case EngineGen.chat1ChatUiChatMaybeMentionUpdate: {
+          const {teamName, channel, info} = action.payload.params
+          get().dispatch.setMaybeMentionInfo(getTeamMentionName(teamName, channel), info)
+          break
+        }
+        case EngineGen.chat1NotifyChatChatConvUpdate: {
+          const {conv} = action.payload.params
+          if (conv) {
+            const meta = Meta.inboxUIItemToConversationMeta(conv)
+            meta && get().dispatch.metasReceived([meta])
+          }
+          break
+        }
+        case EngineGen.chat1ChatUiChatCoinFlipStatus: {
+          const {statuses} = action.payload.params
+          get().dispatch.updateCoinFlipStatus(statuses || [])
+          break
+        }
+        case EngineGen.chat1NotifyChatChatThreadsStale:
+          get().dispatch.onChatThreadStale(action)
+          break
+        case EngineGen.chat1NotifyChatChatSubteamRename: {
+          const {convs} = action.payload.params
+          const conversationIDKeys = (convs ?? []).map(c => Types.stringToConversationIDKey(c.convID))
+          get().dispatch.unboxRows(conversationIDKeys, true)
+          break
+        }
+        case EngineGen.chat1NotifyChatChatTLFFinalize:
+          get().dispatch.unboxRows([Types.conversationIDToKey(action.payload.params.convID)])
+          break
+        case EngineGen.chat1NotifyChatChatIdentifyUpdate: {
+          // Some participants are broken/fixed now
+          const {update} = action.payload.params
+          const usernames = update.CanonicalName.split(',')
+          const broken = (update.breaks.breaks || []).map(b => b.user.username)
+          const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
+          C.useUsersState.getState().dispatch.updates(updates)
+          break
+        }
+        case EngineGen.chat1ChatUiChatInboxUnverified:
+          get().dispatch.onGetInboxUnverifiedConvs(action)
+          break
+        case EngineGen.chat1NotifyChatChatInboxSyncStarted:
+          C.useWaitingState.getState().dispatch.increment(Common.waitingKeyInboxSyncStarted)
+          break
+
+        case EngineGen.chat1NotifyChatChatInboxSynced:
+          get().dispatch.onChatInboxSynced(action)
+          break
+        case EngineGen.chat1ChatUiChatInboxLayout:
+          get().dispatch.maybeChangeSelectedConv()
+          get().dispatch.ensureWidgetMetas()
+          get().dispatch.updateInboxLayout(action.payload.params.layout)
+          break
+        case EngineGen.chat1NotifyChatChatInboxStale:
+          get().dispatch.inboxRefresh('inboxStale')
+          break
+        case EngineGen.chat1ChatUiChatInboxConversation:
+          get().dispatch.onGetInboxConvsUnboxed(action)
+          break
         case EngineGen.chat1NotifyChatNewChatActivity: {
           const {activity} = action.payload.params
           switch (activity.activityType) {
@@ -1026,7 +1260,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               const settings = setAppNotificationSettings.settings
               const cs = C.getConvoState(conversationIDKey)
               if (cs.meta.conversationIDKey === conversationIDKey) {
-                cs.dispatch.updateMeta(parseNotificationSettings(settings))
+                cs.dispatch.updateMeta(Meta.parseNotificationSettings(settings))
               }
               break
             }
@@ -1101,7 +1335,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             logger.warn('onChatSetConvRetention: no conv given')
             return
           }
-          const meta = inboxUIItemToConversationMeta(conv)
+          const meta = Meta.inboxUIItemToConversationMeta(conv)
           if (!meta) {
             logger.warn(`onChatSetConvRetention: no meta found for ${convID.toString()}`)
             return
@@ -1116,7 +1350,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         case EngineGen.chat1NotifyChatChatSetTeamRetention: {
           const {convs} = action.payload.params
           const metas = (convs ?? []).reduce<Array<Types.ConversationMeta>>((l, c) => {
-            const meta = inboxUIItemToConversationMeta(c)
+            const meta = Meta.inboxUIItemToConversationMeta(c)
             if (meta) {
               l.push(meta)
             }
@@ -1141,9 +1375,63 @@ export const _useState = Z.createZustand<State>((set, get) => {
         default:
       }
     },
+    onGetInboxConvsUnboxed: (action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => {
+      // TODO not reactive
+      const {infoMap} = C.useUsersState.getState()
+      const {convs} = action.payload.params
+      const inboxUIItems = JSON.parse(convs) as Array<RPCChatTypes.InboxUIItem>
+      const metas: Array<Types.ConversationMeta> = []
+      let added = false
+      const usernameToFullname: {[username: string]: string} = {}
+      inboxUIItems.forEach(inboxUIItem => {
+        const meta = Meta.inboxUIItemToConversationMeta(inboxUIItem)
+        if (meta) {
+          metas.push(meta)
+        }
+        const participantInfo: Types.ParticipantInfo = uiParticipantsToParticipantInfo(
+          inboxUIItem.participants ?? []
+        )
+        if (participantInfo.all.length > 0) {
+          C.getConvoState(Types.stringToConversationIDKey(inboxUIItem.convID)).dispatch.setParticipants(
+            participantInfo
+          )
+        }
+        inboxUIItem.participants?.forEach((part: RPCChatTypes.UIParticipant) => {
+          const {assertion, fullName} = part
+          if (!infoMap.get(assertion) && fullName) {
+            added = true
+            usernameToFullname[assertion] = fullName
+          }
+        })
+      })
+      if (added) {
+        C.useUsersState
+          .getState()
+          .dispatch.updates(
+            Object.keys(usernameToFullname).map(name => ({info: {fullname: usernameToFullname[name]}, name}))
+          )
+      }
+      if (metas.length > 0) {
+        get().dispatch.metasReceived(metas)
+      }
+    },
+    onGetInboxUnverifiedConvs: (action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => {
+      const {inbox} = action.payload.params
+      const result = JSON.parse(inbox) as RPCChatTypes.UnverifiedInboxUIItems
+      const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items ?? []
+      // We get a subset of meta information from the cache even in the untrusted payload
+      const metas = items.reduce<Array<Types.ConversationMeta>>((arr, item) => {
+        const m = Meta.unverifiedInboxUIItemToConversationMeta(item)
+        m && arr.push(m)
+        return arr
+      }, [])
+      get().dispatch.setTrustedInboxHasLoaded()
+      // Check if some of our existing stored metas might no longer be valid
+      get().dispatch.metasReceived(metas)
+    },
     onIncomingInboxUIItem: conv => {
       if (!conv) return
-      const meta = inboxUIItemToConversationMeta(conv)
+      const meta = Meta.inboxUIItemToConversationMeta(conv)
       const usernameToFullname = (conv.participants ?? []).reduce<{[key: string]: string}>((map, part) => {
         if (part.fullName) {
           map[part.assertion] = part.fullName
@@ -1309,7 +1597,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             visibility: RPCTypes.TLFVisibility.private,
           })
           const resultMetas = (results.uiConversations || [])
-            .map(row => inboxUIItemToConversationMeta(row))
+            .map(row => Meta.inboxUIItemToConversationMeta(row))
             .filter(Boolean)
 
           const first = resultMetas[0]
@@ -1330,7 +1618,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           const results2 = await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
             convID: Types.keyToConversationID(first.conversationIDKey),
           })
-          const meta = inboxUIItemToConversationMeta(results2.conv)
+          const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
           if (meta) {
             _useState.getState().dispatch.metasReceived([meta])
           }

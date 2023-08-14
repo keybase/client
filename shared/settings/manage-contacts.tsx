@@ -5,7 +5,6 @@ import * as Constants from '../constants/settings'
 import * as Tabs from '../constants/tabs'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {appendNewChatBuilder} from '../actions/typed-routes'
 import {SettingsSection} from './account'
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'
@@ -68,10 +67,11 @@ const ManageContactsBanner = () => {
   const error = C.useSettingsContactsState(s => s.importError)
   const onOpenAppSettings = C.useConfigState(s => s.dispatch.dynamic.openAppSettings)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
   const onStartChat = React.useCallback(() => {
     switchTab(Tabs.chatTab)
     appendNewChatBuilder()
-  }, [switchTab])
+  }, [appendNewChatBuilder, switchTab])
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSendFeedback = React.useCallback(() => {
     navigateAppend({

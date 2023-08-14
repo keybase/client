@@ -1,12 +1,12 @@
-import * as C from '../../constants'
-import * as ChatTypes from '../../constants/types/chat2'
+import * as C from '..'
+import * as ChatTypes from '../types/chat2'
 import * as Container from '../../util/container'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RPCChatTypes from '../types/rpc-chat-gen'
+import * as RPCTypes from '../types/rpc-gen'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../../logger'
-import type * as Types from '../../constants/types/push'
-import {isIOS, isAndroid} from '../../constants/platform'
+import type * as Types from '../types/push'
+import {isIOS, isAndroid} from '../platform'
 import {
   androidGetRegistrationToken,
   androidSetApplicationIconBadgeNumber,

@@ -2,13 +2,14 @@ import * as C from '.'
 import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
 import * as Z from '../util/zustand'
 import * as Container from '../util/container'
-import * as Tabs from '../constants/tabs'
+import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
 import shallowEqual from 'shallowequal'
 import type {ConversationIDKey} from './types/chat2/common'
 import type {NavigationState} from '@react-navigation/core'
 import type {NavigateAppendType} from '../router-v2/route-params'
+import type * as TeamTypes from './types/teams'
 export type PathParam = NavigateAppendType
 type Route = NavigationState['routes'][0]
 export type NavState = Route['state']
@@ -251,6 +252,10 @@ export type State = Store & {
     setNavState: (ns: NavState) => void
     switchTab: (tab: Tabs.AppTab) => void
   }
+  appendEncryptRecipientsBuilder: () => void
+  appendNewChatBuilder: () => void
+  appendNewTeamBuilder: (teamID: TeamTypes.TeamID) => void
+  appendPeopleBuilder: () => void
 }
 
 export const _useState = Z.createZustand<State>((set, get) => {
@@ -437,8 +442,57 @@ export const _useState = Z.createZustand<State>((set, get) => {
       })
     },
   }
+
+  const appendPeopleBuilder = () => {
+    C.useRouterState.getState().dispatch.navigateAppend({
+      props: {
+        filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
+        namespace: 'people',
+        title: '',
+      },
+      selected: 'peopleTeamBuilder',
+    })
+  }
+
+  const appendNewChatBuilder = () => {
+    C.useRouterState
+      .getState()
+      .dispatch.navigateAppend({props: {namespace: 'chat2', title: 'New chat'}, selected: 'chatNewChat'})
+  }
+
+  // Unless you're within the add members wizard you probably should use `TeamsGen.startAddMembersWizard` instead
+  const appendNewTeamBuilder = (teamID: TeamTypes.TeamID) => {
+    C.useRouterState.getState().dispatch.navigateAppend({
+      props: {
+        filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
+        goButtonLabel: 'Add',
+        namespace: 'teams',
+        teamID,
+        title: '',
+      },
+      selected: 'teamsTeamBuilder',
+    })
+  }
+
+  const appendEncryptRecipientsBuilder = () => {
+    C.useRouterState.getState().dispatch.navigateAppend({
+      props: {
+        filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
+        goButtonLabel: 'Add',
+        namespace: 'crypto',
+        recommendedHideYourself: true,
+        title: 'Recipients',
+      },
+      selected: 'cryptoTeamBuilder',
+    })
+  }
+
   return {
     ...initialStore,
+    appendEncryptRecipientsBuilder,
+    appendNewChatBuilder,
+    appendNewTeamBuilder,
+    appendPeopleBuilder,
     dispatch,
   }
 })

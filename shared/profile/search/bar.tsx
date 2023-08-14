@@ -1,10 +1,11 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {appendPeopleBuilder} from '../../actions/typed-routes'
 
 const ProfileSearch = () => {
-  const onSearch = React.useCallback(() => appendPeopleBuilder(), [])
+  const appendPeopleBuilder = C.useRouterState(s => s.appendPeopleBuilder)
+  const onSearch = appendPeopleBuilder
   return (
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Kb.SearchFilter

@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {appendNewChatBuilder} from '../../actions/typed-routes'
 
 const HeaderNewChatButton = () => {
   const hide = C.useChatState(
@@ -13,7 +12,8 @@ const HeaderNewChatButton = () => {
       (s.inboxLayout.bigTeams || []).length === 0
   )
 
-  const onNewChat = React.useCallback(() => appendNewChatBuilder(), [])
+  const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
+  const onNewChat = React.useCallback(() => appendNewChatBuilder(), [appendNewChatBuilder])
   const content = React.useMemo(() => {
     return (
       <Kb.Box style={styles.rainbowButtonContainer}>

@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Common from './common'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
@@ -49,11 +48,11 @@ const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 const empty = new Array<EmojiData>()
 
 export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
-  const dispatch = Container.useDispatch()
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
+  const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)
   if (lastCID !== conversationIDKey) {
     setLastCID(conversationIDKey)
-    dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey}))
+    fetchUserEmoji(conversationIDKey)
   }
 
   const userEmojisLoading = Container.useAnyWaiting(Constants.waitingKeyLoadingEmoji)

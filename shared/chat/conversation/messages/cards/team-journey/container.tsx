@@ -1,5 +1,4 @@
 import * as C from '../../../../../constants'
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import * as Kb from '../../../../../common-adapters'
@@ -142,20 +141,15 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const _teamID = teamID
   const canShowcase = C.useTeamsState(s => TeamConstants.canShowcase(s, teamID))
   const isBigTeam = C.useChatState(s => Constants.isBigTeam(s, teamID))
-
-  const dispatch = Container.useDispatch()
-
   const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const _onAddPeopleToTeam = (teamID: TeamTypes.TeamID) => startAddMembersWizard(teamID)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAuthorClick = (teamID: TeamTypes.TeamID) => navigateAppend({props: {teamID}, selected: 'team'})
   const _onCreateChannel = (teamID: string) =>
     navigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
-  const _onDismiss = (
-    conversationIDKey: ChatTypes.ConversationIDKey,
-    cardType: RPCChatTypes.JourneycardType,
-    ordinal: ChatTypes.Ordinal
-  ) => dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal}))
+  const dismissJourneycard = C.useChatContext(s => s.dispatch.dismissJourneycard)
+  const _onDismiss = (cardType: RPCChatTypes.JourneycardType, ordinal: ChatTypes.Ordinal) =>
+    dismissJourneycard(cardType, ordinal)
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const _onGoToChannel = (channelname: string, teamname: string) =>
     previewConversation({channelname, reason: 'journeyCardPopular', teamname})
@@ -179,7 +173,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
     onAuthorClick: () => _onAuthorClick(_teamID),
     onBrowseChannels: () => _onManageChannels(_teamID),
     onCreateChatChannels: () => _onCreateChannel(_teamID),
-    onDismiss: () => _onDismiss(conversationIDKey, message.cardType, message.ordinal),
+    onDismiss: () => _onDismiss(message.cardType, message.ordinal),
     onGoToChannel: (channelName: string) => _onGoToChannel(channelName, teamname),
     onPublishTeam: () => _onPublishTeam(_teamID),
     onScrollBack: () => console.log('onScrollBack'),

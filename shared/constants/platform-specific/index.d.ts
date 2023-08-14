@@ -1,6 +1,5 @@
-import type * as Container from '../../util/container'
-import type * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import type * as Types from '../../constants/types/chat2'
+import type * as RPCChatTypes from '../types/rpc-chat-gen'
+import type * as Types from '../types/chat2'
 
 type NextURI = string
 
