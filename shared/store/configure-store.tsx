@@ -1,5 +1,5 @@
 import * as ReduxToolKit from '@reduxjs/toolkit'
-import {initListeners} from './configure-listeners'
+import * as C from '../constants'
 import {listenerMiddleware} from '../util/redux-toolkit'
 import {type Store} from 'redux'
 
@@ -37,8 +37,9 @@ export default function makeStore() {
           globalThis.DEBUGlistenersInited = true
         }
       }
-      // register our listeners
-      initListeners()
+      // register our subsciptions
+      C.useFSState.getState().dispatch.setupSubscriptions()
+      C.useConfigState.getState().dispatch.setupSubscriptions()
       // start our 'forks'
       store.dispatch({type: 'config:initListenerLoops'})
     },

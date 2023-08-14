@@ -251,7 +251,9 @@ export type ConvoState = ConvoStore & {
     mute: (m: boolean) => void
     navigateToThread: (reason: NavReason, highlightMessageID?: number, pushBody?: string) => void
     openFolder: () => void
+    onChatPaymentInfo: (action: EngineGen.Chat1NotifyChatChatPaymentInfoPayload) => void
     onEngineIncoming: (action: EngineGen.Actions) => void
+    onGiphyToggleWindow: (action: EngineGen.Chat1ChatUiChatGiphyToggleResultWindowPayload) => void
     onIncomingMessage: (incoming: RPCChatTypes.IncomingMessage) => void
     onMessageErrored: (outboxID: Types.OutboxID, reason: string, errorTyp?: number) => void
     onMessagesUpdated: (messagesUpdated: RPCChatTypes.MessagesUpdated) => void
@@ -377,25 +379,6 @@ const messageIDToOrdinal = (
   return null
 }
 
-const getClientPrev = (conversationIDKey: Types.ConversationIDKey): Types.MessageID => {
-  let clientPrev: undefined | Types.MessageID
-  const mm = C.getConvoState(conversationIDKey).messageMap
-  if (mm) {
-    // find last valid messageid we know about
-    const goodOrdinal = findLast(_getConvoState(conversationIDKey).messageOrdinals ?? [], o => {
-      const m = mm.get(o)
-      return !!m?.id
-    })
-
-    if (goodOrdinal) {
-      const message = mm.get(goodOrdinal)
-      clientPrev = message && message.id
-    }
-  }
-
-  return clientPrev || 0
-}
-
 type ScrollDirection = 'none' | 'back' | 'forward'
 export const numMessagesOnInitialLoad = isMobile ? 20 : 100
 export const numMessagesOnScrollback = isMobile ? 100 : 100
@@ -462,6 +445,26 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       return false
     }
+  }
+
+  const getClientPrev = (): Types.MessageID => {
+    let clientPrev: undefined | Types.MessageID
+    const {messageMap, messageOrdinals} = get()
+    const mm = messageMap
+    if (mm) {
+      // find last valid messageid we know about
+      const goodOrdinal = findLast(messageOrdinals ?? [], o => {
+        const m = mm.get(o)
+        return !!m?.id
+      })
+
+      if (goodOrdinal) {
+        const message = mm.get(goodOrdinal)
+        clientPrev = message && message.id
+      }
+    }
+
+    return clientPrev || 0
   }
 
   const dispatch: ConvoState['dispatch'] = {
@@ -575,7 +578,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         } else {
           tlfName = meta.tlfname
         }
-        const clientPrev = getClientPrev(conversationIDKey)
+        const clientPrev = getClientPrev()
         // disable sending exploding messages if flag is false
         const ephemeralLifetime = get().explodingMode
         const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
@@ -1350,7 +1353,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             return
           }
           const tlfName = meta.tlfname
-          const clientPrev = getClientPrev(conversationIDKey)
+          const clientPrev = getClientPrev()
           const outboxID = Common.generateOutboxID()
           const target = {
             messageID: message.id,
@@ -1452,7 +1455,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const meta = get().meta
         const tlfName = meta.tlfname
         const conversationIDKey = get().id
-        const clientPrev = getClientPrev(conversationIDKey)
+        const clientPrev = getClientPrev()
 
         // disable sending exploding messages if flag is false
         const ephemeralLifetime = get().explodingMode
@@ -1921,8 +1924,112 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       updateNav()
     },
+    onChatPaymentInfo: (action: EngineGen.Chat1NotifyChatChatPaymentInfoPayload) => {
+      const {convID, info, msgID} = action.payload.params
+      const conversationIDKey = convID ? Types.conversationIDToKey(convID) : C.noConversationIDKey
+      const paymentInfo = Message.uiPaymentInfoToChatPaymentInfo([info])
+      if (!paymentInfo) {
+        // This should never happen
+        const errMsg = `got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${conversationIDKey} messageID: ${msgID}. The local version may be absent or out of date.`
+        logger.error(errMsg)
+        throw new Error(errMsg)
+      }
+      C.useChatState.getState().dispatch.paymentInfoReceived(paymentInfo)
+      C.getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
+    },
     onEngineIncoming: action => {
       switch (action.type) {
+        case EngineGen.chat1NotifyChatChatAttachmentDownloadComplete: {
+          const {msgID} = action.payload.params
+          const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+          const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, msgID)
+          if (!ordinal) {
+            logger.info(`downloadComplete: no ordinal found: conversationIDKey: ${get().id} msgID: ${msgID}`)
+            return
+          }
+          const message = messageMap.get(ordinal)
+          if (!message) {
+            logger.info(
+              `downloadComplete: no message found: conversationIDKey: ${get().id} ordinal: ${ordinal}`
+            )
+            return
+          }
+          if (message?.type === 'attachment') {
+            dispatch.updateMessage(ordinal, {
+              transferProgress: 0,
+              transferState: undefined,
+            })
+          }
+          break
+        }
+        case EngineGen.chat1NotifyChatChatAttachmentDownloadProgress: {
+          const {msgID, bytesComplete, bytesTotal} = action.payload.params
+          const ratio = bytesComplete / bytesTotal
+          get().dispatch.updateAttachmentViewTransfer(msgID, ratio)
+
+          const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+          const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, msgID)
+          if (!ordinal) {
+            logger.info(`downloadProgress: no ordinal found: conversationIDKey: ${get().id} msgID: ${msgID}`)
+            return
+          }
+          const message = messageMap.get(ordinal)
+          if (!message) {
+            logger.info(
+              `downloadProgress: no message found: conversationIDKey: ${get().id} ordinal: ${ordinal}`
+            )
+            return
+          }
+          const m = messageMap.get(message.ordinal)
+          if (m?.type === 'attachment') {
+            dispatch.updateMessage(ordinal, {
+              transferErrMsg: undefined,
+              transferProgress: ratio,
+              transferState: 'downloading',
+            })
+          }
+          break
+        }
+        case EngineGen.chat1ChatUiChatCommandStatus: {
+          const {displayText, typ, actions} = action.payload.params
+          get().dispatch.setCommandStatusInfo({
+            actions: actions || [],
+            displayText,
+            displayType: typ,
+          })
+          break
+        }
+        case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus:
+          get().dispatch.botCommandsUpdateStatus(action.payload.params.status)
+          break
+        case EngineGen.chat1ChatUiChatCommandMarkdown:
+          get().dispatch.setCommandMarkdown(action.payload.params.md || undefined)
+          break
+        case EngineGen.chat1ChatUiChatGiphyToggleResultWindow: {
+          get().dispatch.onGiphyToggleWindow(action)
+          break
+        }
+        case EngineGen.chat1ChatUiChatGiphySearchResults:
+          get().dispatch.giphyGotSearchResult(action.payload.params.results)
+          break
+        case EngineGen.chat1NotifyChatChatRequestInfo:
+          {
+            const {info, msgID} = action.payload.params
+            const requestInfo = Message.uiRequestInfoToChatRequestInfo(info)
+            if (!requestInfo) {
+              // This should never happen
+              const errMsg = `got 'NotifyChat.ChatRequestInfo' with no valid requestInfo for convID ${
+                get().id
+              } messageID: ${msgID}. The local version may be absent or out of date.`
+              logger.error(errMsg)
+              throw new Error(errMsg)
+            }
+            get().dispatch.requestInfoReceived(msgID, requestInfo)
+          }
+          break
+        case EngineGen.chat1NotifyChatChatPaymentInfo:
+          get().dispatch.onChatPaymentInfo(action)
+          break
         case EngineGen.chat1NotifyChatChatPromptUnfurl: {
           const {domain, msgID} = action.payload.params
           get().dispatch.unfurlTogglePrompt(Types.numberToMessageID(msgID), domain, true)
@@ -1992,7 +2099,15 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           break
         }
+        default:
       }
+    },
+    onGiphyToggleWindow: action => {
+      const {show, clearInput} = action.payload.params
+      if (clearInput) {
+        get().dispatch.injectIntoInput('')
+      }
+      get().dispatch.giphyToggleWindow(show)
     },
     onIncomingMessage: incoming => {
       const {message: cMsg} = incoming
@@ -2379,9 +2494,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         const conversationIDKey = get().id
         const outboxID = Common.generateOutboxID()
-        const clientPrev = getClientPrev(conversationIDKey)
-        const ephemeralLifetime = C.getConvoState(conversationIDKey).explodingMode
-        const meta = C.getConvoState(conversationIDKey).meta
+        const clientPrev = getClientPrev()
+        const ephemeralLifetime = get().explodingMode
+        const meta = get().meta
         if (meta.conversationIDKey !== conversationIDKey) {
           logger.warn('sendAudioRecording: no meta for send')
           return
@@ -2939,7 +3054,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
         const supersedes = id
         const conversationIDKey = get().id
-        const clientPrev = getClientPrev(conversationIDKey)
+        const clientPrev = getClientPrev()
         const meta = get().meta
         const outboxID = Common.generateOutboxID()
         logger.info(`toggleMessageReaction: posting reaction`)
@@ -2986,7 +3101,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     unfurlRemove: messageID => {
       const f = async () => {
         const conversationIDKey = get().id
-        const meta = C.getConvoState(conversationIDKey).meta
+        const meta = get().meta
         if (meta.conversationIDKey !== conversationIDKey) {
           logger.debug('unfurl remove no meta found, aborting!')
           return

@@ -388,6 +388,7 @@ export type State = Store & {
       removals?: Array<Types.ConversationIDKey> // convs to remove
     ) => void
     navigateToInbox: () => void
+    onChatThreadStale: (action: EngineGen.Chat1NotifyChatChatThreadsStalePayload) => void
     onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     onChatInboxSynced: (action: EngineGen.Chat1NotifyChatChatInboxSyncedPayload) => void
@@ -1007,7 +1008,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     onChatInboxSynced: action => {
       const {syncRes} = action.payload.params
       const {clear} = C.useWaitingState.getState().dispatch
-      const {inboxRefresh} = C.useChatState.getState().dispatch
+      const {inboxRefresh} = get().dispatch
       clear(Common.waitingKeyInboxSyncStarted)
 
       switch (syncRes.syncType) {
@@ -1039,10 +1040,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
           const removals = syncRes.incremental.removals?.map(Types.stringToConversationIDKey)
           // Update new untrusted
           if (metas.length || removals?.length) {
-            C.useChatState.getState().dispatch.metasReceived(metas, removals)
+            get().dispatch.metasReceived(metas, removals)
           }
 
-          C.useChatState.getState().dispatch.unboxRows(
+          get().dispatch.unboxRows(
             items.filter(i => i.shouldUnbox).map(i => Types.stringToConversationIDKey(i.conv.convID)),
             true
           )
@@ -1050,6 +1051,46 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         default:
           inboxRefresh('inboxSyncedUnknown')
+      }
+    },
+    onChatThreadStale: (action: EngineGen.Chat1NotifyChatChatThreadsStalePayload) => {
+      const {updates} = action.payload.params
+      const keys = ['clear', 'newactivity'] as const
+      if (__DEV__) {
+        if (keys.length * 2 !== Object.keys(RPCChatTypes.StaleUpdateType).length) {
+          throw new Error('onChatThreadStale invalid enum')
+        }
+      }
+      let loadMore = false
+      const selectedConversation = C.getSelectedConversation()
+      keys.forEach(key => {
+        const conversationIDKeys = (updates || []).reduce<Array<string>>((arr, u) => {
+          const cid = Types.conversationIDToKey(u.convID)
+          if (u.updateType === RPCChatTypes.StaleUpdateType[key]) {
+            arr.push(cid)
+          }
+          // mentioned?
+          if (cid === selectedConversation) {
+            loadMore = true
+          }
+          return arr
+        }, [])
+        // load the inbox instead
+        if (conversationIDKeys.length > 0) {
+          logger.info(
+            `onChatThreadStale: dispatching thread reload actions for ${conversationIDKeys.length} convs of type ${key}`
+          )
+          get().dispatch.unboxRows(conversationIDKeys, true)
+          if (RPCChatTypes.StaleUpdateType[key] === RPCChatTypes.StaleUpdateType.clear) {
+            conversationIDKeys.forEach(convID =>
+              C.getConvoState(convID).dispatch.replaceMessageMap(new Map())
+            )
+            conversationIDKeys.forEach(convID => C.getConvoState(convID).dispatch.setMessageOrdinals())
+          }
+        }
+      })
+      if (loadMore) {
+        C.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
       }
     },
     onEngineConnected: () => {
@@ -1069,14 +1110,70 @@ export const _useState = Z.createZustand<State>((set, get) => {
         case EngineGen.chat1ChatUiChatInboxFailed: // fallthrough
         case EngineGen.chat1NotifyChatChatSetConvSettings: // fallthrough
         case EngineGen.chat1NotifyChatChatAttachmentUploadStart: // fallthrough
-        case EngineGen.chat1NotifyChatChatPromptUnfurl: // fallthrought
+        case EngineGen.chat1NotifyChatChatPromptUnfurl: // fallthrough
+        case EngineGen.chat1NotifyChatChatPaymentInfo: // fallthrough
+        case EngineGen.chat1NotifyChatChatRequestInfo: // fallthrough
+        case EngineGen.chat1NotifyChatChatAttachmentDownloadProgress: //fallthrough
+        case EngineGen.chat1NotifyChatChatAttachmentDownloadComplete: //fallthrough
         case EngineGen.chat1NotifyChatChatAttachmentUploadProgress: {
           const {convID} = action.payload.params
           const conversationIDKey = Types.conversationIDToKey(convID)
           C.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
           break
         }
-
+        case EngineGen.chat1ChatUiChatCommandMarkdown: //fallthrough
+        case EngineGen.chat1ChatUiChatGiphyToggleResultWindow: // fallthrough
+        case EngineGen.chat1ChatUiChatCommandStatus: // fallthrough
+        case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus: //fallthrough
+        case EngineGen.chat1ChatUiChatGiphySearchResults: {
+          const {convID} = action.payload.params
+          const conversationIDKey = Types.stringToConversationIDKey(convID)
+          C.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
+          break
+        }
+        case EngineGen.chat1NotifyChatChatParticipantsInfo: {
+          const {participants: participantMap} = action.payload.params
+          Object.keys(participantMap).forEach(convIDStr => {
+            const participants = participantMap[convIDStr]
+            const conversationIDKey = Types.stringToConversationIDKey(convIDStr)
+            if (participants) {
+              C.getConvoState(conversationIDKey).dispatch.setParticipants(
+                uiParticipantsToParticipantInfo(participants)
+              )
+            }
+          })
+          break
+        }
+        case EngineGen.chat1ChatUiChatMaybeMentionUpdate: {
+          const {teamName, channel, info} = action.payload.params
+          get().dispatch.setMaybeMentionInfo(getTeamMentionName(teamName, channel), info)
+          break
+        }
+        case EngineGen.chat1NotifyChatChatConvUpdate: {
+          const {conv} = action.payload.params
+          if (conv) {
+            const meta = Meta.inboxUIItemToConversationMeta(conv)
+            meta && get().dispatch.metasReceived([meta])
+          }
+          break
+        }
+        case EngineGen.chat1ChatUiChatCoinFlipStatus: {
+          const {statuses} = action.payload.params
+          get().dispatch.updateCoinFlipStatus(statuses || [])
+          break
+        }
+        case EngineGen.chat1NotifyChatChatThreadsStale:
+          get().dispatch.onChatThreadStale(action)
+          break
+        case EngineGen.chat1NotifyChatChatSubteamRename: {
+          const {convs} = action.payload.params
+          const conversationIDKeys = (convs ?? []).map(c => Types.stringToConversationIDKey(c.convID))
+          get().dispatch.unboxRows(conversationIDKeys, true)
+          break
+        }
+        case EngineGen.chat1NotifyChatChatTLFFinalize:
+          get().dispatch.unboxRows([Types.conversationIDToKey(action.payload.params.convID)])
+          break
         case EngineGen.chat1NotifyChatChatIdentifyUpdate: {
           // Some participants are broken/fixed now
           const {update} = action.payload.params
