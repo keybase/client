@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
@@ -143,14 +142,14 @@ const styles = Styles.styleSheetCreate(() => ({
 
 const useCollapseAction = () => {
   const getIds = React.useContext(GetIdsContext)
-  const dispatch = Container.useDispatch()
+  const toggleMessageCollapse = C.useChatContext(s => s.dispatch.toggleMessageCollapse)
   const onCollapse = React.useCallback(
     (e: React.BaseSyntheticEvent) => {
       e.stopPropagation()
-      const {conversationIDKey, ordinal} = getIds()
-      dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID: ordinal, ordinal}))
+      const {ordinal} = getIds()
+      toggleMessageCollapse(ordinal, ordinal)
     },
-    [dispatch, getIds]
+    [toggleMessageCollapse, getIds]
   )
   return onCollapse
 }

@@ -1,52 +1,9 @@
 {
   "prelude": [
     "import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
-    "import type * as Types from '../constants/types/chat2'",
-    "import type * as TeamsTypes from '../constants/types/teams'"
+    "import type * as Types from '../constants/types/chat2'"
   ],
   "actions": {
-    "updateNotificationSettings": {
-      "_description": "We're changing the notification settings",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "notificationsDesktop": "Types.NotificationsType",
-      "notificationsMobile": "Types.NotificationsType",
-      "notificationsGlobalIgnoreMentions": "boolean"
-    },
-    "setMinWriterRole": {
-      "_description": "Set the minimum role required to write into a conversation. Valid only for team conversations.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "role": "TeamsTypes.TeamRoleType"
-    },
-    "openChatFromWidget": {
-      "conversationIDKey?": "Types.ConversationIDKey"
-    },
-    "unfurlResolvePrompt": {
-      "_description": "Response to an unfurl prompt",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID",
-      "domain": "string",
-      "result": "RPCChatTypes.UnfurlPromptResult"
-    },
-    "unfurlRemove": {
-      "_description": "Remove an unfurl",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID"
-    },
-    "confirmScreenResponse": {
-      "_description": "User responded to the chat Stellar confirm screen",
-      "accept": "boolean"
-    },
-    "updateUnreadline": {
-      "_description": "Update the unreadline line position for a conversation",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID"
-    },
-    "toggleMessageCollapse": {
-      "_description": "Toggle the collapse status of a message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID",
-      "ordinal": "Types.Ordinal"
-    },
     "addUsersToChannel": {
       "_description": "Add a list of users to a conversation. Creates a SystemBulkAddToConv message.",
       "conversationIDKey": "Types.ConversationIDKey",

@@ -324,6 +324,13 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       switch (action.type) {
         case RemoteGen.resetStore:
           break
+        case RemoteGen.openChatFromWidget: {
+          C.useConfigState.getState().dispatch.showMain()
+          C.getConvoState(
+            action.payload.conversationIDKey ?? C.noConversationIDKey
+          ).dispatch.navigateToThread('inboxSmall')
+          break
+        }
         case RemoteGen.inboxRefresh: {
           C.useChatState.getState().dispatch.inboxRefresh('widgetRefresh')
           break

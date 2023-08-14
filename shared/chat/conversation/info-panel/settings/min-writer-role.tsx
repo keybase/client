@@ -1,20 +1,13 @@
 import * as C from '../../../../constants'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Style from '../../../../styles'
 import * as TeamConstants from '../../../../constants/teams'
 import type * as TeamTypes from '../../../../constants/types/teams'
-import type * as Types from '../../../../constants/types/chat2'
 import upperFirst from 'lodash/upperFirst'
 import {indefiniteArticle} from '../../../../util/string'
 
-type Props = {conversationIDKey: Types.ConversationIDKey}
-
-const MinWriterRole = (props: Props) => {
-  const {conversationIDKey} = props
-  const dispatch = Container.useDispatch()
+const MinWriterRole = () => {
   const meta = C.useChatContext(s => s.meta)
   const {teamname} = meta
 
@@ -24,9 +17,9 @@ const MinWriterRole = (props: Props) => {
 
   const [saving, setSaving] = React.useState(false)
   const [selected, setSelected] = React.useState(minWriterRole)
+  const setMinWriterRole = C.useChatContext(s => s.dispatch.setMinWriterRole)
 
-  const onSetNewRole = (role: TeamTypes.TeamRoleType) =>
-    dispatch(Chat2Gen.createSetMinWriterRole({conversationIDKey, role}))
+  const onSetNewRole = (role: TeamTypes.TeamRoleType) => setMinWriterRole(role)
   const selectRole = (role: TeamTypes.TeamRoleType) => {
     if (role !== minWriterRole) {
       setSaving(true)

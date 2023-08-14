@@ -5,12 +5,11 @@ import * as Styles from '../../../../../../styles'
 import UnfurlImage from './image'
 import shallowEqual from 'shallowequal'
 import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
-import {ConvoIDContext, OrdinalContext} from '../../../ids-context'
+import {OrdinalContext} from '../../../ids-context'
 import {getUnfurlInfo, useActions} from './use-redux'
 
 const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
   const {idx} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
 
   const data = C.useChatContext(s => {
@@ -34,7 +33,6 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
   }, shallowEqual)
 
   const {onClose, onToggleCollapse} = useActions(
-    conversationIDKey,
     data?.youAreAuthor ?? false,
     data?.unfurlMessageID ?? 0,
     ordinal

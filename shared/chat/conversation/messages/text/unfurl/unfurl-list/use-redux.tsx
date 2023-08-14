@@ -1,23 +1,17 @@
 import * as C from '../../../../../../constants'
 import * as React from 'react'
-import * as Container from '../../../../../../util/container'
-import * as Chat2Gen from '../../../../../../actions/chat2-gen'
 import type * as Constants from '../../../../../../constants/chat2'
 import type * as Types from '../../../../../../constants/types/chat2'
 
-export const useActions = (
-  conversationIDKey: Types.ConversationIDKey,
-  youAreAuthor: boolean,
-  messageID: Types.MessageID,
-  ordinal: Types.Ordinal
-) => {
-  const dispatch = Container.useDispatch()
+export const useActions = (youAreAuthor: boolean, messageID: Types.MessageID, ordinal: Types.Ordinal) => {
+  const unfurlRemove = C.useChatContext(s => s.dispatch.unfurlRemove)
   const onClose = React.useCallback(() => {
-    dispatch(Chat2Gen.createUnfurlRemove({conversationIDKey, messageID}))
-  }, [dispatch, conversationIDKey, messageID])
+    unfurlRemove(messageID)
+  }, [unfurlRemove, messageID])
+  const toggleMessageCollapse = C.useChatContext(s => s.dispatch.toggleMessageCollapse)
   const onToggleCollapse = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID, ordinal}))
-  }, [dispatch, conversationIDKey, messageID, ordinal])
+    toggleMessageCollapse(messageID, ordinal)
+  }, [toggleMessageCollapse, messageID, ordinal])
 
   return {onClose: youAreAuthor ? onClose : undefined, onToggleCollapse}
 }

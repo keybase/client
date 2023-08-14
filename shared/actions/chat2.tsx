@@ -297,18 +297,6 @@ const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvU
   }
 }
 
-type StellarConfirmWindowResponse = {result: (b: boolean) => void}
-let _stellarConfirmWindowResponse: StellarConfirmWindowResponse | undefined
-
-function storeStellarConfirmWindowResponse(accept: boolean, response?: StellarConfirmWindowResponse) {
-  _stellarConfirmWindowResponse?.result(accept)
-  _stellarConfirmWindowResponse = response
-}
-
-const confirmScreenResponse = (_: unknown, action: Chat2Gen.ConfirmScreenResponsePayload) => {
-  storeStellarConfirmWindowResponse(action.payload.accept)
-}
-
 const sendAudioRecording = async (_: unknown, action: Chat2Gen.SendAudioRecordingPayload) => {
   const {conversationIDKey, amps, path, duration} = action.payload
   const outboxID = Constants.generateOutboxID()
@@ -398,104 +386,6 @@ const ensureWidgetMetas = () => {
   C.useChatState.getState().dispatch.unboxRows(missing, true)
 }
 
-const updateNotificationSettings = async (_: unknown, action: Chat2Gen.UpdateNotificationSettingsPayload) => {
-  const {notificationsGlobalIgnoreMentions, notificationsMobile, notificationsDesktop} = action.payload
-  const {conversationIDKey} = action.payload
-  await RPCChatTypes.localSetAppNotificationSettingsLocalRpcPromise({
-    channelWide: notificationsGlobalIgnoreMentions,
-    convID: Types.keyToConversationID(conversationIDKey),
-    settings: [
-      {
-        deviceType: RPCTypes.DeviceType.desktop,
-        enabled: notificationsDesktop === 'onWhenAtMentioned',
-        kind: RPCChatTypes.NotificationKind.atmention,
-      },
-      {
-        deviceType: RPCTypes.DeviceType.desktop,
-        enabled: notificationsDesktop === 'onAnyActivity',
-        kind: RPCChatTypes.NotificationKind.generic,
-      },
-      {
-        deviceType: RPCTypes.DeviceType.mobile,
-        enabled: notificationsMobile === 'onWhenAtMentioned',
-        kind: RPCChatTypes.NotificationKind.atmention,
-      },
-      {
-        deviceType: RPCTypes.DeviceType.mobile,
-        enabled: notificationsMobile === 'onAnyActivity',
-        kind: RPCChatTypes.NotificationKind.generic,
-      },
-    ],
-  })
-}
-
-const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageCollapsePayload) => {
-  const {conversationIDKey, messageID, ordinal} = action.payload
-  const m = C.getConvoState(conversationIDKey).messageMap.get(ordinal)
-  let isCollapsed = false
-
-  if (messageID !== ordinal) {
-    const unfurlInfos = [...(m?.unfurls?.values() ?? [])]
-    const ui = unfurlInfos.find(u => u.unfurlMessageID === messageID)
-
-    if (ui) {
-      isCollapsed = ui.isCollapsed
-    }
-  } else {
-    isCollapsed = m?.isCollapsed ?? false
-  }
-  await RPCChatTypes.localToggleMessageCollapseRpcPromise({
-    collapse: !isCollapsed,
-    convID: Types.keyToConversationID(conversationIDKey),
-    msgID: messageID,
-  })
-}
-
-const setMinWriterRole = async (_: unknown, action: Chat2Gen.SetMinWriterRolePayload) => {
-  const {conversationIDKey, role} = action.payload
-  logger.info(`Setting minWriterRole to ${role} for convID ${conversationIDKey}`)
-  await RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise({
-    convID: Types.keyToConversationID(conversationIDKey),
-    role: RPCTypes.TeamRole[role],
-  })
-}
-
-const unfurlRemove = async (_: unknown, action: Chat2Gen.UnfurlRemovePayload) => {
-  const {conversationIDKey, messageID} = action.payload
-  const meta = C.getConvoState(conversationIDKey).meta
-  if (meta.conversationIDKey !== conversationIDKey) {
-    logger.debug('unfurl remove no meta found, aborting!')
-    return
-  }
-  await RPCChatTypes.localPostDeleteNonblockRpcPromise(
-    {
-      clientPrev: 0,
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      outboxID: null,
-      supersedes: messageID,
-      tlfName: meta.tlfname,
-      tlfPublic: false,
-    },
-    Constants.waitingKeyDeletePost
-  )
-}
-
-const unfurlDismissPrompt = (_: unknown, action: Chat2Gen.UnfurlResolvePromptPayload) => {
-  const {conversationIDKey, messageID, domain} = action.payload
-  C.getConvoState(conversationIDKey).dispatch.unfurlTogglePrompt(messageID, domain, false)
-}
-
-const unfurlResolvePrompt = async (_: unknown, action: Chat2Gen.UnfurlResolvePromptPayload) => {
-  const {conversationIDKey, messageID, result} = action.payload
-  await RPCChatTypes.localResolveUnfurlPromptRpcPromise({
-    convID: Types.keyToConversationID(conversationIDKey),
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    msgID: Types.messageIDToNumber(messageID),
-    result,
-  })
-}
-
 const onGiphyResults = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphySearchResultsPayload) => {
   const {convID, results} = action.payload.params
   C.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyGotSearchResult(results)
@@ -547,14 +437,6 @@ const ignorePinnedMessage = async (_: unknown, action: Chat2Gen.IgnorePinnedMess
   await RPCChatTypes.localIgnorePinnedMessageRpcPromise({
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
   })
-}
-
-const openChatFromWidget = (
-  _: unknown,
-  {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
-) => {
-  C.useConfigState.getState().dispatch.showMain()
-  C.getConvoState(conversationIDKey ?? C.noConversationIDKey).dispatch.navigateToThread('inboxSmall')
 }
 
 const addUsersToChannel = async (_: unknown, action: Chat2Gen.AddUsersToChannelPayload) => {
@@ -624,27 +506,11 @@ const initChat = () => {
   })
 
   Container.listenAction(Chat2Gen.dismissJourneycard, dismissJourneycard)
-  Container.listenAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)
 
-  Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlResolvePrompt)
-  Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
-  Container.listenAction(Chat2Gen.unfurlRemove, unfurlRemove)
-
-  Container.listenAction(Chat2Gen.updateUnreadline, (_, a) => {
-    const {dispatch} = C.getConvoState(C.getSelectedConversation())
-    dispatch.markThreadAsRead(a.payload.messageID)
-  })
   Container.listenAction(Chat2Gen.tabSelected, () => {
     const {dispatch} = C.getConvoState(C.getSelectedConversation())
     dispatch.markThreadAsRead()
   })
-
-  Container.listenAction(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
-
-  Container.listenAction(Chat2Gen.toggleMessageCollapse, toggleMessageCollapse)
-  Container.listenAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
-
-  Container.listenAction(Chat2Gen.setMinWriterRole, setMinWriterRole)
 
   Container.listenAction(Chat2Gen.fetchUserEmoji, fetchUserEmoji)
 

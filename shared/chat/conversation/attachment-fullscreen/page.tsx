@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as C from '../../../constants'
 import type * as Container from '../../../util/container'
 
 const Full = React.lazy(async () => import('./container'))
@@ -12,7 +13,9 @@ const getOptions = () => ({
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>
-    <Full {...p.route.params} />
+    <C.ChatProvider id={p.route.params.conversationIDKey}>
+      <Full {...p.route.params} />
+    </C.ChatProvider>
   </React.Suspense>
 )
 

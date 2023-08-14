@@ -4,6 +4,7 @@
     "import type * as Tabs from '../constants/tabs'"
   ],
   "actions": {
+    "openChatFromWidget": {"conversationIDKey": "string"},
     "previewConversation": {"participant": "string"},
     "inboxRefresh": {},
     "engineConnection": {"connected": "boolean"},

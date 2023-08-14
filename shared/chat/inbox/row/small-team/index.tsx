@@ -1,6 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as RemoteGen from '../../../../actions/remote-gen'
 import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
@@ -83,7 +83,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   const dispatch = Container.useDispatch()
   const _onSelectConversation: () => void = Container.useEvent(() => {
     if (isInWidget) {
-      dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))
+      dispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey}))
     } else {
       navigateToThread('inboxSmall')
     }

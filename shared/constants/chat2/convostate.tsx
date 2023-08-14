@@ -286,6 +286,7 @@ export type ConvoState = ConvoStore & {
     setMessageOrdinals: (os?: Array<Types.Ordinal>) => void
     setMessageTypeMap: (o: Types.Ordinal, t?: Types.RenderMessageType) => void
     setMeta: (m?: Types.ConversationMeta) => void
+    setMinWriterRole: (role: TeamsTypes.TeamRoleType) => void
     setMoreToLoad: (m: boolean) => void
     setMuted: (m: boolean) => void
     setOrangeLine: (o: Types.Ordinal) => void
@@ -298,21 +299,34 @@ export type ConvoState = ConvoStore & {
     setupSubscriptions: () => void
     threadSearch: (query: string) => void
     toggleGiphyPrefill: () => void
-    toggleMessageReaction: (ordinal: Types.Ordinal, emoji: string) => void
-    toggleThreadSearch: (hide?: boolean) => void
-    updateDraft: (text: string) => void
     toggleLocalReaction: (p: {
       decorated: string
       emoji: string
       targetOrdinal: Types.Ordinal
       username: string
     }) => void
+    toggleMessageCollapse: (messageID: Types.MessageID, ordinal: Types.Ordinal) => void
+    toggleMessageReaction: (ordinal: Types.Ordinal, emoji: string) => void
+    toggleThreadSearch: (hide?: boolean) => void
+    unfurlResolvePrompt: (
+      messageID: Types.MessageID,
+      domain: string,
+      result: RPCChatTypes.UnfurlPromptResult
+    ) => void
+    unfurlRemove: (messageID: Types.MessageID) => void
+    updateDraft: (text: string) => void
     unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
     unreadUpdated: (unread: number) => void
     updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
     updateAttachmentViewTransfered: (msgId: number, path: string) => void
+    updateUnreadline: (messageID: Types.MessageID) => void
     updateMessage: (ordinal: Types.Ordinal, m: Partial<Types.Message>) => void
     updateMeta: (m: Partial<Types.ConversationMeta>) => void
+    updateNotificationSettings: (
+      notificationsDesktop: Types.NotificationsType,
+      notificationsMobile: Types.NotificationsType,
+      notificationsGlobalIgnoreMentions: boolean
+    ) => void
     updateReactions: (
       updates: Array<{targetMsgID: RPCChatTypes.MessageID; reactions: Types.Reactions}>
     ) => void
@@ -1056,10 +1070,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           })
           const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
           logger.info(`marking unreadline ${conversationIDKey} ${unreadlineID}`)
-          Chat2Gen.createUpdateUnreadline({
-            conversationIDKey,
-            messageID: Types.numberToMessageID(unreadlineID),
-          })
+          get().dispatch.updateUnreadline(Types.numberToMessageID(unreadlineID))
           if (get().markedAsUnread) {
             // Remove the force unread bit for the next time we view the thread.
             get().dispatch.setMarkAsUnread(false)
@@ -2579,6 +2590,16 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       get().dispatch.setDraft(get().meta.draft)
       get().dispatch.setMuted(get().meta.isMuted)
     },
+    setMinWriterRole: role => {
+      const f = async () => {
+        logger.info(`Setting minWriterRole to ${role} for convID ${get().id}`)
+        await RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise({
+          convID: Types.keyToConversationID(get().id),
+          role: RPCTypes.TeamRole[role],
+        })
+      }
+      Z.ignorePromise(f())
+    },
     setMoreToLoad: m => {
       set(s => {
         s.moreToLoad = m
@@ -2759,6 +2780,28 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       })
     },
+    toggleMessageCollapse: (messageID, ordinal) => {
+      const f = async () => {
+        const m = get().messageMap.get(ordinal)
+        let isCollapsed = false
+
+        if (messageID !== ordinal) {
+          const unfurlInfos = [...(m?.unfurls?.values() ?? [])]
+          const ui = unfurlInfos.find(u => u.unfurlMessageID === messageID)
+          if (ui) {
+            isCollapsed = ui.isCollapsed
+          }
+        } else {
+          isCollapsed = m?.isCollapsed ?? false
+        }
+        await RPCChatTypes.localToggleMessageCollapseRpcPromise({
+          collapse: !isCollapsed,
+          convID: Types.keyToConversationID(get().id),
+          msgID: messageID,
+        })
+      }
+      Z.ignorePromise(f())
+    },
     toggleMessageReaction: (ordinal, emoji) => {
       const f = async () => {
         // The service translates this to a delete if an identical reaction already exists
@@ -2819,6 +2862,41 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (!visible) {
           await RPCChatTypes.localCancelActiveSearchRpcPromise()
         }
+      }
+      Z.ignorePromise(f())
+    },
+    unfurlRemove: messageID => {
+      const f = async () => {
+        const conversationIDKey = get().id
+        const meta = C.getConvoState(conversationIDKey).meta
+        if (meta.conversationIDKey !== conversationIDKey) {
+          logger.debug('unfurl remove no meta found, aborting!')
+          return
+        }
+        await RPCChatTypes.localPostDeleteNonblockRpcPromise(
+          {
+            clientPrev: 0,
+            conversationID: Types.keyToConversationID(conversationIDKey),
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+            outboxID: null,
+            supersedes: messageID,
+            tlfName: meta.tlfname,
+            tlfPublic: false,
+          },
+          Common.waitingKeyDeletePost
+        )
+      }
+      Z.ignorePromise(f())
+    },
+    unfurlResolvePrompt: (messageID, domain, result) => {
+      const f = async () => {
+        get().dispatch.unfurlTogglePrompt(messageID, domain, false)
+        await RPCChatTypes.localResolveUnfurlPromptRpcPromise({
+          convID: Types.keyToConversationID(get().id),
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          msgID: Types.messageIDToNumber(messageID),
+          result,
+        })
       }
       Z.ignorePromise(f())
     },
@@ -2905,6 +2983,42 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       get().dispatch.setDraft(get().meta.draft)
       get().dispatch.setMuted(get().meta.isMuted)
     },
+    updateNotificationSettings: (
+      notificationsDesktop,
+      notificationsMobile,
+      notificationsGlobalIgnoreMentions
+    ) => {
+      const f = async () => {
+        const conversationIDKey = get().id
+        await RPCChatTypes.localSetAppNotificationSettingsLocalRpcPromise({
+          channelWide: notificationsGlobalIgnoreMentions,
+          convID: Types.keyToConversationID(conversationIDKey),
+          settings: [
+            {
+              deviceType: RPCTypes.DeviceType.desktop,
+              enabled: notificationsDesktop === 'onWhenAtMentioned',
+              kind: RPCChatTypes.NotificationKind.atmention,
+            },
+            {
+              deviceType: RPCTypes.DeviceType.desktop,
+              enabled: notificationsDesktop === 'onAnyActivity',
+              kind: RPCChatTypes.NotificationKind.generic,
+            },
+            {
+              deviceType: RPCTypes.DeviceType.mobile,
+              enabled: notificationsMobile === 'onWhenAtMentioned',
+              kind: RPCChatTypes.NotificationKind.atmention,
+            },
+            {
+              deviceType: RPCTypes.DeviceType.mobile,
+              enabled: notificationsMobile === 'onAnyActivity',
+              kind: RPCChatTypes.NotificationKind.generic,
+            },
+          ],
+        })
+      }
+      Z.ignorePromise(f())
+    },
     updateReactions: updates => {
       const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
       for (const u of updates) {
@@ -2925,6 +3039,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
       get().dispatch.markThreadAsRead()
+    },
+    updateUnreadline: messageID => {
+      get().dispatch.markThreadAsRead(messageID)
     },
   }
   return {
