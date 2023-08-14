@@ -309,7 +309,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
     closeTeamBuilding: () => {
       const modals = C.getModalStack()
       const routeNames = [...namespaceToRoute.values()]
-      const routeName = modals[modals.length - 1]?.name
+      const routeName = modals.at(-1)?.name
       if (routeNames.includes(routeName ?? '')) {
         C.useRouterState.getState().dispatch.clearModals()
       }

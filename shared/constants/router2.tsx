@@ -84,7 +84,7 @@ export const getModalStack = (navState?: NavState) => {
 
 export const getVisibleScreen = (navState?: NavState) => {
   const visible = getVisiblePath(navState)
-  return visible[visible.length - 1]
+  return visible.at(-1)
 }
 
 type DeepWriteable<T> = {-readonly [P in keyof T]: DeepWriteable<T[P]>}
@@ -203,7 +203,7 @@ export const navToThread = (conversationIDKey: ConversationIDKey) => {
         params: {conversationIDKey},
       }
       // reuse visible route if it's the same
-      const visible = chatStack.state?.routes?.[chatStack.state?.routes?.length - 1]
+      const visible = chatStack.state?.routes?.at(-1)
       if (visible) {
         // @ts-ignore TODO better route types
         if (visible.name === 'chatConversation' && visible.params?.conversationIDKey === conversationIDKey) {
@@ -309,7 +309,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         return
       }
       const vp = getVisiblePath(ns)
-      const visible = vp[vp.length - 1]
+      const visible = vp.at(-1)
       if (visible) {
         if (routeName === visible.name && shallowEqual(visible.params, params)) {
           console.log('Skipping append dupe')

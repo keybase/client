@@ -89,7 +89,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
         wordRegex = / |\n/
       }
       const words = upToCursor.split(wordRegex)
-      const word = words[words.length - 1]
+      const word = words.at(-1)
       const position = {end: selection.start, start: selection.start - word!.length}
       return {position, word}
     }

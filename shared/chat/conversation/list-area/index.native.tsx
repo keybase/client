@@ -45,7 +45,7 @@ const useScrolling = (p: {
   const {messageOrdinals, requestScrollToBottomRef} = p
   const {cidChanged, listRef, centeredOrdinal} = p
   const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
-  const oldestOrdinal = messageOrdinals[messageOrdinals.length - 1] ?? -1
+  const oldestOrdinal = messageOrdinals.at(-1) ?? -1
   const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
 
   const loadOlderMessages = Container.useEvent(() => {

@@ -347,7 +347,7 @@ class _PhoneInput extends React.Component<OldProps> {
     for (let i = 0; i < newText.length - 1; i++) {
       this.props.formatter.inputDigit(newText[i]!)
     }
-    const formatted = this.props.formatter.inputDigit(newText[newText.length - 1]!)
+    const formatted = this.props.formatter.inputDigit(newText.at(-1)!)
     this.setFormattedPhoneNumber(formatted)
 
     // Special case for NA area
@@ -757,7 +757,7 @@ const styles = Styles.styleSheetCreate(
       searchWrapper: {
         ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny),
       },
-    } as const)
+    }) as const
 )
 
 export default PhoneInput

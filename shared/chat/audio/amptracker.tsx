@@ -152,7 +152,7 @@ class BucketList {
     }
     const newBl = new BucketList()
     let t = 0
-    const end = this.buckets[this.buckets.length - 1]!.end()
+    const end = this.buckets.at(-1)!.end()
     let oldInd = 0 // an index into the old buckets. For performance reasons, we'll also move across this
     while (t < end) {
       const b = new Bucket(t, dt, 0)

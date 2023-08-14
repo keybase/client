@@ -138,7 +138,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
     this.onScrollUnbox(data)
 
-    this.lastVisibleIdx = data.viewableItems[data.viewableItems.length - 1]?.index ?? -1
+    this.lastVisibleIdx = data.viewableItems.at(-1)?.index ?? -1
     this.updateShowUnread()
     this.updateShowFloating()
   }

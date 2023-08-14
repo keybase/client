@@ -73,7 +73,7 @@ class GlobalKeyEventHandler extends React.Component<GlobalProps> {
     if (this._stack.length === 0) {
       return null
     }
-    return this._stack[this._stack.length - 1]
+    return this._stack.at(-1)
   }
 
   _handleKeyDown = (ev: KeyboardEvent) => {

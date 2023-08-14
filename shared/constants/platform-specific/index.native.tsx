@@ -297,7 +297,7 @@ ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
   if (!locations.length) {
     return
   }
-  const pos = locations[locations.length - 1]
+  const pos = locations.at(-1)
   C.useChatState.getState().dispatch.updateLastCoord({
     accuracy: Math.floor(pos?.coords.accuracy ?? 0),
     lat: pos?.coords.latitude ?? 0,

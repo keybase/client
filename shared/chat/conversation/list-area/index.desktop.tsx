@@ -489,7 +489,7 @@ const useItems = (p: {
                 intersectionObserve={intersectionObserve}
               />
             )
-            previous = toAdd[toAdd.length - 1]
+            previous = toAdd.at(-1)
           })
           // we pass previous so the OrdinalWaypoint can render the top item correctly
           ordinals = []
