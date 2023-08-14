@@ -7,43 +7,6 @@ import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
 import logger from '../logger'
 
-const maybeChangeSelectedConv = () => {
-  const selectedConversation = C.getSelectedConversation()
-  const {inboxLayout} = C.useChatState.getState()
-  if (!inboxLayout || !inboxLayout.reselectInfo) {
-    return
-  }
-  const {reselectInfo} = inboxLayout
-  if (
-    !Constants.isValidConversationIDKey(selectedConversation) ||
-    selectedConversation === reselectInfo.oldConvID
-  ) {
-    if (Container.isPhone) {
-      // on mobile just head back to the inbox if we have something selected
-      if (Constants.isValidConversationIDKey(selectedConversation)) {
-        logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
-        C.useChatState.getState().dispatch.navigateToInbox()
-        return
-      }
-      logger.info(`maybeChangeSelectedConv: mobile: ignoring conv change, no conv selected`)
-      return
-    }
-    if (reselectInfo.newConvID) {
-      logger.info(`maybeChangeSelectedConv: selecting new conv: ${reselectInfo.newConvID}`)
-      C.getConvoState(reselectInfo.newConvID).dispatch.navigateToThread('findNewestConversation')
-      return
-    } else {
-      logger.info(`maybeChangeSelectedConv: deselecting conv, service provided no new conv`)
-      C.getConvoState(C.noConversationIDKey).dispatch.navigateToThread('findNewestConversation')
-      return
-    }
-  } else {
-    logger.info(
-      `maybeChangeSelectedConv: selected conv mismatch on reselect (ignoring): selected: ${selectedConversation} srvold: ${reselectInfo.oldConvID}`
-    )
-  }
-}
-
 // Some participants are broken/fixed now
 const onChatIdentifyUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatIdentifyUpdatePayload) => {
   const {update} = action.payload.params
@@ -216,24 +179,6 @@ const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvU
   }
 }
 
-const ensureWidgetMetas = () => {
-  const {inboxLayout} = C.useChatState.getState()
-  if (!inboxLayout?.widgetList) {
-    return
-  }
-  const missing = inboxLayout.widgetList.reduce<Array<Types.ConversationIDKey>>((l, v) => {
-    if (C.getConvoState(v.convID).meta.conversationIDKey !== v.convID) {
-      l.push(v.convID)
-    }
-    return l
-  }, [])
-  if (missing.length === 0) {
-    return
-  }
-
-  C.useChatState.getState().dispatch.unboxRows(missing, true)
-}
-
 const onGiphyResults = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphySearchResultsPayload) => {
   const {convID, results} = action.payload.params
   C.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyGotSearchResult(results)
@@ -250,9 +195,6 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
 }
 
 const initChat = () => {
-  // Actually try and unbox conversations
-  Container.listenAction(EngineGen.chat1ChatUiChatInboxLayout, maybeChangeSelectedConv)
-  Container.listenAction(EngineGen.chat1ChatUiChatInboxLayout, ensureWidgetMetas)
   // TODO move to engine constants
   Container.listenAction(EngineGen.chat1ChatUiChatInboxLayout, (_, action) => {
     C.useChatState.getState().dispatch.updateInboxLayout(action.payload.params.layout)

@@ -355,6 +355,7 @@ export type State = Store & {
       message: string
     ) => void
     createConversation: (participants: Array<string>, highlightMessageID?: number) => void
+    ensureWidgetMetas: () => void
     findGeneralConvIDFromTeamID: (teamID: TeamsTypes.TeamID) => void
     fetchUserEmoji: (conversationIDKey?: Types.ConversationIDKey, onlyInTeam?: boolean) => void
     inboxRefresh: (
@@ -380,6 +381,7 @@ export type State = Store & {
     ) => void
     loadStaticConfig: () => void
     loadedUserEmoji: (results: RPCChatTypes.UserEmojiRes) => void
+    maybeChangeSelectedConv: () => void
     messageSendByUsername: (username: string, text: string, waitingKey?: string) => void
     metasReceived: (
       metas: Array<Types.ConversationMeta>,
@@ -522,6 +524,22 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    ensureWidgetMetas: () => {
+      const {inboxLayout} = get()
+      if (!inboxLayout?.widgetList) {
+        return
+      }
+      const missing = inboxLayout.widgetList.reduce<Array<Types.ConversationIDKey>>((l, v) => {
+        if (C.getConvoState(v.convID).meta.conversationIDKey !== v.convID) {
+          l.push(v.convID)
+        }
+        return l
+      }, [])
+      if (missing.length === 0) {
+        return
+      }
+      get().dispatch.unboxRows(missing, true)
+    },
     fetchUserEmoji: (conversationIDKey, onlyInTeam) => {
       const f = async () => {
         const results = await RPCChatTypes.localUserEmojisRpcPromise(
@@ -538,7 +556,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           },
           Common.waitingKeyLoadingEmoji
         )
-        C.useChatState.getState().dispatch.loadedUserEmoji(results)
+        get().dispatch.loadedUserEmoji(results)
       }
       Z.ignorePromise(f())
     },
@@ -900,6 +918,42 @@ export const _useState = Z.createZustand<State>((set, get) => {
         s.userEmojis = results.emojis.emojis ?? []
       })
     },
+    maybeChangeSelectedConv: () => {
+      const selectedConversation = C.getSelectedConversation()
+      const {inboxLayout} = get()
+      if (!inboxLayout || !inboxLayout.reselectInfo) {
+        return
+      }
+      const {reselectInfo} = inboxLayout
+      if (
+        !Types.isValidConversationIDKey(selectedConversation) ||
+        selectedConversation === reselectInfo.oldConvID
+      ) {
+        if (isPhone) {
+          // on mobile just head back to the inbox if we have something selected
+          if (Types.isValidConversationIDKey(selectedConversation)) {
+            logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
+            get().dispatch.navigateToInbox()
+            return
+          }
+          logger.info(`maybeChangeSelectedConv: mobile: ignoring conv change, no conv selected`)
+          return
+        }
+        if (reselectInfo.newConvID) {
+          logger.info(`maybeChangeSelectedConv: selecting new conv: ${reselectInfo.newConvID}`)
+          C.getConvoState(reselectInfo.newConvID).dispatch.navigateToThread('findNewestConversation')
+          return
+        } else {
+          logger.info(`maybeChangeSelectedConv: deselecting conv, service provided no new conv`)
+          C.getConvoState(C.noConversationIDKey).dispatch.navigateToThread('findNewestConversation')
+          return
+        }
+      } else {
+        logger.info(
+          `maybeChangeSelectedConv: selected conv mismatch on reselect (ignoring): selected: ${selectedConversation} srvold: ${reselectInfo.oldConvID}`
+        )
+      }
+    },
     messageSendByUsername: (username, text, waitingKey) => {
       const f = async () => {
         const tlfName = `${C.useCurrentUserState.getState().username},${username}`
@@ -974,6 +1028,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         case EngineGen.chat1ChatUiChatInboxUnverified:
           get().dispatch.onGetInboxUnverifiedConvs(action)
+          break
+        case EngineGen.chat1ChatUiChatInboxLayout:
+          get().dispatch.maybeChangeSelectedConv()
+          get().dispatch.ensureWidgetMetas()
           break
         case EngineGen.chat1NotifyChatChatInboxStale:
           get().dispatch.inboxRefresh('inboxStale')
@@ -1189,7 +1247,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           )
       }
       if (metas.length > 0) {
-        C.useChatState.getState().dispatch.metasReceived(metas)
+        get().dispatch.metasReceived(metas)
       }
     },
     onGetInboxUnverifiedConvs: (action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => {
