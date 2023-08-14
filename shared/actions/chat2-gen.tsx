@@ -11,7 +11,6 @@ export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const pinMessage = 'chat2:pinMessage'
-export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const unpinMessage = 'chat2:unpinMessage'
 
@@ -44,13 +43,6 @@ export const createFetchUserEmoji = (
   payload: {readonly conversationIDKey?: Types.ConversationIDKey; readonly onlyInTeam?: boolean} = {}
 ) => ({payload, type: fetchUserEmoji as typeof fetchUserEmoji})
 /**
- * Resolve an unknown @ mention
- */
-export const createResolveMaybeMention = (payload: {readonly name: string; readonly channel: string}) => ({
-  payload,
-  type: resolveMaybeMention as typeof resolveMaybeMention,
-})
-/**
  * Unpin a message
  */
 export const createUnpinMessage = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
@@ -74,7 +66,6 @@ export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneyca
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
 export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMessage>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
-export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMention>
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 
@@ -86,7 +77,6 @@ export type Actions =
   | FetchUserEmojiPayload
   | IgnorePinnedMessagePayload
   | PinMessagePayload
-  | ResolveMaybeMentionPayload
   | SendAudioRecordingPayload
   | UnpinMessagePayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

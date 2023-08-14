@@ -4,11 +4,6 @@
     "import type * as Types from '../constants/types/chat2'"
   ],
   "actions": {
-    "resolveMaybeMention": {
-      "_description": "Resolve an unknown @ mention",
-      "name": "string",
-      "channel": "string"
-    },
     "pinMessage": {
       "_description": "Pin a message",
       "conversationIDKey": "Types.ConversationIDKey",

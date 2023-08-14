@@ -401,12 +401,6 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
   C.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyToggleWindow(show)
 }
 
-const resolveMaybeMention = async (_: unknown, action: Chat2Gen.ResolveMaybeMentionPayload) => {
-  await RPCChatTypes.localResolveMaybeMentionRpcPromise({
-    mention: {channel: action.payload.channel, name: action.payload.name},
-  })
-}
-
 const pinMessage = async (_: unknown, action: Chat2Gen.PinMessagePayload) => {
   try {
     await RPCChatTypes.localPinMessageRpcPromise({
@@ -508,8 +502,6 @@ const initChat = () => {
       .getState()
       .dispatch.setMaybeMentionInfo(Constants.getTeamMentionName(teamName, channel), info)
   })
-
-  Container.listenAction(Chat2Gen.resolveMaybeMention, resolveMaybeMention)
 
   Container.listenAction(Chat2Gen.pinMessage, pinMessage)
   Container.listenAction(Chat2Gen.unpinMessage, unpinMessage)

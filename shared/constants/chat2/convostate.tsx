@@ -272,6 +272,7 @@ export type ConvoState = ConvoStore & {
     resetLetThemIn: (username: string) => void
     resetState: 'default'
     resetUnsentText: () => void
+    resolveMaybeMention: (name: string, channel: string) => void
     selectedConversation: () => void
     sendTyping: (typing: boolean) => void
     setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
@@ -2239,6 +2240,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.unsentText = undefined
       })
+    },
+    resolveMaybeMention: (channel, name) => {
+      const f = async () => {
+        await RPCChatTypes.localResolveMaybeMentionRpcPromise({
+          mention: {channel, name},
+        })
+      }
+      Z.ignorePromise(f())
     },
     selectedConversation: () => {
       const conversationIDKey = get().id
