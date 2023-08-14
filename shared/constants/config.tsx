@@ -19,7 +19,7 @@ import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from 
 import {defaultUseNativeFrame, runMode, isMobile} from './platform'
 import {type CommonResponseHandler} from '../engine/types'
 import {useAvatarState} from '../common-adapters/avatar-zus'
-import {initPlatformListener} from '../actions/platform-specific'
+import {initPlatformListener} from '../constants/platform-specific'
 import {mapGetEnsureValue} from '../util/map'
 
 const ignorePromise = (f: Promise<void>) => {

@@ -4,7 +4,6 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Types from '../../constants/types/teams'
 import * as Constants from '../../constants/teams'
-import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import {ModalTitle} from '../common'
 
 const Skip = () => {
@@ -34,6 +33,7 @@ const AddFromWhere = () => {
   const createTeamError = C.useTeamsState(s => (newTeam ? s.newTeamWizard.error : undefined))
   const onClose = () => cancelAddMembersWizard()
   const onBack = () => nav.safeNavigateUp()
+  const appendNewTeamBuilder = C.useRouterState(s => s.appendNewTeamBuilder)
   const onContinueKeybase = () => appendNewTeamBuilder(teamID)
   const onContinuePhone = () => nav.safeNavigateAppend('teamAddToTeamPhone')
   const onContinueContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')

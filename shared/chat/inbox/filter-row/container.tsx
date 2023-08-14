@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import ConversationFilterInput from '.'
 
 type OwnProps = {
@@ -16,9 +15,8 @@ type OwnProps = {
 export default (ownProps: OwnProps) => {
   const filter = ownProps.query
   const isSearching = C.useChatState(s => !!s.inboxSearch)
-  const _appendNewChatBuilder = () => {
-    appendNewChatBuilder()
-  }
+
+  const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
@@ -31,7 +29,7 @@ export default (ownProps: OwnProps) => {
     toggleInboxSearch(false)
   }
   const props = {
-    appendNewChatBuilder: _appendNewChatBuilder,
+    appendNewChatBuilder,
     filter,
     isSearching,
     onBack: onBack,

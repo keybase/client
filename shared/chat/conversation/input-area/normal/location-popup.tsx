@@ -6,7 +6,7 @@ import * as Container from '../../../../util/container'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type * as Types from '../../../../constants/types/chat2'
 import LocationMap from '../../../location-map'
-import {watchPositionForMap} from '../../../../actions/platform-specific'
+import {watchPositionForMap} from '../../../../constants/platform-specific'
 
 type Props = {conversationIDKey: Types.ConversationIDKey}
 

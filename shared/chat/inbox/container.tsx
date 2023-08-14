@@ -5,7 +5,6 @@ import * as Constants from '../../constants/chat2'
 import * as Types from '../../constants/types/chat2'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import Inbox, {type Props} from '.'
-import {appendNewChatBuilder} from '../../actions/typed-routes'
 import {useIsFocused} from '@react-navigation/core'
 import isEqual from 'lodash/isEqual'
 
@@ -82,10 +81,9 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
       : false
   })
 
+  const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
   // a hack to have it check for marked as read when we mount as the focus events don't fire always
-  const onNewChat = React.useCallback(() => {
-    appendNewChatBuilder()
-  }, [])
+  const onNewChat = appendNewChatBuilder
   const onUntrustedInboxVisible = queueMetaToRequest
 
   const setInboxNumSmallRows = C.useChatState(s => s.dispatch.setInboxNumSmallRows)

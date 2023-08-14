@@ -8,7 +8,6 @@ import type * as Types from '../../constants/types/people'
 import type {IconType} from '../../common-adapters/icon.constants-gen'
 import type {TaskButton} from '../item'
 import {Task} from '.'
-import {appendPeopleBuilder} from '../../actions/typed-routes'
 
 type TodoOwnProps = {
   badged: boolean
@@ -117,6 +116,7 @@ const DeviceConnector = (props: TodoOwnProps) => {
 }
 
 const FollowConnector = (props: TodoOwnProps) => {
+  const appendPeopleBuilder = C.useRouterState(s => s.appendPeopleBuilder)
   const onConfirm = () => {
     appendPeopleBuilder()
   }

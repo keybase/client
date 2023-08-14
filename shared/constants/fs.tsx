@@ -5,7 +5,7 @@ import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
 import * as Types from './types/fs'
 import * as Z from '../util/zustand'
-import {requestPermissionsToWrite} from '../actions/platform-specific'
+import {requestPermissionsToWrite} from '../constants/platform-specific'
 import NotifyPopup from '../util/notify-popup'
 import type {TypedActions} from '../actions/typed-actions-gen'
 import {RPCError} from '../util/errors'
@@ -2515,7 +2515,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     setupSubscriptions: () => {
       const f = async () => {
-        const initPlatformSpecific = await import('../actions/fs/platform-specific')
+        const initPlatformSpecific = await import('./fs/platform-specific')
         initPlatformSpecific.default()
       }
       Z.ignorePromise(f())

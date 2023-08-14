@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {appendEncryptRecipientsBuilder} from '../actions/typed-routes'
 
 const placeholder = 'Search people'
 
@@ -9,6 +8,7 @@ const Recipients = () => {
   const recipients = C.useCryptoState(s => s.encrypt.recipients)
   const inProgress = C.useCryptoState(s => s.encrypt.inProgress)
   const clearRecipients = C.useCryptoState(s => s.dispatch.clearRecipients)
+  const appendEncryptRecipientsBuilder = C.useRouterState(s => s.appendEncryptRecipientsBuilder)
 
   const onAddRecipients = () => {
     if (inProgress) return

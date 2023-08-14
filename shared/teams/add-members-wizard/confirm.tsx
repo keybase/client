@@ -7,7 +7,6 @@ import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat2'
 import * as Types from '../../constants/types/teams'
 import * as RPCGen from '../../constants/types/rpc-gen'
-import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import {assertionToDisplay} from '../../common-adapters/usernames'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
@@ -206,6 +205,7 @@ const AlreadyInTeam = ({assertions}: {assertions: string[]}) => {
 const AddMoreMembers = () => {
   const nav = Container.useSafeNavigation()
   const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
+  const appendNewTeamBuilder = C.useRouterState(s => s.appendNewTeamBuilder)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
@@ -228,7 +228,7 @@ const AddMoreMembers = () => {
         />
       )
     },
-    [nav, teamID]
+    [appendNewTeamBuilder, nav, teamID]
   )
 
   const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)

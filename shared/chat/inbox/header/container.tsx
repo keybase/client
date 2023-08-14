@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import * as Container from '../../../util/container'
 import ChatInboxHeader from '.'
-import {appendNewChatBuilder} from '../../../actions/typed-routes'
 
 type OwnProps = {
   headerContext: 'chat-header' | 'inbox-header'
@@ -31,6 +30,8 @@ export default (ownProps: OwnProps) => {
   const onEnsureSelection = () => {
     inboxSearchSelect()
   }
+
+  const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
   const onNewChat = () => {
     appendNewChatBuilder()
   }
