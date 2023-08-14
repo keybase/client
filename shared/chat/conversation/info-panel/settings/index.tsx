@@ -87,7 +87,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             <Kb.Button type="Success" mode="Primary" label="Join channel" style={styles.buttonStyle} />
           </Kb.Box2>
         ) : (
-          <Notifications conversationIDKey={conversationIDKey} />
+          <Notifications />
         )}
         {entityType === 'channel' && channelname !== 'general' && !isPreview && (
           <Kb.Button
@@ -111,9 +111,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           showSaveIndicator={true}
           teamID={teamID}
         />
-        {(entityType === 'channel' || entityType === 'small team') && (
-          <MinWriterRole conversationIDKey={conversationIDKey} />
-        )}
+        {(entityType === 'channel' || entityType === 'small team') && <MinWriterRole />}
 
         {showDangerZone ? (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">

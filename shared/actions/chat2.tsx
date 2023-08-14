@@ -420,15 +420,6 @@ const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageC
   })
 }
 
-const setMinWriterRole = async (_: unknown, action: Chat2Gen.SetMinWriterRolePayload) => {
-  const {conversationIDKey, role} = action.payload
-  logger.info(`Setting minWriterRole to ${role} for convID ${conversationIDKey}`)
-  await RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise({
-    convID: Types.keyToConversationID(conversationIDKey),
-    role: RPCTypes.TeamRole[role],
-  })
-}
-
 const unfurlRemove = async (_: unknown, action: Chat2Gen.UnfurlRemovePayload) => {
   const {conversationIDKey, messageID} = action.payload
   const meta = C.getConvoState(conversationIDKey).meta
@@ -518,14 +509,6 @@ const ignorePinnedMessage = async (_: unknown, action: Chat2Gen.IgnorePinnedMess
   })
 }
 
-const openChatFromWidget = (
-  _: unknown,
-  {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
-) => {
-  C.useConfigState.getState().dispatch.showMain()
-  C.getConvoState(conversationIDKey ?? C.noConversationIDKey).dispatch.navigateToThread('inboxSmall')
-}
-
 const addUsersToChannel = async (_: unknown, action: Chat2Gen.AddUsersToChannelPayload) => {
   const {conversationIDKey, usernames} = action.payload
 
@@ -609,9 +592,6 @@ const initChat = () => {
   })
 
   Container.listenAction(Chat2Gen.toggleMessageCollapse, toggleMessageCollapse)
-  Container.listenAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
-
-  Container.listenAction(Chat2Gen.setMinWriterRole, setMinWriterRole)
 
   Container.listenAction(Chat2Gen.fetchUserEmoji, fetchUserEmoji)
 

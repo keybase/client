@@ -12,6 +12,7 @@ export const engineConnection = 'remote:engineConnection'
 export const inboxRefresh = 'remote:inboxRefresh'
 export const installerRan = 'remote:installerRan'
 export const link = 'remote:link'
+export const openChatFromWidget = 'remote:openChatFromWidget'
 export const openFilesFromWidget = 'remote:openFilesFromWidget'
 export const openPathInSystemFileManager = 'remote:openPathInSystemFileManager'
 export const pinentryOnCancel = 'remote:pinentryOnCancel'
@@ -82,6 +83,10 @@ export const createInboxRefresh = (payload?: undefined) => ({
   type: inboxRefresh as typeof inboxRefresh,
 })
 export const createLink = (payload: {readonly link: string}) => ({payload, type: link as typeof link})
+export const createOpenChatFromWidget = (payload: {readonly conversationIDKey: string}) => ({
+  payload,
+  type: openChatFromWidget as typeof openChatFromWidget,
+})
 export const createOpenFilesFromWidget = (payload: {readonly path: string}) => ({
   payload,
   type: openFilesFromWidget as typeof openFilesFromWidget,
@@ -173,6 +178,7 @@ export type EngineConnectionPayload = ReturnType<typeof createEngineConnection>
 export type InboxRefreshPayload = ReturnType<typeof createInboxRefresh>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LinkPayload = ReturnType<typeof createLink>
+export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
 export type OpenFilesFromWidgetPayload = ReturnType<typeof createOpenFilesFromWidget>
 export type OpenPathInSystemFileManagerPayload = ReturnType<typeof createOpenPathInSystemFileManager>
 export type PinentryOnCancelPayload = ReturnType<typeof createPinentryOnCancel>
@@ -206,6 +212,7 @@ export type Actions =
   | InboxRefreshPayload
   | InstallerRanPayload
   | LinkPayload
+  | OpenChatFromWidgetPayload
   | OpenFilesFromWidgetPayload
   | OpenPathInSystemFileManagerPayload
   | PinentryOnCancelPayload

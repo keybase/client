@@ -286,6 +286,7 @@ export type ConvoState = ConvoStore & {
     setMessageOrdinals: (os?: Array<Types.Ordinal>) => void
     setMessageTypeMap: (o: Types.Ordinal, t?: Types.RenderMessageType) => void
     setMeta: (m?: Types.ConversationMeta) => void
+    setMinWriterRole: (role: TeamsTypes.TeamRoleType) => void
     setMoreToLoad: (m: boolean) => void
     setMuted: (m: boolean) => void
     setOrangeLine: (o: Types.Ordinal) => void
@@ -2583,6 +2584,16 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
       get().dispatch.setDraft(get().meta.draft)
       get().dispatch.setMuted(get().meta.isMuted)
+    },
+    setMinWriterRole: role => {
+      const f = async () => {
+        logger.info(`Setting minWriterRole to ${role} for convID ${get().id}`)
+        await RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise({
+          convID: Types.keyToConversationID(get().id),
+          role: RPCTypes.TeamRole[role],
+        })
+      }
+      Z.ignorePromise(f())
     },
     setMoreToLoad: m => {
       set(s => {

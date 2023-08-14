@@ -1,5 +1,6 @@
-// Used to avoid circular dependencies
+// Used to avoid circular dependencies, keep orders
 export * from './platform'
+export {_useState as useDarkModeState} from './darkmode'
 export {_useState as useRouterState, getModalStack, getTab} from './router2'
 export {_getNavigator as getNavigator, navigationRef_, getVisibleScreen} from './router2'
 export {getVisiblePath, navToThread, type PathParam} from './router2'
@@ -20,7 +21,6 @@ export {waitingKeyBotSearchUsers, waitingKeyBotSearchFeatured} from './bots'
 export {_useState as useCryptoState} from './crypto'
 export {_useState as useCurrentUserState} from './current-user'
 export {_useState as useDaemonState, maxHandshakeTries} from './daemon'
-export {_useState as useDarkModeState} from './darkmode'
 export {_useState as useDevicesState, waitingKey as devicesWaitingKey} from './devices'
 export {_useState as useEngineState} from './engine'
 export {_useState as useFollowerState} from './followers'

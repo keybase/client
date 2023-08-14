@@ -2,7 +2,6 @@
 import type * as RPCTypes from '../constants/types/rpc-gen'
 import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import type * as Types from '../constants/types/chat2'
-import type * as TeamsTypes from '../constants/types/teams'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
@@ -15,12 +14,10 @@ export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const jumpToRecent = 'chat2:jumpToRecent'
-export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const pinMessage = 'chat2:pinMessage'
 export const replyJump = 'chat2:replyJump'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
-export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const tabSelected = 'chat2:tabSelected'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const unfurlRemove = 'chat2:unfurlRemove'
@@ -112,13 +109,6 @@ export const createUnfurlResolvePrompt = (payload: {
   readonly result: RPCChatTypes.UnfurlPromptResult
 }) => ({payload, type: unfurlResolvePrompt as typeof unfurlResolvePrompt})
 /**
- * Set the minimum role required to write into a conversation. Valid only for team conversations.
- */
-export const createSetMinWriterRole = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly role: TeamsTypes.TeamRoleType
-}) => ({payload, type: setMinWriterRole as typeof setMinWriterRole})
-/**
  * Toggle the collapse status of a message
  */
 export const createToggleMessageCollapse = (payload: {
@@ -151,9 +141,6 @@ export const createDismissBlockButtons = (payload: {readonly teamID: RPCTypes.Te
   payload,
   type: dismissBlockButtons as typeof dismissBlockButtons,
 })
-export const createOpenChatFromWidget = (
-  payload: {readonly conversationIDKey?: Types.ConversationIDKey} = {}
-) => ({payload, type: openChatFromWidget as typeof openChatFromWidget})
 export const createSendAudioRecording = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly duration: number
@@ -170,12 +157,10 @@ export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneyca
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
 export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMessage>
 export type JumpToRecentPayload = ReturnType<typeof createJumpToRecent>
-export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
 export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
 export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMention>
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
-export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
 export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
@@ -194,12 +179,10 @@ export type Actions =
   | FetchUserEmojiPayload
   | IgnorePinnedMessagePayload
   | JumpToRecentPayload
-  | OpenChatFromWidgetPayload
   | PinMessagePayload
   | ReplyJumpPayload
   | ResolveMaybeMentionPayload
   | SendAudioRecordingPayload
-  | SetMinWriterRolePayload
   | TabSelectedPayload
   | ToggleMessageCollapsePayload
   | UnfurlRemovePayload

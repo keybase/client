@@ -1,18 +1,9 @@
 {
   "prelude": [
     "import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
-    "import type * as Types from '../constants/types/chat2'",
-    "import type * as TeamsTypes from '../constants/types/teams'"
+    "import type * as Types from '../constants/types/chat2'"
   ],
   "actions": {
-    "setMinWriterRole": {
-      "_description": "Set the minimum role required to write into a conversation. Valid only for team conversations.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "role": "TeamsTypes.TeamRoleType"
-    },
-    "openChatFromWidget": {
-      "conversationIDKey?": "Types.ConversationIDKey"
-    },
     "unfurlResolvePrompt": {
       "_description": "Response to an unfurl prompt",
       "conversationIDKey": "Types.ConversationIDKey",

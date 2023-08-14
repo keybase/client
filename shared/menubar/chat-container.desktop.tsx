@@ -1,5 +1,5 @@
 import * as C from '../constants'
-import * as Chat2Gen from '../actions/chat2-gen'
+import * as RemoteGen from '../actions/remote-gen'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
@@ -49,7 +49,7 @@ const ChatPreview = (p: {convLimit?: number}) => {
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonContainer}>
         <Kb.Button
           label="Open inbox"
-          onClick={() => dispatch(Chat2Gen.createOpenChatFromWidget({}))}
+          onClick={() => dispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey: ''}))}
           small={true}
           mode="Secondary"
         />
