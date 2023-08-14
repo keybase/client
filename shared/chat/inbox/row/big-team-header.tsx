@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as RowSizes from './sizes'
@@ -24,7 +23,7 @@ const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
       return (
-        <Constants.Provider id={Constants.dummyConversationIDKey}>
+        <C.ChatProvider id={C.dummyConversationIDKey}>
           <TeamMenu
             attachTo={attachTo}
             visible={true}
@@ -33,7 +32,7 @@ const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
             hasHeader={true}
             isSmallTeam={false}
           />
-        </Constants.Provider>
+        </C.ChatProvider>
       )
     },
     [teamID]

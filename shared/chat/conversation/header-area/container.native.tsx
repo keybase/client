@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import type * as Types from '../../../constants/types/chat2'
@@ -9,15 +8,13 @@ import {HeaderLeftArrow} from '../../../common-adapters/header-hoc'
 import {Keyboard} from 'react-native'
 import {getRouteParamsFromRoute} from '../../../router-v2/route-params'
 
-type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
-}
+type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
 export const HeaderAreaRight = (props: OwnProps) => {
   const {conversationIDKey} = props
   const pendingWaiting =
-    conversationIDKey === Constants.pendingWaitingConversationIDKey ||
-    conversationIDKey === Constants.pendingErrorConversationIDKey
+    conversationIDKey === C.pendingWaitingConversationIDKey ||
+    conversationIDKey === C.pendingErrorConversationIDKey
   const {chatDebugDump} = React.useContext(DebugChatDumpContext)
   const [showToast, setShowToast] = React.useState(false)
 
@@ -111,25 +108,25 @@ const BadgeHeaderLeftArray = ({conversationIDKey, ...rest}: any) => {
 
 export const headerNavigationOptions = (route: unknown) => {
   const conversationIDKey =
-    getRouteParamsFromRoute<'chatConversation'>(route)?.conversationIDKey ?? Constants.noConversationIDKey
+    getRouteParamsFromRoute<'chatConversation'>(route)?.conversationIDKey ?? C.noConversationIDKey
   return {
     headerLeft: (props: any) => {
       const {onLabelLayout, labelStyle, ...rest} = props
       return (
-        <Constants.Provider id={conversationIDKey}>
+        <C.ChatProvider id={conversationIDKey}>
           <BadgeHeaderLeftArray {...rest} conversationIDKey={conversationIDKey} />
-        </Constants.Provider>
+        </C.ChatProvider>
       )
     },
     headerRight: () => (
-      <Constants.Provider id={conversationIDKey}>
+      <C.ChatProvider id={conversationIDKey}>
         <HeaderAreaRight conversationIDKey={conversationIDKey} />
-      </Constants.Provider>
+      </C.ChatProvider>
     ),
     headerTitle: () => (
-      <Constants.Provider id={conversationIDKey}>
+      <C.ChatProvider id={conversationIDKey}>
         <HeaderBranchContainer />
-      </Constants.Provider>
+      </C.ChatProvider>
     ),
   }
 }

@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import * as Constants from '../constants/team-building'
 import type * as Types from '../constants/types/team-building'
 
 const useContactsProps = () => {
@@ -61,7 +60,7 @@ export const ContactsBanner = (props: {
     onLoadContactsSetting,
   } = useContactsProps()
 
-  const fetchUserRecs = Constants.useContext(s => s.dispatch.fetchUserRecs)
+  const fetchUserRecs = C.useTBContext(s => s.dispatch.fetchUserRecs)
   const onRedoRecs = fetchUserRecs
   const prevNumContactsImported = Container.usePrevious(numContactsImported)
 

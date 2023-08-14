@@ -473,21 +473,21 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
 }
 
 type MadeStore = UseBoundStore<StoreApi<State>>
-export const stores = new Map<Types.AllowedNamespace, MadeStore>()
+export const _stores = new Map<Types.AllowedNamespace, MadeStore>()
 
 const createTBStore = (namespace: Types.AllowedNamespace) => {
-  const existing = stores.get(namespace)
+  const existing = _stores.get(namespace)
   if (existing) return existing
   const next = Z.createZustand<State>(createSlice)
   next.setState({namespace})
-  stores.set(namespace, next)
+  _stores.set(namespace, next)
   return next
 }
 
 const Context = React.createContext<MadeStore | null>(null)
 
 type TBProviderProps = React.PropsWithChildren<{namespace: Types.AllowedNamespace}>
-export function Provider({children, ...props}: TBProviderProps) {
+export function _Provider({children, ...props}: TBProviderProps) {
   const storeRef = React.useRef<MadeStore>()
   if (!storeRef.current) {
     storeRef.current = createTBStore(props.namespace)
@@ -495,7 +495,10 @@ export function Provider({children, ...props}: TBProviderProps) {
   return <Context.Provider value={storeRef.current}>{children}</Context.Provider>
 }
 
-export function useContext<T>(selector: (state: State) => T, equalityFn?: (left: T, right: T) => boolean): T {
+export function _useContext<T>(
+  selector: (state: State) => T,
+  equalityFn?: (left: T, right: T) => boolean
+): T {
   const store = React.useContext(Context)
   if (!store) throw new Error('Missing TeambuildingContext.Provider in the tree')
   return useStore(store, selector, equalityFn)

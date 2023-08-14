@@ -2988,7 +2988,7 @@ export function _getConvoState(id: Types.ConversationIDKey) {
 const Context = React.createContext<MadeStore | null>(null)
 
 type ConvoProviderProps = React.PropsWithChildren<{id: Types.ConversationIDKey; canBeNull?: boolean}>
-export function Provider({canBeNull, children, ...props}: ConvoProviderProps) {
+export function _Provider({canBeNull, children, ...props}: ConvoProviderProps) {
   if (!canBeNull && (!props.id || props.id === noConversationIDKey)) {
     throw new Error('No convo id in provider')
   }
