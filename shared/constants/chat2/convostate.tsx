@@ -14,6 +14,7 @@ import * as TeamsTypes from '../types/teams'
 import * as TeamsConstants from '../teams'
 import * as Types from '../types/chat2'
 import * as Z from '../../util/zustand'
+import * as ConfigConstants from '../config'
 import HiddenString from '../../util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '../../logger'
@@ -31,6 +32,7 @@ import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../../actions/platform-specific'
 import * as Platform from '../platform'
 import KB2 from '../../util/electron'
+import NotifyPopup from '../../util/notify-popup'
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
 const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
@@ -639,36 +641,32 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       if (isMobile) return
 
       // Show a desktop notification
-      const f = async () => {
-        const meta = get().meta
-        const conversationIDKey = get().id
-        if (
-          Common.isUserActivelyLookingAtThisThread(conversationIDKey) ||
-          meta.isMuted // ignore muted convos
-        ) {
-          logger.info('not sending notification')
-          return
-        }
-
-        logger.info('sending chat notification')
-        let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
-        if (meta.teamType === 'big') {
-          title += `#${meta.channelname}`
-        }
-
-        const onClick = () => {
-          C.useConfigState.getState().dispatch.showMain()
-          C.useChatState.getState().dispatch.navigateToInbox()
-          get().dispatch.navigateToThread('desktopNotification')
-        }
-        const onClose = () => {}
-        logger.info('invoking NotifyPopup for chat notification')
-        const sound = C.useConfigState.getState().notifySound
-
-        const NotifyPopup = await import('../../util/notify-popup')
-        NotifyPopup.default(title, {body, sound}, -1, author, onClick, onClose)
+      const meta = get().meta
+      const conversationIDKey = get().id
+      if (
+        Common.isUserActivelyLookingAtThisThread(conversationIDKey) ||
+        meta.isMuted // ignore muted convos
+      ) {
+        logger.info('not sending notification')
+        return
       }
-      Z.ignorePromise(f())
+
+      logger.info('sending chat notification')
+      let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
+      if (meta.teamType === 'big') {
+        title += `#${meta.channelname}`
+      }
+
+      const onClick = () => {
+        C.useConfigState.getState().dispatch.showMain()
+        C.useChatState.getState().dispatch.navigateToInbox()
+        get().dispatch.navigateToThread('desktopNotification')
+      }
+      const onClose = () => {}
+      logger.info('invoking NotifyPopup for chat notification')
+      const sound = C.useConfigState.getState().notifySound
+
+      NotifyPopup(title, {body, sound}, -1, author, onClick, onClose)
     },
     dismissBottomBanner: () => {
       set(s => {
@@ -2088,19 +2086,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
     },
     openFolder: () => {
-      const f = async () => {
-        const FsConstants = await import('../fs')
-        const ConfigConstants = await import('../config')
-        const meta = get().meta
-        const participantInfo = get().participants
-        const path = FsTypes.stringToPath(
-          meta.teamType !== 'adhoc'
-            ? ConfigConstants.teamFolder(meta.teamname)
-            : ConfigConstants.privateFolderWithUsers(participantInfo.name)
-        )
-        FsConstants.makeActionForOpenPathInFilesTab(path)
-      }
-      Z.ignorePromise(f())
+      const meta = get().meta
+      const participantInfo = get().participants
+      const path = FsTypes.stringToPath(
+        meta.teamType !== 'adhoc'
+          ? ConfigConstants.teamFolder(meta.teamname)
+          : ConfigConstants.privateFolderWithUsers(participantInfo.name)
+      )
+      C.makeActionForOpenPathInFilesTab(path)
     },
     paymentInfoReceived: (messageID, paymentInfo) => {
       set(s => {
@@ -2109,7 +2102,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     refreshBotRoleInConv: username => {
       const f = async () => {
-        const TeamsConstants = await import('../teams')
         let role: RPCTypes.TeamRole | undefined
         const conversationIDKey = get().id
         try {

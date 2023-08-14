@@ -1,4 +1,5 @@
 // Used to avoid circular dependencies
+export * from './platform'
 export {_useState as useRouterState, getModalStack, getTab} from './router2'
 export {_getNavigator as getNavigator, navigationRef_, getVisibleScreen} from './router2'
 export {getVisiblePath, navToThread, type PathParam} from './router2'

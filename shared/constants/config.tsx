@@ -542,10 +542,9 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         }
 
         const updateServerConfig = async () => {
-          const Platform = await import('./platform')
           if (get().loggedIn) {
             await RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
-              serverConfigPath: Platform.serverConfigFileName,
+              serverConfigPath: C.serverConfigFileName,
             })
           }
         }

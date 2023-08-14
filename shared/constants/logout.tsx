@@ -1,8 +1,10 @@
-import {useRouterState} from '.'
+import * as C from '.'
 import logger from '../logger'
 import * as RPCTypes from '../constants/types/rpc-gen'
 // normally util.container but it re-exports from us so break the cycle
 import * as Z from '../util/zustand'
+import {passwordTab} from './settings'
+import {settingsTab} from './tabs'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -40,14 +42,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
           get().dispatch.start()
           return
         } else {
-          const {passwordTab} = await import('./settings')
-          const {settingsTab} = await import('./tabs')
-          const {isMobile} = await import('./platform')
-          if (isMobile) {
-            useRouterState.getState().dispatch.navigateAppend(passwordTab)
+          if (C.isMobile) {
+            C.useRouterState.getState().dispatch.navigateAppend(passwordTab)
           } else {
-            useRouterState.getState().dispatch.navigateAppend(settingsTab)
-            useRouterState.getState().dispatch.navigateAppend(passwordTab)
+            C.useRouterState.getState().dispatch.navigateAppend(settingsTab)
+            C.useRouterState.getState().dispatch.navigateAppend(passwordTab)
           }
         }
       }
