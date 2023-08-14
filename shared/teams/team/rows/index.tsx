@@ -216,7 +216,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
   const [filter, setFilter] = React.useState('')
 
   const doGetUserEmoji = () => {
-    if (!convID || convID === ChatConstants.noConversationIDKey || !shouldActuallyLoad) {
+    if (!convID || convID === C.noConversationIDKey || !shouldActuallyLoad) {
       return
     }
     getUserEmoji(
@@ -271,7 +271,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
     renderItem: () => (
       <EmojiAddRow
         teamID={teamID}
-        convID={convID ?? ChatConstants.noConversationIDKey}
+        convID={convID ?? C.noConversationIDKey}
         filter={filter}
         setFilter={setFilter}
       />
@@ -294,7 +294,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
         <EmojiItemRow
           emoji={item}
           firstItem={index === 0}
-          conversationIDKey={convID ?? ChatConstants.noConversationIDKey}
+          conversationIDKey={convID ?? C.noConversationIDKey}
           teamID={teamID}
         />
       ),

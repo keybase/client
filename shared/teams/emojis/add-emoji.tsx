@@ -1,12 +1,11 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as TeamsTypes from '../../constants/types/teams'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as C from '../../constants'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import * as FsTypes from '../../constants/types/fs'
 import * as ChatTypes from '../../constants/types/chat2'
-import * as ChatConstants from '../../constants/chat2'
 import {AliasInput, Modal} from './common'
 import useRPC from '../../util/use-rpc'
 import {pickImages} from '../../util/pick-files'
@@ -47,7 +46,7 @@ const useDoAddEmojis = (
 
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const doAddEmojis =
-    conversationIDKey !== ChatConstants.noConversationIDKey
+    conversationIDKey !== C.noConversationIDKey
       ? () => {
           setWaitingAddEmojis(true)
           addEmojisRpc(

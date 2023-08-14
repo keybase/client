@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import type * as Types from '../../constants/types/chat2'
 import Normal from './normal/container'
@@ -12,11 +11,11 @@ import Rekey from './rekey/container'
 type SwitchProps = {conversationIDKey?: Types.ConversationIDKey}
 
 const Conversation = React.memo(function Conversation(p: SwitchProps) {
-  const conversationIDKey = p.conversationIDKey ?? Constants.noConversationIDKey
+  const conversationIDKey = p.conversationIDKey ?? C.noConversationIDKey
   const type = C.useChatContext(s => {
     const meta = s.meta
     switch (conversationIDKey) {
-      case Constants.noConversationIDKey:
+      case C.noConversationIDKey:
         return 'noConvo'
       default:
         if (meta.membershipType === 'youAreReset') {

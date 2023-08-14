@@ -6,7 +6,6 @@ import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as Router2Constants from './router2'
 import * as Tabs from './tabs'
-import * as TeamBuildingConstants from './team-building'
 import * as Types from './types/teams'
 import * as Z from '../util/zustand'
 import invert from 'lodash/invert'
@@ -1380,7 +1379,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           )
           if (res.notAdded && res.notAdded.length > 0) {
             const usernames = res.notAdded.map(elem => elem.username)
-            TeamBuildingConstants.stores.get('teams')?.getState().dispatch.finishedTeamBuilding()
+            C.TBstores.get('teams')?.getState().dispatch.finishedTeamBuilding()
             C.useRouterState.getState().dispatch.navigateAppend({
               props: {source: 'teamAddSomeFailed', usernames},
               selected: 'contactRestricted',
@@ -1392,7 +1391,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             s.errorInAddToTeam = ''
           })
           if (fromTeamBuilder) {
-            TeamBuildingConstants.stores.get('teams')?.getState().dispatch.finishedTeamBuilding()
+            C.TBstores.get('teams')?.getState().dispatch.finishedTeamBuilding()
           }
         } catch (error) {
           if (!(error instanceof RPCError)) {
@@ -1404,7 +1403,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               ?.filter(elem => elem?.key === 'usernames')
               .map(elem => elem?.value)
             const usernames = users?.[0]?.split(',') ?? []
-            TeamBuildingConstants.stores.get('teams')?.getState().dispatch.finishedTeamBuilding()
+            C.TBstores.get('teams')?.getState().dispatch.finishedTeamBuilding()
             C.useRouterState.getState().dispatch.navigateAppend({
               props: {source: 'teamAddAllFailed', usernames},
               selected: 'contactRestricted',
@@ -1418,7 +1417,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
           // TODO this should not error on member already in team
           if (fromTeamBuilder) {
-            TeamBuildingConstants.stores.get('teams')?.getState().dispatch.setError(msg)
+            C.TBstores.get('teams')?.getState().dispatch.setError(msg)
           }
         }
       }
@@ -2664,7 +2663,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               // nothing is hooked up to this???
               // reduxDispatch(TeamsGen.createAddParticipant({conversationIDKey, teamID}))
             } catch (error) {
-               C.useConfigState.getState().dispatch.setGlobalError(error)
+              C.useConfigState.getState().dispatch.setGlobalError(error)
             }
           } else {
             try {
@@ -2673,7 +2672,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               // nothing is hooked up to this???
               // reduxDispatch(TeamsGen.createRemoveParticipant({conversationIDKey, teamID}))
             } catch (error) {
-               C.useConfigState.getState().dispatch.setGlobalError(error)
+              C.useConfigState.getState().dispatch.setGlobalError(error)
             }
           }
         }
@@ -2790,7 +2789,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               waitingKey
             )
           } catch (payload) {
-             C.useConfigState.getState().dispatch.setGlobalError(payload)
+            C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
@@ -2800,7 +2799,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               waitingKey
             )
           } catch (payload) {
-             C.useConfigState.getState().dispatch.setGlobalError(payload)
+            C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (publicityAnyMember !== settings.publicityAnyMember) {
@@ -2810,7 +2809,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               waitingKey
             )
           } catch (payload) {
-             C.useConfigState.getState().dispatch.setGlobalError(payload)
+            C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (publicityMember !== settings.publicityMember) {
@@ -2820,7 +2819,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               waitingKey
             )
           } catch (payload) {
-             C.useConfigState.getState().dispatch.setGlobalError(payload)
+            C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
         if (publicityTeam !== settings.publicityTeam) {
@@ -2830,7 +2829,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               waitingKey
             )
           } catch (payload) {
-             C.useConfigState.getState().dispatch.setGlobalError(payload)
+            C.useConfigState.getState().dispatch.setGlobalError(payload)
           }
         }
       }

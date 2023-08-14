@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
-import * as ChatConstants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
@@ -87,7 +86,7 @@ const EmptyRow = (props: Props) => {
   const onSecondaryAction = useSecondaryAction(props)
   const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
   const joinConversation = C.useConvoState(
-    conversationIDKey ?? ChatConstants.noConversationIDKey,
+    conversationIDKey ?? C.noConversationIDKey,
     s => s.dispatch.joinConversation
   )
   const onAddSelf = () => {

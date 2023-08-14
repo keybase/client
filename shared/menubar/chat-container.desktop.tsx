@@ -1,6 +1,6 @@
+import * as C from '../constants'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as Container from '../util/container'
-import * as Constants from '../constants/chat2'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import type * as Types from '../constants/types/chat2'
@@ -42,9 +42,9 @@ const ChatPreview = (p: {convLimit?: number}) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
       {convRows.map(id => (
-        <Constants.Provider key={id} id={id}>
+        <C.ChatProvider key={id} id={id}>
           <RemoteSmallTeam conversationIDKey={id} />
-        </Constants.Provider>
+        </C.ChatProvider>
       ))}
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonContainer}>
         <Kb.Button

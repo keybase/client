@@ -16,7 +16,7 @@ type PhoneSearchProps = {
 
 const PhoneSearch = (props: PhoneSearchProps) => {
   const {namespace} = props
-  const teamBuildingSearchResults = Constants.useContext(s => s.searchResults)
+  const teamBuildingSearchResults = C.useTBContext(s => s.searchResults)
   const [isPhoneValid, setPhoneValidity] = React.useState(false)
   const [phoneNumber, setPhoneNumber] = React.useState('')
   const [phoneInputKey, setPhoneInputKey] = React.useState(0)
@@ -36,7 +36,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     }
   }
 
-  const addUsersToTeamSoFar = Constants.useContext(s => s.dispatch.addUsersToTeamSoFar)
+  const addUsersToTeamSoFar = C.useTBContext(s => s.dispatch.addUsersToTeamSoFar)
 
   const user: Types.User | undefined = isPhoneValid
     ? teamBuildingSearchResults.get(phoneNumber)?.get('phone')?.[0]

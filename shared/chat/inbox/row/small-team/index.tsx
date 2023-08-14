@@ -9,7 +9,6 @@ import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
 import type * as Types from '../../../../constants/types/chat2'
-import * as Constants from '../../../../constants/chat2'
 import SwipeConvActions from './swipe-conv-actions'
 import shallowEqual from 'shallowequal'
 import './small-team.css'
@@ -48,8 +47,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   const {isDecryptingSnippet, snippet, snippetDecoration} = C.useChatContext(s => {
     const {meta} = s
     // only use layout if we don't have the meta at all
-    const maybeLayoutSnippet =
-      meta.conversationIDKey === Constants.noConversationIDKey ? layoutSnippet : undefined
+    const maybeLayoutSnippet = meta.conversationIDKey === C.noConversationIDKey ? layoutSnippet : undefined
     const snippet = typingSnippet ?? meta.snippetDecorated ?? maybeLayoutSnippet ?? ''
     const trustedState = meta.trustedState
     const isDecryptingSnippet =

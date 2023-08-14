@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as Constants from '../constants/team-building'
 import * as Shared from './shared'
 import * as Styles from '../styles'
 import PeopleResult from './search-result/people-result'
@@ -244,9 +243,9 @@ export const ListBody = (
 
   const maybeTeamDetails = C.useTeamsState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
   const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
-  const userRecs = Constants.useContext(s => s.userRecs)
-  const _teamSoFar = Constants.useContext(s => s.teamSoFar)
-  const _searchResults = Constants.useContext(s => s.searchResults)
+  const userRecs = C.useTBContext(s => s.userRecs)
+  const _teamSoFar = C.useTBContext(s => s.teamSoFar)
+  const _searchResults = C.useTBContext(s => s.searchResults)
   const _recommendations = deriveRecommendation(
     userRecs,
     _teamSoFar,

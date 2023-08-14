@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as ChatConstants from '../constants/chat2'
-import * as Constants from '../constants/team-building'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -85,10 +84,10 @@ const TeamBuilding = (p: OwnProps) => {
     setEnterInputCounter(old => old + 1)
   }, [setEnterInputCounter])
 
-  const searchResults = Constants.useContext(s => s.searchResults)
-  const error = Constants.useContext(s => s.error)
-  const _teamSoFar = Constants.useContext(s => s.teamSoFar)
-  const userRecs = Constants.useContext(s => s.userRecs)
+  const searchResults = C.useTBContext(s => s.searchResults)
+  const error = C.useTBContext(s => s.error)
+  const _teamSoFar = C.useTBContext(s => s.teamSoFar)
+  const userRecs = C.useTBContext(s => s.userRecs)
 
   const userResults: Array<TeamBuildingTypes.User> | undefined = searchResults
     .get(trim(searchString))
@@ -96,14 +95,14 @@ const TeamBuilding = (p: OwnProps) => {
 
   const teamSoFar = deriveTeamSoFar(_teamSoFar)
 
-  const cancelTeamBuilding = Constants.useContext(s => s.dispatch.cancelTeamBuilding)
-  const finishTeamBuilding = Constants.useContext(s => s.dispatch.finishTeamBuilding)
-  const finishedTeamBuilding = Constants.useContext(s => s.dispatch.finishedTeamBuilding)
-  const removeUsersFromTeamSoFar = Constants.useContext(s => s.dispatch.removeUsersFromTeamSoFar)
-  const addUsersToTeamSoFar = Constants.useContext(s => s.dispatch.addUsersToTeamSoFar)
-  const fetchUserRecs = Constants.useContext(s => s.dispatch.fetchUserRecs)
+  const cancelTeamBuilding = C.useTBContext(s => s.dispatch.cancelTeamBuilding)
+  const finishTeamBuilding = C.useTBContext(s => s.dispatch.finishTeamBuilding)
+  const finishedTeamBuilding = C.useTBContext(s => s.dispatch.finishedTeamBuilding)
+  const removeUsersFromTeamSoFar = C.useTBContext(s => s.dispatch.removeUsersFromTeamSoFar)
+  const addUsersToTeamSoFar = C.useTBContext(s => s.dispatch.addUsersToTeamSoFar)
+  const fetchUserRecs = C.useTBContext(s => s.dispatch.fetchUserRecs)
 
-  const _search = Constants.useContext(s => s.dispatch.search)
+  const _search = C.useTBContext(s => s.dispatch.search)
   const search = Container.useThrottledCallback(
     (query: string, service: TeamBuildingTypes.ServiceIdWithContact, limit?: number) => {
       _search(query, service, namespace === 'chat2', limit)

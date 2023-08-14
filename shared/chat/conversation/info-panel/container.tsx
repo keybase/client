@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import * as TeamConstants from '../../../constants/teams'
 import type * as Types from '../../../constants/types/chat2'
@@ -18,10 +17,10 @@ const InfoPanelConnector = (props: Props) => {
   const initialTab = props.tab ?? storeSelectedTab
 
   const conversationIDKey: Types.ConversationIDKey =
-    props.conversationIDKey ?? props.conversationIDKey ?? Constants.noConversationIDKey
+    props.conversationIDKey ?? props.conversationIDKey ?? C.noConversationIDKey
 
   const meta = C.useConvoState(conversationIDKey, s => s.meta)
-  const shouldNavigateOut = meta.conversationIDKey === Constants.noConversationIDKey
+  const shouldNavigateOut = meta.conversationIDKey === C.noConversationIDKey
   const yourRole = C.useTeamsState(s => TeamConstants.getRole(s, meta.teamID))
   const isPreview = meta.membershipType === 'youArePreviewing'
   const channelname = meta.channelname

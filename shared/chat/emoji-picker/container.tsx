@@ -50,7 +50,7 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
   const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const onChoose = React.useCallback(
     (emoji: string, renderableEmoji: RenderableEmoji) => {
-      if (conversationIDKey !== Constants.noConversationIDKey && onPickAddToMessageOrdinal) {
+      if (conversationIDKey !== C.noConversationIDKey && onPickAddToMessageOrdinal) {
         toggleMessageReaction(onPickAddToMessageOrdinal, emoji)
       }
       onPickAction?.(emoji, renderableEmoji)
@@ -383,7 +383,7 @@ const Routable = (props: RoutableProps) => {
     },
     [updatePickerMap, pickKey]
   )
-  const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
+  const conversationIDKey = props.conversationIDKey ?? C.noConversationIDKey
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onDidPick = () => navigateUp()
 

@@ -1,5 +1,4 @@
 import * as C from '.'
-import {useRouterState} from '.'
 import * as Platform from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Z from '../util/zustand'
@@ -639,7 +638,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           break
       }
       if (Platform.isMobile) {
-        useRouterState.getState().dispatch.navigateAppend(route)
+        C.useRouterState.getState().dispatch.navigateAppend(route)
       }
     },
     setEncryptOptions: (newOptions, hideIncludeSelf) => {

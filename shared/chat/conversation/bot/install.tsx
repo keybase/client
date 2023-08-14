@@ -44,9 +44,9 @@ const InstallBotPopupLoader = (props: LoaderProps) => {
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
   if (!inConvIDKey) return null
   return (
-    <Constants.Provider id={inConvIDKey}>
+    <C.ChatProvider id={inConvIDKey}>
       <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
-    </Constants.Provider>
+    </C.ChatProvider>
   )
 }
 

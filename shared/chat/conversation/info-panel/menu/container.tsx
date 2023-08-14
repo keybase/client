@@ -53,7 +53,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       teamname: '',
     }
 
-    if (meta.conversationIDKey !== ChatConstants.noConversationIDKey) {
+    if (meta.conversationIDKey !== C.noConversationIDKey) {
       const participants = ChatConstants.getRowParticipants(participantInfo, username)
       // If it's a one-on-one chat, we need the user's fullname.
       const fullname =

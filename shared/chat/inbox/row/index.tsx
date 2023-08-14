@@ -1,3 +1,4 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import logger from '../../../logger'
 import BigTeamHeader from './big-team-header'
@@ -5,7 +6,6 @@ import BigTeamChannel from './big-team-channel'
 import SmallTeam from './small-team/container'
 import {BigTeamsLabel} from './big-teams-label'
 import {Box} from '../../../common-adapters'
-import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import type * as Types from '../../../constants/types/chat2'
 
@@ -24,24 +24,24 @@ const makeRow = (
   switch (item.type) {
     case 'bigHeader':
       return (
-        <Constants.Provider id={Constants.dummyConversationIDKey}>
+        <C.ChatProvider id={C.dummyConversationIDKey}>
           <BigTeamHeader teamname={item.teamname} teamID={item.teamID} navKey={navKey} />
-        </Constants.Provider>
+        </C.ChatProvider>
       )
     case 'big':
       return (
-        <Constants.Provider id={item.conversationIDKey}>
+        <C.ChatProvider id={item.conversationIDKey}>
           <BigTeamChannel
             conversationIDKey={item.conversationIDKey}
             layoutChannelname={item.channelname}
             selected={item.selected}
             navKey={navKey}
           />
-        </Constants.Provider>
+        </C.ChatProvider>
       )
     case 'small':
       return (
-        <Constants.Provider id={item.conversationIDKey}>
+        <C.ChatProvider id={item.conversationIDKey}>
           <SmallTeam
             isInWidget={false}
             conversationIDKey={item.conversationIDKey}
@@ -52,7 +52,7 @@ const makeRow = (
             layoutSnippet={item.snippet}
             swipeCloseRef={swipeCloseRef}
           />
-        </Constants.Provider>
+        </C.ChatProvider>
       )
     default:
   }

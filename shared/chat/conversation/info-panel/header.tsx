@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as React from 'react'
 import * as TeamConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
-import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import InfoPanelMenu from './menu/container'
 import type * as ChatTypes from '../../../constants/types/chat2'
@@ -38,7 +37,7 @@ const TeamHeader = (props: SmallProps) => {
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
       return (
-        <Constants.Provider id={conversationIDKey}>
+        <C.ChatProvider id={conversationIDKey}>
           <ConvoIDContext.Provider value={conversationIDKey}>
             <InfoPanelMenu
               attachTo={attachTo}
@@ -49,7 +48,7 @@ const TeamHeader = (props: SmallProps) => {
               visible={true}
             />
           </ConvoIDContext.Provider>
-        </Constants.Provider>
+        </C.ChatProvider>
       )
     },
     [conversationIDKey, isSmallTeam]

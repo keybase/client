@@ -166,7 +166,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   }
   const showTeamOffer =
     hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && participantInfoAll.length > 2
-  const hasOlderResetConversation = supersedes !== Constants.noConversationIDKey
+  const hasOlderResetConversation = supersedes !== C.noConversationIDKey
   // don't show default header in the case of the retention notice being visible
   const showRetentionNotice =
     retentionPolicy.type !== 'retain' &&

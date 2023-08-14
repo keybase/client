@@ -1,15 +1,15 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import type * as Container from '../../../util/container'
-import * as Constants from '../../../constants/chat2'
 
 const Confirm = React.lazy(async () => import('./confirm'))
 type OwnProps = Container.ViewPropsToPageProps<typeof Confirm>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>
-    <Constants.Provider id={p.route.params.conversationIDKey ?? Constants.noConversationIDKey}>
+    <C.ChatProvider id={p.route.params.conversationIDKey ?? C.noConversationIDKey}>
       <Confirm {...p.route.params} />
-    </Constants.Provider>
+    </C.ChatProvider>
   </React.Suspense>
 )
 

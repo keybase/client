@@ -1,10 +1,9 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as C from '../../constants'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../constants/types/chat2'
-import * as ChatConstants from '../../constants/chat2'
 import {EmojiPickerDesktop} from '../../chat/emoji-picker/container'
 import {
   type EmojiData,
@@ -245,7 +244,7 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 const AddEmojiAliasWrapper = (p: Props) => {
-  const conversationIDKey = p.conversationIDKey ?? ChatConstants.noConversationIDKey
+  const conversationIDKey = p.conversationIDKey ?? C.noConversationIDKey
   const defaultSelected = p.defaultSelected
   return <AddAliasModal conversationIDKey={conversationIDKey} defaultSelected={defaultSelected} />
 }

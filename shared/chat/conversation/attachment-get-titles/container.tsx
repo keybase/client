@@ -18,7 +18,7 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const conversationIDKey = ownProps.conversationIDKey ?? Constants.noConversationIDKey
+  const conversationIDKey = ownProps.conversationIDKey ?? C.noConversationIDKey
   const {titles, tlfName, pathAndOutboxIDs} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason

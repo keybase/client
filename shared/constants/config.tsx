@@ -6,6 +6,7 @@ import * as RPCTypes from './types/rpc-gen'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Stats from '../engine/stats'
 import * as Z from '../util/zustand'
+import {noConversationIDKey} from './chat2'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
 import type * as RPCTypesGregor from './types/rpc-gregor-gen'
@@ -16,7 +17,6 @@ import type {Tab} from './tabs'
 import uniq from 'lodash/uniq'
 import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '../util/errors'
 import {defaultUseNativeFrame, runMode, isMobile} from './platform'
-import {noConversationIDKey} from './types/chat2/common'
 import {type CommonResponseHandler} from '../engine/types'
 import {useAvatarState} from '../common-adapters/avatar-zus'
 import {initPlatformListener} from '../actions/platform-specific'
@@ -542,10 +542,9 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         }
 
         const updateServerConfig = async () => {
-          const Platform = await import('./platform')
           if (get().loggedIn) {
             await RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
-              serverConfigPath: Platform.serverConfigFileName,
+              serverConfigPath: C.serverConfigFileName,
             })
           }
         }
