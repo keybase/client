@@ -1,8 +1,6 @@
 import * as C from '../../../constants'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../constants/chat2'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Container from '../../../util/container'
 import Text, {type StylesTextCrossPlatform} from '../../../common-adapters/text'
 import Mention from '../../../common-adapters/mention-container'
 import TeamMention from './team-container'
@@ -66,9 +64,9 @@ type OwnProps = {
 export default (ownProps: OwnProps) => {
   const {name, channel} = ownProps
   const info = C.useChatState(s => s.maybeMentionMap.get(Constants.getTeamMentionName(name, channel)))
-  const dispatch = Container.useDispatch()
+  const resolveMaybeMention = C.useChatContext(s => s.dispatch.resolveMaybeMention)
   const onResolve = () => {
-    dispatch(Chat2Gen.createResolveMaybeMention({channel, name}))
+    resolveMaybeMention(channel, name)
   }
   const props = {
     allowFontScaling: ownProps.allowFontScaling,

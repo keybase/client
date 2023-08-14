@@ -401,38 +401,6 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
   C.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyToggleWindow(show)
 }
 
-const pinMessage = async (_: unknown, action: Chat2Gen.PinMessagePayload) => {
-  try {
-    await RPCChatTypes.localPinMessageRpcPromise({
-      convID: Types.keyToConversationID(action.payload.conversationIDKey),
-      msgID: action.payload.messageID,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(`pinMessage: ${error.message}`)
-    }
-  }
-}
-
-const unpinMessage = async (_: unknown, action: Chat2Gen.UnpinMessagePayload) => {
-  try {
-    await RPCChatTypes.localUnpinMessageRpcPromise(
-      {convID: Types.keyToConversationID(action.payload.conversationIDKey)},
-      Constants.waitingKeyUnpin(action.payload.conversationIDKey)
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(`unpinMessage: ${error.message}`)
-    }
-  }
-}
-
-const ignorePinnedMessage = async (_: unknown, action: Chat2Gen.IgnorePinnedMessagePayload) => {
-  await RPCChatTypes.localIgnorePinnedMessageRpcPromise({
-    convID: Types.keyToConversationID(action.payload.conversationIDKey),
-  })
-}
-
 const dismissBlockButtons = async (_: unknown, action: Chat2Gen.DismissBlockButtonsPayload) => {
   try {
     await RPCTypes.userDismissBlockButtonsRpcPromise({tlfID: action.payload.teamID})
@@ -503,14 +471,8 @@ const initChat = () => {
       .dispatch.setMaybeMentionInfo(Constants.getTeamMentionName(teamName, channel), info)
   })
 
-  Container.listenAction(Chat2Gen.pinMessage, pinMessage)
-  Container.listenAction(Chat2Gen.unpinMessage, unpinMessage)
-  Container.listenAction(Chat2Gen.ignorePinnedMessage, ignorePinnedMessage)
-
   Container.listenAction(Chat2Gen.sendAudioRecording, sendAudioRecording)
-
   Container.listenAction(Chat2Gen.dismissBlockButtons, dismissBlockButtons)
-
   Container.listenAction(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate)
 
   Container.listenAction(EngineGen.chat1ChatUiChatBotCommandsUpdateStatus, (_, a) => {

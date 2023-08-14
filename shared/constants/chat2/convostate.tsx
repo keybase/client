@@ -261,6 +261,8 @@ export type ConvoState = ConvoStore & {
     onMessageErrored: (outboxID: Types.OutboxID, reason: string, errorTyp?: number) => void
     onMessagesUpdated: (messagesUpdated: RPCChatTypes.MessagesUpdated) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
+    pinMessage: (messageID?: Types.MessageID) => void
+    ignorePinnedMessage: () => void
     refreshBotRoleInConv: (username: string) => void
     refreshBotSettings: (username: string) => void
     refreshMutualTeamsInConv: () => void
@@ -765,6 +767,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.threadSearchInfo.visible = false
       })
+    },
+    ignorePinnedMessage: () => {
+      const f = async () => {
+        await RPCChatTypes.localIgnorePinnedMessageRpcPromise({
+          convID: Types.keyToConversationID(get().id),
+        })
+      }
+      Z.ignorePromise(f())
     },
     injectIntoInput: text => {
       set(s => {
@@ -2118,6 +2128,23 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.accountsInfoMap.set(messageID, paymentInfo)
       })
+    },
+    pinMessage: msgID => {
+      const f = async () => {
+        const convID = Types.keyToConversationID(get().id)
+        try {
+          if (msgID) {
+            await RPCChatTypes.localPinMessageRpcPromise({convID, msgID})
+          } else {
+            await RPCChatTypes.localUnpinMessageRpcPromise({convID}, Common.waitingKeyUnpin(get().id))
+          }
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(`pinMessage: ${error.message}`)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     refreshBotRoleInConv: username => {
       const f = async () => {

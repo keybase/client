@@ -4,19 +4,6 @@
     "import type * as Types from '../constants/types/chat2'"
   ],
   "actions": {
-    "pinMessage": {
-      "_description": "Pin a message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID"
-    },
-    "unpinMessage": {
-      "_description": "Unpin a message",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "ignorePinnedMessage": {
-      "_description": "Ignore pinned message",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
     "dismissBlockButtons": {
       "teamID": "RPCTypes.TeamID"
     },
