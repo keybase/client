@@ -4,20 +4,6 @@
     "import type * as Types from '../constants/types/chat2'"
   ],
   "actions": {
-    "addUsersToChannel": {
-      "_description": "Add a list of users to a conversation. Creates a SystemBulkAddToConv message.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "usernames": "Array<string>"
-    },
-    "addUserToChannel": {
-      "_description": "Add a single user to a conversation. Creates a SystemBulkAddToConv message.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string"
-    },
-    "jumpToRecent": {
-      "_description": "Jump to most recent messages in a conversation",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
     "replyJump": {
       "_description": "Jump to a replied to message",
       "conversationIDKey": "Types.ConversationIDKey",

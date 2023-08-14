@@ -193,6 +193,7 @@ export type ConvoState = ConvoStore & {
     hideConversation: (hide: boolean) => void
     injectIntoInput: (text: string) => void
     joinConversation: () => void
+    jumpToRecent: () => void
     leaveConversation: (navToInbox?: boolean) => void
     loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
     loadMessagesCentered: (
@@ -776,6 +777,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         )
       }
       Z.ignorePromise(f())
+    },
+    jumpToRecent: () => {
+      get().dispatch.loadMoreMessages({forceClear: true, reason: 'jump to recent'})
+      get().dispatch.setMessageCenterOrdinal()
     },
     leaveConversation: (navToInbox = true) => {
       const f = async () => {

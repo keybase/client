@@ -439,37 +439,6 @@ const ignorePinnedMessage = async (_: unknown, action: Chat2Gen.IgnorePinnedMess
   })
 }
 
-const addUsersToChannel = async (_: unknown, action: Chat2Gen.AddUsersToChannelPayload) => {
-  const {conversationIDKey, usernames} = action.payload
-
-  try {
-    await RPCChatTypes.localBulkAddToConvRpcPromise(
-      {convID: Types.keyToConversationID(conversationIDKey), usernames},
-      Constants.waitingKeyAddUsersToChannel
-    )
-    C.useRouterState.getState().dispatch.clearModals()
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(`addUsersToChannel: ${error.message}`) // surfaced in UI via waiting key
-    }
-  }
-}
-
-const addUserToChannel = async (_: unknown, action: Chat2Gen.AddUserToChannelPayload) => {
-  const {conversationIDKey, username} = action.payload
-  try {
-    await RPCChatTypes.localBulkAddToConvRpcPromise(
-      {convID: Types.keyToConversationID(conversationIDKey), usernames: [username]},
-      Constants.waitingKeyAddUserToChannel(username, conversationIDKey)
-    )
-    C.getConvoState(conversationIDKey).dispatch.navigateToThread('addedToChannel')
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(`addUserToChannel: ${error.message}`) // surfaced in UI via waiting key
-    }
-  }
-}
-
 const dismissBlockButtons = async (_: unknown, action: Chat2Gen.DismissBlockButtonsPayload) => {
   try {
     await RPCTypes.userDismissBlockButtonsRpcPromise({tlfID: action.payload.teamID})
@@ -496,10 +465,6 @@ const initChat = () => {
     C.useChatState.getState().dispatch.updateInboxLayout(action.payload.params.layout)
   })
 
-  Container.listenAction(Chat2Gen.jumpToRecent, () => {
-    const {dispatch} = C.getConvoState(C.getSelectedConversation())
-    dispatch.loadMoreMessages({forceClear: true, reason: 'jump to recent'})
-  })
   Container.listenAction(Chat2Gen.tabSelected, () => {
     const {dispatch} = C.getConvoState(C.getSelectedConversation())
     dispatch.loadMoreMessages({reason: 'tab selected'})
@@ -513,9 +478,6 @@ const initChat = () => {
   })
 
   Container.listenAction(Chat2Gen.fetchUserEmoji, fetchUserEmoji)
-
-  Container.listenAction(Chat2Gen.addUsersToChannel, addUsersToChannel)
-  Container.listenAction(Chat2Gen.addUserToChannel, addUserToChannel)
 
   Container.listenAction(EngineGen.chat1NotifyChatChatPromptUnfurl, onChatPromptUnfurl)
   Container.listenAction(EngineGen.chat1NotifyChatChatIdentifyUpdate, onChatIdentifyUpdate)
@@ -602,7 +564,7 @@ const initChat = () => {
     C.getConvoState(conversationIDKey).dispatch.updateAttachmentViewTransfer(msgID, ratio)
   })
 
-  Container.listenAction([Chat2Gen.replyJump, Chat2Gen.jumpToRecent], (_, a) => {
+  Container.listenAction(Chat2Gen.replyJump, (_, a) => {
     const {conversationIDKey} = a.payload
     C.getConvoState(conversationIDKey).dispatch.setMessageCenterOrdinal()
   })

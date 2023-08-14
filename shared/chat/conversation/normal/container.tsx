@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as React from 'react'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
 import Normal from '.'
 import type * as Types from '../../../constants/types/chat2'
@@ -52,11 +51,7 @@ const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
     }
   }
 
-  const dispatch = Container.useDispatch()
-  const jumpToRecent = React.useCallback(() => {
-    dispatch(Chat2Gen.createJumpToRecent({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
-
+  const jumpToRecent = C.useChatContext(s => s.dispatch.jumpToRecent)
   const onPaste = C.useChatContext(s => s.dispatch.attachmentPasted)
   const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = React.useCallback(() => {
