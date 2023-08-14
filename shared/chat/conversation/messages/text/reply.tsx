@@ -1,11 +1,10 @@
 import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import {OrdinalContext, GetIdsContext, HighlightedContext} from '../ids-context'
+import {OrdinalContext, HighlightedContext} from '../ids-context'
 import type * as Types from '../../../../constants/types/chat2'
 
 export const useReply = (ordinal: Types.Ordinal) => {
@@ -130,12 +129,10 @@ const Reply = React.memo(function Reply() {
     return m?.replyTo ?? emptyMessage
   })
 
-  const dispatch = Container.useDispatch()
-  const getIds = React.useContext(GetIdsContext)
+  const replyJump = C.useChatContext(s => s.dispatch.replyJump)
   const onClick = Container.useEvent(() => {
-    const {conversationIDKey} = getIds()
     const id = replyTo.id
-    id && dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID: id}))
+    id && replyJump(id)
   })
 
   if (!replyTo.id) return null

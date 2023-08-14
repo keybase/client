@@ -13,14 +13,15 @@ const PinnedMessageContainer = React.memo(function PinnedMessageContainer(p: Own
   const {conversationIDKey} = p
   const you = C.useCurrentUserState(s => s.username)
   const {teamname, pinnedMsg} = C.useChatContext(s => s.meta)
+  const replyJump = C.useChatContext(s => s.dispatch.replyJump)
   const message = pinnedMsg?.message
   const yourOperations = C.useTeamsState(s => getCanPerform(s, teamname))
   const unpinning = Container.useAnyWaiting(Constants.waitingKeyUnpin(conversationIDKey))
   const messageID = message?.id
   const dispatch = Container.useDispatch()
   const onClick = React.useCallback(() => {
-    messageID && dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID}))
-  }, [dispatch, conversationIDKey, messageID])
+    messageID && replyJump(messageID)
+  }, [replyJump, messageID])
   const onIgnore = React.useCallback(() => {
     dispatch(Chat2Gen.createIgnorePinnedMessage({conversationIDKey}))
   }, [dispatch, conversationIDKey])

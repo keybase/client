@@ -11,7 +11,6 @@ export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const pinMessage = 'chat2:pinMessage'
-export const replyJump = 'chat2:replyJump'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const tabSelected = 'chat2:tabSelected'
@@ -36,13 +35,6 @@ export const createDismissJourneycard = (payload: {
 export const createIgnorePinnedMessage = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
 }) => ({payload, type: ignorePinnedMessage as typeof ignorePinnedMessage})
-/**
- * Jump to a replied to message
- */
-export const createReplyJump = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: Types.MessageID
-}) => ({payload, type: replyJump as typeof replyJump})
 /**
  * Pin a message
  */
@@ -87,7 +79,6 @@ export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneyca
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
 export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMessage>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
-export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
 export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMention>
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
@@ -101,7 +92,6 @@ export type Actions =
   | FetchUserEmojiPayload
   | IgnorePinnedMessagePayload
   | PinMessagePayload
-  | ReplyJumpPayload
   | ResolveMaybeMentionPayload
   | SendAudioRecordingPayload
   | TabSelectedPayload

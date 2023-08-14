@@ -266,6 +266,7 @@ export type ConvoState = ConvoStore & {
     refreshMutualTeamsInConv: () => void
     removeBotMember: (username: string) => void
     replaceMessageMap: (mm: ConvoStore['messageMap']) => void
+    replyJump: (messageID: Types.MessageID) => void
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
     resetChatWithoutThem: () => void
     resetLetThemIn: (username: string) => void
@@ -2200,6 +2201,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.messageMap = mm
       })
+    },
+    replyJump: messageID => {
+      get().dispatch.setMessageCenterOrdinal()
+      get().dispatch.loadMessagesCentered(messageID, 'flash')
     },
     requestInfoReceived: (messageID, requestInfo) => {
       set(s => {

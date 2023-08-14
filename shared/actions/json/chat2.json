@@ -4,11 +4,6 @@
     "import type * as Types from '../constants/types/chat2'"
   ],
   "actions": {
-    "replyJump": {
-      "_description": "Jump to a replied to message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID"
-    },
     "tabSelected": {
       "_description": "Desktop changed tab to chat"
     },

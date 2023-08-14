@@ -520,12 +520,6 @@ const initChat = () => {
       .dispatch.setMaybeMentionInfo(Constants.getTeamMentionName(teamName, channel), info)
   })
 
-  Container.listenAction(Chat2Gen.replyJump, (_, action) => {
-    C.getConvoState(action.payload.conversationIDKey).dispatch.loadMessagesCentered(
-      action.payload.messageID,
-      'flash'
-    )
-  })
   Container.listenAction(Chat2Gen.resolveMaybeMention, resolveMaybeMention)
 
   Container.listenAction(Chat2Gen.pinMessage, pinMessage)
@@ -562,11 +556,6 @@ const initChat = () => {
     const conversationIDKey = Types.conversationIDToKey(convID)
     const ratio = bytesComplete / bytesTotal
     C.getConvoState(conversationIDKey).dispatch.updateAttachmentViewTransfer(msgID, ratio)
-  })
-
-  Container.listenAction(Chat2Gen.replyJump, (_, a) => {
-    const {conversationIDKey} = a.payload
-    C.getConvoState(conversationIDKey).dispatch.setMessageCenterOrdinal()
   })
 
   // Backend gives us messageIDs sometimes so we need to find our ordinal
