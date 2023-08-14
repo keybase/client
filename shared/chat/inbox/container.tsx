@@ -139,7 +139,7 @@ const Connected = (ownProps: OwnProps) => {
     return C.useChatState.getState().getBadgeMap(badgeCountsChanged)
   }, [badgeCountsChanged])
   const _inboxLayout = inboxLayout
-  const _selectedConversationIDKey = conversationIDKey ?? Constants.noConversationIDKey
+  const _selectedConversationIDKey = conversationIDKey ?? C.noConversationIDKey
   const isSearching = C.useChatState(s => !!s.inboxSearch)
   const smallTeamsExpanded = C.useChatState(s => s.smallTeamsExpanded)
   const {navKey} = ownProps

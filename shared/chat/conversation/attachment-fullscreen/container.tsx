@@ -17,7 +17,7 @@ type OwnProps = {
 }
 
 const Connected = (props: OwnProps) => {
-  const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
+  const conversationIDKey = props.conversationIDKey ?? C.noConversationIDKey
   const inOrdinal = props.ordinal
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
   const currentDeviceName = C.useCurrentUserState(s => s.deviceName)

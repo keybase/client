@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as RemoteGen from '../remote-gen'
 import * as Clipboard from 'expo-clipboard'
-import * as ChatConstants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
 import * as ExpoLocation from 'expo-location'
@@ -220,7 +219,7 @@ const loadStartupDetails = async () => {
   }
 
   C.useConfigState.getState().dispatch.setStartupDetails({
-    conversation: conversation ?? ChatConstants.noConversationIDKey,
+    conversation: conversation ?? C.noConversationIDKey,
     followUser,
     link,
     pushPayload,

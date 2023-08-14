@@ -115,7 +115,7 @@ const maybeChangeSelectedConv = () => {
       return
     } else {
       logger.info(`maybeChangeSelectedConv: deselecting conv, service provided no new conv`)
-      C.getConvoState(Constants.noConversationIDKey).dispatch.navigateToThread('findNewestConversation')
+      C.getConvoState(C.noConversationIDKey).dispatch.navigateToThread('findNewestConversation')
       return
     }
   } else {
@@ -206,7 +206,7 @@ const onChatInboxSynced = (
 
 const onChatPaymentInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatPaymentInfoPayload) => {
   const {convID, info, msgID} = action.payload.params
-  const conversationIDKey = convID ? Types.conversationIDToKey(convID) : Constants.noConversationIDKey
+  const conversationIDKey = convID ? Types.conversationIDToKey(convID) : C.noConversationIDKey
   const paymentInfo = Constants.uiPaymentInfoToChatPaymentInfo([info])
   if (!paymentInfo) {
     // This should never happen
@@ -366,7 +366,7 @@ const fetchUserEmoji = async (_: unknown, action: Chat2Gen.FetchUserEmojiPayload
   const results = await RPCChatTypes.localUserEmojisRpcPromise(
     {
       convID:
-        conversationIDKey && conversationIDKey !== Constants.noConversationIDKey
+        conversationIDKey && conversationIDKey !== C.noConversationIDKey
           ? Types.keyToConversationID(conversationIDKey)
           : null,
       opts: {
@@ -554,7 +554,7 @@ const openChatFromWidget = (
   {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
 ) => {
   C.useConfigState.getState().dispatch.showMain()
-  C.getConvoState(conversationIDKey ?? Constants.noConversationIDKey).dispatch.navigateToThread('inboxSmall')
+  C.getConvoState(conversationIDKey ?? C.noConversationIDKey).dispatch.navigateToThread('inboxSmall')
 }
 
 const addUsersToChannel = async (_: unknown, action: Chat2Gen.AddUsersToChannelPayload) => {

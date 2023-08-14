@@ -6,7 +6,6 @@ import * as Types from '../../constants/types/teams'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
-import * as ChatConstants from '../../constants/chat2'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 
 type Props = {
@@ -18,7 +17,7 @@ type Props = {
 const ConfirmRemoveFromChannel = (props: Props) => {
   const members = props.members
   const teamID = props.teamID ?? Types.noTeamID
-  const conversationIDKey = props.conversationIDKey ?? ChatConstants.noConversationIDKey
+  const conversationIDKey = props.conversationIDKey ?? C.noConversationIDKey
 
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')

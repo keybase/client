@@ -5,7 +5,6 @@ import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../../fs/common'
 import * as Styles from '../../styles'
-import * as ChatConstants from '../../constants/chat2'
 import type * as ChatTypes from '../../constants/types/chat2'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
@@ -81,7 +80,7 @@ const noPaths = new Array<string>()
 const DesktopSendToChat = (props: Props) => {
   const sendPaths = props.sendPaths ?? noPaths
   const [title, setTitle] = React.useState('')
-  const [conversationIDKey, setConversationIDKey] = React.useState(ChatConstants.noConversationIDKey)
+  const [conversationIDKey, setConversationIDKey] = React.useState(C.noConversationIDKey)
   const [convName, setConvName] = React.useState('')
   const username = C.useCurrentUserState(s => s.username)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
@@ -103,7 +102,7 @@ const DesktopSendToChat = (props: Props) => {
   return (
     <Kb.PopupWrapper>
       <DesktopSendToChatRender
-        enabled={conversationIDKey !== ChatConstants.noConversationIDKey}
+        enabled={conversationIDKey !== C.noConversationIDKey}
         convName={convName}
         // If we ever support sending multiples from desktop this will need to
         // change.

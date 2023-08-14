@@ -16,7 +16,6 @@ import type {Tab} from './tabs'
 import uniq from 'lodash/uniq'
 import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '../util/errors'
 import {defaultUseNativeFrame, runMode, isMobile} from './platform'
-import {noConversationIDKey} from './types/chat2/common'
 import {type CommonResponseHandler} from '../engine/types'
 import {useAvatarState} from '../common-adapters/avatar-zus'
 import {initPlatformListener} from '../actions/platform-specific'
@@ -153,7 +152,7 @@ const initialStore: Store = {
   remoteWindowNeedsProps: new Map(),
   revokedTrigger: 0,
   startup: {
-    conversation: noConversationIDKey,
+    conversation: C.noConversationIDKey,
     followUser: '',
     link: '',
     loaded: false,
