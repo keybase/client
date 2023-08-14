@@ -1,13 +1,6 @@
 // helpers for redux / zustand
-import type {TypedActions} from '../actions/typed-actions-gen'
 import {create as _create, type StateCreator} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
-
-type TypedDispatch = (action: TypedActions) => void
-
-// TODO remove eventually
-export const getReduxDispatch: () => TypedDispatch = () => (a: TypedActions) =>
-  require('../store/configure-store').getGlobalStore().dispatch(a)
 
 export const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})

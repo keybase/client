@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {type Draft as _Draft} from 'immer'
 import type {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
-import type {ActionHandler as _ActionHandler} from './make-reducer'
 import {useSelector, useDispatch as RRuseDispatch, shallowEqual} from 'react-redux'
 import type {Dispatch as RRDispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
@@ -168,8 +167,6 @@ export const compose = flowRight
 export {produce, castDraft, castImmutable, current} from 'immer'
 export type Draft<T> = _Draft<T>
 export {default as HiddenString} from './hidden-string'
-export {default as makeReducer} from './make-reducer'
-export type ActionHandler<S, A> = _ActionHandler<S, A>
 export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
 export const useDispatch = () => RRuseDispatch<RRDispatch<_TypedActions>>()
@@ -204,40 +201,3 @@ export const dummyListenerApi = {
     throw new Error('dummy')
   },
 }
-
-// BEGIN debugging connect
-// import isEqual from 'lodash/isEqual'
-// const debugMergeProps = __DEV__
-//   ? () => {
-//       let oldsp = {}
-//       let oldop = {}
-//       return (sp, op, mp) => {
-//         Object.keys(oldsp).forEach(key => {
-//           if (oldsp[key] !== sp[key] && isEqual(oldsp[key], sp[key])) {
-//             console.log('DEBUGMERGEPROPS sp: ', key, oldsp[key], sp[key], 'orig: ', mp)
-//           }
-//         })
-//         Object.keys(oldop).forEach(key => {
-//           if (oldop[key] !== op[key] && isEqual(oldop[key], op[key])) {
-//             console.log('DEBUGMERGEPROPS op: ', key, oldop[key], op[key], 'orig: ', mp)
-//           }
-//         })
-//         oldsp = sp || {}
-//         oldop = op || {}
-//       }
-//     }
-//   : () => () => {}
-//
-// const debugConnect: any = (msp, mdp, mp) => {
-//   console.log('DEBUG: using debugMergeProps connect')
-//   const dmp = debugMergeProps()
-//   return typedConnect(msp, mdp, (sp, dp, op) => {
-//     dmp(sp, op, mp)
-//     return mp(sp, dp, op)
-//   })
-// }
-// const connect: typeof typedConnect = __DEV__ ? debugConnect : typedConnect
-// if (__DEV__) {
-//   console.log('\n\n\nDEBUG: debugConnect enabled')
-// }
-//

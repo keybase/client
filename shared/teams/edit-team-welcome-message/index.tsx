@@ -32,7 +32,6 @@ const EditTeamWelcomeMessage = (props: Props) => {
   const showNoWelcomeMessage = welcomeMessage.set && welcomeMessage.raw.length === 0
 
   const _setWelcomeMessage = C.useTeamsState(s => s.dispatch.setWelcomeMessage)
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onSave = () => _setWelcomeMessage(teamID, welcomeMessage)
   const onClose = () => nav.safeNavigateUp()
@@ -40,7 +39,7 @@ const EditTeamWelcomeMessage = (props: Props) => {
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
     if (!waiting && wasWaiting && !error) nav.safeNavigateUp()
-  }, [waiting, wasWaiting, nav, dispatch, error])
+  }, [waiting, wasWaiting, nav, error])
 
   return (
     <Kb.Modal

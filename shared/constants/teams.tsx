@@ -2666,8 +2666,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
             try {
               const convID = ChatTypes.keyToConversationID(conversationIDKey)
               await RPCChatTypes.localJoinConversationByIDLocalRpcPromise({convID}, waitingKey)
-              // nothing is hooked up to this???
-              // reduxDispatch(TeamsGen.createAddParticipant({conversationIDKey, teamID}))
             } catch (error) {
               C.useConfigState.getState().dispatch.setGlobalError(error)
             }
@@ -2675,8 +2673,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
             try {
               const convID = ChatTypes.keyToConversationID(conversationIDKey)
               await RPCChatTypes.localLeaveConversationLocalRpcPromise({convID}, waitingKey)
-              // nothing is hooked up to this???
-              // reduxDispatch(TeamsGen.createRemoveParticipant({conversationIDKey, teamID}))
             } catch (error) {
               C.useConfigState.getState().dispatch.setGlobalError(error)
             }
