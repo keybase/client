@@ -291,14 +291,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
       if (ds !== 'done') return
 
-      const emitStartupOnLoadNotInARush = async () => {
-        await Z.timeoutPromise(1000)
-        requestAnimationFrame(() => {
-          C.useConfigState.getState().dispatch.loadOnStart('startupOrReloginButNotInARush')
-        })
-      }
-      Z.ignorePromise(emitStartupOnLoadNotInARush())
-
       if (!_emitStartupOnLoadDaemonConnectedOnce) {
         _emitStartupOnLoadDaemonConnectedOnce = true
         C.useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')

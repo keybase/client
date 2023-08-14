@@ -119,33 +119,30 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
         try {
-          await RPCGen.accountEnterResetPipelineRpcListener(
-            {
-              customResponseIncomingCallMap: {'keybase.1.loginUi.promptResetAccount': promptReset},
-              incomingCallMap: {
-                'keybase.1.loginUi.displayResetProgress': params => {
-                  if (!params.needVerify) {
-                    set(s => {
-                      s.endTime = params.endTime * 1000
-                    })
-                  }
-                  C.useRouterState
-                    .getState()
-                    .dispatch.navigateAppend(
-                      {props: {pipelineStarted: !params.needVerify}, selected: 'resetWaiting'},
-                      true
-                    )
-                },
+          await RPCGen.accountEnterResetPipelineRpcListener({
+            customResponseIncomingCallMap: {'keybase.1.loginUi.promptResetAccount': promptReset},
+            incomingCallMap: {
+              'keybase.1.loginUi.displayResetProgress': params => {
+                if (!params.needVerify) {
+                  set(s => {
+                    s.endTime = params.endTime * 1000
+                  })
+                }
+                C.useRouterState
+                  .getState()
+                  .dispatch.navigateAppend(
+                    {props: {pipelineStarted: !params.needVerify}, selected: 'resetWaiting'},
+                    true
+                  )
               },
-              params: {
-                interactive: false,
-                passphrase: password,
-                usernameOrEmail: get().username,
-              },
-              waitingKey: enterPipelineWaitingKey,
             },
-            Z.dummyListenerApi
-          )
+            params: {
+              interactive: false,
+              passphrase: password,
+              usernameOrEmail: get().username,
+            },
+            waitingKey: enterPipelineWaitingKey,
+          })
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return

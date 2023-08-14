@@ -27,6 +27,7 @@ function capitalize(s: string) {
 }
 
 class Engine {
+  _onConnectedCB: (c: boolean) => void
   // Bookkeep old sessions
   _deadSessionsMap: {[K in SessionIDKey]: true} = {}
   // Tracking outstanding sessions
@@ -46,7 +47,7 @@ class Engine {
   // App tells us when the listeners are done loading so we can start emitting events
   _listenersAreReady: boolean = false
 
-  _dispatch: TypedDispatch
+  // _dispatch: TypedDispatch
   _dispatchBatch: (changes: BatchParams) => void
 
   _queuedChanges: Array<{error: RPCError; increment: boolean; key: WaitingKey}> = []
@@ -61,7 +62,12 @@ class Engine {
     this._dispatchBatch(changes)
   }, 500)
 
-  constructor(dispatch: TypedDispatch, dispatchBatch: (changes: BatchParams) => void) {
+  constructor(
+    _dispatch: TypedDispatch,
+    dispatchBatch: (changes: BatchParams) => void,
+    onConnected: (c: boolean) => void
+  ) {
+    this._onConnectedCB = onConnected
     const f = async () => {
       this._engineConstantsIncomingCall = (
         await import('../constants')
@@ -72,11 +78,11 @@ class Engine {
       .catch(() => {})
 
     // setup some static vars
-    if (DEFER_INCOMING_DURING_DEBUG) {
-      this._dispatch = a => setTimeout(() => dispatch(a), 1)
-    } else {
-      this._dispatch = dispatch
-    }
+    // if (DEFER_INCOMING_DURING_DEBUG) {
+    //   this._dispatch = a => setTimeout(() => dispatch(a), 1)
+    // } else {
+    //   this._dispatch = dispatch
+    // }
 
     this._dispatchBatch = dispatchBatch
 
@@ -116,14 +122,14 @@ class Engine {
 
   _onDisconnect() {
     // tell renderer we're disconnected
-    this._dispatch({payload: {connected: false}, type: 'remote:engineConnection'})
+    this._onConnectedCB(false)
   }
 
   // We want to dispatch the connect action but only after listeners boot up
   listenersAreReady = () => {
     this._listenersAreReady = true
     if (this._hasConnected) {
-      this._dispatch({payload: {connected: true}, type: 'remote:engineConnection'})
+      this._onConnectedCB(true)
     }
   }
 
@@ -131,7 +137,7 @@ class Engine {
   // We proxy the stuff over the mainWindowDispatch
   _onConnected() {
     this._hasConnected = true
-    this._dispatch({payload: {connected: true}, type: 'remote:engineConnection'})
+    this._onConnectedCB(true)
   }
 
   // Create and return the next unique session id
@@ -200,7 +206,7 @@ class Engine {
         this._engineConstantsIncomingCall(act as any)
 
         // @ts-ignore can't really type this easily
-        this._dispatch(act)
+        // this._dispatch(act)
       }
     }
   }
@@ -242,7 +248,6 @@ class Engine {
       cancelHandler,
       customResponseIncomingCallMap,
       dangling,
-      dispatch: this._dispatch,
       endHandler: (session: Session) => this._sessionEnded(session),
       incomingCallMap,
       invoke: (method, param, cb) => {
@@ -320,7 +325,6 @@ export class FakeEngine {
     ____: boolean = false
   ) {
     return new Session({
-      dispatch: () => {},
       endHandler: () => {},
       incomingCallMap: undefined,
       invoke: () => {},
@@ -348,13 +352,19 @@ if (__DEV__) {
   engine = global.DEBUGEngine
 }
 
-const makeEngine = (dispatch: TypedDispatch, dispatchBatch: (b: BatchParams) => void) => {
+const makeEngine = (
+  dispatch: TypedDispatch,
+  dispatchBatch: (b: BatchParams) => void,
+  onConnected: (c: boolean) => void
+) => {
   if (__DEV__ && engine) {
     logger.warn('makeEngine called multiple times')
   }
 
   if (!engine) {
-    engine = isTesting ? (new FakeEngine() as unknown as Engine) : new Engine(dispatch, dispatchBatch)
+    engine = isTesting
+      ? (new FakeEngine() as unknown as Engine)
+      : new Engine(dispatch, dispatchBatch, onConnected)
     if (__DEV__) {
       global.DEBUGEngine = engine
     }

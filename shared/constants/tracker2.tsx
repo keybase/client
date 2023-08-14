@@ -334,14 +334,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
           throw new Error('No guid on profile 2 load? ' + assertion || '')
         }
         try {
-          await RPCTypes.identify3Identify3RpcListener(
-            {
-              incomingCallMap: {},
-              params: {assertion, guiID, ignoreCache},
-              waitingKey: profileLoadWaitingKey,
-            },
-            Z.dummyListenerApi
-          )
+          await RPCTypes.identify3Identify3RpcListener({
+            incomingCallMap: {},
+            params: {assertion, guiID, ignoreCache},
+            waitingKey: profileLoadWaitingKey,
+          })
         } catch (error) {
           if (error instanceof RPCError) {
             if (error.code === RPCTypes.StatusCode.scresolutionfailed) {

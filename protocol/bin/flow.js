@@ -257,7 +257,7 @@ function engineListenerGen(methodName, name, justType) {
   }
   return justType
     ? `declare export function ${name}RpcListener (p: {params: MessageTypes[${methodName}]['inParam'], incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: WaitingKey}): CallEffect<void, () => void, Array<void>>`
-    : `export const ${name}RpcListener = (p: {params: MessageTypes[${methodName}]['inParam'], incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: WaitingKey}, listenerApi: ListenerApi):Promise<MessageTypes[${methodName}]['outParam']> => getEngineListener()({method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey}, listenerApi)`
+    : `export const ${name}RpcListener = (p: {params: MessageTypes[${methodName}]['inParam'], incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: WaitingKey}):Promise<MessageTypes[${methodName}]['outParam']> => getEngineListener()({method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})`
 }
 
 function rpcPromiseGen(methodName, name, justType) {
@@ -450,7 +450,7 @@ function writeFlow(typeDefs, project) {
 
   const engineImports = [
     project.hasEngine ? 'getEngine as engine' : '',
-    project.hasEngineListener ? 'getEngineListener, type ListenerApi' : '',
+    project.hasEngineListener ? 'getEngineListener' : '',
   ]
     .filter(f => f.length)
     .join(', ')

@@ -436,7 +436,13 @@ const plumbEvents = () => {
   }
 
   // we use this engine to proxy calls to the service from the renderer
-  const nodeEngine = makeEngine(mainWindowDispatch, () => {})
+  const nodeEngine = makeEngine(
+    mainWindowDispatch,
+    () => {},
+    (c: boolean) => {
+      mainWindowDispatch(RemoteGen.createEngineConnection({connected: c}))
+    }
+  )
 
   const timeoutPromise = async (timeMs: number) =>
     new Promise<void>(resolve => {

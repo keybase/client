@@ -550,7 +550,6 @@ export const initPlatformListener = () => {
   Container.listenAction(RemoteGen.engineConnection, (_, a) => {
     if (a.payload.connected) {
       C.useEngineState.getState().dispatch.onEngineConnected()
-      C.useConfigState.getState().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
     } else {
       C.useEngineState.getState().dispatch.onEngineDisconnected()
     }

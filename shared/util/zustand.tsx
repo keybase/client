@@ -19,20 +19,6 @@ export const timeoutPromise = async (timeMs: number) =>
     setTimeout(() => resolve(), timeMs)
   })
 
-export const dummyListenerApi = {
-  delay: async () => Promise.resolve(),
-  dispatch: () => {},
-  fork: () => {
-    throw new Error('dummy')
-  },
-  getState: () => {
-    throw new Error('dummy')
-  },
-  take: () => {
-    throw new Error('dummy')
-  },
-}
-
 type HasReset = {dispatch: {resetState: 'default' | (() => void)}}
 
 const resetters: (() => void)[] = []

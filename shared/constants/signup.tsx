@@ -103,38 +103,35 @@ export const _useState = Z.createZustand<State>((set, get) => {
       try {
         C.usePushState.getState().dispatch.showPermissionsPrompt({justSignedUp: true})
 
-        await RPCTypes.signupSignupRpcListener(
-          {
-            customResponseIncomingCallMap: {
-              // Do not add a gpg key for now
-              'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
-                response.result(false)
-              },
+        await RPCTypes.signupSignupRpcListener({
+          customResponseIncomingCallMap: {
+            // Do not add a gpg key for now
+            'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
+              response.result(false)
             },
-            incomingCallMap: {
-              // We dont show the paperkey anymore
-              'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
-            },
-            params: {
-              botToken: '',
-              deviceName: devicename,
-              deviceType: Platforms.isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop,
-              email: '',
-              genPGPBatch: false,
-              genPaper: false,
-              inviteCode,
-              passphrase: '',
-              randomPw: true,
-              skipGPG: true,
-              skipMail: true,
-              storeSecret: true,
-              username,
-              verifyEmail: true,
-            },
-            waitingKey,
           },
-          Z.dummyListenerApi
-        )
+          incomingCallMap: {
+            // We dont show the paperkey anymore
+            'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
+          },
+          params: {
+            botToken: '',
+            deviceName: devicename,
+            deviceType: Platforms.isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop,
+            email: '',
+            genPGPBatch: false,
+            genPaper: false,
+            inviteCode,
+            passphrase: '',
+            randomPw: true,
+            skipGPG: true,
+            skipMail: true,
+            storeSecret: true,
+            username,
+            verifyEmail: true,
+          },
+          waitingKey,
+        })
         set(s => {
           s.signupError = undefined
         })

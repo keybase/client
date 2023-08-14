@@ -758,45 +758,41 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
 
         try {
-          await RPCChatTypes.localSearchInboxRpcListener(
-            {
-              incomingCallMap: {
-                'chat.1.chatUi.chatSearchBotHits': onBotsHits,
-                'chat.1.chatUi.chatSearchConvHits': onConvHits,
-                'chat.1.chatUi.chatSearchInboxDone': onDone,
-                'chat.1.chatUi.chatSearchInboxHit': onTextHit,
-                'chat.1.chatUi.chatSearchInboxStart': onStart,
-                'chat.1.chatUi.chatSearchIndexStatus': onIndexStatus,
-                'chat.1.chatUi.chatSearchTeamHits': onOpenTeamHits,
-              },
-              params: {
-                identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-                namesOnly: false,
-                opts: {
-                  afterContext: 0,
-                  beforeContext: 0,
-                  isRegex: false,
-                  matchMentions: false,
-                  maxBots: 10,
-                  maxConvsHit: inboxSearchMaxTextResults,
-                  maxConvsSearched: 0,
-                  maxHits: inboxSearchMaxTextMessages,
-                  maxMessages: -1,
-                  maxNameConvs:
-                    query.length > 0 ? inboxSearchMaxNameResults : inboxSearchMaxUnreadNameResults,
-                  maxTeams: 10,
-                  reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
-                  sentAfter: 0,
-                  sentBefore: 0,
-                  sentBy: '',
-                  sentTo: '',
-                  skipBotCache: false,
-                },
-                query,
-              },
+          await RPCChatTypes.localSearchInboxRpcListener({
+            incomingCallMap: {
+              'chat.1.chatUi.chatSearchBotHits': onBotsHits,
+              'chat.1.chatUi.chatSearchConvHits': onConvHits,
+              'chat.1.chatUi.chatSearchInboxDone': onDone,
+              'chat.1.chatUi.chatSearchInboxHit': onTextHit,
+              'chat.1.chatUi.chatSearchInboxStart': onStart,
+              'chat.1.chatUi.chatSearchIndexStatus': onIndexStatus,
+              'chat.1.chatUi.chatSearchTeamHits': onOpenTeamHits,
             },
-            Z.dummyListenerApi
-          )
+            params: {
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              namesOnly: false,
+              opts: {
+                afterContext: 0,
+                beforeContext: 0,
+                isRegex: false,
+                matchMentions: false,
+                maxBots: 10,
+                maxConvsHit: inboxSearchMaxTextResults,
+                maxConvsSearched: 0,
+                maxHits: inboxSearchMaxTextMessages,
+                maxMessages: -1,
+                maxNameConvs: query.length > 0 ? inboxSearchMaxNameResults : inboxSearchMaxUnreadNameResults,
+                maxTeams: 10,
+                reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
+                sentAfter: 0,
+                sentBefore: 0,
+                sentBy: '',
+                sentTo: '',
+                skipBotCache: false,
+              },
+              query,
+            },
+          })
         } catch (error) {
           if (error instanceof RPCError) {
             if (!(error.code === RPCTypes.StatusCode.sccanceled)) {

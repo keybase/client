@@ -278,138 +278,135 @@ export const _useState = Z.createZustand<State>((set, get) => {
             reason: '',
           })
         try {
-          const {sigID} = await RPCTypes.proveStartProofRpcListener(
-            {
-              customResponseIncomingCallMap: {
-                'keybase.1.proveUi.checking': (_, response) => {
-                  if (canceled) {
-                    response.error(inputCancelError)
-                    return
-                  }
-                  response.result()
-                  set(s => {
-                    s.platformGenericChecking = true
-                  })
-                },
-                // service calls in when it polls to give us an opportunity to cancel
-                'keybase.1.proveUi.continueChecking': (_, response) =>
-                  canceled ? response.result(false) : response.result(true),
-                'keybase.1.proveUi.okToCheck': (_, response) => response.result(true),
-                'keybase.1.proveUi.outputInstructions': ({instructions, proof}, response) => {
-                  if (canceled) {
-                    response.error(inputCancelError)
-                    return
-                  }
-                  set(s => {
-                    s.dispatch.dynamic.afterCheckProof = () => {
-                      set(s => {
-                        s.dispatch.dynamic.afterCheckProof = undefined
-                      })
-                      response.result()
-                    }
-                    s.dispatch.dynamic.cancelAddProof = () => {
-                      set(s => {
-                        s.dispatch.dynamic.cancelAddProof = _cancelAddProof
-                      })
-                      _cancelAddProof()
-                      canceled = true
-                      response.error(inputCancelError)
-                    }
-                  })
-                  // @ts-ignore propbably a real thing
-                  if (service === 'dnsOrGenericWebSite') {
-                    // We don't get this directly (yet) so we parse this out
-                    try {
-                      const match = instructions.data.match(/<url>(http[s]+):\/\//)
-                      const protocol = match?.[1]
-                      set(s => {
-                        s.platform = protocol === 'https' ? 'https' : 'http'
-                        updateUsername(s)
-                      })
-                    } catch (_) {
-                      set(s => {
-                        s.platform = 'http'
-                        updateUsername(s)
-                      })
-                    }
-                  }
-                  if (service) {
-                    set(s => {
-                      s.proofText = proof
-                    })
-                    C.useRouterState.getState().dispatch.navigateAppend('profilePostProof')
-                  } else if (proof) {
-                    set(s => {
-                      s.platformGenericURL = proof
-                    })
-                    openURL(proof)
-                    get().dispatch.checkProof()
-                  }
-                },
-                'keybase.1.proveUi.preProofWarning': (_, response) => response.result(true),
-                'keybase.1.proveUi.promptOverwrite': (_, response) => response.result(true),
-                'keybase.1.proveUi.promptUsername': (args, response) => {
-                  const {parameters, prevError} = args
-                  if (canceled) {
-                    response.error(inputCancelError)
-                    return
-                  }
-                  const clear = () => {
-                    set(s => {
-                      s.errorText = ''
-                      s.errorCode = undefined
-                    })
-                  }
-                  set(s => {
-                    s.dispatch.dynamic.cancelAddProof = () => {
-                      clear()
-                      set(s => {
-                        s.dispatch.dynamic.cancelAddProof = _cancelAddProof
-                      })
-                      _cancelAddProof()
-                      canceled = true
-                      response.error(inputCancelError)
-                    }
-                    s.dispatch.dynamic.submitUsername = () => {
-                      clear()
-                      set(s => {
-                        updateUsername(s)
-                        s.dispatch.dynamic.submitUsername = undefined
-                      })
-                      response.result(get().username)
-                    }
-                  })
-                  if (prevError) {
-                    set(s => {
-                      s.errorText = prevError.desc
-                      s.errorCode = prevError.code
-                    })
-                  }
-                  if (service) {
-                    C.useRouterState.getState().dispatch.navigateAppend('profileProveEnterUsername')
-                  } else if (genericService && parameters) {
-                    set(s => {
-                      s.platformGenericParams = toProveGenericParams(parameters)
-                    })
-                    C.useRouterState.getState().dispatch.navigateAppend('profileGenericEnterUsername')
-                  }
-                },
+          const {sigID} = await RPCTypes.proveStartProofRpcListener({
+            customResponseIncomingCallMap: {
+              'keybase.1.proveUi.checking': (_, response) => {
+                if (canceled) {
+                  response.error(inputCancelError)
+                  return
+                }
+                response.result()
+                set(s => {
+                  s.platformGenericChecking = true
+                })
               },
-              incomingCallMap: {
-                'keybase.1.proveUi.displayRecheckWarning': () => {},
-                'keybase.1.proveUi.outputPrechecks': () => {},
+              // service calls in when it polls to give us an opportunity to cancel
+              'keybase.1.proveUi.continueChecking': (_, response) =>
+                canceled ? response.result(false) : response.result(true),
+              'keybase.1.proveUi.okToCheck': (_, response) => response.result(true),
+              'keybase.1.proveUi.outputInstructions': ({instructions, proof}, response) => {
+                if (canceled) {
+                  response.error(inputCancelError)
+                  return
+                }
+                set(s => {
+                  s.dispatch.dynamic.afterCheckProof = () => {
+                    set(s => {
+                      s.dispatch.dynamic.afterCheckProof = undefined
+                    })
+                    response.result()
+                  }
+                  s.dispatch.dynamic.cancelAddProof = () => {
+                    set(s => {
+                      s.dispatch.dynamic.cancelAddProof = _cancelAddProof
+                    })
+                    _cancelAddProof()
+                    canceled = true
+                    response.error(inputCancelError)
+                  }
+                })
+                // @ts-ignore propbably a real thing
+                if (service === 'dnsOrGenericWebSite') {
+                  // We don't get this directly (yet) so we parse this out
+                  try {
+                    const match = instructions.data.match(/<url>(http[s]+):\/\//)
+                    const protocol = match?.[1]
+                    set(s => {
+                      s.platform = protocol === 'https' ? 'https' : 'http'
+                      updateUsername(s)
+                    })
+                  } catch (_) {
+                    set(s => {
+                      s.platform = 'http'
+                      updateUsername(s)
+                    })
+                  }
+                }
+                if (service) {
+                  set(s => {
+                    s.proofText = proof
+                  })
+                  C.useRouterState.getState().dispatch.navigateAppend('profilePostProof')
+                } else if (proof) {
+                  set(s => {
+                    s.platformGenericURL = proof
+                  })
+                  openURL(proof)
+                  get().dispatch.checkProof()
+                }
               },
-              params: {
-                auto: false,
-                force: true,
-                promptPosted: !!genericService, // proof protocol extended slightly for generic proofs
-                service: platform,
-                username: '',
+              'keybase.1.proveUi.preProofWarning': (_, response) => response.result(true),
+              'keybase.1.proveUi.promptOverwrite': (_, response) => response.result(true),
+              'keybase.1.proveUi.promptUsername': (args, response) => {
+                const {parameters, prevError} = args
+                if (canceled) {
+                  response.error(inputCancelError)
+                  return
+                }
+                const clear = () => {
+                  set(s => {
+                    s.errorText = ''
+                    s.errorCode = undefined
+                  })
+                }
+                set(s => {
+                  s.dispatch.dynamic.cancelAddProof = () => {
+                    clear()
+                    set(s => {
+                      s.dispatch.dynamic.cancelAddProof = _cancelAddProof
+                    })
+                    _cancelAddProof()
+                    canceled = true
+                    response.error(inputCancelError)
+                  }
+                  s.dispatch.dynamic.submitUsername = () => {
+                    clear()
+                    set(s => {
+                      updateUsername(s)
+                      s.dispatch.dynamic.submitUsername = undefined
+                    })
+                    response.result(get().username)
+                  }
+                })
+                if (prevError) {
+                  set(s => {
+                    s.errorText = prevError.desc
+                    s.errorCode = prevError.code
+                  })
+                }
+                if (service) {
+                  C.useRouterState.getState().dispatch.navigateAppend('profileProveEnterUsername')
+                } else if (genericService && parameters) {
+                  set(s => {
+                    s.platformGenericParams = toProveGenericParams(parameters)
+                  })
+                  C.useRouterState.getState().dispatch.navigateAppend('profileGenericEnterUsername')
+                }
               },
-              waitingKey,
             },
-            Z.dummyListenerApi
-          )
+            incomingCallMap: {
+              'keybase.1.proveUi.displayRecheckWarning': () => {},
+              'keybase.1.proveUi.outputPrechecks': () => {},
+            },
+            params: {
+              auto: false,
+              force: true,
+              promptPosted: !!genericService, // proof protocol extended slightly for generic proofs
+              service: platform,
+              username: '',
+            },
+            waitingKey,
+          })
           set(s => {
             s.sigID = sigID
           })
@@ -554,37 +551,34 @@ export const _useState = Z.createZustand<State>((set, get) => {
         })
 
         try {
-          await RPCTypes.pgpPgpKeyGenDefaultRpcListener(
-            {
-              customResponseIncomingCallMap: {
-                'keybase.1.pgpUi.keyGenerated': ({key}, response) => {
-                  if (canceled) {
-                    response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
-                  } else {
-                    response.result()
-                    set(s => {
-                      s.pgpPublicKey = key.key
-                    })
-                  }
-                },
-                'keybase.1.pgpUi.shouldPushPrivate': ({prompt}, response) => {
-                  C.useRouterState.getState().dispatch.navigateAppend('profileFinished')
+          await RPCTypes.pgpPgpKeyGenDefaultRpcListener({
+            customResponseIncomingCallMap: {
+              'keybase.1.pgpUi.keyGenerated': ({key}, response) => {
+                if (canceled) {
+                  response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
+                } else {
+                  response.result()
                   set(s => {
-                    s.promptShouldStoreKeyOnServer = prompt
-                    s.dispatch.dynamic.finishedWithKeyGen = (shouldStoreKeyOnServer: boolean) => {
-                      set(s => {
-                        s.dispatch.dynamic.finishedWithKeyGen = undefined
-                      })
-                      response.result(shouldStoreKeyOnServer)
-                    }
+                    s.pgpPublicKey = key.key
                   })
-                },
+                }
               },
-              incomingCallMap: {'keybase.1.pgpUi.finished': () => {}},
-              params: {createUids: {ids, useDefault: false}},
+              'keybase.1.pgpUi.shouldPushPrivate': ({prompt}, response) => {
+                C.useRouterState.getState().dispatch.navigateAppend('profileFinished')
+                set(s => {
+                  s.promptShouldStoreKeyOnServer = prompt
+                  s.dispatch.dynamic.finishedWithKeyGen = (shouldStoreKeyOnServer: boolean) => {
+                    set(s => {
+                      s.dispatch.dynamic.finishedWithKeyGen = undefined
+                    })
+                    response.result(shouldStoreKeyOnServer)
+                  }
+                })
+              },
             },
-            Z.dummyListenerApi
-          )
+            incomingCallMap: {'keybase.1.pgpUi.finished': () => {}},
+            params: {createUids: {ids, useDefault: false}},
+          })
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return

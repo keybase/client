@@ -162,7 +162,6 @@ export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platfo
 export {useSafeSubmit} from './safe-submit'
 export {useSafeNavigation} from './safe-navigation'
 export type TypedActions = _TypedActions
-export type TypedState = {}
 export const compose = flowRight
 export {produce, castDraft, castImmutable, current} from 'immer'
 export type Draft<T> = _Draft<T>
@@ -186,18 +185,4 @@ export const useEvent = <Arr extends any[], R>(fn: Fn<Arr, R>): Fn<Arr, R> => {
         ref.current(...args),
     []
   )
-}
-
-export const dummyListenerApi = {
-  delay: async () => Promise.resolve(),
-  dispatch: () => {},
-  fork: () => {
-    throw new Error('dummy')
-  },
-  getState: () => {
-    throw new Error('dummy')
-  },
-  take: () => {
-    throw new Error('dummy')
-  },
 }
