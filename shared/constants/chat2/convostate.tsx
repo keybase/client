@@ -299,6 +299,7 @@ export type ConvoState = ConvoStore & {
     setThreadSearchQuery: (query: string) => void
     setTyping: (t: Set<string>) => void
     setupSubscriptions: () => void
+    tabSelected: () => void
     threadSearch: (query: string) => void
     toggleGiphyPrefill: () => void
     toggleLocalReaction: (p: {
@@ -2661,6 +2662,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     setupSubscriptions: () => {
       // TODO
+    },
+    tabSelected: () => {
+      get().dispatch.loadMoreMessages({reason: 'tab selected'})
+      get().dispatch.markThreadAsRead()
     },
     threadSearch: query => {
       set(s => {

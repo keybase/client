@@ -13,14 +13,9 @@ export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const pinMessage = 'chat2:pinMessage'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
-export const tabSelected = 'chat2:tabSelected'
 export const unpinMessage = 'chat2:unpinMessage'
 
 // Action Creators
-/**
- * Desktop changed tab to chat
- */
-export const createTabSelected = (payload?: undefined) => ({payload, type: tabSelected as typeof tabSelected})
 /**
  * Dismiss a journeycard
  */
@@ -81,7 +76,6 @@ export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMes
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
 export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMention>
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
-export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 
 // All Actions
@@ -94,6 +88,5 @@ export type Actions =
   | PinMessagePayload
   | ResolveMaybeMentionPayload
   | SendAudioRecordingPayload
-  | TabSelectedPayload
   | UnpinMessagePayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

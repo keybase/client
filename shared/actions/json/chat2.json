@@ -4,9 +4,6 @@
     "import type * as Types from '../constants/types/chat2'"
   ],
   "actions": {
-    "tabSelected": {
-      "_description": "Desktop changed tab to chat"
-    },
     "resolveMaybeMention": {
       "_description": "Resolve an unknown @ mention",
       "name": "string",

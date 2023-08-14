@@ -465,18 +465,7 @@ const initChat = () => {
     C.useChatState.getState().dispatch.updateInboxLayout(action.payload.params.layout)
   })
 
-  Container.listenAction(Chat2Gen.tabSelected, () => {
-    const {dispatch} = C.getConvoState(C.getSelectedConversation())
-    dispatch.loadMoreMessages({reason: 'tab selected'})
-  })
-
   Container.listenAction(Chat2Gen.dismissJourneycard, dismissJourneycard)
-
-  Container.listenAction(Chat2Gen.tabSelected, () => {
-    const {dispatch} = C.getConvoState(C.getSelectedConversation())
-    dispatch.markThreadAsRead()
-  })
-
   Container.listenAction(Chat2Gen.fetchUserEmoji, fetchUserEmoji)
 
   Container.listenAction(EngineGen.chat1NotifyChatChatPromptUnfurl, onChatPromptUnfurl)
