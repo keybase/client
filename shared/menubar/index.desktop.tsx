@@ -1,4 +1,5 @@
 import * as C from '../constants'
+import * as R from '../constants/remote'
 import * as Container from '../util/container'
 import * as FsTypes from '../constants/types/fs'
 import * as Kb from '../common-adapters'
@@ -69,7 +70,6 @@ const useMenuItems = (
   p: Props & {showBadges?: boolean; openApp: (tab?: Tabs.AppTab) => void}
 ): ReadonlyArray<_InnerMenuItem> => {
   const {showBadges, navBadges, daemonHandshakeState, username, kbfsEnabled, openApp} = p
-  const dispatch = Container.useDispatch()
   const countMap = navBadges
   const startingUp = daemonHandshakeState !== 'done'
 
@@ -98,9 +98,9 @@ const useMenuItems = (
         onClick: () => {
           if (!__DEV__) {
             if (isLinux) {
-              dispatch(RemoteGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
+              R.remoteDispatch(RemoteGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
             } else {
-              dispatch(RemoteGen.createDumpLogs({reason: 'quitting through menu'}))
+              R.remoteDispatch(RemoteGen.createDumpLogs({reason: 'quitting through menu'}))
             }
           }
           // In case dump log doesn't exit for us
@@ -161,7 +161,7 @@ const useMenuItems = (
           ? ([
               {
                 onClick: () => {
-                  dispatch(RemoteGen.createOpenPathInSystemFileManager({path: '/keybase'}))
+                  R.remoteDispatch(RemoteGen.createOpenPathInSystemFileManager({path: '/keybase'}))
                 },
                 title: `Open folders in ${Styles.fileUIName}`,
               },
@@ -172,7 +172,7 @@ const useMenuItems = (
       ] as const
     }
     return [...openAppItem, ...common] as const
-  }, [dispatch, username, countMap, kbfsEnabled, openApp, showBadges, startingUp])
+  }, [username, countMap, kbfsEnabled, openApp, showBadges, startingUp])
   return ret
 }
 

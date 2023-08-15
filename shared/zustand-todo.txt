@@ -5,3 +5,4 @@ remove convid as param
     move all types into T
     make dispatch only emit remotegen
     remote extra cations
+    make usedisatpch in remote use mainwindowdispatch

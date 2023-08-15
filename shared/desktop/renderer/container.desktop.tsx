@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import {Provider} from 'react-redux'
+// import {Provider} from 'react-redux'
 import {GlobalKeyEventHandler} from '../../util/key-event-handler.desktop'
 import {CanFixOverdrawContext, DarkModeContext} from '../../styles'
 import * as Container from '../../util/container'
@@ -9,14 +9,12 @@ import './style.css'
 // if we want to load the read profiler before the app is loaded
 const deferLoadingApp = __DEV__ && false
 
-const Root = ({store, children}: any) => {
+const Root = ({children}: any) => {
   const darkMode = C.useDarkModeState(s => s.isDarkMode())
   return (
     <GlobalKeyEventHandler>
       <CanFixOverdrawContext.Provider value={true}>
-        <DarkModeContext.Provider value={darkMode}>
-          <Provider store={store}>{children}</Provider>
-        </DarkModeContext.Provider>
+        <DarkModeContext.Provider value={darkMode}>{children}</DarkModeContext.Provider>
       </CanFixOverdrawContext.Provider>
     </GlobalKeyEventHandler>
   )

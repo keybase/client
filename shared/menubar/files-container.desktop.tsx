@@ -1,4 +1,5 @@
 import * as C from '../constants'
+import * as R from '../constants/remote'
 import * as Container from '../util/container'
 import * as FsTypes from '../constants/types/fs'
 import * as RemoteGen from '../actions/remote-gen'
@@ -11,7 +12,6 @@ const FilesContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
   const {remoteTlfUpdates} = state
   const username = C.useCurrentUserState(s => s.username)
-  const dispatch = Container.useDispatch()
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   return (
     <FilesPreview
@@ -24,7 +24,8 @@ const FilesContainer = () => {
               const tlfType = FsTypes.getPathVisibility(c.tlf) || FsTypes.TlfType.Private
               return {
                 onClickAvatar: () => showUserProfile(c.writer),
-                onSelectPath: () => c.tlf && dispatch(RemoteGen.createOpenFilesFromWidget({path: c.tlf})),
+                onSelectPath: () =>
+                  c.tlf && R.remoteDispatch(RemoteGen.createOpenFilesFromWidget({path: c.tlf})),
                 participants: participants || [],
                 path: c.tlf,
                 teamname: teamname || '',
@@ -34,7 +35,7 @@ const FilesContainer = () => {
                 tlfType,
                 updates: c.updates.map(({path, uploading}) => {
                   return {
-                    onClick: () => path && dispatch(RemoteGen.createOpenFilesFromWidget({path})),
+                    onClick: () => path && R.remoteDispatch(RemoteGen.createOpenFilesFromWidget({path})),
                     path,
                     tlfType,
                     uploading,

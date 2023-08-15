@@ -33,7 +33,6 @@ const useLoadDataForChannelPage = (
   participants: string[],
   bots: string[]
 ) => {
-  const dispatch = Container.useDispatch()
   const prevSelectedTab = Container.usePrevious(selectedTab)
   const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
   const getMembers = C.useTeamsState(s => s.dispatch.getMembers)
@@ -52,7 +51,6 @@ const useLoadDataForChannelPage = (
     getBlockState,
     getMembers,
     selectedTab,
-    dispatch,
     conversationIDKey,
     prevSelectedTab,
     meta.conversationIDKey,

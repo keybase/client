@@ -1,6 +1,7 @@
 import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
 import MainWindow, {showDockIcon, closeWindows, getMainWindow} from './main-window.desktop'
 import * as Electron from 'electron'
+import * as R from '../../constants/remote'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
 import menuBar from './menu-bar.desktop'
@@ -29,12 +30,10 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
 import {makeEngine} from '../../engine'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
+const {env} = KB2.constants
 
 const isPathSaltpack = (path: string) =>
   path.endsWith('.signed.saltpack') || path.endsWith('.encrypted.saltpack')
-
-const {env} = KB2.constants
-const {mainWindowDispatch} = KB2.functions
 
 let mainWindow: ReturnType<typeof MainWindow> | null = null
 let appStartedUp = false
@@ -102,10 +101,10 @@ const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
     // ["Keybase.exe", "--somearg", "--someotherarg", "actuallink"]
     for (const link of commandLine.slice(1)) {
       if (isRelevantDeepLink(link)) {
-        mainWindowDispatch(RemoteGen.createLink({link}))
+        R.remoteDispatch(RemoteGen.createLink({link}))
         return
       } else if (isValidSaltpackFilePath(link)) {
-        mainWindowDispatch(RemoteGen.createSaltpackFileOpen({path: link}))
+        R.remoteDispatch(RemoteGen.createSaltpackFileOpen({path: link}))
         return
       }
     }
@@ -215,9 +214,9 @@ const getStartupProcessArgs = () => {
   }
 
   if (isRelevantDeepLink(arg)) {
-    mainWindowDispatch(RemoteGen.createLink({link: arg}))
+    R.remoteDispatch(RemoteGen.createLink({link: arg}))
   } else if (isValidSaltpackFilePath(arg)) {
-    mainWindowDispatch(RemoteGen.createSaltpackFileOpen({path: arg}))
+    R.remoteDispatch(RemoteGen.createSaltpackFileOpen({path: arg}))
   }
 }
 
@@ -242,7 +241,7 @@ const willFinishLaunching = () => {
     if (!appStartedUp) {
       saltpackFilePath = path
     } else {
-      mainWindowDispatch(RemoteGen.createSaltpackFileOpen({path}))
+      R.remoteDispatch(RemoteGen.createSaltpackFileOpen({path}))
     }
   })
 
@@ -251,7 +250,7 @@ const willFinishLaunching = () => {
     if (!appStartedUp) {
       startupURL = link
     } else {
-      mainWindowDispatch(RemoteGen.createLink({link}))
+      R.remoteDispatch(RemoteGen.createLink({link}))
     }
   })
 }
@@ -364,22 +363,22 @@ const darwinCopyToChatTempUploadFile = async (options: {originalFilePath: string
 
 const plumbEvents = () => {
   Electron.nativeTheme.on('updated', () => {
-    mainWindowDispatch(RemoteGen.createSetSystemDarkMode({dark: Electron.nativeTheme.shouldUseDarkColors}))
+    R.remoteDispatch(RemoteGen.createSetSystemDarkMode({dark: Electron.nativeTheme.shouldUseDarkColors}))
   })
   Electron.powerMonitor.on('suspend', () => {
-    mainWindowDispatch(RemoteGen.createPowerMonitorEvent({event: 'suspend'}))
+    R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'suspend'}))
   })
   Electron.powerMonitor.on('resume', () => {
-    mainWindowDispatch(RemoteGen.createPowerMonitorEvent({event: 'resume'}))
+    R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'resume'}))
   })
   Electron.powerMonitor.on('shutdown', () => {
-    mainWindowDispatch(RemoteGen.createPowerMonitorEvent({event: 'shutdown'}))
+    R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'shutdown'}))
   })
   Electron.powerMonitor.on('lock-screen', () => {
-    mainWindowDispatch(RemoteGen.createPowerMonitorEvent({event: 'lock-screen'}))
+    R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'lock-screen'}))
   })
   Electron.powerMonitor.on('unlock-screen', () => {
-    mainWindowDispatch(RemoteGen.createPowerMonitorEvent({event: 'unlock-screen'}))
+    R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'unlock-screen'}))
   })
 
   Electron.ipcMain.handle('KBdispatchAction', (_: any, action: any) => {
@@ -440,7 +439,7 @@ const plumbEvents = () => {
     // no waiting on node side
     () => {},
     (c: boolean) => {
-      mainWindowDispatch(RemoteGen.createEngineConnection({connected: c}))
+      R.remoteDispatch(RemoteGen.createEngineConnection({connected: c}))
     }
   )
 
@@ -742,19 +741,19 @@ const plumbEvents = () => {
         if (startupURL) {
           // Mac calls open-url for a launch URL before redux is up, so we
           // stash a startupURL to be dispatched when we're ready for it.
-          mainWindowDispatch(RemoteGen.createLink({link: startupURL}))
+          R.remoteDispatch(RemoteGen.createLink({link: startupURL}))
           startupURL = undefined
         } else if (saltpackFilePath) {
-          mainWindowDispatch(RemoteGen.createSaltpackFileOpen({path: saltpackFilePath}))
+          R.remoteDispatch(RemoteGen.createSaltpackFileOpen({path: saltpackFilePath}))
           saltpackFilePath = undefined
         } else if (!isDarwin) {
           getStartupProcessArgs()
         }
 
         // run installer
-        installer(mainWindowDispatch, err => {
+        installer(err => {
           err && console.log('Error: ', err)
-          mainWindowDispatch(RemoteGen.createInstallerRan())
+          R.remoteDispatch(RemoteGen.createInstallerRan())
         })
         break
       case 'requestWindowsStartService':
@@ -806,7 +805,7 @@ const plumbEvents = () => {
         const remoteWindow = new Electron.BrowserWindow(opts)
 
         remoteWindow.on('show', () => {
-          mainWindowDispatch(RemoteGen.createUpdateWindowShown({component: action.payload.windowComponent}))
+          R.remoteDispatch(RemoteGen.createUpdateWindowShown({component: action.payload.windowComponent}))
         })
 
         if (action.payload.windowPositionBottomRight && Electron.screen.getPrimaryDisplay()) {
