@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as C from '../../../../constants'
 import type * as Container from '../../../../util/container'
 
 const PopupModal = React.lazy(async () => {
@@ -9,7 +10,9 @@ type OwnProps = Container.ViewPropsToPageProps<typeof PopupModal>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>
-    <PopupModal {...p.route.params} />
+    <C.ChatProvider id={p.route.params.conversationIDKey}>
+      <PopupModal {...p.route.params} />
+    </C.ChatProvider>
   </React.Suspense>
 )
 
