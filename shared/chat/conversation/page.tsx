@@ -13,7 +13,7 @@ const getOptions = ({route}: OwnProps) => ({
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>
-    <C.ChatProvider id={p.route.params.conversationIDKey ?? C.noConversationIDKey}>
+    <C.ChatProvider id={p.route.params.conversationIDKey ?? C.noConversationIDKey} canBeNull={true}>
       <Convo {...p.route.params} />
     </C.ChatProvider>
   </React.Suspense>

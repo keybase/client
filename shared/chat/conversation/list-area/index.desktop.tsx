@@ -614,16 +614,14 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
 
   return (
     <ErrorBoundary>
-      <C.ChatProvider id={conversationIDKey}>
-        <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
-          <div className="chat-scroller" key={conversationIDKey} style={styles.list as any} ref={setListRef}>
-            <div style={styles.listContents} ref={setListContents}>
-              {items}
-            </div>
+      <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
+        <div className="chat-scroller" key={conversationIDKey} style={styles.list as any} ref={setListRef}>
+          <div style={styles.listContents} ref={setListContents}>
+            {items}
           </div>
-          {jumpToRecent}
         </div>
-      </C.ChatProvider>
+        {jumpToRecent}
+      </div>
     </ErrorBoundary>
   )
 })
