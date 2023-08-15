@@ -1,7 +1,7 @@
+import * as C from '../../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import type * as ChatTypes from '../../../../../constants/types/chat2'
 
 export type Action =
   | {
@@ -14,7 +14,6 @@ export type Mode = 'chat' | 'team-settings'
 
 type Props = {
   actions: Array<Action>
-  conversationIDKey: ChatTypes.ConversationIDKey
   image?: Kb.IconType
   onAuthorClick: () => void
   onDismiss: () => void
@@ -25,12 +24,13 @@ type Props = {
 }
 
 export const TeamJourney = (props: Props) => {
-  const {conversationIDKey, teamname, mode} = props
+  const {teamname, mode} = props
 
   const contentHorizontalPadStyle =
     mode === 'chat'
       ? (styles.contentHorizontalPadChat as Styles.StylesCrossPlatform)
       : styles.contentHorizontalPadTeamSettings
+  const conversationIDKey = C.useChatContext(s => s.id)
 
   return (
     <>
@@ -264,7 +264,7 @@ const styles = Styles.styleSheetCreate(
       text: {
         maxWidth: '45%',
       },
-    } as const)
+    }) as const
 )
 
 export default TeamJourney

@@ -5,14 +5,14 @@ import * as React from 'react'
 import * as Styles from '../../../../../../styles'
 import UnfurlImage from './image'
 import shallowEqual from 'shallowequal'
-import {ConvoIDContext, OrdinalContext} from '../../../ids-context'
+import {OrdinalContext} from '../../../ids-context'
 import {formatDurationForLocation} from '../../../../../../util/timestamp'
 import {getUnfurlInfo} from './use-redux'
 import {maxWidth} from '../../../attachment/shared'
 
 const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const {idx} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
+  const conversationIDKey = C.useChatContext(s => s.id)
   const ordinal = React.useContext(OrdinalContext)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 

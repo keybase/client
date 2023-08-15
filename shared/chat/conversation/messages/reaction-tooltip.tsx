@@ -8,7 +8,7 @@ import ReactButton from './react-button/container'
 import shallowEqual from 'shallowequal'
 import type * as Types from '../../../constants/types/chat2'
 import type * as UsersTypes from '../../../constants/types/users'
-import {ConvoIDContext, OrdinalContext} from './ids-context'
+import {OrdinalContext} from './ids-context'
 
 export type Props = {
   attachmentRef?: () => React.Component<any> | null
@@ -30,7 +30,6 @@ export type Props = {
 
 type OwnProps = {
   attachmentRef?: any
-  conversationIDKey: Types.ConversationIDKey
   emoji?: string
   onHidden: () => void
   onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void
@@ -45,7 +44,7 @@ const emptyStateProps = {
 }
 
 const ReactionTooltip = (p: OwnProps) => {
-  const {conversationIDKey, ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
+  const {ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
 
   const infoMap = C.useUsersState(s => s.infoMap)
   const {_reactions, good} = C.useChatContext(s => {
@@ -59,6 +58,7 @@ const ReactionTooltip = (p: OwnProps) => {
   const _usersInfo = good ? infoMap : emptyStateProps._usersInfo
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const conversationIDKey = C.useChatContext(s => s.id)
   const onAddReaction = React.useCallback(() => {
     onHidden()
     navigateAppend({
@@ -133,7 +133,7 @@ const ReactionTooltipImpl = (props: Props) => {
       style={styles.overlay}
     >
       {/* need context since this uses a portal... */}
-      <ConvoIDContext.Provider value={props.conversationIDKey}>
+      <C.ChatProvider id={props.conversationIDKey}>
         <OrdinalContext.Provider value={props.ordinal}>
           <Kb.Box2
             onMouseLeave={props.onMouseLeave}
@@ -178,7 +178,7 @@ const ReactionTooltipImpl = (props: Props) => {
             )}
           </Kb.Box2>
         </OrdinalContext.Provider>
-      </ConvoIDContext.Provider>
+      </C.ChatProvider>
     </Kb.Overlay>
   )
 }

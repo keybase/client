@@ -35,11 +35,8 @@ export const HeaderAreaRight = (props: OwnProps) => {
     </>
   ) : null
 
-  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
-  const onShowInfoPanel = React.useCallback(
-    () => showInfoPanel(true, undefined, conversationIDKey),
-    [showInfoPanel, conversationIDKey]
-  )
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
+  const onShowInfoPanel = React.useCallback(() => showInfoPanel(true, undefined), [showInfoPanel])
   const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = React.useCallback(() => {
     // fix a race with the keyboard going away and coming back quickly

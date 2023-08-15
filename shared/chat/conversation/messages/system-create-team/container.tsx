@@ -10,21 +10,21 @@ type OwnProps = {
 
 const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(p: OwnProps) {
   const {message} = p
-  const {conversationIDKey, creator} = message
+  const {creator} = message
   const {teamID, teamname} = C.useChatContext(s => s.meta)
   const role = C.useTeamsState(s => TeamConstants.getRole(s, teamID))
   const you = C.useCurrentUserState(s => s.username)
   const isAdmin = TeamConstants.isAdmin(role) || TeamConstants.isOwner(role)
   const team = teamname
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const onViewTeam = React.useCallback(() => {
     if (teamID) {
       navigateAppend({props: {teamID}, selected: 'team'})
     } else {
-      showInfoPanel(true, 'settings', conversationIDKey)
+      showInfoPanel(true, 'settings')
     }
-  }, [showInfoPanel, navigateAppend, teamID, conversationIDKey])
+  }, [showInfoPanel, navigateAppend, teamID])
 
   const props = {
     creator,

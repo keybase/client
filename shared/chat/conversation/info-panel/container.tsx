@@ -30,10 +30,10 @@ const InfoPanelConnector = (props: Props) => {
   const [selectedTab, onSelectTab] = React.useState<Panel | undefined>(initialTab)
   const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
 
-  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const clearAttachmentView = C.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
   const onCancel = () => {
-    showInfoPanel(false, undefined, conversationIDKey)
+    showInfoPanel(false, undefined)
     clearAttachmentView()
   }
   const onGoToInbox = C.useChatState(s => s.dispatch.navigateToInbox)

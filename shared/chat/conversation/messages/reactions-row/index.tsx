@@ -6,7 +6,7 @@ import EmojiRow from '../emoji-row/container'
 import ReactButton from '../react-button/container'
 import ReactionTooltip from '../reaction-tooltip'
 import type * as Types from '../../../../constants/types/chat2'
-import {ConvoIDContext, OrdinalContext} from '../ids-context'
+import {OrdinalContext} from '../ids-context'
 
 // Get array of emoji names in the order of their earliest reaction
 const getOrderedReactions = (reactions?: Types.Reactions) => {
@@ -72,7 +72,6 @@ type IProps = {
   emoji: string
 }
 const RowItem = React.memo(function RowItem(p: IProps) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
   const {emoji} = p
 
@@ -89,7 +88,6 @@ const RowItem = React.memo(function RowItem(p: IProps) {
   const popup = showingPopup ? (
     <ReactionTooltip
       attachmentRef={() => popupAnchor.current}
-      conversationIDKey={conversationIDKey}
       emoji={emoji}
       onHidden={hidePopup}
       ordinal={ordinal}

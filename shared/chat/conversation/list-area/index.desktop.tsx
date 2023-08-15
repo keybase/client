@@ -10,7 +10,6 @@ import SpecialTopMessage from '../messages/special-top-message'
 import chunk from 'lodash/chunk'
 import shallowEqual from 'shallowequal'
 import type {Props} from '.'
-import {ConvoIDContext} from '../messages/ids-context'
 import {ErrorBoundary} from '../../../common-adapters'
 import {findLast} from '../../../util/arrays'
 import {getMessageRender} from '../messages/wrapper'
@@ -617,7 +616,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
 
   return (
     <ErrorBoundary>
-      <ConvoIDContext.Provider value={conversationIDKey}>
+      <C.ChatProvider id={conversationIDKey}>
         <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
           <div className="chat-scroller" key={conversationIDKey} style={styles.list as any} ref={setListRef}>
             <div style={styles.listContents} ref={setListContents}>
@@ -626,7 +625,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
           </div>
           {jumpToRecent}
         </div>
-      </ConvoIDContext.Provider>
+      </C.ChatProvider>
     </ErrorBoundary>
   )
 })

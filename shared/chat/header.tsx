@@ -45,10 +45,10 @@ const Header2 = (props: Props) => {
     mute(false)
   }, [mute])
 
-  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const onToggleInfoPanel = React.useCallback(() => {
-    showInfoPanel(!infoPanelShowing, undefined, conversationIDKey)
-  }, [showInfoPanel, conversationIDKey, infoPanelShowing])
+    showInfoPanel(!infoPanelShowing, undefined)
+  }, [showInfoPanel, infoPanelShowing])
 
   const channel = teamType === 'big' ? `${teamname}#${channelname}` : teamType === 'small' ? teamname : null
   const isTeam = ['small', 'big'].includes(teamType)

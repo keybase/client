@@ -50,10 +50,10 @@ export default (ownProps: OwnProps) => {
     })
   }
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
-  const _onAllMedia = (conversationIDKey: Types.ConversationIDKey) => {
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
+  const onAllMedia = () => {
     clearModals()
-    showInfoPanel(true, 'attachments', conversationIDKey)
+    showInfoPanel(true, 'attachments')
   }
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const _onCopyLink = (label: string, message: Types.Message) => {
@@ -131,7 +131,7 @@ export default (ownProps: OwnProps) => {
     isEditable,
     isKickable: isDeleteable && !!_teamID && !yourMessage && authorInTeam,
     onAddReaction: isMobile ? () => _onAddReaction(message) : undefined,
-    onAllMedia: () => _onAllMedia(message.conversationIDKey),
+    onAllMedia,
     onCopyLink: () => _onCopyLink(_label, message),
     onDelete: isDeleteable ? () => _onDelete(message) : undefined,
     onDownload: !isMobile && !message.downloadPath ? () => _onDownload(message) : undefined,

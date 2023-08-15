@@ -1,14 +1,10 @@
 import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import type * as Chat2Types from '../../../../constants/types/chat2'
 
-type Props = {
-  conversationIDKey: Chat2Types.ConversationIDKey
-}
-
-const MakeTeam = ({conversationIDKey}: Props) => {
+const MakeTeam = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const conversationIDKey = C.useChatContext(s => s.id)
   const onShowNewTeamDialog = () =>
     navigateAppend({props: {conversationIDKey}, selected: 'chatShowNewTeamDialog'})
   return (

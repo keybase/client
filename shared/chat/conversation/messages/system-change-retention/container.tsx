@@ -11,7 +11,7 @@ type OwnProps = {
 
 const SystemChangeRetentionContainer = React.memo(function SystemChangeRetentionContainer(p: OwnProps) {
   const {message} = p
-  const {conversationIDKey, isInherit, isTeam, membersType, policy, timestamp, user} = message
+  const {isInherit, isTeam, membersType, policy, timestamp, user} = message
 
   const you = C.useCurrentUserState(s => s.username)
   const meta = C.useChatContext(s => s.meta)
@@ -24,10 +24,10 @@ const SystemChangeRetentionContainer = React.memo(function SystemChangeRetention
   const onClickUserAvatar = React.useCallback(() => {
     Container.isMobile ? showUserProfile(user) : showUser(user, true)
   }, [showUserProfile, showUser, user])
-  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const onManageRetention = React.useCallback(() => {
-    showInfoPanel(true, 'settings', conversationIDKey)
-  }, [showInfoPanel, conversationIDKey])
+    showInfoPanel(true, 'settings')
+  }, [showInfoPanel])
   const props = {
     canManage,
     isInherit,
