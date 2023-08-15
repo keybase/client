@@ -13,7 +13,7 @@ type RowProps = {
 
 const RemoteSmallTeam = (props: RowProps) => {
   const {conversationIDKey} = props
-  const state = R.useRemoteStore<DeserializeProps>()
+  const state = C.useRemoteStore<DeserializeProps>()
   const {conversationsToSend} = state
   const conversation = conversationsToSend.find(c => c.conversationIDKey === conversationIDKey)
   const onSelectConversation = () => {
@@ -34,7 +34,7 @@ const RemoteSmallTeam = (props: RowProps) => {
 }
 
 const ChatPreview = (p: {convLimit?: number}) => {
-  const state = R.useRemoteStore<DeserializeProps>()
+  const state = C.useRemoteStore<DeserializeProps>()
   const {convLimit} = p
   const {conversationsToSend} = state
 

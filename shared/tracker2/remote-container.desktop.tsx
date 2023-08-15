@@ -22,7 +22,7 @@ const noDetails: Types.Details = {
 }
 
 const RemoteContainer = () => {
-  const state = R.useRemoteStore<DeserializeProps>()
+  const state = C.useRemoteStore<DeserializeProps>()
   const {avatarRefreshCounter, darkMode, trackerUsername, tracker2, followers, following, username} = state
   const {httpSrvToken, httpSrvAddress, infoMap, blockMap} = state
   const {usernameToDetails} = tracker2

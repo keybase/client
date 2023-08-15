@@ -68,3 +68,8 @@ export const initListeners = () => {
   useFSState.getState().dispatch.setupSubscriptions()
   useConfigState.getState().dispatch.setupSubscriptions()
 }
+import {useSelector, shallowEqual} from 'react-redux'
+export function useRemoteStore<S>(): S {
+  // TODO this will warn you not to do this, could just pass in a selector later
+  return useSelector(s => s, shallowEqual) as any
+}

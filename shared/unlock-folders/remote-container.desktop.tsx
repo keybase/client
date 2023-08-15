@@ -6,7 +6,7 @@ import UnlockFolders from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
 
 const RemoteContainer = () => {
-  const state = R.useRemoteStore<DeserializeProps>()
+  const state = C.useRemoteStore<DeserializeProps>()
   const {darkMode, devices, waiting, paperKeyError: _error} = state
   C.useUFState(s => s.dispatch.replace)(state.devices)
   const phase = C.useUFState(s => s.phase)

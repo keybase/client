@@ -8,7 +8,7 @@ import {FilesPreview} from './files.desktop'
 import type {DeserializeProps} from '../menubar/remote-serializer.desktop'
 
 const FilesContainer = () => {
-  const state = R.useRemoteStore<DeserializeProps>()
+  const state = C.useRemoteStore<DeserializeProps>()
   const {remoteTlfUpdates} = state
   const username = C.useCurrentUserState(s => s.username)
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
