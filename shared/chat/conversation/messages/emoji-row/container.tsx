@@ -2,7 +2,7 @@ import * as C from '../../../../constants'
 import * as React from 'react'
 import EmojiRow from '.'
 import type {Position, StylesCrossPlatform} from '../../../../styles'
-import {ConvoIDContext, OrdinalContext} from '../ids-context'
+import {OrdinalContext} from '../ids-context'
 import shallowEqual from 'shallowequal'
 
 type OwnProps = {
@@ -14,7 +14,7 @@ type OwnProps = {
 
 const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
   const {className, onShowingEmojiPicker, style, tooltipPosition} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
+  const conversationIDKey = C.useChatContext(s => s.id)
   const ordinal = React.useContext(OrdinalContext)
 
   const {hasUnfurls, type} = C.useChatContext(s => {
@@ -43,7 +43,6 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
 
   const props = {
     className,
-    conversationIDKey,
     emojis,
     onForward: hasUnfurls || type === 'attachment' ? onForward : undefined,
     onReact,

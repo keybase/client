@@ -67,9 +67,9 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
   )
 }
 
-type EmojiButtonProps = Pick<Props, 'conversationIDKey'> & {inputRef: InputRefType}
+type EmojiButtonProps = {inputRef: InputRefType}
 const EmojiButton = (p: EmojiButtonProps) => {
-  const {inputRef, conversationIDKey} = p
+  const {inputRef} = p
   const insertEmoji = React.useCallback(
     (emojiColons: string) => {
       inputRef.current?.transformText(({text, selection}) => {
@@ -91,15 +91,11 @@ const EmojiButton = (p: EmojiButtonProps) => {
       const {attachTo, toggleShowingPopup} = p
       return (
         <Kb.Overlay attachTo={attachTo} visible={true} onHidden={toggleShowingPopup} position="top right">
-          <EmojiPickerDesktop
-            conversationIDKey={conversationIDKey}
-            onPickAction={insertEmoji}
-            onDidPick={toggleShowingPopup}
-          />
+          <EmojiPickerDesktop onPickAction={insertEmoji} onDidPick={toggleShowingPopup} />
         </Kb.Overlay>
       )
     },
-    [conversationIDKey, insertEmoji]
+    [insertEmoji]
   )
 
   const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup2(makePopup)
@@ -140,8 +136,9 @@ const fileListToPaths = (f: any): Array<string> =>
     return f.path
   }) as any
 
-const FileButton = (p: {conversationIDKey: Types.ConversationIDKey; htmlInputRef: HtmlInputRefType}) => {
-  const {htmlInputRef, conversationIDKey} = p
+const FileButton = (p: {htmlInputRef: HtmlInputRefType}) => {
+  const {htmlInputRef} = p
+  const conversationIDKey = C.useChatContext(s => s.id)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const pickFile = React.useCallback(() => {
     const paths = fileListToPaths(htmlInputRef.current?.files)
@@ -292,20 +289,20 @@ const useKeyboard = (p: UseKeyboardProps) => {
   return {globalKeyDownPressHandler, inputKeyDown, onChangeText: onChangeTextInner}
 }
 
-type SideButtonsProps = Pick<Props, 'conversationIDKey' | 'cannotWrite'> & {
+type SideButtonsProps = Pick<Props, 'cannotWrite'> & {
   htmlInputRef: HtmlInputRefType
   inputRef: InputRefType
 }
 
 const SideButtons = (p: SideButtonsProps) => {
-  const {htmlInputRef, conversationIDKey, cannotWrite, inputRef} = p
+  const {htmlInputRef, cannotWrite, inputRef} = p
   return (
     <Kb.Box2 direction="horizontal">
       {!cannotWrite && (
         <>
           <GiphyButton />
-          <EmojiButton inputRef={inputRef} conversationIDKey={conversationIDKey} />
-          <FileButton conversationIDKey={conversationIDKey} htmlInputRef={htmlInputRef} />
+          <EmojiButton inputRef={inputRef} />
+          <FileButton htmlInputRef={htmlInputRef} />
         </>
       )}
     </Kb.Box2>
@@ -414,12 +411,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
                 onKeyDown={inputKeyDown}
               />
             </Kb.Box2>
-            <SideButtons
-              cannotWrite={cannotWrite}
-              conversationIDKey={conversationIDKey}
-              htmlInputRef={htmlInputRef}
-              inputRef={inputRef}
-            />
+            <SideButtons cannotWrite={cannotWrite} htmlInputRef={htmlInputRef} inputRef={inputRef} />
           </Kb.Box>
           <Footer conversationIDKey={conversationIDKey} focusInput={focusInput} />
         </Kb.Box>

@@ -100,7 +100,7 @@ export const AddAliasModal = (props: Props) => {
           <Kb.Text type="BodySemibold">Choose an existing emoji:</Kb.Text>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="small">
             <SelectedEmoji chosen={emoji} />
-            <ChooseEmoji conversationIDKey={props.conversationIDKey} onChoose={onChoose} />
+            <ChooseEmoji onChoose={onChoose} />
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2
@@ -128,7 +128,6 @@ export const AddAliasModal = (props: Props) => {
 }
 
 type ChooseEmojiProps = {
-  conversationIDKey: ChatTypes.ConversationIDKey
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
 }
 const ChooseEmoji = Styles.isMobile
@@ -150,10 +149,11 @@ const ChooseEmoji = Styles.isMobile
       }
 
       const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+      const conversationIDKey = C.useChatContext(s => s.id)
       const openEmojiPicker = () =>
         navigateAppend({
           props: {
-            conversationIDKey: props.conversationIDKey,
+            conversationIDKey,
             hideFrequentEmoji: true,
             onlyTeamCustomEmoji: true,
             pickKey,
@@ -164,7 +164,7 @@ const ChooseEmoji = Styles.isMobile
       return <Kb.Button mode="Secondary" label="Choose emoji" onClick={openEmojiPicker} />
     }
   : (props: ChooseEmojiProps) => {
-      const {onChoose, conversationIDKey} = props
+      const {onChoose} = props
       const makePopup = React.useCallback(
         (p: Kb.Popup2Parms) => {
           const {attachTo, toggleShowingPopup} = p
@@ -177,7 +177,6 @@ const ChooseEmoji = Styles.isMobile
               propagateOutsideClicks={false}
             >
               <EmojiPickerDesktop
-                conversationIDKey={conversationIDKey}
                 hideFrequentEmoji={true}
                 small={false}
                 onPickAction={onChoose}
@@ -187,7 +186,7 @@ const ChooseEmoji = Styles.isMobile
             </Kb.FloatingBox>
           )
         },
-        [onChoose, conversationIDKey]
+        [onChoose]
       )
       const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
       return (

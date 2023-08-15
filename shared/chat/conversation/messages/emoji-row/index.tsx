@@ -8,7 +8,6 @@ import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '../../../../util/emoj
 
 type Props = {
   className?: string
-  conversationIDKey: Types.ConversationIDKey
   emojis: Array<RPCTypes.UserReacji>
   onForward?: () => void
   onReact: (arg0: string) => void
@@ -101,11 +100,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
             onHidden={this._hidePicker}
             propagateOutsideClicks={false}
           >
-            <EmojiPickerDesktop
-              conversationIDKey={this.props.conversationIDKey}
-              onPickAddToMessageOrdinal={this.props.ordinal}
-              onDidPick={this._hidePicker}
-            />
+            <EmojiPickerDesktop onPickAddToMessageOrdinal={this.props.ordinal} onDidPick={this._hidePicker} />
           </Kb.FloatingBox>
         )}
       </Kb.Box2>
@@ -159,7 +154,7 @@ const styles = Styles.styleSheetCreate(
           margin: Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default EmojiRow
