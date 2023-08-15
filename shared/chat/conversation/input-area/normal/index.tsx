@@ -16,7 +16,6 @@ import * as Platform from '../../../../constants/platform'
 import {assertionToDisplay} from '../../../../common-adapters/usernames'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   focusInputCounter: number
   jumpToRecent: () => void
   onRequestScrollDown: () => void

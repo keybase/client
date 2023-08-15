@@ -1,13 +1,11 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
-import type * as Types from '../../../constants/types/chat2'
 import Normal from './normal'
 import Preview from './preview/container'
 import ThreadSearch from '../search/container'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
   focusInputCounter: number
   jumpToRecent: () => void
   onRequestScrollDown: () => void
@@ -16,7 +14,8 @@ type OwnProps = {
 }
 
 const InputAreaContainer = (p: OwnProps) => {
-  const {conversationIDKey, focusInputCounter, jumpToRecent} = p
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const {focusInputCounter, jumpToRecent} = p
   const {onRequestScrollUp, onRequestScrollDown, onRequestScrollToBottom} = p
   const showThreadSearch = C.useChatContext(s => s.threadSearchInfo.visible)
   const {membershipType, resetParticipants, wasFinalizedBy} = C.useChatContext(s => s.meta)
@@ -38,7 +37,7 @@ const InputAreaContainer = (p: OwnProps) => {
     return <Preview />
   }
   if (showThreadSearch && Container.isMobile) {
-    return <ThreadSearch conversationIDKey={p.conversationIDKey} />
+    return <ThreadSearch />
   }
   return (
     <Normal
@@ -47,7 +46,6 @@ const InputAreaContainer = (p: OwnProps) => {
       onRequestScrollDown={onRequestScrollDown}
       onRequestScrollToBottom={onRequestScrollToBottom}
       onRequestScrollUp={onRequestScrollUp}
-      conversationIDKey={conversationIDKey}
     />
   )
 }

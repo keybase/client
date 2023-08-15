@@ -6,10 +6,8 @@ import PinnedMessage from '.'
 import type * as Types from '../../../constants/types/chat2'
 import {getCanPerform} from '../../../constants/teams'
 
-type OwnProps = {conversationIDKey: Types.ConversationIDKey}
-
-const PinnedMessageContainer = React.memo(function PinnedMessageContainer(p: OwnProps) {
-  const {conversationIDKey} = p
+const PinnedMessageContainer = React.memo(function PinnedMessageContainer() {
+  const conversationIDKey = C.useChatContext(s => s.id)
   const you = C.useCurrentUserState(s => s.username)
   const {teamname, pinnedMsg} = C.useChatContext(s => s.meta)
   const replyJump = C.useChatContext(s => s.dispatch.replyJump)

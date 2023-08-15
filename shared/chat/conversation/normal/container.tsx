@@ -74,7 +74,6 @@ const NormalWrapper = React.memo(function NormalWrapper() {
 
   return (
     <Normal
-      conversationIDKey={conversationIDKey}
       dragAndDropRejectReason={dragAndDropRejectReason}
       threadLoadedOffline={threadLoadedOffline}
       showThreadSearch={showThreadSearch}

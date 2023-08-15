@@ -4,10 +4,9 @@ import * as Styles from '../../styles'
 import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
 
-type Props = {conversationID: string}
-
-const BlockButtons = (props: Props) => {
+const BlockButtons = () => {
   const nav = Container.useSafeNavigation()
+  const conversationIDKey = C.useChatContext(s => s.id)
 
   const teamname = C.useChatContext(s => s.meta.teamname)
   const teamID = C.useChatContext(s => s.meta.teamID)
@@ -34,7 +33,7 @@ const BlockButtons = (props: Props) => {
     nav.safeNavigateAppend({
       props: {
         blockUserByDefault: true,
-        convID: props.conversationID,
+        convID: conversationIDKey,
         others: others,
         team: team,
         username: adder,
@@ -51,7 +50,7 @@ const BlockButtons = (props: Props) => {
     >
       <Kb.WaveButton
         small={true}
-        conversationIDKey={props.conversationID}
+        conversationIDKey={conversationIDKey}
         toMany={others.length > 0 || !!team}
         style={styles.waveButton}
       />

@@ -110,7 +110,7 @@ export default (ownProps: OwnProps) => {
     download(path, 'saveMedia')
   }, [download, path])
   const _sendAttachmentToChat = () => {
-    path && navigateAppend({props: {sendPaths: [path]}, selected: 'sendToChat'})
+    path && navigateAppend({props: {sendPaths: [path]}, selected: 'chatSendToChat'})
   }
   const _sendToOtherApp = React.useCallback(() => {
     download(path, 'share')
