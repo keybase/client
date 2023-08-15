@@ -7,7 +7,6 @@ import InfoPanelMenu from './menu/container'
 import type * as ChatTypes from '../../../constants/types/chat2'
 import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'
-import {ConvoIDContext} from '../messages/ids-context'
 
 type SmallProps = {conversationIDKey: ChatTypes.ConversationIDKey}
 
@@ -38,16 +37,14 @@ const TeamHeader = (props: SmallProps) => {
       const {attachTo, toggleShowingPopup} = p
       return (
         <C.ChatProvider id={conversationIDKey}>
-          <ConvoIDContext.Provider value={conversationIDKey}>
-            <InfoPanelMenu
-              attachTo={attachTo}
-              floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
-              onHidden={toggleShowingPopup}
-              hasHeader={false}
-              isSmallTeam={isSmallTeam}
-              visible={true}
-            />
-          </ConvoIDContext.Provider>
+          <InfoPanelMenu
+            attachTo={attachTo}
+            floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
+            onHidden={toggleShowingPopup}
+            hasHeader={false}
+            isSmallTeam={isSmallTeam}
+            visible={true}
+          />
         </C.ChatProvider>
       )
     },

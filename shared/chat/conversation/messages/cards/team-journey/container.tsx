@@ -14,7 +14,6 @@ import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '../../../../../teams/common/channel-hooks'
 
 type OwnProps = {
-  conversationIDKey: ChatTypes.ConversationIDKey
   ordinal: ChatTypes.Ordinal
 }
 
@@ -22,7 +21,6 @@ type Props = {
   canShowcase: boolean
   cannotWrite: boolean
   channelname: string
-  conversationIDKey: ChatTypes.ConversationIDKey
   message: MessageTypes.MessageJourneycard
   onAddPeopleToTeam: () => void
   onBrowseChannels: () => void
@@ -121,7 +119,6 @@ const TeamJourneyContainer = (props: Props) => {
       image={image}
       onAuthorClick={props.onAuthorClick}
       teamname={props.teamname}
-      conversationIDKey={props.conversationIDKey}
       textComponent={textComponent}
       onDismiss={props.onDismiss}
       mode="chat"
@@ -132,7 +129,7 @@ const TeamJourneyContainer = (props: Props) => {
 const emptyJourney = makeMessageJourneycard({})
 
 const TeamJourneyConnected = (ownProps: OwnProps) => {
-  const {conversationIDKey, ordinal} = ownProps
+  const {ordinal} = ownProps
   const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const message = m?.type === 'journeycard' ? m : emptyJourney
   const conv = C.useChatContext(s => s.meta)
@@ -166,7 +163,6 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
     canShowcase,
     cannotWrite,
     channelname,
-    conversationIDKey,
     isBigTeam,
     message,
     onAddPeopleToTeam: () => _onAddPeopleToTeam(_teamID),

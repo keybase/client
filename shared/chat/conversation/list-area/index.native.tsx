@@ -10,7 +10,7 @@ import SpecialTopMessage from '../messages/special-top-message'
 import type * as Types from '../../../constants/types/chat2'
 import type {ItemType} from '.'
 import {FlatList} from 'react-native'
-import {ConvoIDContext, SeparatorMapContext} from '../messages/ids-context'
+import {SeparatorMapContext} from '../messages/ids-context'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
@@ -260,7 +260,7 @@ const ConversationList = React.memo(function ConversationList(p: {
 
   return (
     <Kb.ErrorBoundary>
-      <ConvoIDContext.Provider value={conversationIDKey}>
+      <C.ChatProvider id={conversationIDKey}>
         <SetRecycleTypeContext.Provider value={setRecycleType}>
           <ForceListRedrawContext.Provider value={forceListRedraw}>
             <SeparatorMapContext.Provider value={separatorMap}>
@@ -293,7 +293,7 @@ const ConversationList = React.memo(function ConversationList(p: {
             </SeparatorMapContext.Provider>
           </ForceListRedrawContext.Provider>
         </SetRecycleTypeContext.Provider>
-      </ConvoIDContext.Provider>
+      </C.ChatProvider>
     </Kb.ErrorBoundary>
   )
 })
