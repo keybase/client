@@ -2,14 +2,11 @@ import * as C from '../../../constants'
 import * as React from 'react'
 import * as Container from '../../../util/container'
 import Normal from '.'
-import type * as Types from '../../../constants/types/chat2'
 import {indefiniteArticle} from '../../../util/string'
 import shallowEqual from 'shallowequal'
 
-type Props = {conversationIDKey: Types.ConversationIDKey}
-
-const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
-  const {conversationIDKey} = props
+const NormalWrapper = React.memo(function NormalWrapper() {
+  const conversationIDKey = C.useChatContext(s => s.id)
   const [focusInputCounter, setFocusInputCounter] = React.useState(0)
   const onFocusInput = React.useCallback(() => {
     setFocusInputCounter(focusInputCounter + 1)

@@ -11,14 +11,14 @@ import debounce from 'lodash/debounce'
 import logger from '../../../logger'
 
 type Props = {
-  srcConvID: Types.ConversationIDKey
+  conversationIDKey: Types.ConversationIDKey // for page
   ordinal: Types.Ordinal
 }
 
 type PickerState = 'picker' | 'title'
 
 const TeamPicker = (props: Props) => {
-  const srcConvID = props.srcConvID
+  const srcConvID = C.useChatContext(s => s.id)
   const ordinal = props.ordinal
   const message = C.useChatContext(s => s.messageMap.get(ordinal))
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')

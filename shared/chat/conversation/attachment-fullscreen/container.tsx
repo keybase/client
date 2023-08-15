@@ -12,12 +12,12 @@ import {maxWidth, maxHeight} from '../messages/attachment/shared'
 const blankMessage = Constants.makeMessageAttachment({})
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: Types.ConversationIDKey // needed by page
   ordinal: Types.Ordinal
 }
 
 const Connected = (props: OwnProps) => {
-  const conversationIDKey = props.conversationIDKey ?? C.noConversationIDKey
+  const conversationIDKey = C.useChatContext(s => s.id)
   const inOrdinal = props.ordinal
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
   const currentDeviceName = C.useCurrentUserState(s => s.deviceName)

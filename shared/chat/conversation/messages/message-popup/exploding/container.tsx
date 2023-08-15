@@ -94,7 +94,7 @@ export default (ownProps: OwnProps) => {
   }
   const _onForward = () => {
     navigateAppend({
-      props: {ordinal: ownProps.ordinal, srcConvID: conversationIDKey},
+      props: {conversationIDKey, ordinal: ownProps.ordinal},
       selected: 'chatForwardMsgPick',
     })
   }

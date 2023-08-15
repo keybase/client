@@ -8,10 +8,10 @@ import Error from './error'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 
-type SwitchProps = {conversationIDKey?: Types.ConversationIDKey}
+type SwitchProps = {conversationIDKey?: Types.ConversationIDKey} // needed by page
 
-const Conversation = React.memo(function Conversation(p: SwitchProps) {
-  const conversationIDKey = p.conversationIDKey ?? C.noConversationIDKey
+const Conversation = React.memo(function Conversation(_: SwitchProps) {
+  const conversationIDKey = C.useChatContext(s => s.id)
   const type = C.useChatContext(s => {
     const meta = s.meta
     switch (conversationIDKey) {
@@ -46,7 +46,7 @@ const Conversation = React.memo(function Conversation(p: SwitchProps) {
       // To solve this we render a blank screen on mobile conversation views with "noConvo"
       return Container.isPhone ? null : <NoConversation />
     case 'normal':
-      return <Normal conversationIDKey={conversationIDKey} />
+      return <Normal />
     case 'youAreReset':
       return <YouAreReset />
     case 'rekey':

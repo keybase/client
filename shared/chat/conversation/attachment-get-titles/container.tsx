@@ -6,7 +6,7 @@ import type * as Types from '../../../constants/types/chat2'
 import type * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: Types.ConversationIDKey // needed by page
   pathAndOutboxIDs: Array<Types.PathAndOutboxID>
   titles?: Array<string>
   selectConversationWithReason?: 'extension' | 'files'
@@ -18,11 +18,11 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const conversationIDKey = ownProps.conversationIDKey ?? C.noConversationIDKey
   const {titles, tlfName, pathAndOutboxIDs} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateToThread = C.useChatContext(s => s.dispatch.navigateToThread)
   const attachmentUploadCanceled = C.useChatContext(s => s.dispatch.attachmentUploadCanceled)
   const onCancel = () => {
     attachmentUploadCanceled(
@@ -45,7 +45,7 @@ export default (ownProps: OwnProps) => {
     clearModals()
 
     if (selectConversationWithReason) {
-      C.getConvoState(conversationIDKey).dispatch.navigateToThread(selectConversationWithReason)
+      navigateToThread(selectConversationWithReason)
     }
   }
   const props = {
