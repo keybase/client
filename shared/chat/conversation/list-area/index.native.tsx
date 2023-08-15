@@ -260,40 +260,38 @@ const ConversationList = React.memo(function ConversationList(p: {
 
   return (
     <Kb.ErrorBoundary>
-      <C.ChatProvider id={conversationIDKey}>
-        <SetRecycleTypeContext.Provider value={setRecycleType}>
-          <ForceListRedrawContext.Provider value={forceListRedraw}>
-            <SeparatorMapContext.Provider value={separatorMap}>
-              <Kb.Box style={styles.container}>
-                <List
-                  extraData={extraData}
-                  removeClippedSubviews={Styles.isAndroid}
-                  // @ts-ignore
-                  drawDistance={100}
-                  estimatedItemSize={100}
-                  ListHeaderComponent={SpecialBottomMessage}
-                  ListFooterComponent={SpecialTopMessage}
-                  ItemSeparatorComponent={Separator}
-                  overScrollMode="never"
-                  contentContainerStyle={styles.contentContainer}
-                  data={messageOrdinals}
-                  getItemType={getItemType}
-                  inverted={true}
-                  renderItem={renderItem}
-                  maintainVisibleContentPosition={maintainVisibleContentPosition}
-                  onEndReached={onEndReached}
-                  keyboardDismissMode="on-drag"
-                  keyboardShouldPersistTaps="handled"
-                  keyExtractor={keyExtractor}
-                  ref={listRef}
-                />
-                {jumpToRecent}
-                {debugWhichList}
-              </Kb.Box>
-            </SeparatorMapContext.Provider>
-          </ForceListRedrawContext.Provider>
-        </SetRecycleTypeContext.Provider>
-      </C.ChatProvider>
+      <SetRecycleTypeContext.Provider value={setRecycleType}>
+        <ForceListRedrawContext.Provider value={forceListRedraw}>
+          <SeparatorMapContext.Provider value={separatorMap}>
+            <Kb.Box style={styles.container}>
+              <List
+                extraData={extraData}
+                removeClippedSubviews={Styles.isAndroid}
+                // @ts-ignore
+                drawDistance={100}
+                estimatedItemSize={100}
+                ListHeaderComponent={SpecialBottomMessage}
+                ListFooterComponent={SpecialTopMessage}
+                ItemSeparatorComponent={Separator}
+                overScrollMode="never"
+                contentContainerStyle={styles.contentContainer}
+                data={messageOrdinals}
+                getItemType={getItemType}
+                inverted={true}
+                renderItem={renderItem}
+                maintainVisibleContentPosition={maintainVisibleContentPosition}
+                onEndReached={onEndReached}
+                keyboardDismissMode="on-drag"
+                keyboardShouldPersistTaps="handled"
+                keyExtractor={keyExtractor}
+                ref={listRef}
+              />
+              {jumpToRecent}
+              {debugWhichList}
+            </Kb.Box>
+          </SeparatorMapContext.Provider>
+        </ForceListRedrawContext.Provider>
+      </SetRecycleTypeContext.Provider>
     </Kb.ErrorBoundary>
   )
 })

@@ -28,7 +28,7 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const onForward = React.useCallback(() => {
-    navigateAppend({props: {ordinal, srcConvID: conversationIDKey}, selected: 'chatForwardMsgPick'})
+    navigateAppend({props: {conversationIDKey, ordinal}, selected: 'chatForwardMsgPick'})
   }, [navigateAppend, conversationIDKey, ordinal])
   const onReact = React.useCallback(
     (emoji: string) => {

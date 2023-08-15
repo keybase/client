@@ -175,7 +175,6 @@ const styles = Styles.styleSheetCreate(
 )
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   renderTabs: () => React.ReactElement | null
   commonSections: Array<Section>
 }
@@ -188,7 +187,7 @@ const addBotButton = 'bots: add bot'
 const featuredBotSpinner = 'bots: featured spinners'
 
 const BotTab = (props: Props) => {
-  const {renderTabs, conversationIDKey} = props
+  const {renderTabs} = props
   const meta = C.useChatContext(s => s.meta)
   const {teamID, teamname, teamType, botAliases} = meta
   const yourOperations = C.useTeamsState(s =>
@@ -251,6 +250,7 @@ const BotTab = (props: Props) => {
   const botsInTeam: string[] = botUsernames.filter(b => !botsInConv.includes(b))
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const conversationIDKey = C.useChatContext(s => s.id)
   const onBotAdd = () => {
     navigateAppend({props: {conversationIDKey}, selected: 'chatSearchBots'})
   }

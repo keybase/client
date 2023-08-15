@@ -5,12 +5,12 @@ import type * as Styles from '../../../styles'
 import type * as Types from '../../../constants/types/chat2'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
   style?: Styles.StylesCrossPlatform
 }
 
 export default (ownProps: OwnProps) => {
-  const {conversationIDKey, style} = ownProps
+  const {style} = ownProps
+  const conversationIDKey = C.useChatContext(s => s.id)
   const info = C.useChatContext(s => s.threadSearchInfo)
   const _hits = info.hits
   const status = info.status

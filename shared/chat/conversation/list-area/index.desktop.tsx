@@ -130,17 +130,15 @@ const useResizeObserver = () => {
 
 // scrolling related things
 const useScrolling = (
-  p: Pick<
-    Props,
-    'conversationIDKey' | 'requestScrollUpRef' | 'requestScrollToBottomRef' | 'requestScrollDownRef'
-  > & {
+  p: Pick<Props, 'requestScrollUpRef' | 'requestScrollToBottomRef' | 'requestScrollDownRef'> & {
     containsLatestMessage: boolean
     messageOrdinals: Array<Types.Ordinal>
     listRef: React.MutableRefObject<HTMLDivElement | null>
     centeredOrdinal: Types.Ordinal | undefined
   }
 ) => {
-  const {conversationIDKey, requestScrollUpRef, requestScrollToBottomRef, requestScrollDownRef} = p
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const {requestScrollUpRef, requestScrollToBottomRef, requestScrollDownRef} = p
   const {listRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
   const editingOrdinal = C.useChatContext(s => s.editing)
   const loadNewerMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
@@ -523,7 +521,8 @@ const useItems = (p: {
 }
 
 const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
-  const {conversationIDKey, onFocusInput} = p
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const {onFocusInput} = p
   const {requestScrollDownRef, requestScrollToBottomRef, requestScrollUpRef} = p
   const editingOrdinal = C.useChatContext(s => s.editing)
   const centeredOrdinal = C.useChatContext(s => s.messageCenterOrdinal)?.ordinal
@@ -535,7 +534,6 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
   const {isLockedToBottom, scrollToBottom, setListRef, pointerWrapperRef} = useScrolling({
     centeredOrdinal,
     containsLatestMessage,
-    conversationIDKey,
     listRef,
     messageOrdinals,
     requestScrollDownRef,
@@ -616,16 +614,14 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
 
   return (
     <ErrorBoundary>
-      <C.ChatProvider id={conversationIDKey}>
-        <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
-          <div className="chat-scroller" key={conversationIDKey} style={styles.list as any} ref={setListRef}>
-            <div style={styles.listContents} ref={setListContents}>
-              {items}
-            </div>
+      <div style={styles.container as any} onClick={handleListClick} onCopyCapture={onCopyCapture}>
+        <div className="chat-scroller" key={conversationIDKey} style={styles.list as any} ref={setListRef}>
+          <div style={styles.listContents} ref={setListContents}>
+            {items}
           </div>
-          {jumpToRecent}
         </div>
-      </C.ChatProvider>
+        {jumpToRecent}
+      </div>
     </ErrorBoundary>
   )
 })

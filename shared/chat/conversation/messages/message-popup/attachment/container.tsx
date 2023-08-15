@@ -13,7 +13,6 @@ import {makeMessageAttachment} from '../../../../../constants/chat2/message'
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
   ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform
@@ -74,7 +73,7 @@ export default (ownProps: OwnProps) => {
   }
   const _onForward = (message: Types.Message) => {
     navigateAppend({
-      props: {ordinal: message.ordinal, srcConvID: message.conversationIDKey},
+      props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
       selected: 'chatForwardMsgPick',
     })
   }

@@ -6,7 +6,6 @@ import * as Styles from '../../../../styles'
 import * as TeamConstants from '../../../../constants/teams'
 import * as TeamTypes from '../../../../constants/types/teams'
 import {InfoPanelMenu} from '.'
-import {ConvoIDContext} from '../../messages/ids-context'
 
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -24,7 +23,6 @@ const InfoPanelMenuConnectorVisible = React.memo(function InfoPanelMenuConnector
 })
 
 const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: OwnProps) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const {attachTo, onHidden, floatingMenuContainerStyle, hasHeader} = p
   const {isSmallTeam, teamID: pteamID} = p
   const visible = true
@@ -100,6 +98,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     teamID && startAddMembersWizard(teamID)
   }, [startAddMembersWizard, teamID])
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const conversationIDKey = C.useChatContext(s => s.id)
   const onBlockConv = React.useCallback(() => {
     navigateAppend({
       props: {
@@ -157,7 +156,6 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     badgeSubscribe,
     canAddPeople,
     channelname,
-    conversationIDKey,
     floatingMenuContainerStyle,
     hasHeader,
     ignored,

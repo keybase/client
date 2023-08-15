@@ -4,7 +4,6 @@ import * as Kb from '../../../../common-adapters'
 import type * as Types from '../../../../constants/types/chat2'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   messageID: Types.MessageID
 }
 

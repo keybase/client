@@ -56,7 +56,6 @@ const ReactionsRowContainer = React.memo(function ReactonsRowContainer() {
 
 export type Props = {
   activeEmoji: string
-  conversationIDKey: Types.ConversationIDKey
   emojis: Array<string>
   ordinal: Types.Ordinal
   setActiveEmoji: (s: string) => void

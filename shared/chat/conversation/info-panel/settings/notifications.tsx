@@ -5,9 +5,6 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 export type SaveStateType = 'same' | 'saving' | 'justSaved'
-export type Props = {
-  conversationIDKey: Types.ConversationIDKey
-}
 
 type UnmutedProps = {
   channelWide: boolean

@@ -3,7 +3,7 @@ import * as React from 'react'
 import ReactButton, {NewReactionButton} from '.'
 import shallowEqual from 'shallowequal'
 import type {StylesCrossPlatform} from '../../../../styles'
-import {ConvoIDContext, OrdinalContext} from '../ids-context'
+import {OrdinalContext} from '../ids-context'
 
 export type OwnProps = {
   className?: string
@@ -16,7 +16,6 @@ export type OwnProps = {
 }
 
 const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProps) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
   const {emoji, className} = p
   const {getAttachmentRef, onLongPress, onShowPicker, showBorder, style} = p
@@ -43,6 +42,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
     toggleMessageReaction(ordinal, emoji || '')
   }, [toggleMessageReaction, emoji, ordinal])
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const conversationIDKey = C.useChatContext(s => s.id)
   const onOpenEmojiPicker = React.useCallback(() => {
     navigateAppend({
       props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},

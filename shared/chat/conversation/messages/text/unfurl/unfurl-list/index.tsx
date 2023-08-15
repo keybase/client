@@ -5,7 +5,6 @@ import * as Styles from '../../../../../../styles'
 import UnfurlGeneric from './generic'
 import UnfurlGiphy from './giphy'
 import UnfurlMap from './map'
-import type * as Types from '../../../../../../constants/types/chat2'
 import * as Kb from '../../../../../../common-adapters'
 import {OrdinalContext} from '../../../ids-context'
 import shallowEqual from 'shallowequal'
@@ -19,7 +18,6 @@ export type UnfurlListItem = {
 }
 
 export type ListProps = {
-  conversationIDKey: Types.ConversationIDKey
   isAuthor: boolean
   author?: string
   toggleMessagePopup: () => void
@@ -27,7 +25,6 @@ export type ListProps = {
 }
 
 export type UnfurlProps = {
-  conversationIDKey: Types.ConversationIDKey
   isAuthor: boolean
   author?: string
   isCollapsed: boolean

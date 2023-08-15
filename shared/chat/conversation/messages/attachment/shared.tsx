@@ -6,7 +6,7 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import shallowEqual from 'shallowequal'
 import type * as Types from '../../../../constants/types/chat2'
-import {OrdinalContext, GetIdsContext} from '../ids-context'
+import {OrdinalContext} from '../ids-context'
 import {sharedStyles} from '../shared-styles'
 
 type Props = {
@@ -141,15 +141,14 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 const useCollapseAction = () => {
-  const getIds = React.useContext(GetIdsContext)
+  const ordinal = React.useContext(OrdinalContext)
   const toggleMessageCollapse = C.useChatContext(s => s.dispatch.toggleMessageCollapse)
   const onCollapse = React.useCallback(
     (e: React.BaseSyntheticEvent) => {
       e.stopPropagation()
-      const {ordinal} = getIds()
       toggleMessageCollapse(ordinal, ordinal)
     },
-    [toggleMessageCollapse, getIds]
+    [toggleMessageCollapse, ordinal]
   )
   return onCollapse
 }
@@ -175,12 +174,10 @@ export const useCollapseIcon = Container.isMobile ? useCollapseIconMobile : useC
 
 export const useAttachmentRedux = () => {
   const ordinal = React.useContext(OrdinalContext)
-  const getIds = React.useContext(GetIdsContext)
   const attachmentPreviewSelect = C.useChatContext(s => s.dispatch.attachmentPreviewSelect)
   const openFullscreen = React.useCallback(() => {
-    const {ordinal} = getIds()
     attachmentPreviewSelect(ordinal)
-  }, [attachmentPreviewSelect, getIds])
+  }, [attachmentPreviewSelect, ordinal])
 
   const editInfo = C.useChatContext(s => s.getEditInfo())
   const {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState} =

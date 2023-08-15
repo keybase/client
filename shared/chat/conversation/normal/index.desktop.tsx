@@ -1,3 +1,4 @@
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
@@ -10,7 +11,6 @@ import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message/container'
 import ThreadLoadStatus from '../load-status'
 import ThreadSearch from '../search/container'
-import type * as Types from '../../../constants/types/chat2'
 import type {Props} from '.'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import '../conversation.css'
@@ -21,8 +21,8 @@ const Offline = () => (
   </Kb.Banner>
 )
 
-const LoadingLine = (p: {conversationIDKey: Types.ConversationIDKey}) => {
-  const {conversationIDKey} = p
+const LoadingLine = () => {
+  const conversationIDKey = C.useChatContext(s => s.id)
   const showLoader = Container.useAnyWaiting([
     Constants.waitingKeyThreadLoad(conversationIDKey),
     Constants.waitingKeyInboxSyncStarted,
@@ -63,23 +63,15 @@ class Conversation extends React.PureComponent<Props> {
               requestScrollUpRef={this.props.requestScrollUpRef}
               requestScrollToBottomRef={this.props.requestScrollToBottomRef}
               requestScrollDownRef={this.props.requestScrollDownRef}
-              conversationIDKey={this.props.conversationIDKey}
             />
             <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>
               <ThreadLoadStatus />
-              {!this.props.showThreadSearch && (
-                <PinnedMessage conversationIDKey={this.props.conversationIDKey} />
-              )}
+              {!this.props.showThreadSearch && <PinnedMessage />}
             </Kb.Box2>
-            {this.props.showThreadSearch && (
-              <ThreadSearch
-                style={styles.threadSearchStyle}
-                conversationIDKey={this.props.conversationIDKey}
-              />
-            )}
-            <LoadingLine conversationIDKey={this.props.conversationIDKey} />
+            {this.props.showThreadSearch && <ThreadSearch style={styles.threadSearchStyle} />}
+            <LoadingLine />
           </Kb.Box2>
-          <InvitationToBlock conversationID={this.props.conversationIDKey} />
+          <InvitationToBlock />
           <Banner />
           <InputArea
             focusInputCounter={this.props.focusInputCounter}
@@ -87,7 +79,6 @@ class Conversation extends React.PureComponent<Props> {
             onRequestScrollDown={this.props.onRequestScrollDown}
             onRequestScrollToBottom={this.props.onRequestScrollToBottom}
             onRequestScrollUp={this.props.onRequestScrollUp}
-            conversationIDKey={this.props.conversationIDKey}
           />
         </Kb.DragAndDrop>
       </Kb.Box>

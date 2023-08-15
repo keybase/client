@@ -3,7 +3,7 @@ import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../../styles'
 import type {Props} from '.'
-import {GetIdsContext} from '../../ids-context'
+import {OrdinalContext} from '../../ids-context'
 import {SwipeTrigger} from '../../../../../common-adapters/swipeable.native'
 import {dismiss} from '../../../../../util/keyboard'
 import {Pressable} from 'react-native'
@@ -12,7 +12,6 @@ import {Pressable} from 'react-native'
 const LongPressable = React.memo(function LongPressable(props: Props) {
   const {children, onLongPress, style} = props
   const onPress = React.useCallback(() => dismiss(), [])
-  const getIds = React.useContext(GetIdsContext)
 
   // uncomment to debug measuring issues w/ items
   const onLayout = undefined /*useDebugLayout(
@@ -44,11 +43,11 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
 
   const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
   const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
+  const ordinal = React.useContext(OrdinalContext)
   const onSwipeLeft = React.useCallback(() => {
-    const {ordinal} = getIds()
     setReplyTo(ordinal)
     toggleThreadSearch(true)
-  }, [setReplyTo, toggleThreadSearch, getIds])
+  }, [setReplyTo, toggleThreadSearch, ordinal])
 
   // Only swipeable if there is an onSwipeLeft handler
   if (onSwipeLeft) {

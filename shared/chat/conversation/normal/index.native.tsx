@@ -13,7 +13,6 @@ import InvitationToBlock from '../../blocking/invitation-to-block'
 import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message/container'
 import ThreadLoadStatus from '../load-status'
-import type * as Types from '../../../constants/types/chat2'
 import type {LayoutEvent} from '../../../common-adapters/box'
 import type {Props} from '.'
 import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
@@ -25,8 +24,8 @@ const Offline = () => (
   </Kb.Banner>
 )
 
-const LoadingLine = (p: {conversationIDKey: Types.ConversationIDKey}) => {
-  const {conversationIDKey} = p
+const LoadingLine = () => {
+  const conversationIDKey = C.useChatContext(s => s.id)
   const showLoader = Container.useAnyWaiting([
     Constants.waitingKeyThreadLoad(conversationIDKey),
     Constants.waitingKeyInboxSyncStarted,
@@ -35,7 +34,7 @@ const LoadingLine = (p: {conversationIDKey: Types.ConversationIDKey}) => {
 }
 
 const Conversation = React.memo(function Conversation(props: Props) {
-  const {conversationIDKey} = props
+  const conversationIDKey = C.useChatContext(s => s.id)
   const [maxInputArea, setMaxInputArea] = React.useState(0)
   const onLayout = React.useCallback((e: LayoutEvent) => {
     setMaxInputArea(e.nativeEvent.layout.height)
@@ -45,17 +44,16 @@ const Conversation = React.memo(function Conversation(props: Props) {
     <Kb.BoxGrow onLayout={onLayout}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
         <ThreadLoadStatus />
-        <PinnedMessage conversationIDKey={conversationIDKey} />
+        <PinnedMessage />
         <ListArea
           requestScrollToBottomRef={props.requestScrollToBottomRef}
           requestScrollDownRef={props.requestScrollDownRef}
           requestScrollUpRef={props.requestScrollUpRef}
           onFocusInput={props.onFocusInput}
-          conversationIDKey={conversationIDKey}
         />
-        <LoadingLine conversationIDKey={conversationIDKey} />
+        <LoadingLine />
       </Kb.Box2>
-      <InvitationToBlock conversationID={conversationIDKey} />
+      <InvitationToBlock />
       <Banner />
       <MaxInputAreaContext.Provider value={maxInputArea}>
         <InputArea
@@ -64,7 +62,6 @@ const Conversation = React.memo(function Conversation(props: Props) {
           onRequestScrollDown={props.onRequestScrollDown}
           onRequestScrollToBottom={props.onRequestScrollToBottom}
           onRequestScrollUp={props.onRequestScrollUp}
-          conversationIDKey={conversationIDKey}
         />
       </MaxInputAreaContext.Provider>
     </Kb.BoxGrow>

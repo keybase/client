@@ -173,7 +173,6 @@ const DocViewRow = (props: DocViewRowProps) => {
     return !!item.message
   }, [item])
   const {toggleShowingPopup, popup} = useMessagePopup({
-    conversationIDKey: item.message?.conversationIDKey ?? '',
     ordinal: item.message?.id ?? 0,
     shouldShow,
   })
@@ -380,7 +379,6 @@ const linkStyleOverride = {
 }
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   renderTabs: () => React.ReactNode
   commonSections: Array<Section<{key: string}, {title?: string}>>
 }
@@ -398,7 +396,7 @@ export const useAttachmentSections = (
   loadImmediately: boolean,
   useFlexWrap: boolean
 ): Array<Section<any, {title?: string}>> => {
-  const {conversationIDKey} = p
+  const conversationIDKey = C.useChatContext(s => s.id)
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<RPCChatTypes.GalleryItemTyp>(
     RPCChatTypes.GalleryItemTyp.media
   )

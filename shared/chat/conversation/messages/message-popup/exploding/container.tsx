@@ -17,7 +17,6 @@ import {makeMessageText} from '../../../../../constants/chat2/message'
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
   ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform
@@ -62,10 +61,11 @@ export default (ownProps: OwnProps) => {
   const hideTimer = message.submitState === 'pending' || message.submitState === 'failed'
   const timestamp = message.timestamp
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const conversationIDKey = C.useChatContext(s => s.id)
   const _onAddReaction = () => {
     navigateAppend({
       props: {
-        conversationIDKey: ownProps.conversationIDKey,
+        conversationIDKey,
         onPickAddToMessageOrdinal: ownProps.ordinal,
         pickKey: 'reaction',
       },
@@ -94,7 +94,7 @@ export default (ownProps: OwnProps) => {
   }
   const _onForward = () => {
     navigateAppend({
-      props: {ordinal: ownProps.ordinal, srcConvID: ownProps.conversationIDKey},
+      props: {conversationIDKey, ordinal: ownProps.ordinal},
       selected: 'chatForwardMsgPick',
     })
   }
