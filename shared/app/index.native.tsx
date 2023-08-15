@@ -11,9 +11,6 @@ import {enableFreeze} from 'react-native-screens'
 import {setKeyboardUp} from '../styles/keyboard-state'
 enableFreeze(true)
 
-// type ConfigureStore = ReturnType<typeof makeStore>
-// let _store: ConfigureStore | undefined
-
 module.hot?.accept(() => {
   console.log('accepted update in shared/index.native')
 })
@@ -77,22 +74,10 @@ if (__DEV__ && !globalThis.DEBUGmadeEngine) {
   globalThis.DEBUGmadeEngine = false
 }
 
-const ensureStore = () => {
-  // if (__DEV__) {
-  //   if (globalThis.DEBUGmadeEngine) {
-  //     _store = global.DEBUGStore
-  //     return
-  //   }
-  //   globalThis.DEBUGmadeEngine = true
-  // }
-  // if (_store) {
-  //   return
-  // }
-  // _store = makeStore()
-  // if (__DEV__ || chatDebugEnabled) {
-  //   global.DEBUGStore = _store
-  // }
-
+let inited = false
+const init = () => {
+  if (inited) return
+  inited = true
   const {batch} = C.useWaitingState.getState().dispatch
   const eng = makeEngine(batch, c => {
     if (c) {
@@ -110,12 +95,7 @@ const ensureStore = () => {
 
 // on android this can be recreated a bunch so our engine/store / etc should live outside
 const Keybase = () => {
-  ensureStore()
-
-  // if (!_store) return null // never happens
-  // <Provider store={_store.store}>
-  // </Provider>
-
+  init()
   // reanimated still isn't compatible yet with strict mode
   // <React.StrictMode>
   // </React.StrictMode>

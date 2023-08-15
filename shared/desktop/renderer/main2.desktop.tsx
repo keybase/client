@@ -7,10 +7,8 @@ import * as ReactDOM from 'react-dom/client'
 import type * as RemoteGen from '../../actions/remote-gen'
 import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container.desktop'
-// import makeStore from '../../store/configure-store'
 import {makeEngine} from '../../engine'
 import {disableDragDrop} from '../../util/drag-drop.desktop'
-// import flags from '../../util/feature-flags'
 import {dumpLogs} from '../../constants/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
 import {isWindows} from '../../constants/platform'
@@ -42,24 +40,6 @@ if (isDarkFromNode) {
 if (module.hot) {
   module.hot.accept()
 }
-
-// let _store: any
-
-// const setupStore = () => {
-//   let store = _store
-//   if (!_store) {
-//     const configured = makeStore()
-//     store = configured.store
-
-//     _store = store
-//     if (__DEV__ && flags.admin) {
-//       // @ts-ignore codemode issue
-//       window.DEBUGStore = _store
-//     }
-//   }
-
-//   return {store}
-// }
 
 const setupApp = () => {
   disableDragDrop()
@@ -177,8 +157,6 @@ const load = () => {
   }
   global.DEBUGLoaded = true
   initDesktopStyles()
-  // const temp = setupStore()
-  // store = temp.store
   setupApp()
   setupHMR()
 

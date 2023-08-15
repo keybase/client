@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-// import {Provider} from 'react-redux'
 import {GlobalKeyEventHandler} from '../../util/key-event-handler.desktop'
 import {CanFixOverdrawContext, DarkModeContext} from '../../styles'
 import * as Container from '../../util/container'
