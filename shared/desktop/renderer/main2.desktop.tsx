@@ -90,8 +90,6 @@ const FontLoader = () => (
   </div>
 )
 
-// let store: any
-
 const DarkCSSInjector = () => {
   const isDark = C.useDarkModeState(s => s.isDarkMode())
   const [lastIsDark, setLastIsDark] = React.useState<boolean | undefined>()
