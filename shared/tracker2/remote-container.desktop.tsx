@@ -3,7 +3,6 @@ import * as C from '../constants'
 import * as R from '../constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Constants from '../constants/tracker2'
-import * as Container from '../util/container'
 import type * as Types from '../constants/types/tracker2'
 import Tracker from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
@@ -23,7 +22,7 @@ const noDetails: Types.Details = {
 }
 
 const RemoteContainer = () => {
-  const state = Container.useRemoteStore<DeserializeProps>()
+  const state = R.useRemoteStore<DeserializeProps>()
   const {avatarRefreshCounter, darkMode, trackerUsername, tracker2, followers, following, username} = state
   const {httpSrvToken, httpSrvAddress, infoMap, blockMap} = state
   const {usernameToDetails} = tracker2

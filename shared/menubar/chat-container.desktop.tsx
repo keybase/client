@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as R from '../constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import type * as Types from '../constants/types/chat2'
@@ -14,7 +13,7 @@ type RowProps = {
 
 const RemoteSmallTeam = (props: RowProps) => {
   const {conversationIDKey} = props
-  const state = Container.useRemoteStore<DeserializeProps>()
+  const state = R.useRemoteStore<DeserializeProps>()
   const {conversationsToSend} = state
   const conversation = conversationsToSend.find(c => c.conversationIDKey === conversationIDKey)
   const onSelectConversation = () => {
@@ -35,7 +34,7 @@ const RemoteSmallTeam = (props: RowProps) => {
 }
 
 const ChatPreview = (p: {convLimit?: number}) => {
-  const state = Container.useRemoteStore<DeserializeProps>()
+  const state = R.useRemoteStore<DeserializeProps>()
   const {convLimit} = p
   const {conversationsToSend} = state
 

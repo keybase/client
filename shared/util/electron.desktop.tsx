@@ -2,7 +2,7 @@
 // instead of having a lot of async logic getting some static values we instead wait to load these values on start before we
 // start drawing. If you need access to these values you need to call `waitOnKB2Loaded`
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
-import type {TypedActions} from '../actions/typed-actions-gen'
+import type {Actions} from '../actions/remote-gen'
 import type * as RPCTypes from '../constants/types/rpc-gen'
 
 export type OpenDialogOptions = {
@@ -76,7 +76,7 @@ export type KB2 = {
     hideWindow?: () => void
     getPathType?: (path: string) => Promise<'file' | 'directory'>
     // defined for both always
-    mainWindowDispatch: (action: TypedActions, nodeTypeOverride?: string) => void
+    mainWindowDispatch: (action: Actions, nodeTypeOverride?: string) => void
     darwinCopyToChatTempUploadFile?: (dst: string, originalFilePath: string) => Promise<void>
     darwinCopyToKBFSTempUploadFile?: (dir: string, originalFilePath: string) => Promise<string>
     minimizeWindow?: () => void

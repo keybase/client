@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as R from '../constants/remote'
-import * as Container from '../util/container'
 import * as FsTypes from '../constants/types/fs'
 import * as RemoteGen from '../actions/remote-gen'
 import * as FsUtil from '../util/kbfs'
@@ -9,7 +8,7 @@ import {FilesPreview} from './files.desktop'
 import type {DeserializeProps} from '../menubar/remote-serializer.desktop'
 
 const FilesContainer = () => {
-  const state = Container.useRemoteStore<DeserializeProps>()
+  const state = R.useRemoteStore<DeserializeProps>()
   const {remoteTlfUpdates} = state
   const username = C.useCurrentUserState(s => s.username)
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)

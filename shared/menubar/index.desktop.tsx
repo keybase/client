@@ -178,14 +178,10 @@ const useMenuItems = (
 
 const IconBar = (p: Props & {showBadges?: boolean}) => {
   const {navBadges, showBadges} = p
-  const dispatch = Container.useDispatch()
-  const openApp = React.useCallback(
-    (tab?: Tabs.AppTab) => {
-      dispatch(RemoteGen.createShowMain())
-      tab && dispatch(RemoteGen.createSwitchTab({tab}))
-    },
-    [dispatch]
-  )
+  const openApp = React.useCallback((tab?: Tabs.AppTab) => {
+    R.remoteDispatch(RemoteGen.createShowMain())
+    tab && R.remoteDispatch(RemoteGen.createSwitchTab({tab}))
+  }, [])
 
   const menuItems = useMenuItems({...p, openApp})
 
@@ -248,9 +244,8 @@ const LoggedIn = (p: Props) => {
   const {endEstimate, files, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
   const {outOfDate, windowShownCount} = p
 
-  const dispatch = Container.useDispatch()
   const refreshUserFileEdits = Container.useThrottledCallback(() => {
-    dispatch(RemoteGen.createUserFileEditsLoad())
+    R.remoteDispatch(RemoteGen.createUserFileEditsLoad())
   }, 5000)
 
   React.useEffect(() => {
@@ -295,10 +290,9 @@ const LoggedOut = (p: {daemonHandshakeState: ConfigTypes.DaemonHandshakeState; l
     ? 'Connecting interface to crypto engine... This may take a few seconds.'
     : 'Starting up Keybase...'
 
-  const dispatch = Container.useDispatch()
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const logIn = () => {
-    dispatch(RemoteGen.createShowMain())
+    R.remoteDispatch(RemoteGen.createShowMain())
     navigateAppend(Tabs.loginTab)
   }
   return (

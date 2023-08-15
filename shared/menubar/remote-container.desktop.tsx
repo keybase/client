@@ -1,11 +1,11 @@
 import * as C from '../constants'
-import * as Container from '../util/container'
+import * as R from '../constants/remote'
 import Menubar from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import {useAvatarState} from '../common-adapters/avatar-zus'
 
 const RemoteContainer = () => {
-  const d = Container.useRemoteStore<DeserializeProps>()
+  const d = R.useRemoteStore<DeserializeProps>()
   const {avatarRefreshCounter, badgeMap, daemonHandshakeState, darkMode, diskSpaceStatus, endEstimate} = d
   const {fileName, files, followers, following, httpSrvAddress, httpSrvToken, infoMap} = d
   const {kbfsDaemonStatus, kbfsEnabled, loggedIn, metaMap, navBadges, outOfDate} = d
