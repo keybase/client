@@ -32,9 +32,6 @@ export default (ownProps: OwnProps) => {
   const resolved = !!mentionInfo
 
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
-  const _onChat = (conversationIDKey: Types.ConversationIDKey) => {
-    previewConversation({conversationIDKey, reason: 'teamMention'})
-  }
   const showTeamByName = C.useTeamsState(s => s.dispatch.showTeamByName)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const _onViewTeam = (teamname: string) => {
@@ -53,7 +50,11 @@ export default (ownProps: OwnProps) => {
     isOpen: isOpen,
     name: name,
     numMembers: numMembers,
-    onChat: convID ? () => _onChat(convID) : undefined,
+    onChat: convID
+      ? () => {
+          previewConversation({conversationIDKey: convID, reason: 'teamMention'})
+        }
+      : undefined,
     onJoinTeam: onJoinTeam,
     onViewTeam: () => _onViewTeam(name),
     publicAdmins: publicAdmins,

@@ -24,7 +24,6 @@ type Props = {
 }
 
 const useHintText = (p: {
-  conversationIDKey: Types.ConversationIDKey
   isExploding: boolean
   isEditing: boolean
   cannotWrite: boolean
@@ -208,7 +207,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   }
 
   const isExploding = explodingModeSeconds !== 0
-  const hintText = useHintText({cannotWrite, conversationIDKey, isEditing, isExploding, minWriterRole})
+  const hintText = useHintText({cannotWrite, isEditing, isExploding, minWriterRole})
 
   // if cid or unsent changes we inject
   const injectRef = React.useRef<string>('')

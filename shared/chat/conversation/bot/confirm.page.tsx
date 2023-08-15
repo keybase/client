@@ -6,11 +6,9 @@ const Confirm = React.lazy(async () => import('./confirm'))
 type OwnProps = Container.ViewPropsToPageProps<typeof Confirm>
 
 const Screen = (p: OwnProps) => (
-  <React.Suspense>
-    <C.ChatProvider id={p.route.params.conversationIDKey ?? C.noConversationIDKey}>
-      <Confirm {...p.route.params} />
-    </C.ChatProvider>
-  </React.Suspense>
+  <C.ProviderScreen rp={p}>
+    <Confirm {...p.route.params} />
+  </C.ProviderScreen>
 )
 
 export default {getScreen: () => Screen}

@@ -5,7 +5,6 @@ import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import type * as Types from '../../../../constants/types/chat2'
 import {
   emojiSearch,
   emojiDataToRenderableEmoji,
@@ -47,7 +46,8 @@ const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 const empty = new Array<EmojiData>()
 
-export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
+export const useDataSource = (filter: string) => {
+  const conversationIDKey = C.useChatContext(s => s.id)
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
   const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)
   if (lastCID !== conversationIDKey) {
@@ -85,7 +85,6 @@ type ListProps = Pick<
   Common.ListProps<EmojiData>,
   'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
-  conversationIDKey: Types.ConversationIDKey
   filter: string
   onSelected: (item: EmojiData, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
@@ -93,7 +92,7 @@ type ListProps = Pick<
 }
 export const List = (p: ListProps) => {
   const {filter, ...rest} = p
-  const {items, loading} = useDataSource(p.conversationIDKey, filter)
+  const {items, loading} = useDataSource(filter)
   return (
     <Common.List
       {...rest}

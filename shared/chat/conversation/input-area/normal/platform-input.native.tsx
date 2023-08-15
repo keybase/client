@@ -10,7 +10,6 @@ import MoreMenuPopup from './moremenu-popup'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import Typing from './typing'
 import type * as ImagePicker from 'expo-image-picker'
-import type * as Types from '../../../../constants/types/chat2'
 import type {LayoutEvent} from '../../../../common-adapters/box'
 import type {Props} from './platform-input'
 import {Keyboard} from 'react-native'
@@ -202,10 +201,10 @@ type ChatFilePickerProps = {
   attachTo: () => React.Component | null
   showingPopup: boolean
   toggleShowingPopup: () => void
-  conversationIDKey: Types.ConversationIDKey
 }
 const ChatFilePicker = (p: ChatFilePickerProps) => {
-  const {attachTo, showingPopup, toggleShowingPopup, conversationIDKey} = p
+  const {attachTo, showingPopup, toggleShowingPopup} = p
+  const conversationIDKey = C.useChatContext(s => s.id)
   const filePickerError = C.useConfigState(s => s.dispatch.filePickerError)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const launchNativeImagePicker = React.useCallback(
@@ -215,8 +214,10 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
           return
         }
         const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
-        const props = {conversationIDKey, pathAndOutboxIDs}
-        navigateAppend({props, selected: 'chatAttachmentGetTitles'})
+        navigateAppend({
+          props: {conversationIDKey, pathAndOutboxIDs},
+          selected: 'chatAttachmentGetTitles',
+        })
       }
 
       switch (location) {
@@ -344,35 +345,19 @@ const PlatformInput = (p: Props) => {
     }
   }, [onQueueSubmit, insertText])
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      switch (whichMenu.current) {
-        case 'filepickerpopup':
-          return (
-            <ChatFilePicker
-              attachTo={attachTo}
-              showingPopup={true}
-              toggleShowingPopup={toggleShowingPopup}
-              conversationIDKey={conversationIDKey}
-            />
-          )
-        case 'moremenu':
-          return (
-            <MoreMenuPopup
-              conversationIDKey={conversationIDKey}
-              onHidden={toggleShowingPopup}
-              visible={true}
-            />
-          )
-        default:
-          return (
-            <SetExplodingMessagePicker attachTo={attachTo} onHidden={toggleShowingPopup} visible={true} />
-          )
-      }
-    },
-    [conversationIDKey]
-  )
+  const makePopup = React.useCallback((p: Kb.Popup2Parms) => {
+    const {attachTo, toggleShowingPopup} = p
+    switch (whichMenu.current) {
+      case 'filepickerpopup':
+        return (
+          <ChatFilePicker attachTo={attachTo} showingPopup={true} toggleShowingPopup={toggleShowingPopup} />
+        )
+      case 'moremenu':
+        return <MoreMenuPopup onHidden={toggleShowingPopup} visible={true} />
+      default:
+        return <SetExplodingMessagePicker attachTo={attachTo} onHidden={toggleShowingPopup} visible={true} />
+    }
+  }, [])
 
   const {popup: menu, toggleShowingPopup} = Kb.usePopup2(makePopup)
 

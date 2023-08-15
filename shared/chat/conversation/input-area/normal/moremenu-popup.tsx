@@ -1,15 +1,14 @@
 import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
-import type * as Types from '../../../../constants/types/chat2'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   onHidden: () => void
   visible: boolean
 }
 
 const MoreMenuPopup = (props: Props) => {
-  const {conversationIDKey, onHidden, visible} = props
+  const {onHidden, visible} = props
+  const conversationIDKey = C.useChatContext(s => s.id)
   const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onLocationShare = () => {

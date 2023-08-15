@@ -73,3 +73,18 @@ export function useRemoteStore<S>(): S {
   // TODO this will warn you not to do this, could just pass in a selector later
   return useSelector(s => s, shallowEqual) as any
 }
+
+type RouteParams = {
+  route: {params: {conversationIDKey?: string}}
+}
+import * as React from 'react'
+import {_Provider, noConversationIDKey} from './chat2'
+export const ProviderScreen = (p: {children: React.ReactNode; rp: RouteParams; canBeNull?: boolean}) => {
+  return (
+    <React.Suspense>
+      <_Provider id={p.rp.route.params.conversationIDKey ?? noConversationIDKey} canBeNull={p.canBeNull}>
+        {p.children}
+      </_Provider>
+    </React.Suspense>
+  )
+}

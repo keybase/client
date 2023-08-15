@@ -2,9 +2,10 @@ import * as C from '../../constants'
 import type * as Types from '../../constants/types/chat2'
 import DeleteHistoryWarning from '.'
 
-type OwnProps = {conversationIDKey: Types.ConversationIDKey}
+type OwnProps = {
+  conversationIDKey: Types.ConversationIDKey // for page
+}
 
-// props needed by page for injection
 export default (_ownProps: OwnProps) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {

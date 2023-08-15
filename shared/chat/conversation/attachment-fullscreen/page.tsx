@@ -12,11 +12,9 @@ const getOptions = () => ({
 })
 
 const Screen = (p: OwnProps) => (
-  <React.Suspense>
-    <C.ChatProvider id={p.route.params.conversationIDKey}>
-      <Full {...p.route.params} />
-    </C.ChatProvider>
-  </React.Suspense>
+  <C.ProviderScreen rp={p}>
+    <Full {...p.route.params} />
+  </C.ProviderScreen>
 )
 
 export default {getOptions, getScreen: () => Screen}
