@@ -8,9 +8,9 @@ import type {NavigationContainerRef} from '@react-navigation/core'
 import type {createListenerMiddleware} from '@reduxjs/toolkit'
 import {useNavigation} from '@react-navigation/core'
 import {type RouteKeys} from '../router-v2/route-params'
+import type {Actions as RemoteGenActions} from '../actions/remote-gen'
 export type ListenerMiddleware = ReturnType<typeof createListenerMiddleware>
 export {getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params'
-export {listenAction, type ListenerApi, spawn, type ListenActionReturn} from './redux-toolkit'
 export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 export {useAnyWaiting, useAnyErrors, useDispatchClearWaiting} from '../constants/waiting'
 export {networkErrorCodes, isNetworkErr} from '../util/errors'
@@ -168,7 +168,8 @@ export type Draft<T> = _Draft<T>
 export {default as HiddenString} from './hidden-string'
 export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
-export const useDispatch = () => RRuseDispatch<RRDispatch<_TypedActions>>()
+// this is only used to dispatch remote actions now
+export const useDispatch = () => RRuseDispatch<RRDispatch<RemoteGenActions>>()
 
 type Fn<ARGS extends any[], R> = (...args: ARGS) => R
 

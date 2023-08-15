@@ -2,7 +2,6 @@
 import type {MethodKey, ResponseType} from './types'
 import type {invokeType} from './index.platform'
 import type {RPCError} from '../util/errors'
-import type {TypedActions} from '../util/container'
 
 type SimpleWaiting = (waiting: boolean, err?: RPCError) => void
 
@@ -31,7 +30,7 @@ class Request {
 
 class IncomingRequest extends Request {
   // Callback in the incomingCallMap
-  _handler: (param: Object | undefined, request: ResponseType) => Array<TypedActions> | TypedActions
+  _handler: (param: Object | undefined, request: ResponseType) => void
   _response: ResponseType | undefined
 
   constructor(
@@ -39,7 +38,7 @@ class IncomingRequest extends Request {
     param: Object,
     response: ResponseType | undefined,
     waitingHandler: SimpleWaiting,
-    handler: (param: Object | undefined, request: ResponseType) => Array<TypedActions> | TypedActions
+    handler: (param: Object | undefined, request: ResponseType) => void
   ) {
     super(method, param, waitingHandler)
 

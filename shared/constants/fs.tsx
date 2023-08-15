@@ -7,7 +7,6 @@ import * as Types from './types/fs'
 import * as Z from '../util/zustand'
 import {requestPermissionsToWrite} from '../constants/platform-specific'
 import NotifyPopup from '../util/notify-popup'
-import type {TypedActions} from '../actions/typed-actions-gen'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
 import {isLinux, isMobile} from './platform'
@@ -896,8 +895,6 @@ export const makeActionForOpenPathInFilesTab = (
 ) => {
   C.useRouterState.getState().dispatch.navigateAppend({props: {path}, selected: 'fsRoot'})
 }
-
-export const putActionIfOnPathForNav1 = (action: TypedActions) => action
 
 export const getMainBannerType = (
   kbfsDaemonStatus: Types.KbfsDaemonStatus,

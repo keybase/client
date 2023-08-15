@@ -28,36 +28,6 @@ export async function saveAttachmentToCameraRoll() {
   return Promise.reject(new Error('Save Attachment to camera roll - unsupported on this platform'))
 }
 
-const handleWindowFocusEvents = () => {
-  const handle = (appFocused: boolean) => {
-    if (skipAppFocusActions) {
-      console.log('Skipping app focus actions!')
-    } else {
-      C.useConfigState.getState().dispatch.changedFocus(appFocused)
-    }
-  }
-  window.addEventListener('focus', () => handle(true))
-  window.addEventListener('blur', () => handle(false))
-}
-
-const initializeInputMonitor = () => {
-  const inputMonitor = new InputMonitor()
-  inputMonitor.notifyActive = (userActive: boolean) => {
-    if (skipAppFocusActions) {
-      console.log('Skipping app focus actions!')
-    } else {
-      C.useActiveState.getState().dispatch.setActive(userActive)
-      // let node thread save file
-      activeChanged?.(Date.now(), userActive)
-    }
-  }
-}
-
-const onExit = () => {
-  console.log('App exit requested')
-  exitApp?.(0)
-}
-
 export const requestLocationPermission = async () => Promise.resolve()
 export const watchPositionForMap = async () => Promise.resolve(() => {})
 
@@ -122,7 +92,8 @@ export const initPlatformListener = () => {
           break
         }
         case EngineGen.keybase1NotifyAppExit:
-          onExit()
+          console.log('App exit requested')
+          exitApp?.(0)
           break
         case EngineGen.keybase1NotifyFSFSActivity:
           kbfsNotification(action.payload.params.notification, NotifyPopup)
@@ -206,7 +177,18 @@ export const initPlatformListener = () => {
     Z.ignorePromise(f())
   })
 
-  Container.spawn(handleWindowFocusEvents, 'handleWindowFocusEvents')
+  const handleWindowFocusEvents = () => {
+    const handle = (appFocused: boolean) => {
+      if (skipAppFocusActions) {
+        console.log('Skipping app focus actions!')
+      } else {
+        C.useConfigState.getState().dispatch.changedFocus(appFocused)
+      }
+    }
+    window.addEventListener('focus', () => handle(true))
+    window.addEventListener('blur', () => handle(false))
+  }
+  handleWindowFocusEvents()
 
   const setupReachabilityWatcher = () => {
     window.addEventListener('online', () =>
@@ -267,6 +249,18 @@ export const initPlatformListener = () => {
     }
   })
 
+  const initializeInputMonitor = () => {
+    const inputMonitor = new InputMonitor()
+    inputMonitor.notifyActive = (userActive: boolean) => {
+      if (skipAppFocusActions) {
+        console.log('Skipping app focus actions!')
+      } else {
+        C.useActiveState.getState().dispatch.setActive(userActive)
+        // let node thread save file
+        activeChanged?.(Date.now(), userActive)
+      }
+    }
+  }
   initializeInputMonitor()
 
   C.useDaemonState.setState(s => {

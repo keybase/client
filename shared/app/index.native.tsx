@@ -105,7 +105,7 @@ const ensureStore = () => {
       C.useEngineState.getState().dispatch.onEngineDisconnected()
     }
   })
-  _store.initListeners()
+  C.initListeners()
   eng.listenersAreReady()
 
   // On mobile there is no installer
