@@ -12,7 +12,6 @@ import {OrdinalContext} from './ids-context'
 
 export type Props = {
   attachmentRef?: () => React.Component<any> | null
-  conversationIDKey: Types.ConversationIDKey
   onAddReaction: () => void
   onHidden: () => void
   onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void
@@ -97,7 +96,6 @@ const ReactionTooltip = (p: OwnProps) => {
   }
   const props = {
     attachmentRef,
-    conversationIDKey,
     onAddReaction,
     onHidden,
     onMouseLeave,
@@ -112,12 +110,12 @@ const ReactionTooltip = (p: OwnProps) => {
 
 const ReactionTooltipImpl = (props: Props) => {
   const insets = Kb.useSafeAreaInsets()
+  const conversationIDKey = C.useChatContext(s => s.id)
   if (!props.visible) {
     return null
   }
 
   const sections = props.reactions.map(r => ({
-    conversationIDKey: props.conversationIDKey,
     data: r.users.map(u => ({...u, key: `${u.username}:${r.emoji}`})),
     key: r.emoji,
     ordinal: props.ordinal,
@@ -133,7 +131,7 @@ const ReactionTooltipImpl = (props: Props) => {
       style={styles.overlay}
     >
       {/* need context since this uses a portal... */}
-      <C.ChatProvider id={props.conversationIDKey}>
+      <C.ChatProvider id={conversationIDKey}>
         <OrdinalContext.Provider value={props.ordinal}>
           <Kb.Box2
             onMouseLeave={props.onMouseLeave}
@@ -206,7 +204,6 @@ const renderSectionHeader = ({
   section,
 }: {
   section: {
-    conversationIDKey: Types.ConversationIDKey
     data: Array<any>
     ordinal: Types.Ordinal
     title: string

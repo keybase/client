@@ -12,7 +12,6 @@ import {maxWidth} from '../../../attachment/shared'
 
 const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const {idx} = p
-  const conversationIDKey = C.useChatContext(s => s.id)
   const ordinal = React.useContext(OrdinalContext)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
@@ -55,7 +54,6 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
     navigateAppend({
       props: {
         author,
-        conversationIDKey,
         coord,
         isAuthor: youAreAuthor,
         isLiveLocation: !!liveLocationEndTime && !isLiveLocationDone,

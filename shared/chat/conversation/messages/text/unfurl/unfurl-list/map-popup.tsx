@@ -6,7 +6,6 @@ import openURL from '../../../../../../util/open-url'
 import LocationMap from '../../../../../location-map'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   coord: Types.Coordinate
   isAuthor: boolean
   author?: string

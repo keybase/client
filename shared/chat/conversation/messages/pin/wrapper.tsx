@@ -13,7 +13,7 @@ const Pin = React.memo(function Pin(p: Props) {
   const Pin = require('.').default as typeof PinType
   return (
     <WrapperMessage {...p} {...common}>
-      <Pin conversationIDKey={message.conversationIDKey} messageID={message.pinnedMessageID} />
+      <Pin messageID={message.pinnedMessageID} />
     </WrapperMessage>
   )
 })

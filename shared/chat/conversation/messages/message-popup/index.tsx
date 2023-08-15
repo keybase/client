@@ -112,6 +112,7 @@ export default MessagePopup
 
 // Mobile only
 type ModalProps = {
+  // needed for page
   conversationIDKey: Types.ConversationIDKey
   ordinal: Types.Ordinal
 }

@@ -17,7 +17,6 @@ export type Props = {
   teamType?: ChatTypes.TeamType
   ignored: boolean
   isMuted: boolean
-  conversationIDKey?: ChatTypes.ConversationIDKey
   floatingMenuContainerStyle?: Styles.StylesCrossPlatform
   hasHeader: boolean
   isInChannel: boolean
@@ -46,7 +45,6 @@ export type Props = {
 type AdhocHeaderProps = {
   fullname: string
   isMuted: boolean
-  conversationIDKey: ChatTypes.ConversationIDKey
 }
 
 const AdhocHeader = (props: AdhocHeaderProps) => {
@@ -119,7 +117,7 @@ const TeamHeader = (props: TeamHeaderProps) => {
 }
 
 const InfoPanelMenu = (p: Props) => {
-  const {conversationIDKey, teamType, ignored, onUnhideConv, onHideConv, isInChannel} = p
+  const {teamType, ignored, onUnhideConv, onHideConv, isInChannel} = p
   const {channelname, hasHeader, isSmallTeam, onManageChannels, onAddPeople, manageChannelsSubtitle} = p
   const {manageChannelsTitle, badgeSubscribe, teamname, isMuted, onMuteConv, onBlockConv, onJoinChannel} = p
   const {visible, fullname, onViewTeam, onHidden, attachTo, floatingMenuContainerStyle, teamID} = p
@@ -186,6 +184,7 @@ const InfoPanelMenu = (p: Props) => {
     ),
   }
 
+  const conversationIDKey = C.useChatContext(s => s.id)
   const hideItem = (() => {
     if (!conversationIDKey) {
       return null
@@ -316,7 +315,7 @@ const InfoPanelMenu = (p: Props) => {
 
   const header = hasHeader ? (
     isAdhoc && conversationIDKey ? (
-      <AdhocHeader isMuted={!!isMuted} fullname={fullname ?? ''} conversationIDKey={conversationIDKey} />
+      <AdhocHeader isMuted={!!isMuted} fullname={fullname ?? ''} />
     ) : teamname && teamID ? (
       <TeamHeader isMuted={!!isMuted} teamname={teamname} teamID={teamID} onViewTeam={onViewTeam} />
     ) : null
