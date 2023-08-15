@@ -5,20 +5,17 @@ import type * as Types from '../../../constants/types/chat2'
 import {InfoPanel, type Panel} from '.'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: Types.ConversationIDKey // for page
   navigation?: any
 } & Partial<{
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: Types.ConversationIDKey // for page
   tab?: 'settings' | 'members' | 'attachments' | 'bots'
 }>
 
 const InfoPanelConnector = (props: Props) => {
   const storeSelectedTab = C.useChatState(s => s.infoPanelSelectedTab)
   const initialTab = props.tab ?? storeSelectedTab
-
-  const conversationIDKey: Types.ConversationIDKey =
-    props.conversationIDKey ?? props.conversationIDKey ?? C.noConversationIDKey
-
+  const conversationIDKey = C.useChatContext(s => s.id)
   const meta = C.useConvoState(conversationIDKey, s => s.meta)
   const shouldNavigateOut = meta.conversationIDKey === C.noConversationIDKey
   const yourRole = C.useTeamsState(s => TeamConstants.getRole(s, meta.teamID))
@@ -51,7 +48,6 @@ const InfoPanelConnector = (props: Props) => {
       onSelectTab={onSelectTab}
       channelname={channelname}
       isPreview={isPreview}
-      selectedConversationIDKey={conversationIDKey}
       selectedTab={selectedTab ?? 'members'}
       smallTeam={smallTeam}
       teamname={teamname}

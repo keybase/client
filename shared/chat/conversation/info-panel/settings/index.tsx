@@ -9,13 +9,12 @@ import * as TeamConstants from '../../../../constants/teams'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
 import RetentionPicker from '../../../../teams/team/settings-tab/retention/container'
-import type * as Types from '../../../../constants/types/chat2'
 
 type EntityType = 'adhoc' | 'small team' | 'channel'
-type SettingsPanelProps = {conversationIDKey: Types.ConversationIDKey; isPreview: boolean}
+type SettingsPanelProps = {isPreview: boolean}
 
 const SettingsPanel = (props: SettingsPanelProps) => {
-  const {conversationIDKey, isPreview} = props
+  const {isPreview} = props
   const username = C.useCurrentUserState(s => s.username)
   const meta = C.useChatContext(s => s.meta)
   const {status, teamname, teamType, channelname, teamID} = meta
@@ -43,6 +42,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     u => u !== username && !Constants.isAssertion(u)
   )
 
+  const conversationIDKey = C.useChatContext(s => s.id)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowClearConversationDialog = () => {
     navigateAppend({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'})
@@ -186,7 +186,6 @@ const styles = Styles.styleSheetCreate(
 )
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   isPreview: boolean
   renderTabs: () => React.ReactNode
   commonSections: Array<unknown>
@@ -203,9 +202,7 @@ const SettingsTab = (p: Props) => {
         {
           data: [{key: 'tab'}],
           key: 'settings-panel',
-          renderItem: () => (
-            <SettingsPanel conversationIDKey={p.conversationIDKey} isPreview={p.isPreview} key="settings" />
-          ),
+          renderItem: () => <SettingsPanel isPreview={p.isPreview} key="settings" />,
           renderSectionHeader: p.renderTabs,
         },
       ]}

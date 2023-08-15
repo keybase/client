@@ -14,7 +14,7 @@ import {memoize} from '../../../../util/memoize'
 import {ModalTitle, useChannelParticipants} from '../../../../teams/common'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: Types.ConversationIDKey // for page
   teamID: TeamTypes.TeamID
 }
 
@@ -25,8 +25,9 @@ const sortMembers = memoize((members: TeamTypes.TeamDetails['members']) =>
 )
 
 const AddToChannel = (props: Props) => {
-  const {conversationIDKey, teamID} = props
+  const {teamID} = props
   const nav = Container.useSafeNavigation()
+  const conversationIDKey = C.useChatContext(s => s.id)
 
   const [toAdd, setToAdd] = React.useState<Set<string>>(new Set())
   const [filter, setFilter] = React.useState('')

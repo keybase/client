@@ -1,17 +1,14 @@
 import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import type * as Types from '../../../constants/types/chat2'
 import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader} from './index.native'
 import {DebugChatDumpContext} from '../../../constants/chat2/debug'
 import {HeaderLeftArrow} from '../../../common-adapters/header-hoc'
 import {Keyboard} from 'react-native'
 import {getRouteParamsFromRoute} from '../../../router-v2/route-params'
 
-type OwnProps = {conversationIDKey: Types.ConversationIDKey}
-
-export const HeaderAreaRight = (props: OwnProps) => {
-  const {conversationIDKey} = props
+export const HeaderAreaRight = () => {
+  const conversationIDKey = C.useChatContext(s => s.id)
   const pendingWaiting =
     conversationIDKey === C.pendingWaitingConversationIDKey ||
     conversationIDKey === C.pendingErrorConversationIDKey
@@ -86,10 +83,11 @@ const HeaderBranchContainer = React.memo(function HeaderBranchContainer() {
 })
 export default HeaderBranchContainer
 
-const BadgeHeaderLeftArray = ({conversationIDKey, ...rest}: any) => {
+const BadgeHeaderLeftArray = ({...rest}: any) => {
   const visiblePath = C.getVisiblePath()
   const onTopOfInbox = visiblePath?.[(visiblePath.length ?? 0) - 2]?.name === 'chatRoot'
   const badgeCountsChanged = C.useChatState(s => s.badgeCountsChanged)
+  const conversationIDKey = C.useChatContext(s => s.id)
   const badgeNumber = React.useMemo(() => {
     if (!onTopOfInbox) return 0
     const badgeMap = C.useChatState.getState().getBadgeMap(badgeCountsChanged)
@@ -111,13 +109,13 @@ export const headerNavigationOptions = (route: unknown) => {
       const {onLabelLayout, labelStyle, ...rest} = props
       return (
         <C.ChatProvider id={conversationIDKey}>
-          <BadgeHeaderLeftArray {...rest} conversationIDKey={conversationIDKey} />
+          <BadgeHeaderLeftArray {...rest} />
         </C.ChatProvider>
       )
     },
     headerRight: () => (
       <C.ChatProvider id={conversationIDKey}>
-        <HeaderAreaRight conversationIDKey={conversationIDKey} />
+        <HeaderAreaRight />
       </C.ChatProvider>
     ),
     headerTitle: () => (

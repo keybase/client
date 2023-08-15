@@ -11,7 +11,6 @@ import * as Styles from '../../../styles'
 import shallowEqual from 'shallowequal'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   renderTabs: () => React.ReactNode
   commonSections: Array<unknown>
 }
@@ -20,7 +19,7 @@ const auditingBannerItem = 'auditing banner'
 const spinnerItem = 'spinner item'
 
 const MembersTab = (props: Props) => {
-  const {conversationIDKey} = props
+  const conversationIDKey = C.useChatContext(s => s.id)
   const infoMap = C.useUsersState(s => s.infoMap)
   const {channelname, teamID, teamname} = C.useChatContext(s => {
     const {meta} = s

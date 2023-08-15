@@ -4,16 +4,13 @@ import * as TeamConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import InfoPanelMenu from './menu/container'
-import type * as ChatTypes from '../../../constants/types/chat2'
 import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'
 
-type SmallProps = {conversationIDKey: ChatTypes.ConversationIDKey}
-
 const gearIconSize = Styles.isMobile ? 24 : 16
 
-const TeamHeader = (props: SmallProps) => {
-  const {conversationIDKey} = props
+const TeamHeader = () => {
+  const conversationIDKey = C.useChatContext(s => s.id)
   const meta = C.useChatContext(s => s.meta)
   const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
   const participants = C.useChatContext(s => s.participants)
@@ -150,10 +147,8 @@ const TeamHeader = (props: SmallProps) => {
   )
 }
 
-type AdhocHeaderProps = {conversationIDKey: ChatTypes.ConversationIDKey}
-
-export const AdhocHeader = (props: AdhocHeaderProps) => {
-  const {conversationIDKey} = props
+export const AdhocHeader = () => {
+  const conversationIDKey = C.useChatContext(s => s.id)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowNewTeamDialog = () => {
     navigateAppend({

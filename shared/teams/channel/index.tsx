@@ -145,7 +145,7 @@ const Channel = (props: OwnProps) => {
   }
 
   const attachmentSections = useAttachmentSections(
-    {commonSections: [], conversationIDKey, renderTabs: () => null},
+    {commonSections: [], renderTabs: () => null},
     selectedTab === 'attachments', // load data immediately
     true // variable width
   )
@@ -222,12 +222,7 @@ const Channel = (props: OwnProps) => {
     case 'settings':
       sections.push(
         makeSingleRow('settings', () => (
-          <SettingsList
-            conversationIDKey={conversationIDKey}
-            isPreview={isPreview}
-            renderTabs={() => undefined}
-            commonSections={[]}
-          />
+          <SettingsList isPreview={isPreview} renderTabs={() => undefined} commonSections={[]} />
         ))
       )
   }
@@ -244,11 +239,7 @@ const Channel = (props: OwnProps) => {
         contentContainerStyle={styles.listContentContainer}
         style={styles.list}
       />
-      <SelectionPopup
-        selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
-        conversationIDKey={conversationIDKey}
-        teamID={teamID}
-      />
+      <SelectionPopup selectedTab={selectedTab === 'members' ? 'channelMembers' : ''} teamID={teamID} />
     </Kb.Box>
   )
 }
