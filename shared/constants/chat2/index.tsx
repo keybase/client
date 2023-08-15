@@ -413,11 +413,6 @@ export type State = Store & {
     resetState: () => void
     setMaybeMentionInfo: (name: string, info: RPCChatTypes.UIMaybeMentionInfo) => void
     setTrustedInboxHasLoaded: () => void
-    showInfoPanel: (
-      show: boolean,
-      tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined,
-      conversationIDKey: Types.ConversationIDKey
-    ) => void
     setInboxNumSmallRows: (rows: number, ignoreWrite?: boolean) => void
     toggleInboxSearch: (enabled: boolean) => void
     toggleSmallTeamsExpanded: () => void
@@ -427,6 +422,7 @@ export type State = Store & {
     updateLastCoord: (coord: Types.Coordinate) => void
     updateUserReacjis: (userReacjis: RPCTypes.UserReacjis) => void
     updatedGregor: (items: ConfigConstants.Store['gregorPushState']) => void
+    updateInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
   }
   getBadgeMap: (badgeCountsChanged: number) => Map<string, number>
   getUnreadMap: (badgeCountsChanged: number) => Map<string, number>
@@ -1755,26 +1751,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
         s.trustedInboxHasLoaded = true
       })
     },
-    showInfoPanel: (show, tab, conversationIDKey) => {
-      set(s => {
-        s.infoPanelShowing = show
-        s.infoPanelSelectedTab = show ? tab : undefined
-      })
-
-      if (isPhone) {
-        const visibleScreen = Router2.getVisibleScreen()
-        if ((visibleScreen?.name === 'chatInfoPanel') !== show) {
-          if (show) {
-            C.useRouterState
-              .getState()
-              .dispatch.navigateAppend({props: {conversationIDKey, tab}, selected: 'chatInfoPanel'})
-          } else {
-            C.useRouterState.getState().dispatch.navigateUp()
-            conversationIDKey && C.getConvoState(conversationIDKey).dispatch.clearAttachmentView()
-          }
-        }
-      }
-    },
     toggleInboxSearch: enabled => {
       set(s => {
         const {inboxSearch} = s
@@ -1877,6 +1853,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
         } catch (e) {
           logger.info('failed to JSON parse inbox layout: ' + e)
         }
+      })
+    },
+    updateInfoPanel: (show, tab) => {
+      set(s => {
+        s.infoPanelShowing = show
+        s.infoPanelSelectedTab = show ? tab : undefined
       })
     },
     updateLastCoord: coord => {

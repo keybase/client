@@ -19,10 +19,10 @@ const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
   const isAdmin = authorIsAdmin || authorIsOwner
   const isTeam = teamType === 'big' || teamType === 'small'
 
-  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const onManageNotifications = React.useCallback(() => {
-    showInfoPanel(true, 'settings', conversationIDKey)
-  }, [showInfoPanel, conversationIDKey])
+    showInfoPanel(true, 'settings')
+  }, [showInfoPanel])
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onViewBot = React.useCallback(() => {
@@ -36,9 +36,9 @@ const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
     if (teamID) {
       navigateAppend({props: {teamID}, selected: 'team'})
     } else {
-      showInfoPanel(true, 'settings', conversationIDKey)
+      showInfoPanel(true, 'settings')
     }
-  }, [navigateAppend, showInfoPanel, conversationIDKey, teamID])
+  }, [navigateAppend, showInfoPanel, teamID])
 
   const props = {
     addee,

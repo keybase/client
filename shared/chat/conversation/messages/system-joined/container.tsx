@@ -7,7 +7,7 @@ type OwnProps = {message: Types.MessageSystemJoined}
 
 const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
   const {message} = p
-  const {joiners, author, conversationIDKey, leavers, timestamp} = message
+  const {joiners, author, leavers, timestamp} = message
 
   const meta = C.useChatContext(s => s.meta)
   const {channelname, teamType, teamname, teamID} = meta
@@ -19,10 +19,10 @@ const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
   const onManageChannels = React.useCallback(() => {
     manageChatChannels(teamID)
   }, [manageChatChannels, teamID])
-  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const onManageNotifications = React.useCallback(() => {
-    showInfoPanel(true, 'settings', conversationIDKey)
-  }, [showInfoPanel, conversationIDKey])
+    showInfoPanel(true, 'settings')
+  }, [showInfoPanel])
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onAuthorClick = (username: string) => {
     showUserProfile(username)

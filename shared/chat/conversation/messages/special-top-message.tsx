@@ -6,7 +6,6 @@ import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import Separator from './separator'
-import {ConvoIDContext} from './ids-context'
 import HelloBotCard from './cards/hello-bot'
 import MakeTeamCard from './cards/make-team'
 import NewChatCard from './cards/new-chat'
@@ -105,7 +104,6 @@ const ErrorMessage = () => {
 }
 
 const SpecialTopMessage = React.memo(function SpecialTopMessage() {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const username = C.useCurrentUserState(s => s.username)
   const loadMoreType = C.useChatContext(s => (s.moreToLoad ? 'moreToLoad' : 'noMoreToLoad'))
   const ordinals = C.useChatContext(s => s.messageOrdinals)
@@ -152,18 +150,17 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   // could not expose this and just return an enum for the is*convos
   const participantInfoAll = C.useChatContext(s => s.participants.all)
 
-  let pendingState: 'waiting' | 'error' | 'done'
-  switch (conversationIDKey) {
-    case Constants.pendingWaitingConversationIDKey:
-      pendingState = 'waiting'
-      break
-    case Constants.pendingErrorConversationIDKey:
-      pendingState = 'error'
-      break
-    default:
-      pendingState = 'done'
-      break
-  }
+  const pendingState = C.useChatContext(s => {
+    switch (s.id) {
+      case Constants.pendingWaitingConversationIDKey:
+        return 'waiting'
+      case Constants.pendingErrorConversationIDKey:
+        return 'error'
+      default:
+        return 'done'
+    }
+  })
+
   const showTeamOffer =
     hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && participantInfoAll.length > 2
   const hasOlderResetConversation = supersedes !== C.noConversationIDKey
@@ -182,9 +179,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
 
   return (
     <Kb.Box>
-      {loadMoreType === 'noMoreToLoad' && showRetentionNotice && (
-        <RetentionNotice conversationIDKey={conversationIDKey} />
-      )}
+      {loadMoreType === 'noMoreToLoad' && showRetentionNotice && <RetentionNotice />}
       <Kb.Box style={styles.spacer} />
       {hasOlderResetConversation && <ProfileResetNotice />}
       {pendingState === 'waiting' && (
@@ -204,7 +199,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       )}
       {showTeamOffer && (
         <Kb.Box style={styles.more}>
-          <MakeTeamCard conversationIDKey={conversationIDKey} />
+          <MakeTeamCard />
         </Kb.Box>
       )}
       {allowDigging && loadMoreType === 'moreToLoad' && pendingState === 'done' && (

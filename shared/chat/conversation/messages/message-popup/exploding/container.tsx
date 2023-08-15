@@ -72,9 +72,9 @@ export default (ownProps: OwnProps) => {
       selected: 'chatChooseEmoji',
     })
   }
-  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const _onAllMedia = () => {
-    showInfoPanel(true, 'attachments', ownProps.conversationIDKey)
+    showInfoPanel(true, 'attachments')
   }
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const _onCopy = (h: Container.HiddenString) => {

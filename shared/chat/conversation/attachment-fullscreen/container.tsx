@@ -92,13 +92,13 @@ const Connected = (props: OwnProps) => {
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
   return (
     <Fullscreen
       message={message}
       isVideo={Constants.isVideoAttachment(message)}
-      onAllMedia={() => showInfoPanel(true, 'attachments', conversationIDKey)}
+      onAllMedia={() => showInfoPanel(true, 'attachments')}
       onClose={() => navigateUp()}
       onDownloadAttachment={
         message.downloadPath

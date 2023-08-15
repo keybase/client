@@ -1,14 +1,10 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import type * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamConstants from '../../../../constants/teams'
 import RetentionNotice from '.'
 import {makeRetentionNotice} from '../../../../util/teams'
 
-type OwnProps = {conversationIDKey: ChatTypes.ConversationIDKey}
-
-const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer(p: OwnProps) {
-  const {conversationIDKey} = p
+const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer() {
   const meta = C.useChatContext(s => s.meta)
   const {teamType, retentionPolicy, teamRetentionPolicy} = meta
   const canChange = C.useTeamsState(s => {
@@ -17,11 +13,8 @@ const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer(p:
       : true
   })
 
-  const showInfoPanel = C.useChatState(s => s.dispatch.showInfoPanel)
-  const onChange = React.useCallback(
-    () => showInfoPanel(true, 'settings', conversationIDKey),
-    [showInfoPanel, conversationIDKey]
-  )
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
+  const onChange = React.useCallback(() => showInfoPanel(true, 'settings'), [showInfoPanel])
   const explanation = makeRetentionNotice(retentionPolicy, teamRetentionPolicy, teamType) ?? undefined
 
   const props = {

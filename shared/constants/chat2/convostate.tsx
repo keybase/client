@@ -9,6 +9,7 @@ import * as Meta from './meta'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as React from 'react'
+import * as Router2 from '../router2'
 import * as TeamsTypes from '../types/teams'
 import * as TeamsConstants from '../teams'
 import * as Types from '../types/chat2'
@@ -300,6 +301,7 @@ export type ConvoState = ConvoStore & {
     setThreadSearchQuery: (query: string) => void
     setTyping: (t: Set<string>) => void
     setupSubscriptions: () => void
+    showInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
     tabSelected: () => void
     threadSearch: (query: string) => void
     toggleGiphyPrefill: () => void
@@ -771,9 +773,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           // Nav to inbox but don't use findNewConversation since changeSelectedConversation
           // does that with better information. It knows the conversation is hidden even before
           // that state bounces back.
-          const {showInfoPanel, navigateToInbox} = C.useChatState.getState().dispatch
-          navigateToInbox()
-          showInfoPanel(false, undefined, conversationIDKey)
+          C.useChatState.getState().dispatch.navigateToInbox()
+          get().dispatch.showInfoPanel(false, undefined)
         }
 
         await RPCChatTypes.localSetConversationStatusLocalRpcPromise(
@@ -2868,6 +2869,23 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     setupSubscriptions: () => {
       // TODO
+    },
+    showInfoPanel: (show, tab) => {
+      C.useChatState.getState().dispatch.updateInfoPanel(show, tab)
+      const conversationIDKey = get().id
+      if (Platform.isPhone) {
+        const visibleScreen = Router2.getVisibleScreen()
+        if ((visibleScreen?.name === 'chatInfoPanel') !== show) {
+          if (show) {
+            C.useRouterState
+              .getState()
+              .dispatch.navigateAppend({props: {conversationIDKey, tab}, selected: 'chatInfoPanel'})
+          } else {
+            C.useRouterState.getState().dispatch.navigateUp()
+            get().dispatch.clearAttachmentView()
+          }
+        }
+      }
     },
     tabSelected: () => {
       get().dispatch.loadMoreMessages({reason: 'tab selected'})
