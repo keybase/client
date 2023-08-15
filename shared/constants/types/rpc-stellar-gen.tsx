@@ -18,9 +18,6 @@ type WaitingKey = string | Array<string>
 type SimpleError = {code?: number; desc?: string}
 export type IncomingErrorCallback = (err?: SimpleError | null) => void
 
-import type {TypedActions} from '../../actions/typed-actions-gen'
-type IncomingReturn = Promise<Array<TypedActions> | TypedActions | false | undefined | void> | Array<TypedActions> | TypedActions | false | undefined | void
-
 export type MessageTypes = {
   'stellar.1.local.deleteWalletAccountLocal': {
     inParam: {readonly accountID: AccountID; readonly userAcknowledged: String}
@@ -287,18 +284,18 @@ export type ValidateStellarURIResultLocal = {readonly operation: String; readonl
 export type WalletAccountLocal = {readonly accountID: AccountID; readonly isDefault: Boolean; readonly name: String; readonly balanceDescription: String; readonly seqno: String; readonly currencyLocal: CurrencyLocal; readonly accountMode: AccountMode; readonly accountModeEditable: Boolean; readonly deviceReadOnly: Boolean; readonly isFunded: Boolean; readonly canSubmitTx: Boolean; readonly canAddTrustline: Boolean}
 
 export type IncomingCallMapType = {
-  'stellar.1.notify.paymentNotification'?: (params: MessageTypes['stellar.1.notify.paymentNotification']['inParam'] & {sessionID: number}) => IncomingReturn
-  'stellar.1.notify.paymentStatusNotification'?: (params: MessageTypes['stellar.1.notify.paymentStatusNotification']['inParam'] & {sessionID: number}) => IncomingReturn
-  'stellar.1.notify.requestStatusNotification'?: (params: MessageTypes['stellar.1.notify.requestStatusNotification']['inParam'] & {sessionID: number}) => IncomingReturn
-  'stellar.1.notify.accountDetailsUpdate'?: (params: MessageTypes['stellar.1.notify.accountDetailsUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
-  'stellar.1.notify.accountsUpdate'?: (params: MessageTypes['stellar.1.notify.accountsUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
-  'stellar.1.notify.pendingPaymentsUpdate'?: (params: MessageTypes['stellar.1.notify.pendingPaymentsUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
-  'stellar.1.notify.recentPaymentsUpdate'?: (params: MessageTypes['stellar.1.notify.recentPaymentsUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
-  'stellar.1.ui.paymentReviewed'?: (params: MessageTypes['stellar.1.ui.paymentReviewed']['inParam'] & {sessionID: number}) => IncomingReturn
+  'stellar.1.notify.paymentNotification'?: (params: MessageTypes['stellar.1.notify.paymentNotification']['inParam'] & {sessionID: number}) => void
+  'stellar.1.notify.paymentStatusNotification'?: (params: MessageTypes['stellar.1.notify.paymentStatusNotification']['inParam'] & {sessionID: number}) => void
+  'stellar.1.notify.requestStatusNotification'?: (params: MessageTypes['stellar.1.notify.requestStatusNotification']['inParam'] & {sessionID: number}) => void
+  'stellar.1.notify.accountDetailsUpdate'?: (params: MessageTypes['stellar.1.notify.accountDetailsUpdate']['inParam'] & {sessionID: number}) => void
+  'stellar.1.notify.accountsUpdate'?: (params: MessageTypes['stellar.1.notify.accountsUpdate']['inParam'] & {sessionID: number}) => void
+  'stellar.1.notify.pendingPaymentsUpdate'?: (params: MessageTypes['stellar.1.notify.pendingPaymentsUpdate']['inParam'] & {sessionID: number}) => void
+  'stellar.1.notify.recentPaymentsUpdate'?: (params: MessageTypes['stellar.1.notify.recentPaymentsUpdate']['inParam'] & {sessionID: number}) => void
+  'stellar.1.ui.paymentReviewed'?: (params: MessageTypes['stellar.1.ui.paymentReviewed']['inParam'] & {sessionID: number}) => void
 }
 
 export type CustomResponseIncomingCallMap = {
-  'stellar.1.ui.paymentReviewed'?: (params: MessageTypes['stellar.1.ui.paymentReviewed']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['stellar.1.ui.paymentReviewed']['outParam']) => void}) => IncomingReturn
+  'stellar.1.ui.paymentReviewed'?: (params: MessageTypes['stellar.1.ui.paymentReviewed']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['stellar.1.ui.paymentReviewed']['outParam']) => void}) => void
 }
 export const localDeleteWalletAccountLocalRpcPromise = (params: MessageTypes['stellar.1.local.deleteWalletAccountLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.deleteWalletAccountLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.deleteWalletAccountLocal', params, callback: (error: SimpleError, result: MessageTypes['stellar.1.local.deleteWalletAccountLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetWalletAccountSecretKeyLocalRpcPromise = (params: MessageTypes['stellar.1.local.getWalletAccountSecretKeyLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getWalletAccountSecretKeyLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getWalletAccountSecretKeyLocal', params, callback: (error: SimpleError, result: MessageTypes['stellar.1.local.getWalletAccountSecretKeyLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))

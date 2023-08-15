@@ -1,5 +1,4 @@
 import * as React from 'react'
-import type {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
 import type {NavigationContainerRef} from '@react-navigation/core'
 import type {createListenerMiddleware} from '@reduxjs/toolkit'
 import {useNavigation} from '@react-navigation/core'
@@ -146,7 +145,6 @@ export const timeoutPromise = async (timeMs: number) =>
 export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
 export {useSafeSubmit} from './safe-submit'
 export {useSafeNavigation} from './safe-navigation'
-export type TypedActions = _TypedActions
 export {produce} from 'immer'
 export {default as HiddenString} from './hidden-string'
 export {default as useRPC} from './use-rpc'
