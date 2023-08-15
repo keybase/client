@@ -1,8 +1,5 @@
 remove ConversationIDKeyContext
 remove hiddenstring
 remove convid as param
-    use .at() instead of length-1
     move all constant includes to C
     move all types into T
-    make dispatch only emit remotegen
-    remote extra cations

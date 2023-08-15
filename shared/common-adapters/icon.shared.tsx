@@ -135,7 +135,7 @@ export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): 
     // fallback
     const ideal = mult * targetSize
     const size = sizes.find(size => size >= ideal)
-    multsMap[mult] = size || sizes[sizes.length - 1]
+    multsMap[mult] = size || sizes.at(-1)
   })
 
   _getMultsMapCache[sizeKey] = multsMap

@@ -206,11 +206,11 @@ function analyzeMessages(json, project) {
     if (isUIMethod) {
       project.incomingMaps[
         methodName
-      ] = `(params: MessageTypes[${methodName}]['inParam'] & {sessionID: number}) => IncomingReturn`
+      ] = `(params: MessageTypes[${methodName}]['inParam'] & {sessionID: number}) => void`
       if (!message.hasOwnProperty('notify')) {
         project.customResponseIncomingMaps[
           methodName
-        ] = `(params: MessageTypes[${methodName}]['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback, result: (res: MessageTypes[${methodName}]['outParam']) => void}) => IncomingReturn`
+        ] = `(params: MessageTypes[${methodName}]['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback, result: (res: MessageTypes[${methodName}]['outParam']) => void}) => void`
       }
     }
 
@@ -474,14 +474,6 @@ export type Uint64 = number
 ${project.hasEngine ? 'type WaitingKey = string | Array<string>' : ''}
 type SimpleError = {code?: number, desc?: string}
 export type IncomingErrorCallback = (err?: SimpleError | null) => void
-${
-  project.hasEngine
-    ? `
-import type {TypedActions} from '../../actions/typed-actions-gen'
-type IncomingReturn = Promise<Array<TypedActions> | TypedActions | false | undefined | void> | Array<TypedActions> | TypedActions | false | undefined | void
-`
-    : ''
-}
 
 `
   const consts = Object.keys(typeDefs.consts).map(k => typeDefs.consts[k])

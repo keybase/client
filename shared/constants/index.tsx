@@ -62,3 +62,14 @@ export {noConversationIDKey, _getConvoState as getConvoState, _useContext as use
 export {dummyConversationIDKey, pendingWaitingConversationIDKey, pendingErrorConversationIDKey} from './chat2'
 export {_useConfigState as useConfigState, type Store as ConfigStore} from './config'
 export {createOtherAccountWaitingKey} from './config'
+import {_useState as useFSState} from './fs'
+import {_useConfigState as useConfigState} from './config'
+export const initListeners = () => {
+  useFSState.getState().dispatch.setupSubscriptions()
+  useConfigState.getState().dispatch.setupSubscriptions()
+}
+import {useSelector, shallowEqual} from 'react-redux'
+export function useRemoteStore<S>(): S {
+  // TODO this will warn you not to do this, could just pass in a selector later
+  return useSelector(s => s, shallowEqual) as any
+}

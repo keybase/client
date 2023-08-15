@@ -107,8 +107,8 @@ export const transitionColor = () => ({
 export const backgroundURL = (...to: Array<string>) => {
   const goodPath = [...to]
 
-  if (goodPath && goodPath.length) {
-    const last = goodPath[goodPath.length - 1] ?? ''
+  if (goodPath.length) {
+    const last = goodPath.at(-1) ?? ''
     const ext = Path.extname(last)
     goodPath[goodPath.length - 1] = Path.basename(last, ext) ?? ''
     const guiModePath = `${isDarkMode() ? 'dark-' : ''}${goodPath}`

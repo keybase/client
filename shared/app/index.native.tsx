@@ -1,12 +1,9 @@
 import * as C from '../constants'
 import * as Styles from '../styles'
 import * as React from 'react'
-import {chatDebugEnabled} from '../constants/chat2/debug'
 import Main from './main.native'
-import makeStore from '../store/configure-store'
 import {AppRegistry, AppState, Appearance, Linking, Keyboard} from 'react-native'
 import {PortalProvider} from '../common-adapters/portal.native'
-import {Provider, useDispatch} from 'react-redux'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
@@ -14,16 +11,12 @@ import {enableFreeze} from 'react-native-screens'
 import {setKeyboardUp} from '../styles/keyboard-state'
 enableFreeze(true)
 
-type ConfigureStore = ReturnType<typeof makeStore>
-let _store: ConfigureStore | undefined
-
 module.hot?.accept(() => {
   console.log('accepted update in shared/index.native')
 })
 
 const ReduxHelper = (p: {children: React.ReactNode}) => {
   const {children} = p
-  const dispatch = useDispatch()
   const appStateRef = React.useRef('active')
   const {setSystemDarkMode} = C.useDarkModeState.getState().dispatch
   const handleAppLink = C.useDeepLinksState(s => s.dispatch.handleAppLink)
@@ -70,7 +63,7 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
       kbSubWH.remove()
       kbSubDH.remove()
     }
-  }, [dispatch, setSystemDarkMode, handleAppLink, setMobileAppState])
+  }, [setSystemDarkMode, handleAppLink, setMobileAppState])
 
   const darkMode = C.useDarkModeState(s => s.isDarkMode())
   return <Styles.DarkModeContext.Provider value={darkMode}>{children}</Styles.DarkModeContext.Provider>
@@ -81,22 +74,10 @@ if (__DEV__ && !globalThis.DEBUGmadeEngine) {
   globalThis.DEBUGmadeEngine = false
 }
 
-const ensureStore = () => {
-  if (__DEV__) {
-    if (globalThis.DEBUGmadeEngine) {
-      _store = global.DEBUGStore
-      return
-    }
-    globalThis.DEBUGmadeEngine = true
-  }
-  if (_store) {
-    return
-  }
-  _store = makeStore()
-  if (__DEV__ || chatDebugEnabled) {
-    global.DEBUGStore = _store
-  }
-
+let inited = false
+const init = () => {
+  if (inited) return
+  inited = true
   const {batch} = C.useWaitingState.getState().dispatch
   const eng = makeEngine(batch, c => {
     if (c) {
@@ -105,7 +86,7 @@ const ensureStore = () => {
       C.useEngineState.getState().dispatch.onEngineDisconnected()
     }
   })
-  _store.initListeners()
+  C.initListeners()
   eng.listenersAreReady()
 
   // On mobile there is no installer
@@ -114,26 +95,21 @@ const ensureStore = () => {
 
 // on android this can be recreated a bunch so our engine/store / etc should live outside
 const Keybase = () => {
-  ensureStore()
-
-  if (!_store) return null // never happens
-
+  init()
   // reanimated still isn't compatible yet with strict mode
   // <React.StrictMode>
   // </React.StrictMode>
   return (
     <GestureHandlerRootView style={styles.gesture}>
-      <Provider store={_store.store}>
-        <PortalProvider>
-          <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-            <ReduxHelper>
-              <Styles.CanFixOverdrawContext.Provider value={true}>
-                <Main />
-              </Styles.CanFixOverdrawContext.Provider>
-            </ReduxHelper>
-          </SafeAreaProvider>
-        </PortalProvider>
-      </Provider>
+      <PortalProvider>
+        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+          <ReduxHelper>
+            <Styles.CanFixOverdrawContext.Provider value={true}>
+              <Main />
+            </Styles.CanFixOverdrawContext.Provider>
+          </ReduxHelper>
+        </SafeAreaProvider>
+      </PortalProvider>
     </GestureHandlerRootView>
   )
 }

@@ -687,9 +687,7 @@ const annotatedInvitesToInviteDetails = (
       if (annotatedInvite.inviteExt.c === RPCTypes.TeamInviteCategory.invitelink) {
         const ext = annotatedInvite.inviteExt.invitelink
         const annotatedUsedInvites = ext.annotatedUsedInvites ?? []
-        const lastJoinedUsername = annotatedUsedInvites
-          ? annotatedUsedInvites[annotatedUsedInvites.length - 1]?.username
-          : undefined
+        const lastJoinedUsername = annotatedUsedInvites ? annotatedUsedInvites.at(-1)?.username : undefined
         inviteLinks.push({
           creatorUsername: annotatedInvite.inviterUsername,
           id: teamInvite.id,

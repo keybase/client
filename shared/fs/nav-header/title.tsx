@@ -19,10 +19,7 @@ const getAncestors = memoize(path =>
     ? []
     : Types.getPathElements(path)
         .slice(1, -1)
-        .reduce(
-          (list, current) => [...list, Types.pathConcat(list[list.length - 1], current)],
-          [C.defaultPath]
-        )
+        .reduce((list, current) => [...list, Types.pathConcat(list.at(-1), current)], [C.defaultPath])
 )
 
 const Breadcrumb = (props: Props) => {

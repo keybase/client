@@ -1,8 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import * as RemoteGen from '../../../../actions/remote-gen'
 import * as Kb from '../../../../common-adapters'
-import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
@@ -30,6 +28,7 @@ export type Props = {
   layoutSnippet?: string
   layoutTime?: number
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
+  onSelectConversation?: () => void
 }
 
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
@@ -80,16 +79,10 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
     return layoutName?.split(',') ?? []
   }, shallowEqual)
 
-  const dispatch = Container.useDispatch()
-  const _onSelectConversation: () => void = Container.useEvent(() => {
-    if (isInWidget) {
-      dispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey}))
-    } else {
-      navigateToThread('inboxSmall')
-    }
-  })
-
-  const onSelectConversation = isSelected ? undefined : _onSelectConversation
+  const _onSelectConversation = React.useCallback(() => {
+    navigateToThread('inboxSmall')
+  }, [navigateToThread])
+  const onSelectConversation = isSelected ? undefined : p.onSelectConversation ?? _onSelectConversation
 
   const backgroundColor = isInWidget
     ? Styles.globalColors.white

@@ -22,7 +22,6 @@ const EditChannel = (props: Props) => {
   const oldName = props.channelname
   const oldDescription = props.description
 
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
   const [name, _setName] = React.useState(oldName)
@@ -56,7 +55,7 @@ const EditChannel = (props: Props) => {
       loadTeamChannelList(teamID)
       triggerEditUpdated()
     }
-  }, [loadTeamChannelList, dispatch, nav, waiting, wasWaiting, triggerEditUpdated, teamID])
+  }, [loadTeamChannelList, nav, waiting, wasWaiting, triggerEditUpdated, teamID])
 
   return (
     <Kb.Modal

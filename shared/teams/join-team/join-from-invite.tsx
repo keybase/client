@@ -7,7 +7,6 @@ import * as Constants from '../../constants/teams'
 import {Success} from '.'
 
 const JoinFromInvite = () => {
-  const dispatch = Container.useDispatch()
   const {inviteID: id, inviteKey: key, inviteDetails: details} = C.useTeamsState(s => s.teamInviteDetails)
   const error = C.useTeamsState(s => s.errorInTeamJoin)
   const loaded = details !== undefined || !!error
@@ -28,7 +27,7 @@ const JoinFromInvite = () => {
     // Otherwise we're reusing the join flow, so that we don't look up the invite id twice
     // (the invite id is derived from the key).
     joinTeam(key, true)
-  }, [requestInviteLinkDetails, joinTeam, loaded, dispatch, key, id])
+  }, [requestInviteLinkDetails, joinTeam, loaded, key, id])
 
   const [clickedJoin, setClickedJoin] = React.useState(false)
   const nav = Container.useSafeNavigation()

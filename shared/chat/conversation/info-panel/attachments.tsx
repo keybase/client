@@ -389,7 +389,7 @@ const getFromMsgID = (info: Types.AttachmentViewInfo): Types.MessageID | undefin
   if (info.last || info.status !== 'success') {
     return undefined
   }
-  const lastMessage = info.messages.length > 0 ? info.messages[info.messages.length - 1] : undefined
+  const lastMessage = info.messages.length > 0 ? info.messages.at(-1) : undefined
   return lastMessage?.id
 }
 

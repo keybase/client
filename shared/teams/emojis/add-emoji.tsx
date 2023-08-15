@@ -348,7 +348,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
       })
       return arr
     }, [])
-    const last = ret[ret.length - 1]
+    const last = ret.at(-1)
     ret.push({
       add: pick,
       height: emojiToAddRowHeightNoError,

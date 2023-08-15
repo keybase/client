@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Contacts from 'expo-contacts'
-import * as Container from '../../util/container'
 import * as React from 'react'
 import {e164ToDisplay} from '../../util/phone-numbers'
 import logger from '../../logger'
@@ -82,7 +81,6 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
 }
 
 const useContacts = () => {
-  const dispatch = Container.useDispatch()
   const [contacts, setContacts] = React.useState<Array<Contact>>([])
   const [region, setRegion] = React.useState('')
   const [errorMessage, setErrorMessage] = React.useState<string | undefined>()
@@ -113,7 +111,7 @@ const useContacts = () => {
       setNoAccessPermanent(true)
       setLoading(false)
     }
-  }, [dispatch, setErrorMessage, setContacts, permStatus, savedRegion])
+  }, [setErrorMessage, setContacts, permStatus, savedRegion])
 
   const requestPermissions = C.useSettingsContactsState(s => s.dispatch.requestPermissions)
   React.useEffect(() => {

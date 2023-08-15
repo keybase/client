@@ -1,5 +1,4 @@
 import * as C from '..'
-import * as RemoteGen from '../../actions/remote-gen'
 import * as Clipboard from 'expo-clipboard'
 import * as Container from '../../util/container'
 import * as EngineGen from '../../actions/engine-gen-gen'
@@ -297,7 +296,7 @@ ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
   if (!locations.length) {
     return
   }
-  const pos = locations[locations.length - 1]
+  const pos = locations.at(-1)
   C.useChatState.getState().dispatch.updateLastCoord({
     accuracy: Math.floor(pos?.coords.accuracy ?? 0),
     lat: pos?.coords.latitude ?? 0,
@@ -335,12 +334,6 @@ export const watchPositionForMap = async (conversationIDKey: Types.ConversationI
     setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
     return () => {}
   }
-}
-
-const initAudioModes = () => {
-  setupAudioMode(false)
-    .then(() => {})
-    .catch(() => {})
 }
 
 // if we are making the daemon wait then run this to cleanup
@@ -546,23 +539,18 @@ export const initPlatformListener = () => {
     Z.ignorePromise(f())
   })
 
-  // mobile version of the remote connection
-  Container.listenAction(RemoteGen.engineConnection, (_, a) => {
-    if (a.payload.connected) {
-      C.useEngineState.getState().dispatch.onEngineConnected()
-    } else {
-      C.useEngineState.getState().dispatch.onEngineDisconnected()
-    }
-  })
-
   // Start this immediately instead of waiting so we can do more things in parallel
-  Container.spawn(loadStartupDetails, 'loadStartupDetails')
+  Z.ignorePromise(loadStartupDetails())
   initPushListener()
 
   NetInfo.addEventListener(({type}) => {
     C.useConfigState.getState().dispatch.osNetworkStatusChanged(type !== 'none', type)
   })
-  Container.spawn(initAudioModes, 'initAudioModes')
+
+  const initAudioModes = () => {
+    Z.ignorePromise(setupAudioMode(false))
+  }
+  initAudioModes()
 
   C.useConfigState.setState(s => {
     s.dispatch.dynamic.openAppSettings = () => {

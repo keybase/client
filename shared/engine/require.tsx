@@ -1,6 +1,5 @@
 // Helper to get engine and break require loops
 import type {Engine} from '.'
-export type {ListenerApi} from '../util/redux-toolkit'
 
 let _engine: Engine
 export function initEngine(e: Engine) {

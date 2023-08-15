@@ -1,4 +1,5 @@
 import * as C from '../constants'
+import * as R from '../constants/remote'
 import * as Container from '../util/container'
 import * as FsTypes from '../constants/types/fs'
 import * as Kb from '../common-adapters'
@@ -69,7 +70,6 @@ const useMenuItems = (
   p: Props & {showBadges?: boolean; openApp: (tab?: Tabs.AppTab) => void}
 ): ReadonlyArray<_InnerMenuItem> => {
   const {showBadges, navBadges, daemonHandshakeState, username, kbfsEnabled, openApp} = p
-  const dispatch = Container.useDispatch()
   const countMap = navBadges
   const startingUp = daemonHandshakeState !== 'done'
 
@@ -98,9 +98,9 @@ const useMenuItems = (
         onClick: () => {
           if (!__DEV__) {
             if (isLinux) {
-              dispatch(RemoteGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
+              R.remoteDispatch(RemoteGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
             } else {
-              dispatch(RemoteGen.createDumpLogs({reason: 'quitting through menu'}))
+              R.remoteDispatch(RemoteGen.createDumpLogs({reason: 'quitting through menu'}))
             }
           }
           // In case dump log doesn't exit for us
@@ -161,7 +161,7 @@ const useMenuItems = (
           ? ([
               {
                 onClick: () => {
-                  dispatch(RemoteGen.createOpenPathInSystemFileManager({path: '/keybase'}))
+                  R.remoteDispatch(RemoteGen.createOpenPathInSystemFileManager({path: '/keybase'}))
                 },
                 title: `Open folders in ${Styles.fileUIName}`,
               },
@@ -172,20 +172,16 @@ const useMenuItems = (
       ] as const
     }
     return [...openAppItem, ...common] as const
-  }, [dispatch, username, countMap, kbfsEnabled, openApp, showBadges, startingUp])
+  }, [username, countMap, kbfsEnabled, openApp, showBadges, startingUp])
   return ret
 }
 
 const IconBar = (p: Props & {showBadges?: boolean}) => {
   const {navBadges, showBadges} = p
-  const dispatch = Container.useDispatch()
-  const openApp = React.useCallback(
-    (tab?: Tabs.AppTab) => {
-      dispatch(RemoteGen.createShowMain())
-      tab && dispatch(RemoteGen.createSwitchTab({tab}))
-    },
-    [dispatch]
-  )
+  const openApp = React.useCallback((tab?: Tabs.AppTab) => {
+    R.remoteDispatch(RemoteGen.createShowMain())
+    tab && R.remoteDispatch(RemoteGen.createSwitchTab({tab}))
+  }, [])
 
   const menuItems = useMenuItems({...p, openApp})
 
@@ -248,9 +244,8 @@ const LoggedIn = (p: Props) => {
   const {endEstimate, files, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
   const {outOfDate, windowShownCount} = p
 
-  const dispatch = Container.useDispatch()
   const refreshUserFileEdits = Container.useThrottledCallback(() => {
-    dispatch(RemoteGen.createUserFileEditsLoad())
+    R.remoteDispatch(RemoteGen.createUserFileEditsLoad())
   }, 5000)
 
   React.useEffect(() => {
@@ -295,10 +290,9 @@ const LoggedOut = (p: {daemonHandshakeState: ConfigTypes.DaemonHandshakeState; l
     ? 'Connecting interface to crypto engine... This may take a few seconds.'
     : 'Starting up Keybase...'
 
-  const dispatch = Container.useDispatch()
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const logIn = () => {
-    dispatch(RemoteGen.createShowMain())
+    R.remoteDispatch(RemoteGen.createShowMain())
     navigateAppend(Tabs.loginTab)
   }
   return (

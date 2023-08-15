@@ -1,6 +1,6 @@
 import * as C from '../constants'
+import * as R from '../constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import type * as Types from '../constants/types/chat2'
@@ -13,12 +13,16 @@ type RowProps = {
 
 const RemoteSmallTeam = (props: RowProps) => {
   const {conversationIDKey} = props
-  const state = Container.useRemoteStore<DeserializeProps>()
+  const state = C.useRemoteStore<DeserializeProps>()
   const {conversationsToSend} = state
   const conversation = conversationsToSend.find(c => c.conversationIDKey === conversationIDKey)
+  const onSelectConversation = () => {
+    R.remoteDispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey}))
+  }
 
   return (
     <SmallTeam
+      onSelectConversation={onSelectConversation}
       conversationIDKey={conversationIDKey}
       isInWidget={true}
       isSelected={false}
@@ -30,8 +34,7 @@ const RemoteSmallTeam = (props: RowProps) => {
 }
 
 const ChatPreview = (p: {convLimit?: number}) => {
-  const state = Container.useRemoteStore<DeserializeProps>()
-  const dispatch = Container.useDispatch()
+  const state = C.useRemoteStore<DeserializeProps>()
   const {convLimit} = p
   const {conversationsToSend} = state
 
@@ -49,7 +52,7 @@ const ChatPreview = (p: {convLimit?: number}) => {
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonContainer}>
         <Kb.Button
           label="Open inbox"
-          onClick={() => dispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey: ''}))}
+          onClick={() => R.remoteDispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey: ''}))}
           small={true}
           mode="Secondary"
         />

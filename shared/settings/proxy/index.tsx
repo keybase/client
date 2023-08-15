@@ -45,7 +45,7 @@ class ProxySettings extends React.Component<Props, State> {
       const address = addressPort.slice(0, addressPort.length - 1).join(':')
       let port = '8080'
       if (addressPort.length >= 2) {
-        port = addressPort[addressPort.length - 1] ?? ''
+        port = addressPort.at(-1) ?? ''
       }
 
       const proxyType = RPCTypes.ProxyType[this.props.proxyData.proxyType] as State['proxyType']

@@ -114,7 +114,7 @@ const useRedux = (ordinal: Types.Ordinal) => {
     const validMessage = message && Constants.isMessageWithReactions(message)
     if (!validMessage) return 'none' as const
 
-    return ordinals[ordinals.length - 1] === ordinal ? ('last' as const) : ('middle' as const)
+    return ordinals.at(-1) === ordinal ? ('last' as const) : ('middle' as const)
   }
 
   const getEcrType = (message: Types.Message, you: string) => {

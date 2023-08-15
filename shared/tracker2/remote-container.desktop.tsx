@@ -1,8 +1,8 @@
 // Inside tracker we use an embedded Avatar which is connected.
 import * as C from '../constants'
+import * as R from '../constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Constants from '../constants/tracker2'
-import * as Container from '../util/container'
 import type * as Types from '../constants/types/tracker2'
 import Tracker from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
@@ -22,8 +22,7 @@ const noDetails: Types.Details = {
 }
 
 const RemoteContainer = () => {
-  const state = Container.useRemoteStore<DeserializeProps>()
-  const dispatch = Container.useDispatch()
+  const state = C.useRemoteStore<DeserializeProps>()
   const {avatarRefreshCounter, darkMode, trackerUsername, tracker2, followers, following, username} = state
   const {httpSrvToken, httpSrvAddress, infoMap, blockMap} = state
   const {usernameToDetails} = tracker2
@@ -47,20 +46,20 @@ const RemoteContainer = () => {
       guiID={guiID}
       isYou={username === trackerUsername}
       location={location}
-      onAccept={() => dispatch(RemoteGen.createTrackerChangeFollow({follow: true, guiID}))}
+      onAccept={() => R.remoteDispatch(RemoteGen.createTrackerChangeFollow({follow: true, guiID}))}
       onChat={() => {
-        dispatch(RemoteGen.createShowMain())
-        dispatch(RemoteGen.createPreviewConversation({participant: trackerUsername}))
+        R.remoteDispatch(RemoteGen.createShowMain())
+        R.remoteDispatch(RemoteGen.createPreviewConversation({participant: trackerUsername}))
       }}
       onClose={() => {
-        dispatch(RemoteGen.createTrackerCloseTracker({guiID}))
+        R.remoteDispatch(RemoteGen.createTrackerCloseTracker({guiID}))
         // close immediately
         closeWindow?.()
       }}
-      onFollow={() => dispatch(RemoteGen.createTrackerChangeFollow({follow: true, guiID}))}
-      onIgnoreFor24Hours={() => dispatch(RemoteGen.createTrackerIgnore({guiID}))}
+      onFollow={() => R.remoteDispatch(RemoteGen.createTrackerChangeFollow({follow: true, guiID}))}
+      onIgnoreFor24Hours={() => R.remoteDispatch(RemoteGen.createTrackerIgnore({guiID}))}
       onReload={() =>
-        dispatch(
+        R.remoteDispatch(
           RemoteGen.createTrackerLoad({
             assertion: trackerUsername,
             forceDisplay: true,
