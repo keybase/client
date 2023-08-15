@@ -10,10 +10,9 @@ import type {Props} from '.'
 const Fullscreen = (p: Props) => {
   const {path, previewHeight, message, onAllMedia, onClose, isVideo} = p
   const [loaded, setLoaded] = React.useState(false)
-  const {conversationIDKey, id} = message
+  const {id} = message
 
   const {toggleShowingPopup, popup} = useMessagePopup({
-    conversationIDKey,
     ordinal: id,
   })
 
@@ -147,7 +146,7 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
         position: 'relative',
       },
-    } as const)
+    }) as const
 )
 
 export default Fullscreen

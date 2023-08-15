@@ -9,7 +9,6 @@ type OwnProps = {
   attachTo?: () => React.Component<any> | null
   onHidden: () => void
   ordinal: ChatTypes.Ordinal
-  conversationIDKey: ChatTypes.ConversationIDKey
   position: Position
   style?: StylesCrossPlatform
   visible: boolean

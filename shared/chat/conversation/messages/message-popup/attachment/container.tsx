@@ -13,7 +13,6 @@ import {makeMessageAttachment} from '../../../../../constants/chat2/message'
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
   ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform

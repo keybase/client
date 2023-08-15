@@ -173,7 +173,6 @@ const DocViewRow = (props: DocViewRowProps) => {
     return !!item.message
   }, [item])
   const {toggleShowingPopup, popup} = useMessagePopup({
-    conversationIDKey: item.message?.conversationIDKey ?? '',
     ordinal: item.message?.id ?? 0,
     shouldShow,
   })

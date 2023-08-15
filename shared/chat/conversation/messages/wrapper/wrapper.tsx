@@ -6,7 +6,7 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import shallowEqual from 'shallowequal'
-import {ConvoIDContext, OrdinalContext, GetIdsContext, HighlightedContext} from '../ids-context'
+import {OrdinalContext, HighlightedContext} from '../ids-context'
 import EmojiRow from '../emoji-row/container'
 import ExplodingHeightRetainer from './exploding-height-retainer/container'
 import ExplodingMeta from './exploding-meta/container'
@@ -51,7 +51,6 @@ const messageShowsPopup = (type?: Types.Message['type']) =>
 const missingMessage = Constants.makeMessageDeleted({})
 
 export const useCommon = (ordinal: Types.Ordinal) => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const showCenteredHighlight = useHighlightMode(ordinal)
 
   const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
@@ -66,7 +65,6 @@ export const useCommon = (ordinal: Types.Ordinal) => {
     return messageShowsPopup(type) && shouldShowPopup
   }, [shouldShowPopup, type])
   const {toggleShowingPopup, showingPopup, popup, popupAnchor} = useMessagePopup({
-    conversationIDKey,
     ordinal,
     shouldShow,
     style: styles.messagePopupContainer,
@@ -488,18 +486,11 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 })
 
 export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const {ordinal, bottomChildren, children} = p
 
   // passed in context so stable
-  const conversationIDKeyRef = React.useRef(conversationIDKey)
-  conversationIDKeyRef.current = conversationIDKey
   const ordinalRef = React.useRef(ordinal)
   ordinalRef.current = ordinal
-
-  const getIds = React.useCallback(() => {
-    return {conversationIDKey: conversationIDKeyRef.current, ordinal: ordinalRef.current}
-  }, [])
 
   const {showCenteredHighlight, toggleShowingPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
@@ -539,16 +530,14 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   }
 
   return (
-    <GetIdsContext.Provider value={getIds}>
-      <OrdinalContext.Provider value={ordinal}>
-        <HighlightedContext.Provider value={showCenteredHighlight}>
-          <Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
-            <TextAndSiblings {...tsprops} />
-            {popup}
-          </Styles.CanFixOverdrawContext.Provider>
-        </HighlightedContext.Provider>
-      </OrdinalContext.Provider>
-    </GetIdsContext.Provider>
+    <OrdinalContext.Provider value={ordinal}>
+      <HighlightedContext.Provider value={showCenteredHighlight}>
+        <Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
+          <TextAndSiblings {...tsprops} />
+          {popup}
+        </Styles.CanFixOverdrawContext.Provider>
+      </HighlightedContext.Provider>
+    </OrdinalContext.Provider>
   )
 })
 
