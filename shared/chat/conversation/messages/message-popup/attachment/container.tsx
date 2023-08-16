@@ -37,16 +37,16 @@ export default (ownProps: OwnProps) => {
   const _teamID = meta.teamID
   const _you = C.useCurrentUserState(s => s.username)
   const pending = !!message.transferState
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const _onAddReaction = (message: Types.Message) => {
-    navigateAppend({
+    navigateAppend(conversationIDKey => ({
       props: {
-        conversationIDKey: message.conversationIDKey,
+        conversationIDKey,
         onPickAddToMessageOrdinal: message.ordinal,
         pickKey: 'reaction',
       },
       selected: 'chatChooseEmoji',
-    })
+    }))
   }
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
@@ -72,16 +72,16 @@ export default (ownProps: OwnProps) => {
     setEditing(message.ordinal)
   }
   const _onForward = (message: Types.Message) => {
-    navigateAppend({
-      props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+    navigateAppend(conversationIDKey => ({
+      props: {conversationIDKey, ordinal: message.ordinal},
       selected: 'chatForwardMsgPick',
-    })
+    }))
   }
   const _onInstallBot = (message: Types.Message) => {
-    navigateAppend({props: {botUsername: message.author}, selected: 'chatInstallBotPick'})
+    navigateAppend(() => ({props: {botUsername: message.author}, selected: 'chatInstallBotPick'}))
   }
   const _onKick = (teamID: TeamTypes.TeamID, username: string) => {
-    navigateAppend({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'})
+    navigateAppend(() => ({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}))
   }
   const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
   const _onMarkAsUnread = (message: Types.Message) => {

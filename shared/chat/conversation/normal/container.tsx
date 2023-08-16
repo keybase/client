@@ -40,13 +40,11 @@ const NormalWrapper = React.memo(function NormalWrapper() {
 
   const dragAndDropRejectReason = cannotWrite ? minWriterReason : undefined
 
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  if (lastCID !== conversationIDKey) {
-    setLastCID(conversationIDKey)
+  C.useCIDChanged(conversationIDKey, () => {
     if (!Container.isMobile) {
       setFocusInputCounter(c => c + 1)
     }
-  }
+  })
 
   const jumpToRecent = C.useChatContext(s => s.dispatch.jumpToRecent)
   const onPaste = C.useChatContext(s => s.dispatch.attachmentPasted)
@@ -63,13 +61,16 @@ const NormalWrapper = React.memo(function NormalWrapper() {
     [showUser]
   )
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const onAttach = React.useCallback(
     (paths: Array<string>) => {
       const pathAndOutboxIDs = paths.map(p => ({path: p}))
-      navigateAppend({props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'})
+      navigateAppend(conversationIDKey => ({
+        props: {conversationIDKey, pathAndOutboxIDs},
+        selected: 'chatAttachmentGetTitles',
+      }))
     },
-    [conversationIDKey, navigateAppend]
+    [navigateAppend]
   )
 
   return (

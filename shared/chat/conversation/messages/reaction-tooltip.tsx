@@ -56,15 +56,14 @@ const ReactionTooltip = (p: OwnProps) => {
   }, shallowEqual)
   const _usersInfo = good ? infoMap : emptyStateProps._usersInfo
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const navigateAppend = C.useChatNavigateAppend()
   const onAddReaction = React.useCallback(() => {
     onHidden()
-    navigateAppend({
+    navigateAppend(conversationIDKey => ({
       props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
       selected: 'chatChooseEmoji',
-    })
-  }, [navigateAppend, onHidden, conversationIDKey, ordinal])
+    }))
+  }, [navigateAppend, onHidden, ordinal])
 
   let reactions = [..._reactions.keys()]
     .map(emoji => ({

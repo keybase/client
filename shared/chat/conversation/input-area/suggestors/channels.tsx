@@ -84,13 +84,10 @@ const getChannelSuggestions = (
 
 export const useDataSource = (filter: string) => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-
   const channelSuggestionsTriggered = C.useChatContext(s => s.dispatch.channelSuggestionsTriggered)
-  if (lastCID !== conversationIDKey) {
-    setLastCID(conversationIDKey)
+  C.useCIDChanged(conversationIDKey, () => {
     channelSuggestionsTriggered()
-  }
+  })
 
   const meta = C.useChatContext(s => s.meta)
   const {teamID} = meta

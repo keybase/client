@@ -60,6 +60,7 @@ export {getSelectedConversation, _useState as useChatState} from './chat2'
 export {_useConvoState as useConvoState, _stores as chatStores, _Provider as ChatProvider} from './chat2'
 export {noConversationIDKey, _getConvoState as getConvoState, _useContext as useChatContext} from './chat2'
 export {dummyConversationIDKey, pendingWaitingConversationIDKey, pendingErrorConversationIDKey} from './chat2'
+export {useChatNavigateAppend, ProviderScreen, useCIDChanged} from './chat2'
 export {_useConfigState as useConfigState, type Store as ConfigStore} from './config'
 export {createOtherAccountWaitingKey} from './config'
 import {_useState as useFSState} from './fs'
@@ -72,19 +73,4 @@ import {useSelector, shallowEqual} from 'react-redux'
 export function useRemoteStore<S>(): S {
   // TODO this will warn you not to do this, could just pass in a selector later
   return useSelector(s => s, shallowEqual) as any
-}
-
-type RouteParams = {
-  route: {params: {conversationIDKey?: string}}
-}
-import * as React from 'react'
-import {_Provider, noConversationIDKey} from './chat2'
-export const ProviderScreen = (p: {children: React.ReactNode; rp: RouteParams; canBeNull?: boolean}) => {
-  return (
-    <React.Suspense>
-      <_Provider id={p.rp.route.params.conversationIDKey ?? noConversationIDKey} canBeNull={p.canBeNull}>
-        {p.children}
-      </_Provider>
-    </React.Suspense>
-  )
 }

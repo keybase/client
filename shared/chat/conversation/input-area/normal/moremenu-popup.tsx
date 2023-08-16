@@ -8,11 +8,10 @@ type Props = {
 
 const MoreMenuPopup = (props: Props) => {
   const {onHidden, visible} = props
-  const conversationIDKey = C.useChatContext(s => s.id)
   const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const onLocationShare = () => {
-    navigateAppend({props: {conversationIDKey}, selected: 'chatLocationPreview'})
+    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatLocationPreview'}))
   }
   // merge
   const onCoinFlip = () => injectIntoInput('/flip ')

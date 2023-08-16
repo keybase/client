@@ -210,7 +210,7 @@ const useGeneralConversationIDKey = (teamID?: Types.TeamID) => {
 export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boolean): Array<Section> => {
   const convID = useGeneralConversationIDKey(teamID)
   const [lastActuallyLoad, setLastActuallyLoad] = React.useState(false)
-  const [lastCID, setLastCID] = React.useState(convID)
+  const cidChanged = C.useCIDChanged(convID)
   const getUserEmoji = Container.useRPC(RPCChatTypes.localUserEmojisRpcPromise)
   const [customEmoji, setCustomEmoji] = React.useState<RPCChatTypes.Emoji[]>([])
   const [filter, setFilter] = React.useState('')
@@ -244,13 +244,8 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
   const updatedTrigger = useEmojiState(s => s.emojiUpdatedTrigger)
   const [lastUpdatedTrigger, setLastUpdatedTrigger] = React.useState(updatedTrigger)
 
-  if (
-    shouldActuallyLoad !== lastActuallyLoad ||
-    convID !== lastCID ||
-    lastUpdatedTrigger !== updatedTrigger
-  ) {
+  if (shouldActuallyLoad !== lastActuallyLoad || cidChanged || lastUpdatedTrigger !== updatedTrigger) {
     setLastActuallyLoad(shouldActuallyLoad)
-    setLastCID(convID)
     setLastUpdatedTrigger(updatedTrigger)
     doGetUserEmoji()
   }

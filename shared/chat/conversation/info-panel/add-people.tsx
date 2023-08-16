@@ -80,15 +80,15 @@ const AddPeople = (ownProps: OwnProps) => {
   const _onAddPeople = (teamID: TeamTypes.TeamID) => {
     startAddMembersWizard(teamID)
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _onAddToChannel = (conversationIDKey: Types.ConversationIDKey, teamID: TeamTypes.TeamID) => {
-    navigateAppend({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'})
+  const navigateAppend = C.useChatNavigateAppend()
+  const _onAddToChannel = (teamID: TeamTypes.TeamID) => {
+    navigateAppend(conversationIDKey => ({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}))
   }
   const props = {
     isAdmin: ownProps.isAdmin,
     isGeneralChannel: ownProps.isGeneralChannel,
     onAddPeople: () => _onAddPeople(teamID),
-    onAddToChannel: () => _onAddToChannel(ownProps.conversationIDKey, teamID),
+    onAddToChannel: () => _onAddToChannel(teamID),
   }
   return <_AddPeople {...props} />
 }

@@ -59,14 +59,12 @@ export const Bot = (props: BotProps) => {
   const {onClick, firstItem} = props
   const {conversationIDKey, showChannelAdd, showTeamAdd} = props
   const refreshBotSettings = C.useChatContext(s => s.dispatch.refreshBotSettings)
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  if (conversationIDKey !== lastCID) {
-    setLastCID(conversationIDKey)
+  C.useCIDChanged(conversationIDKey, () => {
     if (conversationIDKey && showChannelAdd) {
       // fetch bot settings if trying to show the add to channel button
       refreshBotSettings(botUsername)
     }
-  }
+  })
 
   const lower = (
     <Kb.Box2 alignSelf="flex-start" direction="horizontal" fullWidth={true}>
@@ -249,16 +247,16 @@ const BotTab = (props: Props) => {
 
   const botsInTeam: string[] = botUsernames.filter(b => !botsInConv.includes(b))
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const conversationIDKey = C.useChatContext(s => s.id)
   const onBotAdd = () => {
-    navigateAppend({props: {conversationIDKey}, selected: 'chatSearchBots'})
+    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatSearchBots'}))
   }
   const onBotSelect = (username: string) => {
-    navigateAppend({
+    navigateAppend(conversationIDKey => ({
       props: {botUsername: username, conversationIDKey},
       selected: 'chatInstallBot',
-    })
+    }))
   }
   const loadNextBotPage = C.useBotsState(s => s.dispatch.loadNextBotPage)
   const onLoadMoreBots = () => loadNextBotPage()
@@ -266,9 +264,8 @@ const BotTab = (props: Props) => {
 
   const featuredBotsLength = featuredBots.length
   const [lastFBL, setLastFBL] = React.useState(-1)
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  if (conversationIDKey !== lastCID || lastFBL !== featuredBotsLength) {
-    setLastCID(conversationIDKey)
+  const cidChanged = C.useCIDChanged(conversationIDKey)
+  if (cidChanged || lastFBL !== featuredBotsLength) {
     setLastFBL(featuredBotsLength)
     if (featuredBotsLength === 0 && !loadedAllBots) {
       loadNextBotPage()

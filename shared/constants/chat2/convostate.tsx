@@ -3359,3 +3359,28 @@ export function _useConvoState<T>(
   const store = createConvoStore(id)
   return useStore(store, selector, equalityFn)
 }
+
+type RouteParams = {
+  route: {params: {conversationIDKey?: string}}
+}
+export const ProviderScreen = (p: {children: React.ReactNode; rp: RouteParams; canBeNull?: boolean}) => {
+  return (
+    <React.Suspense>
+      <_Provider id={p.rp.route.params.conversationIDKey ?? noConversationIDKey} canBeNull={p.canBeNull}>
+        {p.children}
+      </_Provider>
+    </React.Suspense>
+  )
+}
+
+import type {NavigateAppendType} from '../../router-v2/route-params'
+export const useChatNavigateAppend = () => {
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const cid = _useContext(s => s.id)
+  return React.useCallback(
+    (makePath: (cid: Types.ConversationIDKey) => NavigateAppendType, replace?: boolean, fromKey?: string) => {
+      navigateAppend(makePath(cid), replace, fromKey)
+    },
+    [cid, navigateAppend]
+  )
+}

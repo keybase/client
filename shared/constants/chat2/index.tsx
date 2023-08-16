@@ -1954,3 +1954,25 @@ export {
   isValidConversationIDKey,
   dummyConversationIDKey,
 } from '../types/chat2/common'
+
+import * as React from 'react'
+export const useCIDChanged = (
+  conversationIDKey?: Types.ConversationIDKey,
+  f?: () => void,
+  forceCall?: boolean // call f on first time
+) => {
+  const didForceCall = React.useRef(false)
+  let changed = false
+  if (forceCall === true && !didForceCall.current) {
+    changed = true
+    didForceCall.current = true
+    f?.()
+  }
+  const [lastCID, setLastCID] = React.useState(conversationIDKey)
+  if (lastCID !== conversationIDKey) {
+    setLastCID(conversationIDKey)
+    f?.()
+    changed = true
+  }
+  return changed
+}

@@ -60,17 +60,16 @@ export default (ownProps: OwnProps) => {
   const explodesAt = message.explodingTime
   const hideTimer = message.submitState === 'pending' || message.submitState === 'failed'
   const timestamp = message.timestamp
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const navigateAppend = C.useChatNavigateAppend()
   const _onAddReaction = () => {
-    navigateAppend({
+    navigateAppend(conversationIDKey => ({
       props: {
         conversationIDKey,
         onPickAddToMessageOrdinal: ownProps.ordinal,
         pickKey: 'reaction',
       },
       selected: 'chatChooseEmoji',
-    })
+    }))
   }
   const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const _onAllMedia = () => {
@@ -93,16 +92,16 @@ export default (ownProps: OwnProps) => {
     messageDelete(ownProps.ordinal)
   }
   const _onForward = () => {
-    navigateAppend({
+    navigateAppend(conversationIDKey => ({
       props: {conversationIDKey, ordinal: ownProps.ordinal},
       selected: 'chatForwardMsgPick',
-    })
+    }))
   }
   const _onInstallBot = (author: string) => {
-    navigateAppend({props: {botUsername: author}, selected: 'chatInstallBotPick'})
+    navigateAppend(() => ({props: {botUsername: author}, selected: 'chatInstallBotPick'}))
   }
   const _onKick = (teamID: TeamTypes.TeamID, username: string) => {
-    navigateAppend({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'})
+    navigateAppend(() => ({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}))
   }
   const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
   const _onMarkAsUnread = (id: number) => {
@@ -138,15 +137,15 @@ export default (ownProps: OwnProps) => {
       openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
   }
   const _onUserBlock = (message: Types.Message, isSingle: boolean) => {
-    navigateAppend({
+    navigateAppend(convID => ({
       props: {
         blockUserByDefault: true,
         context: isSingle ? 'message-popup-single' : 'message-popup',
-        convID: message.conversationIDKey,
+        convID,
         username: message.author,
       },
       selected: 'chatBlockingModal',
-    })
+    }))
   }
 
   const authorInTeam = _teamMembers?.has(message.author) ?? true

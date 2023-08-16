@@ -10,7 +10,7 @@ type OwnProps = {
 
 const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
   const {message} = p
-  const {conversationIDKey, addee, adder, author, bulkAdds, role, timestamp} = message
+  const {addee, adder, author, bulkAdds, role, timestamp} = message
   const meta = C.useChatContext(s => s.meta)
   const {teamID, teamname, teamType} = meta
   const authorIsAdmin = C.useTeamsState(s => TeamConstants.userIsRoleInTeam(s, teamID, author, 'admin'))
@@ -24,17 +24,17 @@ const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
     showInfoPanel(true, 'settings')
   }, [showInfoPanel])
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const onViewBot = React.useCallback(() => {
-    navigateAppend({
-      props: {botUsername: addee, conversationIDKey: conversationIDKey},
+    navigateAppend(conversationIDKey => ({
+      props: {botUsername: addee, conversationIDKey},
       selected: 'chatInstallBot',
-    })
-  }, [navigateAppend, conversationIDKey, addee])
+    }))
+  }, [navigateAppend, addee])
 
   const onViewTeam = React.useCallback(() => {
     if (teamID) {
-      navigateAppend({props: {teamID}, selected: 'team'})
+      navigateAppend(() => ({props: {teamID}, selected: 'team'}))
     } else {
       showInfoPanel(true, 'settings')
     }

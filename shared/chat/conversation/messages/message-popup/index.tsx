@@ -154,7 +154,6 @@ export const useMessagePopup = (p: {
   shouldShow?: () => boolean
   style?: Styles.StylesCrossPlatform
 }) => {
-  const conversationIDKey = C.useChatContext(s => s.id)
   const {ordinal, shouldShow, style} = p
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
@@ -174,7 +173,7 @@ export const useMessagePopup = (p: {
     [ordinal, shouldShow, style]
   )
   const desktopPopup = Kb.usePopup2(makePopup)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const mobilePopup: {
     popup: React.ReactNode
     popupAnchor: React.MutableRefObject<React.Component | null>
@@ -187,7 +186,10 @@ export const useMessagePopup = (p: {
     setShowingPopup: () => {},
     showingPopup: true,
     toggleShowingPopup: Container.useEvent(() => {
-      navigateAppend({props: {conversationIDKey, ordinal}, selected: 'chatMessagePopup'})
+      navigateAppend(conversationIDKey => ({
+        props: {conversationIDKey, ordinal},
+        selected: 'chatMessagePopup',
+      }))
     }),
   }
 

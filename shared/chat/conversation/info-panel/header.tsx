@@ -148,13 +148,12 @@ const TeamHeader = () => {
 }
 
 export const AdhocHeader = () => {
-  const conversationIDKey = C.useChatContext(s => s.id)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const onShowNewTeamDialog = () => {
-    navigateAppend({
+    navigateAppend(conversationIDKey => ({
       props: {conversationIDKey},
       selected: 'chatShowNewTeamDialog',
-    })
+    }))
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">

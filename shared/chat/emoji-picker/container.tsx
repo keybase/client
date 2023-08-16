@@ -89,13 +89,12 @@ const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) =>
   const conversationIDKey = C.useChatContext(s => s.id)
   const customEmojiGroups = C.useChatState(s => s.userEmojis)
   const waiting = Container.useAnyWaiting(Constants.waitingKeyLoadingEmoji)
-  const [lastCID, setLastCID] = React.useState('')
+  const cidChanged = C.useCIDChanged(conversationIDKey)
   const [lastOnlyInTeam, setLastOnlyInTeam] = React.useState(onlyInTeam)
   const [lastDisabled, setLastDisabled] = React.useState(disabled)
   const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)
 
-  if (lastCID !== conversationIDKey || lastOnlyInTeam !== onlyInTeam || lastDisabled !== disabled) {
-    setLastCID(conversationIDKey)
+  if (cidChanged || lastOnlyInTeam !== onlyInTeam || lastDisabled !== disabled) {
     setLastOnlyInTeam(onlyInTeam)
     setLastDisabled(disabled)
     if (!disabled) {
@@ -129,15 +128,14 @@ const WrapperMobile = (props: Props) => {
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp
-  const conversationIDKey = C.useChatContext(s => s.id)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const addEmoji = React.useCallback(
     () =>
-      navigateAppend({
+      navigateAppend(conversationIDKey => ({
         props: {conversationIDKey, teamID: TeamsTypes.noTeamID},
         selected: 'teamAddEmoji',
-      }),
-    [navigateAppend, conversationIDKey]
+      })),
+    [navigateAppend]
   )
   const canManageEmoji = useCanManageEmoji()
 
@@ -195,19 +193,18 @@ const WrapperMobile = (props: Props) => {
 }
 
 export const EmojiPickerDesktop = (props: Props) => {
-  const conversationIDKey = C.useChatContext(s => s.id)
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji as any)
   const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const canManageEmoji = useCanManageEmoji()
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const addEmoji = () => {
     props.onDidPick?.()
-    navigateAppend({
+    navigateAppend(conversationIDKey => ({
       props: {conversationIDKey, teamID: TeamsTypes.noTeamID},
       selected: 'teamAddEmoji',
-    })
+    }))
   }
 
   return (

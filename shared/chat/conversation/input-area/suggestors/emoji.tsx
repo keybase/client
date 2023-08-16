@@ -48,12 +48,10 @@ const empty = new Array<EmojiData>()
 
 export const useDataSource = (filter: string) => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
   const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)
-  if (lastCID !== conversationIDKey) {
-    setLastCID(conversationIDKey)
+  C.useCIDChanged(conversationIDKey, () => {
     fetchUserEmoji(conversationIDKey)
-  }
+  })
 
   const userEmojisLoading = Container.useAnyWaiting(Constants.waitingKeyLoadingEmoji)
   const userEmojis = C.useChatState(s => s.userEmojisForAutocomplete)
