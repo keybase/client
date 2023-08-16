@@ -19,7 +19,6 @@ import {
   type RenderableEmoji,
 } from './../../util/emoji'
 import useRPC from './../../util/use-rpc'
-import * as T from './../../constants/types'
 import {usePickerState, type PickKey} from './use-picker'
 
 type Props = {
