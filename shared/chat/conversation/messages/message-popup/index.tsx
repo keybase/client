@@ -7,11 +7,11 @@ import AttachmentMessage from './attachment/container'
 import ExplodingMessage from './exploding/container'
 import JourneycardMessage from './journeycard/container'
 import TextMessage from './text/container'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import type {Position, StylesCrossPlatform} from '../../../../styles'
 
 type Props = {
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
   attachTo?: () => React.Component<any> | null
   onHidden: () => void
   position: Position
@@ -113,8 +113,8 @@ export default MessagePopup
 // Mobile only
 type ModalProps = {
   // needed for page
-  conversationIDKey: Types.ConversationIDKey
-  ordinal: Types.Ordinal
+  conversationIDKey: T.Chat.ConversationIDKey
+  ordinal: T.Chat.Ordinal
 }
 export const MessagePopupModal = (p: ModalProps) => {
   const {ordinal} = p
@@ -150,7 +150,7 @@ export const MessagePopupModal = (p: ModalProps) => {
 }
 
 export const useMessagePopup = (p: {
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
   shouldShow?: () => boolean
   style?: Styles.StylesCrossPlatform
 }) => {

@@ -2,23 +2,20 @@ import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamConstants from '../../../../constants/teams'
 import * as Container from '../../../../util/container'
-import * as RPCChatGen from '../../../../constants/types/rpc-chat-gen'
-import type * as TeamTypes from '../../../../constants/types/teams'
-import type * as Types from '../../../../constants/types/chat2'
+import * as T from '../../../../constants/types'
 import {useTeamDetailsSubscribe} from '../../../../teams/subscriber'
 import {pluralize} from '../../../../util/string'
 import {memoize} from '../../../../util/memoize'
 import {ModalTitle, useChannelParticipants} from '../../../../teams/common'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey // for page
-  teamID: TeamTypes.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey // for page
+  teamID: T.Teams.TeamID
 }
 
-const sortMembers = memoize((members: TeamTypes.TeamDetails['members']) =>
+const sortMembers = memoize((members: T.Teams.TeamDetails['members']) =>
   [...members.values()]
     .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')
     .sort((a, b) => a.username.localeCompare(b.username))
@@ -45,14 +42,14 @@ const AddToChannel = (props: Props) => {
 
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const addToChannel = Container.useRPC(RPCChatGen.localBulkAddToConvRpcPromise)
+  const addToChannel = Container.useRPC(T.RPCChat.localBulkAddToConvRpcPromise)
 
   const onClose = () => nav.safeNavigateUp()
   const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
   const onAdd = () => {
     setWaiting(true)
     addToChannel(
-      [{convID: ChatTypes.keyToConversationID(conversationIDKey), usernames: [...toAdd]}],
+      [{convID: T.Chat.keyToConversationID(conversationIDKey), usernames: [...toAdd]}],
       () => {
         setWaiting(false)
         loadTeamChannelList(teamID)
@@ -179,7 +176,7 @@ const AddToChannel = (props: Props) => {
   )
 }
 
-const title = ({channelname, teamID}: {channelname: string; teamID: TeamTypes.TeamID}) =>
+const title = ({channelname, teamID}: {channelname: string; teamID: T.Teams.TeamID}) =>
   Styles.isMobile ? `Add to #${channelname}` : <ModalTitle teamID={teamID} title={`Add to #${channelname}`} />
 
 const styles = Styles.styleSheetCreate(() => ({

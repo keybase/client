@@ -1,12 +1,12 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Container from '../../../../util/container'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import SystemChangeRetention from '.'
 import {getCanPerform} from '../../../../constants/teams'
 
 type OwnProps = {
-  message: Types.MessageSystemChangeRetention
+  message: T.Chat.MessageSystemChangeRetention
 }
 
 const SystemChangeRetentionContainer = React.memo(function SystemChangeRetentionContainer(p: OwnProps) {

@@ -1,19 +1,18 @@
 import * as C from '../../../../constants'
 import * as Container from '../../../../util/container'
-import * as FsTypes from '../../../../constants/types/fs'
 import * as React from 'react'
 import Git from '.'
-import type * as Types from '../../../../constants/types/chat2'
+import * as T from '../../../../constants/types'
 
 type OwnProps = {
-  message: Types.MessageSystemGitPush
+  message: T.Chat.MessageSystemGitPush
 }
 
 const GitContainer = React.memo(function GitContainer(p: OwnProps) {
   const {message} = p
   const onClickCommit = React.useCallback(
     (commitHash: string) => {
-      const path = FsTypes.stringToPath(
+      const path = T.FS.stringToPath(
         '/keybase/team/' +
           message.team +
           '/.kbfs_autogit/' +

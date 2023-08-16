@@ -5,8 +5,7 @@ import {linkFromConvAndMessage} from '../../../../../constants'
 import Text from '.'
 import openURL from '../../../../../util/open-url'
 import * as React from 'react'
-import type * as TeamTypes from '../../../../../constants/types/teams'
-import type * as Types from '../../../../../constants/types/chat2'
+import type * as T from '../../../../../constants/types'
 import type {Position, StylesCrossPlatform} from '../../../../../styles'
 import {getCanPerformByID} from '../../../../../constants/teams'
 import {makeMessageText} from '../../../../../constants/chat2/message'
@@ -14,7 +13,7 @@ import {isIOS} from '../../../../../constants/platform'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform
@@ -50,7 +49,7 @@ export default (ownProps: OwnProps) => {
   const _teamname = meta.teamname
   const _you = C.useCurrentUserState(s => s.username)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _onAddReaction = (message: Types.Message) => {
+  const _onAddReaction = (message: T.Chat.Message) => {
     navigateAppend({
       props: {
         conversationIDKey: message.conversationIDKey,
@@ -61,19 +60,19 @@ export default (ownProps: OwnProps) => {
     })
   }
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-  const _onCopy = (message: Types.Message) => {
+  const _onCopy = (message: T.Chat.Message) => {
     if (message.type === 'text') {
       copyToClipboard(message.text.stringValue())
     }
   }
-  const _onCopyLink = (label: string, message: Types.Message) => {
+  const _onCopyLink = (label: string, message: T.Chat.Message) => {
     copyToClipboard(linkFromConvAndMessage(label, message.id))
   }
   const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
-  const _onDelete = (message: Types.Message) => {
+  const _onDelete = (message: T.Chat.Message) => {
     messageDelete(message.ordinal)
   }
-  const _onDeleteMessageHistory = (message: Types.Message) => {
+  const _onDeleteMessageHistory = (message: T.Chat.Message) => {
     C.getConvoState(message.conversationIDKey).dispatch.navigateToThread('misc')
     navigateAppend({
       props: {conversationIDKey: message.conversationIDKey},
@@ -81,42 +80,42 @@ export default (ownProps: OwnProps) => {
     })
   }
   const setEditing = C.useChatContext(s => s.dispatch.setEditing)
-  const _onEdit = (message: Types.Message) => {
+  const _onEdit = (message: T.Chat.Message) => {
     setEditing(message.ordinal)
   }
-  const _onForward = (message: Types.Message) => {
+  const _onForward = (message: T.Chat.Message) => {
     navigateAppend({
       props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
       selected: 'chatForwardMsgPick',
     })
   }
-  const _onInstallBot = (message: Types.Message) => {
+  const _onInstallBot = (message: T.Chat.Message) => {
     navigateAppend({props: {botUsername: message.author}, selected: 'chatInstallBotPick'})
   }
-  const _onKick = (teamID: TeamTypes.TeamID, username: string) => {
+  const _onKick = (teamID: T.Teams.TeamID, username: string) => {
     navigateAppend({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'})
   }
   const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
-  const _onMarkAsUnread = (message: Types.Message) => {
+  const _onMarkAsUnread = (message: T.Chat.Message) => {
     setMarkAsUnread(message.id)
   }
   const pinMessage = C.useChatContext(s => s.dispatch.pinMessage)
-  const _onPinMessage = (message: Types.Message) => {
+  const _onPinMessage = (message: T.Chat.Message) => {
     pinMessage(message.id)
   }
   const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
-  const _onReact = (message: Types.Message, emoji: string) => {
+  const _onReact = (message: T.Chat.Message, emoji: string) => {
     toggleMessageReaction(message.ordinal, emoji)
   }
   const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
-  const _onReply = (message: Types.Message) => {
+  const _onReply = (message: T.Chat.Message) => {
     setReplyTo(message.ordinal)
   }
   const messageReplyPrivately = C.useChatContext(s => s.dispatch.messageReplyPrivately)
-  const _onReplyPrivately = (message: Types.Message) => {
+  const _onReplyPrivately = (message: T.Chat.Message) => {
     messageReplyPrivately(message.ordinal)
   }
-  const _onUserBlock = (message: Types.Message, isSingle: boolean) => {
+  const _onUserBlock = (message: T.Chat.Message, isSingle: boolean) => {
     navigateAppend({
       props: {
         blockUserByDefault: true,
@@ -127,7 +126,7 @@ export default (ownProps: OwnProps) => {
       selected: 'chatBlockingModal',
     })
   }
-  const _onUserFilter = (message: Types.Message, isSingle: boolean) => {
+  const _onUserFilter = (message: T.Chat.Message, isSingle: boolean) => {
     navigateAppend({
       props: {
         blockUserByDefault: true,
@@ -139,7 +138,7 @@ export default (ownProps: OwnProps) => {
       selected: 'chatBlockingModal',
     })
   }
-  const _onUserFlag = (message: Types.Message, isSingle: boolean) => {
+  const _onUserFlag = (message: T.Chat.Message, isSingle: boolean) => {
     navigateAppend({
       props: {
         blockUserByDefault: true,
@@ -152,7 +151,7 @@ export default (ownProps: OwnProps) => {
       selected: 'chatBlockingModal',
     })
   }
-  const _onUserReport = (message: Types.Message, isSingle: boolean) => {
+  const _onUserReport = (message: T.Chat.Message, isSingle: boolean) => {
     navigateAppend({
       props: {
         blockUserByDefault: true,

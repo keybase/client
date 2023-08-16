@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import UserNotice from '../user-notice'
 
 type Props = {
-  message: Types.MessageSystemNewChannel
+  message: T.Chat.MessageSystemNewChannel
   onManageChannels: () => void
 }
 
@@ -18,7 +18,7 @@ const NewChannel = (props: Props) => {
           fontSize: Styles.isMobile ? 15 : 13,
           ...styles.text,
         },
-      } as const),
+      }) as const,
     []
   )
   const {message, onManageChannels} = props

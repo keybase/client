@@ -4,7 +4,6 @@ import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import shallowEqual from 'shallowequal'
 import {OrdinalContext, HighlightedContext} from '../ids-context'
 import EmojiRow from '../emoji-row/container'
@@ -15,17 +14,17 @@ import {useMessagePopup} from '../message-popup'
 import PendingPaymentBackground from '../account-payment/pending-background'
 import ReactionsRow from '../reactions-row'
 import SendIndicator from './send-indicator'
-import type * as Types from '../../../../constants/types/chat2'
+import * as T from '../../../../constants/types'
 import capitalize from 'lodash/capitalize'
 import {useEdited} from './edited'
 import {Sent} from './sent'
 // import {useDebugLayout} from '../../../../util/debug'
 
 export type Props = {
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
 }
 
-const messageShowsPopup = (type?: Types.Message['type']) =>
+const messageShowsPopup = (type?: T.Chat.Message['type']) =>
   !!type &&
   [
     'text',
@@ -50,7 +49,7 @@ const messageShowsPopup = (type?: Types.Message['type']) =>
 // If there is no matching message treat it like a deleted
 const missingMessage = Constants.makeMessageDeleted({})
 
-export const useCommon = (ordinal: Types.Ordinal) => {
+export const useCommon = (ordinal: T.Chat.Ordinal) => {
   const showCenteredHighlight = useHighlightMode(ordinal)
 
   const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
@@ -85,7 +84,7 @@ type WMProps = {
 const successfulInlinePaymentStatuses = ['completed', 'claimable']
 const hasSuccessfulInlinePayments = (
   paymentStatusMap: Constants.State['paymentStatusMap'],
-  message: Types.Message
+  message: T.Chat.Message
 ): boolean => {
   if (message.type !== 'text' || !message.inlinePaymentIDs) {
     return false
@@ -99,11 +98,11 @@ const hasSuccessfulInlinePayments = (
   )
 }
 
-const useRedux = (ordinal: Types.Ordinal) => {
+const useRedux = (ordinal: T.Chat.Ordinal) => {
   const getReactionsPopupPosition = (
-    ordinals: Array<Types.Ordinal>,
+    ordinals: Array<T.Chat.Ordinal>,
     hasReactions: boolean,
-    message: Types.Message
+    message: T.Chat.Message
   ) => {
     if (Container.isMobile) return 'none' as const
     if (hasReactions) {
@@ -115,7 +114,7 @@ const useRedux = (ordinal: Types.Ordinal) => {
     return ordinals.at(-1) === ordinal ? ('last' as const) : ('middle' as const)
   }
 
-  const getEcrType = (message: Types.Message, you: string) => {
+  const getEcrType = (message: T.Chat.Message, you: string) => {
     if (!message || !you) {
       return EditCancelRetryType.NONE
     }
@@ -130,13 +129,13 @@ const useRedux = (ordinal: Types.Ordinal) => {
     }
 
     const {outboxID, errorTyp} = message
-    if (!!outboxID && errorTyp === RPCChatTypes.OutboxErrorType.toolong) {
+    if (!!outboxID && errorTyp === T.RPCChat.OutboxErrorType.toolong) {
       return EditCancelRetryType.EDIT_CANCEL
     }
     if (outboxID) {
       switch (errorTyp) {
-        case RPCChatTypes.OutboxErrorType.minwriter:
-        case RPCChatTypes.OutboxErrorType.restrictedbot:
+        case T.RPCChat.OutboxErrorType.minwriter:
+        case T.RPCChat.OutboxErrorType.restrictedbot:
           return EditCancelRetryType.CANCEL
       }
     }
@@ -207,7 +206,7 @@ type TSProps = {
   showingPicker: boolean
   showingPopup: boolean
   toggleShowingPopup: () => void
-  type: Types.MessageType
+  type: T.Chat.MessageType
   you: string
 }
 
@@ -295,7 +294,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   )
 })
 
-const useHighlightMode = (ordinal: Types.Ordinal) => {
+const useHighlightMode = (ordinal: T.Chat.Ordinal) => {
   const centeredOrdinalType = C.useChatContext(s => {
     const i = s.messageCenterOrdinal
     return i?.ordinal === ordinal ? i.highlightMode : undefined

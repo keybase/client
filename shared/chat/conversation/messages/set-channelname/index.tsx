@@ -1,9 +1,9 @@
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 type Props = {
-  message: Types.MessageSetChannelname
+  message: T.Chat.MessageSetChannelname
 }
 
 const ChannelNameMessage = (props: Props) => (
@@ -17,5 +17,5 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       text: {flexGrow: 1},
-    } as const)
+    }) as const
 )

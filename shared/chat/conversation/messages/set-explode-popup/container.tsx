@@ -1,10 +1,10 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import SetExplodeTime from '.'
 
-const makeItems = (meta: Types.ConversationMeta) => {
+const makeItems = (meta: T.Chat.ConversationMeta) => {
   const convRetention = Constants.getEffectiveRetentionPolicy(meta)
   if (convRetention.type !== 'explode') {
     return Constants.messageExplodeDescriptions

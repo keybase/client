@@ -2,8 +2,7 @@ import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import type * as ChatTypes from '../../../../constants/types/chat2'
-import type * as TeamTypes from '../../../../constants/types/teams'
+import type * as T from '../../../../constants/types'
 import * as InfoPanelCommon from '../common'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import {TeamsSubscriberMountOnly} from '../../../../teams/subscriber'
@@ -14,7 +13,7 @@ export type Props = {
   canAddPeople: boolean
   channelname?: string
   fullname?: string
-  teamType?: ChatTypes.TeamType
+  teamType?: T.Chat.TeamType
   ignored: boolean
   isMuted: boolean
   floatingMenuContainerStyle?: Styles.StylesCrossPlatform
@@ -24,7 +23,7 @@ export type Props = {
   manageChannelsSubtitle: string
   manageChannelsTitle: string
   teamname?: string
-  teamID?: TeamTypes.TeamID
+  teamID?: T.Teams.TeamID
   visible: boolean
   onAddPeople: () => void
   onBlockConv: () => void
@@ -81,7 +80,7 @@ const AdhocHeader = (props: AdhocHeaderProps) => {
 type TeamHeaderProps = {
   isMuted: boolean
   teamname: string
-  teamID: TeamTypes.TeamID
+  teamID: T.Teams.TeamID
   onViewTeam: () => void
 }
 const TeamHeader = (props: TeamHeaderProps) => {
