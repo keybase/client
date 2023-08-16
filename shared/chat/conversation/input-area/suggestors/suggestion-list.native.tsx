@@ -23,11 +23,11 @@ const SuggestionList = (props: Props) => (
       onScrollToIndexFailed={noop}
     />
     {props.suggestBotCommandsUpdateStatus &&
-      props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank && (
-        <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">
-          <BotCommandUpdateStatus status={props.suggestBotCommandsUpdateStatus} />
-        </Kb.Box2>
-      )}
+    props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
+      <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">
+        <BotCommandUpdateStatus status={props.suggestBotCommandsUpdateStatus} />
+      </Kb.Box2>
+    ) : null}
   </Kb.Box2>
 )
 

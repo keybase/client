@@ -1,4 +1,5 @@
 import * as Channels from './channels'
+import * as C from '../../../../constants'
 import * as Commands from './commands'
 import * as Emoji from './emoji'
 import * as Kb from '../../../../common-adapters'
@@ -357,10 +358,13 @@ const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, inputRef} = p
   // @ts-ignore hacky but we want the actual input
   const getAttachmentRef = React.useCallback(() => inputRef.current?._input.current, [inputRef])
+  const conversationIdKey = C.useChatContext(s => s.id)
 
   return Styles.isMobile ? (
     <Kb.FloatingBox containerStyle={suggestionOverlayStyle} onHidden={setInactive}>
-      <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2>
+      <C.ChatProvider id={conversationIdKey}>
+        <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2>
+      </C.ChatProvider>
     </Kb.FloatingBox>
   ) : (
     <Kb.Overlay
