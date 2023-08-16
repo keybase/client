@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as Kb from './../../common-adapters'
 import * as Styles from './../../styles'
-import * as Types from './../../constants/types/chat2'
+import * as T from './../../constants/types'
 import {useSpring, animated} from 'react-spring'
 import {skinTones} from './../../util/emoji'
 
-const circle = (skinTone: undefined | Types.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean) => {
+const circle = (skinTone: undefined | T.Chat.EmojiSkinTone, isExpanded: boolean, outerCircle: boolean) => {
   return (
     <Kb.Box style={{position: 'relative'}}>
       {outerCircle && <Kb.Box style={styles.circleOuter} />}
@@ -13,7 +13,7 @@ const circle = (skinTone: undefined | Types.EmojiSkinTone, isExpanded: boolean, 
         style={Styles.collapseStyles([
           !isExpanded && styles.circleCollapsed,
           isExpanded && styles.circleExpanded,
-          {backgroundColor: Types.SkinToneToDotColor(skinTone)},
+          {backgroundColor: T.Chat.SkinToneToDotColor(skinTone)},
         ])}
       ></Kb.Box>
     </Kb.Box>
@@ -21,9 +21,9 @@ const circle = (skinTone: undefined | Types.EmojiSkinTone, isExpanded: boolean, 
 }
 
 type Props = {
-  currentSkinTone?: Types.EmojiSkinTone
+  currentSkinTone?: T.Chat.EmojiSkinTone
   onExpandChange?: (expanded: boolean) => void
-  setSkinTone: (skinTone: undefined | Types.EmojiSkinTone) => void
+  setSkinTone: (skinTone: undefined | T.Chat.EmojiSkinTone) => void
 }
 
 const reorderedSkinTones = (currentSkinTone: Props['currentSkinTone']) => {

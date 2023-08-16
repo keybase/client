@@ -1,6 +1,5 @@
 import * as React from 'react'
-import type * as Types from './../../constants/types/chat2'
-import type * as RPCTypes from './../../constants/types/rpc-gen'
+import type * as T from './../../constants/types'
 import * as Data from './../../util/emoji'
 import * as Kb from './../../common-adapters'
 import * as Styles from './../../styles'
@@ -50,7 +49,7 @@ const getEmojiSections = memoize(
 
 const getFrequentSection = memoize(
   (
-    topReacjis: Array<RPCTypes.UserReacji>,
+    topReacjis: Array<T.RPCGen.UserReacji>,
     customEmojiGroups: Array<RPCChatGen.EmojiGroup>,
     emojisPerLine: number
   ): Section => {
@@ -90,12 +89,12 @@ type Section = _Section<
 
 type Props = {
   addEmoji: () => void
-  topReacjis: Array<RPCTypes.UserReacji>
+  topReacjis: Array<T.RPCGen.UserReacji>
   filter?: string
   hideFrequentEmoji: boolean
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
   onHover?: (emoji: EmojiData) => void
-  skinTone?: Types.EmojiSkinTone
+  skinTone?: T.Chat.EmojiSkinTone
   customEmojiGroups?: RPCChatGen.EmojiGroup[]
   width: number
   waitingForEmoji?: boolean
@@ -167,7 +166,7 @@ const getEmojisPerLine = (width: number) => width && Math.floor(width / emojiWid
 const getSectionsAndBookmarks = memoize(
   (
     width: number,
-    topReacjis: Array<RPCTypes.UserReacji>,
+    topReacjis: Array<T.RPCGen.UserReacji>,
     hideTopReacjis: boolean,
     customEmojiGroups?: RPCChatGen.EmojiGroup[]
   ) => {
@@ -246,7 +245,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     this.mounted = false
   }
 
-  private getEmojiSingle = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) => {
+  private getEmojiSingle = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
     const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
     return (
@@ -426,7 +425,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
   }
 }
 
-export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: Types.EmojiSkinTone) => {
+export const getSkinToneModifierStrIfAvailable = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
   if (skinTone && emoji.skin_variations?.[skinTone]) {
     const {emojiSkinTones} = _getData()
     const idx = emojiSkinTones.indexOf(skinTone)
@@ -489,7 +488,7 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 1,
         overflow: 'hidden',
       },
-    } as const)
+    }) as const
 )
 
 export default EmojiPicker

@@ -1,10 +1,10 @@
 import * as C from '../../../constants'
 import * as React from 'react'
 import JumpToRecent from './jump-to-recent'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import logger from '../../../logger'
 
-export const useActions = (p: {conversationIDKey: Types.ConversationIDKey}) => {
+export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => {
   const {conversationIDKey} = p
   const markInitiallyLoadedThreadAsRead = React.useCallback(() => {
     const selected = C.getSelectedConversation()

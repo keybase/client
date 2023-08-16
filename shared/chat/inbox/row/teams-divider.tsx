@@ -4,19 +4,19 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as RowSizes from './sizes'
 import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import {memoize} from '../../../util/memoize'
 
 type Props = {
   hiddenCountDelta?: number
   smallTeamsExpanded: boolean
-  rows: Array<Types.ChatInboxRowItem>
+  rows: Array<T.Chat.ChatInboxRowItem>
   showButton: boolean
   toggle: () => void
   style?: Styles.StylesCrossPlatform
 }
 
-const getRowCounts = memoize((badges: Types.ConversationCountMap, rows: Array<Types.ChatInboxRowItem>) => {
+const getRowCounts = memoize((badges: T.Chat.ConversationCountMap, rows: Array<T.Chat.ChatInboxRowItem>) => {
   let badgeCount = 0
   let hiddenCount = 0
 

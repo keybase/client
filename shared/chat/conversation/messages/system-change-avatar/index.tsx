@@ -1,11 +1,11 @@
 import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import UserNotice from '../user-notice'
 
 type Props = {
-  message: Types.MessageSystemChangeAvatar
+  message: T.Chat.MessageSystemChangeAvatar
 }
 const SystemChangeAvatar = (props: Props) => {
   const you = C.useCurrentUserState(s => s.username)

@@ -1,9 +1,9 @@
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 
 type Props = {
-  message: Types.MessageSetDescription
+  message: T.Chat.MessageSetDescription
 }
 
 const lquote = '\u201C'
@@ -31,5 +31,5 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       text: {flexGrow: 1},
-    } as const)
+    }) as const
 )

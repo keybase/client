@@ -5,16 +5,15 @@ import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as TeamConstants from '../../../constants/teams'
 import type * as Container from '../../../util/container'
-import type * as RPCTypes from '../../../constants/types/rpc-gen'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import type {Section as _Section} from '../../../common-adapters/section-list'
 
 type AddToChannelProps = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   username: string
 }
 type Extra = {renderSectionHeader?: (info: {section: Section}) => React.ReactElement | null}
-type Section = _Section<string | RPCTypes.FeaturedBot, Extra> | _Section<{key: string}, Extra>
+type Section = _Section<string | T.RPCGen.FeaturedBot, Extra> | _Section<{key: string}, Extra>
 
 const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
@@ -44,13 +43,13 @@ const AddToChannel = (props: AddToChannelProps) => {
   )
 }
 
-type BotProps = RPCTypes.FeaturedBot & {
+type BotProps = T.RPCGen.FeaturedBot & {
   description?: string
   firstItem?: boolean
   hideHover?: boolean
   showChannelAdd?: boolean
   showTeamAdd?: boolean
-  conversationIDKey?: Types.ConversationIDKey
+  conversationIDKey?: T.Chat.ConversationIDKey
   onClick: (username: string) => void
 }
 export const Bot = (props: BotProps) => {
@@ -273,7 +272,7 @@ const BotTab = (props: Props) => {
   }
 
   // @ts-ignore TODO Fix
-  const items: Array<string | RPCTypes.FeaturedBot> = [
+  const items: Array<string | T.RPCGen.FeaturedBot> = [
     ...(canManageBots ? [addBotButton] : []),
     ...(botsInConv.length > 0 ? [inThisChannelHeader] : []),
     ...usernamesToFeaturedBots(botsInConv),
