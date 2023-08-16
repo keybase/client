@@ -1,9 +1,9 @@
 import * as C from '../../constants'
-import type * as Types from '../../constants/types/chat2'
+import type * as T from '../../constants/types'
 import DeleteHistoryWarning from '.'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey // for page
+  conversationIDKey: T.Chat.ConversationIDKey // for page
 }
 
 export default (_ownProps: OwnProps) => {

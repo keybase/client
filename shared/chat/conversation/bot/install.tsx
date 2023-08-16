@@ -1,21 +1,18 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as TeamConstants from '../../../constants/teams'
-import * as TeamTypes from '../../../constants/types/teams'
 import ChannelPicker from './channel-picker'
 import openURL from '../../../util/open-url'
-import type * as RPCTypes from '../../../constants/types/rpc-gen'
-import type * as Types from '../../../constants/types/chat2'
+import * as T from '../../../constants/types'
 import {useAllChannelMetas} from '../../../teams/common/channel-hooks'
 
 const RestrictedItem = '---RESTRICTED---'
 
-export const useBotConversationIDKey = (inConvIDKey?: Types.ConversationIDKey, teamID?: TeamTypes.TeamID) => {
+export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, teamID?: T.Teams.TeamID) => {
   const [conversationIDKey, setConversationIDKey] = React.useState(inConvIDKey)
   const generalConvID = C.useChatState(s => teamID && s.teamIDToGeneralConvID.get(teamID))
   const findGeneralConvIDFromTeamID = C.useChatState(s => s.dispatch.findGeneralConvIDFromTeamID)
@@ -33,8 +30,8 @@ export const useBotConversationIDKey = (inConvIDKey?: Types.ConversationIDKey, t
 
 type LoaderProps = {
   botUsername: string
-  conversationIDKey?: Types.ConversationIDKey
-  teamID?: TeamTypes.TeamID
+  conversationIDKey?: T.Chat.ConversationIDKey
+  teamID?: T.Teams.TeamID
 }
 
 const InstallBotPopupLoader = (props: LoaderProps) => {
@@ -52,10 +49,10 @@ const InstallBotPopupLoader = (props: LoaderProps) => {
 
 type Props = {
   botUsername: string
-  conversationIDKey?: Types.ConversationIDKey
+  conversationIDKey?: T.Chat.ConversationIDKey
 }
 
-const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
+const blankCommands: Array<T.RPCChat.ConversationCommand> = []
 
 const InstallBotPopup = (props: Props) => {
   const {botUsername, conversationIDKey} = props
@@ -74,13 +71,13 @@ const InstallBotPopup = (props: Props) => {
   const commands = React.useMemo(() => {
     const {botCommands} = meta
     const commands = (
-      botCommands.typ === RPCChatTypes.ConversationCommandGroupsTyp.custom
+      botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
         ? botCommands.custom.commands || blankCommands
         : blankCommands
     )
       .filter(c => c.username === botUsername)
       .map(c => c.name)
-    const convCommands: Types.BotPublicCommands = {commands, loadError: false}
+    const convCommands: T.Chat.BotPublicCommands = {commands, loadError: false}
     return commands.length > 0 ? convCommands : botPublicCommands
   }, [meta, botPublicCommands, botUsername])
 
@@ -95,7 +92,7 @@ const InstallBotPopup = (props: Props) => {
   )
   const settings = C.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
   let teamname: string | undefined
-  let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
+  let teamID: T.Teams.TeamID = T.Teams.noTeamID
   if (meta?.teamname) {
     teamID = meta.teamID
     teamname = meta.teamname
@@ -497,7 +494,7 @@ const InstallBotPopup = (props: Props) => {
 }
 
 type CommandsLabelProps = {
-  commands: Types.BotPublicCommands | undefined
+  commands: T.Chat.BotPublicCommands | undefined
 }
 
 const maxCommandsShown = 3
@@ -549,9 +546,9 @@ const CommandsLabel = (props: CommandsLabelProps) => {
 }
 
 type PermsListProps = {
-  channelMetas?: Map<Types.ConversationIDKey, Types.ConversationMeta>
-  commands: Types.BotPublicCommands | undefined
-  settings?: RPCTypes.TeamBotSettings
+  channelMetas?: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
+  commands: T.Chat.BotPublicCommands | undefined
+  settings?: T.RPCGen.TeamBotSettings
   username: string
 }
 
