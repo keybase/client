@@ -2,7 +2,7 @@ import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import {FloatingRolePicker} from '../role-picker'
-import type {TeamRoleType} from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 import type {Contact} from '../common/use-contacts.native'
 
 // Contact info + other things needed for list row.
@@ -51,8 +51,8 @@ const contactRow = (_: number, props: ContactRowProps) => {
 
 export type InviteByContactProps = {
   onBack: () => void
-  selectedRole: TeamRoleType
-  onRoleChange: (newRole: TeamRoleType) => void
+  selectedRole: T.Teams.TeamRoleType
+  onRoleChange: (newRole: T.Teams.TeamRoleType) => void
   teamName: string
   listItems: Array<ContactRowProps>
   errorMessage?: string
@@ -204,5 +204,5 @@ const styles = Styles.styleSheetCreate(
         marginRight: 16,
         width: 48,
       },
-    } as const)
+    }) as const
 )

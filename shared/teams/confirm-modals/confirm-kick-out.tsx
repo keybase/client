@@ -2,18 +2,18 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Types from '../../constants/types/teams'
+import * as T from '../../constants/types'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
 import {memoize} from '../../util/memoize'
 
 type Props = {
   members: string[]
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }
 
 const getSubteamNames = memoize(
-  (state: Constants.State, teamID: Types.TeamID): [string[], Types.TeamID[]] => {
+  (state: Constants.State, teamID: T.Teams.TeamID): [string[], T.Teams.TeamID[]] => {
     const subteamIDs = [...(C.useTeamsState.getState().teamDetails.get(teamID)?.subteams ?? [])]
     return [subteamIDs.map(id => Constants.getTeamMeta(state, id).teamname), subteamIDs]
   }
@@ -21,7 +21,7 @@ const getSubteamNames = memoize(
 
 const ConfirmKickOut = (props: Props) => {
   const members = props.members
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
   const [subteamsToo, setSubteamsToo] = React.useState(false)
 
   const [subteams, subteamIDs] = C.useTeamsState(s => getSubteamNames(s, teamID))
