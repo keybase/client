@@ -2,7 +2,7 @@ import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import chunk from 'lodash/chunk'
@@ -209,8 +209,8 @@ const DocViewRow = (props: DocViewRowProps) => {
 }
 
 type SelectorProps = {
-  selectedView: RPCChatTypes.GalleryItemTyp
-  onSelectView: (typ: RPCChatTypes.GalleryItemTyp) => void
+  selectedView: T.RPCChat.GalleryItemTyp
+  onSelectView: (typ: T.RPCChat.GalleryItemTyp) => void
 }
 
 const getBkgColor = (selected: boolean) =>
@@ -221,38 +221,38 @@ const getColor = (selected: boolean) =>
 const AttachmentTypeSelector = (props: SelectorProps) => (
   <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.selectorContainer} fullWidth={true}>
     <Kb.ClickableBox
-      onClick={() => props.onSelectView(RPCChatTypes.GalleryItemTyp.media)}
+      onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.media)}
       style={Styles.collapseStyles([
         styles.selectorItemContainer,
         styles.selectorMediaContainer,
-        getBkgColor(props.selectedView === RPCChatTypes.GalleryItemTyp.media),
+        getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.media),
       ])}
     >
-      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === RPCChatTypes.GalleryItemTyp.media)}>
+      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.media)}>
         Media
       </Kb.Text>
     </Kb.ClickableBox>
     <Kb.ClickableBox
-      onClick={() => props.onSelectView(RPCChatTypes.GalleryItemTyp.doc)}
+      onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.doc)}
       style={Styles.collapseStyles([
         styles.selectorDocContainer,
         styles.selectorItemContainer,
-        getBkgColor(props.selectedView === RPCChatTypes.GalleryItemTyp.doc),
+        getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc),
       ])}
     >
-      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === RPCChatTypes.GalleryItemTyp.doc)}>
+      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc)}>
         Docs
       </Kb.Text>
     </Kb.ClickableBox>
     <Kb.ClickableBox
-      onClick={() => props.onSelectView(RPCChatTypes.GalleryItemTyp.link)}
+      onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.link)}
       style={Styles.collapseStyles([
         styles.selectorItemContainer,
         styles.selectorLinkContainer,
-        getBkgColor(props.selectedView === RPCChatTypes.GalleryItemTyp.link),
+        getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.link),
       ])}
     >
-      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === RPCChatTypes.GalleryItemTyp.link)}>
+      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.link)}>
         Links
       </Kb.Text>
     </Kb.ClickableBox>
@@ -397,8 +397,8 @@ export const useAttachmentSections = (
   useFlexWrap: boolean
 ): Array<Section<any, {title?: string}>> => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const [selectedAttachmentView, onSelectAttachmentView] = React.useState<RPCChatTypes.GalleryItemTyp>(
-    RPCChatTypes.GalleryItemTyp.media
+  const [selectedAttachmentView, onSelectAttachmentView] = React.useState<T.RPCChat.GalleryItemTyp>(
+    T.RPCChat.GalleryItemTyp.media
   )
   const cidChanged = C.useCIDChanged(conversationIDKey)
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
@@ -420,7 +420,7 @@ export const useAttachmentSections = (
 
   const onLoadMore = fromMsgID ? () => loadAttachmentView(selectedAttachmentView, fromMsgID) : undefined
 
-  const onAttachmentViewChange = (viewType: RPCChatTypes.GalleryItemTyp) => {
+  const onAttachmentViewChange = (viewType: T.RPCChat.GalleryItemTyp) => {
     onSelectAttachmentView(viewType)
   }
 
@@ -510,7 +510,7 @@ export const useAttachmentSections = (
     sections = [...commonSections, ...sections, loadMoreSection]
   } else {
     switch (selectedAttachmentView) {
-      case RPCChatTypes.GalleryItemTyp.media:
+      case T.RPCChat.GalleryItemTyp.media:
         {
           const rowSize = 4 // count of images in each row
           const maxMediaThumbSize = infoPanelWidth() / rowSize
@@ -566,7 +566,7 @@ export const useAttachmentSections = (
           sections = [...commonSections, ...s, loadMoreSection]
         }
         break
-      case RPCChatTypes.GalleryItemTyp.doc:
+      case T.RPCChat.GalleryItemTyp.doc:
         {
           const docs = (attachmentInfo.messages as Array<T.Chat.MessageAttachment>).map(m => ({
             author: m.author,
@@ -590,7 +590,7 @@ export const useAttachmentSections = (
           sections = [...commonSections, ...s, loadMoreSection]
         }
         break
-      case RPCChatTypes.GalleryItemTyp.link:
+      case T.RPCChat.GalleryItemTyp.link:
         {
           const links = attachmentInfo.messages.reduce<
             Array<{
@@ -614,7 +614,7 @@ export const useAttachmentSections = (
               })
             } else {
               ;[...m.unfurls.values()].forEach((u, i) => {
-                if (u.unfurl.unfurlType === RPCChatTypes.UnfurlType.generic) {
+                if (u.unfurl.unfurlType === T.RPCChat.UnfurlType.generic) {
                   l.push({
                     author: m.author,
                     ctime: m.timestamp,

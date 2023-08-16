@@ -1,9 +1,8 @@
 import * as Z from '../util/zustand'
-import * as ChatTypes from './types/rpc-chat-gen'
+import * as T from './types'
 import {isValidEmail} from '../util/simple-validators'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
-import * as T from './types'
 
 export const addEmailWaitingKey = 'settings:addEmail'
 
@@ -58,7 +57,7 @@ export type State = Store & {
       makeSearchable?: boolean
       verify?: boolean
     }) => void
-    notifyEmailAddressEmailsChanged: (list: ChatTypes.Keybase1.Email[]) => void
+    notifyEmailAddressEmailsChanged: (list: T.RPCChat.Keybase1.Email[]) => void
     notifyEmailVerified: (email: string) => void
     resetAddedEmail: () => void
     resetAddingEmail: () => void
@@ -150,8 +149,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.emailsSetVisibilityEmailRpcPromise({
             email: p.email,
             visibility: p.makeSearchable
-              ? ChatTypes.Keybase1.IdentityVisibility.public
-              : ChatTypes.Keybase1.IdentityVisibility.private,
+              ? T.RPCChat.Keybase1.IdentityVisibility.public
+              : T.RPCChat.Keybase1.IdentityVisibility.private,
           })
           return
         }

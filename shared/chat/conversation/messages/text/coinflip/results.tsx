@@ -1,21 +1,21 @@
 import partition from 'lodash/partition'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../../constants/types'
 
 type Props = {
-  result: RPCChatTypes.UICoinFlipResult
+  result: T.RPCChat.UICoinFlipResult
 }
 
 const CoinFlipResult = (props: Props) => {
   switch (props.result.typ) {
-    case RPCChatTypes.UICoinFlipResultTyp.shuffle:
+    case T.RPCChat.UICoinFlipResultTyp.shuffle:
       return <CoinFlipResultShuffle shuffle={props.result.shuffle} />
-    case RPCChatTypes.UICoinFlipResultTyp.deck:
+    case T.RPCChat.UICoinFlipResultTyp.deck:
       return <CoinFlipResultDeck deck={props.result.deck || undefined} />
-    case RPCChatTypes.UICoinFlipResultTyp.hands:
+    case T.RPCChat.UICoinFlipResultTyp.hands:
       return <CoinFlipResultHands hands={props.result.hands} />
-    case RPCChatTypes.UICoinFlipResultTyp.coin:
+    case T.RPCChat.UICoinFlipResultTyp.coin:
       return <CoinFlipResultCoin coin={props.result.coin} />
     default:
       return <CoinFlipResultNumber number={props.result.number} />
@@ -147,9 +147,7 @@ const CoinFlipResultDeck = (props: DeckType) => (
     fullWidth={true}
     style={Styles.collapseStyles([styles.cards, !props.hand && styles.noMarginTop])}
   >
-    {props.deck?.map(card => (
-      <Card key={card} card={card} hand={props.hand} />
-    ))}
+    {props.deck?.map(card => <Card key={card} card={card} hand={props.hand} />)}
   </Kb.Box2>
 )
 
@@ -171,7 +169,7 @@ const CoinFlipResultCoin = (props: CoinType) => (
 )
 
 type HandType = {
-  hands?: Array<RPCChatTypes.UICoinFlipHand>
+  hands?: Array<T.RPCChat.UICoinFlipHand>
 }
 
 const CoinFlipResultHands = (props: HandType) => {
@@ -232,9 +230,7 @@ type ShuffleType = {
 
 const CoinFlipResultShuffle = (props: ShuffleType) => (
   <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xtiny" style={styles.listContainer}>
-    {props.shuffle?.slice(0, 5).map((item, i) => (
-      <CoinFlipResultShuffleItem key={i} item={item} index={i} />
-    ))}
+    {props.shuffle?.slice(0, 5).map((item, i) => <CoinFlipResultShuffleItem key={i} item={item} index={i} />)}
     {props.shuffle && props.shuffle.length > 5 && (
       <Kb.Box2 direction="horizontal" style={styles.listFullContainer}>
         <Kb.Text selectable={true} type="BodySmallBold" style={styles.listFull}>
@@ -381,7 +377,7 @@ const styles = Styles.styleSheetCreate(
       noMarginTop: {
         marginTop: 0,
       },
-    } as const)
+    }) as const
 )
 
 export default CoinFlipResult

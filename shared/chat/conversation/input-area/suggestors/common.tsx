@@ -3,7 +3,7 @@ import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import SuggestionList from './suggestion-list'
-import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import type * as T from '../../../../constants/types'
 
 export type TransformerData = {
   text: string
@@ -48,7 +48,7 @@ export type ListProps<T> = {
   expanded: boolean
   items: Array<T>
   keyExtractor: (item: T, idx: number) => string
-  suggestBotCommandsUpdateStatus?: RPCChatTypes.UIBotCommandsUpdateStatusTyp
+  suggestBotCommandsUpdateStatus?: T.RPCChat.UIBotCommandsUpdateStatusTyp
   listStyle: Styles.StylesCrossPlatform
   spinnerStyle: Styles.StylesCrossPlatform
   loading: boolean

@@ -2,8 +2,7 @@ import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
-import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
-import type * as T from '../../../constants/types'
+import * as T from '../../../constants/types'
 import * as Constants from '../../../constants/teams'
 import type {RPCError} from '../../../util/errors'
 import {ChannelsWidget} from '../../common'
@@ -13,7 +12,7 @@ type Props = {
 }
 
 export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
-  const getDefaultChannelsRPC = Container.useRPC(RPCChatGen.localGetDefaultTeamChannelsLocalRpcPromise)
+  const getDefaultChannelsRPC = Container.useRPC(T.RPCChat.localGetDefaultTeamChannelsLocalRpcPromise)
   const [defaultChannels, setDefaultChannels] = React.useState<Array<T.Teams.ChannelNameID>>([])
   const [defaultChannelsWaiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState<RPCError | undefined>()
@@ -45,7 +44,7 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
 const DefaultChannels = (props: Props) => {
   const {teamID} = props
   const {defaultChannels, defaultChannelsWaiting, reloadDefaultChannels} = useDefaultChannels(teamID)
-  const setDefaultChannelsRPC = Container.useRPC(RPCChatGen.localSetDefaultTeamChannelsLocalRpcPromise)
+  const setDefaultChannelsRPC = Container.useRPC(T.RPCChat.localSetDefaultTeamChannelsLocalRpcPromise)
   const [waiting, setWaiting] = React.useState(false)
   // TODO TRIAGE-2474
   // Implicit admins should be able to set this, but chat stuff doesnt know about them.

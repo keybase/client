@@ -2,7 +2,7 @@ import * as C from '../../constants'
 import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
-import * as RPCStellarTypes from '../../constants/types/rpc-stellar-gen'
+import * as T from '../../constants/types'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import WalletPopup from '../wallet-popup'
@@ -21,7 +21,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
 
   const [sk, setSK] = React.useState('')
   const loading = !sk
-  const getSecretKey = Container.useRPC(RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise)
+  const getSecretKey = Container.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()

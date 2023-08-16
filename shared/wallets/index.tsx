@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
+import * as T from '../constants/types'
 import * as Constants from '../constants/wallets'
 import * as WaitingConstants from '../constants/waiting'
 import {useFocusEffect} from '@react-navigation/native'
@@ -13,7 +13,7 @@ const Row = (p: {account: Constants.Account}) => {
   const {name, accountID, deviceReadOnly, balanceDescription, isDefault} = account
   const [sk, setSK] = React.useState('')
   const [err, setErr] = React.useState('')
-  const getSecretKey = Container.useRPC(RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise)
+  const getSecretKey = Container.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onRemove = React.useCallback(() => {
     navigateAppend({props: {accountID}, selected: 'removeAccount'})
@@ -105,7 +105,7 @@ const Row = (p: {account: Constants.Account}) => {
 
 export default () => {
   const [acceptedDisclaimer, setAcceptedDisclaimer] = React.useState(false)
-  const checkDisclaimer = Container.useRPC(RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise)
+  const checkDisclaimer = Container.useRPC(T.RPCStellar.localHasAcceptedDisclaimerLocalRpcPromise)
 
   const load = C.useWalletsState(s => s.dispatch.load)
 

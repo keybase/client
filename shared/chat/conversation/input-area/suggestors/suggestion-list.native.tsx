@@ -1,5 +1,5 @@
 import * as Kb from '../../../../common-adapters'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../constants/types'
 import * as Styles from '../../../../styles'
 import noop from 'lodash/noop'
 import type {Props} from './suggestion-list'
@@ -23,7 +23,7 @@ const SuggestionList = (props: Props) => (
       onScrollToIndexFailed={noop}
     />
     {props.suggestBotCommandsUpdateStatus &&
-      props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank && (
+      props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank && (
         <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">
           <BotCommandUpdateStatus status={props.suggestBotCommandsUpdateStatus} />
         </Kb.Box2>
@@ -41,7 +41,7 @@ const styles = Styles.styleSheetCreate(
       },
       listContainer: {flexGrow: 0, marginTop: 'auto'},
       noGrow: {flexGrow: 0},
-    } as const)
+    }) as const
 )
 
 export default SuggestionList

@@ -1,6 +1,6 @@
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../constants/types'
 import {formatDurationShort} from '../../../../util/timestamp'
 
 export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: number}) => {
@@ -20,19 +20,19 @@ export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: num
 }
 
 type BotCommandUpdateStatusProps = {
-  status: RPCChatTypes.UIBotCommandsUpdateStatusTyp
+  status: T.RPCChat.UIBotCommandsUpdateStatusTyp
 }
 
 export const BotCommandUpdateStatus = (props: BotCommandUpdateStatusProps) => {
   let statusText = ''
   switch (props.status) {
-    case RPCChatTypes.UIBotCommandsUpdateStatusTyp.uptodate:
+    case T.RPCChat.UIBotCommandsUpdateStatusTyp.uptodate:
       statusText = 'Bot commands are up-to-date'
       break
-    case RPCChatTypes.UIBotCommandsUpdateStatusTyp.failed:
+    case T.RPCChat.UIBotCommandsUpdateStatusTyp.failed:
       statusText = 'Failed to update bot commands'
       break
-    case RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating:
+    case T.RPCChat.UIBotCommandsUpdateStatusTyp.updating:
       statusText = 'Updating bot commands...'
       break
   }

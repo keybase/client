@@ -1,4 +1,3 @@
-import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as T from './types'
 import * as Z from '../util/zustand'
 import logger from '../logger'
@@ -104,10 +103,10 @@ export type State = Store & {
     clearPhoneNumberErrors: () => void
     editPhone: (phone: string, del?: boolean, setSearchable?: boolean) => void
     loadDefaultPhoneCountry: () => void
-    notifyPhoneNumberPhoneNumbersChanged: (list?: RPCChatTypes.Keybase1.UserPhoneNumber[]) => void
+    notifyPhoneNumberPhoneNumbersChanged: (list?: T.RPCChat.Keybase1.UserPhoneNumber[]) => void
     resendVerificationForPhone: (phoneNumber: string) => void
     resetState: 'default'
-    setNumbers: (phoneNumbers?: RPCChatTypes.Keybase1.UserPhoneNumber[]) => void
+    setNumbers: (phoneNumbers?: T.RPCChat.Keybase1.UserPhoneNumber[]) => void
     verifyPhoneNumber: (phoneNumber: string, code: string) => void
   }
 }
@@ -172,8 +171,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.phoneNumbersSetVisibilityPhoneNumberRpcPromise({
             phoneNumber,
             visibility: setSearchable
-              ? RPCChatTypes.Keybase1.IdentityVisibility.public
-              : RPCChatTypes.Keybase1.IdentityVisibility.private,
+              ? T.RPCChat.Keybase1.IdentityVisibility.public
+              : T.RPCChat.Keybase1.IdentityVisibility.private,
           })
         }
       }

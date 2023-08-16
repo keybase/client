@@ -1,11 +1,11 @@
 import * as C from '../../../constants'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as T from '../../../constants/types'
 import CommandStatus from '.'
 
 const empty = {
   actions: [],
   displayText: '',
-  displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
+  displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
 }
 
 export default () => {
@@ -18,9 +18,9 @@ export default () => {
     setCommandStatusInfo()
   }
   const props = {
-    actions: (_info.actions || []).map((a: RPCChatTypes.UICommandStatusActionTyp) => {
+    actions: (_info.actions || []).map((a: T.RPCChat.UICommandStatusActionTyp) => {
       switch (a) {
-        case RPCChatTypes.UICommandStatusActionTyp.appsettings:
+        case T.RPCChat.UICommandStatusActionTyp.appsettings:
           return {
             displayText: 'View App Settings',
             onClick: () => onOpenAppSettings?.(),
