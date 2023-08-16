@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import Row, {NewContext} from './row'
 import sortBy from 'lodash/sortBy'
-import type * as Types from '../constants/types/git'
+import type * as T from '../constants/types'
 import {memoize} from '../util/memoize'
 import {union} from '../util/set'
 import {useFocusEffect} from '@react-navigation/core'
@@ -17,7 +17,7 @@ type OwnProps = {expanded?: string}
 // keep track in the module
 let moduleExpandedSet = new Set<string>()
 
-const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
+const getRepos = memoize((git: Map<string, T.Git.GitInfo>) =>
   sortBy([...git.values()], ['teamname', 'name']).reduce<{personals: Array<string>; teams: Array<string>}>(
     (pt, info) => {
       const target = info.teamname ? pt.teams : pt.personals
