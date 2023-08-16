@@ -110,12 +110,7 @@ const ConversationList = React.memo(function ConversationList(p: {
   ) : null
 
   const {conversationIDKey, requestScrollToBottomRef} = p
-
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  const cidChanged = lastCID !== conversationIDKey
-  if (cidChanged) {
-    setLastCID(conversationIDKey)
-  }
+  const cidChanged = C.useCIDChanged(conversationIDKey)
 
   // used to force a rerender when a type changes, aka placeholder resolves
   const [extraData, setExtraData] = React.useState(0)

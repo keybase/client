@@ -3,10 +3,12 @@ import type * as Types from '../constants/types/chat2'
 import NewTeamDialog from '../teams/new-team'
 import upperFirst from 'lodash/upperFirst'
 
-type OwnProps = {conversationIDKey: Types.ConversationIDKey}
+type OwnProps = {
+  conversationIDKey: Types.ConversationIDKey // for page
+}
 
-export default (ownProps: OwnProps) => {
-  const conversationIDKey = ownProps.conversationIDKey ?? C.noConversationIDKey
+export default (_: OwnProps) => {
+  const conversationIDKey = C.useChatContext(s => s.id)
   const baseTeam = ''
   const errorText = C.useTeamsState(s => upperFirst(s.errorInTeamCreation))
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

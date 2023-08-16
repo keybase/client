@@ -6,11 +6,9 @@ const Titles = React.lazy(async () => import('./container'))
 type OwnProps = Container.ViewPropsToPageProps<typeof Titles>
 
 const Screen = (p: OwnProps) => (
-  <React.Suspense>
-    <C.ChatProvider id={p.route.params.conversationIDKey}>
-      <Titles {...p.route.params} />
-    </C.ChatProvider>
-  </React.Suspense>
+  <C.ProviderScreen rp={p}>
+    <Titles {...p.route.params} />
+  </C.ProviderScreen>
 )
 
 export default {getScreen: () => Screen}

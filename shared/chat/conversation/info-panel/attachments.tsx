@@ -400,15 +400,14 @@ export const useAttachmentSections = (
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<RPCChatTypes.GalleryItemTyp>(
     RPCChatTypes.GalleryItemTyp.media
   )
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
+  const cidChanged = C.useCIDChanged(conversationIDKey)
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
   const loadAttachmentView = C.useChatContext(s => s.dispatch.loadAttachmentView)
 
   Container.useOnMountOnce(() => {
     loadAttachmentView(selectedAttachmentView)
   })
-  if (lastCID !== conversationIDKey || lastSAV !== selectedAttachmentView) {
-    setLastCID(conversationIDKey)
+  if (cidChanged || lastSAV !== selectedAttachmentView) {
     setLastSAV(selectedAttachmentView)
     if (loadImmediately) {
       loadAttachmentView(selectedAttachmentView)

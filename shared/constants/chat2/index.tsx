@@ -240,25 +240,6 @@ export const messageAuthorIsBot = (
     : false // if we don't have team information, don't show bot icon
 }
 
-export const getBotRestrictBlockMap = (
-  settings: Map<string, RPCChatTypes.Keybase1.TeamBotSettings | undefined>,
-  conversationIDKey: Types.ConversationIDKey,
-  bots: Array<string>
-) => {
-  const blocks = new Map<string, boolean>()
-  bots.forEach(b => {
-    const botSettings = settings.get(b)
-    if (!botSettings) {
-      blocks.set(b, false)
-      return
-    }
-    const convs = botSettings.convs
-    const cmds = botSettings.cmds
-    blocks.set(b, !cmds || (!((convs?.length ?? 0) === 0) && !convs?.find(c => c === conversationIDKey)))
-  })
-  return blocks
-}
-
 export const uiParticipantsToParticipantInfo = (uiParticipants: Array<RPCChatTypes.UIParticipant>) => {
   const participantInfo: Types.ParticipantInfo = {all: [], contactName: new Map(), name: []}
   uiParticipants.forEach(part => {
@@ -1973,3 +1954,25 @@ export {
   isValidConversationIDKey,
   dummyConversationIDKey,
 } from '../types/chat2/common'
+
+import * as React from 'react'
+export const useCIDChanged = (
+  conversationIDKey?: Types.ConversationIDKey,
+  f?: () => void,
+  forceCall?: boolean // call f on first time
+) => {
+  const didForceCall = React.useRef(false)
+  let changed = false
+  if (forceCall === true && !didForceCall.current) {
+    changed = true
+    didForceCall.current = true
+    f?.()
+  }
+  const [lastCID, setLastCID] = React.useState(conversationIDKey)
+  if (lastCID !== conversationIDKey) {
+    setLastCID(conversationIDKey)
+    f?.()
+    changed = true
+  }
+  return changed
+}

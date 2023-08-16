@@ -7,7 +7,6 @@ import * as Common from './common'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
-import type * as Types from '../../../../constants/types/chat2'
 import isEqual from 'lodash/isEqual'
 
 export const transformer = (
@@ -83,14 +82,12 @@ const getChannelSuggestions = (
   return suggestions
 }
 
-export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-
+export const useDataSource = (filter: string) => {
+  const conversationIDKey = C.useChatContext(s => s.id)
   const channelSuggestionsTriggered = C.useChatContext(s => s.dispatch.channelSuggestionsTriggered)
-  if (lastCID !== conversationIDKey) {
-    setLastCID(conversationIDKey)
+  C.useCIDChanged(conversationIDKey, () => {
     channelSuggestionsTriggered()
-  }
+  })
 
   const meta = C.useChatContext(s => s.meta)
   const {teamID} = meta
@@ -121,7 +118,6 @@ type ListProps = Pick<
   Common.ListProps<ChannelType>,
   'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
-  conversationIDKey: Types.ConversationIDKey
   filter: string
   onSelected: (item: ChannelType, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
@@ -129,7 +125,7 @@ type ListProps = Pick<
 }
 export const List = (p: ListProps) => {
   const {filter, ...rest} = p
-  const {items, loading} = useDataSource(p.conversationIDKey, filter)
+  const {items, loading} = useDataSource(filter)
   return (
     <Common.List
       {...rest}

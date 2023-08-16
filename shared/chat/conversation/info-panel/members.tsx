@@ -35,11 +35,10 @@ const MembersTab = (props: Props) => {
   const participants = C.useChatContext(
     s => Constants.getBotsAndParticipants(s.meta, s.participants).participants
   )
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
+  const cidChanged = C.useCIDChanged(conversationIDKey)
   const [lastTeamName, setLastTeamName] = React.useState('')
-  if (lastTeamName !== teamname || lastCID !== conversationIDKey) {
+  if (lastTeamName !== teamname || cidChanged) {
     setLastTeamName(teamname)
-    setLastCID(conversationIDKey)
     if (teamname) {
       refreshParticipants(
         [{convID: Types.keyToConversationID(conversationIDKey)}],

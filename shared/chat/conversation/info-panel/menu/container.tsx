@@ -97,28 +97,27 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const onAddPeople = React.useCallback(() => {
     teamID && startAddMembersWizard(teamID)
   }, [startAddMembersWizard, teamID])
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const conversationIDKey = C.useChatContext(s => s.id)
+  const navigateAppend = C.useChatNavigateAppend()
   const onBlockConv = React.useCallback(() => {
-    navigateAppend({
+    navigateAppend(convID => ({
       props: {
         blockUserByDefault: participants.length === 1,
-        convID: conversationIDKey,
+        convID,
         others: participants,
         team: teamname,
       },
       selected: 'chatBlockingModal',
-    })
-  }, [navigateAppend, teamname, participants, conversationIDKey])
+    }))
+  }, [navigateAppend, teamname, participants])
   const onInvite = React.useCallback(() => {
     const selected = Styles.isMobile ? 'teamInviteByContact' : 'teamInviteByEmail'
-    teamID && navigateAppend({props: {teamID}, selected})
+    teamID && navigateAppend(() => ({props: {teamID}, selected}))
   }, [navigateAppend, teamID])
 
   const onJoinChannel = C.useChatContext(s => s.dispatch.joinConversation)
   const onLeaveChannel = C.useChatContext(s => s.dispatch.leaveConversation)
   const onLeaveTeam = React.useCallback(
-    () => teamID && navigateAppend({props: {teamID}, selected: 'teamReallyLeaveTeam'}),
+    () => teamID && navigateAppend(() => ({props: {teamID}, selected: 'teamReallyLeaveTeam'})),
     [navigateAppend, teamID]
   )
   const addTeamWithChosenChannels = C.useTeamsState(s => s.dispatch.addTeamWithChosenChannels)
@@ -140,7 +139,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   }, [clearModals, setMarkAsUnread])
   const onViewTeam = React.useCallback(() => {
     clearModals()
-    navigateAppend({props: {teamID}, selected: 'team'})
+    navigateAppend(() => ({props: {teamID}, selected: 'team'}))
   }, [clearModals, navigateAppend, teamID])
   const hideConversation = C.useChatContext(s => s.dispatch.hideConversation)
   const onHideConv = React.useCallback(() => {

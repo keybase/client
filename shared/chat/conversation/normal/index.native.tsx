@@ -34,7 +34,6 @@ const LoadingLine = () => {
 }
 
 const Conversation = React.memo(function Conversation(props: Props) {
-  const conversationIDKey = C.useChatContext(s => s.id)
   const [maxInputArea, setMaxInputArea] = React.useState(0)
   const onLayout = React.useCallback((e: LayoutEvent) => {
     setMaxInputArea(e.nativeEvent.layout.height)
@@ -67,7 +66,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
     </Kb.BoxGrow>
   )
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
   const onDropped = React.useCallback(
     (items: DropItems) => {
@@ -90,10 +89,10 @@ const Conversation = React.memo(function Conversation(props: Props) {
           // just use the url and ignore the image
           attach = []
         } else {
-          navigateAppend({
+          navigateAppend(conversationIDKey => ({
             props: {conversationIDKey, pathAndOutboxIDs: attach, titles: texts},
             selected: 'chatAttachmentGetTitles',
-          })
+          }))
           return
         }
       }
@@ -102,13 +101,13 @@ const Conversation = React.memo(function Conversation(props: Props) {
       }
 
       if (attach.length) {
-        navigateAppend({
+        navigateAppend(conversationIDKey => ({
           props: {conversationIDKey, pathAndOutboxIDs: attach},
           selected: 'chatAttachmentGetTitles',
-        })
+        }))
       }
     },
-    [injectIntoInput, navigateAppend, conversationIDKey]
+    [injectIntoInput, navigateAppend]
   )
 
   const insets = useSafeAreaInsets()

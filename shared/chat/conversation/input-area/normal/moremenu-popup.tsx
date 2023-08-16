@@ -1,19 +1,17 @@
 import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
-import type * as Types from '../../../../constants/types/chat2'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   onHidden: () => void
   visible: boolean
 }
 
 const MoreMenuPopup = (props: Props) => {
-  const {conversationIDKey, onHidden, visible} = props
+  const {onHidden, visible} = props
   const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const onLocationShare = () => {
-    navigateAppend({props: {conversationIDKey}, selected: 'chatLocationPreview'})
+    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatLocationPreview'}))
   }
   // merge
   const onCoinFlip = () => injectIntoInput('/flip ')

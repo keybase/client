@@ -10,7 +10,6 @@ import MoreMenuPopup from './moremenu-popup'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import Typing from './typing'
 import type * as ImagePicker from 'expo-image-picker'
-import type * as Types from '../../../../constants/types/chat2'
 import type {LayoutEvent} from '../../../../common-adapters/box'
 import type {Props} from './platform-input'
 import {Keyboard} from 'react-native'
@@ -39,7 +38,7 @@ type MenuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
 type ButtonsProps = Pick<
   Props,
-  'conversationIDKey' | 'explodingModeSeconds' | 'isExploding' | 'cannotWrite' | 'onCancelEditing'
+  'explodingModeSeconds' | 'isExploding' | 'cannotWrite' | 'onCancelEditing'
 > & {
   hasText: boolean
   isEditing: boolean
@@ -53,7 +52,7 @@ type ButtonsProps = Pick<
 }
 
 const Buttons = React.memo(function Buttons(p: ButtonsProps) {
-  const {conversationIDKey, insertText, ourShowMenu, onSubmit, onCancelEditing} = p
+  const {insertText, ourShowMenu, onSubmit, onCancelEditing} = p
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
   const {showAudioSend, setShowAudioSend} = p
 
@@ -81,13 +80,13 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
     }, 1)
   }
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const openEmojiPicker = React.useCallback(() => {
-    navigateAppend({
+    navigateAppend(conversationIDKey => ({
       props: {conversationIDKey, pickKey},
       selected: 'chatChooseEmoji',
-    })
-  }, [conversationIDKey, navigateAppend])
+    }))
+  }, [navigateAppend])
 
   const explodingIcon = !isEditing && !cannotWrite && (
     <Kb.ClickableBox style={styles.explodingWrapper} onClick={toggleShowingMenu}>
@@ -202,12 +201,12 @@ type ChatFilePickerProps = {
   attachTo: () => React.Component | null
   showingPopup: boolean
   toggleShowingPopup: () => void
-  conversationIDKey: Types.ConversationIDKey
 }
 const ChatFilePicker = (p: ChatFilePickerProps) => {
-  const {attachTo, showingPopup, toggleShowingPopup, conversationIDKey} = p
+  const {attachTo, showingPopup, toggleShowingPopup} = p
+  const conversationIDKey = C.useChatContext(s => s.id)
   const filePickerError = C.useConfigState(s => s.dispatch.filePickerError)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const launchNativeImagePicker = React.useCallback(
     (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
       const handleSelection = (result: ImagePicker.ImagePickerResult) => {
@@ -215,8 +214,10 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
           return
         }
         const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
-        const props = {conversationIDKey, pathAndOutboxIDs}
-        navigateAppend({props, selected: 'chatAttachmentGetTitles'})
+        navigateAppend(conversationIDKey => ({
+          props: {conversationIDKey, pathAndOutboxIDs},
+          selected: 'chatAttachmentGetTitles',
+        }))
       }
 
       switch (location) {
@@ -264,7 +265,7 @@ const PlatformInput = (p: Props) => {
       !!height && {marginBottom: height},
     ]),
   })
-  const {cannotWrite, conversationIDKey, isEditing, isExploding} = p
+  const {cannotWrite, isEditing, isExploding} = p
   const {onSubmit, explodingModeSeconds, hintText, onCancelEditing} = p
   const {inputSetRef, showTypingStatus} = p
 
@@ -344,35 +345,19 @@ const PlatformInput = (p: Props) => {
     }
   }, [onQueueSubmit, insertText])
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      switch (whichMenu.current) {
-        case 'filepickerpopup':
-          return (
-            <ChatFilePicker
-              attachTo={attachTo}
-              showingPopup={true}
-              toggleShowingPopup={toggleShowingPopup}
-              conversationIDKey={conversationIDKey}
-            />
-          )
-        case 'moremenu':
-          return (
-            <MoreMenuPopup
-              conversationIDKey={conversationIDKey}
-              onHidden={toggleShowingPopup}
-              visible={true}
-            />
-          )
-        default:
-          return (
-            <SetExplodingMessagePicker attachTo={attachTo} onHidden={toggleShowingPopup} visible={true} />
-          )
-      }
-    },
-    [conversationIDKey]
-  )
+  const makePopup = React.useCallback((p: Kb.Popup2Parms) => {
+    const {attachTo, toggleShowingPopup} = p
+    switch (whichMenu.current) {
+      case 'filepickerpopup':
+        return (
+          <ChatFilePicker attachTo={attachTo} showingPopup={true} toggleShowingPopup={toggleShowingPopup} />
+        )
+      case 'moremenu':
+        return <MoreMenuPopup onHidden={toggleShowingPopup} visible={true} />
+      default:
+        return <SetExplodingMessagePicker attachTo={attachTo} onHidden={toggleShowingPopup} visible={true} />
+    }
+  }, [])
 
   const {popup: menu, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
@@ -390,17 +375,20 @@ const PlatformInput = (p: Props) => {
     ourShowMenu('exploding')
   }, [ourShowMenu])
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const onPasteImage = React.useCallback(
     (uri: string) => {
       try {
         const pathAndOutboxIDs = [{path: uri}]
-        navigateAppend({props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'})
+        navigateAppend(conversationIDKey => ({
+          props: {conversationIDKey, pathAndOutboxIDs},
+          selected: 'chatAttachmentGetTitles',
+        }))
       } catch (e) {
         logger.info('onPasteImage error', e)
       }
     },
-    [conversationIDKey, navigateAppend]
+    [navigateAppend]
   )
 
   const onLayout = React.useCallback((p: LayoutEvent) => {
@@ -460,7 +448,6 @@ const PlatformInput = (p: Props) => {
             <AnimatedExpand expandInput={toggleExpandInput} expanded={expanded} />
           </Kb.Box2>
           <Buttons
-            conversationIDKey={conversationIDKey}
             insertText={insertText}
             ourShowMenu={ourShowMenu}
             onCancelEditing={onCancelEditing}

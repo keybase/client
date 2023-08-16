@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Common from './common'
-import * as Constants from '../../../../constants/chat2'
 import {memoize} from '../../../../util/memoize'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
@@ -25,9 +24,27 @@ export const transformer = (
 
 export const keyExtractor = (c: RPCChatTypes.ConversationCommand) => c.name + c.username
 
+const getBotRestrictBlockMap = (
+  settings: Map<string, RPCChatTypes.Keybase1.TeamBotSettings | undefined>,
+  conversationIDKey: Types.ConversationIDKey,
+  bots: Array<string>
+) => {
+  const blocks = new Map<string, boolean>()
+  bots.forEach(b => {
+    const botSettings = settings.get(b)
+    if (!botSettings) {
+      blocks.set(b, false)
+      return
+    }
+    const convs = botSettings.convs
+    const cmds = botSettings.cmds
+    blocks.set(b, !cmds || (!((convs?.length ?? 0) === 0) && !convs?.find(c => c === conversationIDKey)))
+  })
+  return blocks
+}
 const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
 const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
-  const {conversationIDKey, selected, item: command} = p
+  const {selected, item: command} = p
   const prefix = getCommandPrefix(command)
   const botSettings = C.useChatContext(s => s.botSettings)
   const enabled = C.useChatContext(s => {
@@ -37,7 +54,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
         ? botCommands.custom.commands || blankCommands
         : blankCommands
 
-    const botRestrictMap = Constants.getBotRestrictBlockMap(botSettings, conversationIDKey, [
+    const botRestrictMap = getBotRestrictBlockMap(botSettings, s.id, [
       ...suggestBotCommands
         .reduce<Set<string>>((s, c) => {
           c.username && s.add(c.username)

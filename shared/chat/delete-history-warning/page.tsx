@@ -6,11 +6,9 @@ const Warning = React.lazy(async () => import('./container'))
 type OwnProps = Container.ViewPropsToPageProps<typeof Warning>
 
 const Screen = (p: OwnProps) => (
-  <React.Suspense>
-    <C.ChatProvider id={p.route.params.conversationIDKey}>
-      <Warning {...p.route.params} />
-    </C.ChatProvider>
-  </React.Suspense>
+  <C.ProviderScreen rp={p}>
+    <Warning {...p.route.params} />
+  </C.ProviderScreen>
 )
 
 export default {getScreen: () => Screen}

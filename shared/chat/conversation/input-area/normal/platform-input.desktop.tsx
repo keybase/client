@@ -138,8 +138,7 @@ const fileListToPaths = (f: any): Array<string> =>
 
 const FileButton = (p: {htmlInputRef: HtmlInputRefType}) => {
   const {htmlInputRef} = p
-  const conversationIDKey = C.useChatContext(s => s.id)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const pickFile = React.useCallback(() => {
     const paths = fileListToPaths(htmlInputRef.current?.files)
     const pathAndOutboxIDs = paths.reduce<Array<{path: string}>>((arr, path: string) => {
@@ -147,13 +146,16 @@ const FileButton = (p: {htmlInputRef: HtmlInputRefType}) => {
       return arr
     }, [])
     if (pathAndOutboxIDs.length) {
-      navigateAppend({props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'})
+      navigateAppend(conversationIDKey => ({
+        props: {conversationIDKey, pathAndOutboxIDs},
+        selected: 'chatAttachmentGetTitles',
+      }))
     }
 
     if (htmlInputRef.current) {
       htmlInputRef.current.value = ''
     }
-  }, [htmlInputRef, navigateAppend, conversationIDKey])
+  }, [htmlInputRef, navigateAppend])
 
   const filePickerOpen = React.useCallback(() => {
     htmlInputRef.current?.click()

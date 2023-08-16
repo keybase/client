@@ -9,11 +9,9 @@ const PopupModal = React.lazy(async () => {
 type OwnProps = Container.ViewPropsToPageProps<typeof PopupModal>
 
 const Screen = (p: OwnProps) => (
-  <React.Suspense>
-    <C.ChatProvider id={p.route.params.conversationIDKey}>
-      <PopupModal {...p.route.params} />
-    </C.ChatProvider>
-  </React.Suspense>
+  <C.ProviderScreen rp={p}>
+    <PopupModal {...p.route.params} />
+  </C.ProviderScreen>
 )
 
 export default {getScreen: () => Screen}

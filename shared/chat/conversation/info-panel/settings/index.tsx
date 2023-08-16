@@ -42,10 +42,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     u => u !== username && !Constants.isAssertion(u)
   )
 
-  const conversationIDKey = C.useChatContext(s => s.id)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const onShowClearConversationDialog = () => {
-    navigateAppend({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'})
+    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}))
   }
 
   const hideConversation = C.useChatContext(s => s.dispatch.hideConversation)
@@ -53,15 +52,15 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const onUnhideConv = () => hideConversation(false)
   const onShowBlockConversationDialog = membersForBlock.length
     ? () => {
-        navigateAppend({
+        navigateAppend(convID => ({
           props: {
             blockUserByDefault: true,
-            convID: conversationIDKey,
+            convID,
             others: membersForBlock,
             team: teamname,
           },
           selected: 'chatBlockingModal',
-        })
+        }))
       }
     : onHideConv
 
@@ -71,7 +70,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   }
 
   const showDangerZone = canDeleteHistory || entityType === 'adhoc' || entityType !== 'channel'
-
+  const conversationIDKey = C.useChatContext(s => s.id)
   return (
     <Kb.ScrollView>
       <Kb.Box2
