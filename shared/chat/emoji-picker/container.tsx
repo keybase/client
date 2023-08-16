@@ -89,7 +89,7 @@ const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) =>
   const conversationIDKey = C.useChatContext(s => s.id)
   const customEmojiGroups = C.useChatState(s => s.userEmojis)
   const waiting = Container.useAnyWaiting(Constants.waitingKeyLoadingEmoji)
-  const cidChanged = C.useCIDChanged(conversationIDKey)
+  const cidChanged = C.useCIDChanged(conversationIDKey, undefined, true)
   const [lastOnlyInTeam, setLastOnlyInTeam] = React.useState(onlyInTeam)
   const [lastDisabled, setLastDisabled] = React.useState(disabled)
   const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)
