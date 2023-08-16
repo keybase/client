@@ -6,11 +6,10 @@ import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
-import type * as Types from '../../../../constants/types/chat2'
+import * as T from '../../../../constants/types'
 import SwipeConvActions from './swipe-conv-actions'
 import shallowEqual from 'shallowequal'
 import './small-team.css'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {
   IsTeamContext,
   ParticipantsContext,
@@ -20,7 +19,7 @@ import {
 } from './contexts'
 
 export type Props = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   isInWidget: boolean
   isSelected: boolean
   layoutIsTeam?: boolean
@@ -53,7 +52,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       conversationIDKey && !snippet
         ? !trustedState || trustedState === 'requesting' || trustedState === 'untrusted'
         : false
-    const snippetDecoration = meta?.snippetDecoration ?? RPCChatTypes.SnippetDecoration.none
+    const snippetDecoration = meta?.snippetDecoration ?? T.RPCChat.SnippetDecoration.none
     return {isDecryptingSnippet, snippet, snippetDecoration}
   }, shallowEqual)
 

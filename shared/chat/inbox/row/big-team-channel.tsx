@@ -1,14 +1,13 @@
 import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as RowSizes from './sizes'
 import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/chat2'
+import * as T from '../../../constants/types'
 
 type Props = {
   layoutChannelname: string
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   navKey: string
   selected: boolean
 }
@@ -28,7 +27,7 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
 
   let outboxIcon: React.ReactNode = null
   switch (snippetDecoration) {
-    case RPCChatTypes.SnippetDecoration.pendingMessage:
+    case T.RPCChat.SnippetDecoration.pendingMessage:
       outboxIcon = (
         <Kb.WithTooltip tooltip="Sending...">
           <Kb.Icon
@@ -40,7 +39,7 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
         </Kb.WithTooltip>
       )
       break
-    case RPCChatTypes.SnippetDecoration.failedPendingMessage:
+    case T.RPCChat.SnippetDecoration.failedPendingMessage:
       outboxIcon = (
         <Kb.WithTooltip tooltip="Message failed to send">
           <Kb.Icon

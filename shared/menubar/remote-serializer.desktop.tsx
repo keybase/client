@@ -1,8 +1,5 @@
-import * as FSTypes from '../constants/types/fs'
 import type * as Tabs from '../constants/tabs'
-import type * as ChatTypes from '../constants/types/chat2'
-import type {DaemonHandshakeState, OutOfDate} from '../constants/types/config'
-import type {UserInfo} from '../constants/types/users'
+import * as T from '../constants/types'
 import type {Tab} from '../constants/tabs'
 import {produce} from 'immer'
 
@@ -10,14 +7,14 @@ const emptySet = new Set<any>()
 
 export type RemoteTlfUpdates = {
   timestamp: number
-  tlf: FSTypes.Path
-  updates: Array<{path: FSTypes.Path; uploading: boolean}>
+  tlf: T.FS.Path
+  updates: Array<{path: T.FS.Path; uploading: boolean}>
   writer: string
 }
 
 type Conversation = {
   conversationIDKey: string
-  teamType?: ChatTypes.TeamType
+  teamType?: T.Chat.TeamType
   tlfname?: string
   teamname?: string
   timestamp?: number
@@ -29,16 +26,16 @@ type Conversation = {
 }
 
 type KbfsDaemonStatus = {
-  readonly rpcStatus: FSTypes.KbfsDaemonRpcStatus
-  readonly onlineStatus: FSTypes.KbfsDaemonOnlineStatus
+  readonly rpcStatus: T.FS.KbfsDaemonRpcStatus
+  readonly onlineStatus: T.FS.KbfsDaemonOnlineStatus
 }
 
 export type ProxyProps = {
-  daemonHandshakeState: DaemonHandshakeState
+  daemonHandshakeState: T.Config.DaemonHandshakeState
   avatarRefreshCounter: Map<string, number>
   conversationsToSend: Array<Conversation>
   darkMode?: boolean
-  diskSpaceStatus: FSTypes.DiskSpaceStatus
+  diskSpaceStatus: T.FS.DiskSpaceStatus
   endEstimate?: number
   files?: number
   fileName?: string
@@ -49,14 +46,14 @@ export type ProxyProps = {
   loggedIn: boolean
   remoteTlfUpdates: Array<RemoteTlfUpdates>
   showingDiskSpaceBanner?: boolean
-  outOfDate: OutOfDate
+  outOfDate: T.Config.OutOfDate
   totalSyncingBytes?: number
   username: string
   httpSrvAddress: string
   httpSrvToken: string
   windowShownCountNum: number
   navBadges: Map<Tabs.Tab, number>
-  infoMap: Map<string, UserInfo>
+  infoMap: Map<string, T.Users.UserInfo>
 }
 
 type SerializeProps = Omit<
@@ -66,7 +63,7 @@ type SerializeProps = Omit<
   avatarRefreshCounterArr: Array<[string, number]>
   followersArr: Array<string>
   followingArr: Array<string>
-  infoMapArr: Array<[string, UserInfo]>
+  infoMapArr: Array<[string, T.Users.UserInfo]>
   navBadgesArr: Array<[Tab, number]>
   windowShownCountNum: number
 }
@@ -77,7 +74,7 @@ type RemovedEmpties = 'darkMode' | 'fileName' | 'files' | 'totalSyncingBytes' | 
 export type DeserializeProps = Omit<ProxyProps, RemovedEmpties> & {
   avatarRefreshCounter: Map<string, number>
   darkMode: boolean
-  daemonHandshakeState: DaemonHandshakeState
+  daemonHandshakeState: T.Config.DaemonHandshakeState
   files: number
   fileName: string
   followers: Set<string>
@@ -102,8 +99,8 @@ export type DeserializeProps = Omit<ProxyProps, RemovedEmpties> & {
   badgeMap: Map<string, number>
   unreadMap: Map<string, number>
   loggedIn: boolean
-  outOfDate: OutOfDate
-  infoMap: Map<string, UserInfo>
+  outOfDate: T.Config.OutOfDate
+  infoMap: Map<string, T.Users.UserInfo>
   username: string
   windowShownCountNum: number
 }
@@ -114,7 +111,7 @@ const initialState: DeserializeProps = {
   conversationsToSend: [],
   daemonHandshakeState: 'starting',
   darkMode: false,
-  diskSpaceStatus: FSTypes.DiskSpaceStatus.Ok,
+  diskSpaceStatus: T.FS.DiskSpaceStatus.Ok,
   endEstimate: 0,
   fileName: '',
   files: 0,
@@ -124,8 +121,8 @@ const initialState: DeserializeProps = {
   httpSrvToken: '',
   infoMap: new Map(),
   kbfsDaemonStatus: {
-    onlineStatus: FSTypes.KbfsDaemonOnlineStatus.Unknown,
-    rpcStatus: FSTypes.KbfsDaemonRpcStatus.Connected,
+    onlineStatus: T.FS.KbfsDaemonOnlineStatus.Unknown,
+    rpcStatus: T.FS.KbfsDaemonRpcStatus.Connected,
   },
   kbfsEnabled: false,
   loggedIn: false,
