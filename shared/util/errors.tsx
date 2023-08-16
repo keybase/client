@@ -1,5 +1,5 @@
 import logger from '../logger'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 import capitalize from 'lodash/capitalize'
 import {errors as transportErrors} from 'framed-msgpack-rpc'
 import RPCError from './rpcerror'
@@ -51,37 +51,37 @@ export const niceError = (e: RPCError) => {
   }
 
   switch (e.code) {
-    case RPCTypes.StatusCode.scnotfound:
+    case T.RPCGen.StatusCode.scnotfound:
       return "Sorry, can't find that username"
-    case RPCTypes.StatusCode.scbadloginusernotfound:
+    case T.RPCGen.StatusCode.scbadloginusernotfound:
       return 'Looks like an incorrect user'
-    case RPCTypes.StatusCode.scbadloginpassword:
+    case T.RPCGen.StatusCode.scbadloginpassword:
       return 'Looks like a bad password.'
-    case RPCTypes.StatusCode.scdeleted:
+    case T.RPCGen.StatusCode.scdeleted:
       return 'This user looks deleted.'
-    case RPCTypes.StatusCode.scalreadyloggedin:
+    case T.RPCGen.StatusCode.scalreadyloggedin:
       return 'You seem to be already logged in'
-    case RPCTypes.StatusCode.screloginrequired:
+    case T.RPCGen.StatusCode.screloginrequired:
       return 'You need to re-login'
-    case RPCTypes.StatusCode.scnospaceondevice:
+    case T.RPCGen.StatusCode.scnospaceondevice:
       return "Spaces aren't allowed in device names"
-    case RPCTypes.StatusCode.scbademail:
+    case T.RPCGen.StatusCode.scbademail:
       return "This doesn't seem like a valid email"
-    case RPCTypes.StatusCode.scbadsignupusernametaken:
+    case T.RPCGen.StatusCode.scbadsignupusernametaken:
       return 'This username is already taken'
-    case RPCTypes.StatusCode.scbadinvitationcode:
+    case T.RPCGen.StatusCode.scbadinvitationcode:
       return "This invite code doesn't look right"
-    case RPCTypes.StatusCode.scdevicebadname:
+    case T.RPCGen.StatusCode.scdevicebadname:
       return 'Seems like an invalid device name'
-    case RPCTypes.StatusCode.scdevicenameinuse:
+    case T.RPCGen.StatusCode.scdevicenameinuse:
       return 'This device name is already in use.'
-    case RPCTypes.StatusCode.scgenericapierror:
-    case RPCTypes.StatusCode.sctimeout:
-    case RPCTypes.StatusCode.scapinetworkerror:
+    case T.RPCGen.StatusCode.scgenericapierror:
+    case T.RPCGen.StatusCode.sctimeout:
+    case T.RPCGen.StatusCode.scapinetworkerror:
       return 'You are offline.'
-    case RPCTypes.StatusCode.scbadsignupusernamedeleted:
+    case T.RPCGen.StatusCode.scbadsignupusernamedeleted:
       return 'Looks like this user was deleted, or something'
-    case RPCTypes.StatusCode.scstreameof:
+    case T.RPCGen.StatusCode.scstreameof:
       return 'Looks like we took too long. Try again, but a little bit quicker maybe'
   }
 
@@ -121,9 +121,9 @@ export function isErrorTransient(error: RPCError | Error) {
 export {RPCError}
 
 export const networkErrorCodes = [
-  RPCTypes.StatusCode.scgenericapierror,
-  RPCTypes.StatusCode.scapinetworkerror,
-  RPCTypes.StatusCode.sctimeout,
+  T.RPCGen.StatusCode.scgenericapierror,
+  T.RPCGen.StatusCode.scapinetworkerror,
+  T.RPCGen.StatusCode.sctimeout,
 ]
 
 export const isNetworkErr = (code: number) => networkErrorCodes.includes(code)

@@ -2,7 +2,7 @@ import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 import {FloatingRolePicker} from '../../teams/role-picker'
 import {InlineDropdown} from '../../common-adapters/dropdown'
 
@@ -10,7 +10,7 @@ type RowProps = {
   canAddThem: boolean
   checked: boolean
   disabledReason: string
-  name: Types.Teamname
+  name: T.Teams.Teamname
   isOpen: boolean
   onCheck: (selected: boolean) => void
   them: string
@@ -20,10 +20,10 @@ type RolePickerProps = {
   footerComponent: React.ReactNode
   isRolePickerOpen: boolean
   onCancelRolePicker: () => void
-  onConfirmRolePicker: (role: Types.TeamRoleType) => void
+  onConfirmRolePicker: (role: T.Teams.TeamRoleType) => void
   onOpenRolePicker: () => void
-  selectedRole: Types.TeamRoleType
-  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string}
+  selectedRole: T.Teams.TeamRoleType
+  disabledReasonsForRolePicker: {[K in T.Teams.TeamRoleType]?: string}
 }
 
 // This state is handled by the state wrapper in the container
@@ -36,10 +36,10 @@ export type ComponentState = {
 export type AddToTeamProps = {
   title: string
   addUserToTeamsResults: string
-  addUserToTeamsState: Types.AddUserToTeamsState
+  addUserToTeamsState: T.Teams.AddUserToTeamsState
   loadTeamList: () => void
   onBack: () => void
-  teamProfileAddList: Array<Types.TeamProfileAddList>
+  teamProfileAddList: Array<T.Teams.TeamProfileAddList>
   them: string
   waiting: boolean
 }
@@ -161,7 +161,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {maxHeight: '80%'},
         isMobile: {flexGrow: 1},
       }),
-    } as const)
+    }) as const
 )
 
 class AddToTeam extends React.Component<Props> {

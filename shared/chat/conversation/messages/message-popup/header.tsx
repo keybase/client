@@ -1,7 +1,7 @@
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
-import type {DeviceType} from '../../../../constants/types/devices'
+import type * as T from '../../../../constants/types'
 
 const iconNameForDeviceType = Styles.isMobile
   ? (deviceType: string, isRevoked: boolean, isLocation: Boolean): Kb.IconType => {
@@ -40,7 +40,7 @@ const MessagePopupHeader = (props: {
   botUsername?: string
   deviceName: string
   deviceRevokedAt?: number
-  deviceType: DeviceType
+  deviceType: T.Devices.DeviceType
   isLast?: boolean
   isLocation: boolean
   timestamp: number
@@ -178,7 +178,7 @@ const styles = Styles.styleSheetCreate(
         marginBottom: -Styles.globalMargins.small,
         overflow: 'hidden',
       },
-    } as const)
+    }) as const
 )
 
 export default MessagePopupHeader

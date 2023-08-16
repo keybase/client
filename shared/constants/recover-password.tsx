@@ -1,6 +1,6 @@
 import * as C from '.'
 import * as ProvisionConstants from './provision'
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
@@ -15,7 +15,7 @@ type Store = {
   passwordError: string
   explainedDevice?: {
     name: string
-    type: RPCTypes.DeviceType
+    type: T.RPCGen.DeviceType
   }
   resetEmailSent?: boolean
   username: string
@@ -38,7 +38,7 @@ export type State = Store & {
       submitDeviceSelect?: (name: string) => void
       submitPaperKey?: (key: string) => void
       submitPassword?: (pw: string) => void
-      submitResetPassword?: (action: RPCTypes.ResetPromptResponse) => void
+      submitResetPassword?: (action: T.RPCGen.ResetPromptResponse) => void
     }
     resetState: () => void
     startRecoverPassword: (p: {username: string; abortProvisioning?: boolean; replaceRoute?: boolean}) => void
@@ -77,7 +77,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         let hadError = false
         try {
-          await RPCTypes.loginRecoverPassphraseRpcListener({
+          await T.RPCGen.loginRecoverPassphraseRpcListener({
             customResponseIncomingCallMap: {
               'keybase.1.loginUi.chooseDeviceToRecoverWith': (params, response) => {
                 const replaceRoute = !!p.replaceRoute
@@ -91,7 +91,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                   }
                   const cancel = () => {
                     clear()
-                    response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
+                    response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
                     C.useRouterState.getState().dispatch.navigateUp()
                   }
                   s.devices = devices
@@ -113,7 +113,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               'keybase.1.loginUi.promptPassphraseRecovery': () => {},
               // This same RPC is called at the beginning and end of the 7-day wait by the service.
               'keybase.1.loginUi.promptResetAccount': (params, response) => {
-                if (params.prompt.t == RPCTypes.ResetPromptType.enterResetPw) {
+                if (params.prompt.t == T.RPCGen.ResetPromptType.enterResetPw) {
                   C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordPromptResetPassword')
                   const clear = () => {
                     set(s => {
@@ -132,18 +132,18 @@ export const _useState = Z.createZustand<State>((set, get) => {
                     }
                     s.dispatch.dynamic.cancel = () => {
                       clear()
-                      response.result(RPCTypes.ResetPromptResponse.nothing)
+                      response.result(T.RPCGen.ResetPromptResponse.nothing)
                       C.useRouterState.getState().dispatch.navigateUp()
                     }
                   })
                 } else {
                   const {startAccountReset} = C.useAutoResetState.getState().dispatch
                   startAccountReset(true, '')
-                  response.result(RPCTypes.ResetPromptResponse.nothing)
+                  response.result(T.RPCGen.ResetPromptResponse.nothing)
                 }
               },
               'keybase.1.secretUi.getPassphrase': (params, response) => {
-                if (params.pinentry.type === RPCTypes.PassphraseType.paperKey) {
+                if (params.pinentry.type === T.RPCGen.PassphraseType.paperKey) {
                   const clear = () => {
                     set(s => {
                       s.dispatch.dynamic.submitPaperKey = undefined
@@ -154,7 +154,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                     s.paperKeyError = params.pinentry.retryLabel
                     s.dispatch.dynamic.cancel = () => {
                       clear()
-                      response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
+                      response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
                       get().dispatch.startRecoverPassword({
                         replaceRoute: true,
                         username: get().username,
@@ -177,7 +177,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                     s.passwordError = params.pinentry.retryLabel
                     s.dispatch.dynamic.cancel = () => {
                       clear()
-                      response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
+                      response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
                     }
                   })
                   if (!params.pinentry.retryLabel) {
@@ -214,8 +214,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
           if (
             !(
               error instanceof RPCError &&
-              (error.code === RPCTypes.StatusCode.sccanceled ||
-                error.code === RPCTypes.StatusCode.scinputcanceled)
+              (error.code === T.RPCGen.StatusCode.sccanceled ||
+                error.code === T.RPCGen.StatusCode.scinputcanceled)
             )
           ) {
             const msg = error.message

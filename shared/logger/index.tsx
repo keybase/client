@@ -1,4 +1,4 @@
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 import Logger from './ring-logger'
 import noop from 'lodash/noop'
 import {getEngine} from '../engine/require'
@@ -124,7 +124,7 @@ class AggregateLoggerImpl {
     }
 
     const send = lines.length
-      ? RPCTypes.configAppendGUILogsRpcPromise({
+      ? T.RPCGen.configAppendGUILogsRpcPromise({
           content: lines.join('\n') + '\n',
         })
       : Promise.resolve()

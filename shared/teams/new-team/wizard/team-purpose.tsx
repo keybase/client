@@ -3,13 +3,13 @@ import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
 import {ModalTitle} from '../../common'
-import * as Types from '../../../constants/types/teams'
+import * as T from '../../../constants/types'
 
 const TeamPurpose = () => {
   const nav = Container.useSafeNavigation()
   const onBack = () => nav.safeNavigateUp()
   const setTeamWizardTeamType = C.useTeamsState(s => s.dispatch.setTeamWizardTeamType)
-  const onSubmit = (teamType: Types.TeamWizardTeamType) => setTeamWizardTeamType(teamType)
+  const onSubmit = (teamType: T.Teams.TeamWizardTeamType) => setTeamWizardTeamType(teamType)
 
   return (
     <Kb.Modal
@@ -21,7 +21,7 @@ const TeamPurpose = () => {
             Cancel
           </Kb.Text>
         ) : undefined,
-        title: <ModalTitle teamID={Types.noTeamID} title="New team" />,
+        title: <ModalTitle teamID={T.Teams.noTeamID} title="New team" />,
       }}
       allowOverflow={true}
       backgroundStyle={styles.bg}

@@ -7,7 +7,6 @@ import * as Z from '../util/zustand'
 import {noConversationIDKey} from './chat2'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
-import type * as Types from './types/config'
 import type {Tab} from './tabs'
 import uniq from 'lodash/uniq'
 import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '../util/errors'
@@ -51,7 +50,7 @@ export type Store = {
     | {type: T.RPCGen.IncomingShareType.text; text: string}
   appFocused: boolean
   badgeState?: T.RPCGen.BadgeState
-  configuredAccounts: Array<Types.ConfiguredAccount>
+  configuredAccounts: Array<T.Config.ConfiguredAccount>
   defaultUsername: string
   globalError?: Error | RPCError
   gregorReachable?: T.RPCGen.Reachable
@@ -75,10 +74,10 @@ export type Store = {
     | 'reloggedIn'
     | 'startupOrReloginButNotInARush'
   mobileAppState: 'active' | 'background' | 'inactive' | 'unknown'
-  networkStatus?: {online: boolean; type: Types.ConnectionType; isInit?: boolean}
+  networkStatus?: {online: boolean; type: T.Config.ConnectionType; isInit?: boolean}
   notifySound: boolean
   openAtLogin: boolean
-  outOfDate: Types.OutOfDate
+  outOfDate: T.Config.OutOfDate
   remoteWindowNeedsProps: Map<string, Map<string, number>>
   revokedTrigger: number
   runtimeStats?: T.RPCGen.RuntimeStats
@@ -206,7 +205,7 @@ type State = Store & {
     onEngineConnected: () => void
     onEngineDisonnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
-    osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => void
+    osNetworkStatusChanged: (online: boolean, type: T.Config.ConnectionType, isInit?: boolean) => void
     openUnlockFolders: (devices: Array<T.RPCGen.Device>) => void
     powerMonitorEvent: (event: string) => void
     resetState: () => void
@@ -231,7 +230,7 @@ type State = Store & {
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
     setStartupDetailsLoaded: () => void
     setOpenAtLogin: (open: boolean) => void
-    setOutOfDate: (outOfDate: Types.OutOfDate) => void
+    setOutOfDate: (outOfDate: T.Config.OutOfDate) => void
     setUserSwitching: (sw: boolean) => void
     setUseNativeFrame: (use: boolean) => void
     setWindowIsMax: (m: boolean) => void
@@ -780,7 +779,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         }))
       })
     },
-    osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => {
+    osNetworkStatusChanged: (online: boolean, type: T.Config.ConnectionType, isInit?: boolean) => {
       const old = get().networkStatus
       set(s => {
         if (!s.networkStatus) {

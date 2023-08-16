@@ -5,13 +5,12 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import TeamMenu from './menu-container'
-import type {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import capitalize from 'lodash/capitalize'
 import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
-import type * as Types from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 
-const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
+const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onAdd = () => startAddMembersWizard(teamID)
   return (
@@ -25,7 +24,7 @@ const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
     />
   )
 }
-type FeatureTeamCardProps = {teamID: Types.TeamID}
+type FeatureTeamCardProps = {teamID: T.Teams.TeamID}
 const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
   const setMemberPublicity = C.useTeamsState(s => s.dispatch.setMemberPublicity)
   const onFeature = () => setMemberPublicity(teamID, true)
@@ -73,7 +72,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
 }
 
 type HeaderTitleProps = {
-  teamID: TeamID
+  teamID: T.Teams.TeamID
 }
 
 const roleDisplay = {
@@ -287,7 +286,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 }
 export default HeaderTitle
 
-const useHeaderCallbacks = (teamID: TeamID) => {
+const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
   const nav = Container.useSafeNavigation()
   const meta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
   const yourUsername = C.useCurrentUserState(s => s.username)

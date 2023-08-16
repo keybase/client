@@ -2,7 +2,7 @@ import * as C from '../../../constants'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import type * as ChatConstants from '../../../constants/chat2'
-import type * as TeamTypes from '../../../constants/types/teams'
+import type * as T from '../../../constants/types'
 
 export const infoPanelWidthElectron = 320
 const infoPanelWidthPhone = Styles.dimensionWidth
@@ -19,9 +19,9 @@ export function infoPanelWidth() {
 }
 
 const emptyMap = new Map()
-const isBot = (type: TeamTypes.TeamRoleType) => type === 'bot' || type === 'restrictedbot'
+const isBot = (type: T.Teams.TeamRoleType) => type === 'bot' || type === 'restrictedbot'
 
-export const useTeamHumans = (teamID: TeamTypes.TeamID) => {
+export const useTeamHumans = (teamID: T.Teams.TeamID) => {
   const [lastTID, setLastTID] = React.useState('')
   const getMembers = C.useTeamsState(s => s.dispatch.getMembers)
   if (lastTID !== teamID) {

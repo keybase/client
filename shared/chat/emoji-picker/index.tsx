@@ -16,7 +16,6 @@ import {
   RPCToEmojiData,
 } from './../../util/emoji'
 import type {Section as _Section} from './../../common-adapters/section-list'
-import type * as RPCChatGen from './../../constants/types/rpc-chat-gen'
 
 // defer loading this until we need to, very expensive
 const _getData = () => {
@@ -50,7 +49,7 @@ const getEmojiSections = memoize(
 const getFrequentSection = memoize(
   (
     topReacjis: Array<T.RPCGen.UserReacji>,
-    customEmojiGroups: Array<RPCChatGen.EmojiGroup>,
+    customEmojiGroups: Array<T.RPCChat.EmojiGroup>,
     emojisPerLine: number
   ): Section => {
     const {emojiNameMap} = _getData()
@@ -95,7 +94,7 @@ type Props = {
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
   onHover?: (emoji: EmojiData) => void
   skinTone?: T.Chat.EmojiSkinTone
-  customEmojiGroups?: RPCChatGen.EmojiGroup[]
+  customEmojiGroups?: T.RPCChat.EmojiGroup[]
   width: number
   waitingForEmoji?: boolean
 }
@@ -111,7 +110,7 @@ type Bookmark = {
 }
 
 const emojiGroupsToEmojiArrayArray = (
-  emojiGroups: Array<RPCChatGen.EmojiGroup>
+  emojiGroups: Array<T.RPCChat.EmojiGroup>
 ): Array<{emojis: Array<EmojiData>; name: string}> =>
   emojiGroups.map(emojiGroup => ({
     emojis:
@@ -122,7 +121,7 @@ const emojiGroupsToEmojiArrayArray = (
   }))
 
 const getCustomEmojiSections = memoize(
-  (emojiGroups: Array<RPCChatGen.EmojiGroup>, emojisPerLine: number): Array<Section> =>
+  (emojiGroups: Array<T.RPCChat.EmojiGroup>, emojisPerLine: number): Array<Section> =>
     emojiGroupsToEmojiArrayArray(emojiGroups).map(group => ({
       data: chunkEmojis(group.emojis, emojisPerLine),
       key: group.name,
@@ -130,7 +129,7 @@ const getCustomEmojiSections = memoize(
     })) || []
 )
 
-const getCustomEmojiIndex = memoize((emojiGroups: Array<RPCChatGen.EmojiGroup>) => {
+const getCustomEmojiIndex = memoize((emojiGroups: Array<T.RPCChat.EmojiGroup>) => {
   const mapper = new Map<string, EmojiData>()
   emojiGroupsToEmojiArrayArray(emojiGroups).forEach(emojiGroup =>
     emojiGroup.emojis.forEach(emoji => {
@@ -153,7 +152,7 @@ const getCustomEmojiIndex = memoize((emojiGroups: Array<RPCChatGen.EmojiGroup>) 
 })
 const emptyCustomEmojiIndex = {filter: () => [], get: () => undefined}
 
-const getResultFilter = (emojiGroups?: Array<RPCChatGen.EmojiGroup>) => {
+const getResultFilter = (emojiGroups?: Array<T.RPCChat.EmojiGroup>) => {
   const {emojiSearch} = _getData()
   const customEmojiIndex = emojiGroups ? getCustomEmojiIndex(emojiGroups) : emptyCustomEmojiIndex
   return (filter: string): Array<EmojiData> => {
@@ -168,7 +167,7 @@ const getSectionsAndBookmarks = memoize(
     width: number,
     topReacjis: Array<T.RPCGen.UserReacji>,
     hideTopReacjis: boolean,
-    customEmojiGroups?: RPCChatGen.EmojiGroup[]
+    customEmojiGroups?: T.RPCChat.EmojiGroup[]
   ) => {
     if (!width) {
       return {bookmarks: [], sections: []}
@@ -493,4 +492,4 @@ const styles = Styles.styleSheetCreate(
 
 export default EmojiPicker
 
-const emptyArray = new Array<RPCChatGen.EmojiGroup>()
+const emptyArray = new Array<T.RPCChat.EmojiGroup>()

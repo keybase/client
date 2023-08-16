@@ -1,13 +1,13 @@
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {InlineDropdown} from '../../common-adapters/dropdown'
-import type {TeamRoleType} from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 import {roleIconMap} from '../role-picker'
 import capitalize from 'lodash/capitalize'
 
 export type Props = {
   containerStyle?: Styles.StylesCrossPlatform
-  selectedRole: TeamRoleType
+  selectedRole: T.Teams.TeamRoleType
   onClick: () => void
   style?: Styles.StylesCrossPlatform
   loading?: boolean

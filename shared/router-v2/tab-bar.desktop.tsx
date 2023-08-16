@@ -4,7 +4,7 @@ import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
 import * as Platforms from '../constants/platform'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 import * as React from 'react'
 import * as SettingsConstants from '../constants/settings'
 import * as Styles from '../styles'
@@ -52,7 +52,7 @@ const Header = () => {
   const onQuit = () => {
     if (!__DEV__) {
       if (isLinux) {
-        stop(RPCTypes.ExitCode.ok)
+        stop(T.RPCGen.ExitCode.ok)
       } else {
         Container.ignorePromise(dumpLogs?.('quitting through menu') ?? Promise.resolve())
       }

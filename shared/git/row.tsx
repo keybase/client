@@ -1,5 +1,5 @@
 import * as C from '../constants'
-import * as FsTypes from '../constants/types/fs'
+import * as T from '../constants/types'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -23,7 +23,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
   const isNew = React.useContext(NewContext).has(id)
   const you = C.useCurrentUserState(s => s.username)
   const setTeamRepoSettings = C.useGitState(s => s.dispatch.setTeamRepoSettings)
-  const _onBrowseGitRepo = (path: FsTypes.Path) => {
+  const _onBrowseGitRepo = (path: T.FS.Path) => {
     C.makeActionForOpenPathInFilesTab(path)
   }
 
@@ -60,7 +60,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
     name: git.name,
     onBrowseGitRepo: () =>
       _onBrowseGitRepo(
-        FsTypes.stringToPath(
+        T.FS.stringToPath(
           git.url.replace(/keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/, '/keybase/$1/.kbfs_autogit/$3')
         )
       ),

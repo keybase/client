@@ -3,13 +3,13 @@ import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
 import trim from 'lodash/trim'
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
 
 const settingsWaitingKey = 'settings:generic'
 
 type InviteBase = {
   id: string
-  created: RPCTypes.Time
+  created: T.RPCGen.Time
 }
 
 export type PendingInvite = {
@@ -57,7 +57,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     loadInvites: () => {
       const f = async () => {
-        const json = await RPCTypes.apiserverGetWithSessionRpcPromise(
+        const json = await T.RPCGen.apiserverGetWithSessionRpcPromise(
           {
             args: [],
             endpoint: 'invitations_sent',
@@ -116,7 +116,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     reclaimInvite: inviteId => {
       const f = async () => {
         try {
-          await RPCTypes.apiserverPostRpcPromise(
+          await T.RPCGen.apiserverPostRpcPromise(
             {
               args: [{key: 'invitation_id', value: inviteId}],
               endpoint: 'cancel_invitation',
@@ -144,7 +144,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             args.push({key: 'invitation_message', value: message})
           }
 
-          const response = await RPCTypes.apiserverPostRpcPromise(
+          const response = await T.RPCGen.apiserverPostRpcPromise(
             {args, endpoint: 'send_invitation'},
             settingsWaitingKey
           )

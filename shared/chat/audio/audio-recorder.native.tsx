@@ -1,5 +1,5 @@
 import * as C from '../../constants'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
 import * as KbMobile from '../../common-adapters/mobile.native'
 import * as React from 'react'
@@ -421,9 +421,9 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
         const error = _error as {message: string}
         logger.info('failed to get audio perms: ' + error.message)
         setCommandStatusInfo({
-          actions: [RPCChatTypes.UICommandStatusActionTyp.appsettings],
+          actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
           displayText: `Failed to access audio. ${error.message}`,
-          displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
+          displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
         })
       }
       return false

@@ -1,12 +1,11 @@
 import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
-import type * as RPCTypes from '../../../../../constants/types/rpc-gen'
-import type * as Types from '../../../../../constants/types/teams'
+import type * as T from '../../../../../constants/types'
 import {TeamBotRow} from './'
 
 type OwnProps = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   username: string
 }
 
@@ -17,8 +16,8 @@ export default (ownProps: OwnProps) => {
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const canManageBots = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID).manageBots)
   const map = teamDetails?.members
-  const info: Types.MemberInfo = map?.get(ownProps.username) || blankInfo
-  const bot: RPCTypes.FeaturedBot = C.useBotsState(
+  const info: T.Teams.MemberInfo = map?.get(ownProps.username) || blankInfo
+  const bot: T.RPCGen.FeaturedBot = C.useBotsState(
     s =>
       s.featuredBotsMap.get(ownProps.username) ?? {
         botAlias: info.fullName,

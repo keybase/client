@@ -6,7 +6,7 @@ import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
 import {isAndroid} from '../../constants/platform'
 import Troubleshooting from '../troubleshooting'
-import type * as DeviceTypes from '../../constants/types/devices'
+import type * as T from '../../constants/types'
 
 export type DeviceType = 'mobile' | 'desktop'
 export type Tab = 'QR' | 'enterText' | 'viewText'
@@ -15,7 +15,7 @@ const currentDeviceType: DeviceType = Styles.isMobile ? 'mobile' : 'desktop'
 
 type Props = {
   error: string
-  currentDevice: DeviceTypes.Device
+  currentDevice: T.Devices.Device
   currentDeviceAlreadyProvisioned: boolean
   currentDeviceName: string
   iconNumber: number

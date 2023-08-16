@@ -1,6 +1,6 @@
 // A mirror of the remote menubar windows.
 import * as C from '../constants'
-import * as FSTypes from '../constants/types/fs'
+import * as T from '../constants/types'
 import * as React from 'react'
 import * as Styles from '../styles'
 import type * as ChatConstants from '../constants/chat2'
@@ -45,11 +45,11 @@ const Widget = (p: ProxyProps & WidgetProps) => {
   return null
 }
 
-const GetRowsFromTlfUpdate = (t: FSTypes.TlfUpdate, uploads: FSTypes.Uploads): RemoteTlfUpdates => ({
+const GetRowsFromTlfUpdate = (t: T.FS.TlfUpdate, uploads: T.FS.Uploads): RemoteTlfUpdates => ({
   timestamp: t.serverTime,
   tlf: t.path,
   updates: t.history.map(u => {
-    const path = FSTypes.stringToPath(u.filename)
+    const path = T.FS.stringToPath(u.filename)
     return {path, uploading: uploads.syncingPaths.has(path) || uploads.writingToJournal.has(path)}
   }),
   writer: t.writer,
@@ -188,7 +188,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
 
   // Filter out folder paths.
   const filePaths = [...uploads.syncingPaths].filter(
-    path => C.getPathItem(pathItems, path).type !== FSTypes.PathType.Folder
+    path => C.getPathItem(pathItems, path).type !== T.FS.PathType.Folder
   )
 
   const upDown = {
@@ -196,7 +196,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
     endEstimate: uploads.endEstimate ?? 0,
-    filename: FSTypes.getPathName(filePaths[1] || FSTypes.stringToPath('')),
+    filename: T.FS.getPathName(filePaths[1] || T.FS.stringToPath('')),
     files: filePaths.length,
     totalSyncingBytes: uploads.totalSyncingBytes,
   }

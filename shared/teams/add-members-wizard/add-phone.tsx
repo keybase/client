@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as RPCGen from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 import {ModalTitle, usePhoneNumberList} from '../common'
 
 const waitingKey = 'phoneLookup'
@@ -27,7 +27,7 @@ const AddPhone = () => {
     }
   }, [defaultCountry, loadDefaultPhoneCountry])
 
-  const emailsToAssertionsRPC = Container.useRPC(RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
+  const emailsToAssertionsRPC = Container.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
   const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
   const onContinue = () => {
     setError('')

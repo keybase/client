@@ -1,12 +1,12 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import {useOpen} from '../../common/use-open'
 import Still from './still'
 
 type OwnProps = {
   destinationPickerIndex?: number
-  path: Types.Path
+  path: T.FS.Path
 }
 
 const StillContainer = (p: OwnProps) => {
@@ -27,8 +27,8 @@ const StillContainer = (p: OwnProps) => {
       : undefined,
     intentIfDownloading: Constants.getDownloadIntent(path, _downloads, _pathItemActionMenu),
     isEmpty:
-      _pathItem.type === Types.PathType.Folder &&
-      _pathItem.progress === Types.ProgressType.Loaded &&
+      _pathItem.type === T.FS.PathType.Folder &&
+      _pathItem.progress === T.FS.ProgressType.Loaded &&
       !_pathItem.children.size,
     onOpen,
     path,

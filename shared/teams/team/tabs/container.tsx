@@ -1,14 +1,14 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as ChatConstants from '../../../constants/chat2'
-import type * as Types from '../../../constants/types/teams'
+import type * as T from '../../../constants/types'
 import Tabs from '.'
 import * as Container from '../../../util/container'
 
 type OwnProps = {
-  teamID: Types.TeamID
-  selectedTab: Types.TabKey
-  setSelectedTab: (tab: Types.TabKey) => void
+  teamID: T.Teams.TeamID
+  selectedTab: T.Teams.TabKey
+  setSelectedTab: (tab: T.Teams.TabKey) => void
 }
 
 export default (ownProps: OwnProps) => {

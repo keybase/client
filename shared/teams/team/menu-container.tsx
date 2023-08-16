@@ -1,17 +1,16 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/teams'
-import * as FsTypes from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import capitalize from 'lodash/capitalize'
-import type * as Types from '../../constants/types/teams'
+import * as T from '../../constants/types'
 import {pluralize} from '../../util/string'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
   onHidden: () => void
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   visible: boolean
 }
 
@@ -20,7 +19,7 @@ type Props = {
   items: Kb.MenuItems
   teamname: string
   memberCount: number
-  role: Types.TeamRoleType
+  role: T.Teams.TeamRoleType
   onHidden: () => void
   visible: boolean
 }
@@ -99,7 +98,7 @@ export default (ownProps: OwnProps) => {
     navigateAppend({props: {teamID}, selected: 'teamReallyLeaveTeam'})
   }
   const onOpenFolder = (teamname: string) => {
-    C.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
+    C.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
   }
 
   const items: Kb.MenuItems = ['Divider']
@@ -140,7 +139,7 @@ export default (ownProps: OwnProps) => {
     items,
     memberCount: memberCount,
     onHidden: ownProps.onHidden,
-    role: role as Types.TeamRoleType,
+    role: role as T.Teams.TeamRoleType,
     teamname: teamname,
     visible: ownProps.visible,
   }

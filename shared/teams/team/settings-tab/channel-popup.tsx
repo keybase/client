@@ -1,16 +1,16 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/teams'
+import type * as T from '../../../constants/types'
 import {pluralize} from '../../../util/string'
 import {useAllChannelMetas} from '../../common/channel-hooks'
 
 type Props = {
-  disabledChannels?: Array<Types.ChannelNameID>
+  disabledChannels?: Array<T.Teams.ChannelNameID>
   hideGeneral?: boolean
   onCancel: () => void
-  onComplete: (channels: Array<Types.ChannelNameID>) => void
-  teamID: Types.TeamID
+  onComplete: (channels: Array<T.Teams.ChannelNameID>) => void
+  teamID: T.Teams.TeamID
 }
 
 const ChannelPopup = (props: Props) => {
@@ -33,8 +33,8 @@ const ChannelPopup = (props: Props) => {
         )
       : channels
 
-  const [selected, setSelected] = React.useState<Array<Types.ChannelNameID>>([])
-  const onSelect = (channel: Types.ChannelNameID) => {
+  const [selected, setSelected] = React.useState<Array<T.Teams.ChannelNameID>>([])
+  const onSelect = (channel: T.Teams.ChannelNameID) => {
     const idx = selected.findIndex(c => c.conversationIDKey === channel.conversationIDKey)
     if (idx >= 0) {
       selected.splice(idx, 1)

@@ -3,7 +3,7 @@ import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Style from '../../../../styles'
 import * as TeamConstants from '../../../../constants/teams'
-import type * as TeamTypes from '../../../../constants/types/teams'
+import type * as T from '../../../../constants/types'
 import upperFirst from 'lodash/upperFirst'
 import {indefiniteArticle} from '../../../../util/string'
 
@@ -19,8 +19,8 @@ const MinWriterRole = () => {
   const [selected, setSelected] = React.useState(minWriterRole)
   const setMinWriterRole = C.useChatContext(s => s.dispatch.setMinWriterRole)
 
-  const onSetNewRole = (role: TeamTypes.TeamRoleType) => setMinWriterRole(role)
-  const selectRole = (role: TeamTypes.TeamRoleType) => {
+  const onSetNewRole = (role: T.Teams.TeamRoleType) => setMinWriterRole(role)
+  const selectRole = (role: T.Teams.TeamRoleType) => {
     if (role !== minWriterRole) {
       setSaving(true)
       setSelected(role)
@@ -63,7 +63,7 @@ const MinWriterRole = () => {
 }
 
 type DropdownProps = {
-  minWriterRole: TeamTypes.TeamRoleType
+  minWriterRole: T.Teams.TeamRoleType
   items: Kb.MenuItems
   saving: boolean
 }
@@ -112,7 +112,7 @@ const Dropdown = (p: DropdownProps) => {
   )
 }
 
-const Display = ({minWriterRole}: {minWriterRole: TeamTypes.TeamRoleType}) => (
+const Display = ({minWriterRole}: {minWriterRole: T.Teams.TeamRoleType}) => (
   <Kb.Text type="BodySmall">
     You must be at least {indefiniteArticle(minWriterRole)}{' '}
     <Kb.Text type="BodySmallSemibold">“{minWriterRole}”</Kb.Text> to post in this channel.

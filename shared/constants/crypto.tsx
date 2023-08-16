@@ -1,11 +1,9 @@
 import * as C from '.'
 import * as Platform from '../constants/platform'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Z from '../util/zustand'
 import HiddenString from '../util/hidden-string'
 import logger from '../logger'
-import type * as Types from './types/crypto'
-import type * as TeamBuildingTypes from './types/team-building'
+import * as T from './types'
 import {RPCError} from '../util/errors'
 
 export const saltpackDocumentation = 'https://saltpack.org'
@@ -120,8 +118,8 @@ const getWarningMessageForSBS = (sbsAssertion: string) =>
 
 const getStatusCodeMessage = (
   error: RPCError,
-  operation: Types.Operations,
-  type: Types.InputTypes
+  operation: T.Crypto.Operations,
+  type: T.Crypto.InputTypes
 ): string => {
   const inputType =
     type === 'text' ? (operation === Operations.Verify ? 'signed message' : 'ciphertext') : 'file'
@@ -140,25 +138,25 @@ const getStatusCodeMessage = (
   }
 
   const causeStatusCode =
-    error.fields && error.fields[1].key === 'Code' ? error.fields[1].value : RPCTypes.StatusCode.scgeneric
+    error.fields && error.fields[1].key === 'Code' ? error.fields[1].value : T.RPCGen.StatusCode.scgeneric
   const causeStatusCodeToMessage: any = {
-    [RPCTypes.StatusCode.scapinetworkerror]: offlineMessage,
-    [RPCTypes.StatusCode
+    [T.RPCGen.StatusCode.scapinetworkerror]: offlineMessage,
+    [T.RPCGen.StatusCode
       .scdecryptionkeynotfound]: `This message was encrypted for someone else or for a key you don't have.`,
-    [RPCTypes.StatusCode
+    [T.RPCGen.StatusCode
       .scverificationkeynotfound]: `This message couldn't be verified, because the signing key wasn't recognized.`,
-    [RPCTypes.StatusCode.scwrongcryptomsgtype]: `This Saltpack format is unexpected.` + wrongTypeHelpText,
+    [T.RPCGen.StatusCode.scwrongcryptomsgtype]: `This Saltpack format is unexpected.` + wrongTypeHelpText,
   } as const
 
   const statusCodeToMessage: any = {
-    [RPCTypes.StatusCode.scapinetworkerror]: offlineMessage,
-    [RPCTypes.StatusCode.scgeneric]: `${
+    [T.RPCGen.StatusCode.scapinetworkerror]: offlineMessage,
+    [T.RPCGen.StatusCode.scgeneric]: `${
       error.message.includes('API network error') ? offlineMessage : genericMessage
     }`,
-    [RPCTypes.StatusCode
+    [T.RPCGen.StatusCode
       .scstreamunknown]: `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`,
-    [RPCTypes.StatusCode.scsigcannotverify]: causeStatusCodeToMessage[causeStatusCode] || genericMessage,
-    [RPCTypes.StatusCode.scdecryptionerror]: causeStatusCodeToMessage[causeStatusCode] || genericMessage,
+    [T.RPCGen.StatusCode.scsigcannotverify]: causeStatusCodeToMessage[causeStatusCode] || genericMessage,
+    [T.RPCGen.StatusCode.scdecryptionerror]: causeStatusCodeToMessage[causeStatusCode] || genericMessage,
   } as const
 
   return statusCodeToMessage[error.code] || genericMessage
@@ -171,7 +169,7 @@ const defaultCommonStore = {
   errorMessage: new HiddenString(''),
   inProgress: false,
   input: new HiddenString(''),
-  inputType: 'text' as Types.InputTypes,
+  inputType: 'text' as T.Crypto.InputTypes,
   output: new HiddenString(''),
   outputFileDestination: new HiddenString(''),
   outputSenderFullname: undefined,
@@ -204,21 +202,21 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
-    clearInput: (op: Types.Operations) => void
+    clearInput: (op: T.Crypto.Operations) => void
     clearRecipients: () => void
     downloadEncryptedText: () => void
     downloadSignedText: () => void
     resetState: 'default'
-    resetOperation: (op: Types.Operations) => void
-    runFileOperation: (op: Types.Operations, destinationDir: string) => void
-    runTextOperation: (op: Types.Operations) => void
-    onSaltpackDone: (op: Types.Operations) => void
-    onSaltpackStart: (op: Types.Operations) => void
-    onSaltpackProgress: (op: Types.Operations, bytesComplete: number, bytesTotal: number) => void
-    onSaltpackOpenFile: (op: Types.Operations, path: string) => void
-    onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
+    resetOperation: (op: T.Crypto.Operations) => void
+    runFileOperation: (op: T.Crypto.Operations, destinationDir: string) => void
+    runTextOperation: (op: T.Crypto.Operations) => void
+    onSaltpackDone: (op: T.Crypto.Operations) => void
+    onSaltpackStart: (op: T.Crypto.Operations) => void
+    onSaltpackProgress: (op: T.Crypto.Operations, bytesComplete: number, bytesTotal: number) => void
+    onSaltpackOpenFile: (op: T.Crypto.Operations, path: string) => void
+    onTeamBuildingFinished: (users: Set<T.TB.User>) => void
     setEncryptOptions: (options: EncryptOptions, hideIncludeSelf?: boolean) => void
-    setInput: (op: Types.Operations, type: Types.InputTypes, value: string) => void
+    setInput: (op: T.Crypto.Operations, type: T.Crypto.InputTypes, value: string) => void
     setRecipients: (recipients: Array<string>, hasSBS: boolean) => void
   }
 }
@@ -285,7 +283,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             usedUnresolvedSBS,
             unresolvedSBSAssertion,
             ciphertext: output,
-          } = await RPCTypes.saltpackSaltpackEncryptStringRpcPromise({opts, plaintext: input}, waitingKey)
+          } = await T.RPCGen.saltpackSaltpackEncryptStringRpcPromise({opts, plaintext: input}, waitingKey)
           return {output, unresolvedSBSAssertion, usedUnresolvedSBS}
         }
         const callFile = async () => {
@@ -293,7 +291,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             usedUnresolvedSBS,
             unresolvedSBSAssertion,
             filename: output,
-          } = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise(
+          } = await T.RPCGen.saltpackSaltpackEncryptFileRpcPromise(
             {destinationDir, filename: input, opts},
             waitingKey
           )
@@ -336,7 +334,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const input = start.input.stringValue()
       try {
         const callText = async () => {
-          const res = await RPCTypes.saltpackSaltpackDecryptStringRpcPromise({ciphertext: input}, waitingKey)
+          const res = await T.RPCGen.saltpackSaltpackDecryptStringRpcPromise({ciphertext: input}, waitingKey)
           const {plaintext: output, info, signed} = res
           const {sender} = info
           const {username, fullname} = sender
@@ -344,7 +342,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
 
         const callFile = async () => {
-          const result = await RPCTypes.saltpackSaltpackDecryptFileRpcPromise(
+          const result = await T.RPCGen.saltpackSaltpackDecryptFileRpcPromise(
             {destinationDir, encryptedFilename: input},
             waitingKey
           )
@@ -389,10 +387,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const input = start.input.stringValue()
       try {
         const callText = async () =>
-          await RPCTypes.saltpackSaltpackSignStringRpcPromise({plaintext: input}, waitingKey)
+          await T.RPCGen.saltpackSaltpackSignStringRpcPromise({plaintext: input}, waitingKey)
 
         const callFile = async () =>
-          await RPCTypes.saltpackSaltpackSignFileRpcPromise({destinationDir, filename: input}, waitingKey)
+          await T.RPCGen.saltpackSaltpackSignFileRpcPromise({destinationDir, filename: input}, waitingKey)
 
         const output = await (inputType === 'text' ? callText() : callFile())
 
@@ -422,13 +420,13 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const input = start.input.stringValue()
       try {
         const callText = async () => {
-          const res = await RPCTypes.saltpackSaltpackVerifyStringRpcPromise({signedMsg: input}, waitingKey)
+          const res = await T.RPCGen.saltpackSaltpackVerifyStringRpcPromise({signedMsg: input}, waitingKey)
           const {plaintext: output, sender, verified: signed} = res
           const {username, fullname} = sender
           return {fullname, output, signed, username}
         }
         const callFile = async () => {
-          const res = await RPCTypes.saltpackSaltpackVerifyFileRpcPromise(
+          const res = await T.RPCGen.saltpackSaltpackVerifyFileRpcPromise(
             {destinationDir, signedFilename: input},
             waitingKey
           )
@@ -464,14 +462,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
     Z.ignorePromise(f())
   }
 
-  const download = (op: Types.Operations) => {
+  const download = (op: T.Crypto.Operations) => {
     const f = async () => {
       const callEncrypt = async () =>
-        await RPCTypes.saltpackSaltpackSaveCiphertextToFileRpcPromise({
+        await T.RPCGen.saltpackSaltpackSaveCiphertextToFileRpcPromise({
           ciphertext: get().encrypt.output.stringValue(),
         })
       const callSign = async () =>
-        await RPCTypes.saltpackSaltpackSaveSignedMsgToFileRpcPromise({
+        await T.RPCGen.saltpackSaltpackSaveSignedMsgToFileRpcPromise({
           signedMsg: get().sign.output.stringValue(),
         })
       const output = await (op === 'encrypt' ? callEncrypt() : callSign())
@@ -555,7 +553,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         s[op].inProgress = true
       })
     },
-    onTeamBuildingFinished: (_users: Set<TeamBuildingTypes.User>) => {
+    onTeamBuildingFinished: (_users: Set<T.TB.User>) => {
       const users = [..._users]
       let hasSBS = false
       const usernames = users.map(user => {
@@ -666,7 +664,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         encrypt('')
       }
     },
-    setInput: (op: Types.Operations, type: Types.InputTypes, value: string) => {
+    setInput: (op: T.Crypto.Operations, type: T.Crypto.InputTypes, value: string) => {
       if (!value) {
         get().dispatch.clearInput(op)
         return

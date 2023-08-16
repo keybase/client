@@ -4,7 +4,7 @@ import * as TabConstants from '../constants/tabs'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/settings'
 import * as Styles from '../styles'
-import {logPerfLogPointRpcPromise} from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 import {keybaseFM} from '../constants/whats-new'
 import {isAndroid} from '../constants/platform'
 import SettingsItem from './sub-nav/settings-item'
@@ -29,7 +29,7 @@ const PerfRow = () => {
         small={true}
         label="PerfLog"
         onClick={() => {
-          logPerfLogPointRpcPromise({msg: toSubmit})
+          T.RPCGen.logPerfLogPointRpcPromise({msg: toSubmit})
             .then(() => {})
             .catch(() => {})
           ref.current?.transformText(

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Types from '../constants/types/fs'
+import * as T from '../constants/types'
 import * as C from '../constants'
 import * as Container from '../util/container'
 import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
@@ -15,7 +15,7 @@ const getOptions = (ownProps?: OwnProps) => {
         headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
         headerTitle: () => <Title path={path} />,
         subHeader: MainBanner,
-        title: path === C.defaultPath ? 'Files' : Types.getPathName(path),
+        title: path === C.defaultPath ? 'Files' : T.FS.getPathName(path),
       }
 }
 

@@ -2,7 +2,7 @@ import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../constants/types'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as TeamConstants from '../../../../constants/teams'
@@ -21,7 +21,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const yourOperations = C.useTeamsState(s =>
     teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined
   )
-  const ignored = status === RPCChatTypes.ConversationStatus.ignored
+  const ignored = status === T.RPCChat.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'
 
   const spinnerForLeave = Container.useAnyWaiting(Constants.waitingKeyLeaveConversation)

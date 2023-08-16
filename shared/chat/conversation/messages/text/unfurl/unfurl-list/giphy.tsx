@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Styles from '../../../../../../styles'
 import UnfurlImage from './image'
 import shallowEqual from 'shallowequal'
-import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../../../constants/types'
 import {OrdinalContext} from '../../../ids-context'
 import {getUnfurlInfo, useActions} from './use-redux'
 
@@ -14,7 +14,7 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
 
   const data = C.useChatContext(s => {
     const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(s, ordinal, idx)
-    if (unfurl?.unfurlType !== RPCChatTypes.UnfurlType.giphy) {
+    if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.giphy) {
       return null
     }
     const {giphy} = unfurl

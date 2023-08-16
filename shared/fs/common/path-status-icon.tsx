@@ -1,4 +1,4 @@
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import PieSlice from './pie-slice'
@@ -7,66 +7,66 @@ import UploadIcon from './upload-icon'
 type Props = {
   isTlfType?: boolean
   isFolder: boolean
-  statusIcon?: Types.PathStatusIcon
+  statusIcon?: T.FS.PathStatusIcon
   showTooltipOnPressMobile?: boolean
 }
 
-function getIcon(status: Types.LocalConflictStatusType | Types.NonUploadStaticSyncStatus): Kb.IconType {
+function getIcon(status: T.FS.LocalConflictStatusType | T.FS.NonUploadStaticSyncStatus): Kb.IconType {
   switch (status) {
-    case Types.NonUploadStaticSyncStatus.AwaitingToSync:
+    case T.FS.NonUploadStaticSyncStatus.AwaitingToSync:
       return 'iconfont-clock'
-    case Types.NonUploadStaticSyncStatus.OnlineOnly:
+    case T.FS.NonUploadStaticSyncStatus.OnlineOnly:
       return 'iconfont-cloud'
-    case Types.NonUploadStaticSyncStatus.Synced:
+    case T.FS.NonUploadStaticSyncStatus.Synced:
       return 'iconfont-success'
-    case Types.NonUploadStaticSyncStatus.SyncError:
+    case T.FS.NonUploadStaticSyncStatus.SyncError:
       return 'iconfont-exclamation'
-    case Types.LocalConflictStatus:
+    case T.FS.LocalConflictStatus:
       return 'iconfont-exclamation'
-    case Types.NonUploadStaticSyncStatus.Unknown:
+    case T.FS.NonUploadStaticSyncStatus.Unknown:
       return 'iconfont-circle'
   }
 }
 
-function getColor(status: Types.LocalConflictStatusType | Types.NonUploadStaticSyncStatus) {
+function getColor(status: T.FS.LocalConflictStatusType | T.FS.NonUploadStaticSyncStatus) {
   switch (status) {
-    case Types.NonUploadStaticSyncStatus.AwaitingToSync:
-    case Types.NonUploadStaticSyncStatus.OnlineOnly:
+    case T.FS.NonUploadStaticSyncStatus.AwaitingToSync:
+    case T.FS.NonUploadStaticSyncStatus.OnlineOnly:
       return Styles.globalColors.blue
-    case Types.NonUploadStaticSyncStatus.Unknown:
+    case T.FS.NonUploadStaticSyncStatus.Unknown:
       return Styles.globalColors.greyDark
-    case Types.NonUploadStaticSyncStatus.Synced:
+    case T.FS.NonUploadStaticSyncStatus.Synced:
       return Styles.globalColors.green
-    case Types.NonUploadStaticSyncStatus.SyncError:
+    case T.FS.NonUploadStaticSyncStatus.SyncError:
       return Styles.globalColors.red
-    case Types.LocalConflictStatus:
+    case T.FS.LocalConflictStatus:
       return Styles.globalColors.red
   }
 }
 
-function getTooltip(statusIcon: Types.PathStatusIcon, isFolder: boolean): string {
+function getTooltip(statusIcon: T.FS.PathStatusIcon, isFolder: boolean): string {
   if (typeof statusIcon === 'number') {
     return 'Syncing ' + Math.floor(statusIcon * 100) + '%...'
   }
 
   switch (statusIcon) {
-    case Types.NonUploadStaticSyncStatus.AwaitingToSync:
+    case T.FS.NonUploadStaticSyncStatus.AwaitingToSync:
       return 'Waiting to sync'
-    case Types.UploadIcon.AwaitingToUpload:
+    case T.FS.UploadIcon.AwaitingToUpload:
       return 'Local ' + (isFolder ? 'folder' : 'file') + '. Upload will start once you get back online.'
-    case Types.UploadIcon.Uploading:
+    case T.FS.UploadIcon.Uploading:
       return 'Uploading...'
-    case Types.UploadIcon.UploadingStuck:
+    case T.FS.UploadIcon.UploadingStuck:
       return 'Stuck in conflict resolution. Upload will start once you resolve conflict.'
-    case Types.NonUploadStaticSyncStatus.OnlineOnly:
+    case T.FS.NonUploadStaticSyncStatus.OnlineOnly:
       return 'Online only'
-    case Types.NonUploadStaticSyncStatus.Synced:
+    case T.FS.NonUploadStaticSyncStatus.Synced:
       return 'Synced'
-    case Types.NonUploadStaticSyncStatus.SyncError:
+    case T.FS.NonUploadStaticSyncStatus.SyncError:
       return (isFolder ? 'Folder' : 'File') + " couldn't sync"
-    case Types.LocalConflictStatus:
+    case T.FS.LocalConflictStatus:
       return 'Local view of a conflicted folder.'
-    case Types.NonUploadStaticSyncStatus.Unknown:
+    case T.FS.NonUploadStaticSyncStatus.Unknown:
       return 'Unknown sync state'
   }
 }
@@ -81,9 +81,9 @@ const PathStatusIcon = (props: Props) =>
         <Kb.Box2 direction="horizontal" style={{margin: Styles.globalMargins.xtiny}}>
           <PieSlice degrees={360 * props.statusIcon} animated={true} />
         </Kb.Box2>
-      ) : props.statusIcon === Types.UploadIcon.AwaitingToUpload ||
-        props.statusIcon === Types.UploadIcon.Uploading ||
-        props.statusIcon === Types.UploadIcon.UploadingStuck ? (
+      ) : props.statusIcon === T.FS.UploadIcon.AwaitingToUpload ||
+        props.statusIcon === T.FS.UploadIcon.Uploading ||
+        props.statusIcon === T.FS.UploadIcon.UploadingStuck ? (
         <UploadIcon uploadIcon={props.statusIcon} style={styles.iconNonFont} />
       ) : (
         <Kb.Icon

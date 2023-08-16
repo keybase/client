@@ -1,6 +1,6 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/tracker2'
-import * as FsTypes from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import Actions from '.'
 
 type OwnProps = {
@@ -23,7 +23,7 @@ export default (ownProps: OwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onAddToTeam = (username: string) => navigateAppend({props: {username}, selected: 'profileAddToTeam'})
   const _onBrowsePublicFolder = (username: string) =>
-    C.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${username}`))
+    C.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/public/${username}`))
   const _onEditProfile = () => navigateAppend('profileEdit')
 
   const changeFollow = C.useTrackerState(s => s.dispatch.changeFollow)
@@ -36,7 +36,7 @@ export default (ownProps: OwnProps) => {
   const _onManageBlocking = (username: string) =>
     navigateAppend({props: {username}, selected: 'chatBlockingModal'})
   const _onOpenPrivateFolder = (myUsername: string, theirUsername: string) =>
-    C.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/private/${theirUsername},${myUsername}`))
+    C.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${theirUsername},${myUsername}`))
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const _onReload = (username: string) => {
     showUser(username, false)

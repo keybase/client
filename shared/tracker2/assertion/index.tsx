@@ -2,15 +2,15 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/tracker2'
+import type * as T from '../../constants/types'
 import {SiteIcon} from '../../profile/generic/shared'
 import {formatTimeForAssertionPopup} from '../../util/timestamp'
 
 type Props = {
-  color: Types.AssertionColor
+  color: T.Tracker.AssertionColor
   isSuggestion: boolean
   isYours: boolean
-  metas: ReadonlyArray<Types.AssertionMeta>
+  metas: ReadonlyArray<T.Tracker.AssertionMeta>
   notAUser: boolean
   onHideStellar: (hidden: boolean) => void
   onRecheck?: () => void
@@ -19,12 +19,12 @@ type Props = {
   onShowSite?: () => void
   onCreateProof?: () => void
   proofURL: string
-  siteIcon?: Types.SiteIconSet
-  siteIconDarkmode?: Types.SiteIconSet
-  siteIconFull?: Types.SiteIconSet
-  siteIconFullDarkmode?: Types.SiteIconSet
+  siteIcon?: T.Tracker.SiteIconSet
+  siteIconDarkmode?: T.Tracker.SiteIconSet
+  siteIconFull?: T.Tracker.SiteIconSet
+  siteIconFullDarkmode?: T.Tracker.SiteIconSet
   siteURL: string
-  state: Types.AssertionState
+  state: T.Tracker.AssertionState
   stellarHidden: boolean
   timestamp: number
   type: string
@@ -41,7 +41,7 @@ const proofTypeToDesc = (proofType: string) => {
   }
 }
 
-const stateToIcon = (state: Types.AssertionState) => {
+const stateToIcon = (state: T.Tracker.AssertionState) => {
   switch (state) {
     case 'checking':
       return 'iconfont-proof-pending'
@@ -59,7 +59,7 @@ const stateToIcon = (state: Types.AssertionState) => {
 }
 
 // alternate versions of the ones from `stateToIcon` for the popup menu header
-const stateToDecorationIcon = (state: Types.AssertionState) => {
+const stateToDecorationIcon = (state: T.Tracker.AssertionState) => {
   switch (state) {
     case 'checking':
       return 'icon-proof-pending'
@@ -76,7 +76,7 @@ const stateToDecorationIcon = (state: Types.AssertionState) => {
   }
 }
 
-const stateToValueTextStyle = (state: Types.AssertionState) => {
+const stateToValueTextStyle = (state: T.Tracker.AssertionState) => {
   switch (state) {
     case 'revoked':
       return styles.strikeThrough
@@ -90,7 +90,7 @@ const stateToValueTextStyle = (state: Types.AssertionState) => {
   }
 }
 
-const assertionColorToTextColor = (c: Types.AssertionColor) => {
+const assertionColorToTextColor = (c: T.Tracker.AssertionColor) => {
   switch (c) {
     case 'blue':
       return Styles.globalColors.blueDark
@@ -109,7 +109,7 @@ const assertionColorToTextColor = (c: Types.AssertionColor) => {
   }
 }
 
-const assertionColorToColor = (c: Types.AssertionColor) => {
+const assertionColorToColor = (c: T.Tracker.AssertionColor) => {
   switch (c) {
     case 'blue':
       return Styles.globalColors.blue

@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {subtitle} from '../../util/platforms'
 import openUrl from '../../util/open-url'
-import type {ProvablePlatformsType} from '../../constants/types/more'
+import type * as T from '../../constants/types'
 import Modal from '../modal'
 
 export type Props = {
@@ -13,7 +13,7 @@ export type Props = {
   onCancel: () => void
   onSubmit: () => void
   openLinkBeforeSubmit: boolean
-  platform: ProvablePlatformsType
+  platform: T.More.ProvablePlatformsType
   platformUserName: string
   proofText: string
   url: string

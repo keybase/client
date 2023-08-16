@@ -1,14 +1,13 @@
 import * as C from '.'
-import type * as Types from './types/git'
+import * as T from './types'
 import * as dateFns from 'date-fns'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Z from '../util/zustand'
 
-const parseRepos = (results: Array<RPCTypes.GitRepoResult>) => {
+const parseRepos = (results: Array<T.RPCGen.GitRepoResult>) => {
   const errors: Array<Error> = []
-  const repos = new Map<string, Types.GitInfo>()
+  const repos = new Map<string, T.Git.GitInfo>()
   results.forEach(result => {
-    if (result.state === RPCTypes.GitRepoResultState.ok) {
+    if (result.state === T.RPCGen.GitRepoResultState.ok) {
       const parsedRepo = parseRepoResult(result)
       if (parsedRepo) {
         repos.set(parsedRepo.id, parsedRepo)
@@ -20,14 +19,14 @@ const parseRepos = (results: Array<RPCTypes.GitRepoResult>) => {
   return {errors, repos}
 }
 
-const parseRepoResult = (result: RPCTypes.GitRepoResult): Types.GitInfo | undefined => {
-  if (result.state === RPCTypes.GitRepoResultState.ok) {
-    const r: RPCTypes.GitRepoInfo = result.ok
-    if (r.folder.folderType === RPCTypes.FolderType.public) {
+const parseRepoResult = (result: T.RPCGen.GitRepoResult): T.Git.GitInfo | undefined => {
+  if (result.state === T.RPCGen.GitRepoResultState.ok) {
+    const r: T.RPCGen.GitRepoInfo = result.ok
+    if (r.folder.folderType === T.RPCGen.FolderType.public) {
       // Skip public repos
       return undefined
     }
-    const teamname = r.folder.folderType === RPCTypes.FolderType.team ? r.folder.name : undefined
+    const teamname = r.folder.folderType === T.RPCGen.FolderType.team ? r.folder.name : undefined
     return {
       canDelete: r.canDelete,
       channelName: r.teamRepoSettings?.channelName || undefined,
@@ -45,21 +44,21 @@ const parseRepoResult = (result: RPCTypes.GitRepoResult): Types.GitInfo | undefi
   return undefined
 }
 
-const parseRepoError = (result: RPCTypes.GitRepoResult): Error => {
+const parseRepoError = (result: T.RPCGen.GitRepoResult): Error => {
   let errStr: string = 'unknown'
-  if (result.state === RPCTypes.GitRepoResultState.err && result.err) {
+  if (result.state === T.RPCGen.GitRepoResultState.err && result.err) {
     errStr = result.err
   }
   return new Error(`Git repo error: ${errStr}`)
 }
 
-const initialStore: Types.State = {
+const initialStore: T.Git.State = {
   error: undefined,
   idToInfo: new Map(),
   isNew: new Set(),
 }
 
-type State = Types.State & {
+type State = T.Git.State & {
   dispatch: {
     setError: (err?: Error) => void
     clearBadges: () => void
@@ -98,7 +97,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
   }
 
   const _load = async () => {
-    const results = await RPCTypes.gitGetAllGitMetadataRpcPromise(undefined, loadingWaitingKey)
+    const results = await T.RPCGen.gitGetAllGitMetadataRpcPromise(undefined, loadingWaitingKey)
     const {errors, repos} = parseRepos(results || [])
     const {setGlobalError} = C.useConfigState.getState().dispatch
     errors.forEach(e => setGlobalError(e))
@@ -112,29 +111,29 @@ export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearBadges: () => {
       callAndHandleError(async () => {
-        await RPCTypes.gregorDismissCategoryRpcPromise({category: 'new_git_repo'})
+        await T.RPCGen.gregorDismissCategoryRpcPromise({category: 'new_git_repo'})
       }, false)
     },
     createPersonalRepo: repoName => {
       callAndHandleError(async () => {
-        await RPCTypes.gitCreatePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
+        await T.RPCGen.gitCreatePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
       })
     },
     createTeamRepo: (repoName, teamname, notifyTeam) => {
       callAndHandleError(async () => {
         const teamName = {parts: teamname.split('.')}
-        await RPCTypes.gitCreateTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
+        await T.RPCGen.gitCreateTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
       })
     },
     deletePersonalRepo: repoName => {
       callAndHandleError(async () => {
-        await RPCTypes.gitDeletePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
+        await T.RPCGen.gitDeletePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
       })
     },
     deleteTeamRepo: (repoName, teamname, notifyTeam) => {
       callAndHandleError(async () => {
         const teamName = {parts: teamname.split('.')}
-        await RPCTypes.gitDeleteTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
+        await T.RPCGen.gitDeleteTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
       })
     },
     load,
@@ -165,12 +164,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     setTeamRepoSettings: (channelName, teamname, repoID, chatDisabled) => {
       callAndHandleError(async () => {
-        await RPCTypes.gitSetTeamRepoSettingsRpcPromise({
+        await T.RPCGen.gitSetTeamRepoSettingsRpcPromise({
           channelName,
           chatDisabled,
           folder: {
             created: false,
-            folderType: RPCTypes.FolderType.team,
+            folderType: T.RPCGen.FolderType.team,
             name: teamname,
           },
           repoID,
@@ -195,7 +194,7 @@ const emptyInfo = {
   repoID: '',
   url: '',
 }
-export const makeGitInfo = (i?: Partial<Types.GitInfo>): Types.GitInfo =>
+export const makeGitInfo = (i?: Partial<T.Git.GitInfo>): T.Git.GitInfo =>
   i ? Object.assign({...emptyInfo}, i) : emptyInfo
 
 export const loadingWaitingKey = 'git:loading'

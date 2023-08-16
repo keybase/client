@@ -1,10 +1,10 @@
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-import type {GoButtonLabel} from '../constants/types/team-building'
+import type * as T from '../constants/types'
 
 export type Props = {
   onClick: () => void
-  label: GoButtonLabel
+  label: T.TB.GoButtonLabel
   waitingKey?: string
 }
 

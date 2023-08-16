@@ -1,4 +1,4 @@
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import type {allTextTypes} from '../../common-adapters/text.shared'
@@ -6,7 +6,7 @@ import type {allTextTypes} from '../../common-adapters/text.shared'
 type TextType = keyof typeof allTextTypes
 
 type Props = {
-  path?: Types.Path
+  path?: T.FS.Path
   filename?: string
   selectable?: boolean
   style?: Styles.StylesCrossPlatform
@@ -24,7 +24,7 @@ const splitFileNameAndExtension = (fileName: string) => {
 
 const Filename = (props: Props) => {
   const [fileNameWithoutExtension, fileExtension] = splitFileNameAndExtension(
-    props.path ? Types.getPathName(props.path) : props.filename || ''
+    props.path ? T.FS.getPathName(props.path) : props.filename || ''
   )
   return (
     <Kb.Box2 direction="horizontal" style={props.style}>
@@ -66,5 +66,5 @@ const styles = Styles.styleSheetCreate(
       noShrink: {
         flexShrink: 0,
       },
-    } as const)
+    }) as const
 )

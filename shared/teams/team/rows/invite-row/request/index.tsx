@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as Types from '../../../../../constants/types/teams'
+import type * as T from '../../../../../constants/types'
 import * as Kb from '../../../../../common-adapters'
 import {FloatingRolePicker} from '../../../../role-picker'
 import * as Styles from '../../../../../styles'
@@ -9,13 +9,13 @@ import MenuHeader from '../../menu-header.new'
 
 export type RowProps = {
   ctime: number
-  disabledReasonsForRolePicker: Types.DisabledReasonsForRolePicker
+  disabledReasonsForRolePicker: T.Teams.DisabledReasonsForRolePicker
   firstItem: boolean
   fullName: string
   onChat: () => void
   onIgnoreRequest: () => void
   onOpenProfile: (u: string) => void
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   username: string
   reset?: boolean
   waiting: boolean
@@ -25,7 +25,7 @@ type RolePickerProps = {
   onAccept: () => void
   isRolePickerOpen: boolean
   onCancelRolePicker: () => void
-  onConfirmRolePicker: (role: Types.TeamRoleType) => void
+  onConfirmRolePicker: (role: T.Teams.TeamRoleType) => void
   onEditMembership: () => void
   footerComponent: React.ReactNode
 }

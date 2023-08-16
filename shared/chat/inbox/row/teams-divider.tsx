@@ -1,10 +1,9 @@
 import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as RowSizes from './sizes'
 import * as Styles from '../../../styles'
-import type * as T from '../../../constants/types'
 import {memoize} from '../../../util/memoize'
 
 type Props = {
@@ -48,7 +47,7 @@ const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
 
   // only show if there's more to load
   const reallyShow = showButton && !!hiddenCount
-  const loadMore = async () => RPCChatTypes.localRequestInboxSmallIncreaseRpcPromise().catch(() => {})
+  const loadMore = async () => T.RPCChat.localRequestInboxSmallIncreaseRpcPromise().catch(() => {})
 
   badgeCount = Math.max(0, badgeCount)
   hiddenCount = Math.max(0, hiddenCount)

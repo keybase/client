@@ -1,12 +1,12 @@
 import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/teams'
 import {TeamInviteRow} from '.'
-import type {InviteInfo, TeamID, TeamRoleType} from '../../../../../constants/types/teams'
+import type * as T from '../../../../../constants/types'
 import {formatPhoneNumber} from '../../../../../util/phone-numbers'
 
 type OwnProps = {
   id: string
-  teamID: TeamID
+  teamID: T.Teams.TeamID
   firstItem: boolean
 }
 
@@ -27,12 +27,12 @@ export default (ownProps: OwnProps) => {
     removePendingInvite(teamID, inviteID)
   }
 
-  const user: InviteInfo | undefined =
+  const user: T.Teams.InviteInfo | undefined =
     [...(_invites ?? [])].find(invite => invite.id === ownProps.id) || Constants.emptyInviteInfo
 
   let label: string = ''
   let subLabel: undefined | string
-  let role: TeamRoleType = 'reader'
+  let role: T.Teams.TeamRoleType = 'reader'
   let isKeybaseUser = false
 
   let onCancelInvite = () => {}

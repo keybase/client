@@ -1,16 +1,16 @@
 import * as Kb from '../../../../common-adapters'
 import UserNotice from '../user-notice'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../constants/types'
 import * as dateFns from 'date-fns'
 
 type Props = {
   canManage: boolean
   isTeam: boolean
   isInherit: boolean
-  membersType: RPCChatTypes.ConversationMembersType
+  membersType: T.RPCChat.ConversationMembersType
   onClickUserAvatar: () => void
   onManageRetention: () => void
-  policy?: RPCChatTypes.RetentionPolicy
+  policy?: T.RPCChat.RetentionPolicy
   user: string
   you: string
   timestamp: number
@@ -21,10 +21,10 @@ const getPolicySummary = (props: Props) => {
     return 'be retained indefinitely'
   }
   switch (props.policy.typ) {
-    case RPCChatTypes.RetentionPolicyType.none:
-    case RPCChatTypes.RetentionPolicyType.retain:
+    case T.RPCChat.RetentionPolicyType.none:
+    case T.RPCChat.RetentionPolicyType.retain:
       return 'be retained indefinitely'
-    case RPCChatTypes.RetentionPolicyType.expire:
+    case T.RPCChat.RetentionPolicyType.expire:
       {
         const expireDuration = dateFns.formatDistanceStrict(0, props.policy.expire?.age * 1000)
         if (expireDuration !== '') {
@@ -32,7 +32,7 @@ const getPolicySummary = (props: Props) => {
         }
       }
       break
-    case RPCChatTypes.RetentionPolicyType.ephemeral:
+    case T.RPCChat.RetentionPolicyType.ephemeral:
       {
         const ephemeralDuration =
           // date-fns writes 30 seconds as 1 minute
@@ -52,7 +52,7 @@ const ChangeRetention = (props: Props) => {
   const changedBy = props.you === props.user ? 'You ' : ''
   let convType = 'conversation'
   switch (props.membersType) {
-    case RPCChatTypes.ConversationMembersType.team:
+    case T.RPCChat.ConversationMembersType.team:
       convType = props.isTeam ? 'team' : 'channel'
   }
   const inheritDescription = props.isInherit ? ' to inherit from the team policy' : ''

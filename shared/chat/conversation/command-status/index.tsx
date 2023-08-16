@@ -1,6 +1,6 @@
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as T from '../../../constants/types'
 
 type Action = {
   displayText: string
@@ -10,30 +10,30 @@ type Action = {
 type Props = {
   actions: Array<Action>
   displayText: string
-  displayType: RPCChatTypes.UICommandStatusDisplayTyp
+  displayType: T.RPCChat.UICommandStatusDisplayTyp
   onCancel: () => void
 }
 
-const bkgColor = (typ: RPCChatTypes.UICommandStatusDisplayTyp) => {
+const bkgColor = (typ: T.RPCChat.UICommandStatusDisplayTyp) => {
   switch (typ) {
-    case RPCChatTypes.UICommandStatusDisplayTyp.error:
+    case T.RPCChat.UICommandStatusDisplayTyp.error:
       return {backgroundColor: Styles.globalColors.red}
-    case RPCChatTypes.UICommandStatusDisplayTyp.warning:
+    case T.RPCChat.UICommandStatusDisplayTyp.warning:
       return {backgroundColor: Styles.globalColors.yellowLight}
-    case RPCChatTypes.UICommandStatusDisplayTyp.status:
+    case T.RPCChat.UICommandStatusDisplayTyp.status:
       return {}
     default:
       return {}
   }
 }
 
-const textColor = (typ: RPCChatTypes.UICommandStatusDisplayTyp) => {
+const textColor = (typ: T.RPCChat.UICommandStatusDisplayTyp) => {
   switch (typ) {
-    case RPCChatTypes.UICommandStatusDisplayTyp.error:
+    case T.RPCChat.UICommandStatusDisplayTyp.error:
       return Styles.globalColors.white
-    case RPCChatTypes.UICommandStatusDisplayTyp.warning:
+    case T.RPCChat.UICommandStatusDisplayTyp.warning:
       return Styles.globalColors.blackOrBlack
-    case RPCChatTypes.UICommandStatusDisplayTyp.status:
+    case T.RPCChat.UICommandStatusDisplayTyp.status:
       return Styles.globalColors.black
     default:
       return Styles.globalColors.black
@@ -108,7 +108,7 @@ const styles = Styles.styleSheetCreate(
           borderTopWidth: 1,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default CommandStatus

@@ -1,4 +1,4 @@
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import Footer from '../footer/footer'
@@ -7,7 +7,7 @@ import * as Kbfs from '../common'
 
 type Props = {
   onBack: () => void
-  path: Types.Path
+  path: T.FS.Path
 }
 
 const BarePreview = (props: Props) => {
@@ -28,7 +28,7 @@ const BarePreview = (props: Props) => {
         <Kbfs.PathItemAction
           path={props.path}
           clickable={{actionIconWhite: true, type: 'icon'}}
-          initView={Types.PathItemActionMenuView.Root}
+          initView={T.FS.PathItemActionMenuView.Root}
           mode="screen"
         />
       </Kb.Box>
@@ -72,5 +72,5 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.whiteOrBlueDark,
         lineHeight: 48,
       },
-    } as const)
+    }) as const
 )

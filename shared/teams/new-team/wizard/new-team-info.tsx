@@ -5,22 +5,21 @@ import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Styles from '../../../styles'
 import {ModalTitle} from '../../common'
-import * as Types from '../../../constants/types/teams'
+import * as T from '../../../constants/types'
 import {pluralize} from '../../../util/string'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
 import debounce from 'lodash/debounce'
 
 const getTeamTakenMessage = (status: number): string => {
   switch (status) {
-    case RPCTypes.StatusCode.scteambadnamereserveddb:
+    case T.RPCGen.StatusCode.scteambadnamereserveddb:
       return Styles.isMobile
         ? 'This team name is reserved by the Keybase team. Contact reservations@keybase.io to claim it.'
         : 'This team name is reserved by the Keybase team, possibly for your organization. Contact reservations@keybase.io to claim it.'
 
-    case RPCTypes.StatusCode.scteamnameconflictswithuser:
-    case RPCTypes.StatusCode.scteamexists:
+    case T.RPCGen.StatusCode.scteamnameconflictswithuser:
+    case T.RPCGen.StatusCode.scteamexists:
     default:
       return 'This team name is already taken.'
   }
@@ -49,7 +48,7 @@ const NewTeamInfo = () => {
   // Also it shouldn't leak the names of subteams people make to the server
   // eslint-disable-next-line
   const checkTeamNameTaken = React.useCallback(
-    debounce(Container.useRPC(RPCTypes.teamsUntrustedTeamExistsRpcPromise), 100),
+    debounce(Container.useRPC(T.RPCGen.teamsUntrustedTeamExistsRpcPromise), 100),
     []
   )
   React.useEffect(() => {
@@ -84,7 +83,7 @@ const NewTeamInfo = () => {
       ? teamWizardState.profileShowcase
       : teamWizardState.teamType !== 'other' && teamWizardState.teamType !== 'subteam'
   )
-  const [realRole, setRealRole] = React.useState<Types.TeamRoleType>(teamWizardState.openTeamJoinRole)
+  const [realRole, setRealRole] = React.useState<T.Teams.TeamRoleType>(teamWizardState.openTeamJoinRole)
   const [rolePickerIsOpen, setRolePickerIsOpen] = React.useState(false)
 
   const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < minLength
@@ -122,7 +121,7 @@ const NewTeamInfo = () => {
           ),
         title: (
           <ModalTitle
-            teamID={teamWizardState.parentTeamID ?? Types.newTeamWizardTeamID}
+            teamID={teamWizardState.parentTeamID ?? T.Teams.newTeamWizardTeamID}
             title={teamWizardState.teamType === 'subteam' ? 'Create a subteam' : 'Enter team info'}
           />
         ),

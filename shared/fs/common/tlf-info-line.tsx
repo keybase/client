@@ -1,6 +1,6 @@
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import type * as Types from '../../constants/types/fs'
+import type * as T from '../../constants/types'
 import {formatTimeForFS} from '../../util/timestamp'
 
 export type Props = {
@@ -9,7 +9,7 @@ export type Props = {
   mode: 'row' | 'default'
   reset: boolean | Array<string>
   tlfMtime: number
-  tlfType: Types.Visibility
+  tlfType: T.FS.Visibility
 }
 
 const getOtherResetText = (names: Array<string>): string => {

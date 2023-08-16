@@ -1,12 +1,10 @@
-import type * as Types from '../../../constants/types/fs'
+import type * as T from '../../../constants/types'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import PathItemInfo from '../path-item-info'
 import PathInfo from '../path-info'
 
-export type Props = {
-  path: Types.Path
-}
+export type Props = {path: T.FS.Path}
 
 const Header = (props: Props) => (
   <Kb.Box
@@ -36,5 +34,5 @@ const styles = Styles.styleSheetCreate(
           paddingTop: Styles.globalMargins.large,
         },
       }),
-    } as const)
+    }) as const
 )

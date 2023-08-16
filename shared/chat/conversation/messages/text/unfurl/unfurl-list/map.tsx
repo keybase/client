@@ -1,6 +1,6 @@
 import * as C from '../../../../../../constants'
 import * as Kb from '../../../../../../common-adapters/index'
-import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../../../constants/types'
 import * as React from 'react'
 import * as Styles from '../../../../../../styles'
 import UnfurlImage from './image'
@@ -17,7 +17,7 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
 
   const data = C.useChatContext(s => {
     const {unfurl, youAreAuthor, author} = getUnfurlInfo(s, ordinal, idx)
-    if (unfurl?.unfurlType !== RPCChatTypes.UnfurlType.generic) {
+    if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.generic) {
       return null
     }
     const {generic} = unfurl

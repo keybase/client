@@ -1,6 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../constants/types'
 import * as Constants from '../../../../constants/chat2'
 import * as TeamsConstants from '../../../../constants/teams'
 import * as Common from './common'
@@ -60,7 +60,7 @@ const getChannelSuggestions = (
     const suggestions = (C.useChatState.getState().inboxLayout?.bigTeams ?? []).reduce<
       Array<{channelname: string; teamname: string}>
     >((arr, t) => {
-      t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel &&
+      t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel &&
         mutualTeams.includes(t.channel.teamname) &&
         arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
       return arr
@@ -73,7 +73,7 @@ const getChannelSuggestions = (
   const suggestions = (C.useChatState.getState().inboxLayout?.bigTeams ?? []).reduce<
     Array<{channelname: string}>
   >((arr, t) => {
-    t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel &&
+    t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel &&
       t.channel.teamname === teamname &&
       arr.push({channelname: t.channel.channelname})
     return arr

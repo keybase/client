@@ -1,14 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
+import type * as T from '../../../../constants/types'
 
 export type Props = {
   canChange: boolean
   explanation?: string
   onChange: () => void
-  policy: RetentionPolicy
-  teamPolicy: RetentionPolicy
+  policy: T.Retention.RetentionPolicy
+  teamPolicy: T.Retention.RetentionPolicy
 }
 
 const RetentionNotice = React.memo(function RetentionNotice(props: Props) {
@@ -58,5 +58,5 @@ const styles = Styles.styleSheetCreate(
       iconBox: {
         marginBottom: Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )

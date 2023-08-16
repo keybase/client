@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
@@ -8,7 +8,7 @@ import * as Styles from '../../styles'
 
 type Props = {
   onTriggerFilterMobile: () => void
-  path: Types.Path
+  path: T.FS.Path
 }
 
 const FsNavHeaderRightActions = (props: Props) => {
@@ -31,7 +31,7 @@ const FsNavHeaderRightActions = (props: Props) => {
       <Kbfs.PathItemAction
         path={props.path}
         clickable={{type: 'icon'}}
-        initView={Types.PathItemActionMenuView.Root}
+        initView={T.FS.PathItemActionMenuView.Root}
         mode="screen"
       />
     </Kb.Box2>

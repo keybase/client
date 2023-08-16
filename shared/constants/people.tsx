@@ -1,11 +1,10 @@
 import * as C from '.'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
 import invert from 'lodash/invert'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
-import type * as Types from './types/people'
+import * as T from './types'
 import type {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {isMobile} from './platform'
 import {isNetworkErr, RPCError} from '../util/errors'
@@ -15,7 +14,7 @@ const debugTodo = false
 
 export const getPeopleDataWaitingKey = 'getPeopleData'
 
-export const todoTypes: {[K in Types.TodoType]: Types.TodoType} = {
+export const todoTypes: {[K in T.People.TodoType]: T.People.TodoType} = {
   addEmail: 'addEmail',
   addPhoneNumber: 'addPhoneNumber',
   annoncementPlaceholder: 'annoncementPlaceholder', // misspelled in protocol
@@ -37,7 +36,7 @@ export const todoTypes: {[K in Types.TodoType]: Types.TodoType} = {
   verifyAllPhoneNumber: 'verifyAllPhoneNumber',
 }
 
-const makeAnnouncement = (a?: Partial<Types.Announcement>): Types.Announcement => ({
+const makeAnnouncement = (a?: Partial<T.People.Announcement>): T.People.Announcement => ({
   badged: false,
   dismissable: false,
   iconUrl: '',
@@ -47,7 +46,7 @@ const makeAnnouncement = (a?: Partial<Types.Announcement>): Types.Announcement =
   ...a,
 })
 
-const makeTodo = (t?: Partial<Types.Todo>): Types.Todo => ({
+const makeTodo = (t?: Partial<T.People.Todo>): T.People.Todo => ({
   badged: false,
   confirmLabel: '',
   dismissable: false,
@@ -59,15 +58,17 @@ const makeTodo = (t?: Partial<Types.Todo>): Types.Todo => ({
   ...t,
 })
 
-const makeFollowedNotification = (f?: Partial<Types.FollowedNotification>): Types.FollowedNotification => ({
+const makeFollowedNotification = (
+  f?: Partial<T.People.FollowedNotification>
+): T.People.FollowedNotification => ({
   contactDescription: '',
   username: '',
   ...f,
 })
 
 const makeFollowedNotificationItem = (
-  f?: Partial<Types.FollowedNotificationItem>
-): Types.FollowedNotificationItem => ({
+  f?: Partial<T.People.FollowedNotificationItem>
+): T.People.FollowedNotificationItem => ({
   badged: false,
   newFollows: [],
   notificationTime: new Date(),
@@ -76,7 +77,7 @@ const makeFollowedNotificationItem = (
   ...f,
 })
 
-const makeFollowSuggestion = (f?: Partial<Types.FollowSuggestion>): Types.FollowSuggestion => ({
+const makeFollowSuggestion = (f?: Partial<T.People.FollowSuggestion>): T.People.FollowSuggestion => ({
   followsMe: false,
   fullName: undefined,
   iFollow: false,
@@ -84,25 +85,25 @@ const makeFollowSuggestion = (f?: Partial<Types.FollowSuggestion>): Types.Follow
   ...f,
 })
 
-const makeTodoMetaEmail = (t?: Partial<Types.TodoMetaEmail>): Types.TodoMetaEmail => ({
+const makeTodoMetaEmail = (t?: Partial<T.People.TodoMetaEmail>): T.People.TodoMetaEmail => ({
   email: '',
   lastVerifyEmailDate: 0,
   type: 'email',
   ...t,
 })
 
-const makeTodoMetaPhone = (t?: Partial<Types.TodoMetaPhone>): Types.TodoMetaPhone => ({
+const makeTodoMetaPhone = (t?: Partial<T.People.TodoMetaPhone>): T.People.TodoMetaPhone => ({
   phone: '',
   type: 'phone',
   ...t,
 })
 
 export const defaultNumFollowSuggestions = 10
-const todoTypeEnumToType = invert(RPCTypes.HomeScreenTodoType) as {
-  [K in Types.TodoTypeEnum]: Types.TodoType
+const todoTypeEnumToType = invert(T.RPCGen.HomeScreenTodoType) as {
+  [K in T.People.TodoTypeEnum]: T.People.TodoType
 }
 
-const todoTypeToInstructions: {[K in Types.TodoType]: string} = {
+const todoTypeToInstructions: {[K in T.People.TodoType]: string} = {
   addEmail: 'Add an email address for security purposes, and to get important notifications.',
   addPhoneNumber: 'Add your phone number so your friends can find you.',
   annoncementPlaceholder: '',
@@ -130,7 +131,7 @@ const todoTypeToInstructions: {[K in Types.TodoType]: string} = {
   verifyAllPhoneNumber: '',
 }
 
-const todoTypeToIcon: {[K in Types.TodoType]: IconType} = {
+const todoTypeToIcon: {[K in T.People.TodoType]: IconType} = {
   addEmail: 'icon-onboarding-email-add-48',
   addPhoneNumber: 'icon-onboarding-number-new-48',
   annoncementPlaceholder: 'iconfont-close',
@@ -152,7 +153,7 @@ const todoTypeToIcon: {[K in Types.TodoType]: IconType} = {
   verifyAllPhoneNumber: 'icon-onboarding-number-verify-48',
 } as const
 
-const todoTypeToConfirmLabel: {[K in Types.TodoType]: string} = {
+const todoTypeToConfirmLabel: {[K in T.People.TodoType]: string} = {
   addEmail: 'Add email',
   addPhoneNumber: 'Add number',
   annoncementPlaceholder: '',
@@ -174,14 +175,14 @@ const todoTypeToConfirmLabel: {[K in Types.TodoType]: string} = {
   verifyAllPhoneNumber: 'Verify',
 }
 
-const makeDescriptionForTodoItem = (todo: RPCTypes.HomeScreenTodo) => {
-  const T = RPCTypes.HomeScreenTodoType
+const makeDescriptionForTodoItem = (todo: T.RPCGen.HomeScreenTodo) => {
+  const t = T.RPCGen.HomeScreenTodoType
   switch (todo.t) {
-    case T.legacyEmailVisibility:
+    case t.legacyEmailVisibility:
       return `Allow friends to find you using *${todo.legacyEmailVisibility}*?`
-    case T.verifyAllEmail:
+    case t.verifyAllEmail:
       return `Your email address *${todo.verifyAllEmail}* is unverified.`
-    case T.verifyAllPhoneNumber: {
+    case t.verifyAllPhoneNumber: {
       const {e164ToDisplay} = require('../util/phone-numbers')
       const p = todo.verifyAllPhoneNumber
       return `Your number *${p ? e164ToDisplay(p) : ''}* is unverified.`
@@ -193,18 +194,18 @@ const makeDescriptionForTodoItem = (todo: RPCTypes.HomeScreenTodo) => {
   }
 }
 
-const extractMetaFromTodoItem = (todo: RPCTypes.HomeScreenTodo, todoExt?: RPCTypes.HomeScreenTodoExt) => {
-  const T = RPCTypes.HomeScreenTodoType
+const extractMetaFromTodoItem = (todo: T.RPCGen.HomeScreenTodo, todoExt?: T.RPCGen.HomeScreenTodoExt) => {
+  const t = T.RPCGen.HomeScreenTodoType
   switch (todo.t) {
-    case T.legacyEmailVisibility:
+    case t.legacyEmailVisibility:
       return makeTodoMetaEmail({email: todo.legacyEmailVisibility})
-    case T.verifyAllEmail:
+    case t.verifyAllEmail:
       return makeTodoMetaEmail({
         email: todo.verifyAllEmail || '',
         lastVerifyEmailDate:
-          todoExt && todoExt.t === T.verifyAllEmail ? todoExt.verifyAllEmail.lastVerifyEmailDate : 0,
+          todoExt && todoExt.t === t.verifyAllEmail ? todoExt.verifyAllEmail.lastVerifyEmailDate : 0,
       })
-    case T.verifyAllPhoneNumber:
+    case t.verifyAllPhoneNumber:
       return makeTodoMetaPhone({phone: todo.verifyAllPhoneNumber})
     default:
       return
@@ -212,17 +213,17 @@ const extractMetaFromTodoItem = (todo: RPCTypes.HomeScreenTodo, todoExt?: RPCTyp
 }
 
 const reduceRPCItemToPeopleItem = (
-  list: Array<Types.PeopleScreenItem>,
-  item: RPCTypes.HomeScreenItem
-): Array<Types.PeopleScreenItem> => {
+  list: Array<T.People.PeopleScreenItem>,
+  item: T.RPCGen.HomeScreenItem
+): Array<T.People.PeopleScreenItem> => {
   const badged = item.badged
-  if (item.data.t === RPCTypes.HomeScreenItemType.todo) {
+  if (item.data.t === T.RPCGen.HomeScreenItemType.todo) {
     const todo = item.data.todo
-    const todoExt: RPCTypes.HomeScreenTodoExt | undefined =
-      item.dataExt.t === RPCTypes.HomeScreenItemType.todo ? item.dataExt.todo : undefined
+    const todoExt: T.RPCGen.HomeScreenTodoExt | undefined =
+      item.dataExt.t === T.RPCGen.HomeScreenItemType.todo ? item.dataExt.todo : undefined
 
     const todoType = todoTypeEnumToType[todo.t || 0]
-    const metadata: Types.TodoMeta = extractMetaFromTodoItem(todo, todoExt)
+    const metadata: T.People.TodoMeta = extractMetaFromTodoItem(todo, todoExt)
     return [
       ...list,
       makeTodo({
@@ -235,10 +236,10 @@ const reduceRPCItemToPeopleItem = (
         type: 'todo',
       }),
     ]
-  } else if (item.data.t === RPCTypes.HomeScreenItemType.people) {
+  } else if (item.data.t === T.RPCGen.HomeScreenItemType.people) {
     // Follow notification or contact resolution
     const notification = item.data.people
-    if (notification.t === RPCTypes.HomeScreenPeopleNotificationType.followed) {
+    if (notification.t === T.RPCGen.HomeScreenPeopleNotificationType.followed) {
       // Single follow notification
       const follow = notification.followed
       if (!follow) {
@@ -253,7 +254,7 @@ const reduceRPCItemToPeopleItem = (
           type: 'follow',
         }),
       ]
-    } else if (notification.t === RPCTypes.HomeScreenPeopleNotificationType.followedMulti) {
+    } else if (notification.t === T.RPCGen.HomeScreenPeopleNotificationType.followedMulti) {
       // Multiple follows notification
       const multiFollow = notification.followedMulti
       const followers = multiFollow.followers
@@ -273,7 +274,7 @@ const reduceRPCItemToPeopleItem = (
           type: 'follow',
         }),
       ]
-    } else if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.contact) {
+    } else if (notification && notification.t === T.RPCGen.HomeScreenPeopleNotificationType.contact) {
       // Single contact notification
       const follow = notification.contact
       return [
@@ -290,7 +291,7 @@ const reduceRPCItemToPeopleItem = (
           type: 'contact',
         }),
       ]
-    } else if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.contactMulti) {
+    } else if (notification && notification.t === T.RPCGen.HomeScreenPeopleNotificationType.contactMulti) {
       // Multiple follows notification
       const multiContact = notification.contactMulti
       const contacts = multiContact.contacts
@@ -316,7 +317,7 @@ const reduceRPCItemToPeopleItem = (
         }),
       ]
     }
-  } else if (item.data.t === RPCTypes.HomeScreenItemType.announcement) {
+  } else if (item.data.t === T.RPCGen.HomeScreenItemType.announcement) {
     const a = item.data.announcement
     return [
       ...list,
@@ -337,9 +338,9 @@ const reduceRPCItemToPeopleItem = (
 }
 
 type Store = {
-  followSuggestions: Array<Types.FollowSuggestion>
-  newItems: Array<Types.PeopleScreenItem>
-  oldItems: Array<Types.PeopleScreenItem>
+  followSuggestions: Array<T.People.FollowSuggestion>
+  newItems: Array<T.People.PeopleScreenItem>
+  oldItems: Array<T.People.PeopleScreenItem>
   resentEmail: string
 }
 const initialStore: Store = {
@@ -351,11 +352,11 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
-    dismissAnnouncement: (id: RPCTypes.HomeScreenAnnouncementID) => void
+    dismissAnnouncement: (id: T.RPCGen.HomeScreenAnnouncementID) => void
     loadPeople: (markViewed: boolean, numFollowSuggestionsWanted?: number) => void
     onEngineConnected: () => void
     setResentEmail: (email: string) => void
-    skipTodo: (type: Types.TodoType) => void
+    skipTodo: (type: T.People.TodoType) => void
     markViewed: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     resetState: () => void
@@ -366,7 +367,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     dismissAnnouncement: id => {
       const f = async () => {
-        await RPCTypes.homeHomeDismissAnnouncementRpcPromise({
+        await T.RPCGen.homeHomeDismissAnnouncementRpcPromise({
           i: id,
         })
       }
@@ -384,21 +385,21 @@ export const _useState = Z.createZustand<State>((set, get) => {
         )
 
         try {
-          const data = await RPCTypes.homeHomeGetScreenRpcPromise(
+          const data = await T.RPCGen.homeHomeGetScreenRpcPromise(
             {markViewed, numFollowSuggestionsWanted},
             getPeopleDataWaitingKey
           )
           const {following, followers} = C.useFollowerState.getState()
-          const oldItems: Array<Types.PeopleScreenItem> = (data.items ?? [])
-            .filter(item => !item.badged && item.data.t !== RPCTypes.HomeScreenItemType.todo)
+          const oldItems: Array<T.People.PeopleScreenItem> = (data.items ?? [])
+            .filter(item => !item.badged && item.data.t !== T.RPCGen.HomeScreenItemType.todo)
             .reduce(reduceRPCItemToPeopleItem, [])
-          const newItems: Array<Types.PeopleScreenItem> = (data.items ?? [])
-            .filter(item => item.badged || item.data.t === RPCTypes.HomeScreenItemType.todo)
+          const newItems: Array<T.People.PeopleScreenItem> = (data.items ?? [])
+            .filter(item => item.badged || item.data.t === T.RPCGen.HomeScreenItemType.todo)
             .reduce(reduceRPCItemToPeopleItem, [])
 
           if (debugTodo) {
-            const allTodos = Object.values(RPCTypes.HomeScreenTodoType).reduce<
-              Array<RPCTypes.HomeScreenTodoType>
+            const allTodos = Object.values(T.RPCGen.HomeScreenTodoType).reduce<
+              Array<T.RPCGen.HomeScreenTodoType>
             >((arr, t) => {
               typeof t !== 'string' && arr.push(t)
               return arr
@@ -414,15 +415,15 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 verifyAllEmail: 'user@example.com',
                 verifyAllPhoneNumber: '+1555000111',
               } as any)
-              let metadata: Types.TodoMetaEmail | Types.TodoMetaPhone | undefined
+              let metadata: T.People.TodoMetaEmail | T.People.TodoMetaPhone | undefined
               if (
-                avdlType === RPCTypes.HomeScreenTodoType.verifyAllEmail ||
-                avdlType === RPCTypes.HomeScreenTodoType.legacyEmailVisibility
+                avdlType === T.RPCGen.HomeScreenTodoType.verifyAllEmail ||
+                avdlType === T.RPCGen.HomeScreenTodoType.legacyEmailVisibility
               ) {
                 metadata = makeTodoMetaEmail({
                   email: 'user@example.com',
                 })
-              } else if (avdlType === RPCTypes.HomeScreenTodoType.verifyAllPhoneNumber) {
+              } else if (avdlType === T.RPCGen.HomeScreenTodoType.verifyAllPhoneNumber) {
                 metadata = makeTodoMetaPhone({
                   phone: '+1555000111',
                 })
@@ -454,7 +455,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             )
           }
 
-          const followSuggestions = (data.followSuggestions ?? []).reduce<Array<Types.FollowSuggestion>>(
+          const followSuggestions = (data.followSuggestions ?? []).reduce<Array<T.People.FollowSuggestion>>(
             (list, suggestion) => {
               const followsMe = followers.has(suggestion.username)
               const iFollow = following.has(suggestion.username)
@@ -490,7 +491,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     markViewed: () => {
       const f = async () => {
         try {
-          await RPCTypes.homeHomeMarkViewedRpcPromise()
+          await T.RPCGen.homeHomeMarkViewedRpcPromise()
         } catch (error) {
           if (!(error instanceof RPCError)) {
             throw error
@@ -507,7 +508,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     onEngineConnected: () => {
       const f = async () => {
         try {
-          await RPCTypes.delegateUiCtlRegisterHomeUIRpcPromise()
+          await T.RPCGen.delegateUiCtlRegisterHomeUIRpcPromise()
           console.log('Registered home UI')
         } catch (error) {
           console.warn('Error in registering home UI:', error)
@@ -540,8 +541,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
     skipTodo: type => {
       const f = async () => {
         try {
-          await RPCTypes.homeHomeSkipTodoTypeRpcPromise({
-            t: RPCTypes.HomeScreenTodoType[type],
+          await T.RPCGen.homeHomeSkipTodoTypeRpcPromise({
+            t: T.RPCGen.HomeScreenTodoType[type],
           })
           // TODO get rid of this load and have core send us a homeUIRefresh
           get().dispatch.loadPeople(false)

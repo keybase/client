@@ -1,13 +1,11 @@
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as C from '../../constants'
 import {fileUIName} from '../../constants/platform'
 import SystemFileManagerIntegrationPopup from './sfmi-popup'
 
-type Props = {
-  path: Types.Path
-}
+type Props = {path: T.FS.Path}
 
 const OpenInSystemFileManager = ({path}: Props) => {
   const openPathInSystemFileManagerDesktop = C.useFSState(
@@ -30,10 +28,10 @@ const OpenInSystemFileManager = ({path}: Props) => {
 const OpenInSFM = (props: Props) => {
   const sfmiBannerDismissed = C.useFSState(s => s.settings.sfmiBannerDismissed)
   const shouldHideFileManagerIcon = C.useFSState(
-    s => s.sfmi.driverStatus.type === Types.DriverStatusType.Disabled && sfmiBannerDismissed
+    s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Disabled && sfmiBannerDismissed
   )
   const showOpenInSystemFileManager = C.useFSState(
-    s => s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
+    s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
   )
 
   if (shouldHideFileManagerIcon) return null

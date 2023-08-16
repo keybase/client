@@ -3,7 +3,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as React from 'react'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 import logger from '../logger'
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -33,17 +33,17 @@ export default () => {
       // eslint-disable-next-line
       while (true) {
         try {
-          const update = await RPCTypes.configGetUpdateInfo2RpcPromise({})
+          const update = await T.RPCGen.configGetUpdateInfo2RpcPromise({})
           let s: typeof status = 'ok'
           let m = ''
           switch (update.status) {
-            case RPCTypes.UpdateInfoStatus2.ok:
+            case T.RPCGen.UpdateInfoStatus2.ok:
               break
-            case RPCTypes.UpdateInfoStatus2.suggested:
+            case T.RPCGen.UpdateInfoStatus2.suggested:
               s = 'suggested'
               m = update.suggested.message
               break
-            case RPCTypes.UpdateInfoStatus2.critical:
+            case T.RPCGen.UpdateInfoStatus2.critical:
               s = 'critical'
               m = update.critical.message
               break

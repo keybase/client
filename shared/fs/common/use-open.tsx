@@ -1,9 +1,9 @@
 import * as C from '../../constants'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as Container from '../../util/container'
 
 type Props = {
-  path: Types.Path
+  path: T.FS.Path
   destinationPickerIndex?: number
 }
 
@@ -17,12 +17,12 @@ export const useOpen = (props: Props) => {
   }
 
   const isFolder =
-    Types.getPathLevel(props.path) <= 3 || C.getPathItem(pathItems, props.path).type === Types.PathType.Folder
+    T.FS.getPathLevel(props.path) <= 3 || C.getPathItem(pathItems, props.path).type === T.FS.PathType.Folder
 
   const canOpenInDestinationPicker =
     isFolder &&
-    (destPicker.source.type === Types.DestinationPickerSource.IncomingShare ||
-      (destPicker.source.type === Types.DestinationPickerSource.MoveOrCopy &&
+    (destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare ||
+      (destPicker.source.type === T.FS.DestinationPickerSource.MoveOrCopy &&
         destPicker.source.path !== props.path))
 
   if (!canOpenInDestinationPicker) {

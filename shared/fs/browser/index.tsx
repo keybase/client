@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as React from 'react'
 import * as Styles from '../../styles'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import ConflictBanner from '../banner/conflict-banner-container'
 import Footer from '../footer/footer'
 import OfflineFolder from './offline'
@@ -14,7 +14,7 @@ import Rows from './rows/rows-container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
 import {isMobile} from '../../constants/platform'
 
-type OwnProps = {path: Types.Path}
+type OwnProps = {path: T.FS.Path}
 
 export default (ownProps: OwnProps) => {
   const {path} = ownProps
@@ -38,8 +38,8 @@ export default (ownProps: OwnProps) => {
 
 type Props = {
   offlineUnsynced: boolean
-  path: Types.Path
-  resetBannerType: Types.ResetBannerType
+  path: T.FS.Path
+  resetBannerType: T.FS.ResetBannerType
   writable: boolean
 }
 
@@ -63,7 +63,7 @@ const DragAndDrop = ({
   rejectReason,
 }: {
   children: React.ReactNode
-  path: Types.Path
+  path: T.FS.Path
   rejectReason?: string
 }) => {
   const uploadFromDragAndDrop = C.useFSState(s => s.dispatch.dynamic.uploadFromDragAndDropDesktop)
@@ -83,21 +83,21 @@ const DragAndDrop = ({
 
 const BrowserContent = (props: Props) => {
   const parsedPath = Constants.parsePath(props.path)
-  if (parsedPath.kind === Types.PathKind.Root) {
+  if (parsedPath.kind === T.FS.PathKind.Root) {
     return (
       <DragAndDrop path={props.path} rejectReason="You can only drop files inside a folder.">
         <Root />
       </DragAndDrop>
     )
   }
-  if (parsedPath.kind === Types.PathKind.TlfList) {
+  if (parsedPath.kind === T.FS.PathKind.TlfList) {
     return (
       <DragAndDrop path={props.path} rejectReason="You can only drop files inside a folder.">
         <Rows path={props.path} />
       </DragAndDrop>
     )
   }
-  if (props.resetBannerType === Types.ResetBannerNoOthersType.Self) {
+  if (props.resetBannerType === T.FS.ResetBannerNoOthersType.Self) {
     return (
       <DragAndDrop path={props.path} rejectReason="You can only drop files after participants let you in.">
         <SelfReset {...props} />

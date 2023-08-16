@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as RowSizes from './sizes'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as T from '../../../constants/types'
 import {BigTeamsLabel} from './big-teams-label'
 
 type Props = {
@@ -17,7 +17,7 @@ const BigTeamsDivider = React.memo(function BigTeamsDivider(props: Props) {
     <Kb.ClickableBox
       title="Teams with multiple channels."
       onClick={() => {
-        RPCChatTypes.localRequestInboxSmallResetRpcPromise().catch(() => {})
+        T.RPCChat.localRequestInboxSmallResetRpcPromise().catch(() => {})
         toggle()
       }}
       style={styles.container}

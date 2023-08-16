@@ -1,12 +1,12 @@
 import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import UserNotice from '../user-notice'
-import type * as TeamsTypes from '../../../../constants/types/teams'
+import type * as T from '../../../../constants/types'
 
 type Props = {
   creator: string
   team: string
-  teamID: TeamsTypes.TeamID
+  teamID: T.Teams.TeamID
   you: string
   isAdmin: boolean
   onViewTeam: () => void

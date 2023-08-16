@@ -1,11 +1,6 @@
 import * as C from '..'
 import capitalize from 'lodash/capitalize'
-import {
-  FSErrorType,
-  FSNotificationType,
-  FSStatusCode,
-  type FSNotification,
-} from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {pathSep} from '../../constants/platform'
 
@@ -14,25 +9,25 @@ type DecodedKBFSError = {
   body: string
 }
 
-function usernamesForNotification(notification: FSNotification) {
+function usernamesForNotification(notification: T.RPCGen.FSNotification) {
   return parseFolderNameToUsers(
     undefined,
     notification.filename.split(pathSep)[3] || notification.filename
   ).map(i => i.username)
 }
 
-function tlfForNotification(notification: FSNotification): string {
+function tlfForNotification(notification: T.RPCGen.FSNotification): string {
   // The notification.filename is canonical platform independent path.
   // To get the TLF we can look at the first 3 directories.
   // /keybase/private/gabrielh/foo.txt => /keybase/private/gabrielh
   return notification.filename.split(pathSep).slice(0, 4).join(pathSep)
 }
 
-function decodeKBFSError(user: string, notification: FSNotification): DecodedKBFSError {
+function decodeKBFSError(user: string, notification: T.RPCGen.FSNotification): DecodedKBFSError {
   console.log('Notification (kbfs error):', notification)
   const tlf = tlfForNotification(notification)
   switch (notification.errorType) {
-    case FSErrorType.accessDenied: {
+    case T.RPCGen.FSErrorType.accessDenied: {
       const prefix = user ? `${user} does` : 'You do'
       return {
         body: `${prefix} not have ${notification.params['mode'] ?? ''} access to ${notification.filename}`,
@@ -40,25 +35,25 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
       }
     }
 
-    case FSErrorType.userNotFound:
+    case T.RPCGen.FSErrorType.userNotFound:
       return {
         body: `${notification.params['username'] ?? ''} is not a Keybase user`,
         title: 'Keybase: User not found',
       }
 
-    case FSErrorType.revokedDataDetected:
+    case T.RPCGen.FSErrorType.revokedDataDetected:
       return {
         body: `${tlf} was modified by a revoked or bad device. Use 'keybase log send' to file an issue with the Keybase admins.`,
         title: 'Keybase: Possibly revoked data detected',
       }
 
-    case FSErrorType.notLoggedIn:
+    case T.RPCGen.FSErrorType.notLoggedIn:
       return {
         body: "You are not logged into Keybase. Try 'keybase login'.",
         title: `Keybase: Permission denied in ${tlf}`,
       }
 
-    case FSErrorType.timeout:
+    case T.RPCGen.FSErrorType.timeout:
       return {
         body: `The ${
           notification.params['mode'] ?? ''
@@ -66,7 +61,7 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
         title: `Keybase: ${capitalize(notification.params['mode'] ?? '')} timeout in ${tlf}`,
       }
 
-    case FSErrorType.rekeyNeeded:
+    case T.RPCGen.FSErrorType.rekeyNeeded:
       return notification.params['rekeyself'] === 'true'
         ? {
             body: `Please open one of your other computers to unlock ${tlf}`,
@@ -77,13 +72,13 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
             title: 'Keybase: Friends needed',
           }
     // Aggregate these cases together since they both use the usage/limit calc
-    case FSErrorType.overQuota:
-    case FSErrorType.diskLimitReached: {
+    case T.RPCGen.FSErrorType.overQuota:
+    case T.RPCGen.FSErrorType.diskLimitReached: {
       const usageBytes = parseInt(notification.params['usageBytes'] ?? '', 10)
       const limitBytes = parseInt(notification.params['limitBytes'] ?? '', 10)
       const usedGB = (usageBytes / 1e9).toFixed(1)
       const usedPercent = Math.round((100 * usageBytes) / limitBytes)
-      if (notification.errorType === FSErrorType.overQuota) {
+      if (notification.errorType === T.RPCGen.FSErrorType.overQuota) {
         return {
           body: `Action needed! You are using ${usedGB}GB (${usedPercent}%) of your quota. Please delete some data.`,
           title: 'Keybase: Out of space',
@@ -103,12 +98,12 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
         }
       }
     }
-    case FSErrorType.offlineArchived:
+    case T.RPCGen.FSErrorType.offlineArchived:
       return {
         body: `You cannot browse archived KBFS data while disconnected from the Keybase servers.`,
         title: 'Keybase: Archived data not available offline',
       }
-    case FSErrorType.offlineUnsynced:
+    case T.RPCGen.FSErrorType.offlineUnsynced:
       return {
         body: `You cannot browse an unsynced folder while disconnected from the Keybase servers.`,
         title: 'Keybase: Unsynced data not available offline',
@@ -147,7 +142,7 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
   // }
 }
 
-export function kbfsNotification(notification: FSNotification, notify: any) {
+export function kbfsNotification(notification: T.RPCGen.FSNotification, notify: any) {
   const action: string | undefined = (
     {
       // For now, disable file notifications because they're really annoying and
@@ -156,16 +151,16 @@ export function kbfsNotification(notification: FSNotification, notify: any) {
       // [FSNotificationType.decrypting]: 'Decrypting',
       // [FSNotificationType.signing]: 'Signing and uploading',
       // [FSNotificationType.verifying]: 'Verifying and downloading',
-      [FSNotificationType.rekeying]: 'Rekeying',
+      [T.RPCGen.FSNotificationType.rekeying]: 'Rekeying',
       // The following notifications just need to be enabled, they get handled
       // independently.
-      [FSNotificationType.initialized]: '',
-      [FSNotificationType.connection]: '',
+      [T.RPCGen.FSNotificationType.initialized]: '',
+      [T.RPCGen.FSNotificationType.connection]: '',
       // [FSNotificationType.syncConfigChanged]: 'Synchronization config changed',
     } as any
   )[notification.notificationType] as string
 
-  if (action === undefined && notification.statusCode !== FSStatusCode.error) {
+  if (action === undefined && notification.statusCode !== T.RPCGen.FSStatusCode.error) {
     // Ignore notification types we don't care about.
     return
   }
@@ -173,9 +168,9 @@ export function kbfsNotification(notification: FSNotification, notify: any) {
   // KBFS fires a notification when it initializes. We prompt the user to log
   // send if there is an error.
   if (
-    notification.notificationType === FSNotificationType.initialized &&
-    notification.statusCode === FSStatusCode.error &&
-    notification.errorType === FSErrorType.diskCacheErrorLogSend
+    notification.notificationType === T.RPCGen.FSNotificationType.initialized &&
+    notification.statusCode === T.RPCGen.FSStatusCode.error &&
+    notification.errorType === T.RPCGen.FSErrorType.diskCacheErrorLogSend
   ) {
     console.log(`KBFS failed to initialize its disk cache. Please send logs.`)
     const title = `KBFS: Disk cache not initialized`
@@ -186,8 +181,8 @@ export function kbfsNotification(notification: FSNotification, notify: any) {
 
   // KBFS fires a notification when it changes state between connected
   // and disconnected (to the mdserver).  For now we just log it.
-  if (notification.notificationType === FSNotificationType.connection) {
-    const state = notification.statusCode === FSStatusCode.start ? 'connected' : 'disconnected'
+  if (notification.notificationType === T.RPCGen.FSNotificationType.connection) {
+    const state = notification.statusCode === T.RPCGen.FSStatusCode.start ? 'connected' : 'disconnected'
     console.log(`KBFS is ${state}`)
     return
   }
@@ -199,10 +194,10 @@ export function kbfsNotification(notification: FSNotification, notify: any) {
   const user = C.useCurrentUserState.getState().username
   let rateLimitKey
 
-  const isError = notification.statusCode === FSStatusCode.error
+  const isError = notification.statusCode === T.RPCGen.FSStatusCode.error
   // Don't show starting or finished, but do show error.
   if (isError) {
-    if (notification.errorType === FSErrorType.exdevNotSupported) {
+    if (notification.errorType === T.RPCGen.FSErrorType.exdevNotSupported) {
       // Ignored for now.
       // TODO: implement the special popup window (DESKTOP-3637)
       return

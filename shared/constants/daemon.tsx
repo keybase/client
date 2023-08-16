@@ -1,8 +1,7 @@
 import * as C from '.'
 import {getNavigator} from '.'
 import logger from '../logger'
-import * as RPCTypes from './types/rpc-gen'
-import type * as Types from './types/config'
+import * as T from './types'
 import * as Z from '../util/zustand'
 
 export const maxHandshakeTries = 3
@@ -13,7 +12,7 @@ const getAccountsWaitKey = 'config.getAccounts'
 
 export type Store = {
   error?: Error
-  handshakeState: Types.DaemonHandshakeState
+  handshakeState: T.Config.DaemonHandshakeState
   handshakeFailedReason: string
   handshakeRetriesLeft: number
   handshakeWaiters: Map<string, number>
@@ -36,7 +35,7 @@ type State = Store & {
     resetState: () => void
     setError: (e?: Error) => void
     setFailed: (r: string) => void
-    setState: (s: Types.DaemonHandshakeState) => void
+    setState: (s: T.Config.DaemonHandshakeState) => void
     wait: (
       name: string,
       version: number,
@@ -161,14 +160,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
             wait(getAccountsWaitKey, handshakeVersion, true)
           }
 
-          const configuredAccounts = (await RPCTypes.loginGetConfiguredAccountsRpcPromise()) ?? []
+          const configuredAccounts = (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? []
           // already have one?
           const {defaultUsername} = C.useConfigState.getState()
           const {setAccounts, setDefaultUsername} = C.useConfigState.getState().dispatch
 
           let existingDefaultFound = false
           let currentName = ''
-          const nextConfiguredAccounts: Array<Types.ConfiguredAccount> = []
+          const nextConfiguredAccounts: Array<T.Config.ConfiguredAccount> = []
           const usernameToFullname: {[username: string]: string} = {}
 
           configuredAccounts.forEach(account => {
@@ -224,7 +223,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         const {setBootstrap} = C.useCurrentUserState.getState().dispatch
         const {setDefaultUsername} = C.useConfigState.getState().dispatch
-        const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
+        const s = await T.RPCGen.configGetBootstrapStatusRpcPromise()
         const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
         setBootstrap({deviceID, deviceName, uid, username})
         if (username) {

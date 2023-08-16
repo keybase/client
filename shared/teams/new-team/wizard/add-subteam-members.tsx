@@ -4,7 +4,7 @@ import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import * as Types from '../../../constants/types/teams'
+import * as T from '../../../constants/types'
 import {ModalTitle} from '../../common'
 import {pluralize} from '../../../util/string'
 import {useTeamDetailsSubscribe} from '../../subscriber'
@@ -20,10 +20,10 @@ const AddSubteamMembers = () => {
   const onContinue = () =>
     selectedMembers.size
       ? setTeamWizardSubteamMembers([...selectedMembers])
-      : startAddMembersWizard(Types.newTeamWizardTeamID)
+      : startAddMembersWizard(T.Teams.newTeamWizardTeamID)
 
   const yourUsername = C.useCurrentUserState(s => s.username)
-  const parentTeamID = C.useTeamsState(s => s.newTeamWizard.parentTeamID ?? Types.noTeamID)
+  const parentTeamID = C.useTeamsState(s => s.newTeamWizard.parentTeamID ?? T.Teams.noTeamID)
   useTeamDetailsSubscribe(parentTeamID)
   const parentTeamName = C.useTeamsState(s => Constants.getTeamMeta(s, parentTeamID).teamname)
   const parentMembersMap = C.useTeamsState(
@@ -46,7 +46,7 @@ const AddSubteamMembers = () => {
     : 'Continue without members'
   const doneLabel = selectedMembers.size ? 'Done' : 'Skip'
 
-  const renderItem = (_: number, m: Types.MemberInfo) => {
+  const renderItem = (_: number, m: T.Teams.MemberInfo) => {
     const selected = selectedMembers.has(m.username)
     const onSelect = () => {
       // TODO: ensure performance (see Y2K-1666)
@@ -86,7 +86,7 @@ const AddSubteamMembers = () => {
             </Kb.Text>
           </Kb.Box2>
         ) : undefined,
-        title: <ModalTitle teamID={Types.newTeamWizardTeamID} title="Add members" />,
+        title: <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Add members" />,
       }}
       footer={
         Styles.isMobile

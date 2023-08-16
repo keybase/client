@@ -1,7 +1,7 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
 import * as Container from '../../../util/container'
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import DestinationPicker from '.'
 import {OriginalOrCompressedButton} from '../../../incoming-share'
 import {isMobile} from '../../../constants/platform'
@@ -10,52 +10,52 @@ import {memoize} from '../../../util/memoize'
 type OwnProps = {index: number}
 
 const getIndex = (ownProps: OwnProps) => ownProps.index
-const getDestinationParentPath = (dp: Types.DestinationPicker, ownProps: OwnProps): Types.Path =>
+const getDestinationParentPath = (dp: T.FS.DestinationPicker, ownProps: OwnProps): T.FS.Path =>
   dp.destinationParentPath[getIndex(ownProps)] ||
-  (dp.source.type === Types.DestinationPickerSource.MoveOrCopy
-    ? Types.getPathParent(dp.source.path)
-    : Types.stringToPath('/keybase'))
+  (dp.source.type === T.FS.DestinationPickerSource.MoveOrCopy
+    ? T.FS.getPathParent(dp.source.path)
+    : T.FS.stringToPath('/keybase'))
 
 const canWrite = memoize(
-  (dp: Types.DestinationPicker, pathItems: Types.PathItems, ownProps: OwnProps) =>
-    Types.getPathLevel(getDestinationParentPath(dp, ownProps)) > 2 &&
+  (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) =>
+    T.FS.getPathLevel(getDestinationParentPath(dp, ownProps)) > 2 &&
     Constants.getPathItem(pathItems, getDestinationParentPath(dp, ownProps)).writable
 )
 
-const canCopy = memoize((dp: Types.DestinationPicker, pathItems: Types.PathItems, ownProps: OwnProps) => {
+const canCopy = memoize((dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) => {
   if (!canWrite(dp, pathItems, ownProps)) {
     return false
   }
-  if (dp.source.type === Types.DestinationPickerSource.IncomingShare) {
+  if (dp.source.type === T.FS.DestinationPickerSource.IncomingShare) {
     return true
   }
-  if (dp.source.type === Types.DestinationPickerSource.MoveOrCopy) {
-    const source: Types.MoveOrCopySource = dp.source
-    return getDestinationParentPath(dp, ownProps) !== Types.getPathParent(source.path)
+  if (dp.source.type === T.FS.DestinationPickerSource.MoveOrCopy) {
+    const source: T.FS.MoveOrCopySource = dp.source
+    return getDestinationParentPath(dp, ownProps) !== T.FS.getPathParent(source.path)
   }
   return undefined
 })
 
 const canMove = memoize(
-  (dp: Types.DestinationPicker, pathItems: Types.PathItems, ownProps: OwnProps) =>
+  (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) =>
     canCopy(dp, pathItems, ownProps) &&
-    dp.source.type === Types.DestinationPickerSource.MoveOrCopy &&
+    dp.source.type === T.FS.DestinationPickerSource.MoveOrCopy &&
     Constants.pathsInSameTlf(dp.source.path, getDestinationParentPath(dp, ownProps))
 )
 
 const canBackUp = isMobile
   ? memoize(
-      (dp: Types.DestinationPicker, ownProps: OwnProps) =>
-        Types.getPathLevel(getDestinationParentPath(dp, ownProps)) > 1
+      (dp: T.FS.DestinationPicker, ownProps: OwnProps) =>
+        T.FS.getPathLevel(getDestinationParentPath(dp, ownProps)) > 1
     )
   : () => false
 
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const destPicker = C.useFSState(s => s.destinationPicker)
-  const isShare = destPicker.source.type === Types.DestinationPickerSource.IncomingShare
+  const isShare = destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare
   const pathItems = C.useFSState(s => s.pathItems)
   const headerRightButton =
-    destPicker.source.type === Types.DestinationPickerSource.IncomingShare ? (
+    destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare ? (
       <OriginalOrCompressedButton incomingShareItems={destPicker.source.source} />
     ) : undefined
 
@@ -66,19 +66,19 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const dispatchProps = {
-    _onBackUp: (currentPath: Types.Path) =>
-      Constants.makeActionsForDestinationPickerOpen(getIndex(ownProps) + 1, Types.getPathParent(currentPath)),
-    _onCopyHere: (destinationParentPath: Types.Path) => {
+    _onBackUp: (currentPath: T.FS.Path) =>
+      Constants.makeActionsForDestinationPickerOpen(getIndex(ownProps) + 1, T.FS.getPathParent(currentPath)),
+    _onCopyHere: (destinationParentPath: T.FS.Path) => {
       moveOrCopy(destinationParentPath, 'copy')
       clearModals()
       nav.safeNavigateAppend({props: {path: destinationParentPath}, selected: 'fsRoot'})
     },
-    _onMoveHere: (destinationParentPath: Types.Path) => {
+    _onMoveHere: (destinationParentPath: T.FS.Path) => {
       moveOrCopy(destinationParentPath, 'move')
       clearModals()
       nav.safeNavigateAppend({props: {path: destinationParentPath}, selected: 'fsRoot'})
     },
-    _onNewFolder: (destinationParentPath: Types.Path) => {
+    _onNewFolder: (destinationParentPath: T.FS.Path) => {
       newFolderRow(destinationParentPath)
     },
     onBack: () => {

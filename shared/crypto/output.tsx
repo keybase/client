@@ -8,17 +8,17 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import capitalize from 'lodash/capitalize'
 import shallowEqual from 'shallowequal'
-import type * as Types from '../constants/types/crypto'
+import type * as T from '../constants/types'
 import {getStyle} from '../common-adapters/text'
 import {humanizeBytes} from '../constants/fs'
 import {pickFiles} from '../util/pick-files'
 
-type OutputProps = {operation: Types.Operations}
-type OutputActionsBarProps = {operation: Types.Operations}
-type SignedSenderProps = {operation: Types.Operations}
-type OutputProgressProps = {operation: Types.Operations}
+type OutputProps = {operation: T.Crypto.Operations}
+type OutputActionsBarProps = {operation: T.Crypto.Operations}
+type SignedSenderProps = {operation: T.Crypto.Operations}
+type OutputProgressProps = {operation: T.Crypto.Operations}
 type OutputInfoProps = {
-  operation: Types.Operations
+  operation: T.Crypto.Operations
   children:
     | string
     | React.ReactElement<typeof Kb.BannerParagraph>
@@ -302,7 +302,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   )
 }
 
-const OutputFileDestination = (props: {operation: Types.Operations}) => {
+const OutputFileDestination = (props: {operation: T.Crypto.Operations}) => {
   const {operation} = props
   const operationTitle = capitalize(operation)
 

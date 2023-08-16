@@ -1,13 +1,13 @@
 import type {RPCError} from '../util/errors'
-import type * as Types from './types/waiting'
+import type * as T from './types'
 import * as Z from '../util/zustand'
 
-const initialStore: Types.State = {
+const initialStore: T.Waiting.State = {
   counts: new Map(),
   errors: new Map(),
 }
 
-type State = Types.State & {
+type State = T.Waiting.State & {
   dispatch: {
     resetState: 'default'
     clear: (keys: string | Array<string>) => void

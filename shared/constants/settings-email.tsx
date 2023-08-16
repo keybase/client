@@ -1,21 +1,20 @@
 import * as Z from '../util/zustand'
-import * as ChatTypes from './types/rpc-chat-gen'
+import * as T from './types'
 import {isValidEmail} from '../util/simple-validators'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
-import * as RPCTypes from './types/rpc-gen'
 
 export const addEmailWaitingKey = 'settings:addEmail'
 
 const makeAddEmailError = (err: RPCError): string => {
   switch (err.code) {
-    case RPCTypes.StatusCode.scratelimit:
+    case T.RPCGen.StatusCode.scratelimit:
       return "Sorry, you've added too many email addresses lately. Please try again later."
-    case RPCTypes.StatusCode.scemailtaken:
+    case T.RPCGen.StatusCode.scemailtaken:
       return 'This email is already claimed by another user.'
-    case RPCTypes.StatusCode.scemaillimitexceeded:
+    case T.RPCGen.StatusCode.scemaillimitexceeded:
       return 'You have too many emails, delete one and try again.'
-    case RPCTypes.StatusCode.scinputerror:
+    case T.RPCGen.StatusCode.scinputerror:
       return 'Invalid email.'
   }
   return err.message
@@ -30,7 +29,7 @@ const makeEmailRow = (): EmailRow => ({
 })
 
 type Writeable<T> = {-readonly [P in keyof T]: T[P]}
-type EmailRow = Writeable<RPCTypes.Email>
+type EmailRow = Writeable<T.RPCGen.Email>
 
 type Store = {
   addedEmail: string // show banner with dismiss on account settings
@@ -58,7 +57,7 @@ export type State = Store & {
       makeSearchable?: boolean
       verify?: boolean
     }) => void
-    notifyEmailAddressEmailsChanged: (list: ChatTypes.Keybase1.Email[]) => void
+    notifyEmailAddressEmailsChanged: (list: T.RPCChat.Keybase1.Email[]) => void
     notifyEmailVerified: (email: string) => void
     resetAddedEmail: () => void
     resetAddingEmail: () => void
@@ -80,12 +79,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          await RPCTypes.emailsAddEmailRpcPromise(
+          await T.RPCGen.emailsAddEmailRpcPromise(
             {
               email,
               visibility: searchable
-                ? RPCTypes.IdentityVisibility.public
-                : RPCTypes.IdentityVisibility.private,
+                ? T.RPCGen.IdentityVisibility.public
+                : T.RPCGen.IdentityVisibility.private,
             },
             addEmailWaitingKey
           )
@@ -122,7 +121,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         // TODO: consider allowing more than one action here
         // TODO: handle errors
         if (p.delete) {
-          await RPCTypes.emailsDeleteEmailRpcPromise({email: p.email})
+          await T.RPCGen.emailsDeleteEmailRpcPromise({email: p.email})
           if (get().addedEmail === p.email) {
             get().dispatch.resetAddedEmail()
             return
@@ -130,11 +129,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
         if (p.makePrimary) {
-          await RPCTypes.emailsSetPrimaryEmailRpcPromise({email: p.email})
+          await T.RPCGen.emailsSetPrimaryEmailRpcPromise({email: p.email})
           return
         }
         if (p.verify) {
-          await RPCTypes.emailsSendVerificationEmailRpcPromise({email: p.email})
+          await T.RPCGen.emailsSendVerificationEmailRpcPromise({email: p.email})
           set(s => {
             s.addedEmail = p.email
             const old = s.emails.get(p.email) ?? {
@@ -147,11 +146,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
         if (p.makeSearchable !== undefined) {
-          await RPCTypes.emailsSetVisibilityEmailRpcPromise({
+          await T.RPCGen.emailsSetVisibilityEmailRpcPromise({
             email: p.email,
             visibility: p.makeSearchable
-              ? ChatTypes.Keybase1.IdentityVisibility.public
-              : ChatTypes.Keybase1.IdentityVisibility.private,
+              ? T.RPCChat.Keybase1.IdentityVisibility.public
+              : T.RPCChat.Keybase1.IdentityVisibility.private,
           })
           return
         }

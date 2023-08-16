@@ -1,9 +1,8 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
-import type * as Types from '../../constants/types/tracker2'
+import type * as T from '../../constants/types'
 import Assertion from '.'
 import openUrl from '../../util/open-url'
-import type {PlatformsExpandedType} from '../../constants/types/more'
 
 type OwnProps = {
   isSuggestion?: boolean
@@ -90,10 +89,10 @@ export default (ownProps: OwnProps) => {
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onRevokeProof = (
-    type: PlatformsExpandedType,
+    type: T.More.PlatformsExpandedType,
     value: string,
     id: string,
-    icon: Types.SiteIconSet
+    icon: T.Tracker.SiteIconSet
   ) => {
     navigateAppend({
       props: {icon, platform: type, platformHandle: value, proofId: id},
@@ -110,7 +109,7 @@ export default (ownProps: OwnProps) => {
     onHideStellar: (hidden: boolean) => _onHideStellar(hidden),
     onRecheck: () => _onRecheck(_sigID),
     onRevoke: () => {
-      if (siteIconFull) _onRevokeProof(type as PlatformsExpandedType, value, _sigID, siteIconFull)
+      if (siteIconFull) _onRevokeProof(type as T.More.PlatformsExpandedType, value, _sigID, siteIconFull)
     },
     onShowProof: notAUser || !proofURL ? undefined : () => openUrl(proofURL),
     onShowSite: notAUser || !siteURL ? undefined : () => openUrl(siteURL),

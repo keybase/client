@@ -1,22 +1,21 @@
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
 import logger from '../logger'
-import type * as Types from './types/users'
+import * as T from './types'
 import {RPCError, isNetworkErr} from '../util/errors'
 import {mapGetEnsureValue} from '../util/map'
 
-export const getIsBroken = (infoMap: Map<string, Types.UserInfo>, username: string) =>
+export const getIsBroken = (infoMap: Map<string, T.Users.UserInfo>, username: string) =>
   infoMap.get(username)?.broken ?? false
 
-export const makeUserInfo = (): Types.UserInfo => ({
+export const makeUserInfo = (): T.Users.UserInfo => ({
   bio: '',
   broken: false,
   fullname: '',
 })
 export const emptyUserInfo = makeUserInfo()
 
-export const makeBlockState = (): Types.BlockState => ({
+export const makeBlockState = (): T.Users.BlockState => ({
   chatBlocked: false,
   followBlocked: false,
 })
@@ -29,8 +28,8 @@ export const wotReactWaitingKey = 'users:wotReact'
 export const wotRevokeWaitingKey = 'users:wotRevoke'
 
 export type Store = {
-  blockMap: Map<string, Types.BlockState>
-  infoMap: Map<string, Types.UserInfo>
+  blockMap: Map<string, T.Users.BlockState>
+  infoMap: Map<string, T.Users.UserInfo>
 }
 
 const initialStore: Store = {
@@ -52,8 +51,8 @@ export type State = Store & {
     }) => void
     resetState: 'default'
     replace: (infoMap: State['infoMap'], blockMap?: State['blockMap']) => void
-    setUserBlocks: (blocks: Array<RPCTypes.UserBlockArg>) => void
-    updates: (infos: Array<{name: string; info: Partial<Types.UserInfo>}>) => void
+    setUserBlocks: (blocks: Array<T.RPCGen.UserBlockArg>) => void
+    updates: (infos: Array<{name: string; info: Partial<T.Users.UserInfo>}>) => void
   }
 }
 
@@ -66,7 +65,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return // don't re-fetch bio if we already have one cached
         }
         try {
-          const userCard = await RPCTypes.userUserCardRpcPromise({useSession: true, username})
+          const userCard = await T.RPCGen.userUserCardRpcPromise({useSession: true, username})
           if (userCard) {
             get().dispatch.updates([{info: {bio: userCard.bioDecorated}, name: username}])
           }
@@ -84,7 +83,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     getBlockState: usernames => {
       const f = async () => {
-        const blocks = await RPCTypes.userGetUserBlocksRpcPromise({usernames}, getUserBlocksWaitingKey)
+        const blocks = await T.RPCGen.userGetUserBlocksRpcPromise({usernames}, getUserBlocksWaitingKey)
         set(s => {
           blocks?.forEach(({username, chatBlocked, followBlocked}) => {
             s.blockMap.set(username.toLowerCase(), {chatBlocked, followBlocked})
@@ -115,7 +114,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     reportUser: p => {
       const f = async () => {
-        await RPCTypes.userReportUserRpcPromise(p, reportUserWaitingKey)
+        await T.RPCGen.userReportUserRpcPromise(p, reportUserWaitingKey)
       }
       Z.ignorePromise(f())
     },
@@ -123,12 +122,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
     setUserBlocks: blocks => {
       const f = async () => {
         if (blocks.length) {
-          await RPCTypes.userSetUserBlocksRpcPromise({blocks}, setUserBlocksWaitingKey)
+          await T.RPCGen.userSetUserBlocksRpcPromise({blocks}, setUserBlocksWaitingKey)
         }
       }
       Z.ignorePromise(f())
     },
-    updates: (infos: Array<{name: string; info: Partial<Types.UserInfo>}>) => {
+    updates: (infos: Array<{name: string; info: Partial<T.Users.UserInfo>}>) => {
       set(s => {
         for (const {name, info: i} of infos) {
           const user = mapGetEnsureValue(s.infoMap, name, {broken: false})

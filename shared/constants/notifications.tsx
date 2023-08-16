@@ -1,7 +1,7 @@
 import * as C from '.'
 import * as Z from '../util/zustand'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
 import {isMobile} from './platform'
 import logger from '../logger'
 import isEqual from 'lodash/isEqual'
@@ -38,14 +38,14 @@ type State = Store & {
 }
 
 let lastFsBadges = {newTlfs: 0, rekeysNeeded: 0}
-const shouldTriggerTlfLoad = (bs: RPCTypes.BadgeState) => {
+const shouldTriggerTlfLoad = (bs: T.RPCGen.BadgeState) => {
   const {newTlfs, rekeysNeeded} = bs
   const same = newTlfs === lastFsBadges.newTlfs && rekeysNeeded === lastFsBadges.rekeysNeeded
   lastFsBadges = {newTlfs, rekeysNeeded}
   return !same
 }
 
-const badgeStateToBadgeCounts = (bs: RPCTypes.BadgeState) => {
+const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
   const {inboxVers, unverifiedEmails, unverifiedPhones} = bs
   const deletedTeams = bs.deletedTeams ?? []
   const newDevices = bs.newDevices ?? []
@@ -54,7 +54,7 @@ const badgeStateToBadgeCounts = (bs: RPCTypes.BadgeState) => {
   const newTeams = bs.newTeams ?? []
   const revokedDevices = bs.revokedDevices ?? []
   const teamsWithResetUsers = bs.teamsWithResetUsers ?? []
-  const wotUpdates = bs.wotUpdates ?? new Map<string, RPCTypes.WotUpdate>()
+  const wotUpdates = bs.wotUpdates ?? new Map<string, T.RPCGen.WotUpdate>()
 
   if (_useState.getState().badgeVersion >= inboxVers) {
     return undefined
@@ -104,7 +104,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     onEngineConnected: () => {
       const f = async () => {
         try {
-          await RPCTypes.notifyCtlSetNotificationsRpcPromise({
+          await T.RPCGen.notifyCtlSetNotificationsRpcPromise({
             channels: {
               allowChatNotifySkips: true,
               app: true,

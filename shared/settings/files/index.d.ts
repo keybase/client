@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import {PickerItem} from '../../common-adapters/floating-picker'
 
 export type Props = {
@@ -7,7 +7,7 @@ export type Props = {
   onBack?: () => void
   allowedThresholds: Array<PickerItem<number>>
   areSettingsLoading: boolean
-  driverStatus: Types.DriverStatus
+  driverStatus: T.FS.DriverStatus
   humanizedNotificationThreshold: string
   onDisable: () => void
   onEnable: () => void

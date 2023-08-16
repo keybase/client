@@ -1,13 +1,13 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 
 export type Props = {
   disableSync: () => void
   enableSync: () => void
   hideSyncToggle: boolean
-  syncConfig?: Types.TlfSyncConfig
+  syncConfig?: T.FS.TlfSyncConfig
   waiting: boolean
 }
 
@@ -98,8 +98,8 @@ const SyncToggle = (props: Props) => {
     <>
       <Kb.Switch
         align="right"
-        onClick={props.syncConfig.mode === Types.TlfSyncMode.Enabled ? toggleShowingPopup : props.enableSync}
-        on={props.syncConfig.mode === Types.TlfSyncMode.Enabled}
+        onClick={props.syncConfig.mode === T.FS.TlfSyncMode.Enabled ? toggleShowingPopup : props.enableSync}
+        on={props.syncConfig.mode === T.FS.TlfSyncMode.Enabled}
         color="green"
         label="Sync on this device"
         ref={popupAnchor}
@@ -143,7 +143,7 @@ const styles = Styles.styleSheetCreate(
           paddingTop: Styles.globalMargins.large,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default SyncToggle

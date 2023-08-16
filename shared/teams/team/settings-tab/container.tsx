@@ -2,12 +2,12 @@ import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as ChatConstants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
-import type * as Types from '../../../constants/types/teams'
+import type * as T from '../../../constants/types'
 import {Settings} from '.'
 import {useSettingsState} from './use-settings'
 
 export type OwnProps = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }
 
 export default (ownProps: OwnProps) => {
@@ -39,7 +39,7 @@ export default (ownProps: OwnProps) => {
   const onEditWelcomeMessage = () => {
     navigateAppend({props: {teamID}, selected: 'teamEditWelcomeMessage'})
   }
-  const savePublicity = (settings: Types.PublicitySettings) => {
+  const savePublicity = (settings: T.Teams.PublicitySettings) => {
     setPublicity(teamID, settings)
   }
   const showOpenTeamWarning = (isOpenTeam: boolean, teamname: string) => {
@@ -61,7 +61,7 @@ export default (ownProps: OwnProps) => {
     publicityAnyMember,
     publicityMember,
     publicityTeam,
-    savePublicity: (settings: Types.PublicitySettings) => {
+    savePublicity: (settings: T.Teams.PublicitySettings) => {
       savePublicity(settings)
       clearError()
     },

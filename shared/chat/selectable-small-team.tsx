@@ -4,7 +4,7 @@ import * as Styles from '../styles'
 import {FilteredTopLine} from './top-line'
 import {BottomLine} from './inbox/row/small-team/bottom-line'
 import {Avatars, TeamAvatar} from './avatars'
-import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'
+import type * as T from '../constants/types'
 import {SnippetContext} from './inbox/row/small-team/contexts'
 
 type Props = {
@@ -19,7 +19,7 @@ type Props = {
   showBadge: boolean
   showBold: boolean
   snippet?: string
-  snippetDecoration: RPCChatTypes.SnippetDecoration
+  snippetDecoration: T.RPCChat.SnippetDecoration
   teamname: string
   usernameColor: string
 }

@@ -2,13 +2,13 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {SiteIcon} from '../shared'
-import type {SiteIconSet} from '../../../constants/types/tracker2'
+import type * as T from '../../../constants/types'
 
 type InputProps = {
   error: boolean
   onChangeUsername: (arg0: string) => void
   onEnterKeyDown: () => void
-  serviceIcon: SiteIconSet
+  serviceIcon: T.Tracker.SiteIconSet
   serviceSuffix: string
   username: string
 }
@@ -129,8 +129,8 @@ type Props = {
   onChangeUsername: (arg0: string) => void
   onContinue: () => void
   onSubmit: () => void
-  serviceIcon: SiteIconSet
-  serviceIconFull: SiteIconSet
+  serviceIcon: T.Tracker.SiteIconSet
+  serviceIconFull: T.Tracker.SiteIconSet
   serviceName: string
   serviceSub: string
   serviceSuffix: string
@@ -355,7 +355,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       warningText: {color: Styles.globalColors.brown_75, marginTop: Styles.globalMargins.small},
-    } as const)
+    }) as const
 )
 
 export default EnterUsername

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import PeopleItem from '../item'
-import type * as Types from '../../constants/types/people'
+import type * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {FollowButton} from '../../settings/contacts-joined/buttons'
@@ -16,9 +16,9 @@ const connectedUsernamesProps = {
   underline: true,
 } as const
 
-export type NewFollow = Types.FollowedNotification
+export type NewFollow = T.People.FollowedNotification
 
-export type Props = Types.FollowedNotificationItem & {
+export type Props = T.People.FollowedNotificationItem & {
   onClickUser: (username: string) => void
 }
 
@@ -154,5 +154,5 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       usernames: Styles.platformStyles({isElectron: {whiteSpace: 'normal'} as const}),
-    } as const)
+    }) as const
 )

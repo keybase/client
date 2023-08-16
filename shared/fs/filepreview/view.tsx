@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as C from '../../constants'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 import DefaultView from './default-view-container'
 import TextView from './text-view'
 import AVView from './av-view'
@@ -11,7 +10,7 @@ import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
 
 type Props = {
-  path: Types.Path
+  path: T.FS.Path
   onUrlError: (err: string) => void
 }
 
@@ -31,15 +30,15 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
     pathItem.lastModifiedTimestamp
   )
   const reload = () => setLoadedLastModifiedTimestamp(pathItem.lastModifiedTimestamp)
-  const tooLargeForText = pathItem.type === Types.PathType.File && pathItem.size > textViewUpperLimit
+  const tooLargeForText = pathItem.type === T.FS.PathType.File && pathItem.size > textViewUpperLimit
 
   const fileContext = C.useFSState(s => s.fileContext.get(path) || C.emptyFileContext)
 
-  if (pathItem.type === Types.PathType.Symlink) {
+  if (pathItem.type === T.FS.PathType.Symlink) {
     return <DefaultView path={path} />
   }
 
-  if (pathItem.type !== Types.PathType.File) {
+  if (pathItem.type !== T.FS.PathType.File) {
     return <Kb.Text type="BodySmallError">This shouldn't happen type={pathItem.type}</Kb.Text>
   }
 
@@ -70,9 +69,9 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   const url = fileContext.url + `&unused_field_ts=${loadedLastModifiedTimestamp}`
 
   switch (fileContext.viewType) {
-    case RPCTypes.GUIViewType.default:
+    case T.RPCGen.GUIViewType.default:
       return <DefaultView path={path} />
-    case RPCTypes.GUIViewType.text:
+    case T.RPCGen.GUIViewType.text:
       return tooLargeForText ? (
         <DefaultView path={path} />
       ) : (
@@ -81,22 +80,22 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
           <TextView url={url} onUrlError={onUrlError} />
         </>
       )
-    case RPCTypes.GUIViewType.image:
+    case T.RPCGen.GUIViewType.image:
       return (
         <>
           {reloadBanner}
           <Kb.ZoomableImage src={url} style={styles.zoomableBox} />
         </>
       )
-    case RPCTypes.GUIViewType.audio:
-    case RPCTypes.GUIViewType.video:
+    case T.RPCGen.GUIViewType.audio:
+    case T.RPCGen.GUIViewType.video:
       return (
         <>
           {reloadBanner}
           <AVView url={url} onUrlError={onUrlError} />
         </>
       )
-    case RPCTypes.GUIViewType.pdf:
+    case T.RPCGen.GUIViewType.pdf:
       return !Platform.isAndroid ? (
         <>
           {reloadBanner}

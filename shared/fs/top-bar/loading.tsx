@@ -1,4 +1,4 @@
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -8,7 +8,7 @@ import * as Styles from '../../styles'
 // automatically, we are just relying on whether data is available from the
 // redux store.
 
-type OwnProps = {path: Types.Path}
+type OwnProps = {path: T.FS.Path}
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -28,26 +28,26 @@ const Loading = (op: OwnProps) => {
   let show = false
 
   switch (parsedPath.kind) {
-    case Types.PathKind.TlfList:
+    case T.FS.PathKind.TlfList:
       show = !_tlfsLoaded
       break
-    case Types.PathKind.TeamTlf:
-    case Types.PathKind.GroupTlf:
-    case Types.PathKind.InTeamTlf:
-    case Types.PathKind.InGroupTlf:
+    case T.FS.PathKind.TeamTlf:
+    case T.FS.PathKind.GroupTlf:
+    case T.FS.PathKind.InTeamTlf:
+    case T.FS.PathKind.InGroupTlf:
       // Only show the loading spinner when we are first-time loading a pathItem.
       // If we already have content to show, just don't show spinner anymore even
       // if we are loading.
-      if (_pathItem.type === Types.PathType.Unknown) {
+      if (_pathItem.type === T.FS.PathType.Unknown) {
         show = true
         break
       }
-      if (_pathItem.type === Types.PathType.Folder && _pathItem.progress === Types.ProgressType.Pending) {
+      if (_pathItem.type === T.FS.PathType.Folder && _pathItem.progress === T.FS.ProgressType.Pending) {
         show = true
         break
       }
       break
-    case Types.PathKind.Root:
+    case T.FS.PathKind.Root:
     default:
   }
 

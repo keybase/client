@@ -4,13 +4,13 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
+import * as T from '../../constants/types'
 import {ModalTitle} from '../common'
 
-type Props = {teamID: Types.TeamID}
+type Props = {teamID: T.Teams.TeamID}
 
 const EditTeamDescription = (props: Props) => {
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
 
   const teamname = C.useTeamsState(s => Constants.getTeamNameFromID(s, teamID))
   const waitingKey = Constants.teamWaitingKey(teamID)
@@ -18,7 +18,7 @@ const EditTeamDescription = (props: Props) => {
   const error = C.useTeamsState(s => s.errorInEditDescription)
   const origDescription = C.useTeamsState(s => s.teamDetails.get(teamID))?.description ?? ''
 
-  if (teamID === Types.noTeamID || teamname === null) {
+  if (teamID === T.Teams.noTeamID || teamname === null) {
     throw new Error(
       `There was a problem loading the description page, please report this error (teamID: ${teamID}, teamname: ${teamname}).`
     )

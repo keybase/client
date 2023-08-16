@@ -1,4 +1,4 @@
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
@@ -7,20 +7,20 @@ import {LastModifiedLine, Filename} from '../../common'
 
 type StillProps = StillCommonProps & {
   dismissUploadError?: () => void
-  intentIfDownloading?: Types.DownloadIntent
+  intentIfDownloading?: T.FS.DownloadIntent
   isEmpty: boolean
-  type: Types.PathType
+  type: T.FS.PathType
   uploading: boolean
   writingToJournal: boolean
 }
 
-const getDownloadingText = (intent: Types.DownloadIntent) => {
+const getDownloadingText = (intent: T.FS.DownloadIntent) => {
   switch (intent) {
-    case Types.DownloadIntent.None:
+    case T.FS.DownloadIntent.None:
       return 'Downloading...'
-    case Types.DownloadIntent.CameraRoll:
+    case T.FS.DownloadIntent.CameraRoll:
       return 'Saving...'
-    case Types.DownloadIntent.Share:
+    case T.FS.DownloadIntent.Share:
       return 'Preparing...'
     default:
       return ''
@@ -68,7 +68,7 @@ const Still = (props: StillProps) => (
       ) : props.uploading ? (
         <Kb.Text type="BodySmall">Uploading ...</Kb.Text>
       ) : (
-        props.type !== Types.PathType.Folder && <LastModifiedLine path={props.path} mode="row" />
+        props.type !== T.FS.PathType.Folder && <LastModifiedLine path={props.path} mode="row" />
       )
     }
   />

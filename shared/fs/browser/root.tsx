@@ -1,7 +1,7 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
 import TlfType from './rows/tlf-type-container'
 import Tlf from './rows/tlf-container'
@@ -14,21 +14,21 @@ type Props = {
 
 type SectionListItem = {
   name: string
-  tlfType: Types.TlfType
+  tlfType: T.FS.TlfType
 }
 
 const rootRows = [
   {
-    name: Types.TlfType.Private,
-    tlfType: Types.TlfType.Private,
+    name: T.FS.TlfType.Private,
+    tlfType: T.FS.TlfType.Private,
   },
   {
-    name: Types.TlfType.Public,
-    tlfType: Types.TlfType.Public,
+    name: T.FS.TlfType.Public,
+    tlfType: T.FS.TlfType.Public,
   },
   {
-    name: Types.TlfType.Team,
-    tlfType: Types.TlfType.Team,
+    name: T.FS.TlfType.Team,
+    tlfType: T.FS.TlfType.Team,
   },
 ]
 
@@ -55,13 +55,13 @@ const renderSectionHeader = ({section}: any) =>
   section.key === 'banner-sfmi' ? <SfmiBanner /> : <Kb.SectionDivider label={section.title} />
 
 const useTopNTlfs = (
-  tlfType: Types.TlfType,
-  tlfs: Types.TlfList,
+  tlfType: T.FS.TlfType,
+  tlfs: T.FS.TlfList,
   n: number
 ): Array<{
   name: string
   tlfMtime: number
-  tlfType: Types.TlfType
+  tlfType: T.FS.TlfType
 }> =>
   // TODO move these sorting to Go HOTPOT-433
   React.useMemo(
@@ -81,9 +81,9 @@ const useTopNTlfs = (
 const useRecentTlfs = (n: number, destinationPickerIndex?: number): Array<SectionListItem> => {
   const tlfs = C.useFSState(s => s.tlfs)
   const username = C.useCurrentUserState(s => s.username)
-  const privateTopN = useTopNTlfs(Types.TlfType.Private, tlfs.private, n)
-  const publicTopN = useTopNTlfs(Types.TlfType.Public, tlfs.public, n)
-  const teamTopN = useTopNTlfs(Types.TlfType.Team, tlfs.team, n)
+  const privateTopN = useTopNTlfs(T.FS.TlfType.Private, tlfs.private, n)
+  const publicTopN = useTopNTlfs(T.FS.TlfType.Public, tlfs.public, n)
+  const teamTopN = useTopNTlfs(T.FS.TlfType.Team, tlfs.team, n)
   return React.useMemo(() => {
     const recent = [...privateTopN, ...publicTopN, ...teamTopN]
       .sort(({tlfMtime: t1}, {tlfMtime: t2}) => t2 - t1)

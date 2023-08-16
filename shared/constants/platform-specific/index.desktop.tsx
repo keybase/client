@@ -2,7 +2,7 @@ import * as C from '..'
 import * as ConfigConstants from '../config'
 import * as Container from '../../util/container'
 import * as EngineGen from '../../actions/engine-gen-gen'
-import * as RPCTypes from '../types/rpc-gen'
+import * as T from '../types'
 import * as Z from '../../util/zustand'
 import InputMonitor from './input-monitor.desktop'
 import KB2 from '../../util/electron.desktop'
@@ -72,7 +72,7 @@ export const initPlatformListener = () => {
     s.dispatch.dynamic.onEngineConnectedDesktop = () => {
       // Introduce ourselves to the service
       const f = async () => {
-        await RPCTypes.configHelloIAmRpcPromise({details: KB2.constants.helloDetails})
+        await T.RPCGen.configHelloIAmRpcPromise({details: KB2.constants.helloDetails})
       }
       Z.ignorePromise(f())
     }
@@ -100,7 +100,7 @@ export const initPlatformListener = () => {
           break
         case EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile: {
           const f = async () =>
-            RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
+            T.RPCGen.pgpPgpStorageDismissRpcPromise().catch(err => {
               console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
             })
           Z.ignorePromise(f())
@@ -108,7 +108,7 @@ export const initPlatformListener = () => {
         }
         case EngineGen.keybase1NotifyServiceShutdown: {
           const {code} = action.payload.params
-          if (isWindows && code !== RPCTypes.ExitCode.restart) {
+          if (isWindows && code !== T.RPCGen.ExitCode.restart) {
             console.log('Quitting due to service shutdown with code: ', code)
             // Quit just the app, not the service
             quitApp?.()
@@ -120,7 +120,7 @@ export const initPlatformListener = () => {
           const {params} = action.payload
           const {level, text} = params
           logger.info('keybase.1.logUi.log:', params.text.data)
-          if (level >= RPCTypes.LogLevel.error) {
+          if (level >= T.RPCGen.LogLevel.error) {
             NotifyPopup(text.data, {})
           }
           break
@@ -208,16 +208,16 @@ export const initPlatformListener = () => {
         console.log('onSetOpenAtLogin disabled for dev mode')
         return
       } else {
-        await RPCTypes.configGuiSetValueRpcPromise({
+        await T.RPCGen.configGuiSetValueRpcPromise({
           path: ConfigConstants.openAtLoginKey,
           value: {b: openAtLogin, isNull: false},
         })
       }
       if (isLinux || isWindows) {
         const enabled =
-          (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
+          (await T.RPCGen.ctlGetOnLoginStartupRpcPromise()) === T.RPCGen.OnLoginStartupStatus.enabled
         if (enabled !== openAtLogin) {
-          await RPCTypes.ctlSetOnLoginStartupRpcPromise({enabled: openAtLogin}).catch(err => {
+          await T.RPCGen.ctlSetOnLoginStartupRpcPromise({enabled: openAtLogin}).catch(err => {
             logger.warn(`Error in sending ctlSetOnLoginStartup: ${err.message}`)
           })
         }

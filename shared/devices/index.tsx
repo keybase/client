@@ -5,19 +5,19 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import DeviceRow, {NewContext} from './row'
 import partition from 'lodash/partition'
-import type * as Types from '../constants/types/devices'
+import type * as T from '../constants/types'
 import {intersect} from '../util/set'
 import {useFocusEffect} from '@react-navigation/core'
 import {useLocalBadging} from '../util/use-local-badging'
 
-const sortDevices = (a: Types.Device, b: Types.Device) => {
+const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   if (a.currentDevice) return -1
   if (b.currentDevice) return 1
   return a.name.localeCompare(b.name)
 }
 
-const deviceToItem = (d: Types.Device) => ({id: d.deviceID, key: d.deviceID, type: 'device'}) as const
-const splitAndSortDevices = (deviceMap: Map<string, Types.Device>) =>
+const deviceToItem = (d: T.Devices.Device) => ({id: d.deviceID, key: d.deviceID, type: 'device'}) as const
+const splitAndSortDevices = (deviceMap: Map<string, T.Devices.Device>) =>
   partition([...deviceMap.values()].sort(sortDevices), d => d.revokedAt)
 
 const ReloadableDevices = () => {
@@ -88,7 +88,7 @@ const ReloadableDevices = () => {
 }
 
 type Item =
-  | {key: string; id: Types.DeviceID; type: 'device'}
+  | {key: string; id: T.Devices.DeviceID; type: 'device'}
   | {key: string; type: 'revokedHeader'}
   | {key: string; type: 'revokedNote'}
 

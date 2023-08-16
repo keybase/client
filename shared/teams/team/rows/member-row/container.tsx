@@ -1,11 +1,11 @@
 import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/teams'
-import type * as Types from '../../../../constants/types/teams'
+import type * as T from '../../../../constants/types'
 import {TeamMemberRow} from '.'
 import * as Container from '../../../../util/container'
 
 type OwnProps = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   username: string
   firstItem: boolean
 }

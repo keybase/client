@@ -2,8 +2,7 @@ import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
-import type * as TeamsTypes from '../../../../constants/types/teams'
-import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
+import type * as T from '../../../../constants/types'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
 import {useConfirm} from './use-confirm'
@@ -15,29 +14,29 @@ export type Props = {
   canSetPolicy: boolean
   containerStyle?: Styles.StylesCrossPlatform
   dropdownStyle?: Styles.StylesCrossPlatform
-  policy: RetentionPolicy
+  policy: T.Retention.RetentionPolicy
   policyIsExploding: boolean
-  teamPolicy?: RetentionPolicy
+  teamPolicy?: T.Retention.RetentionPolicy
   load?: () => void
   loading: boolean // for when we're waiting to fetch the team policy
   showInheritOption: boolean
   showOverrideNotice: boolean
   showSaveIndicator: boolean
-  teamID: TeamsTypes.TeamID
-  saveRetentionPolicy: (policy: RetentionPolicy) => void
-  onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void
+  teamID: T.Teams.TeamID
+  saveRetentionPolicy: (policy: T.Retention.RetentionPolicy) => void
+  onSelect?: (policy: T.Retention.RetentionPolicy, changed: boolean, decreased: boolean) => void
 }
 
 const RetentionPicker = (p: Props) => {
   const {policy, showInheritOption, teamPolicy, saveRetentionPolicy, entityType} = p
   const {containerStyle, dropdownStyle, policyIsExploding, showOverrideNotice, showSaveIndicator} = p
   const [saving, setSaving] = React.useState(false)
-  const [selected, _setSelected] = React.useState<RetentionPolicy | undefined>(undefined)
+  const [selected, _setSelected] = React.useState<T.Retention.RetentionPolicy | undefined>(undefined)
 
   const userSelectedRef = React.useRef(false)
 
   const setSelected = React.useCallback(
-    (r: RetentionPolicy, userSelected: boolean) => {
+    (r: T.Retention.RetentionPolicy, userSelected: boolean) => {
       if (userSelected) {
         userSelectedRef.current = userSelected
       }
@@ -49,14 +48,14 @@ const RetentionPicker = (p: Props) => {
   const showSaved = React.useRef(false)
 
   const setInitialSelected = React.useCallback(
-    (p?: RetentionPolicy) => {
+    (p?: T.Retention.RetentionPolicy) => {
       setSelected(p || policy, false)
     },
     [setSelected, policy]
   )
 
   const isSelected = React.useCallback(
-    (p: RetentionPolicy) => {
+    (p: T.Retention.RetentionPolicy) => {
       return policyEquals(policy, p)
     },
     [policy]
@@ -65,7 +64,7 @@ const RetentionPicker = (p: Props) => {
   const modalConfirmed = useConfirm(s => s.confirmed)
   const updateConfirm = useConfirm(s => s.dispatch.updateConfirm)
 
-  const [lastConfirmed, setLastConfirmed] = React.useState<RetentionPolicy | undefined>(undefined)
+  const [lastConfirmed, setLastConfirmed] = React.useState<T.Retention.RetentionPolicy | undefined>(undefined)
   if (lastConfirmed !== modalConfirmed) {
     setTimeout(() => {
       setLastConfirmed(modalConfirmed)
@@ -308,7 +307,7 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 // Utilities for transforming retention policies <-> labels
-const policyToLabel = (p?: RetentionPolicy, parent?: RetentionPolicy) => {
+const policyToLabel = (p?: T.Retention.RetentionPolicy, parent?: T.Retention.RetentionPolicy) => {
   let text = ''
   let timer = false
   if (p) {
@@ -350,7 +349,10 @@ const policyToLabel = (p?: RetentionPolicy, parent?: RetentionPolicy) => {
   ]
 }
 // Use only for comparing policy durations
-const policyToComparable = (p?: RetentionPolicy, parent?: RetentionPolicy): number => {
+const policyToComparable = (
+  p?: T.Retention.RetentionPolicy,
+  parent?: T.Retention.RetentionPolicy
+): number => {
   if (!p) {
     return Infinity
   }
@@ -376,13 +378,17 @@ const policyToComparable = (p?: RetentionPolicy, parent?: RetentionPolicy): numb
   }
   return res
 }
-const policyEquals = (p1?: RetentionPolicy, p2?: RetentionPolicy): boolean => {
+const policyEquals = (p1?: T.Retention.RetentionPolicy, p2?: T.Retention.RetentionPolicy): boolean => {
   if (p1 && p2) {
     return p1.type === p2.type && p1.seconds === p2.seconds
   }
   return p1 === p2
 }
-const policyToExplanation = (convType: string, p: RetentionPolicy, parent?: RetentionPolicy) => {
+const policyToExplanation = (
+  convType: string,
+  p: T.Retention.RetentionPolicy,
+  parent?: T.Retention.RetentionPolicy
+) => {
   let exp = ''
   switch (p.type) {
     case 'inherit':

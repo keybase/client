@@ -1,6 +1,5 @@
 import * as Constants from '../../constants/tracker2'
 import * as Kb from '../../common-adapters'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import Actions from './actions/container'
@@ -11,7 +10,7 @@ import Measure from './measure'
 import Teams from './teams/container'
 import chunk from 'lodash/chunk'
 import shallowEqual from 'shallowequal'
-import type * as Types from '../../constants/types/tracker2'
+import * as T from '../../constants/types'
 import type {RPCError} from '../../util/errors'
 import upperFirst from 'lodash/upperFirst'
 import {SiteIcon} from '../generic/shared'
@@ -36,18 +35,18 @@ export type Props = {
   // onIKnowThem?: () => void
   reason: string
   sbsAvatarUrl?: string
-  state: Types.DetailsState
+  state: T.Tracker.DetailsState
   suggestionKeys?: Array<string>
   userIsYou: boolean
   username: string
   name: string // assertion value
   service: string // assertion key (if SBS)
-  serviceIcon?: Array<Types.SiteIcon>
+  serviceIcon?: Array<T.Tracker.SiteIcon>
   fullName?: string // full name from external profile
   title: string
   vouchShowButton: boolean
   vouchDisableButton: boolean
-  webOfTrustEntries: Array<Types.WebOfTrustEntry>
+  webOfTrustEntries: Array<T.Tracker.WebOfTrustEntry>
 }
 
 const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
@@ -66,7 +65,7 @@ const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
 const noopOnClick = () => {}
 
 type SbsTitleProps = {
-  serviceIcon?: Array<Types.SiteIcon>
+  serviceIcon?: Array<T.Tracker.SiteIcon>
   sbsUsername: string
 }
 const SbsTitle = (p: SbsTitleProps) => (
@@ -240,7 +239,7 @@ export type BioTeamProofsProps = {
   name: string
   sbsAvatarUrl?: string
   service: string
-  serviceIcon?: Array<Types.SiteIcon>
+  serviceIcon?: Array<T.Tracker.SiteIcon>
   fullName?: string
   title: string
 }
@@ -416,7 +415,7 @@ class User extends React.Component<Props2, State> {
     }
   }
 
-  _errorFilter = (e: RPCError) => e.code !== RPCTypes.StatusCode.scresolutionfailed
+  _errorFilter = (e: RPCError) => e.code !== T.RPCGen.StatusCode.scresolutionfailed
 
   render() {
     const friends =

@@ -1,8 +1,8 @@
-import type * as Types from '../../constants/types/people'
+import type * as T from '../../constants/types'
 import {Box, ConnectedNameWithIcon, ScrollView, Text} from '../../common-adapters'
 import * as Styles from '../../styles'
 
-export type FollowSuggestion = Types.FollowSuggestion
+export type FollowSuggestion = T.People.FollowSuggestion
 
 export type Props = {
   suggestions: Array<FollowSuggestion>

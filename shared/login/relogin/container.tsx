@@ -3,7 +3,7 @@ import * as Container from '../../util/container'
 import * as React from 'react'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
-import type * as ConfigTypes from '../../constants/types/config'
+import type * as T from '../../constants/types'
 
 const needPasswordError = 'passphrase cannot be empty'
 
@@ -16,7 +16,7 @@ type Props = {
   onSignup: () => void
   onSomeoneElse: () => void
   selectedUser: string
-  users: Array<ConfigTypes.ConfiguredAccount>
+  users: Array<T.Config.ConfiguredAccount>
 }
 
 const LoginWrapper = (props: Props) => {

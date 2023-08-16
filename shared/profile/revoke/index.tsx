@@ -4,13 +4,12 @@ import * as Styles from '../../styles'
 import capitalize from 'lodash/capitalize'
 import {subtitle as platformSubtitle} from '../../util/platforms'
 import {SiteIcon} from '../generic/shared'
-import type {PlatformsExpandedType} from '../../constants/types/more'
-import type {SiteIconSet} from '../../constants/types/tracker2'
+import type * as T from '../../constants/types'
 import Modal from '../modal'
 
 type Props = {
-  icon: SiteIconSet
-  platform: PlatformsExpandedType
+  icon: T.Tracker.SiteIconSet
+  platform: T.More.PlatformsExpandedType
   platformHandle: string
   errorMessage?: string
   onCancel: () => void
@@ -113,7 +112,7 @@ const styles = Styles.styleSheetCreate(
     }) as const
 )
 
-function formatMessage(platform: PlatformsExpandedType) {
+function formatMessage(platform: T.More.PlatformsExpandedType) {
   if (platform === 'pgp') {
     return 'Are you sure you want to drop your PGP key'
   }

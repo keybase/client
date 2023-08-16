@@ -1,9 +1,8 @@
 import * as Z from '../util/zustand'
 import {isAndroidNewerThanN} from '../constants/platform'
-import * as RPCChatTypes from './types/rpc-chat-gen'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
 
 export const securityGroup = 'security'
 export const soundGroup = 'sound'
@@ -71,14 +70,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
         Z.ignorePromise(maybeClear())
 
         let body = ''
-        let chatGlobalSettings: RPCChatTypes.GlobalAppNotificationSettings
+        let chatGlobalSettings: T.RPCChat.GlobalAppNotificationSettings
 
         try {
-          const json = await RPCTypes.apiserverGetWithSessionRpcPromise(
+          const json = await T.RPCGen.apiserverGetWithSessionRpcPromise(
             {args: [], endpoint: 'account/subscriptions'},
             refreshNotificationsWaitingKey
           )
-          chatGlobalSettings = await RPCChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise(
+          chatGlobalSettings = await T.RPCChat.localGetGlobalAppNotificationSettingsLocalRpcPromise(
             undefined,
             refreshNotificationsWaitingKey
           )
@@ -106,23 +105,21 @@ export const _useState = Z.createZustand<State>((set, get) => {
               description_h: 'Show message content in phone chat notifications',
               name: 'plaintextmobile',
               subscribed:
-                !!chatGlobalSettings.settings[`${RPCChatTypes.GlobalAppNotificationSetting.plaintextmobile}`],
+                !!chatGlobalSettings.settings[`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`],
             },
             {
               description: 'Show message content in computer chat notifications',
               description_h: 'Show message content in computer chat notifications',
               name: 'plaintextdesktop',
               subscribed:
-                !!chatGlobalSettings.settings[
-                  `${RPCChatTypes.GlobalAppNotificationSetting.plaintextdesktop}`
-                ],
+                !!chatGlobalSettings.settings[`${T.RPCChat.GlobalAppNotificationSetting.plaintextdesktop}`],
             },
             {
               description: "Show others when you're typing",
               description_h: "Show others when you're typing",
               name: 'disabletyping',
               subscribed:
-                !chatGlobalSettings.settings[`${RPCChatTypes.GlobalAppNotificationSetting.disabletyping}`],
+                !chatGlobalSettings.settings[`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`],
             },
           ],
           unsub: false,
@@ -137,7 +134,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                   name: 'defaultsoundmobile',
                   subscribed:
                     !!chatGlobalSettings.settings[
-                      `${RPCChatTypes.GlobalAppNotificationSetting.defaultsoundmobile}`
+                      `${T.RPCChat.GlobalAppNotificationSetting.defaultsoundmobile}`
                     ],
                 } as const,
               ],
@@ -212,7 +209,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             // Special case this since it will go to chat settings endpoint
             group.settings.forEach(
               setting =>
-                (chatGlobalArg[`${RPCChatTypes.GlobalAppNotificationSetting[setting.name]}`] =
+                (chatGlobalArg[`${T.RPCChat.GlobalAppNotificationSetting[setting.name]}`] =
                   setting.name === 'disabletyping' ? !setting.subscribed : !!setting.subscribed)
             )
           } else {
@@ -229,7 +226,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         })
 
-        const result = await RPCTypes.apiserverPostJSONRpcPromise(
+        const result = await T.RPCGen.apiserverPostJSONRpcPromise(
           {
             JSONPayload,
             args: [],
@@ -237,7 +234,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           },
           settingsWaitingKey
         )
-        await RPCChatTypes.localSetGlobalAppNotificationSettingsLocalRpcPromise(
+        await T.RPCChat.localSetGlobalAppNotificationSettingsLocalRpcPromise(
           {settings: {...chatGlobalArg}},
           settingsWaitingKey
         )

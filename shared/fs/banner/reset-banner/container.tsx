@@ -1,14 +1,13 @@
 import * as C from '../../../constants'
 import * as React from 'react'
-import * as Types from '../../../constants/types/fs'
-import type * as RPCTypes from '../../../constants/types/rpc-gen'
+import * as T from '../../../constants/types'
 import * as Container from '../../../util/container'
 import {folderNameWithoutUsers} from '../../../util/kbfs'
 import Banner, {getHeight} from '.'
 import * as RowTypes from '../../browser/rows/types'
 
 type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
 }
 
 const ConnectedBanner = (ownProps: OwnProps) => {
@@ -16,17 +15,17 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   const _tlf = C.useFSState(s => C.getTlfFromPath(s.tlfs, path))
   const letResetUserBackIn = C.useFSState(s => s.dispatch.letResetUserBackIn)
   const _onOpenWithoutResetUsers = React.useCallback(
-    (currPath: Types.Path, users: {[K in string]: boolean}) => {
-      const pathElems = Types.getPathElements(currPath)
+    (currPath: T.FS.Path, users: {[K in string]: boolean}) => {
+      const pathElems = T.FS.getPathElements(currPath)
       if (pathElems.length < 3) return
       const filteredPathName = folderNameWithoutUsers(pathElems[2] ?? '', users)
-      const filteredPath = Types.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
+      const filteredPath = T.FS.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
       C.makeActionForOpenPathInFilesTab(filteredPath)
     },
     []
   )
   const _onReAddToTeam = React.useCallback(
-    (id: RPCTypes.TeamID, username: string) => {
+    (id: T.RPCGen.TeamID, username: string) => {
       letResetUserBackIn(id, username)
     },
     [letResetUserBackIn]
@@ -62,8 +61,8 @@ const ConnectedBanner = (ownProps: OwnProps) => {
 export default ConnectedBanner
 
 export const asRows = (
-  path: Types.Path,
-  resetBannerType: Types.ResetBannerType
+  path: T.FS.Path,
+  resetBannerType: T.FS.ResetBannerType
 ): Array<RowTypes.HeaderRowItem> =>
   typeof resetBannerType === 'number'
     ? [

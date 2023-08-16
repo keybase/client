@@ -2,7 +2,7 @@ import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
-import * as Types from '../../../constants/types/teams'
+import * as T from '../../../constants/types'
 import * as Styles from '../../../styles'
 import {pluralize} from '../../../util/string'
 import {ModalTitle} from '../../common'
@@ -11,7 +11,7 @@ const cleanSubteamName = (name: string) => name.replace(/[^0-9a-zA-Z_]/, '')
 
 const CreateSubteams = () => {
   const nav = Container.useSafeNavigation()
-  const teamID = Types.newTeamWizardTeamID
+  const teamID = T.Teams.newTeamWizardTeamID
   const teamname = C.useTeamsState(s => s.newTeamWizard.name)
   const initialSubteams = C.useTeamsState(s => s.newTeamWizard.subteams) ?? ['', '', '']
 

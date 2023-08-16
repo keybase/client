@@ -1,24 +1,24 @@
 import * as C from '.'
-import * as RPCStellarTypes from './types/rpc-stellar-gen'
-import * as RPCTypes from './types/rpc-stellar-gen'
-import * as Types from './types/wallets'
+import * as T from './types'
 import * as Z from '../util/zustand'
 import invert from 'lodash/invert'
 
-export const statusSimplifiedToString = invert(RPCTypes.PaymentStatus) as {
-  [K in RPCTypes.PaymentStatus]: keyof typeof RPCTypes.PaymentStatus
+export const statusSimplifiedToString = invert(T.RPCStellar.PaymentStatus) as {
+  [K in T.RPCStellar.PaymentStatus]: keyof typeof T.RPCStellar.PaymentStatus
 }
 
-export const balanceDeltaToString = invert(RPCTypes.BalanceDelta) as {
-  [K in RPCTypes.BalanceDelta]: keyof typeof RPCTypes.BalanceDelta
+export const balanceDeltaToString = invert(T.RPCStellar.BalanceDelta) as {
+  [K in T.RPCStellar.BalanceDelta]: keyof typeof T.RPCStellar.BalanceDelta
 }
 
-export const makeAssetDescription = (a?: Partial<Types.AssetDescription>): Types.AssetDescription => ({
+export const makeAssetDescription = (
+  a?: Partial<T.Wallets.AssetDescription>
+): T.Wallets.AssetDescription => ({
   code: '',
   depositButtonText: '',
   infoUrl: '',
   infoUrlText: '',
-  issuerAccountID: Types.noAccountID,
+  issuerAccountID: T.Wallets.noAccountID,
   issuerName: '',
   issuerVerifiedDomain: '',
   showDepositButton: false,
@@ -60,7 +60,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         if (!C.useConfigState.getState().loggedIn) {
           return
         }
-        const res = await RPCStellarTypes.localGetWalletAccountsLocalRpcPromise(undefined, [
+        const res = await T.RPCStellar.localGetWalletAccountsLocalRpcPromise(undefined, [
           loadAccountsWaitingKey,
         ])
         set(s => {
@@ -84,7 +84,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     removeAccount: accountID => {
       const f = async () => {
-        await RPCStellarTypes.localDeleteWalletAccountLocalRpcPromise(
+        await T.RPCStellar.localDeleteWalletAccountLocalRpcPromise(
           {accountID, userAcknowledged: 'yes'},
           loadAccountsWaitingKey
         )

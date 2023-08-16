@@ -1,8 +1,7 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as FsTypes from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import Separator from './separator'
@@ -33,7 +32,7 @@ const ErrorMessage = () => {
   let onCreateWithoutThem: (() => void) | undefined
   if (createConversationError) {
     const {allowedUsers, code, disallowedUsers, message} = createConversationError
-    if (code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+    if (code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
       if (disallowedUsers.length === 1 && allowedUsers.length === 0) {
         // One-on-one conversation.
         createConversationErrorHeader = `You cannot start a conversation with @${disallowedUsers[0]}.`
@@ -174,7 +173,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
     teamType === 'adhoc' && participantInfoAll.length === 1 && participantInfoAll.includes(username)
 
   const openPrivateFolder = React.useCallback(() => {
-    C.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/private/${username}`))
+    C.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${username}`))
   }, [username])
 
   return (

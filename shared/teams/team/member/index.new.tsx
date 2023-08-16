@@ -3,10 +3,9 @@ import * as Constants from '../../../constants/teams'
 import * as ChatConstants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
+import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import * as Types from '../../../constants/types/teams'
 import RoleButton from '../../role-button'
 import isEqual from 'lodash/isEqual'
 import logger from '../../../logger'
@@ -19,31 +18,31 @@ import {createAnimatedComponent} from '../../../common-adapters/reanimated'
 import type {Props as SectionListProps, Section as SectionType} from '../../../common-adapters/section-list'
 
 type Props = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   username: string
 }
 type OwnProps = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   username: string
 }
 
 type TeamTreeRowNotIn = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   teamname: string
   memberCount?: number
   joinTime?: number
   canAdminister: boolean
 }
 type TeamTreeRowIn = {
-  role: Types.TeamRoleType
+  role: T.Teams.TeamRoleType
 } & TeamTreeRowNotIn
 
 const getMemberships = (
   state: Constants.State,
-  teamIDs: Array<Types.TeamID>,
+  teamIDs: Array<T.Teams.TeamID>,
   username: string
-): Map<Types.TeamID, Types.TreeloaderSparseMemberInfo> => {
-  const results = new Map<Types.TeamID, Types.TreeloaderSparseMemberInfo>()
+): Map<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo> => {
+  const results = new Map<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo>()
   teamIDs.forEach(teamID => {
     const info = Constants.maybeGetSparseMemberInfo(state, teamID, username)
     if (info) {
@@ -53,9 +52,9 @@ const getMemberships = (
   return results
 }
 
-type TreeMembershipOK = {s: RPCTypes.TeamTreeMembershipStatus.ok; ok: RPCTypes.TeamTreeMembershipValue}
-const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
-  const errors: Array<RPCTypes.TeamTreeMembership> = []
+type TreeMembershipOK = {s: T.RPCGen.TeamTreeMembershipStatus.ok; ok: T.RPCGen.TeamTreeMembershipValue}
+const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
+  const errors: Array<T.RPCGen.TeamTreeMembership> = []
   const nodesNotIn: Array<TeamTreeRowNotIn> = []
   const nodesIn: Array<TeamTreeRowIn> = []
 
@@ -67,9 +66,9 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
   // than the **shape of the tree**. The other information is delegated to
   // Constants.maybeGetSparseMemberInfo which opportunistically sources the information from the
   // teamDetails map if present, so as to show up-to-date information.
-  const teamIDs: Array<Types.TeamID> =
+  const teamIDs: Array<T.Teams.TeamID> =
     memberships?.memberships
-      .filter(m => m.result.s === RPCTypes.TeamTreeMembershipStatus.ok)
+      .filter(m => m.result.s === T.RPCGen.TeamTreeMembershipStatus.ok)
       .map(m => (m.result as TreeMembershipOK).ok.teamID) ?? []
   const upToDateSparseMemberInfos = C.useTeamsState(
     s => getMemberships(s, teamIDs, username),
@@ -83,7 +82,7 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
   for (const membership of memberships.memberships) {
     const teamname = membership?.teamName
 
-    if (RPCTypes.TeamTreeMembershipStatus.ok === membership.result.s) {
+    if (T.RPCGen.TeamTreeMembershipStatus.ok === membership.result.s) {
       const teamID = membership.result.ok.teamID
       const sparseMemberInfo = upToDateSparseMemberInfos.get(teamID)
       if (!sparseMemberInfo) {
@@ -109,7 +108,7 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
       } else {
         nodesNotIn.push(row)
       }
-    } else if (RPCTypes.TeamTreeMembershipStatus.error == membership.result.s) {
+    } else if (T.RPCGen.TeamTreeMembershipStatus.error == membership.result.s) {
       errors.push(membership)
     }
   }
@@ -120,7 +119,7 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
   }
 }
 
-const useNavUpIfRemovedFromTeam = (teamID: Types.TeamID, username: string) => {
+const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => {
   const nav = Container.useSafeNavigation()
   const waitingKey = Constants.removeMemberWaitingKey(teamID, username)
   const waiting = Container.useAnyWaiting(waitingKey)
@@ -140,7 +139,7 @@ const SectionList = createAnimatedComponent<SectionListProps<Section>>(Kb.Sectio
 
 const TeamMember = (props: OwnProps) => {
   const username = props.username
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
   const isMe = username === C.useCurrentUserState(s => s.username)
   const loading = C.useTeamsState(s => {
     const memberships = s.teamMemberToTreeMemberships.get(teamID)?.get(username)
@@ -231,7 +230,7 @@ const TeamMember = (props: OwnProps) => {
           />
           <>
             {errors.map((error, idx) => {
-              if (RPCTypes.TeamTreeMembershipStatus.error != error.result.s) {
+              if (T.RPCGen.TeamTreeMembershipStatus.error != error.result.s) {
                 return <></>
               }
 
@@ -281,7 +280,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   const nav = Container.useSafeNavigation()
   const onAddWaitingKey = Constants.addMemberWaitingKey(props.node.teamID, props.username)
   const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
-  const onAdd = (role: Types.TeamRoleType) => {
+  const onAdd = (role: T.Teams.TeamRoleType) => {
     addToTeam(props.node.teamID, [{assertion: props.username, role}], true)
   }
   const openTeam = React.useCallback(
@@ -361,7 +360,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   )
 }
 
-const LastActivity = (props: {loading: boolean; teamID: Types.TeamID; username: string}) => {
+const LastActivity = (props: {loading: boolean; teamID: T.Teams.TeamID; username: string}) => {
   const lastActivity = C.useTeamsState(s =>
     Constants.getTeamMemberLastActivity(s, props.teamID, props.username)
   )
@@ -413,10 +412,10 @@ const NodeInRow = (props: NodeInRowProps) => {
 
   const {expanded, setExpanded} = props
 
-  const [role, setRole] = React.useState<Types.TeamRoleType>(props.node.role)
+  const [role, setRole] = React.useState<T.Teams.TeamRoleType>(props.node.role)
   const [open, setOpen] = React.useState(false)
   const editMembership = C.useTeamsState(s => s.dispatch.editMembership)
-  const onChangeRole = (role: Types.TeamRoleType) => {
+  const onChangeRole = (role: T.Teams.TeamRoleType) => {
     setRole(role)
     editMembership(props.node.teamID, [props.username], role)
     setOpen(false)

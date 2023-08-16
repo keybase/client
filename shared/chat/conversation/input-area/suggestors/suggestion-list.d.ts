@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../constants/types'
 
 export type Props = {
   items: Array<any>
@@ -9,7 +9,7 @@ export type Props = {
   selectedIndex: number
   style?: Styles.StylesCrossPlatform
   // likely doesn't belong here
-  suggestBotCommandsUpdateStatus?: RPCChatTypes.UIBotCommandsUpdateStatusTyp
+  suggestBotCommandsUpdateStatus?: T.RPCChat.UIBotCommandsUpdateStatusTyp
 }
 
 export default class extends React.Component<Props> {}

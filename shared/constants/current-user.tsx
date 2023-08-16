@@ -1,8 +1,8 @@
-import type * as RPCTypes from './types/rpc-gen'
+import type * as T from './types'
 import * as Z from '../util/zustand'
 
 export type Store = {
-  deviceID: RPCTypes.DeviceID
+  deviceID: T.RPCGen.DeviceID
   deviceName: string
   uid: string
   username: string

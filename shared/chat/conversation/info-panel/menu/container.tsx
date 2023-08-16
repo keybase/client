@@ -1,10 +1,9 @@
 import * as C from '../../../../constants'
 import * as ChatConstants from '../../../../constants/chat2'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as TeamConstants from '../../../../constants/teams'
-import * as TeamTypes from '../../../../constants/types/teams'
+import * as T from '../../../../constants/types'
 import {InfoPanelMenu} from '.'
 
 export type OwnProps = {
@@ -13,7 +12,7 @@ export type OwnProps = {
   floatingMenuContainerStyle?: Styles.StylesCrossPlatform
   hasHeader: boolean
   isSmallTeam: boolean
-  teamID?: TeamTypes.TeamID
+  teamID?: T.Teams.TeamID
   visible: boolean
 }
 
@@ -46,7 +45,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       manageChannelsSubtitle,
       manageChannelsTitle,
       participants: [],
-      teamID: TeamTypes.noTeamID,
+      teamID: T.Teams.noTeamID,
       teamType: undefined,
       teamname: '',
     }
@@ -62,7 +61,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(C.useTeamsState.getState(), teamname)
       const canAddPeople = yourOperations.manageMembers
       const isInChannel = membershipType !== 'youArePreviewing'
-      const ignored = status === RPCChatTypes.ConversationStatus.ignored
+      const ignored = status === T.RPCChat.ConversationStatus.ignored
       return {
         ...common,
         badgeSubscribe,

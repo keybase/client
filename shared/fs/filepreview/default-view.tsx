@@ -1,4 +1,4 @@
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
@@ -9,8 +9,8 @@ import {hasShare} from '../common/path-item-action/layout'
 type DefaultViewProps = {
   download: () => void
   sfmiEnabled: boolean
-  path: Types.Path
-  pathItem: Types.PathItem
+  path: T.FS.Path
+  pathItem: T.FS.PathItem
   showInSystemFileManager: () => void
 }
 
@@ -31,7 +31,7 @@ const DefaultView = (props: DefaultViewProps) => {
         </Kb.Text>
         <Kb.Text type="BodySmall">{C.humanReadableFileSize(props.pathItem.size)}</Kb.Text>
         {isMobile && <LastModifiedLine path={props.path} mode="default" />}
-        {props.pathItem.type === Types.PathType.Symlink && (
+        {props.pathItem.type === T.FS.PathType.Symlink && (
           <Kb.Text type="BodySmall" style={styles.symlink}>
             {'This is a symlink' + (props.pathItem.linkTarget ? ` to: ${props.pathItem.linkTarget}.` : '.')}
           </Kb.Text>
@@ -54,7 +54,7 @@ const DefaultView = (props: DefaultViewProps) => {
                   type: 'component',
                 }}
                 path={props.path}
-                initView={Types.PathItemActionMenuView.Share}
+                initView={T.FS.PathItemActionMenuView.Share}
                 mode="screen"
               />
             </>

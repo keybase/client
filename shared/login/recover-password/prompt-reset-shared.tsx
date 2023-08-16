@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 import {SignupScreen} from '../../signup/common'
 import type {ButtonType} from '../../common-adapters/button'
 
@@ -24,7 +24,7 @@ const PromptReset = (props: Props) => {
 
   const onContinue = React.useCallback(() => {
     if (resetPassword) {
-      submitResetPassword?.(RPCTypes.ResetPromptResponse.confirmReset)
+      submitResetPassword?.(T.RPCGen.ResetPromptResponse.confirmReset)
     }
     if (skipPassword) {
       resetAccount()

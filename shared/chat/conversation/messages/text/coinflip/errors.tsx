@@ -1,28 +1,28 @@
 import * as C from '../../../../../constants'
 import * as Kb from '../../../../../common-adapters'
-import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../../constants/types'
 import * as Styles from '../../../../../styles'
 
 type Props = {
-  error: RPCChatTypes.UICoinFlipError
+  error: T.RPCChat.UICoinFlipError
 }
 
 const CoinFlipError = (props: Props) => {
-  if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.generic) {
+  if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.generic) {
     return <CoinFlipGenericError />
-  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.absentee) {
+  } else if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.absentee) {
     return <CoinFlipAbsenteeError error={props.error.absentee} />
-  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.timeout) {
+  } else if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.timeout) {
     return <CoinFlipTimeoutError />
-  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.aborted) {
+  } else if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.aborted) {
     return <CoinFlipAbortedError />
-  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.dupreg) {
+  } else if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.dupreg) {
     return <CoinFlipDupError offender={props.error.dupreg} desc="registration" />
-  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.dupcommitcomplete) {
+  } else if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.dupcommitcomplete) {
     return <CoinFlipDupError offender={props.error.dupcommitcomplete} desc="commitment list" />
-  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.dupreveal) {
+  } else if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.dupreveal) {
     return <CoinFlipDupError offender={props.error.dupreveal} desc="secret reveal" />
-  } else if (props.error.typ === RPCChatTypes.UICoinFlipErrorTyp.commitmismatch) {
+  } else if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.commitmismatch) {
     return <CoinFlipCommitMismatchError offender={props.error.commitmismatch} />
   }
 
@@ -45,7 +45,7 @@ const CoinFlipGenericError = () => {
 }
 
 type AbsenteeProps = {
-  error: RPCChatTypes.UICoinFlipAbsenteeError
+  error: T.RPCChat.UICoinFlipAbsenteeError
 }
 
 const CoinFlipAbsenteeError = (props: AbsenteeProps) => (
@@ -83,7 +83,7 @@ const CoinFlipAbortedError = () => (
 
 type DupProps = {
   desc: string
-  offender: RPCChatTypes.UICoinFlipErrorParticipant
+  offender: T.RPCChat.UICoinFlipErrorParticipant
 }
 
 const CoinFlipDupError = (props: DupProps) => (
@@ -98,7 +98,7 @@ const CoinFlipDupError = (props: DupProps) => (
 )
 
 type CommitMismatchProps = {
-  offender: RPCChatTypes.UICoinFlipErrorParticipant
+  offender: T.RPCChat.UICoinFlipErrorParticipant
 }
 
 const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (

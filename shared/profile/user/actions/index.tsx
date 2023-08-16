@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/tracker2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/tracker2'
+import type * as T from '../../../constants/types'
 import FollowButton from './follow-button'
 import ChatButton from '../../../chat/chat-button'
 
@@ -24,7 +24,7 @@ type Props = {
   onReload: () => void
   onUnfollow: () => void
   onManageBlocking: () => void
-  state: Types.DetailsState
+  state: T.Tracker.DetailsState
   username: string
 }
 

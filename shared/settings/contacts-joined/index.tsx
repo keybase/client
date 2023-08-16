@@ -2,12 +2,12 @@ import * as C from '../../constants'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import type * as RPCTypes from '../../constants/types/rpc-gen'
+import type * as T from '../../constants/types'
 import {FollowButton} from './buttons'
 
-const renderItem = (_: number, item: RPCTypes.ProcessedContact) => <Item item={item} />
+const renderItem = (_: number, item: T.RPCGen.ProcessedContact) => <Item item={item} />
 
-const Item = ({item}: {item: RPCTypes.ProcessedContact}) => {
+const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
   const username = item.username
   const label = item.contactName || item.component?.phoneNumber || item.component?.email || ''
 

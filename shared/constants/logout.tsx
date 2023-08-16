@@ -1,6 +1,6 @@
 import * as C from '.'
 import logger from '../logger'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 // normally util.container but it re-exports from us so break the cycle
 import * as Z from '../util/zustand'
 import {passwordTab} from './settings'
@@ -37,7 +37,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       // startLogoutHandshake, else do what's needed - right now only
       // redirect to set password screen.
       const f = async () => {
-        const canLogoutRes = await RPCTypes.userCanLogoutRpcPromise()
+        const canLogoutRes = await T.RPCGen.userCanLogoutRpcPromise()
         if (canLogoutRes.canLogout) {
           get().dispatch.start()
           return
@@ -97,7 +97,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       if (waiters.size > 0) {
         // still waiting for things to finish
       } else {
-        RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: false})
+        T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: false})
           .then(() => {})
           .catch(() => {})
       }

@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import * as Platforms from '../util/platforms'
 import * as TrackerConstants from '../constants/tracker2'
-import type * as Tracker2Types from '../constants/types/tracker2'
+import type * as T from '../constants/types'
 import capitalize from 'lodash/capitalize'
 import Box, {Box2} from './box'
 import ClickableBox from './clickable-box'
@@ -44,7 +44,7 @@ type Props = {
 const maxIcons = 4
 
 type ServiceIconsProps = {
-  userDetailsAssertions?: Map<string, Tracker2Types.Assertion>
+  userDetailsAssertions?: Map<string, T.Tracker.Assertion>
 }
 
 const assertionTypeToServiceId = (assertionType: string): Platforms.ServiceId | undefined => {

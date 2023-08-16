@@ -1,5 +1,5 @@
 import * as C from '../../../../../../constants'
-import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../../../constants/types'
 import * as React from 'react'
 import * as Styles from '../../../../../../styles'
 import UnfurlGeneric from './generic'
@@ -10,7 +10,7 @@ import {OrdinalContext} from '../../../ids-context'
 import shallowEqual from 'shallowequal'
 
 export type UnfurlListItem = {
-  unfurl: RPCChatTypes.UnfurlDisplay
+  unfurl: T.RPCChat.UnfurlDisplay
   url: string
   isCollapsed: boolean
   onClose?: () => void
@@ -31,7 +31,7 @@ export type UnfurlProps = {
   onClose?: () => void
   onCollapse: () => void
   toggleMessagePopup: () => void
-  unfurl: RPCChatTypes.UnfurlDisplay
+  unfurl: T.RPCChat.UnfurlDisplay
 }
 
 const styles = Styles.styleSheetCreate(
@@ -63,9 +63,9 @@ const UnfurlListContainer = React.memo(function UnfurlListContainer() {
       [...(s.messageMap.get(ordinal)?.unfurls?.values() ?? [])].map(u => {
         const ut = u.unfurl.unfurlType
         switch (ut) {
-          case RPCChatTypes.UnfurlType.giphy:
+          case T.RPCChat.UnfurlType.giphy:
             return 'giphy'
-          case RPCChatTypes.UnfurlType.generic:
+          case T.RPCChat.UnfurlType.generic:
             return u.unfurl.generic.mapInfo ? 'map' : 'generic'
           default:
             return 'none'

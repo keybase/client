@@ -3,49 +3,49 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 // import {isIPhoneX} from '../constants/platform'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 const isIPhoneX = false
 // import lagRadar from 'lag-radar'
 
 type Props = {
-  stats: RPCTypes.RuntimeStats
+  stats: T.RPCGen.RuntimeStats
 }
 
 const yesNo = (v?: boolean) => (v ? 'YES' : 'NO')
 
-const severityStyle = (s: RPCTypes.StatsSeverityLevel) => {
+const severityStyle = (s: T.RPCGen.StatsSeverityLevel) => {
   switch (s) {
-    case RPCTypes.StatsSeverityLevel.warning:
+    case T.RPCGen.StatsSeverityLevel.warning:
       return styles.statWarning
-    case RPCTypes.StatsSeverityLevel.severe:
+    case T.RPCGen.StatsSeverityLevel.severe:
       return styles.statSevere
     default:
       return styles.statNormal
   }
 }
 
-const processTypeString = (s: RPCTypes.ProcessType) => {
+const processTypeString = (s: T.RPCGen.ProcessType) => {
   switch (s) {
-    case RPCTypes.ProcessType.main:
+    case T.RPCGen.ProcessType.main:
       return 'Service'
-    case RPCTypes.ProcessType.kbfs:
+    case T.RPCGen.ProcessType.kbfs:
       return 'KBFS'
   }
 }
 
-const dbTypeString = (s: RPCTypes.DbType) => {
+const dbTypeString = (s: T.RPCGen.DbType) => {
   switch (s) {
-    case RPCTypes.DbType.main:
+    case T.RPCGen.DbType.main:
       return 'Core'
-    case RPCTypes.DbType.chat:
+    case T.RPCGen.DbType.chat:
       return 'Chat'
-    case RPCTypes.DbType.fsBlockCache:
+    case T.RPCGen.DbType.fsBlockCache:
       return 'FSBlkCache'
-    case RPCTypes.DbType.fsBlockCacheMeta:
+    case T.RPCGen.DbType.fsBlockCacheMeta:
       return 'FSBlkCacheMeta'
-    case RPCTypes.DbType.fsSyncBlockCache:
+    case T.RPCGen.DbType.fsSyncBlockCache:
       return 'FSSyncBlkCache'
-    case RPCTypes.DbType.fsSyncBlockCacheMeta:
+    case T.RPCGen.DbType.fsSyncBlockCacheMeta:
       return 'FSSyncBlkCacheMeta'
   }
 }
@@ -84,9 +84,9 @@ const LogStats = (props: {num?: number}) => {
   )
   const [, setDoRender] = React.useState(0)
   const events = C.useConfigState(s => s.runtimeStats?.perfEvents)
-  const lastEventsRef = React.useRef(new WeakSet<Array<RPCTypes.PerfEvent>>())
+  const lastEventsRef = React.useRef(new WeakSet<Array<T.RPCGen.PerfEvent>>())
 
-  const eventsRef = React.useRef<Array<RPCTypes.PerfEvent>>([])
+  const eventsRef = React.useRef<Array<T.RPCGen.PerfEvent>>([])
   if (events) {
     // only if unprocessed
     if (!lastEventsRef.current.has(events)) {
@@ -305,15 +305,15 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
   )
 }
 
-const compactionActive = (dbStats: Props['stats']['dbStats'], typs: Array<RPCTypes.DbType>) =>
+const compactionActive = (dbStats: Props['stats']['dbStats'], typs: Array<T.RPCGen.DbType>) =>
   dbStats?.some(stat => typs.includes(stat.type) && (stat.memCompActive || stat.tableCompActive))
 
-const chatDbs = [RPCTypes.DbType.chat, RPCTypes.DbType.main]
+const chatDbs = [T.RPCGen.DbType.chat, T.RPCGen.DbType.main]
 const kbfsDbs = [
-  RPCTypes.DbType.fsBlockCache,
-  RPCTypes.DbType.fsBlockCacheMeta,
-  RPCTypes.DbType.fsSyncBlockCache,
-  RPCTypes.DbType.fsSyncBlockCacheMeta,
+  T.RPCGen.DbType.fsBlockCache,
+  T.RPCGen.DbType.fsBlockCacheMeta,
+  T.RPCGen.DbType.fsSyncBlockCache,
+  T.RPCGen.DbType.fsSyncBlockCacheMeta,
 ]
 
 const RuntimeStatsMobile = ({stats}: Props) => {

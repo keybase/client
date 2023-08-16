@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import DownloadWrapper from './download-wrapper'
 import {formatDurationFromNowTo} from '../../util/timestamp'
 import {isMobile} from '../../constants/platform'
@@ -13,7 +13,7 @@ export type Props = {
   isFirst: boolean
 }
 
-const getProgress = (dlState: Types.DownloadState) => (
+const getProgress = (dlState: T.FS.DownloadState) => (
   <Kb.Box2 style={styles.progress} direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny">
     <Kb.Box style={styles.tubeBox}>
       <Kb.Box style={styles.tube} />
@@ -44,7 +44,7 @@ const Download = (props: Props) => {
   const dismiss = () => dismissDownload(props.downloadID)
   const cancelDownload = C.useFSState(s => s.dispatch.cancelDownload)
   const cancel = () => cancelDownload(props.downloadID)
-  Kbfs.useFsWatchDownloadForMobile(props.downloadID, Types.DownloadIntent.None)
+  Kbfs.useFsWatchDownloadForMobile(props.downloadID, T.FS.DownloadIntent.None)
   return (
     <DownloadWrapper dismiss={dismiss} isFirst={props.isFirst} done={dlState.done}>
       <Kb.Box2

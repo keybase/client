@@ -1,6 +1,6 @@
 import * as C from '../../../constants'
 import * as Styles from '../../../styles'
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
 import {useFsPathMetadata, TlfInfoLine, Filename} from '../../common'
@@ -25,7 +25,7 @@ const Content = (props: TlfProps) => (
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.minWidth}>
         <Filename
-          type={C.pathTypeToTextType(Types.PathType.Folder)}
+          type={C.pathTypeToTextType(T.FS.PathType.Folder)}
           style={Styles.collapseStyles([rowStyles.rowText, styles.kerning])}
           path={props.path}
         />
@@ -44,7 +44,7 @@ const Avatars = (props: TlfProps) => (
   </Kb.Box>
 )
 
-const FsPathMetadataLoader = ({path}: {path: Types.Path}) => {
+const FsPathMetadataLoader = ({path}: {path: T.FS.Path}) => {
   useFsPathMetadata(path)
   return null
 }

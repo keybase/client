@@ -1,4 +1,4 @@
-import type * as Types from '../../constants/types/fs'
+import type * as T from '../../constants/types'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
@@ -6,7 +6,7 @@ import Footer from '../footer/footer'
 import View from './view'
 
 type NormalPreviewProps = {
-  path: Types.Path
+  path: T.FS.Path
   onUrlError: (err: string) => void
 }
 
@@ -43,5 +43,5 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 1,
         width: '100%',
       },
-    } as const)
+    }) as const
 )

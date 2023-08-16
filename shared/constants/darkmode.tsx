@@ -1,4 +1,4 @@
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
 import * as Z from '../util/zustand'
 
 export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight'
@@ -34,7 +34,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     loadDarkPrefs: () => {
       const f = async () => {
-        const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
+        const v = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
         const preference = v.s
         switch (preference) {
           case 'system':
@@ -61,7 +61,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         s.darkModePreference = p
       })
       const f = async () => {
-        await RPCTypes.configGuiSetValueRpcPromise({
+        await T.RPCGen.configGuiSetValueRpcPromise({
           path: 'ui.darkMode',
           value: {isNull: false, s: p},
         })

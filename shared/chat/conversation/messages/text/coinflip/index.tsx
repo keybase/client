@@ -2,7 +2,7 @@ import * as C from '../../../../../constants'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../../styles'
-import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../../constants/types'
 import CoinFlipError from './errors'
 import CoinFlipParticipants from './participants'
 import CoinFlipResult from './results'
@@ -21,12 +21,12 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
     text && messageSend(text.stringValue())
   }, [messageSend, text])
   const phase = status?.phase
-  const errorInfo = phase === RPCChatTypes.UICoinFlipPhase.error ? status?.errorInfo : undefined
+  const errorInfo = phase === T.RPCChat.UICoinFlipPhase.error ? status?.errorInfo : undefined
   const participants = status?.participants ?? undefined
   const resultInfo = status?.resultInfo
   const commitmentVis = status?.commitmentVisualization
   const revealVis = status?.revealVisualization
-  const showParticipants = phase === RPCChatTypes.UICoinFlipPhase.complete
+  const showParticipants = phase === T.RPCChat.UICoinFlipPhase.complete
   const numParticipants = participants?.length ?? 0
 
   const revealed =
@@ -75,11 +75,11 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
         <Kb.Text selectable={true} type="BodySmallSemibold">
           {!Styles.isMobile && 'Collecting '}commitments: {numParticipants}
         </Kb.Text>
-        {phase === RPCChatTypes.UICoinFlipPhase.reveals && (
+        {phase === T.RPCChat.UICoinFlipPhase.reveals && (
           <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} sizeType="Small" />
         )}
       </Kb.Box2>
-      {phase === RPCChatTypes.UICoinFlipPhase.reveals && (
+      {phase === T.RPCChat.UICoinFlipPhase.reveals && (
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
           <Kb.Text selectable={true} type="BodySmallSemibold">
             {!Styles.isMobile && 'Collecting '}secrets: {revealSummary}
@@ -113,7 +113,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
               )}
             </Kb.Box2>
             <Kb.Box2 direction="vertical">
-              {(revealVis?.length ?? 0) > 0 && phase !== RPCChatTypes.UICoinFlipPhase.commitment ? (
+              {(revealVis?.length ?? 0) > 0 && phase !== T.RPCChat.UICoinFlipPhase.commitment ? (
                 <Kb.Image2 src={revealSrc} style={styles.progressVis} />
               ) : (
                 <Kb.Box2
@@ -140,7 +140,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
           direction="vertical"
           alignSelf="flex-start"
           style={
-            phase === RPCChatTypes.UICoinFlipPhase.complete
+            phase === T.RPCChat.UICoinFlipPhase.complete
               ? styles.flipAgainContainer
               : styles.flipAgainContainerHidden
           }

@@ -1,10 +1,10 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
-import type * as Types from '../../constants/types/fs'
+import type * as T from '../../constants/types'
 import LastModifiedLine from './last-modified-line'
 
 export type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
   mode: 'row' | 'default' | 'menu'
 }
 

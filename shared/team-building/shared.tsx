@@ -1,9 +1,9 @@
 import * as Styles from '../styles'
-import type {ServiceIdWithContact, ServiceMap} from '../constants/types/team-building'
+import type * as T from '../constants/types'
 import type {IconType} from '../common-adapters/icon.constants-gen'
 import {allServices} from '../constants/team-building'
 
-const serviceColors: {[K in ServiceIdWithContact]: string} = {
+const serviceColors: {[K in T.TB.ServiceIdWithContact]: string} = {
   get email() {
     return Styles.isDarkMode() ? '#3663ea' : '#3663ea'
   },
@@ -31,7 +31,7 @@ const serviceColors: {[K in ServiceIdWithContact]: string} = {
 }
 
 const services: {
-  [K in ServiceIdWithContact]: {
+  [K in T.TB.ServiceIdWithContact]: {
     avatarIcon?: IconType // icon to show as avatar for results, if different than `icon`
     badge?: boolean
     icon: IconType // icon to show in tab bar
@@ -95,16 +95,17 @@ const services: {
   },
 }
 
-export const serviceIdToAccentColor = (service: ServiceIdWithContact): string => serviceColors[service]
-export const serviceIdToIconFont = (service: ServiceIdWithContact): IconType => services[service].icon
-export const serviceIdToAvatarIcon = (service: ServiceIdWithContact): IconType =>
+export const serviceIdToAccentColor = (service: T.TB.ServiceIdWithContact): string => serviceColors[service]
+export const serviceIdToIconFont = (service: T.TB.ServiceIdWithContact): IconType => services[service].icon
+export const serviceIdToAvatarIcon = (service: T.TB.ServiceIdWithContact): IconType =>
   services[service].avatarIcon || services[service].icon
-export const serviceIdToLabel = (service: ServiceIdWithContact): string => services[service].label
-export const serviceIdToLongLabel = (service: ServiceIdWithContact): Array<string> =>
+export const serviceIdToLabel = (service: T.TB.ServiceIdWithContact): string => services[service].label
+export const serviceIdToLongLabel = (service: T.TB.ServiceIdWithContact): Array<string> =>
   services[service].longLabel
-export const serviceIdToSearchPlaceholder = (service: ServiceIdWithContact): string =>
+export const serviceIdToSearchPlaceholder = (service: T.TB.ServiceIdWithContact): string =>
   services[service].searchPlaceholder
-export const serviceIdToBadge = (service: ServiceIdWithContact): boolean => services[service].badge === true
+export const serviceIdToBadge = (service: T.TB.ServiceIdWithContact): boolean =>
+  services[service].badge === true
 
-export const serviceMapToArray = (services: ServiceMap) =>
+export const serviceMapToArray = (services: T.TB.ServiceMap) =>
   allServices.filter(x => x !== 'keybase' && x in services)

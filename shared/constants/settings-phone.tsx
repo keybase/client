@@ -1,5 +1,4 @@
-import * as RPCChatTypes from './types/rpc-chat-gen'
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
@@ -41,13 +40,13 @@ export const getE164 = (phoneNumber: string, countryCode?: string) => {
   }
 }
 
-const toPhoneRow = (p: RPCTypes.UserPhoneNumber) => {
+const toPhoneRow = (p: T.RPCGen.UserPhoneNumber) => {
   const {e164ToDisplay} = require('../util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
   return {
     ...makePhoneRow(),
     displayNumber: e164ToDisplay(p.phoneNumber),
     e164: p.phoneNumber,
-    searchable: p.visibility === RPCTypes.IdentityVisibility.public,
+    searchable: p.visibility === T.RPCGen.IdentityVisibility.public,
     superseded: p.superseded,
     verified: p.verified,
   }
@@ -55,15 +54,15 @@ const toPhoneRow = (p: RPCTypes.UserPhoneNumber) => {
 
 export const makePhoneError = (e: RPCError) => {
   switch (e.code) {
-    case RPCTypes.StatusCode.scphonenumberwrongverificationcode:
+    case T.RPCGen.StatusCode.scphonenumberwrongverificationcode:
       return 'Incorrect code, please try again.'
-    case RPCTypes.StatusCode.scphonenumberunknown:
+    case T.RPCGen.StatusCode.scphonenumberunknown:
       return e.desc
-    case RPCTypes.StatusCode.scphonenumberalreadyverified:
+    case T.RPCGen.StatusCode.scphonenumberalreadyverified:
       return 'This phone number is already verified.'
-    case RPCTypes.StatusCode.scphonenumberverificationcodeexpired:
+    case T.RPCGen.StatusCode.scphonenumberverificationcodeexpired:
       return 'Verification code expired, resend and try again.'
-    case RPCTypes.StatusCode.scratelimit:
+    case T.RPCGen.StatusCode.scratelimit:
       return 'Sorry, tried too many guesses in a short period of time. Please try again later.'
     default:
       return e.message
@@ -104,10 +103,10 @@ export type State = Store & {
     clearPhoneNumberErrors: () => void
     editPhone: (phone: string, del?: boolean, setSearchable?: boolean) => void
     loadDefaultPhoneCountry: () => void
-    notifyPhoneNumberPhoneNumbersChanged: (list?: RPCChatTypes.Keybase1.UserPhoneNumber[]) => void
+    notifyPhoneNumberPhoneNumbersChanged: (list?: T.RPCChat.Keybase1.UserPhoneNumber[]) => void
     resendVerificationForPhone: (phoneNumber: string) => void
     resetState: 'default'
-    setNumbers: (phoneNumbers?: RPCChatTypes.Keybase1.UserPhoneNumber[]) => void
+    setNumbers: (phoneNumbers?: T.RPCChat.Keybase1.UserPhoneNumber[]) => void
     verifyPhoneNumber: (phoneNumber: string, code: string) => void
   }
 }
@@ -118,10 +117,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         logger.info('adding phone number')
         const visibility = searchable
-          ? RPCTypes.IdentityVisibility.public
-          : RPCTypes.IdentityVisibility.private
+          ? T.RPCGen.IdentityVisibility.public
+          : T.RPCGen.IdentityVisibility.private
         try {
-          await RPCTypes.phoneNumbersAddPhoneNumberRpcPromise(
+          await T.RPCGen.phoneNumbersAddPhoneNumberRpcPromise(
             {phoneNumber, visibility},
             addPhoneNumberWaitingKey
           )
@@ -166,14 +165,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
     editPhone: (phoneNumber, del, setSearchable) => {
       const f = async () => {
         if (del) {
-          await RPCTypes.phoneNumbersDeletePhoneNumberRpcPromise({phoneNumber})
+          await T.RPCGen.phoneNumbersDeletePhoneNumberRpcPromise({phoneNumber})
         }
         if (setSearchable !== undefined) {
-          await RPCTypes.phoneNumbersSetVisibilityPhoneNumberRpcPromise({
+          await T.RPCGen.phoneNumbersSetVisibilityPhoneNumberRpcPromise({
             phoneNumber,
             visibility: setSearchable
-              ? RPCChatTypes.Keybase1.IdentityVisibility.public
-              : RPCChatTypes.Keybase1.IdentityVisibility.private,
+              ? T.RPCChat.Keybase1.IdentityVisibility.public
+              : T.RPCChat.Keybase1.IdentityVisibility.private,
           })
         }
       }
@@ -185,7 +184,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         if (get().defaultCountry) {
           return
         }
-        const country = await RPCTypes.accountGuessCurrentLocationRpcPromise({
+        const country = await T.RPCGen.accountGuessCurrentLocationRpcPromise({
           defaultCountry: 'US',
         })
         set(s => {
@@ -208,7 +207,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         logger.info(`resending verification code for ${phoneNumber}`)
         try {
-          await RPCTypes.phoneNumbersResendVerificationForPhoneNumberRpcPromise(
+          await T.RPCGen.phoneNumbersResendVerificationForPhoneNumberRpcPromise(
             {phoneNumber},
             resendVerificationForPhoneWaitingKey
           )
@@ -247,7 +246,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         logger.info('verifying phone number')
         try {
-          await RPCTypes.phoneNumbersVerifyPhoneNumberRpcPromise(
+          await T.RPCGen.phoneNumbersVerifyPhoneNumberRpcPromise(
             {code, phoneNumber},
             verifyPhoneNumberWaitingKey
           )

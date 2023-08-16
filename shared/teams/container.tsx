@@ -2,11 +2,10 @@ import * as C from '../constants'
 import * as React from 'react'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as FsTypes from '../constants/types/fs'
+import * as T from '../constants/types'
 import Teams, {type OwnProps as MainOwnProps} from './main'
 import openURL from '../util/open-url'
 import * as Constants from '../constants/teams'
-import type * as Types from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
@@ -22,14 +21,14 @@ const useHeaderActions = () => {
 }
 
 const orderTeamsImpl = (
-  teams: Map<string, Types.TeamMeta>,
+  teams: Map<string, T.Teams.TeamMeta>,
   newRequests: Constants.State['newTeamRequests'],
   teamIDToResetUsers: Constants.State['teamIDToResetUsers'],
   newTeams: Constants.State['newTeams'],
-  sortOrder: Types.TeamListSort,
-  activityLevels: Types.ActivityLevels,
+  sortOrder: T.Teams.TeamListSort,
+  activityLevels: T.Teams.ActivityLevels,
   filter: string
-): Array<Types.TeamMeta> => {
+): Array<T.Teams.TeamMeta> => {
   const filterLC = filter.toLowerCase().trim()
   const teamsFiltered = filter
     ? [...teams.values()].filter(meta => meta.teamname.toLowerCase().includes(filterLC))
@@ -74,8 +73,8 @@ const Reloadable = (props: ReloadableProps) => {
   const nav = Container.useSafeNavigation()
   const manageChatChannels = C.useTeamsState(s => s.dispatch.manageChatChannels)
   const otherActions = {
-    onManageChat: (teamID: Types.TeamID) => manageChatChannels(teamID),
-    onViewTeam: (teamID: Types.TeamID) => nav.safeNavigateAppend({props: {teamID}, selected: 'team'}),
+    onManageChat: (teamID: T.Teams.TeamID) => manageChatChannels(teamID),
+    onViewTeam: (teamID: T.Teams.TeamID) => nav.safeNavigateAppend({props: {teamID}, selected: 'team'}),
   }
 
   return (
@@ -101,8 +100,8 @@ const Connected = () => {
   const onHideChatBanner = () => {
     updateGregorCategory('sawChatBanner', 'true')
   }
-  const onOpenFolder = (teamname: Types.Teamname) => {
-    C.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
+  const onOpenFolder = (teamname: T.Teams.Teamname) => {
+    C.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
   }
   const onReadMore = () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')

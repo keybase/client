@@ -1,9 +1,8 @@
-import type * as RPCChatTypes from './types/rpc-chat-gen'
-import type * as RPCTypes from './types/rpc-gen'
+import type * as T from './types'
 import type {UseBoundStore, StoreApi} from 'zustand'
 type PermissionStatus = 'granted' | 'denied' | 'undetermined' | 'unknown'
 export type Store = {
-  alreadyOnKeybase: Array<RPCTypes.ProcessedContact>
+  alreadyOnKeybase: Array<T.RPCGen.ProcessedContact>
   importEnabled?: boolean
   importError: string
   importPromptDismissed: boolean
