@@ -4,20 +4,20 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import capitalize from 'lodash/capitalize'
 import {pluralize} from '../../util/string'
-import type {TeamRoleType} from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 import type {StylesCrossPlatform} from '../../styles/css'
 
 // Controls the ordering of the role picker
 const orderedRoles: Array<Role<true>> = ['owner', 'admin', 'writer', 'reader', 'setIndividually']
 
 // TODO include bot roles in here; this is short term to allow bots to show up in the gui
-type BaseRole = Exclude<TeamRoleType, 'bot' | 'restrictedbot'>
+type BaseRole = Exclude<T.Teams.TeamRoleType, 'bot' | 'restrictedbot'>
 type Role<IncludeSetIndividually> = IncludeSetIndividually extends true
   ? BaseRole | 'setIndividually'
   : BaseRole
 
 type MaybeRole<IncludeSetIndividually> =
-  | TeamRoleType
+  | T.Teams.TeamRoleType
   | undefined
   | (IncludeSetIndividually extends true ? 'setIndividually' : undefined)
 
@@ -412,7 +412,7 @@ const styles = Styles.styleSheetCreate(
       text: {
         textAlign: 'left',
       },
-    } as const)
+    }) as const
 )
 
 // Helper to use this as a floating box

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
-import type * as Types from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import {pluralize} from '../../util/string'
@@ -12,7 +12,7 @@ export type Props = {
   onBack: () => void
   onDelete: () => void
   subteamNames?: Array<string>
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   teamname: string
 }
 

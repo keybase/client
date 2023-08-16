@@ -3,9 +3,8 @@ import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
-import type * as Types from '../../../../constants/types/teams'
+import type * as T from '../../../../constants/types'
 import {typeToLabel} from '../../../../constants/teams'
-import type {BoolTypeMap, MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
 import MenuHeader from '../menu-header.new'
 
 export type Props = {
@@ -19,9 +18,9 @@ export type Props = {
   onReAddToTeam: () => void
   onRemoveFromTeam: () => void
   onShowTracker: () => void
-  roleType: TeamRoleType
-  status: MemberStatus
-  teamID: Types.TeamID
+  roleType: T.Teams.TeamRoleType
+  status: T.Teams.MemberStatus
+  teamID: T.Teams.TeamID
   username: string
   waitingForAdd: boolean
   waitingForRemove: boolean
@@ -29,7 +28,7 @@ export type Props = {
   youCanManageMembers: boolean
 }
 
-const showCrown: BoolTypeMap = {
+const showCrown: T.Teams.BoolTypeMap = {
   admin: true,
   bot: false,
   owner: true,

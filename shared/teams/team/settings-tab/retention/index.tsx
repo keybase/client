@@ -2,7 +2,7 @@ import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
-import type * as TeamsTypes from '../../../../constants/types/teams'
+import type * as T from '../../../../constants/types'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
@@ -23,7 +23,7 @@ export type Props = {
   showInheritOption: boolean
   showOverrideNotice: boolean
   showSaveIndicator: boolean
-  teamID: TeamsTypes.TeamID
+  teamID: T.Teams.TeamID
   saveRetentionPolicy: (policy: RetentionPolicy) => void
   onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void
 }

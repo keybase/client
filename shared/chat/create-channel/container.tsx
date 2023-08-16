@@ -2,17 +2,17 @@ import * as C from '../../constants'
 import * as Container from '../../util/container'
 import * as React from 'react'
 import * as TeamsConstants from '../../constants/teams'
-import * as TeamsTypes from '../../constants/types/teams'
+import * as T from '../../constants/types'
 import CreateChannel from '.'
 import upperFirst from 'lodash/upperFirst'
 
 type OwnProps = {
   navToChatOnSuccess?: boolean
-  teamID: TeamsTypes.TeamID
+  teamID: T.Teams.TeamID
 }
 
 const Wrapped = (p: OwnProps) => {
-  const teamID = p.teamID ?? TeamsTypes.noTeamID
+  const teamID = p.teamID ?? T.Teams.noTeamID
   const navToChatOnSuccess = p.navToChatOnSuccess ?? true
   const errorText = C.useTeamsState(s => upperFirst(s.errorInChannelCreation))
   const teamname = C.useTeamsState(s => TeamsConstants.getTeamNameFromID(s, teamID) ?? '')

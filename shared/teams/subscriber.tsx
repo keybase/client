@@ -1,7 +1,7 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Container from '../util/container'
-import type * as Types from '../constants/types/teams'
+import type * as T from '../constants/types'
 import {useFocusEffect} from '@react-navigation/core'
 
 // NOTE: If you are in a floating box or otherwise outside the navigation
@@ -43,7 +43,7 @@ export const TeamsSubscriberMountOnly = () => {
   return null
 }
 
-const useTeamDetailsSubscribeMobile = (teamID: Types.TeamID) => {
+const useTeamDetailsSubscribeMobile = (teamID: T.Teams.TeamID) => {
   const loadTeam = C.useTeamsState(s => s.dispatch.loadTeam)
   const unsubscribeTeamDetails = C.useTeamsState(s => s.dispatch.unsubscribeTeamDetails)
   useFocusEffect(
@@ -53,7 +53,7 @@ const useTeamDetailsSubscribeMobile = (teamID: Types.TeamID) => {
     }, [loadTeam, unsubscribeTeamDetails, teamID])
   )
 }
-const useTeamDetailsSubscribeDesktop = (teamID: Types.TeamID) => {
+const useTeamDetailsSubscribeDesktop = (teamID: T.Teams.TeamID) => {
   const loadTeam = C.useTeamsState(s => s.dispatch.loadTeam)
   const unsubscribeTeamDetails = C.useTeamsState(s => s.dispatch.unsubscribeTeamDetails)
   React.useEffect(() => {
@@ -67,12 +67,12 @@ export const useTeamDetailsSubscribe = Container.isMobile
 export const useTeamDetailsSubscribeMountOnly = useTeamDetailsSubscribeDesktop
 
 // Dummy component to add to a view to trigger team meta subscription behavior
-export const TeamDetailsSubscriber = (props: {teamID: Types.TeamID}) => {
+export const TeamDetailsSubscriber = (props: {teamID: T.Teams.TeamID}) => {
   useTeamDetailsSubscribe(props.teamID)
   return null
 }
 
-export const TeamDetailsSubscriberMountOnly = (props: {teamID: Types.TeamID}) => {
+export const TeamDetailsSubscriberMountOnly = (props: {teamID: T.Teams.TeamID}) => {
   useTeamDetailsSubscribeMountOnly(props.teamID)
   return null
 }

@@ -2,9 +2,9 @@ import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import type * as Types from '../../../../constants/types/teams'
+import type * as T from '../../../../constants/types'
 
-const AddSubteam = ({teamID}: {teamID: Types.TeamID}) => {
+const AddSubteam = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const subteamFilter = C.useTeamsState(s => s.subteamFilter)
   const setSubteamFilter = C.useTeamsState(s => s.dispatch.setSubteamFilter)
   const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)

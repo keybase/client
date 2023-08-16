@@ -4,13 +4,13 @@ import * as React from 'react'
 import * as RowSizes from './sizes'
 import * as Styles from '../../../styles'
 import * as TeamConstants from '../../../constants/teams'
-import type * as TeamTypes from '../../../constants/types/teams'
+import type * as T from '../../../constants/types'
 import TeamMenu from '../../conversation/info-panel/menu/container'
 
 type Props = {
   navKey: string
   teamname: string
-  teamID: TeamTypes.TeamID
+  teamID: T.Teams.TeamID
 }
 
 const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {

@@ -3,10 +3,10 @@ import * as React from 'react'
 import * as Constants from '../../../../constants/teams'
 import {Box, Icon, Text} from '../../../../common-adapters'
 import {styleSheetCreate, platformStyles, globalColors, globalMargins, globalStyles} from '../../../../styles'
-import type {TeamID} from '../../../../constants/types/teams'
+import type * as T from '../../../../constants/types'
 
 export type Props = {
-  teamID: TeamID
+  teamID: T.Teams.TeamID
 }
 
 const Banner = ({teamID}: Props) => {

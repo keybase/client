@@ -3,7 +3,7 @@ import * as Constants from '../../../../../constants/teams'
 import * as ChatConstants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import * as React from 'react'
-import type * as Types from '../../../../../constants/types/teams'
+import type * as T from '../../../../../constants/types'
 import type {RowProps} from '.'
 import {TeamRequestRow} from '.'
 import {sendNotificationFooter} from '../../../../role-picker'
@@ -14,7 +14,7 @@ type OwnProps = {
   fullName: string
   username: string
   reset?: boolean
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }
 
 type State = {
@@ -24,7 +24,7 @@ type State = {
 
 type ExtraProps = {
   _notifLabel: string
-  letIn: (sendNotification: boolean, role: Types.TeamRoleType) => void
+  letIn: (sendNotification: boolean, role: T.Teams.TeamRoleType) => void
 }
 
 class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, State> {
@@ -81,7 +81,7 @@ export default (ownProps: OwnProps) => {
   }
 
   const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
-  const letIn = (sendNotification: boolean, role: Types.TeamRoleType) => {
+  const letIn = (sendNotification: boolean, role: T.Teams.TeamRoleType) => {
     addToTeam(teamID, [{assertion: username, role}], sendNotification)
   }
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)

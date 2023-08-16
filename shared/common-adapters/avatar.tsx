@@ -5,7 +5,7 @@ import Avatar from './avatar.render'
 import {iconTypeToImgSet, urlsToImgSet, type IconType, type IconStyle} from './icon'
 import * as Styles from '../styles'
 import * as AvatarZus from './avatar-zus'
-import type * as Types from '../constants/types/teams'
+import type * as T from '../constants/types'
 import './avatar.css'
 
 // Desktop sizes also imported for edit-avatar
@@ -21,7 +21,7 @@ type URLType = string
 export type OwnProps = {
   borderColor?: string
   children?: React.ReactNode
-  crop?: Types.AvatarCrop
+  crop?: T.Teams.AvatarCrop
   lighterPlaceholders?: boolean
   editable?: boolean
   imageOverrideUrl?: string
@@ -41,7 +41,7 @@ export type OwnProps = {
 export type Props = {
   borderColor?: string
   children?: React.ReactNode
-  crop?: Types.AvatarCrop
+  crop?: T.Teams.AvatarCrop
   editable?: boolean
   followIconSize: number
   followIconType?: IconType

@@ -1,7 +1,7 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as TeamsConstants from '../../constants/teams'
-import type * as TeamsTypes from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 import type {TextType} from '../text'
 import {TeamWithPopup} from './'
 
@@ -30,7 +30,7 @@ const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onViewTeam = React.useCallback(
-    (teamID: TeamsTypes.TeamID) => {
+    (teamID: T.Teams.TeamID) => {
       clearModals()
       navigateAppend({props: {teamID}, selected: 'team'})
     },

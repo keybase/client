@@ -6,9 +6,8 @@ import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as TeamConstants from '../constants/teams'
-import type * as TeamTypes from '../constants/types/teams'
+import type * as T from '../constants/types'
 import type {NotificationsGroupState} from '../constants/settings-notifications'
-import type {TeamMeta, TeamID} from '../constants/types/teams'
 import {Group} from './notifications/render'
 
 const emptyList = new Array<string>()
@@ -62,7 +61,7 @@ export default () => {
 
   const teamMeta = TeamConstants.sortTeamsByName(_teamMeta)
   const serverSelectedTeams = new Map(contactSettingsTeams?.map(t => [t.teamID, {enabled: t.enabled}]))
-  const selectedTeams: {[K in TeamTypes.TeamID]: boolean} = {}
+  const selectedTeams: {[K in T.Teams.TeamID]: boolean} = {}
   teamMeta.forEach(t => {
     if (serverSelectedTeams.has(t.id)) {
       // If there's a server-provided previous choice, use that.
@@ -102,7 +101,7 @@ export type Props = {
   contactSettingsError: string
   contactSettingsIndirectFollowees?: boolean
   contactSettingsTeamsEnabled?: boolean
-  contactSettingsSelectedTeams: {[K in TeamID]: boolean}
+  contactSettingsSelectedTeams: {[K in T.Teams.TeamID]: boolean}
   groups: Map<string, NotificationsGroupState>
   sound: boolean
   unfurlMode?: RPCChatTypes.UnfurlMode
@@ -113,19 +112,19 @@ export type Props = {
     enabled: boolean,
     indirectFollowees: boolean,
     teamsEnabled: boolean,
-    teamsList: {[k in TeamID]: boolean}
+    teamsList: {[k in T.Teams.TeamID]: boolean}
   ) => void
   onToggle: (groupName: string, name: string) => void
   onToggleSound: (notifySound: boolean) => void
   onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => void
   onRefresh: () => void
-  teamMeta: Array<TeamMeta>
+  teamMeta: Array<T.Teams.TeamMeta>
 }
 
 type State = {
   contactSettingsEnabled?: boolean
   contactSettingsIndirectFollowees?: boolean
-  contactSettingsSelectedTeams: {[K in TeamID]: boolean}
+  contactSettingsSelectedTeams: {[K in T.Teams.TeamID]: boolean}
   contactSettingsTeamsEnabled?: boolean
   unfurlSelected?: RPCChatTypes.UnfurlMode
   unfurlWhitelistRemoved: {[K in string]: boolean}
