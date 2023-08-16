@@ -5,7 +5,6 @@ import * as Container from '../../../../../util/container'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
 import * as TeamConstants from '../../../../../constants/teams'
-import type * as MessageTypes from '../../../../../constants/types/chat2/message'
 import {TeamJourney, type Action} from '.'
 import {makeMessageJourneycard} from '../../../../../constants/chat2/message'
 import {renderWelcomeMessage} from './util'
@@ -19,7 +18,7 @@ type Props = {
   canShowcase: boolean
   cannotWrite: boolean
   channelname: string
-  message: MessageTypes.MessageJourneycard
+  message: T.Chat.MessageJourneycard
   onAddPeopleToTeam: () => void
   onBrowseChannels: () => void
   onCreateChatChannels: () => void

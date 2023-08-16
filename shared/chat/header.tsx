@@ -5,11 +5,11 @@ import * as Constants from '../constants/chat2'
 import * as TeamConstants from '../constants/teams'
 import * as Platforms from '../constants/platform'
 import * as Styles from '../styles'
-import type * as Types from '../constants/types/chat2'
+import type * as T from '../constants/types'
 import ChatInboxHeader from './inbox/header/container'
 
 type Props = {
-  conversationIDKey?: Types.ConversationIDKey
+  conversationIDKey?: T.Chat.ConversationIDKey
 }
 const Header = (props: Props) => {
   return (
