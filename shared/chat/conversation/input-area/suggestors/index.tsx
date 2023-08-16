@@ -40,7 +40,7 @@ const suggestorToMarker = {
 
 type UseSuggestorsProps = Pick<
   Props,
-  'onChangeText' | 'suggestBotCommandsUpdateStatus' | 'suggestionOverlayStyle' | 'conversationIDKey'
+  'onChangeText' | 'suggestBotCommandsUpdateStatus' | 'suggestionOverlayStyle'
 > & {
   suggestionListStyle: any
   suggestionSpinnerStyle: any
@@ -247,7 +247,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const [filter, setFilter] = React.useState('')
   const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
   const {onChangeText: onChangeTextProps} = p
-  const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
+  const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle} = p
   const {triggerTransform, checkTrigger, setInactive} = useSyncInput({
     active,
     filter,
@@ -305,7 +305,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   )
 
   const listProps = {
-    conversationIDKey,
     expanded,
     filter,
     listStyle: suggestionListStyle,

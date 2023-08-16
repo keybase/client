@@ -67,7 +67,6 @@ const _AddPeople = (props: Props) => {
 _AddPeople.displayName = 'AddPeople'
 
 type OwnProps = {
-  conversationIDKey: T.Chat.ConversationIDKey
   isAdmin: boolean
   isGeneralChannel: boolean
 }

@@ -100,7 +100,11 @@ class InboxSearch extends React.Component<Props, State> {
 
   private renderBots = (h: {item: T.RPCGen.FeaturedBot; section: {indexOffset: number}; index: number}) => {
     const {item, index} = h
-    return <Bot {...item} onClick={this.props.onInstallBot} firstItem={index === 0} hideHover={true} />
+    return (
+      <C.ChatProvider id={C.noConversationIDKey} key={index} canBeNull={true}>
+        <Bot {...item} onClick={this.props.onInstallBot} firstItem={index === 0} hideHover={true} />
+      </C.ChatProvider>
+    )
   }
 
   private renderHit = (h: {
@@ -123,23 +127,25 @@ class InboxSearch extends React.Component<Props, State> {
     const numHits = (item as TextResult)?.numHits || undefined
     const realIndex = index + section.indexOffset
     return item.type === 'big' ? (
-      <SelectableBigTeamChannel
-        conversationIDKey={item.conversationIDKey}
-        isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
-        name={item.name}
-        numSearchHits={numHits}
-        maxSearchHits={Constants.inboxSearchMaxTextMessages}
-        onSelectConversation={() => section.onSelect(item, realIndex)}
-      />
+      <C.ChatProvider id={item.conversationIDKey}>
+        <SelectableBigTeamChannel
+          isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
+          name={item.name}
+          numSearchHits={numHits}
+          maxSearchHits={Constants.inboxSearchMaxTextMessages}
+          onSelectConversation={() => section.onSelect(item, realIndex)}
+        />
+      </C.ChatProvider>
     ) : (
-      <SelectableSmallTeam
-        conversationIDKey={item.conversationIDKey}
-        isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
-        name={item.name}
-        numSearchHits={numHits}
-        maxSearchHits={Constants.inboxSearchMaxTextMessages}
-        onSelectConversation={() => section.onSelect(item, realIndex)}
-      />
+      <C.ChatProvider id={item.conversationIDKey}>
+        <SelectableSmallTeam
+          isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
+          name={item.name}
+          numSearchHits={numHits}
+          maxSearchHits={Constants.inboxSearchMaxTextMessages}
+          onSelectConversation={() => section.onSelect(item, realIndex)}
+        />
+      </C.ChatProvider>
     )
   }
   private toggleCollapseName = () => {

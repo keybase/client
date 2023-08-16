@@ -253,7 +253,6 @@ const PlatformInput = (p: Props) => {
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
   const silentInput = React.useRef<Kb.PlainInput | null>(null)
   const {popup, onChangeText, onBlur, onSelectionChange, onFocus} = useSuggestors({
-    conversationIDKey: p.conversationIDKey,
     expanded,
     inputRef,
     onChangeText: p.onChangeText,

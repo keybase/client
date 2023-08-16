@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import Typing from './typing'
-import type * as T from '../../../../constants/types'
 import type {Props} from './platform-input'
 import {EmojiPickerDesktop} from '../../../emoji-picker/container'
 import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
@@ -14,7 +13,7 @@ import {useSuggestors} from '../suggestors'
 type HtmlInputRefType = React.MutableRefObject<HTMLInputElement | null>
 type InputRefType = React.MutableRefObject<Kb.PlainInput | null>
 
-type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds' | 'conversationIDKey'> & {
+type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds'> & {
   focusInput: () => void
 }
 const ExplodingButton = (p: ExplodingButtonProps) => {
@@ -171,7 +170,7 @@ const FileButton = (p: {htmlInputRef: HtmlInputRefType}) => {
   )
 }
 
-const Footer = (p: {conversationIDKey: T.Chat.ConversationIDKey; focusInput: () => void}) => {
+const Footer = (p: {focusInput: () => void}) => {
   return (
     <Kb.Box style={styles.footerContainer}>
       <Typing />
@@ -312,7 +311,7 @@ const SideButtons = (p: SideButtonsProps) => {
 }
 
 const PlatformInput = React.memo(function PlatformInput(p: Props) {
-  const {cannotWrite, conversationIDKey, explodingModeSeconds, onCancelEditing} = p
+  const {cannotWrite, explodingModeSeconds, onCancelEditing} = p
   const {hintText, inputSetRef, isEditing, onSubmit} = p
   const {onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
@@ -333,7 +332,6 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
     onKeyDown,
     onChangeText: onChangeTextSuggestors,
   } = useSuggestors({
-    conversationIDKey,
     expanded: false,
     inputRef,
     onChangeText: p.onChangeText,
@@ -378,11 +376,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
             ])}
           >
             {!isEditing && !cannotWrite && (
-              <ExplodingButton
-                explodingModeSeconds={explodingModeSeconds}
-                conversationIDKey={conversationIDKey}
-                focusInput={focusInput}
-              />
+              <ExplodingButton explodingModeSeconds={explodingModeSeconds} focusInput={focusInput} />
             )}
             {isEditing && (
               <Kb.Button
@@ -415,7 +409,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
             </Kb.Box2>
             <SideButtons cannotWrite={cannotWrite} htmlInputRef={htmlInputRef} inputRef={inputRef} />
           </Kb.Box>
-          <Footer conversationIDKey={conversationIDKey} focusInput={focusInput} />
+          <Footer focusInput={focusInput} />
         </Kb.Box>
       </KeyEventHandler>
     </>
