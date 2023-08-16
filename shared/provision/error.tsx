@@ -6,7 +6,7 @@ import LoginContainer from '../login/forms/container'
 import openURL from '../util/open-url'
 import type {RPCError} from '../util/errors'
 import {Box2, Button, Icon, Text, Markdown} from '../common-adapters'
-import {StatusCode} from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../styles'
 
 const ConnectedRenderError = () => {
@@ -87,8 +87,8 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
     return acc
   }, {})
   switch (error.code) {
-    case StatusCode.scdeviceprovisionoffline:
-    case StatusCode.scapinetworkerror:
+    case T.RPCGen.StatusCode.scdeviceprovisionoffline:
+    case T.RPCGen.StatusCode.scapinetworkerror:
       return (
         <Wrapper onBack={onBack}>
           <Text center={true} type="Body">
@@ -99,7 +99,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
           </Text>
         </Wrapper>
       )
-    case StatusCode.scdevicenoprovision:
+    case T.RPCGen.StatusCode.scdevicenoprovision:
       return (
         <Wrapper onBack={onBack}>
           <Text center={true} type="Body">
@@ -114,7 +114,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
           </Text>
         </Wrapper>
       )
-    case StatusCode.scdeviceprevprovisioned:
+    case T.RPCGen.StatusCode.scdeviceprevprovisioned:
       return (
         <Wrapper onBack={onBack}>
           <Text center={true} type="Body">
@@ -125,7 +125,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
           </Text>
         </Wrapper>
       )
-    case StatusCode.sckeynomatchinggpg:
+    case T.RPCGen.StatusCode.sckeynomatchinggpg:
       if (fields.has_active_device) {
         return (
           <Wrapper onBack={onBack}>
@@ -199,7 +199,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
           </Wrapper>
         )
       }
-    case StatusCode.sckeynotfound:
+    case T.RPCGen.StatusCode.sckeynotfound:
       return error.desc ? (
         <Wrapper onBack={onBack}>
           <Markdown>{error.desc}</Markdown>
@@ -215,7 +215,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
           </Text>
         </Wrapper>
       )
-    case StatusCode.scbadloginpassword:
+    case T.RPCGen.StatusCode.scbadloginpassword:
       return (
         <Wrapper onBack={onBack}>
           <Text center={true} type="Body">
@@ -226,9 +226,9 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
           </Text>
         </Wrapper>
       )
-    case StatusCode.sckeysyncedpgpnotfound:
-    case StatusCode.scgpgunavailable:
-    case StatusCode.sckeynosecret:
+    case T.RPCGen.StatusCode.sckeysyncedpgpnotfound:
+    case T.RPCGen.StatusCode.scgpgunavailable:
+    case T.RPCGen.StatusCode.sckeynosecret:
       return (
         <Wrapper onBack={onBack}>
           <Text center={true} type="Body">
@@ -264,7 +264,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
           </List>
         </Wrapper>
       )
-    case StatusCode.scinputcanceled:
+    case T.RPCGen.StatusCode.scinputcanceled:
       return (
         <Wrapper onBack={onBack}>
           <Text center={true} type="Body">
@@ -272,7 +272,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
           </Text>
         </Wrapper>
       )
-    case StatusCode.sckeycorrupted:
+    case T.RPCGen.StatusCode.sckeycorrupted:
       return (
         <Wrapper onBack={onBack}>
           <Text center={true} type="Body">
@@ -291,7 +291,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
           </Text>
         </Wrapper>
       )
-    case StatusCode.scdeleted:
+    case T.RPCGen.StatusCode.scdeleted:
       return (
         <Wrapper onBack={onBack}>
           <Text center={true} type="Body">

@@ -1,5 +1,5 @@
 import * as C from '.'
-import * as T from './types/rpc-gen'
+import * as T from './types'
 import * as EngineGen from '../actions/engine-gen-gen'
 import openURL from '../util/open-url'
 import * as Z from '../util/zustand'

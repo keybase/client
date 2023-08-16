@@ -3,7 +3,7 @@ import {isAndroidNewerThanN} from '../constants/platform'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
 
 export const securityGroup = 'security'
 export const soundGroup = 'sound'
@@ -74,7 +74,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         let chatGlobalSettings: RPCChatTypes.GlobalAppNotificationSettings
 
         try {
-          const json = await RPCTypes.apiserverGetWithSessionRpcPromise(
+          const json = await T.RPCGen.apiserverGetWithSessionRpcPromise(
             {args: [], endpoint: 'account/subscriptions'},
             refreshNotificationsWaitingKey
           )
@@ -229,7 +229,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         })
 
-        const result = await RPCTypes.apiserverPostJSONRpcPromise(
+        const result = await T.RPCGen.apiserverPostJSONRpcPromise(
           {
             JSONPayload,
             args: [],

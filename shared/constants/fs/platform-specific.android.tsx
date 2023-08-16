@@ -1,6 +1,6 @@
 import * as C from '..'
 import * as Constants from '../fs'
-import * as RPCTypes from '../types/rpc-gen'
+import * as T from '../types'
 import * as Z from '../../util/zustand'
 import logger from '../../logger'
 import nativeInit from './common.native'
@@ -14,7 +14,7 @@ export default function initPlatformSpecific() {
   C.useFSState.setState(s => {
     s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = () => {
       const f = async () => {
-        await RPCTypes.SimpleFSSimpleFSConfigureDownloadRpcPromise({
+        await T.RPCGen.SimpleFSSimpleFSConfigureDownloadRpcPromise({
           // Android's cache dir is (when I tried) [app]/cache but Go side uses
           // [app]/.cache by default, which can't be used for sharing to other apps.
           cacheDirOverride: fsCacheDir,

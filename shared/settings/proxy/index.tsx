@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 
 // A list so the order of the elements is fixed
 const proxyTypeList = ['noProxy', 'httpConnect', 'socks'] as const
@@ -24,8 +24,8 @@ type Props = {
   onBack: () => void
   onDisableCertPinning: () => void
   onEnableCertPinning: () => void
-  proxyData?: RPCTypes.ProxyData
-  saveProxyData: (proxyData: RPCTypes.ProxyData) => void
+  proxyData?: T.RPCGen.ProxyData
+  saveProxyData: (proxyData: T.RPCGen.ProxyData) => void
 }
 
 class ProxySettings extends React.Component<Props, State> {
@@ -48,7 +48,7 @@ class ProxySettings extends React.Component<Props, State> {
         port = addressPort.at(-1) ?? ''
       }
 
-      const proxyType = RPCTypes.ProxyType[this.props.proxyData.proxyType] as State['proxyType']
+      const proxyType = T.RPCGen.ProxyType[this.props.proxyData.proxyType] as State['proxyType']
       this.setState({address, port, proxyType})
     }
   }
@@ -73,7 +73,7 @@ class ProxySettings extends React.Component<Props, State> {
     const proxyData = {
       addressWithPort: this.state.address + ':' + this.state.port,
       certPinning: this.certPinning(),
-      proxyType: RPCTypes.ProxyType[this.state.proxyType],
+      proxyType: T.RPCGen.ProxyType[this.state.proxyType],
     }
     this.props.saveProxyData(proxyData)
   }

@@ -1,10 +1,9 @@
 import * as C from '.'
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
 import * as React from 'react'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import trim from 'lodash/trim'
-import type * as T from './types'
 import {RPCError} from '../util/errors'
 import {mapGetEnsureValue} from '../util/map'
 import {serviceIdFromString} from '../util/platforms'
@@ -93,7 +92,7 @@ const namespaceToRoute = new Map([
 ])
 
 const parseRawResultToUser = (
-  result: RPCTypes.APIUserSearchResult,
+  result: T.RPCGen.APIUserSearchResult,
   service: T.TB.ServiceIdWithContact
 ): T.TB.User | undefined => {
   const serviceMap = Object.keys(result.servicesSummary || {}).reduce<{[key: string]: string}>(
@@ -175,7 +174,7 @@ const apiSearch = async (
   includeContacts: boolean
 ): Promise<Array<T.TB.User>> => {
   try {
-    const results = await RPCTypes.userSearchUserSearchRpcPromise(
+    const results = await T.RPCGen.userSearchUserSearchRpcPromise(
       {
         includeContacts: service === 'keybase' && includeContacts,
         includeServicesSummary,
@@ -247,7 +246,7 @@ const pluckServiceMap = (contact: HasServiceMap) =>
       return acc
     }, {})
 
-const contactToUser = (contact: RPCTypes.ProcessedContact): T.TB.User => ({
+const contactToUser = (contact: T.RPCGen.ProcessedContact): T.TB.User => ({
   contact: true,
   id: contact.assertion,
   label: contact.displayLabel,
@@ -257,7 +256,7 @@ const contactToUser = (contact: RPCTypes.ProcessedContact): T.TB.User => ({
   username: contact.component.email || contact.component.phoneNumber || '',
 })
 
-const interestingPersonToUser = (person: RPCTypes.InterestingPerson): T.TB.User => {
+const interestingPersonToUser = (person: T.RPCGen.InterestingPerson): T.TB.User => {
   const {username, fullname} = person
   return {
     id: username,
@@ -318,10 +317,10 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const f = async () => {
         try {
           const [_suggestionRes, _contactRes] = await Promise.all([
-            RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50, namespace: get().namespace}),
+            T.RPCGen.userInterestingPeopleRpcPromise({maxUsers: 50, namespace: get().namespace}),
             includeContacts
-              ? RPCTypes.contactsGetContactsForUserRecommendationsRpcPromise()
-              : Promise.resolve([] as RPCTypes.ProcessedContact[]),
+              ? T.RPCGen.contactsGetContactsForUserRecommendationsRpcPromise()
+              : Promise.resolve([] as T.RPCGen.ProcessedContact[]),
           ])
           const suggestionRes = _suggestionRes || []
           const contactRes = _contactRes || []

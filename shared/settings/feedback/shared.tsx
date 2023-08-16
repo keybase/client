@@ -1,4 +1,4 @@
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 import * as Constants from '../../constants/settings'
 import * as React from 'react'
 import * as Z from '../../util/zustand'
@@ -25,7 +25,7 @@ export const useSendFeedback = () => {
         const status = {version}
         logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
         const extra = sendLogs ? {...status, ...getExtraChatLogsForLogSend()} : status
-        const logSendId = await RPCTypes.configLogSendRpcPromise(
+        const logSendId = await T.RPCGen.configLogSendRpcPromise(
           {
             feedback: feedback || '',
             sendLogs,

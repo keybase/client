@@ -1,10 +1,9 @@
 import * as C from '.'
 import * as Contacts from 'expo-contacts'
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
 import * as Z from '../util/zustand'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../logger'
-import type * as RPCChatTypes from './types/rpc-chat-gen'
 import type {Store, State} from './settings-contacts'
 import {RPCError} from '../util/errors'
 import {getDefaultCountryCode} from 'react-native-kb'
@@ -27,10 +26,10 @@ const initialStore: Store = {
 }
 
 const nativeContactsToContacts = (contacts: Contacts.ContactResponse, countryCode: string) => {
-  return contacts.data.reduce<Array<RPCTypes.Contact>>((ret, contact) => {
+  return contacts.data.reduce<Array<T.RPCGen.Contact>>((ret, contact) => {
     const {name, phoneNumbers = [], emails = []} = contact
 
-    const components = phoneNumbers.reduce<RPCTypes.ContactComponent[]>((res, pn) => {
+    const components = phoneNumbers.reduce<T.RPCGen.ContactComponent[]>((res, pn) => {
       const formatted = getE164(pn.number || '', pn.countryCode || countryCode)
       if (formatted) {
         res.push({
@@ -52,7 +51,7 @@ const nativeContactsToContacts = (contacts: Contacts.ContactResponse, countryCod
 // When the notif is tapped we are only passed the message, use this as a marker
 // so we can handle it correctly.
 const contactNotifMarker = 'Your contact'
-const makeContactsResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
+const makeContactsResolvedMessage = (cts: Array<T.RPCGen.ProcessedContact>) => {
   if (cts.length === 0) {
     return ''
   }
@@ -86,7 +85,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           logger.warn('no username')
           return
         }
-        await RPCTypes.configGuiSetValueRpcPromise(
+        await T.RPCGen.configGuiSetValueRpcPromise(
           {path: importContactsConfigKey(username), value: {b: enable, isNull: false}},
           importContactsWaitingKey
         )
@@ -111,7 +110,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         let enabled = false
         try {
-          const value = await RPCTypes.configGuiGetValueRpcPromise(
+          const value = await T.RPCGen.configGuiGetValueRpcPromise(
             {path: importContactsConfigKey(username)},
             importContactsWaitingKey
           )
@@ -147,7 +146,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     manageContactsCache: () => {
       const f = async () => {
         if (get().importEnabled === false) {
-          await RPCTypes.contactsSaveContactListRpcPromise({contacts: []})
+          await T.RPCGen.contactsSaveContactListRpcPromise({contacts: []})
           set(s => {
             s.importedCount = undefined
             s.importError = ''
@@ -174,7 +173,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
 
         // feature enabled and permission granted
-        let mapped: RPCChatTypes.Keybase1.Contact[]
+        let mapped: T.RPCChat.Keybase1.Contact[]
         let defaultCountryCode: string
         try {
           const _contacts = await Contacts.getContactsAsync({
@@ -204,7 +203,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         logger.info(`Importing ${mapped.length} contacts.`)
         try {
-          const {newlyResolved, resolved} = await RPCTypes.contactsSaveContactListRpcPromise({
+          const {newlyResolved, resolved} = await T.RPCGen.contactsSaveContactListRpcPromise({
             contacts: mapped,
           })
           logger.info(`Success`)

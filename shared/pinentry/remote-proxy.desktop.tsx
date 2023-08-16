@@ -1,6 +1,6 @@
 // Manages remote pinentry windows
 import * as C from '../constants'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 import * as React from 'react'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
@@ -42,7 +42,7 @@ const PinentryProxy = () => {
     },
     shallowEqual
   )
-  const show = type !== RPCTypes.PassphraseType.none && !!showTyping
+  const show = type !== T.RPCGen.PassphraseType.none && !!showTyping
   const darkMode = C.useDarkModeState(s => s.isDarkMode())
   if (show) {
     return (

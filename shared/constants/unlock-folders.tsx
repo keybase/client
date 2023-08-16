@@ -1,6 +1,6 @@
 import * as C from '.'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import {getEngine} from '../engine/require'
@@ -37,7 +37,7 @@ export const _useState = Z.createZustand<State>((set, _get) => {
     onEngineConnected: () => {
       const f = async () => {
         try {
-          await RPCTypes.delegateUiCtlRegisterRekeyUIRpcPromise()
+          await T.RPCGen.delegateUiCtlRegisterRekeyUIRpcPromise()
           logger.info('Registered rekey ui')
         } catch (error) {
           logger.warn('error in registering rekey ui: ')

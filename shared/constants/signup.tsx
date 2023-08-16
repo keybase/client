@@ -1,7 +1,7 @@
 import * as C from '.'
 import * as Platforms from './platform'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import trim from 'lodash/trim'
@@ -103,7 +103,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       try {
         C.usePushState.getState().dispatch.showPermissionsPrompt({justSignedUp: true})
 
-        await RPCTypes.signupSignupRpcListener({
+        await T.RPCGen.signupSignupRpcListener({
           customResponseIncomingCallMap: {
             // Do not add a gpg key for now
             'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
@@ -117,7 +117,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           params: {
             botToken: '',
             deviceName: devicename,
-            deviceType: Platforms.isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop,
+            deviceType: Platforms.isMobile ? T.RPCGen.DeviceType.mobile : T.RPCGen.DeviceType.desktop,
             email: '',
             genPGPBatch: false,
             genPaper: false,
@@ -170,7 +170,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          await RPCTypes.deviceCheckDeviceNameFormatRpcPromise({name: devicename}, waitingKey)
+          await T.RPCGen.deviceCheckDeviceNameFormatRpcPromise({name: devicename}, waitingKey)
           reallySignupOnNoErrors()
         } catch (error) {
           if (error instanceof RPCError) {
@@ -189,7 +189,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         try {
-          await RPCTypes.signupCheckInvitationCodeRpcPromise({invitationCode}, waitingKey)
+          await T.RPCGen.signupCheckInvitationCodeRpcPromise({invitationCode}, waitingKey)
           set(s => {
             s.inviteCodeError = ''
           })
@@ -220,7 +220,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          await RPCTypes.signupCheckUsernameAvailableRpcPromise({username}, waitingKey)
+          await T.RPCGen.signupCheckUsernameAvailableRpcPromise({username}, waitingKey)
           logger.info(`${username} success`)
 
           set(s => {
@@ -233,10 +233,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
         } catch (error) {
           if (error instanceof RPCError) {
             logger.warn(`${username} error: ${error.message}`)
-            const msg = error.code === RPCTypes.StatusCode.scinputerror ? usernameHint : error.desc
+            const msg = error.code === T.RPCGen.StatusCode.scinputerror ? usernameHint : error.desc
             // Don't set error if it's 'username taken', we show a banner in that case
-            const usernameError = error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : msg
-            const usernameTaken = error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? username : ''
+            const usernameError = error.code === T.RPCGen.StatusCode.scbadsignupusernametaken ? '' : msg
+            const usernameTaken = error.code === T.RPCGen.StatusCode.scbadsignupusernametaken ? username : ''
             set(s => {
               s.usernameError = usernameError
               s.usernameTaken = usernameTaken
@@ -280,13 +280,13 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
         if (C.useConfigState.getState().loggedIn) {
-          await RPCTypes.loginLogoutRpcPromise(
+          await T.RPCGen.loginLogoutRpcPromise(
             {force: false, keepSecrets: true},
             C.createOtherAccountWaitingKey
           )
         }
         try {
-          const inviteCode = await RPCTypes.signupGetInvitationCodeRpcPromise(undefined, waitingKey)
+          const inviteCode = await T.RPCGen.signupGetInvitationCodeRpcPromise(undefined, waitingKey)
           set(s => {
             s.inviteCode = inviteCode
           })
@@ -312,7 +312,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          await RPCTypes.signupInviteRequestRpcPromise(
+          await T.RPCGen.signupInviteRequestRpcPromise(
             {email, fullname: name, notes: 'Requested through GUI app'},
             waitingKey
           )

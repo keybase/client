@@ -2,7 +2,7 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 import {isMobile} from '../../constants/platform'
 
 // props exported for stories
@@ -288,7 +288,7 @@ const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
         verified: pr.verified,
       }
     } else if (_emailRow) {
-      const searchable = _emailRow.visibility === RPCTypes.IdentityVisibility.public
+      const searchable = _emailRow.visibility === T.RPCGen.IdentityVisibility.public
       return {
         ...dispatchProps.email,
         address: _emailRow.email,

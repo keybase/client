@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as Container from '../../util/container'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 import * as React from 'react'
 import * as SignupConstants from '../../constants/signup'
 import Username from '.'
@@ -14,13 +14,13 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
   let inlineSignUpLink = false
   if (inlineRPCError) {
     switch (inlineRPCError.code) {
-      case RPCTypes.StatusCode.scnotfound:
+      case T.RPCGen.StatusCode.scnotfound:
         // If it's a "not found" error, we will show "go to signup" link,
         // otherwise just the error.
         inlineError = ''
         inlineSignUpLink = true
         break
-      case RPCTypes.StatusCode.scbadusername:
+      case T.RPCGen.StatusCode.scbadusername:
         inlineError = SignupConstants.usernameHint
         inlineSignUpLink = false
         break

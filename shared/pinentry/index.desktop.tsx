@@ -1,6 +1,6 @@
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 import * as React from 'react'
 import * as Styles from '../styles'
 import DragHeader from '../desktop/remote/drag-header.desktop'
@@ -9,8 +9,8 @@ export type Props = {
   darkMode: boolean
   onSubmit: (password: string) => void
   onCancel: () => void
-  showTyping?: RPCTypes.Feature
-  type: RPCTypes.PassphraseType
+  showTyping?: T.RPCGen.Feature
+  type: T.RPCGen.PassphraseType
   prompt: string
   retryLabel?: string
   submitLabel?: string
@@ -61,7 +61,7 @@ class Pinentry extends React.Component<Props, State> {
   }
 
   render() {
-    const isPaperKey = this.props.type === RPCTypes.PassphraseType.paperKey
+    const isPaperKey = this.props.type === T.RPCGen.PassphraseType.paperKey
     return (
       <Kb.Box
         style={styles.container}
