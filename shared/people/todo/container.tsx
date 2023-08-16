@@ -4,7 +4,7 @@ import * as Container from '../../util/container'
 import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
 import openURL from '../../util/open-url'
-import type * as Types from '../../constants/types/people'
+import type * as T from '../../constants/types'
 import type {IconType} from '../../common-adapters/icon.constants-gen'
 import type {TaskButton} from '../item'
 import {Task} from '.'
@@ -14,12 +14,12 @@ type TodoOwnProps = {
   confirmLabel: string
   icon: IconType
   instructions: string
-  metadata: Types.TodoMeta
-  todoType: Types.TodoType
+  metadata: T.People.TodoMeta
+  todoType: T.People.TodoType
 }
 
 const installLinkURL = 'https://keybase.io/download'
-const useOnSkipTodo = (type: Types.TodoType) => {
+const useOnSkipTodo = (type: T.People.TodoType) => {
   const skipTodo = C.usePeopleState(s => s.dispatch.skipTodo)
   return React.useCallback(() => {
     skipTodo(type)

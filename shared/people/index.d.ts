@@ -1,11 +1,11 @@
 import * as React from 'react'
-import * as Types from '../constants/types/people'
+import * as T from '../constants/types'
 
 export type Props = {
-  oldItems: Array<Types.PeopleScreenItem>
-  newItems: Array<Types.PeopleScreenItem>
-  // wotUpdates: Map<string, Types.WotUpdate>
-  followSuggestions: Array<Types.FollowSuggestion>
+  oldItems: Array<T.People.PeopleScreenItem>
+  newItems: Array<T.People.PeopleScreenItem>
+  // wotUpdates: Map<string, T.People.WotUpdate>
+  followSuggestions: Array<T.People.FollowSuggestion>
   getData: (markViewed?: boolean, force?: boolean) => void
   onClickUser: (username: string) => void
   onOpenAccountSwitcher?: () => void

@@ -2,7 +2,7 @@ import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import type * as Types from '../constants/types/people'
+import type * as T from '../constants/types'
 import Announcement from './announcement/container'
 import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
@@ -11,7 +11,7 @@ import type {Props} from '.'
 import Todo from './todo/container'
 // import WotTask from './wot-task'
 
-export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => React.ReactNode = (
+export const itemToComponent: (item: T.People.PeopleScreenItem, props: Props) => React.ReactNode = (
   item,
   props
 ) => {
