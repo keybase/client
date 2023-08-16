@@ -1,11 +1,9 @@
 import * as C from '.'
-import * as RPCChatTypes from './types/rpc-chat-gen'
-import * as RPCTypes from './types/rpc-gen'
 import * as Tabs from './tabs'
 import * as Z from '../util/zustand'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../logger'
-import type * as Types from './types/push'
+import * as T from './types'
 import {isDevApplePushToken} from '../local-debug'
 import {isIOS} from './platform'
 import {
@@ -28,7 +26,7 @@ const initialStore: Store = {
 const monsterStorageKey = 'shownMonsterPushPrompt'
 export const _useState = Z.createZustand<State>((set, get) => {
   const neverShowMonsterAgain = async () => {
-    await RPCTypes.configGuiSetValueRpcPromise({
+    await T.RPCGen.configGuiSetValueRpcPromise({
       path: `ui.${monsterStorageKey}`,
       value: {b: true, isNull: false},
     })
@@ -63,7 +61,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     }
   }
 
-  const handleLoudMessage = async (notification: Types.PushNotification) => {
+  const handleLoudMessage = async (notification: T.Push.PushNotification) => {
     if (notification.type !== 'chat.newmessage') {
       return
     }
@@ -80,7 +78,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     if (unboxPayload && membersType && !isIOS) {
       logger.info('[Push] unboxing message')
       try {
-        await RPCChatTypes.localUnboxMobilePushNotificationRpcPromise({
+        await T.RPCChat.localUnboxMobilePushNotificationRpcPromise({
           convID: conversationIDKey,
           membersType,
           payload: unboxPayload,
@@ -125,7 +123,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             logger.info('[PushToken] no device id')
             return
           }
-          await RPCTypes.apiserverDeleteRpcPromise({
+          await T.RPCGen.apiserverDeleteRpcPromise({
             args: [
               {key: 'device_id', value: deviceID},
               {key: 'token_type', value: tokenType},
@@ -200,7 +198,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         } else {
           const shownNativePushPromptTask = askNativeIfSystemPushPromptHasBeenShown
           const shownMonsterPushPromptTask = async () => {
-            const v = await RPCTypes.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
+            const v = await T.RPCGen.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
             return !!v.b
           }
           const [shownNativePushPrompt, shownMonsterPushPrompt] = await Promise.all([
@@ -278,7 +276,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          await RPCTypes.apiserverPostRpcPromise({
+          await T.RPCGen.apiserverPostRpcPromise({
             args: [
               {key: 'push_token', value: token},
               {key: 'device_id', value: deviceID},

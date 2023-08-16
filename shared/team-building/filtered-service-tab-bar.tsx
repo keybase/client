@@ -1,11 +1,11 @@
 import * as React from 'react'
-import type * as TeamBuildingTypes from '../constants/types/team-building'
+import type * as T from '../constants/types'
 import * as Constants from '../constants/team-building'
 import {ServiceTabBar} from './service-tab-bar'
 
 export const FilteredServiceTabBar = (
   props: Omit<React.ComponentPropsWithoutRef<typeof ServiceTabBar>, 'services'> & {
-    filterServices?: Array<TeamBuildingTypes.ServiceIdWithContact>
+    filterServices?: Array<T.TB.ServiceIdWithContact>
   }
 ) => {
   const {selectedService, onChangeService} = props

@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import type * as Types from '../constants/types/team-building'
+import type * as T from '../constants/types'
 
 const useContactsProps = () => {
   const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
@@ -45,8 +45,8 @@ const useContactsProps = () => {
 }
 
 export const ContactsBanner = (props: {
-  namespace: Types.AllowedNamespace
-  selectedService: Types.ServiceIdWithContact
+  namespace: T.TB.AllowedNamespace
+  selectedService: T.TB.ServiceIdWithContact
   onRedoSearch: () => void
 }) => {
   const {onRedoSearch, selectedService} = props

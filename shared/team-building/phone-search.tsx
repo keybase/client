@@ -4,13 +4,12 @@ import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import * as Constants from '../constants/team-building'
 import * as Container from '../util/container'
-import type * as Types from 'constants/types/team-building'
-import type {AllowedNamespace} from '../constants/types/team-building'
+import type * as T from 'constants/types'
 import ContinueButton from './continue-button'
 
 type PhoneSearchProps = {
   continueLabel: string
-  namespace: AllowedNamespace
+  namespace: T.TB.AllowedNamespace
   search: (query: string, service: 'phone') => void
 }
 
@@ -38,7 +37,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
 
   const addUsersToTeamSoFar = C.useTBContext(s => s.dispatch.addUsersToTeamSoFar)
 
-  const user: Types.User | undefined = isPhoneValid
+  const user: T.TB.User | undefined = isPhoneValid
     ? teamBuildingSearchResults.get(phoneNumber)?.get('phone')?.[0]
     : undefined
 

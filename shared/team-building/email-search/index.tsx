@@ -3,15 +3,13 @@ import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/team-building'
-import type {AllowedNamespace} from '../../constants/types/team-building'
-import {validateEmailAddress} from '../../util/email-address'
+import * as T from '../../constants/types'
 import {UserMatchMention} from '../phone-search'
 import ContinueButton from '../continue-button'
 
 type EmailSearchProps = {
   continueLabel: string
-  namespace: AllowedNamespace
+  namespace: T.TB.AllowedNamespace
   search: (query: string, service: 'email') => void
 }
 
@@ -20,7 +18,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
   const waiting = Container.useAnyWaiting(C.tbSearchWaitingKey)
-  const user: Types.User | undefined = teamBuildingSearchResults.get(emailString)?.get('email')?.[0]
+  const user: T.TB.User | undefined = teamBuildingSearchResults.get(emailString)?.get('email')?.[0]
   const canSubmit = !!user && !waiting && isEmailValid
 
   const onChange = React.useCallback(
@@ -28,7 +26,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
       // Remove leading or trailing whitespace
       text = text.trim()
       setEmailString(text)
-      const valid = validateEmailAddress(text)
+      const valid = T.TB.validateEmailAddress(text)
       setEmailValidity(valid)
       if (valid) {
         search(text, 'email')

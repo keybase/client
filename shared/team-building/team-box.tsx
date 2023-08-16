@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import GoButton from './go-button'
 import UserBubble from './user-bubble'
-import type {SelectedUser, GoButtonLabel} from '../constants/types/team-building'
+import type * as T from '../constants/types'
 import {e164ToDisplay} from '../util/phone-numbers'
 
 type Props = {
@@ -13,15 +13,15 @@ type Props = {
   onEnterKeyDown: () => void
   onDownArrowKeyDown: () => void
   onUpArrowKeyDown: () => void
-  teamSoFar: Array<SelectedUser>
+  teamSoFar: Array<T.TB.SelectedUser>
   onRemove: (userId: string) => void
   onFinishTeamBuilding: () => void
   searchString: string
-  goButtonLabel?: GoButtonLabel
+  goButtonLabel?: T.TB.GoButtonLabel
   waitingKey?: string
 }
 
-const formatNameForUserBubble = (u: SelectedUser) => {
+const formatNameForUserBubble = (u: T.TB.SelectedUser) => {
   let displayName: string
   switch (u.service) {
     case 'keybase':

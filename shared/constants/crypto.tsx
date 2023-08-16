@@ -5,7 +5,6 @@ import * as Z from '../util/zustand'
 import HiddenString from '../util/hidden-string'
 import logger from '../logger'
 import type * as T from './types'
-import type * as TeamBuildingTypes from './types/team-building'
 import {RPCError} from '../util/errors'
 
 export const saltpackDocumentation = 'https://saltpack.org'
@@ -216,7 +215,7 @@ type State = Store & {
     onSaltpackStart: (op: T.Crypto.Operations) => void
     onSaltpackProgress: (op: T.Crypto.Operations, bytesComplete: number, bytesTotal: number) => void
     onSaltpackOpenFile: (op: T.Crypto.Operations, path: string) => void
-    onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
+    onTeamBuildingFinished: (users: Set<T.TB.User>) => void
     setEncryptOptions: (options: EncryptOptions, hideIncludeSelf?: boolean) => void
     setInput: (op: T.Crypto.Operations, type: T.Crypto.InputTypes, value: string) => void
     setRecipients: (recipients: Array<string>, hasSBS: boolean) => void
@@ -555,7 +554,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         s[op].inProgress = true
       })
     },
-    onTeamBuildingFinished: (_users: Set<TeamBuildingTypes.User>) => {
+    onTeamBuildingFinished: (_users: Set<T.TB.User>) => {
       const users = [..._users]
       let hasSBS = false
       const usernames = users.map(user => {

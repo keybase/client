@@ -4,7 +4,7 @@ import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
-import * as TeamBuildingTypes from '../constants/types/team-building'
+import * as T from '../constants/types'
 import EmailSearch from './email-search'
 import Input from './input'
 import PhoneSearch from './phone-search'
@@ -19,10 +19,10 @@ import {FilteredServiceTabBar} from './filtered-service-tab-bar'
 import {modalHeaderProps} from './modal-header-props'
 import {useSharedValue} from '../common-adapters/reanimated'
 
-const deriveTeamSoFar = (teamSoFar: Set<TeamBuildingTypes.User>): Array<TeamBuildingTypes.SelectedUser> =>
+const deriveTeamSoFar = (teamSoFar: Set<T.TB.User>): Array<T.TB.SelectedUser> =>
   [...teamSoFar].map(userInfo => {
     let username = ''
-    let serviceId: TeamBuildingTypes.ServiceIdWithContact
+    let serviceId: T.TB.ServiceIdWithContact
     if (userInfo.contact && userInfo.serviceMap.keybase) {
       // resolved contact - pass username @ 'keybase' to teambox
       // so keybase avatar is rendered.
@@ -47,10 +47,10 @@ const deriveTeamSoFar = (teamSoFar: Set<TeamBuildingTypes.User>): Array<TeamBuil
   })
 
 type OwnProps = {
-  namespace: TeamBuildingTypes.AllowedNamespace
+  namespace: T.TB.AllowedNamespace
   teamID?: string
-  filterServices?: Array<TeamBuildingTypes.ServiceIdWithContact>
-  goButtonLabel?: TeamBuildingTypes.GoButtonLabel
+  filterServices?: Array<T.TB.ServiceIdWithContact>
+  goButtonLabel?: T.TB.GoButtonLabel
   title?: string
   recommendedHideYourself?: boolean
 }
@@ -65,8 +65,7 @@ const TeamBuilding = (p: OwnProps) => {
   const [enterInputCounter, setEnterInputCounter] = React.useState(0)
   const [highlightedIndex, setHighlightedIndex] = React.useState(0)
   const [searchString, setSearchString] = React.useState('')
-  const [selectedService, setSelectedService] =
-    React.useState<TeamBuildingTypes.ServiceIdWithContact>('keybase')
+  const [selectedService, setSelectedService] = React.useState<T.TB.ServiceIdWithContact>('keybase')
 
   const onDownArrowKeyDown = React.useCallback(() => {
     setHighlightedIndex(old => old + 1)
@@ -89,7 +88,7 @@ const TeamBuilding = (p: OwnProps) => {
   const _teamSoFar = C.useTBContext(s => s.teamSoFar)
   const userRecs = C.useTBContext(s => s.userRecs)
 
-  const userResults: Array<TeamBuildingTypes.User> | undefined = searchResults
+  const userResults: Array<T.TB.User> | undefined = searchResults
     .get(trim(searchString))
     ?.get(selectedService)
 
@@ -104,7 +103,7 @@ const TeamBuilding = (p: OwnProps) => {
 
   const _search = C.useTBContext(s => s.dispatch.search)
   const search = Container.useThrottledCallback(
-    (query: string, service: TeamBuildingTypes.ServiceIdWithContact, limit?: number) => {
+    (query: string, service: T.TB.ServiceIdWithContact, limit?: number) => {
       _search(query, service, namespace === 'chat2', limit)
     },
     500
@@ -156,10 +155,10 @@ const TeamBuilding = (p: OwnProps) => {
   )
 
   const onChangeService = React.useCallback(
-    (service: TeamBuildingTypes.ServiceIdWithContact) => {
+    (service: T.TB.ServiceIdWithContact) => {
       setSelectedService(service)
       incFocusInputCounter()
-      if (!TeamBuildingTypes.isContactServiceId(service)) {
+      if (!T.TB.isContactServiceId(service)) {
         search(searchString, service)
       }
     },

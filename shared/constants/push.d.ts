@@ -1,4 +1,4 @@
-import type * as Types from './types/push'
+import type * as T from './types'
 import type {UseBoundStore, StoreApi} from 'zustand'
 
 export type Store = {
@@ -12,7 +12,7 @@ export type State = Store & {
   dispatch: {
     checkPermissions: () => Promise<boolean>
     deleteToken: (version: number) => void
-    handlePush: (notification: Types.PushNotification) => void
+    handlePush: (notification: T.Push.PushNotification) => void
     initialPermissionsCheck: () => void
     rejectPermissions: () => void
     requestPermissions: () => void
