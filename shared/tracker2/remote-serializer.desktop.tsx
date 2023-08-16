@@ -1,6 +1,4 @@
-import type {Details, Assertion} from '../constants/types/tracker2'
-import type {UserInfo, BlockState} from '../constants/types/users'
-import type {State as WaitingState} from '../constants/types/waiting'
+import type * as T from '../constants/types'
 import type {RPCError} from '../util/errors'
 
 // for convenience we flatten the props we send over the wire
@@ -15,10 +13,10 @@ export type ProxyProps = {
   username: string
   httpSrvAddress: string
   httpSrvToken: string
-  infoMap: Map<string, UserInfo>
-  blockMap: Map<string, BlockState>
-} & Details &
-  Pick<WaitingState, WaitingHoistedProps>
+  infoMap: Map<string, T.Users.UserInfo>
+  blockMap: Map<string, T.Users.BlockState>
+} & T.Tracker.Details &
+  Pick<T.Waiting.State, WaitingHoistedProps>
 
 type SerializeProps = Omit<
   ProxyProps,
@@ -31,26 +29,26 @@ type SerializeProps = Omit<
   | 'counts'
   | 'errors'
 > & {
-  assertions: Array<[string, Assertion]>
+  assertions: Array<[string, T.Tracker.Assertion]>
   avatarRefreshCounterArr: Array<[string, number]>
   counts: Array<[string, number]>
   errors: Array<[string, RPCError | undefined]>
   followersArr: Array<string>
   followingArr: Array<string>
-  infoMap: Array<[string, UserInfo]>
-  blockMap: Array<[string, BlockState]>
+  infoMap: Array<[string, T.Users.UserInfo]>
+  blockMap: Array<[string, T.Users.BlockState]>
 }
 export type DeserializeProps = {
   avatarRefreshCounter: Map<string, number>
   darkMode: boolean
   followers: Set<string>
   following: Set<string>
-  infoMap: Map<string, UserInfo>
-  blockMap: Map<string, BlockState>
+  infoMap: Map<string, T.Users.UserInfo>
+  blockMap: Map<string, T.Users.BlockState>
   teams: {teamNameToID: Map<string, string>}
-  tracker2: {usernameToDetails: Map<string, Details>}
+  tracker2: {usernameToDetails: Map<string, T.Tracker.Details>}
   trackerUsername: string
-  waiting: WaitingState
+  waiting: T.Waiting.State
   username: string
   httpSrvAddress: string
   httpSrvToken: string
@@ -138,7 +136,7 @@ export const deserialize = (
   const oldDetails = state.tracker2.usernameToDetails.get(trackerUsername)
   const oldBlocked = state.blockMap.get(trackerUsername)?.chatBlocked ?? false
 
-  const details: Details = {
+  const details: T.Tracker.Details = {
     assertions: assertions ? new Map(assertions) : oldDetails?.assertions,
     bio: bio ?? oldDetails?.bio,
     blocked: blockMap.get(trackerUsername)?.chatBlocked ?? oldBlocked,

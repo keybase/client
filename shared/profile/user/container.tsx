@@ -1,13 +1,16 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
 import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/tracker2'
+import type * as T from '../../constants/types'
 import {memoize} from '../../util/memoize'
 import Profile2, {type BackgroundColorType} from '.'
 
 export type OwnProps = {username: string}
 
-const headerBackgroundColorType = (state: Types.DetailsState, followThem: boolean): BackgroundColorType => {
+const headerBackgroundColorType = (
+  state: T.Tracker.DetailsState,
+  followThem: boolean
+): BackgroundColorType => {
   if (['broken', 'error'].includes(state)) {
     return 'red'
   } else if (state === 'notAUserYet') {
@@ -18,7 +21,7 @@ const headerBackgroundColorType = (state: Types.DetailsState, followThem: boolea
 }
 
 const filterWebOfTrustEntries = memoize(
-  (webOfTrustEntries: Array<Types.WebOfTrustEntry> | undefined): Array<Types.WebOfTrustEntry> =>
+  (webOfTrustEntries: Array<T.Tracker.WebOfTrustEntry> | undefined): Array<T.Tracker.WebOfTrustEntry> =>
     webOfTrustEntries ? webOfTrustEntries.filter(Constants.showableWotEntry) : []
 )
 
@@ -119,7 +122,7 @@ const Connected = (ownProps: OwnProps) => {
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const getProofSuggestions = C.useTrackerState(s => s.dispatch.getProofSuggestions)
   const loadNonUserProfile = C.useTrackerState(s => s.dispatch.loadNonUserProfile)
-  const _onReload = (username: string, isYou: boolean, state: Types.DetailsState) => {
+  const _onReload = (username: string, isYou: boolean, state: T.Tracker.DetailsState) => {
     if (state !== 'valid' && !isYou) {
       // Might be a Keybase user or not, launch non-user profile fetch.
       loadNonUserProfile(username)

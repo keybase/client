@@ -5,7 +5,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import Assertion from './assertion/container'
 import Bio from './bio/container'
-import type * as Types from '../constants/types/tracker2'
+import type * as T from '../constants/types'
 
 type Props = {
   assertionKeys?: ReadonlyArray<string>
@@ -25,8 +25,8 @@ type Props = {
   onAccept: () => void
   onReload: () => void
   reason: string
-  state: Types.DetailsState
-  teamShowcase?: ReadonlyArray<Types.TeamShowcase>
+  state: T.Tracker.DetailsState
+  teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
   trackerUsername: string
 }
 

@@ -2,15 +2,14 @@ import * as C from '../../constants'
 import * as Container from '../../util/container'
 import Revoke from '.'
 import type * as T from '../../constants/types'
-import type {SiteIconSet} from '../../constants/types/tracker2'
 
 type OwnProps = {
-  icon: SiteIconSet
+  icon: T.Tracker.SiteIconSet
   platform: T.More.PlatformsExpandedType
   platformHandle: string
   proofId: string
 }
-const noIcon: SiteIconSet = []
+const noIcon: T.Tracker.SiteIconSet = []
 
 export default (ownProps: OwnProps) => {
   const {platformHandle, platform, proofId} = ownProps

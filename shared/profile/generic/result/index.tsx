@@ -1,13 +1,13 @@
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import type * as Tracker2Types from '../../../constants/types/tracker2'
+import type * as T from '../../../constants/types'
 import {SiteIcon} from '../shared'
 
 type Props = {
   errorText: string
   onClose: () => void
   proofUsername: string
-  serviceIcon: Tracker2Types.SiteIconSet
+  serviceIcon: T.Tracker.SiteIconSet
 }
 
 const Result = (props: Props) => {
@@ -83,7 +83,7 @@ const styles = Styles.styleSheetCreate(
           flex: 1,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default Result

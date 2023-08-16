@@ -5,11 +5,10 @@ import capitalize from 'lodash/capitalize'
 import {subtitle as platformSubtitle} from '../../util/platforms'
 import {SiteIcon} from '../generic/shared'
 import type * as T from '../../constants/types'
-import type {SiteIconSet} from '../../constants/types/tracker2'
 import Modal from '../modal'
 
 type Props = {
-  icon: SiteIconSet
+  icon: T.Tracker.SiteIconSet
   platform: T.More.PlatformsExpandedType
   platformHandle: string
   errorMessage?: string

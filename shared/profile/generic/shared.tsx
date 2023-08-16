@@ -1,24 +1,24 @@
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import type {SiteIconSet} from '../../constants/types/tracker2'
+import type * as T from '../../constants/types'
 
 export const ProofSuccessIcon = <Kb.Icon type="icon-proof-success" color={Styles.globalColors.green} />
 export const MastadonIcon = (
   <Kb.Icon type="iconfont-identity-mastodon" colorOverride="#2b90d9" fontSize={64} />
 )
 
-const siteIconToSrcSet = (siteIcon: SiteIconSet) =>
+const siteIconToSrcSet = (siteIcon: T.Tracker.SiteIconSet) =>
   `-webkit-image-set(${siteIcon
     .slice()
     .sort((a, b) => a.width - b.width)
     .map((si, idx) => `url(${si.path}) ${idx + 1}x`)
     .join(', ')})`
-const siteIconToNativeSrcSet = (siteIcon: SiteIconSet) =>
+const siteIconToNativeSrcSet = (siteIcon: T.Tracker.SiteIconSet) =>
   siteIcon.map(si => ({height: si.width, uri: si.path, width: si.width}))
 
 type SiteIconProps = {
   full: boolean
-  set: SiteIconSet
+  set: T.Tracker.SiteIconSet
   style?: Styles.StylesCrossPlatform
 }
 

@@ -1,9 +1,8 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
-import type * as Types from '../../constants/types/tracker2'
+import type * as T from '../../constants/types'
 import Assertion from '.'
 import openUrl from '../../util/open-url'
-import type * as T from '../../constants/types'
 
 type OwnProps = {
   isSuggestion?: boolean
@@ -93,7 +92,7 @@ export default (ownProps: OwnProps) => {
     type: T.More.PlatformsExpandedType,
     value: string,
     id: string,
-    icon: Types.SiteIconSet
+    icon: T.Tracker.SiteIconSet
   ) => {
     navigateAppend({
       props: {icon, platform: type, platformHandle: value, proofId: id},
