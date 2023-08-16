@@ -3,7 +3,8 @@ import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as T from '../../constants/types'
+import type * as T from '../../constants/types'
+import {validateEmailAddress} from '../../util/email-address'
 import {UserMatchMention} from '../phone-search'
 import ContinueButton from '../continue-button'
 
@@ -26,7 +27,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
       // Remove leading or trailing whitespace
       text = text.trim()
       setEmailString(text)
-      const valid = T.TB.validateEmailAddress(text)
+      const valid = validateEmailAddress(text)
       setEmailValidity(valid)
       if (valid) {
         search(text, 'email')
