@@ -3,11 +3,11 @@ import * as Styles from '../styles'
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as DevicesConstants from '../constants/devices'
-import type * as Types from '../constants/types/devices'
+import type * as T from '../constants/types'
 type Props = {
   mode: 'QR' | 'text'
   onCancel: () => void
-  otherDeviceType: Types.DeviceType
+  otherDeviceType: T.Devices.DeviceType
 }
 
 type BigButtonProps = {

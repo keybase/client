@@ -3,11 +3,11 @@ import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
 import DeviceIcon from './device-icon'
-import type * as Types from '../constants/types/devices'
+import type * as T from '../constants/types'
 import {formatTimeRelativeToNow} from '../util/timestamp'
 
 type OwnProps = {
-  deviceID: Types.DeviceID
+  deviceID: T.Devices.DeviceID
   firstItem: boolean
 }
 

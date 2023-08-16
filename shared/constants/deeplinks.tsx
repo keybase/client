@@ -6,7 +6,7 @@ import * as EngineGen from '../actions/engine-gen-gen'
 import type HiddenString from '../util/hidden-string'
 import URL from 'url-parse'
 import logger from '../logger'
-import type * as CryptoTypes from '../constants/types/crypto'
+import type * as T from '../constants/types'
 
 const prefix = 'keybase://'
 type Store = {
@@ -255,7 +255,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         console.warn('Tried to open a saltpack file before being logged in')
         return
       }
-      let operation: CryptoTypes.Operations | undefined
+      let operation: T.Crypto.Operations | undefined
       if (CryptoConstants.isPathSaltpackEncrypted(path)) {
         operation = CryptoConstants.Operations.Decrypt
       } else if (CryptoConstants.isPathSaltpackSigned(path)) {

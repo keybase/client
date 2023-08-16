@@ -2,12 +2,11 @@ import * as C from '../constants'
 import * as Constants from '../constants/devices'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as SettingsConstants from '../constants/settings'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
-import type * as Types from '../constants/types/devices'
+import * as T from '../constants/types'
 
 type OwnProps = {deviceID: string}
 
@@ -52,7 +51,7 @@ const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: ()
   </Kb.Box2>
 )
 
-const getIcon = (deviceType: Types.DeviceType, iconNumber: Types.IconNumber) => {
+const getIcon = (deviceType: T.Devices.DeviceType, iconNumber: T.Devices.IconNumber) => {
   let iconType: Kb.IconType
   const size = Styles.isMobile ? 64 : 48
   switch (deviceType) {
@@ -77,7 +76,7 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
     return []
   }
   try {
-    const tlfs = await RPCTypes.rekeyGetRevokeWarningRpcPromise(
+    const tlfs = await T.RPCGen.rekeyGetRevokeWarningRpcPromise(
       {actingDevice, targetDevice},
       C.devicesWaitingKey
     )
@@ -99,13 +98,13 @@ const useRevoke = (deviceID = '') => {
     const f = async () => {
       if (wasCurrentDevice) {
         try {
-          await RPCTypes.loginDeprovisionRpcPromise({doRevoke: true, username}, C.devicesWaitingKey)
+          await T.RPCGen.loginDeprovisionRpcPromise({doRevoke: true, username}, C.devicesWaitingKey)
           load()
           C.useConfigState.getState().dispatch.revoke(deviceName)
         } catch {}
       } else {
         try {
-          await RPCTypes.revokeRevokeDeviceRpcPromise(
+          await T.RPCGen.revokeRevokeDeviceRpcPromise(
             {deviceID, forceLast: false, forceSelf: false},
             C.devicesWaitingKey
           )

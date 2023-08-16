@@ -2,7 +2,7 @@ import * as C from '../constants'
 import * as React from 'react'
 import * as Constants from '../constants/crypto'
 import * as FsConstants from '../constants/fs'
-import type * as Types from '../constants/types/crypto'
+import type * as T from '../constants/types'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
@@ -13,7 +13,7 @@ import {pickFiles} from '../util/pick-files'
 import shallowEqual from 'shallowequal'
 
 type CommonProps = {
-  operation: Types.Operations
+  operation: T.Crypto.Operations
 }
 
 type TextProps = CommonProps & {
@@ -223,7 +223,7 @@ export const Input = (props: CommonProps) => {
   const setInput = C.useCryptoState(s => s.dispatch.setInput)
   const clearInput = C.useCryptoState(s => s.dispatch.clearInput)
 
-  const onSetInput = (type: Types.InputTypes, newValue: string) => {
+  const onSetInput = (type: T.Crypto.InputTypes, newValue: string) => {
     setInput(operation, type, newValue)
   }
   const onClearInput = () => {

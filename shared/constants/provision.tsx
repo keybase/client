@@ -1,7 +1,6 @@
 import * as C from '.'
-import * as DeviceTypes from './types/devices'
+import * as T from './types'
 import * as ConfigConstants from './config'
-import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
 import {isMobile} from './platform'
@@ -10,9 +9,9 @@ import isEqual from 'lodash/isEqual'
 
 export type Device = {
   deviceNumberOfType: number
-  id: DeviceTypes.DeviceID
+  id: T.Devices.DeviceID
   name: string
-  type: DeviceTypes.DeviceType
+  type: T.Devices.DeviceType
 }
 
 export const waitingKey = 'provision:waiting'
@@ -20,9 +19,9 @@ export const forgotUsernameWaitingKey = 'provision:forgotUsername'
 
 const decodeForgotUsernameError = (error: RPCError) => {
   switch (error.code) {
-    case RPCTypes.StatusCode.scnotfound:
+    case T.RPCGen.StatusCode.scnotfound:
       return "We couldn't find an account with that email address. Try again?"
-    case RPCTypes.StatusCode.scinputerror:
+    case T.RPCGen.StatusCode.scinputerror:
       return "That doesn't look like a valid email address. Try again?"
     default:
       return error.desc
@@ -33,17 +32,17 @@ const decodeForgotUsernameError = (error: RPCError) => {
 const errorCausedByUsCanceling = (e?: RPCError) =>
   (e ? e.desc : undefined) === 'Input canceled' || (e ? e.desc : undefined) === 'kex canceled by caller'
 const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
-  response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
+  response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
 }
 
 const makeDevice = (): Device => ({
   deviceNumberOfType: 0,
-  id: DeviceTypes.stringToDeviceID(''),
+  id: T.Devices.stringToDeviceID(''),
   name: '',
   type: 'mobile',
 })
 
-export const rpcDeviceToDevice = (d: RPCTypes.Device) => {
+export const rpcDeviceToDevice = (d: T.RPCGen.Device) => {
   const type = d.type
   switch (type) {
     case 'mobile':
@@ -51,7 +50,7 @@ export const rpcDeviceToDevice = (d: RPCTypes.Device) => {
     case 'backup':
       return {
         deviceNumberOfType: d.deviceNumberOfType,
-        id: DeviceTypes.stringToDeviceID(d.deviceID),
+        id: T.Devices.stringToDeviceID(d.deviceID),
         name: d.name,
         type: type,
       }
@@ -237,7 +236,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       const f = async () => {
         try {
-          await RPCTypes.deviceDeviceAddRpcListener({
+          await T.RPCGen.deviceDeviceAddRpcListener({
             customResponseIncomingCallMap: {
               'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
                 if (isCanceled(response)) return
@@ -261,10 +260,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 const {type} = get().codePageOtherDevice
                 switch (type) {
                   case 'mobile':
-                    response.result(RPCTypes.DeviceType.mobile)
+                    response.result(T.RPCGen.DeviceType.mobile)
                     break
                   case 'desktop':
-                    response.result(RPCTypes.DeviceType.desktop)
+                    response.result(T.RPCGen.DeviceType.desktop)
                     break
                   default:
                     response.error()
@@ -309,7 +308,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         if (email) {
           try {
-            await RPCTypes.accountRecoverUsernameWithEmailRpcPromise({email}, forgotUsernameWaitingKey)
+            await T.RPCGen.accountRecoverUsernameWithEmailRpcPromise({email}, forgotUsernameWaitingKey)
             set(s => {
               s.forgotUsernameResult = 'success'
             })
@@ -324,7 +323,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         if (phone) {
           try {
-            await RPCTypes.accountRecoverUsernameWithPhoneRpcPromise({phone}, forgotUsernameWaitingKey)
+            await T.RPCGen.accountRecoverUsernameWithPhoneRpcPromise({phone}, forgotUsernameWaitingKey)
             set(s => {
               s.forgotUsernameResult = 'success'
             })
@@ -393,7 +392,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
 
         try {
-          await RPCTypes.loginLoginRpcListener({
+          await T.RPCGen.loginLoginRpcListener({
             customResponseIncomingCallMap: {
               'keybase.1.gpgUi.selectKey': cancelOnCallback,
               'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
@@ -497,10 +496,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
                   get().dispatch.dynamic.setPassphrase?.(get().passphrase)
                 } else {
                   switch (type) {
-                    case RPCTypes.PassphraseType.passPhrase:
+                    case T.RPCGen.PassphraseType.passPhrase:
                       C.useRouterState.getState().dispatch.navigateAppend('password')
                       break
-                    case RPCTypes.PassphraseType.paperKey:
+                    case T.RPCGen.PassphraseType.paperKey:
                       C.useRouterState.getState().dispatch.navigateAppend('paperkey')
                       break
                     default:
@@ -518,7 +517,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               'keybase.1.provisionUi.ProvisionerSuccess': () => {},
             },
             params: {
-              clientType: RPCTypes.ClientType.guiMain,
+              clientType: T.RPCGen.ClientType.guiMain,
               deviceName: '',
               deviceType: isMobile ? 'mobile' : 'desktop',
               doUserSwitch: true,
@@ -537,8 +536,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
           // If it's a non-existent username or invalid, allow the opportunity to
           // correct it right there on the page.
           switch (finalError.code) {
-            case RPCTypes.StatusCode.scnotfound:
-            case RPCTypes.StatusCode.scbadusername:
+            case T.RPCGen.StatusCode.scnotfound:
+            case T.RPCGen.StatusCode.scbadusername:
               set(s => {
                 s.inlineError = finalError
               })
@@ -570,7 +569,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
         if (C.useConfigState.getState().loggedIn) {
-          await RPCTypes.loginLogoutRpcPromise(
+          await T.RPCGen.loginLogoutRpcPromise(
             {force: false, keepSecrets: true},
             ConfigConstants.loginAsOtherUserWaitingKey
           )

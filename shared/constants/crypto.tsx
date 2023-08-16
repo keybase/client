@@ -4,7 +4,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Z from '../util/zustand'
 import HiddenString from '../util/hidden-string'
 import logger from '../logger'
-import type * as Types from './types/crypto'
+import type * as T from './types'
 import type * as TeamBuildingTypes from './types/team-building'
 import {RPCError} from '../util/errors'
 
@@ -120,8 +120,8 @@ const getWarningMessageForSBS = (sbsAssertion: string) =>
 
 const getStatusCodeMessage = (
   error: RPCError,
-  operation: Types.Operations,
-  type: Types.InputTypes
+  operation: T.Crypto.Operations,
+  type: T.Crypto.InputTypes
 ): string => {
   const inputType =
     type === 'text' ? (operation === Operations.Verify ? 'signed message' : 'ciphertext') : 'file'
@@ -171,7 +171,7 @@ const defaultCommonStore = {
   errorMessage: new HiddenString(''),
   inProgress: false,
   input: new HiddenString(''),
-  inputType: 'text' as Types.InputTypes,
+  inputType: 'text' as T.Crypto.InputTypes,
   output: new HiddenString(''),
   outputFileDestination: new HiddenString(''),
   outputSenderFullname: undefined,
@@ -204,21 +204,21 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
-    clearInput: (op: Types.Operations) => void
+    clearInput: (op: T.Crypto.Operations) => void
     clearRecipients: () => void
     downloadEncryptedText: () => void
     downloadSignedText: () => void
     resetState: 'default'
-    resetOperation: (op: Types.Operations) => void
-    runFileOperation: (op: Types.Operations, destinationDir: string) => void
-    runTextOperation: (op: Types.Operations) => void
-    onSaltpackDone: (op: Types.Operations) => void
-    onSaltpackStart: (op: Types.Operations) => void
-    onSaltpackProgress: (op: Types.Operations, bytesComplete: number, bytesTotal: number) => void
-    onSaltpackOpenFile: (op: Types.Operations, path: string) => void
+    resetOperation: (op: T.Crypto.Operations) => void
+    runFileOperation: (op: T.Crypto.Operations, destinationDir: string) => void
+    runTextOperation: (op: T.Crypto.Operations) => void
+    onSaltpackDone: (op: T.Crypto.Operations) => void
+    onSaltpackStart: (op: T.Crypto.Operations) => void
+    onSaltpackProgress: (op: T.Crypto.Operations, bytesComplete: number, bytesTotal: number) => void
+    onSaltpackOpenFile: (op: T.Crypto.Operations, path: string) => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     setEncryptOptions: (options: EncryptOptions, hideIncludeSelf?: boolean) => void
-    setInput: (op: Types.Operations, type: Types.InputTypes, value: string) => void
+    setInput: (op: T.Crypto.Operations, type: T.Crypto.InputTypes, value: string) => void
     setRecipients: (recipients: Array<string>, hasSBS: boolean) => void
   }
 }
@@ -464,7 +464,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     Z.ignorePromise(f())
   }
 
-  const download = (op: Types.Operations) => {
+  const download = (op: T.Crypto.Operations) => {
     const f = async () => {
       const callEncrypt = async () =>
         await RPCTypes.saltpackSaltpackSaveCiphertextToFileRpcPromise({
@@ -666,7 +666,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         encrypt('')
       }
     },
-    setInput: (op: Types.Operations, type: Types.InputTypes, value: string) => {
+    setInput: (op: T.Crypto.Operations, type: T.Crypto.InputTypes, value: string) => {
       if (!value) {
         get().dispatch.clearInput(op)
         return
