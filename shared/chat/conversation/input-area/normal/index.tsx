@@ -248,7 +248,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
       onChangeText={onChangeText}
       onCancelEditing={onCancelEditing}
       cannotWrite={cannotWrite}
-      conversationIDKey={conversationIDKey}
       explodingModeSeconds={explodingModeSeconds}
       isEditing={isEditing}
       isExploding={isExploding}

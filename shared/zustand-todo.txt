@@ -1,4 +1,0 @@
-remove hiddenstring
-remove convid as param
-    move all constant includes to C
-    move all types into T

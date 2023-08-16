@@ -205,7 +205,6 @@ type ListProps = Pick<
   Common.ListProps<ListItem>,
   'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
-  conversationIDKey: T.Chat.ConversationIDKey
   filter: string
   onSelected: (item: ListItem, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>

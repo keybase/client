@@ -31,12 +31,7 @@ const makeRow = (
     case 'big':
       return (
         <C.ChatProvider id={item.conversationIDKey}>
-          <BigTeamChannel
-            conversationIDKey={item.conversationIDKey}
-            layoutChannelname={item.channelname}
-            selected={item.selected}
-            navKey={navKey}
-          />
+          <BigTeamChannel layoutChannelname={item.channelname} selected={item.selected} navKey={navKey} />
         </C.ChatProvider>
       )
     case 'small':

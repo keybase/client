@@ -137,11 +137,7 @@ const TeamHeader = () => {
         />
       )}
       {!isPreview && (admin || !isGeneralChannel) && (
-        <AddPeople
-          isAdmin={admin}
-          isGeneralChannel={isGeneralChannel}
-          conversationIDKey={conversationIDKey}
-        />
+        <AddPeople isAdmin={admin} isGeneralChannel={isGeneralChannel} />
       )}
     </Kb.Box2>
   )

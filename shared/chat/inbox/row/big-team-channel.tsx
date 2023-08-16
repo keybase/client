@@ -7,7 +7,6 @@ import * as T from '../../../constants/types'
 
 type Props = {
   layoutChannelname: string
-  conversationIDKey: T.Chat.ConversationIDKey
   navKey: string
   selected: boolean
 }

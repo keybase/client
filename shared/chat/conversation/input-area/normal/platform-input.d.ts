@@ -4,7 +4,6 @@ import type {PlainInput} from '../../../../common-adapters'
 
 type Props = {
   cannotWrite: boolean
-  conversationIDKey: T.Chat.ConversationIDKey
   explodingModeSeconds: number
   hintText: string
   inputSetRef: React.MutableRefObject<PlainInput | null>
