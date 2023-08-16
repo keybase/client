@@ -3,10 +3,10 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import Modal from '../modal'
-import type {PlatformsExpandedType} from '../../constants/types/more'
+import type * as T from '../../constants/types'
 
 type Props = {
-  platform: PlatformsExpandedType
+  platform: T.More.PlatformsExpandedType
   username: string
   errorText: string
   onSubmit: (username: string) => void
@@ -79,7 +79,7 @@ class EnterUsername extends React.Component<Props, State> {
   }
 }
 
-const UsernameTips = ({platform}: {platform: PlatformsExpandedType}) =>
+const UsernameTips = ({platform}: {platform: T.More.PlatformsExpandedType}) =>
   platform === 'hackernews' ? (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tips}>
       <Kb.Text type="BodySmallSemibold">&bull; You must have karma &ge; 2</Kb.Text>

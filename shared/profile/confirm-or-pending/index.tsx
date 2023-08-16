@@ -2,10 +2,10 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {subtitle} from '../../util/platforms'
 import Modal from '../modal'
-import type {PlatformsExpandedType} from '../../constants/types/more'
+import type * as T from '../../constants/types'
 
 type Props = {
-  platform: PlatformsExpandedType
+  platform: T.More.PlatformsExpandedType
   isPending: boolean
   platformIconOverlayColor: string
   username: string

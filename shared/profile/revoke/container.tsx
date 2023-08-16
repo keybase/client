@@ -1,12 +1,12 @@
 import * as C from '../../constants'
 import * as Container from '../../util/container'
 import Revoke from '.'
-import type {PlatformsExpandedType} from '../../constants/types/more'
+import type * as T from '../../constants/types'
 import type {SiteIconSet} from '../../constants/types/tracker2'
 
 type OwnProps = {
   icon: SiteIconSet
-  platform: PlatformsExpandedType
+  platform: T.More.PlatformsExpandedType
   platformHandle: string
   proofId: string
 }

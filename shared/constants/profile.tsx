@@ -1,19 +1,16 @@
 import * as C from '.'
-import * as More from './types/more'
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
 import * as TrackerConstants from './tracker2'
 import * as Validators from '../util/simple-validators'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import openURL from '../util/open-url'
-import type * as RPCGen from './types/rpc-gen'
-import type {SiteIconSet} from './types/tracker2'
 import {RPCError} from '../util/errors'
 import {isMobile} from './platform'
 
 type ProveGenericParams = {
-  logoBlack: SiteIconSet
-  logoFull: SiteIconSet
+  logoBlack: T.Tracker.SiteIconSet
+  logoFull: T.Tracker.SiteIconSet
   title: string
   subtext: string
   suffix: string
@@ -29,7 +26,7 @@ export const makeProveGenericParams = (): ProveGenericParams => ({
   title: '',
 })
 
-export const toProveGenericParams = (p: RPCGen.ProveParameters): ProveGenericParams => ({
+export const toProveGenericParams = (p: T.RPCGen.ProveParameters): ProveGenericParams => ({
   ...makeProveGenericParams(),
   buttonLabel: p.buttonLabel,
   logoBlack: p.logoBlack || [],
@@ -58,18 +55,18 @@ type Store = {
   pgpErrorText: string
   pgpFullName: string
   pgpPublicKey: string
-  platform?: More.PlatformsExpandedType
+  platform?: T.More.PlatformsExpandedType
   platformGeneric?: string
   platformGenericChecking: boolean
   platformGenericParams?: ProveGenericParams
   platformGenericURL?: string
   promptShouldStoreKeyOnServer: boolean
   proofFound: boolean
-  proofStatus?: RPCTypes.ProofStatus
+  proofStatus?: T.RPCGen.ProofStatus
   proofText: string
   revokeError: string
   searchShowingSuggestions: boolean
-  sigID?: RPCTypes.SigID
+  sigID?: T.RPCGen.SigID
   username: string
   usernameValid: boolean
   wotAuthorError: string
@@ -135,7 +132,7 @@ type State = Store & {
       pgpFullName?: string
     }) => void
     updateUsername: (username: string) => void
-    uploadAvatar: (filename: string, crop?: RPCTypes.ImageCropRect) => void
+    uploadAvatar: (filename: string, crop?: T.RPCGen.ImageCropRect) => void
   }
 }
 
@@ -203,13 +200,13 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
 
       try {
-        await RPCTypes.cryptocurrencyRegisterAddressRpcPromise(
+        await T.RPCGen.cryptocurrencyRegisterAddressRpcPromise(
           {address: get().username, force: true, wantedFamily},
           waitingKey
         )
         set(s => {
           s.proofFound = true
-          s.proofStatus = RPCTypes.ProofStatus.ok
+          s.proofStatus = T.RPCGen.ProofStatus.ok
         })
         C.useRouterState.getState().dispatch.navigateAppend('profileConfirmOrPending')
       } catch (_error) {
@@ -229,7 +226,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     addProof: (platform, reason) => {
       set(s => {
-        const maybeNotGeneric = More.asPlatformsExpandedType(platform)
+        const maybeNotGeneric = T.More.asPlatformsExpandedType(platform)
         clearErrors(s)
         s.platform = maybeNotGeneric ?? undefined
         s.platformGeneric = maybeNotGeneric ? undefined : platform
@@ -238,7 +235,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       // only let one of these happen at a time
       let addProofInProgress = false
       const f = async () => {
-        const service = More.asPlatformsExpandedType(platform)
+        const service = T.More.asPlatformsExpandedType(platform)
         const genericService = service ? null : platform
         // Special cases
         switch (service) {
@@ -262,7 +259,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         addProofInProgress = true
 
         const inputCancelError = {
-          code: RPCTypes.StatusCode.scinputcanceled,
+          code: T.RPCGen.StatusCode.scinputcanceled,
           desc: 'Cancel Add Proof',
         }
         set(s => {
@@ -278,7 +275,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             reason: '',
           })
         try {
-          const {sigID} = await RPCTypes.proveStartProofRpcListener({
+          const {sigID} = await T.RPCGen.proveStartProofRpcListener({
             customResponseIncomingCallMap: {
               'keybase.1.proveUi.checking': (_, response) => {
                 if (canceled) {
@@ -429,7 +426,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               s.errorText = error.desc
               s.errorCode = error.code
             })
-            if (error.code === RPCTypes.StatusCode.scgeneric && reason === 'appLink') {
+            if (error.code === T.RPCGen.StatusCode.scgeneric && reason === 'appLink') {
               C.useDeepLinksState
                 .getState()
                 .dispatch.setLinkError(
@@ -470,9 +467,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          const {found, status} = await RPCTypes.proveCheckProofRpcPromise({sigID}, waitingKey)
+          const {found, status} = await T.RPCGen.proveCheckProofRpcPromise({sigID}, waitingKey)
           // Values higher than baseHardError are hard errors, below are soft errors (could eventually be resolved by doing nothing)
-          if (!found && status >= RPCTypes.ProofStatus.baseHardError) {
+          if (!found && status >= T.RPCGen.ProofStatus.baseHardError) {
             set(s => {
               s.errorText = "We couldn't find your proof. Please retry!"
             })
@@ -514,7 +511,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     editProfile: (bio, fullName, location) => {
       const f = async () => {
-        await RPCTypes.userProfileEditRpcPromise({bio, fullName, location}, TrackerConstants.waitingKey)
+        await T.RPCGen.userProfileEditRpcPromise({bio, fullName, location}, TrackerConstants.waitingKey)
         get().dispatch.showUserProfile(C.useCurrentUserState.getState().username)
       }
       Z.ignorePromise(f())
@@ -551,11 +548,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
         })
 
         try {
-          await RPCTypes.pgpPgpKeyGenDefaultRpcListener({
+          await T.RPCGen.pgpPgpKeyGenDefaultRpcListener({
             customResponseIncomingCallMap: {
               'keybase.1.pgpUi.keyGenerated': ({key}, response) => {
                 if (canceled) {
-                  response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
+                  response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
                 } else {
                   response.result()
                   set(s => {
@@ -584,7 +581,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             return
           }
           // did we cancel?
-          if (error.code !== RPCTypes.StatusCode.scinputcanceled) {
+          if (error.code !== T.RPCGen.StatusCode.scinputcanceled) {
             throw error
           }
         }
@@ -598,7 +595,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     hideStellar: hidden => {
       const f = async () => {
         try {
-          await RPCTypes.apiserverPostRpcPromise(
+          await T.RPCGen.apiserverPostRpcPromise(
             {
               args: [{key: 'hidden', value: hidden ? '1' : '0'}],
               endpoint: 'stellar/hidden',
@@ -617,7 +614,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         s.errorText = ''
       })
       const f = async () => {
-        await RPCTypes.proveCheckProofRpcPromise({sigID}, waitingKey)
+        await T.RPCGen.proveCheckProofRpcPromise({sigID}, waitingKey)
         C.useTrackerState.getState().dispatch.showUser(C.useCurrentUserState.getState().username, false)
       }
       Z.ignorePromise(f())
@@ -644,7 +641,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         try {
-          await RPCTypes.userBlockUserRpcPromise({username}, blockUserWaitingKey)
+          await T.RPCGen.userBlockUserRpcPromise({username}, blockUserWaitingKey)
           set(s => {
             s.blockUserModal = undefined
           })
@@ -679,7 +676,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
         if (proof.type === 'pgp') {
           try {
-            await RPCTypes.revokeRevokeKeyRpcPromise({keyID: proof.kid}, waitingKey)
+            await T.RPCGen.revokeRevokeKeyRpcPromise({keyID: proof.kid}, waitingKey)
           } catch (e) {
             logger.info('error in dropping pgp key', e)
             set(s => {
@@ -688,7 +685,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         } else {
           try {
-            await RPCTypes.revokeRevokeSigsRpcPromise({sigIDQueries: [proofId]}, waitingKey)
+            await T.RPCGen.revokeRevokeSigsRpcPromise({sigIDQueries: [proofId]}, waitingKey)
             get().dispatch.finishRevoking()
           } catch (error) {
             logger.warn(`Error when revoking proof ${proofId}`, error)
@@ -703,7 +700,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     submitUnblockUser: (username, guiID) => {
       const f = async () => {
         try {
-          await RPCTypes.userUnblockUserRpcPromise({username}, blockUserWaitingKey)
+          await T.RPCGen.userUnblockUserRpcPromise({username}, blockUserWaitingKey)
           C.useTrackerState.getState().dispatch.load({
             assertion: username,
             guiID: TrackerConstants.generateGUIID(),
@@ -750,7 +747,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     uploadAvatar: (filename, crop) => {
       const f = async () => {
         try {
-          await RPCTypes.userUploadUserAvatarRpcPromise({crop, filename}, uploadAvatarWaitingKey)
+          await T.RPCGen.userUploadUserAvatarRpcPromise({crop, filename}, uploadAvatarWaitingKey)
           C.useRouterState.getState().dispatch.navigateUp()
         } catch (error) {
           if (!(error instanceof RPCError)) {
