@@ -3,12 +3,12 @@ import * as R from '../constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import type * as Types from '../constants/types/chat2'
+import type * as T from '../constants/types'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import {SmallTeam} from '../chat/inbox/row/small-team'
 
 type RowProps = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
 }
 
 const RemoteSmallTeam = (props: RowProps) => {

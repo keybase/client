@@ -1,21 +1,20 @@
 import * as C from '../../../constants'
+import type * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/teams'
-import type * as ChatTypes from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/teams'
 import MenuHeader from '../../team/rows/menu-header.new'
 
 type Props = {
-  conversationIDKey: ChatTypes.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   firstItem: boolean
   isGeneral: boolean
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   username: string
 }
 
-const showCrown: Types.BoolTypeMap = {
+const showCrown: T.Teams.BoolTypeMap = {
   admin: true,
   bot: false,
   owner: true,

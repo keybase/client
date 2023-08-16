@@ -1,14 +1,12 @@
 import * as C from '..'
+import * as T from '../types'
 import * as Clipboard from 'expo-clipboard'
 import * as Container from '../../util/container'
 import * as EngineGen from '../../actions/engine-gen-gen'
 import * as ExpoLocation from 'expo-location'
 import * as ExpoTaskManager from 'expo-task-manager'
 import * as MediaLibrary from 'expo-media-library'
-import * as RPCChatTypes from '../types/rpc-chat-gen'
-import * as RPCTypes from '../types/rpc-gen'
 import * as Tabs from '../tabs'
-import * as Types from '../types/chat2'
 import NetInfo from '@react-native-community/netinfo'
 import NotifyPopup from '../../util/notify-popup'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
@@ -41,10 +39,10 @@ export const requestPermissionsToWrite = async () => {
   return Promise.resolve()
 }
 
-export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
+export const requestLocationPermission = async (mode: T.RPCChat.UIWatchPositionPerm) => {
   if (isIOS) {
     switch (mode) {
-      case RPCChatTypes.UIWatchPositionPerm.base:
+      case T.RPCChat.UIWatchPositionPerm.base:
         {
           const iosFGPerms = await ExpoLocation.requestForegroundPermissionsAsync()
           if (iosFGPerms.ios?.scope === 'none') {
@@ -52,7 +50,7 @@ export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositi
           }
         }
         break
-      case RPCChatTypes.UIWatchPositionPerm.always: {
+      case T.RPCChat.UIWatchPositionPerm.always: {
         const iosBGPerms = await ExpoLocation.requestBackgroundPermissionsAsync()
         if (iosBGPerms.status !== ExpoLocation.PermissionStatus.GRANTED) {
           throw new Error(
@@ -140,7 +138,7 @@ export const showShareActionSheet = async (options: {
 const loadStartupDetails = async () => {
   const [routeState, initialUrl, push, share] = await Promise.all([
     Container.neverThrowPromiseFunc(async () =>
-      RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'}).then(v => v.s || '')
+      T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.routeState2'}).then(v => v.s || '')
     ),
     Container.neverThrowPromiseFunc(async () => Linking.getInitialURL()),
     Container.neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
@@ -150,14 +148,14 @@ const loadStartupDetails = async () => {
 
   // Clear last value to be extra safe bad things don't hose us forever
   try {
-    await RPCTypes.configGuiSetValueRpcPromise({
+    await T.RPCGen.configGuiSetValueRpcPromise({
       path: 'ui.routeState2',
       value: {isNull: false, s: ''},
     })
   } catch (_) {}
 
   let wasFromPush = false
-  let conversation: Types.ConversationIDKey | undefined = undefined
+  let conversation: T.Chat.ConversationIDKey | undefined = undefined
   let pushPayload = ''
   let followUser = ''
   let link = ''
@@ -212,9 +210,9 @@ const loadStartupDetails = async () => {
   const {setAndroidShare} = C.useConfigState.getState().dispatch
 
   if (sharePath) {
-    setAndroidShare({type: RPCTypes.IncomingShareType.file, url: sharePath})
+    setAndroidShare({type: T.RPCGen.IncomingShareType.file, url: sharePath})
   } else if (shareText) {
-    setAndroidShare({text: shareText, type: RPCTypes.IncomingShareType.text})
+    setAndroidShare({text: shareText, type: T.RPCGen.IncomingShareType.text})
   }
 
   C.useConfigState.getState().dispatch.setStartupDetails({
@@ -229,11 +227,11 @@ const loadStartupDetails = async () => {
   afterStartupDetails(false)
 }
 
-const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) => {
+const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
   C.getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
-    actions: [RPCChatTypes.UICommandStatusActionTyp.appsettings],
+    actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
     displayText: text,
-    displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
+    displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
   })
 }
 
@@ -246,7 +244,7 @@ const onChatWatchPosition = async (action: EngineGen.Chat1ChatUiChatWatchPositio
     const error = _error as any
     logger.info('failed to get location perms: ' + error.message)
     setPermissionDeniedCommandStatus(
-      Types.conversationIDToKey(action.payload.params.convID),
+      T.Chat.conversationIDToKey(action.payload.params.convID),
       `Failed to access location. ${error.message}`
     )
   }
@@ -304,10 +302,10 @@ ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
   })
 })
 
-export const watchPositionForMap = async (conversationIDKey: Types.ConversationIDKey) => {
+export const watchPositionForMap = async (conversationIDKey: T.Chat.ConversationIDKey) => {
   try {
     logger.info('location perms check')
-    await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
+    await requestLocationPermission(T.RPCChat.UIWatchPositionPerm.base)
   } catch (_error) {
     const error = _error as any
     logger.info('failed to get location perms: ' + error.message)
@@ -356,7 +354,9 @@ export const initPlatformListener = () => {
             if (r.name == 'chatConversation') {
               param = {
                 // @ts-ignore TODO better param typing
-                selectedConversationIDKey: r.params?.conversationIDKey as Types.ConversationIDKey | undefined,
+                selectedConversationIDKey: r.params?.conversationIDKey as
+                  | T.Chat.ConversationIDKey
+                  | undefined,
               }
               return true
             }
@@ -368,7 +368,7 @@ export const initPlatformListener = () => {
         if (_lastPersist === s) {
           return
         }
-        await RPCTypes.configGuiSetValueRpcPromise({
+        await T.RPCGen.configGuiSetValueRpcPromise({
           path: 'ui.routeState2',
           value: {isNull: false, s},
         })
@@ -387,23 +387,23 @@ export const initPlatformListener = () => {
   C.useConfigState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     let appFocused: boolean
-    let logState: RPCTypes.MobileAppState
+    let logState: T.RPCGen.MobileAppState
     switch (s.mobileAppState) {
       case 'active':
         appFocused = true
-        logState = RPCTypes.MobileAppState.foreground
+        logState = T.RPCGen.MobileAppState.foreground
         break
       case 'background':
         appFocused = false
-        logState = RPCTypes.MobileAppState.background
+        logState = T.RPCGen.MobileAppState.background
         break
       case 'inactive':
         appFocused = false
-        logState = RPCTypes.MobileAppState.inactive
+        logState = T.RPCGen.MobileAppState.inactive
         break
       default:
         appFocused = false
-        logState = RPCTypes.MobileAppState.foreground
+        logState = T.RPCGen.MobileAppState.foreground
     }
 
     logger.info(`setting app state on service to: ${logState}`)
@@ -437,7 +437,7 @@ export const initPlatformListener = () => {
 
     if (isAndroid) {
       Container.ignorePromise(
-        RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
+        T.RPCChat.localConfigureFileAttachmentDownloadLocalRpcPromise({
           // Android's cache dir is (when I tried) [app]/cache but Go side uses
           // [app]/.cache by default, which can't be used for sharing to other apps.
           cacheDirOverride: fsCacheDir,
@@ -493,7 +493,7 @@ export const initPlatformListener = () => {
     if (!type) return
     const f = async () => {
       try {
-        await RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: type})
+        await T.RPCGen.appStateUpdateMobileNetStateRpcPromise({state: type})
       } catch (err) {
         console.warn('Error sending mobileNetStateUpdate', err)
       }
@@ -579,7 +579,7 @@ export const initPlatformListener = () => {
           const {params} = action.payload
           const {level, text} = params
           logger.info('keybase.1.logUi.log:', params.text.data)
-          if (level >= RPCTypes.LogLevel.error) {
+          if (level >= T.RPCGen.LogLevel.error) {
             NotifyPopup(text.data, {})
           }
           break

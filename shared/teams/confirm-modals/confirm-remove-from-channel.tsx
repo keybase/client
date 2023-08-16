@@ -1,22 +1,20 @@
+import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Types from '../../constants/types/teams'
-import * as ChatTypes from '../../constants/types/chat2'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
-import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 
 type Props = {
   members: string[]
-  conversationIDKey: ChatTypes.ConversationIDKey
-  teamID: Types.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey
+  teamID: T.Teams.TeamID
 }
 
 const ConfirmRemoveFromChannel = (props: Props) => {
   const members = props.members
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
   const conversationIDKey = props.conversationIDKey ?? C.noConversationIDKey
 
   const [waiting, setWaiting] = React.useState(false)
@@ -29,13 +27,13 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 
   const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
   const channelSetMemberSelected = C.useTeamsState(s => s.dispatch.channelSetMemberSelected)
-  const removeFromChannel = Container.useRPC(RPCChatGen.localRemoveFromConversationLocalRpcPromise)
+  const removeFromChannel = Container.useRPC(T.RPCChat.localRemoveFromConversationLocalRpcPromise)
 
   const onRemove = () => {
     setWaiting(true)
     setTimeout(() => setWaiting(false), 1000)
     removeFromChannel(
-      [{convID: ChatTypes.keyToConversationID(conversationIDKey), usernames: members}],
+      [{convID: T.Chat.keyToConversationID(conversationIDKey), usernames: members}],
       _ => {
         setWaiting(false)
         channelSetMemberSelected(conversationIDKey, '', false, true)

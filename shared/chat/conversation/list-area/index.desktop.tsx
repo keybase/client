@@ -3,7 +3,7 @@ import * as Container from '../../../util/container'
 import * as Hooks from './hooks'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import * as Types from '../../../constants/types/chat2'
+import * as T from '../../../constants/types'
 import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
@@ -132,9 +132,9 @@ const useResizeObserver = () => {
 const useScrolling = (
   p: Pick<Props, 'requestScrollUpRef' | 'requestScrollToBottomRef' | 'requestScrollDownRef'> & {
     containsLatestMessage: boolean
-    messageOrdinals: Array<Types.Ordinal>
+    messageOrdinals: Array<T.Chat.Ordinal>
     listRef: React.MutableRefObject<HTMLDivElement | null>
-    centeredOrdinal: Types.Ordinal | undefined
+    centeredOrdinal: T.Chat.Ordinal | undefined
   }
 ) => {
   const conversationIDKey = C.useChatContext(s => s.id)
@@ -149,7 +149,7 @@ const useScrolling = (
     200
   )
   const conversationIDKeyChanged = C.useCIDChanged(conversationIDKey)
-  const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
+  const lastLoadOrdinal = React.useRef<T.Chat.Ordinal>(-1)
   if (conversationIDKeyChanged) {
     lastLoadOrdinal.current = -1
   }
@@ -385,7 +385,7 @@ const useScrolling = (
     const waypoints = listRef.current?.querySelectorAll('[data-key]')
     if (!waypoints) return
     // find an id that should be our parent
-    const toFind = Math.floor(Types.ordinalToNumber(editingOrdinal) / 10)
+    const toFind = Math.floor(T.Chat.ordinalToNumber(editingOrdinal) / 10)
     const allWaypoints = Array.from(waypoints) as Array<HTMLElement>
     const found = findLast(allWaypoints, w => {
       const key = w.dataset['key']
@@ -405,18 +405,18 @@ const useScrolling = (
 }
 
 const useItems = (p: {
-  messageOrdinals: Array<Types.Ordinal>
-  centeredOrdinal: Types.Ordinal | undefined
-  editingOrdinal: Types.Ordinal | undefined
+  messageOrdinals: Array<T.Chat.Ordinal>
+  centeredOrdinal: T.Chat.Ordinal | undefined
+  editingOrdinal: T.Chat.Ordinal | undefined
   resizeObserve: ReturnType<typeof useResizeObserver>
   intersectionObserve: ReturnType<typeof useIntersectionObserver>
-  messageTypeMap: Map<Types.Ordinal, Types.RenderMessageType> | undefined
+  messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> | undefined
 }) => {
   const {messageOrdinals, centeredOrdinal, editingOrdinal} = p
   const {resizeObserve, intersectionObserve, messageTypeMap} = p
   const ordinalsInAWaypoint = 10
   const rowRenderer = React.useCallback(
-    (ordinal: Types.Ordinal, previous?: Types.Ordinal) => {
+    (ordinal: T.Chat.Ordinal, previous?: T.Chat.Ordinal) => {
       const type = messageTypeMap?.get(ordinal) ?? 'text'
       if (!type) return null
       const Clazz = getMessageRender(type)
@@ -445,8 +445,8 @@ const useItems = (p: {
     const items: Array<React.ReactNode> = [<SpecialTopMessage key="specialTop" />]
 
     const numOrdinals = messageOrdinals.length
-    let ordinals: Array<Types.Ordinal> = []
-    let previous: undefined | Types.Ordinal
+    let ordinals: Array<T.Chat.Ordinal> = []
+    let previous: undefined | T.Chat.Ordinal
     let lastBucket: number | undefined
     let baseIndex = 0 // this is used to de-dupe the waypoint around the centered ordinal
     messageOrdinals.forEach((ordinal, idx) => {
@@ -454,7 +454,7 @@ const useItems = (p: {
       const isCenteredOrdinal = ordinal === centeredOrdinal
 
       // We want to keep the mapping of ordinal to bucket fixed always
-      const bucket = Math.floor(Types.ordinalToNumber(ordinal) / ordinalsInAWaypoint)
+      const bucket = Math.floor(T.Chat.ordinalToNumber(ordinal) / ordinalsInAWaypoint)
       if (lastBucket === undefined) {
         lastBucket = bucket
       }
@@ -623,9 +623,9 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
 
 type OrdinalWaypointProps = {
   id: string
-  rowRenderer: (ordinal: Types.Ordinal, previous?: Types.Ordinal) => React.ReactNode
-  ordinals: Array<Types.Ordinal>
-  previous?: Types.Ordinal
+  rowRenderer: (ordinal: T.Chat.Ordinal, previous?: T.Chat.Ordinal) => React.ReactNode
+  ordinals: Array<T.Chat.Ordinal>
+  previous?: T.Chat.Ordinal
   resizeObserve: ReturnType<typeof useResizeObserver>
   intersectionObserve: ReturnType<typeof useIntersectionObserver>
 }
@@ -643,7 +643,7 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
   const {ordinals, id, rowRenderer, previous, resizeObserve, intersectionObserve} = p
   const heightRef = React.useRef<number | undefined>()
   const widthRef = React.useRef<number | undefined>()
-  const heightForOrdinalsRef = React.useRef<Array<Types.Ordinal> | undefined>()
+  const heightForOrdinalsRef = React.useRef<Array<T.Chat.Ordinal> | undefined>()
   const [isVisible, setVisible] = React.useState(true)
   const [, setForce] = React.useState(0)
   const customForceUpdate = React.useCallback(() => {
@@ -694,7 +694,7 @@ const OrdinalWaypointInner = (p: OrdinalWaypointProps) => {
   }, [])
 
   // Cache rendered children if the ordinals are the same, else we'll thrash a lot as we scroll up and down
-  const lastVisibleChildrenOrdinalsRef = React.useRef(new Array<Types.Ordinal>())
+  const lastVisibleChildrenOrdinalsRef = React.useRef(new Array<T.Chat.Ordinal>())
   const lastVisibleChildrenRef = React.useRef<React.ReactElement | null>(null)
 
   if (ordinals !== heightForOrdinalsRef.current) {

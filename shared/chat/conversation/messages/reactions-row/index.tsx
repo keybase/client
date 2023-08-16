@@ -5,11 +5,11 @@ import * as Styles from '../../../../styles'
 import EmojiRow from '../emoji-row/container'
 import ReactButton from '../react-button/container'
 import ReactionTooltip from '../reaction-tooltip'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import {OrdinalContext} from '../ids-context'
 
 // Get array of emoji names in the order of their earliest reaction
-const getOrderedReactions = (reactions?: Types.Reactions) => {
+const getOrderedReactions = (reactions?: T.Chat.Reactions) => {
   if (!reactions) {
     return []
   }
@@ -57,7 +57,7 @@ const ReactionsRowContainer = React.memo(function ReactonsRowContainer() {
 export type Props = {
   activeEmoji: string
   emojis: Array<string>
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
   setActiveEmoji: (s: string) => void
   setHideMobileTooltip: () => void
   setShowMobileTooltip: () => void

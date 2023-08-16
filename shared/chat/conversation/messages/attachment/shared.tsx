@@ -5,12 +5,12 @@ import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import shallowEqual from 'shallowequal'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import {OrdinalContext} from '../ids-context'
 import {sharedStyles} from '../shared-styles'
 
 type Props = {
-  transferState: Types.MessageAttachmentTransferState
+  transferState: T.Chat.MessageAttachmentTransferState
 }
 
 // this is a function of how much space is taken up by the rest of the elements
@@ -48,7 +48,7 @@ export const ShowToastAfterSaving = Container.isMobile
     }
   : () => null
 
-export const Transferring = (p: {ratio: number; transferState: Types.MessageAttachmentTransferState}) => {
+export const Transferring = (p: {ratio: number; transferState: T.Chat.MessageAttachmentTransferState}) => {
   const {ratio, transferState} = p
   const isTransferring =
     transferState === 'uploading' || transferState === 'downloading' || transferState === 'mobileSaving'

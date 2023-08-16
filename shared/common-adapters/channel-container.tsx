@@ -1,12 +1,12 @@
 import * as C from '../constants'
-import type * as Types from '../constants/types/chat2'
+import type * as T from '../constants/types'
 import * as React from 'react'
 import {Channel} from './channel'
 import type {StylesTextCrossPlatform} from './text'
 
 type OwnProps = {
   name: string
-  convID: Types.ConversationIDKey
+  convID: T.Chat.ConversationIDKey
   style: StylesTextCrossPlatform
   allowFontScaling?: boolean
 }
@@ -14,7 +14,7 @@ type OwnProps = {
 export default (ownProps: OwnProps) => {
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const _onClick = React.useCallback(
-    (name: string, convID: Types.ConversationIDKey) =>
+    (name: string, convID: T.Chat.ConversationIDKey) =>
       previewConversation({
         channelname: name,
         conversationIDKey: convID,

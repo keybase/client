@@ -4,14 +4,12 @@ import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import debounce from 'lodash/debounce'
-import type * as RPCTypes from '../../../constants/types/rpc-gen'
-import type * as TeamsTypes from '../../../constants/types/teams'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import {Bot} from '../info-panel/bot'
 
 type Props = {
-  conversationIDKey?: Types.ConversationIDKey
-  teamID?: TeamsTypes.TeamID
+  conversationIDKey?: T.Chat.ConversationIDKey
+  teamID?: T.Teams.TeamID
 }
 
 const renderSectionHeader = ({section}: any) => {
@@ -58,7 +56,7 @@ const SearchBotPopup = (props: Props) => {
     getFeaturedBots()
   })
 
-  const botData: Array<RPCTypes.FeaturedBot | string> =
+  const botData: Array<T.RPCGen.FeaturedBot | string> =
     lastQuery.length > 0
       ? botSearchResults?.get(lastQuery)?.bots.slice() ?? []
       : C.getFeaturedSorted(featuredBotsMap)
@@ -67,7 +65,7 @@ const SearchBotPopup = (props: Props) => {
   }
   const botSection = {
     data: botData,
-    renderItem: ({index, item}: {index: number; item: RPCTypes.FeaturedBot | string}) => {
+    renderItem: ({index, item}: {index: number; item: T.RPCGen.FeaturedBot | string}) => {
       return item === resultEmptyPlaceholder ? (
         <Kb.Text
           style={{...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)}}

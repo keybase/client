@@ -1,14 +1,14 @@
 import * as C from '../../../constants'
 import * as React from 'react'
 import * as TeamConstants from '../../../constants/teams'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import {InfoPanel, type Panel} from '.'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey // for page
+  conversationIDKey: T.Chat.ConversationIDKey // for page
   navigation?: any
 } & Partial<{
-  conversationIDKey: Types.ConversationIDKey // for page
+  conversationIDKey: T.Chat.ConversationIDKey // for page
   tab?: 'settings' | 'members' | 'attachments' | 'bots'
 }>
 

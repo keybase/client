@@ -2,13 +2,12 @@ import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
 import MembersList from './members'
 import BotsList from './bot'
 import AttachmentsList from './attachments'
-import type {MaybeTeamRoleType} from 'constants/types/teams'
 import * as TeamConstants from '../../../constants/teams'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
 import type {Tab as TabType} from '../../../common-adapters/tabs'
@@ -22,7 +21,7 @@ type InfoPanelProps = {
   selectedTab: Panel
   smallTeam: boolean
   teamname?: string
-  yourRole: MaybeTeamRoleType
+  yourRole: T.Teams.MaybeTeamRoleType
 }
 
 export const InfoPanel = (p: InfoPanelProps) => {
@@ -31,7 +30,7 @@ export const InfoPanel = (p: InfoPanelProps) => {
 }
 
 export class _InfoPanel extends React.PureComponent<
-  InfoPanelProps & {conversationIDKey: Types.ConversationIDKey}
+  InfoPanelProps & {conversationIDKey: T.Chat.ConversationIDKey}
 > {
   private getTabs = (): Array<TabType<Panel>> => {
     const showSettings =

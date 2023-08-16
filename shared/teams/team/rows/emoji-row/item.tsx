@@ -1,23 +1,21 @@
 import * as C from '../../../../constants'
+import * as T from '../../../../constants/types'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import * as ChatTypes from '../../../../constants/types/chat2'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/teams'
 import * as Kb from '../../../../common-adapters'
 import * as dateFns from 'date-fns'
-import type * as TeamTypes from '../../../../constants/types/teams'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../../../util/emoji'
 import useRPC from '../../../../util/use-rpc'
 import EmojiMenu from './emoji-menu'
 import {useEmojiState} from '../../../emojis/use-emoji'
 
 type OwnProps = {
-  conversationIDKey: ChatTypes.ConversationIDKey
-  emoji: RPCChatTypes.Emoji
+  conversationIDKey: T.Chat.ConversationIDKey
+  emoji: T.RPCChat.Emoji
   firstItem: boolean
-  teamID: TeamTypes.TeamID
+  teamID: T.Teams.TeamID
 }
 
 const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
@@ -33,11 +31,11 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
       selected: 'teamAddEmojiAlias',
     })
   })
-  const isStockAlias = emoji.remoteSource.typ === RPCChatTypes.EmojiRemoteSourceTyp.stockalias
+  const isStockAlias = emoji.remoteSource.typ === T.RPCChat.EmojiRemoteSourceTyp.stockalias
   const doAddAlias = !isStockAlias && canManageEmoji ? onAddAlias : undefined
 
   const refreshEmoji = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
-  const removeRpc = useRPC(RPCChatTypes.localRemoveEmojiRpcPromise)
+  const removeRpc = useRPC(T.RPCChat.localRemoveEmojiRpcPromise)
   const doRemove = React.useMemo(
     () =>
       canRemove
@@ -46,7 +44,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
               [
                 {
                   alias: emojiData.short_name,
-                  convID: ChatTypes.keyToConversationID(conversationIDKey),
+                  convID: T.Chat.keyToConversationID(conversationIDKey),
                 },
               ],
               () => refreshEmoji(),

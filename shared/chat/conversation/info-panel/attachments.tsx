@@ -6,7 +6,7 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import chunk from 'lodash/chunk'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import type {Section} from '../../../common-adapters/section-list'
 import {formatAudioRecordDuration, formatTimeForMessages} from '../../../util/timestamp'
 import {infoPanelWidth} from './common'
@@ -49,7 +49,7 @@ type Doc = {
   ctime: number
   downloading: boolean
   fileName: string
-  message?: Types.Message
+  message?: T.Chat.Message
   name: string
   progress: number
   onDownload?: () => void
@@ -383,7 +383,7 @@ type Props = {
   commonSections: Array<Section<{key: string}, {title?: string}>>
 }
 
-const getFromMsgID = (info: Types.AttachmentViewInfo): Types.MessageID | undefined => {
+const getFromMsgID = (info: T.Chat.AttachmentViewInfo): T.Chat.MessageID | undefined => {
   if (info.last || info.status !== 'success') {
     return undefined
   }
@@ -429,12 +429,12 @@ export const useAttachmentSections = (
   }
 
   const attachmentPreviewSelect = C.useChatContext(s => s.dispatch.attachmentPreviewSelect)
-  const onMediaClick = (message: Types.MessageAttachment) => attachmentPreviewSelect(message.id)
+  const onMediaClick = (message: T.Chat.MessageAttachment) => attachmentPreviewSelect(message.id)
 
   const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
   const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
 
-  const onDocDownload = (message: Types.MessageAttachment) => {
+  const onDocDownload = (message: T.Chat.MessageAttachment) => {
     if (Styles.isMobile) {
       messageAttachmentNativeShare(message)
     } else {
@@ -447,7 +447,7 @@ export const useAttachmentSections = (
   const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
-  const onShowInFinder = (message: Types.MessageAttachment) =>
+  const onShowInFinder = (message: T.Chat.MessageAttachment) =>
     message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
 
   const commonSections: Array<InfoPanelSection> = [
@@ -515,7 +515,7 @@ export const useAttachmentSections = (
           const rowSize = 4 // count of images in each row
           const maxMediaThumbSize = infoPanelWidth() / rowSize
           const s = formMonths(
-            (attachmentInfo.messages as Array<Types.MessageAttachment>).map(
+            (attachmentInfo.messages as Array<T.Chat.MessageAttachment>).map(
               m =>
                 ({
                   audioDuration: m.audioDuration,
@@ -568,7 +568,7 @@ export const useAttachmentSections = (
         break
       case RPCChatTypes.GalleryItemTyp.doc:
         {
-          const docs = (attachmentInfo.messages as Array<Types.MessageAttachment>).map(m => ({
+          const docs = (attachmentInfo.messages as Array<T.Chat.MessageAttachment>).map(m => ({
             author: m.author,
             ctime: m.timestamp,
             downloading: m.transferState === 'downloading',

@@ -1,23 +1,22 @@
 import * as C from '../../../constants'
-import type * as ChatTypes from '../../../constants/types/chat2'
+import * as T from '../../../constants/types'
 import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import * as Types from '../../../constants/types/teams'
 import {ModalTitle} from '../../common'
 import {useEditState} from './use-edit'
 
 type Props = {
   channelname: string
   description: string
-  teamID: Types.TeamID
-  conversationIDKey: ChatTypes.ConversationIDKey
+  teamID: T.Teams.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey
 }
 
 const EditChannel = (props: Props) => {
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
   const conversationIDKey = props.conversationIDKey
   const oldName = props.channelname
   const oldDescription = props.description

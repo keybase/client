@@ -1,11 +1,11 @@
 import * as React from 'react'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
 
 type Props = {
-  message: Types.MessageSystemText
+  message: T.Chat.MessageSystemText
 }
 
 class SystemText extends React.PureComponent<Props> {
@@ -27,7 +27,7 @@ const styles = Styles.styleSheetCreate(
       text: Styles.platformStyles({
         isElectron: {wordBreak: 'break-word'} as const,
       }),
-    } as const)
+    }) as const
 )
 
 export default SystemText

@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as React from 'react'
 import PinnedMessage from '.'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import {getCanPerform} from '../../../constants/teams'
 
 const PinnedMessageContainer = React.memo(function PinnedMessageContainer() {
@@ -29,7 +29,7 @@ const PinnedMessageContainer = React.memo(function PinnedMessageContainer() {
   }
 
   const canAdminDelete = !!yourOperations?.deleteOtherMessages
-  const attachment: Types.MessageAttachment | undefined =
+  const attachment: T.Chat.MessageAttachment | undefined =
     message.type === 'attachment' && message.attachmentType === 'image' ? message : undefined
   const pinnerUsername = pinnedMsg.pinnerUsername
   const author = message.author

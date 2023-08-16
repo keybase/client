@@ -2,12 +2,11 @@ import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import type * as Types from '../../../../constants/types/chat2'
+import * as T from '../../../../constants/types'
 import LocationMap from '../../../location-map'
 import {watchPositionForMap} from '../../../../constants/platform-specific'
 
-type Props = {conversationIDKey: Types.ConversationIDKey}
+type Props = {conversationIDKey: T.Chat.ConversationIDKey}
 
 const LocationPopup = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? C.noConversationIDKey
@@ -15,7 +14,7 @@ const LocationPopup = (props: Props) => {
   const httpSrv = C.useConfigState(s => s.httpSrv)
   const location = C.useChatState(s => s.lastCoord)
   const locationDenied = C.useChatContext(
-    s => s.commandStatus?.displayType == RPCChatTypes.UICommandStatusDisplayTyp.error
+    s => s.commandStatus?.displayType == T.RPCChat.UICommandStatusDisplayTyp.error
   )
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)

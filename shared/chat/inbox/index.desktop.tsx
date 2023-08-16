@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
-import type * as T from './index.d'
-import type * as Types from '../../constants/types/chat2'
+import type * as TInbox from './index.d'
+import type * as T from '../../constants/types'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
@@ -48,7 +48,7 @@ const FakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={styles.fake
 
 const dragKey = '__keybase_inbox'
 
-class Inbox extends React.Component<T.Props, State> {
+class Inbox extends React.Component<TInbox.Props, State> {
   state = {
     dragY: -1,
     showFloating: false,
@@ -66,7 +66,7 @@ class Inbox extends React.Component<T.Props, State> {
   private lastVisibleIdx: number = -1
   private scrollDiv = React.createRef<HTMLDivElement>()
 
-  shouldComponentUpdate(nextProps: T.Props, nextState: State) {
+  shouldComponentUpdate(nextProps: TInbox.Props, nextState: State) {
     let listRowsResized = false
     if (nextProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
       listRowsResized = true
@@ -85,7 +85,7 @@ class Inbox extends React.Component<T.Props, State> {
     return !shallowEqual(this.props, nextProps) || !shallowEqual(this.state, nextState)
   }
 
-  componentDidUpdate(prevProps: T.Props) {
+  componentDidUpdate(prevProps: TInbox.Props) {
     // list changed
     if (this.props.rows.length !== prevProps.rows.length) {
       this.calculateShowFloating()
@@ -269,7 +269,7 @@ class Inbox extends React.Component<T.Props, State> {
     }
     const toUnbox = this.props.rows
       .slice(visibleStartIndex, visibleStopIndex + 1)
-      .reduce<Array<Types.ConversationIDKey>>((arr, r) => {
+      .reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
         if (r.type === 'small' && r.conversationIDKey) {
           arr.push(r.conversationIDKey)
         }
@@ -493,7 +493,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         width: '100%',
       },
-    } as const)
+    }) as const
 )
 
 export default Inbox

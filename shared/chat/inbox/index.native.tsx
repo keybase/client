@@ -13,13 +13,13 @@ import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import debounce from 'lodash/debounce'
 import shallowEqual from 'shallowequal'
-import type * as T from './index.d'
-import type * as Types from '../../constants/types/chat2'
+import type * as TInbox from './index.d'
+import type * as T from '../../constants/types'
 import {type ViewToken, FlatList} from 'react-native'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {makeRow} from './row'
 
-type RowItem = Types.ChatInboxRowItem
+type RowItem = T.Chat.ChatInboxRowItem
 
 const usingFlashList = false
 const List = /*usingFlashList ? FlashList :*/ FlatList
@@ -55,7 +55,7 @@ type State = {
   unreadCount: number
 }
 
-class Inbox extends React.PureComponent<T.Props, State> {
+class Inbox extends React.PureComponent<TInbox.Props, State> {
   // used to close other rows
   private swipeCloseRef = React.createRef<() => void>()
   private listRef = React.createRef</*FlashList<RowItem> | */ FlatList<RowItem>>()
@@ -71,7 +71,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     this.swipeCloseRef.current = null
   }
 
-  componentDidUpdate(prevProps: T.Props) {
+  componentDidUpdate(prevProps: TInbox.Props) {
     if (
       !shallowEqual(prevProps.unreadIndices, this.props.unreadIndices) ||
       prevProps.unreadTotal !== this.props.unreadTotal
@@ -123,7 +123,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 
   private askForUnboxing = (rows: Array<RowItem>) => {
-    const toUnbox = rows.reduce<Array<Types.ConversationIDKey>>((arr, r) => {
+    const toUnbox = rows.reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
       if (r.type === 'small' && r.conversationIDKey) {
         arr.push(r.conversationIDKey)
       }

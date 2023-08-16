@@ -1,9 +1,9 @@
 import * as React from 'react'
 import type TeamJourneyType from './container'
-import type * as Types from '../../../../../constants/types/chat2'
+import type * as T from '../../../../../constants/types'
 
 type Props = {
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
 }
 const WrapperJourneyCard = React.memo(function WrapperJourneyCard(p: Props) {
   const {ordinal} = p

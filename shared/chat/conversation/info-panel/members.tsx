@@ -4,8 +4,7 @@ import * as TeamConstants from '../../../constants/teams'
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Types from '../../../constants/types/chat2'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as T from '../../../constants/types'
 import Participant from './participant'
 import * as Styles from '../../../styles'
 import shallowEqual from 'shallowequal'
@@ -30,7 +29,7 @@ const MembersTab = (props: Props) => {
   const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && !teamMembers
-  const refreshParticipants = Container.useRPC(RPCChatTypes.localRefreshParticipantsRpcPromise)
+  const refreshParticipants = Container.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
   const participantInfo = C.useChatContext(s => s.participants)
   const participants = C.useChatContext(
     s => Constants.getBotsAndParticipants(s.meta, s.participants).participants
@@ -41,7 +40,7 @@ const MembersTab = (props: Props) => {
     setLastTeamName(teamname)
     if (teamname) {
       refreshParticipants(
-        [{convID: Types.keyToConversationID(conversationIDKey)}],
+        [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
         () => {},
         () => {}
       )

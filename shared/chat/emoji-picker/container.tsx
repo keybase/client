@@ -4,8 +4,7 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import type {LayoutEvent} from './../../common-adapters/box'
 import * as Constants from './../../constants/chat2'
-import * as Types from './../../constants/types/chat2'
-import * as TeamsTypes from './../../constants/types/teams'
+import * as T from './../../constants/types'
 import * as Teams from './../../constants/teams'
 import * as Styles from './../../styles'
 import * as Data from './../../util/emoji'
@@ -29,17 +28,17 @@ type Props = {
   small?: boolean
   onlyTeamCustomEmoji?: boolean
   onDidPick?: () => void
-  onPickAddToMessageOrdinal?: Types.Ordinal
+  onPickAddToMessageOrdinal?: T.Chat.Ordinal
   onPickAction?: (emoji: string, renderableEmoji: RenderableEmoji) => void
 }
 
 type RoutableProps = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   small?: boolean
   hideFrequentEmoji?: boolean
   onlyTeamCustomEmoji?: boolean
   pickKey: PickKey
-  onPickAddToMessageOrdinal?: Types.Ordinal
+  onPickAddToMessageOrdinal?: T.Chat.Ordinal
 }
 
 const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
@@ -66,14 +65,14 @@ const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) 
 }
 
 const useSkinTone = () => {
-  const currentSkinTone = Types.EmojiSkinToneFromRPC(C.useChatState(s => s.userReacjis.skinTone))
+  const currentSkinTone = T.Chat.EmojiSkinToneFromRPC(C.useChatState(s => s.userReacjis.skinTone))
   const rpc = useRPC(RPCChatGen.localPutReacjiSkinToneRpcPromise)
   const updateUserReacjis = C.useChatState(s => s.dispatch.updateUserReacjis)
-  const setSkinTone = (emojiSkinTone: undefined | Types.EmojiSkinTone) => {
+  const setSkinTone = (emojiSkinTone: undefined | T.Chat.EmojiSkinTone) => {
     rpc(
       [
         {
-          skinTone: Types.EmojiSkinToneToRPC(emojiSkinTone),
+          skinTone: T.Chat.EmojiSkinToneToRPC(emojiSkinTone),
         },
       ],
       res => updateUserReacjis(res),
@@ -132,7 +131,7 @@ const WrapperMobile = (props: Props) => {
   const addEmoji = React.useCallback(
     () =>
       navigateAppend(conversationIDKey => ({
-        props: {conversationIDKey, teamID: TeamsTypes.noTeamID},
+        props: {conversationIDKey, teamID: T.Teams.noTeamID},
         selected: 'teamAddEmoji',
       })),
     [navigateAppend]
@@ -202,7 +201,7 @@ export const EmojiPickerDesktop = (props: Props) => {
   const addEmoji = () => {
     props.onDidPick?.()
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, teamID: TeamsTypes.noTeamID},
+      props: {conversationIDKey, teamID: T.Teams.noTeamID},
       selected: 'teamAddEmoji',
     }))
   }

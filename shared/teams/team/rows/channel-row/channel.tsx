@@ -4,14 +4,13 @@ import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import type * as ChatTypes from '../../../../constants/types/chat2'
-import type * as Types from '../../../../constants/types/teams'
+import type * as T from '../../../../constants/types'
 import {Activity, useChannelParticipants} from '../../../common'
 import {pluralize} from '../../../../util/string'
 
 type ChannelRowProps = {
-  conversationIDKey: ChatTypes.ConversationIDKey
-  teamID: Types.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey
+  teamID: T.Teams.TeamID
 }
 const ChannelRow = (props: ChannelRowProps) => {
   const {conversationIDKey, teamID} = props

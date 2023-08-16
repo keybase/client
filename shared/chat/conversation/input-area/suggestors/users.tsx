@@ -1,11 +1,10 @@
 import * as C from '../../../../constants'
+import * as T from '../../../../constants/types'
 import * as Common from './common'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import type * as Types from '../../../../constants/types/chat2'
 
 export const transformer = (
   input: {
@@ -125,10 +124,10 @@ const filterAndJoin = (
   return teamNames ? teamNames : filterUsersAndTeams(users, teams, allChannels, filter)
 }
 
-const getTeams = (layout?: RPCChatTypes.UIInboxLayout) => {
+const getTeams = (layout?: T.RPCChat.UIInboxLayout) => {
   const bigTeams =
     layout?.bigTeams?.reduce<Array<string>>((arr, l) => {
-      l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label && arr.push(l.label.name)
+      l.state === T.RPCChat.UIInboxBigTeamRowTyp.label && arr.push(l.label.name)
       return arr
     }, []) ?? []
   const smallTeams =
@@ -168,7 +167,7 @@ const useDataTeams = () => {
   const allChannels = React.useMemo(
     () =>
       inboxLayout?.bigTeams?.reduce<Array<TeamListItem>>((arr, t) => {
-        if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+        if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {
           arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
         }
         return arr
@@ -206,7 +205,7 @@ type ListProps = Pick<
   Common.ListProps<ListItem>,
   'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   filter: string
   onSelected: (item: ListItem, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>

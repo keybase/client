@@ -3,7 +3,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
+import * as T from '../../../../constants/types'
 import {WrapperMessage, type Props} from '../wrapper/wrapper'
 import {ForceListRedrawContext} from '../../force-list-redraw-context'
 import {useChatDebugDump} from '../../../../constants/chat2/debug'
@@ -15,7 +15,7 @@ const mult = Styles.isMobile ? 5 : 10
 
 const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
   const {ordinal} = p
-  const o = Types.ordinalToNumber(ordinal)
+  const o = T.Chat.ordinalToNumber(ordinal)
   const code = o * 16807
   const width = baseWidth + (code % 20) * mult // pseudo randomize the length
   const noAnchor = React.useRef(null)

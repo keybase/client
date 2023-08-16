@@ -1,18 +1,16 @@
 import * as React from 'react'
-import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import type * as Types from '../../../../constants/types/chat2'
-import type * as TeamTypes from '../../../../constants/types/teams'
+import type * as T from '../../../../constants/types'
 import type {PlainInput} from '../../../../common-adapters'
 
 type Props = {
   cannotWrite: boolean
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   explodingModeSeconds: number
   hintText: string
   inputSetRef: React.MutableRefObject<PlainInput | null>
   isEditing: boolean
   isExploding: boolean
-  minWriterRole: TeamTypes.TeamRoleType
+  minWriterRole: T.Teams.TeamRoleType
   onCancelEditing: () => void
   onChangeText: (newText: string) => void
   onRequestScrollDown: () => void
@@ -20,7 +18,7 @@ type Props = {
   onSubmit: (text: string) => void
   showReplyPreview: boolean
   showTypingStatus: boolean
-  suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
+  suggestBotCommandsUpdateStatus: T.RPCChat.UIBotCommandsUpdateStatusTyp
   suggestionOverlayStyle: unknown
 }
 

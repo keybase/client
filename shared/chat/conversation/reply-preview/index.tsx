@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 
 const ReplyPreview = () => {
   const rordinal = C.useChatContext(s => s.replyTo)
@@ -22,7 +22,7 @@ const ReplyPreview = () => {
       default:
     }
   }
-  let attachment: Types.MessageAttachment | undefined
+  let attachment: T.Chat.MessageAttachment | undefined
   if (message && message.type === 'attachment') {
     if (message.attachmentType === 'image') {
       attachment = message

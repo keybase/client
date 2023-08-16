@@ -1,23 +1,22 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import type * as TeamTypes from '../../../constants/types/teams'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import {memoize} from '../../../util/memoize'
 import {makeInsertMatcher} from '../../../util/string'
 
 type Props = {
-  channelMetas: Map<Types.ConversationIDKey, Types.ConversationMeta>
+  channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
   installInConvs: string[]
   setChannelPickerScreen: (show: boolean) => void
   setInstallInConvs: (convs: string[]) => void
   setDisableDone: (disable: boolean) => void
-  teamID: TeamTypes.TeamID
+  teamID: T.Teams.TeamID
   teamName: string
 }
 
 const getChannels = memoize(
-  (channelMetas: Map<Types.ConversationIDKey, Types.ConversationMeta>, searchText: string) => {
+  (channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>, searchText: string) => {
     const matcher = makeInsertMatcher(searchText)
     const regex = new RegExp(searchText, 'i')
     return [...channelMetas.values()]
@@ -176,7 +175,7 @@ const styles = Styles.styleSheetCreate(
           marginRight: Styles.globalMargins.small,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default ChannelPicker

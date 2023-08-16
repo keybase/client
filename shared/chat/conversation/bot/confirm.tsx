@@ -1,14 +1,13 @@
 import * as Kb from '../../../common-adapters'
 import * as Constants from '../../../constants/chat2'
 import * as C from '../../../constants'
-import type * as Types from '../../../constants/types/chat2'
-import type * as TeamsTypes from '../../../constants/types/teams'
+import type * as T from '../../../constants/types'
 import {useBotConversationIDKey} from './install'
 
 type LoaderProps = {
   botUsername: string
-  conversationIDKey?: Types.ConversationIDKey
-  teamID?: TeamsTypes.TeamID
+  conversationIDKey?: T.Chat.ConversationIDKey
+  teamID?: T.Teams.TeamID
 }
 
 const ConfirmBotRemoveLoader = (props: LoaderProps) => {
@@ -21,7 +20,7 @@ const ConfirmBotRemoveLoader = (props: LoaderProps) => {
 
 type Props = {
   botUsername: string
-  conversationIDKey?: Types.ConversationIDKey
+  conversationIDKey?: T.Chat.ConversationIDKey
 }
 
 const ConfirmBotRemove = (props: Props) => {

@@ -2,7 +2,7 @@ import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import ThreadSearch from '.'
 import type * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 
 type OwnProps = {
   style?: Styles.StylesCrossPlatform
@@ -16,7 +16,7 @@ export default (ownProps: OwnProps) => {
   const status = info.status
   const initialText = C.useChatContext(s => s.threadSearchQuery)
   const loadMessagesCentered = C.useChatContext(s => s.dispatch.loadMessagesCentered)
-  const _loadSearchHit = (messageID: Types.MessageID) => {
+  const _loadSearchHit = (messageID: T.Chat.MessageID) => {
     loadMessagesCentered(messageID, 'always')
   }
   const setThreadSearchQuery = C.useChatContext(s => s.dispatch.setThreadSearchQuery)

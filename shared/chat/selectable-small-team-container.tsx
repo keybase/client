@@ -1,10 +1,10 @@
 import * as C from '../constants'
 import * as Constants from '../constants/chat2'
-import type * as Types from '../constants/types/chat2'
+import type * as T from '../constants/types'
 import SelectableSmallTeam from './selectable-small-team'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   filter?: string
   name: string
   numSearchHits?: number

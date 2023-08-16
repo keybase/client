@@ -2,10 +2,10 @@ import * as C from '../../../../constants'
 import * as React from 'react'
 import * as TeamConstants from '../../../../constants/teams'
 import SystemCreateTeam from '.'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 
 type OwnProps = {
-  message: Types.MessageSystemCreateTeam
+  message: T.Chat.MessageSystemCreateTeam
 }
 
 const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(p: OwnProps) {

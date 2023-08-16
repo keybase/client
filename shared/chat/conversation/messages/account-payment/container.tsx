@@ -2,8 +2,7 @@ import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import * as Styles from '../../../../styles'
 import AccountPayment from '.'
-import type * as Types from '../../../../constants/types/chat2'
-import type * as WalletTypes from '../../../../constants/types/wallets'
+import type * as T from '../../../../constants/types'
 
 // Props for rendering the loading indicator
 const loadingProps = {
@@ -32,7 +31,7 @@ const failedProps = {
 }
 
 // Get action phrase for sendPayment msg
-const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender: boolean) => {
+const makeSendPaymentVerb = (status: T.Wallets.StatusSimplified, youAreSender: boolean) => {
   switch (status) {
     case 'pending':
       return 'sending'
@@ -47,12 +46,12 @@ const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender:
 }
 
 type OwnProps = {
-  message: Types.MessageSendPayment | Types.MessageRequestPayment
+  message: T.Chat.MessageSendPayment | T.Chat.MessageRequestPayment
 }
 
 const getRequestMessageInfo = (
   accountsInfoMap: Constants.ConvoState['accountsInfoMap'],
-  message: Types.MessageRequestPayment
+  message: T.Chat.MessageRequestPayment
 ) => {
   const maybeRequestInfo = accountsInfoMap.get(message.id)
   if (!maybeRequestInfo) {

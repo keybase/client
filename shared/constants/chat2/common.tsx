@@ -1,8 +1,7 @@
 import * as C from '..'
-import * as RPCChatTypes from '../types/rpc-chat-gen'
+import * as T from '../types'
 import {isMobile, isTablet} from '../platform'
 import * as Router2 from '../router2'
-import * as Types from '../types/chat2'
 import {conversationIDKeyToString} from '../types/chat2/common'
 
 export const waitingKeyJoinConversation = 'chat:joinConversation'
@@ -19,73 +18,74 @@ export const waitingKeyInboxSyncStarted = 'chat:inboxSyncStarted'
 export const waitingKeyBotAdd = 'chat:botAdd'
 export const waitingKeyBotRemove = 'chat:botRemove'
 export const waitingKeyLoadingEmoji = 'chat:loadingEmoji'
-export const waitingKeyPushLoad = (conversationIDKey: Types.ConversationIDKey) =>
+export const waitingKeyPushLoad = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:pushLoad:${conversationIDKeyToString(conversationIDKey)}`
-export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey) =>
+export const waitingKeyThreadLoad = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyAddUsersToChannel = 'chat:addUsersToConversation'
-export const waitingKeyAddUserToChannel = (username: string, conversationIDKey: Types.ConversationIDKey) =>
+export const waitingKeyAddUserToChannel = (username: string, conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:addUserToConversation:${username}:${conversationIDKey}`
-export const waitingKeyConvStatusChange = (conversationIDKey: Types.ConversationIDKey) =>
+export const waitingKeyConvStatusChange = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
-export const waitingKeyUnpin = (conversationIDKey: Types.ConversationIDKey) =>
+export const waitingKeyUnpin = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:unpin:${conversationIDKeyToString(conversationIDKey)}`
-export const waitingKeyMutualTeams = (conversationIDKey: Types.ConversationIDKey) =>
+export const waitingKeyMutualTeams = (conversationIDKey: T.Chat.ConversationIDKey) =>
   `chat:mutualTeams:${conversationIDKeyToString(conversationIDKey)}`
 
 export const explodingModeGregorKeyPrefix = 'exploding:'
 
-export const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType).reduce<
-  Array<RPCChatTypes.MessageType>
->((arr, key) => {
-  switch (key) {
-    case 'none':
-    case 'edit': // daemon filters this out for us so we can ignore
-    case 'delete':
-    case 'attachmentuploaded':
-    case 'reaction':
-    case 'unfurl':
-    case 'tlfname':
-      break
-    default:
-      {
-        const val = RPCChatTypes.MessageType[key as any]
-        if (typeof val === 'number') {
-          arr.push(val)
+export const loadThreadMessageTypes = Object.keys(T.RPCChat.MessageType).reduce<Array<T.RPCChat.MessageType>>(
+  (arr, key) => {
+    switch (key) {
+      case 'none':
+      case 'edit': // daemon filters this out for us so we can ignore
+      case 'delete':
+      case 'attachmentuploaded':
+      case 'reaction':
+      case 'unfurl':
+      case 'tlfname':
+        break
+      default:
+        {
+          const val = T.RPCChat.MessageType[key as any]
+          if (typeof val === 'number') {
+            arr.push(val)
+          }
         }
-      }
-      break
-  }
+        break
+    }
 
-  return arr
-}, [])
+    return arr
+  },
+  []
+)
 
-export const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
+export const reasonToRPCReason = (reason: string): T.RPCChat.GetThreadReason => {
   switch (reason) {
     case 'extension':
     case 'push':
-      return RPCChatTypes.GetThreadReason.push
+      return T.RPCChat.GetThreadReason.push
     case 'foregrounding':
-      return RPCChatTypes.GetThreadReason.foreground
+      return T.RPCChat.GetThreadReason.foreground
     default:
-      return RPCChatTypes.GetThreadReason.general
+      return T.RPCChat.GetThreadReason.general
   }
 }
 
-export const getSelectedConversation = (): Types.ConversationIDKey => {
+export const getSelectedConversation = (): T.Chat.ConversationIDKey => {
   const maybeVisibleScreen = Router2.getVisibleScreen()
   if (maybeVisibleScreen?.name === threadRouteName) {
     // @ts-ignore TODO better types
-    return maybeVisibleScreen.params?.conversationIDKey ?? Types.noConversationIDKey
+    return maybeVisibleScreen.params?.conversationIDKey ?? T.Chat.noConversationIDKey
   }
-  return Types.noConversationIDKey
+  return T.Chat.noConversationIDKey
 }
 
 // in split mode the root is the 'inbox'
 export const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
 export const threadRouteName = isSplit ? 'chatRoot' : 'chatConversation'
 
-export const isUserActivelyLookingAtThisThread = (conversationIDKey: Types.ConversationIDKey) => {
+export const isUserActivelyLookingAtThisThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const selectedConversationIDKey = getSelectedConversation()
 
   let chatThreadSelected = false
@@ -110,7 +110,7 @@ export const isUserActivelyLookingAtThisThread = (conversationIDKey: Types.Conve
   )
 }
 
-export const allMessageTypes: Set<Types.MessageType> = new Set([
+export const allMessageTypes: Set<T.Chat.MessageType> = new Set([
   'attachment',
   'deleted',
   'requestPayment',

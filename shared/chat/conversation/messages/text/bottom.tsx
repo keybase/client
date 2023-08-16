@@ -1,7 +1,7 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import shallowEqual from 'shallowequal'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import type CoinFlipType from './coinflip'
 import type UnfurlListType from './unfurl/unfurl-list'
 import type UnfurlPromptListType from './unfurl/prompt-list/container'
@@ -13,7 +13,7 @@ type Props = {
   toggleShowingPopup: () => void
 }
 
-export const useBottom = (ordinal: Types.Ordinal, toggleShowingPopup: () => void) => {
+export const useBottom = (ordinal: T.Chat.Ordinal, toggleShowingPopup: () => void) => {
   const {id, hasCoinFlip, hasUnfurlList} = C.useChatContext(s => {
     const message = s.messageMap.get(ordinal)
     const hasCoinFlip = message?.type === 'text' && !!message.flipGameID

@@ -1,13 +1,13 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import ConversationList from './conversation-list'
 
 type Props = {
   convName: string
   dropdownButtonStyle?: Styles.StylesCrossPlatform
-  onSelect: (conversationIDKey: Types.ConversationIDKey, convName: string) => void
+  onSelect: (conversationIDKey: T.Chat.ConversationIDKey, convName: string) => void
 }
 
 const ChooseConversation = (props: Props) => {
@@ -67,5 +67,5 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.xsmall,
         width: '100%',
       },
-    } as const)
+    }) as const
 )

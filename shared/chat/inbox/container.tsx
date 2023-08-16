@@ -2,38 +2,39 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/chat2'
-import * as Types from '../../constants/types/chat2'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as T from '../../constants/types'
 import Inbox, {type Props} from '.'
 import {useIsFocused} from '@react-navigation/core'
 import isEqual from 'lodash/isEqual'
 
 type OwnProps = {
   navKey: string
-  conversationIDKey?: Types.ConversationIDKey
+  conversationIDKey?: T.Chat.ConversationIDKey
 }
 
 const makeBigRows = (
-  bigTeams: Array<RPCChatTypes.UIInboxBigTeamRow>,
-  selectedConversationIDKey: Types.ConversationIDKey
-): Array<Types.ChatInboxRowItemBig | Types.ChatInboxRowItemBigHeader | Types.ChatInboxRowItemTeamBuilder> => {
+  bigTeams: Array<T.RPCChat.UIInboxBigTeamRow>,
+  selectedConversationIDKey: T.Chat.ConversationIDKey
+): Array<
+  T.Chat.ChatInboxRowItemBig | T.Chat.ChatInboxRowItemBigHeader | T.Chat.ChatInboxRowItemTeamBuilder
+> => {
   return bigTeams.map(t => {
     switch (t.state) {
-      case RPCChatTypes.UIInboxBigTeamRowTyp.channel: {
-        const conversationIDKey = Types.stringToConversationIDKey(t.channel.convID)
+      case T.RPCChat.UIInboxBigTeamRowTyp.channel: {
+        const conversationIDKey = T.Chat.stringToConversationIDKey(t.channel.convID)
         return {
           channelname: t.channel.channelname,
           conversationIDKey,
           isMuted: t.channel.isMuted,
           selected: conversationIDKey === selectedConversationIDKey,
-          snippetDecoration: RPCChatTypes.SnippetDecoration.none,
+          snippetDecoration: T.RPCChat.SnippetDecoration.none,
           teamname: t.channel.teamname,
           type: 'big',
         }
       }
-      case RPCChatTypes.UIInboxBigTeamRowTyp.label:
+      case T.RPCChat.UIInboxBigTeamRowTyp.label:
         return {
-          snippetDecoration: RPCChatTypes.SnippetDecoration.none,
+          snippetDecoration: T.RPCChat.SnippetDecoration.none,
           teamID: t.label.id,
           teamname: t.label.name,
           type: 'bigHeader',
@@ -45,11 +46,11 @@ const makeBigRows = (
 }
 
 const makeSmallRows = (
-  smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>,
-  selectedConversationIDKey: Types.ConversationIDKey
-): Array<Types.ChatInboxRowItemSmall | Types.ChatInboxRowItemTeamBuilder> => {
+  smallTeams: Array<T.RPCChat.UIInboxSmallTeamRow>,
+  selectedConversationIDKey: T.Chat.ConversationIDKey
+): Array<T.Chat.ChatInboxRowItemSmall | T.Chat.ChatInboxRowItemTeamBuilder> => {
   return smallTeams.map(t => {
-    const conversationIDKey = Types.stringToConversationIDKey(t.convID)
+    const conversationIDKey = T.Chat.stringToConversationIDKey(t.convID)
     return {
       conversationIDKey,
       isTeam: t.isTeam,
@@ -148,11 +149,11 @@ const Connected = (ownProps: OwnProps) => {
   }
   const smallRows = makeSmallRows(smallTeams, _selectedConversationIDKey)
   const bigRows = makeBigRows(bigTeams, _selectedConversationIDKey)
-  const teamBuilder: Types.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
+  const teamBuilder: T.Chat.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
 
   const hasAllSmallTeamConvs =
     (_inboxLayout?.smallTeams?.length ?? 0) === (_inboxLayout?.totalSmallTeams ?? 0)
-  const divider: Array<Types.ChatInboxRowItemDivider | Types.ChatInboxRowItemTeamBuilder> =
+  const divider: Array<T.Chat.ChatInboxRowItemDivider | T.Chat.ChatInboxRowItemTeamBuilder> =
     bigRows.length !== 0 || !hasAllSmallTeamConvs
       ? [{showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold, type: 'divider'}]
       : []
@@ -167,7 +168,7 @@ const Connected = (ownProps: OwnProps) => {
       bigRows.push(teamBuilder)
     }
   }
-  const nextRows: Array<Types.ChatInboxRowItem> = [...smallRows, ...divider, ...bigRows]
+  const nextRows: Array<T.Chat.ChatInboxRowItem> = [...smallRows, ...divider, ...bigRows]
   let rows = nextRows
   // TODO better fix later
   if (isEqual(rows, cachedRows)) {
@@ -204,7 +205,7 @@ const Connected = (ownProps: OwnProps) => {
   return <InboxWrapper {...props} />
 }
 
-let cachedRows: Array<Types.ChatInboxRowItem> = []
+let cachedRows: Array<T.Chat.ChatInboxRowItem> = []
 const emptyMap = new Map()
 
 export default Connected

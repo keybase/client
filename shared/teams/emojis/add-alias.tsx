@@ -1,9 +1,8 @@
+import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
-import * as ChatTypes from '../../constants/types/chat2'
 import {EmojiPickerDesktop} from '../../chat/emoji-picker/container'
 import {
   type EmojiData,
@@ -18,7 +17,7 @@ import {useEmojiState} from './use-emoji'
 import {usePickerState} from '../../chat/emoji-picker/use-picker'
 
 type Props = {
-  conversationIDKey: ChatTypes.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   defaultSelected?: EmojiData
 }
 
@@ -53,7 +52,7 @@ export const AddAliasModal = (props: Props) => {
     [props.defaultSelected]
   )
 
-  const addAliasRpc = useRPC(RPCChatGen.localAddEmojiAliasRpcPromise)
+  const addAliasRpc = useRPC(T.RPCChat.localAddEmojiAliasRpcPromise)
   const [addAliasWaiting, setAddAliasWaiting] = React.useState(false)
 
   const refreshEmoji = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
@@ -65,7 +64,7 @@ export const AddAliasModal = (props: Props) => {
         addAliasRpc(
           [
             {
-              convID: ChatTypes.keyToConversationID(props.conversationIDKey),
+              convID: T.Chat.keyToConversationID(props.conversationIDKey),
               existingAlias: emoji.emojiStr,
               newAlias: alias,
             },

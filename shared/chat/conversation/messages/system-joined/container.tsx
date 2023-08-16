@@ -1,9 +1,9 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import Joined from '.'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 
-type OwnProps = {message: Types.MessageSystemJoined}
+type OwnProps = {message: T.Chat.MessageSystemJoined}
 
 const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
   const {message} = p

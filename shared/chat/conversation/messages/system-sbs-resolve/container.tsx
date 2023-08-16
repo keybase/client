@@ -1,9 +1,9 @@
 import * as C from '../../../../constants'
 import SystemInviteAccepted from '.'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 
 type OwnProps = {
-  message: Types.MessageSystemSBSResolved
+  message: T.Chat.MessageSystemSBSResolved
 }
 
 export default (ownProps: OwnProps) => {

@@ -1,6 +1,5 @@
 import * as React from 'react'
-import * as RPCTypes from '../../../../constants/types/rpc-gen'
-import type * as Types from '../../../../constants/types/chat2'
+import * as T from '../../../../constants/types'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
@@ -8,7 +7,7 @@ import UserNotice from '../user-notice'
 const branchRefPrefix = 'refs/heads/'
 
 type Props = {
-  message: Types.MessageSystemGitPush
+  message: T.Chat.MessageSystemGitPush
   you?: string
   onClickCommit: (commitHash: string) => void
   onClickUserAvatar: (username: string) => void
@@ -38,7 +37,7 @@ const GitPushCreate = (props: CreateProps) => {
 
 type PushDefaultProps = {
   pusher: string
-  commitRef: RPCTypes.GitRefMetadata
+  commitRef: T.RPCGen.GitRefMetadata
   repo: string
   repoID: string
   team: string
@@ -101,7 +100,7 @@ const GitPushCommon = ({children}: PushCommonProps) => <UserNotice>{children}</U
 class GitPush extends React.PureComponent<Props> {
   render() {
     const {repo, repoID, refs, pushType, pusher, team} = this.props.message
-    const gitType = RPCTypes.GitPushType[pushType]
+    const gitType = T.RPCGen.GitPushType[pushType]
 
     switch (gitType) {
       case 'default':
@@ -184,7 +183,7 @@ const styles = Styles.styleSheetCreate(
         minWidth: 0,
       },
       repoText: {color: Styles.globalColors.black_50},
-    } as const)
+    }) as const
 )
 
 export default GitPush

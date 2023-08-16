@@ -1,4 +1,5 @@
 import * as C from '.'
+import type * as T from './types'
 import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
 import * as Z from '../util/zustand'
 import * as Container from '../util/container'
@@ -6,10 +7,8 @@ import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
 import shallowEqual from 'shallowequal'
-import type {ConversationIDKey} from './types/chat2/common'
 import type {NavigationState} from '@react-navigation/core'
 import type {NavigateAppendType} from '../router-v2/route-params'
-import type * as TeamTypes from './types/teams'
 export type PathParam = NavigateAppendType
 type Route = NavigationState['routes'][0]
 export type NavState = Route['state']
@@ -143,7 +142,7 @@ export const getTab = (navState?: NavState) => {
 
 const isSplit = !Container.isMobile || Container.isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
-export const navToThread = (conversationIDKey: ConversationIDKey) => {
+export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const rs = getRootState()
   // some kind of unknown race, just bail
   if (!rs) {
@@ -254,7 +253,7 @@ export type State = Store & {
   }
   appendEncryptRecipientsBuilder: () => void
   appendNewChatBuilder: () => void
-  appendNewTeamBuilder: (teamID: TeamTypes.TeamID) => void
+  appendNewTeamBuilder: (teamID: T.Teams.TeamID) => void
   appendPeopleBuilder: () => void
 }
 
@@ -461,7 +460,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
   }
 
   // Unless you're within the add members wizard you probably should use `TeamsGen.startAddMembersWizard` instead
-  const appendNewTeamBuilder = (teamID: TeamTypes.TeamID) => {
+  const appendNewTeamBuilder = (teamID: T.Teams.TeamID) => {
     C.useRouterState.getState().dispatch.navigateAppend({
       props: {
         filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],

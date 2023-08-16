@@ -2,8 +2,7 @@ import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import type * as TeamTypes from '../../../constants/types/teams'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 
 type Props = {
   isAdmin: boolean
@@ -68,7 +67,7 @@ const _AddPeople = (props: Props) => {
 _AddPeople.displayName = 'AddPeople'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   isAdmin: boolean
   isGeneralChannel: boolean
 }
@@ -77,11 +76,11 @@ const AddPeople = (ownProps: OwnProps) => {
   const meta = C.useChatContext(s => s.meta)
   const teamID = meta.teamID
   const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
-  const _onAddPeople = (teamID: TeamTypes.TeamID) => {
+  const _onAddPeople = (teamID: T.Teams.TeamID) => {
     startAddMembersWizard(teamID)
   }
   const navigateAppend = C.useChatNavigateAppend()
-  const _onAddToChannel = (teamID: TeamTypes.TeamID) => {
+  const _onAddToChannel = (teamID: T.Teams.TeamID) => {
     navigateAppend(conversationIDKey => ({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}))
   }
   const props = {

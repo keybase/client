@@ -1,12 +1,11 @@
+import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat2'
-import type * as ChatTypes from '../../constants/types/chat2'
 import {useAttachmentSections} from '../../chat/conversation/info-panel/attachments'
 import {SelectionPopup, useChannelParticipants} from '../common'
 import ChannelTabs, {type TabKey} from './tabs'
@@ -20,16 +19,16 @@ import {createAnimatedComponent} from '../../common-adapters/reanimated'
 import type {Props as SectionListProps, Section as SectionType} from '../../common-adapters/section-list'
 
 export type OwnProps = {
-  teamID: Types.TeamID
-  conversationIDKey: ChatTypes.ConversationIDKey
+  teamID: T.Teams.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey
   selectedTab?: TabKey
 }
 
 const useLoadDataForChannelPage = (
-  teamID: Types.TeamID,
-  conversationIDKey: ChatTypes.ConversationIDKey,
+  teamID: T.Teams.TeamID,
+  conversationIDKey: T.Chat.ConversationIDKey,
   selectedTab: TabKey,
-  meta: ChatTypes.ConversationMeta,
+  meta: T.Chat.ConversationMeta,
   participants: string[],
   bots: string[]
 ) => {
@@ -78,7 +77,7 @@ const lastSelectedTabs: {[T: string]: TabKey} = {}
 const defaultTab: TabKey = 'members'
 
 const useTabsState = (
-  conversationIDKey: ChatTypes.ConversationIDKey,
+  conversationIDKey: T.Chat.ConversationIDKey,
   providedTab?: TabKey
 ): [TabKey, (t: TabKey) => void] => {
   const defaultSelectedTab = lastSelectedTabs[conversationIDKey] ?? providedTab ?? defaultTab
@@ -107,9 +106,9 @@ const SectionList = createAnimatedComponent<SectionListProps<SectionType<string,
   Kb.SectionList as any
 )
 
-const emptyMapForUseSelector = new Map<string, Types.MemberInfo>()
+const emptyMapForUseSelector = new Map<string, T.Teams.MemberInfo>()
 const Channel = (props: OwnProps) => {
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
   const conversationIDKey = props.conversationIDKey
   const providedTab = props.selectedTab
 

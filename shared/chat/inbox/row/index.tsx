@@ -7,10 +7,10 @@ import SmallTeam from './small-team/container'
 import {BigTeamsLabel} from './big-teams-label'
 import {Box} from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 
 const makeRow = (
-  item: Types.ChatInboxRowItem,
+  item: T.Chat.ChatInboxRowItem,
   navKey: string,
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
 ) => {

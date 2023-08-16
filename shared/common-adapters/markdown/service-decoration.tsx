@@ -1,4 +1,4 @@
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as T from '../../constants/types'
 import * as React from 'react'
 import * as C from '../../constants'
 import * as Styles from '../../styles'
@@ -9,8 +9,6 @@ import Mention from '../mention-container'
 import PaymentStatus from '../../chat/payments/status/container'
 import Text, {type StylesTextCrossPlatform} from '../text'
 import WithTooltip from '../with-tooltip'
-import type * as Types from '../../constants/types/chat2'
-import type * as WalletTypes from '../../constants/types/wallets'
 import type {StyleOverride} from '.'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../util/emoji'
 
@@ -101,30 +99,30 @@ export type Props = {
   styles: {[K in string]: StylesTextCrossPlatform}
   disableBigEmojis: boolean
   disableEmojiAnimation: boolean
-  messageType?: Types.MessageType
+  messageType?: T.Chat.MessageType
 }
 
 const ServiceDecoration = (p: Props) => {
   const {json, allowFontScaling, styles, styleOverride} = p
   const {disableBigEmojis, disableEmojiAnimation, messageType} = p
   // Parse JSON to get the type of the decoration
-  let parsed: RPCChatTypes.UITextDecoration
+  let parsed: T.RPCChat.UITextDecoration
   try {
     const jsonString = Buffer.from(json, 'base64').toString()
     parsed = JSON.parse(jsonString)
   } catch (e) {
     return null
   }
-  if (parsed.typ === RPCChatTypes.UITextDecorationTyp.payment && messageType === 'text') {
-    let paymentID: WalletTypes.PaymentID | undefined
+  if (parsed.typ === T.RPCChat.UITextDecorationTyp.payment && messageType === 'text') {
+    let paymentID: T.Wallets.PaymentID | undefined
     let error
     if (
-      parsed.payment.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.sent &&
+      parsed.payment.result.resultTyp === T.RPCChat.TextPaymentResultTyp.sent &&
       parsed.payment.result.sent
     ) {
       paymentID = parsed.payment.result.sent
     } else if (
-      parsed.payment.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.error &&
+      parsed.payment.result.resultTyp === T.RPCChat.TextPaymentResultTyp.error &&
       parsed.payment.result.error
     ) {
       error = parsed.payment.result.error
@@ -139,7 +137,7 @@ const ServiceDecoration = (p: Props) => {
         allowFontScaling={allowFontScaling}
       />
     )
-  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.atmention && parsed.atmention) {
+  } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.atmention && parsed.atmention) {
     return (
       <Mention
         allowFontScaling={allowFontScaling || false}
@@ -147,7 +145,7 @@ const ServiceDecoration = (p: Props) => {
         username={parsed.atmention}
       />
     )
-  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.maybemention) {
+  } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.maybemention) {
     return (
       <MaybeMention
         allowFontScaling={allowFontScaling || false}
@@ -156,7 +154,7 @@ const ServiceDecoration = (p: Props) => {
         channel={parsed.maybemention.channel}
       />
     )
-  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.link) {
+  } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.link) {
     const link = parsed.link.url
     const openUrl =
       link.toLowerCase().startsWith('http://') || link.toLowerCase().startsWith('https://')
@@ -184,7 +182,7 @@ const ServiceDecoration = (p: Props) => {
         {parsed.link.url}
       </Text>
     )
-  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.mailto) {
+  } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.mailto) {
     const openUrl = parsed.mailto.url.toLowerCase().startsWith('mailto:')
       ? parsed.mailto.url
       : 'mailto:' + parsed.mailto.url
@@ -200,7 +198,7 @@ const ServiceDecoration = (p: Props) => {
         {parsed.mailto.url}
       </Text>
     )
-  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.channelnamemention) {
+  } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.channelnamemention) {
     return (
       <Channel
         allowFontScaling={allowFontScaling || false}
@@ -209,7 +207,7 @@ const ServiceDecoration = (p: Props) => {
         style={Styles.collapseStyles([styles['linkStyle'], linkStyle, styleOverride.link])}
       />
     )
-  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.kbfspath) {
+  } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.kbfspath) {
     return (
       <KbfsPath
         knownPathInfo={{
@@ -220,7 +218,7 @@ const ServiceDecoration = (p: Props) => {
         standardPath={parsed.kbfspath.standardPath}
       />
     )
-  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.emoji) {
+  } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.emoji) {
     return renderEmoji({
       customStyle: styleOverride.customEmoji,
       emoji: emojiDataToRenderableEmoji(RPCToEmojiData(parsed.emoji, disableEmojiAnimation)),

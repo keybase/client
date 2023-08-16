@@ -1,10 +1,10 @@
 import * as C from '../constants'
-import type * as Types from '../constants/types/chat2'
+import type * as T from '../constants/types'
 import NewTeamDialog from '../teams/new-team'
 import upperFirst from 'lodash/upperFirst'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey // for page
+  conversationIDKey: T.Chat.ConversationIDKey // for page
 }
 
 export default (_: OwnProps) => {

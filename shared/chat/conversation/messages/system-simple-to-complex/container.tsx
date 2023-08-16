@@ -1,9 +1,9 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import SystemSimpleToComplex from '.'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 
-type OwnProps = {message: Types.MessageSystemSimpleToComplex}
+type OwnProps = {message: T.Chat.MessageSystemSimpleToComplex}
 
 const SystemSimpleToComplexContainer = React.memo(function SystemSimpleToComplexContainer(p: OwnProps) {
   const {message} = p

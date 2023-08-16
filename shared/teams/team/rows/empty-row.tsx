@@ -1,15 +1,14 @@
+import type * as T from '../../../constants/types'
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import type * as ChatTypes from '../../../constants/types/chat2'
-import type * as Types from '../../../constants/types/teams'
 
 type Props = {
   type: 'channelsEmpty' | 'channelsFew' | 'members' | 'subteams'
-  teamID: Types.TeamID
-  conversationIDKey?: ChatTypes.ConversationIDKey
+  teamID: T.Teams.TeamID
+  conversationIDKey?: T.Chat.ConversationIDKey
   notChannelMember?: boolean
 }
 const icon: {[K in Props['type']]: Kb.IconType} = {

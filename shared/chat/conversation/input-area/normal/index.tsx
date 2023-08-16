@@ -8,7 +8,7 @@ import CommandStatus from '../../command-status/container'
 import Giphy from '../../giphy/container'
 import PlatformInput from './platform-input'
 import ReplyPreview from '../../reply-preview'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import {indefiniteArticle} from '../../../../util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {isLargeScreen} from '../../../../constants/platform'
@@ -27,7 +27,7 @@ const useHintText = (p: {
   isExploding: boolean
   isEditing: boolean
   cannotWrite: boolean
-  minWriterRole: Types.ConversationMeta['minWriterRole']
+  minWriterRole: T.Chat.ConversationMeta['minWriterRole']
 }) => {
   const {minWriterRole, isExploding, isEditing, cannotWrite} = p
   const username = C.useCurrentUserState(s => s.username)

@@ -1,9 +1,9 @@
 import * as C from '../constants'
-import type * as Types from '../constants/types/chat2'
+import type * as T from '../constants/types'
 import SelectableBigTeamChannel from './selectable-big-team-channel'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   isSelected: boolean
   maxSearchHits?: number
   name: string

@@ -4,7 +4,7 @@ import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import {formatTimeForChat} from '../../../util/timestamp'
 import {SeparatorMapContext} from './ids-context'
 import {usingFlashList} from '../list-area/flashlist-config'
@@ -14,10 +14,10 @@ const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): bo
   !!ptimestamp && !!mtimestamp && mtimestamp - ptimestamp > 1000 * 60 * 15
 
 // Used to decide whether to show the author for sequential messages
-const authorIsCollapsible = (type?: Types.MessageType) =>
+const authorIsCollapsible = (type?: T.Chat.MessageType) =>
   type === 'text' || type === 'deleted' || type === 'attachment'
 
-const getUsernameToShow = (message: Types.Message, pMessage: Types.Message | undefined, you: string) => {
+const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | undefined, you: string) => {
   switch (message.type) {
     case 'journeycard': // fallthrough
     case 'systemJoined':
@@ -94,7 +94,7 @@ type TProps = {
   authorIsBot: boolean
   botAlias: string
   timestamp: number
-  teamType: Types.TeamType
+  teamType: T.Chat.TeamType
 }
 const TopSide = React.memo(function TopSide(p: TProps) {
   const {timestamp, botAlias, showUsername, authorIsBot, authorRoleInTeam, teamType} = p
@@ -182,7 +182,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
 
 const missingMessage = Constants.makeMessageDeleted({})
 
-const useReduxFast = (trailingItem: Types.Ordinal, leadingItem: Types.Ordinal) => {
+const useReduxFast = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordinal) => {
   const sm = React.useContext(SeparatorMapContext)
   // in flat list we get the leadingItem but its the opposite of what we want
   // we derive the previous by using SeparatorMapContext
@@ -204,7 +204,7 @@ const useReduxFast = (trailingItem: Types.Ordinal, leadingItem: Types.Ordinal) =
   }, shallowEqual)
 }
 
-const useRedux = (ordinal: Types.Ordinal) => {
+const useRedux = (ordinal: T.Chat.Ordinal) => {
   const participantInfoNames = C.useChatContext(s => s.participants.name)
   const meta = C.useChatContext(s => s.meta)
   const d = C.useChatContext(s => {
@@ -234,7 +234,7 @@ const useRedux = (ordinal: Types.Ordinal) => {
 }
 
 type SProps = {
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
   showUsername: string
   orangeLineAbove: boolean
 }
@@ -268,8 +268,8 @@ const Separator = React.memo(function Separator(p: SProps) {
 })
 
 type Props = {
-  leadingItem?: Types.Ordinal
-  trailingItem: Types.Ordinal
+  leadingItem?: T.Chat.Ordinal
+  trailingItem: T.Chat.Ordinal
 }
 
 const SeparatorConnector = (p: Props) => {

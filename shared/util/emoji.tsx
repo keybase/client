@@ -1,10 +1,8 @@
 import * as Kb from '../common-adapters'
-import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import emojidata from 'emoji-datasource-apple'
 import groupBy from 'lodash/groupBy'
 import type * as Styles from '../styles'
-import type * as Chat2Types from '../constants/types/chat2'
-import type * as RPCTypes from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 import CustomEmoji from './custom-emoji'
 
 const categorized = groupBy(emojidata, 'category')
@@ -90,7 +88,7 @@ export type EmojiData = {
   short_name: string
   short_names: Array<string>
   sort_order?: number
-  skin_variations?: {[K in Chat2Types.EmojiSkinTone]: Object}
+  skin_variations?: {[K in T.Chat.EmojiSkinTone]: Object}
   teamname?: string
   unified: string
   userEmojiRenderStock?: string
@@ -143,7 +141,7 @@ export const renderEmoji = (opts: {
 }
 
 export const RPCUserReacjiToRenderableEmoji = (
-  userReacji: RPCTypes.UserReacji,
+  userReacji: T.RPCGen.UserReacji,
   noAnim: boolean
 ): RenderableEmoji => ({
   aliasForCustom: userReacji.name,
@@ -151,7 +149,7 @@ export const RPCUserReacjiToRenderableEmoji = (
   renderUrl: noAnim ? userReacji.customAddrNoAnim || undefined : userReacji.customAddr || undefined,
 })
 
-export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, noAnim: boolean, category?: string): EmojiData {
+export function RPCToEmojiData(emoji: T.RPCChat.Emoji, noAnim: boolean, category?: string): EmojiData {
   return {
     category: category ?? '',
     name: undefined,
@@ -162,11 +160,11 @@ export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, noAnim: boolean, categ
     teamname: emoji.teamname ?? undefined,
     unified: '',
     userEmojiRenderStock:
-      emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str ? emoji.source.str : undefined,
+      emoji.source.typ === T.RPCChat.EmojiLoadSourceTyp.str ? emoji.source.str : undefined,
     userEmojiRenderUrl:
-      emoji.source.typ === RPCChatTypes.EmojiLoadSourceTyp.str
+      emoji.source.typ === T.RPCChat.EmojiLoadSourceTyp.str
         ? undefined
-        : noAnim && emoji.noAnimSource.typ === RPCChatTypes.EmojiLoadSourceTyp.httpsrv
+        : noAnim && emoji.noAnimSource.typ === T.RPCChat.EmojiLoadSourceTyp.httpsrv
         ? emoji.noAnimSource.httpsrv
         : emoji.source.httpsrv,
   }
@@ -175,7 +173,7 @@ export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, noAnim: boolean, categ
 export const emojiDataToRenderableEmoji = (
   emoji: EmojiData,
   skinToneModifier?: string,
-  skinToneKey?: Chat2Types.EmojiSkinTone
+  skinToneKey?: T.Chat.EmojiSkinTone
 ): RenderableEmoji => ({
   aliasForCustom: emoji.short_name,
   renderStock: emoji.userEmojiRenderStock ?? `:${emoji.short_name}:${skinToneModifier ?? ''}`,

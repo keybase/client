@@ -3,8 +3,7 @@ import * as Constants from '../../../../../constants/chat2'
 import {linkFromConvAndMessage} from '../../../../../constants'
 import Attachment from '.'
 import * as React from 'react'
-import type * as TeamTypes from '../../../../../constants/types/teams'
-import type * as Types from '../../../../../constants/types/chat2'
+import type * as T from '../../../../../constants/types'
 import type {Position, StylesCrossPlatform} from '../../../../../styles'
 import {getCanPerformByID} from '../../../../../constants/teams'
 import {isMobile, isIOS} from '../../../../../constants/platform'
@@ -12,7 +11,7 @@ import {makeMessageAttachment} from '../../../../../constants/chat2/message'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform
@@ -38,7 +37,7 @@ export default (ownProps: OwnProps) => {
   const _you = C.useCurrentUserState(s => s.username)
   const pending = !!message.transferState
   const navigateAppend = C.useChatNavigateAppend()
-  const _onAddReaction = (message: Types.Message) => {
+  const _onAddReaction = (message: T.Chat.Message) => {
     navigateAppend(conversationIDKey => ({
       props: {
         conversationIDKey,
@@ -55,65 +54,65 @@ export default (ownProps: OwnProps) => {
     showInfoPanel(true, 'attachments')
   }
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-  const _onCopyLink = (label: string, message: Types.Message) => {
+  const _onCopyLink = (label: string, message: T.Chat.Message) => {
     copyToClipboard(linkFromConvAndMessage(label, message.id))
   }
   const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
-  const _onDelete = (message: Types.Message) => {
+  const _onDelete = (message: T.Chat.Message) => {
     messageDelete(message.ordinal)
     clearModals()
   }
   const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
-  const _onDownload = (message: Types.MessageAttachment) => {
+  const _onDownload = (message: T.Chat.MessageAttachment) => {
     attachmentDownload(message.id)
   }
   const setEditing = C.useChatContext(s => s.dispatch.setEditing)
-  const _onEdit = (message: Types.Message) => {
+  const _onEdit = (message: T.Chat.Message) => {
     setEditing(message.ordinal)
   }
-  const _onForward = (message: Types.Message) => {
+  const _onForward = (message: T.Chat.Message) => {
     navigateAppend(conversationIDKey => ({
       props: {conversationIDKey, ordinal: message.ordinal},
       selected: 'chatForwardMsgPick',
     }))
   }
-  const _onInstallBot = (message: Types.Message) => {
+  const _onInstallBot = (message: T.Chat.Message) => {
     navigateAppend(() => ({props: {botUsername: message.author}, selected: 'chatInstallBotPick'}))
   }
-  const _onKick = (teamID: TeamTypes.TeamID, username: string) => {
+  const _onKick = (teamID: T.Teams.TeamID, username: string) => {
     navigateAppend(() => ({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}))
   }
   const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
-  const _onMarkAsUnread = (message: Types.Message) => {
+  const _onMarkAsUnread = (message: T.Chat.Message) => {
     setMarkAsUnread(message.id)
   }
   const pinMessage = C.useChatContext(s => s.dispatch.pinMessage)
 
-  const _onPinMessage = (message: Types.Message) => {
+  const _onPinMessage = (message: T.Chat.Message) => {
     pinMessage(message.id)
   }
   const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
-  const _onReact = (message: Types.Message, emoji: string) => {
+  const _onReact = (message: T.Chat.Message, emoji: string) => {
     toggleMessageReaction(message.ordinal, emoji)
   }
 
   const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
-  const _onReply = (message: Types.Message) => {
+  const _onReply = (message: T.Chat.Message) => {
     setReplyTo(message.ordinal)
   }
 
   const messageAttachmentNativeSave = C.useChatContext(s => s.dispatch.messageAttachmentNativeSave)
   const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
-  const _onSaveAttachment = (message: Types.MessageAttachment) => {
+  const _onSaveAttachment = (message: T.Chat.MessageAttachment) => {
     messageAttachmentNativeSave(message)
   }
-  const _onShareAttachment = (message: Types.MessageAttachment) => {
+  const _onShareAttachment = (message: T.Chat.MessageAttachment) => {
     messageAttachmentNativeShare(message)
   }
   const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
-  const _onShowInFinder = (message: Types.MessageAttachment) => {
+  const _onShowInFinder = (message: T.Chat.MessageAttachment) => {
     message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
   }
   const yourMessage = message.author === _you

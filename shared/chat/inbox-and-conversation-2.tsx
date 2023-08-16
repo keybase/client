@@ -4,13 +4,13 @@ import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as React from 'react'
-import type * as Types from '../constants/types/chat2'
+import type * as T from '../constants/types'
 import Conversation from './conversation/container'
 import Inbox from './inbox/container'
 import InboxSearch from './inbox-search/container'
 import InfoPanel from './conversation/info-panel/container'
 
-type Props = {conversationIDKey?: Types.ConversationIDKey; navKey?: string}
+type Props = {conversationIDKey?: T.Chat.ConversationIDKey; navKey?: string}
 
 const InboxAndConversation = React.memo(function InboxAndConversation(props?: Props) {
   const conversationIDKey = props?.conversationIDKey ?? C.noConversationIDKey

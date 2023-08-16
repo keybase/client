@@ -1,6 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
@@ -8,10 +8,10 @@ export type SaveStateType = 'same' | 'saving' | 'justSaved'
 
 type UnmutedProps = {
   channelWide: boolean
-  desktop: Types.NotificationsType
-  mobile: Types.NotificationsType
-  setDesktop: (n: Types.NotificationsType) => void
-  setMobile: (n: Types.NotificationsType) => void
+  desktop: T.Chat.NotificationsType
+  mobile: T.Chat.NotificationsType
+  setDesktop: (n: T.Chat.NotificationsType) => void
+  setMobile: (n: T.Chat.NotificationsType) => void
   toggleChannelWide: () => void
 }
 
@@ -111,8 +111,8 @@ const Notifications = () => {
   const delayUnsave = Kb.useTimeout(() => setSaving(false), 100)
   const updateNotificationSettings = C.useChatContext(s => s.dispatch.updateNotificationSettings)
   const saveNotifications = (
-    desktop: Types.NotificationsType,
-    mobile: Types.NotificationsType,
+    desktop: T.Chat.NotificationsType,
+    mobile: T.Chat.NotificationsType,
     channelWide: boolean
   ) => {
     setSaving(true)
@@ -126,7 +126,7 @@ const Notifications = () => {
     delayUnsave()
   }
 
-  const [lastMeta, setLastMeta] = React.useState<undefined | Types.ConversationMeta>()
+  const [lastMeta, setLastMeta] = React.useState<undefined | T.Chat.ConversationMeta>()
   if (lastMeta !== meta) {
     setLastMeta(meta)
     setDesktop(meta.notificationsDesktop)
@@ -151,12 +151,12 @@ const Notifications = () => {
       {!muted && (
         <UnmutedNotificationPrefs
           channelWide={channelWide}
-          setDesktop={(n: Types.NotificationsType) => {
+          setDesktop={(n: T.Chat.NotificationsType) => {
             setDesktop(n)
             saveNotifications(n, mobile, channelWide)
           }}
           desktop={desktop}
-          setMobile={(n: Types.NotificationsType) => {
+          setMobile={(n: T.Chat.NotificationsType) => {
             setMobile(n)
             saveNotifications(desktop, n, channelWide)
           }}

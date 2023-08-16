@@ -6,8 +6,7 @@ import * as TeamConstants from '../../../../../constants/teams'
 import Exploding from '.'
 import ReactionItem from '../reactionitem'
 import openURL from '../../../../../util/open-url'
-import type * as TeamTypes from '../../../../../constants/types/teams'
-import type * as Types from '../../../../../constants/types/chat2'
+import type * as T from '../../../../../constants/types'
 import type {MenuItems} from '../../../../../common-adapters'
 import type {Position} from '../../../../../styles'
 import type {StylesCrossPlatform} from '../../../../../styles/css'
@@ -16,7 +15,7 @@ import {makeMessageText} from '../../../../../constants/chat2/message'
 
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform
@@ -80,7 +79,7 @@ export default (ownProps: OwnProps) => {
     copyToClipboard(h.stringValue())
   }
   const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
-  const _onDownload = (message: Types.Message) => {
+  const _onDownload = (message: T.Chat.Message) => {
     attachmentDownload(message.id)
   }
   const setEditing = C.useChatContext(s => s.dispatch.setEditing)
@@ -100,7 +99,7 @@ export default (ownProps: OwnProps) => {
   const _onInstallBot = (author: string) => {
     navigateAppend(() => ({props: {botUsername: author}, selected: 'chatInstallBotPick'}))
   }
-  const _onKick = (teamID: TeamTypes.TeamID, username: string) => {
+  const _onKick = (teamID: T.Teams.TeamID, username: string) => {
     navigateAppend(() => ({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}))
   }
   const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
@@ -122,21 +121,21 @@ export default (ownProps: OwnProps) => {
   }
   const messageAttachmentNativeSave = C.useChatContext(s => s.dispatch.messageAttachmentNativeSave)
   const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
-  const _onSaveAttachment = (message: Types.Message) => {
+  const _onSaveAttachment = (message: T.Chat.Message) => {
     messageAttachmentNativeSave(message)
   }
-  const _onShareAttachment = (message: Types.Message) => {
+  const _onShareAttachment = (message: T.Chat.Message) => {
     messageAttachmentNativeShare(message)
   }
   const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
-  const _onShowInFinder = (message: Types.Message) => {
+  const _onShowInFinder = (message: T.Chat.Message) => {
     message.type === 'attachment' &&
       message.downloadPath &&
       openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
   }
-  const _onUserBlock = (message: Types.Message, isSingle: boolean) => {
+  const _onUserBlock = (message: T.Chat.Message, isSingle: boolean) => {
     navigateAppend(convID => ({
       props: {
         blockUserByDefault: true,

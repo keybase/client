@@ -1,9 +1,9 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import {YouAdded, OthersAdded} from '.'
 
-type OwnProps = {message: Types.MessageSystemUsersAddedToConversation}
+type OwnProps = {message: T.Chat.MessageSystemUsersAddedToConversation}
 
 const UsersAddedToConversationContainer = React.memo(function UsersAddedToConversationContainer(p: OwnProps) {
   const {message} = p
