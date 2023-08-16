@@ -1,15 +1,13 @@
 import * as C from '../../../constants'
-import * as Chat2Types from '../../../constants/types/chat2'
+import * as T from '../../../constants/types'
 import * as ChatConstants from '../../../constants/chat2'
 import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import EmptyRow from './empty-row'
 import LoadingRow from './loading'
 import MemberRow from './member-row/container'
-import type * as Types from '../../../constants/types/teams'
 import type {Section as _Section} from '../../../common-adapters/section-list'
 import {BotRow, AddBotRow} from './bot-row'
 import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
@@ -29,10 +27,10 @@ export type Section = _Section<any, SectionExtras>
 const makeSingleRow = (key: string, renderItem: () => React.ReactNode) => ({data: ['row'], key, renderItem})
 
 export const useMembersSections = (
-  teamID: Types.TeamID,
-  meta: Types.TeamMeta,
-  details: Types.TeamDetails,
-  yourOperations: Types.TeamOperations
+  teamID: T.Teams.TeamID,
+  meta: T.Teams.TeamMeta,
+  details: T.Teams.TeamDetails,
+  yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
   const yourUsername = C.useCurrentUserState(s => s.username)
   // TODO: figure out if this is bad for performance and if we should leave these functions early when we're not on that tab
@@ -61,10 +59,10 @@ export const useMembersSections = (
 }
 
 export const useBotSections = (
-  teamID: Types.TeamID,
-  meta: Types.TeamMeta,
-  details: Types.TeamDetails,
-  yourOperations: Types.TeamOperations
+  teamID: T.Teams.TeamID,
+  meta: T.Teams.TeamMeta,
+  details: T.Teams.TeamDetails,
+  yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
   const stillLoading = meta.memberCount > 0 && !details.members.size
   if (stillLoading) {
@@ -81,7 +79,7 @@ export const useBotSections = (
   ]
 }
 
-export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDetails): Array<Section> => {
+export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.TeamDetails): Array<Section> => {
   const invitesCollapsed = C.useTeamsState(s => s.invitesCollapsed)
   const collapsed = invitesCollapsed.has(teamID)
   const toggleInvitesCollapsed = C.useTeamsState(s => s.dispatch.toggleInvitesCollapsed)
@@ -129,8 +127,8 @@ export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDeta
   return sections
 }
 export const useChannelsSections = (
-  teamID: Types.TeamID,
-  yourOperations: Types.TeamOperations
+  teamID: T.Teams.TeamID,
+  yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
   const isBig = C.useChatState(s => ChatConstants.isBigTeam(s, teamID))
   const channels = C.useTeamsState(s => s.channelInfo.get(teamID))
@@ -166,9 +164,9 @@ export const useChannelsSections = (
 
 // When we delete the feature flag, clean this up a bit
 export const useSubteamsSections = (
-  teamID: Types.TeamID,
-  details: Types.TeamDetails,
-  yourOperations: Types.TeamOperations
+  teamID: T.Teams.TeamID,
+  details: T.Teams.TeamDetails,
+  yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
   const subteamsFiltered = C.useTeamsState(s => s.subteamsFiltered)
   const subteams = [...(subteamsFiltered ?? details.subteams)].sort()
@@ -191,8 +189,8 @@ export const useSubteamsSections = (
   return sections
 }
 
-const useGeneralConversationIDKey = (teamID?: Types.TeamID) => {
-  const [conversationIDKey, setConversationIDKey] = React.useState<Chat2Types.ConversationIDKey | undefined>()
+const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
+  const [conversationIDKey, setConversationIDKey] = React.useState<T.Chat.ConversationIDKey | undefined>()
   const generalConvID = C.useChatState(s => (teamID ? s.teamIDToGeneralConvID.get(teamID) : undefined))
   const findGeneralConvIDFromTeamID = C.useChatState(s => s.dispatch.findGeneralConvIDFromTeamID)
   React.useEffect(() => {
@@ -207,12 +205,12 @@ const useGeneralConversationIDKey = (teamID?: Types.TeamID) => {
   return conversationIDKey
 }
 
-export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boolean): Array<Section> => {
+export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boolean): Array<Section> => {
   const convID = useGeneralConversationIDKey(teamID)
   const [lastActuallyLoad, setLastActuallyLoad] = React.useState(false)
   const cidChanged = C.useCIDChanged(convID)
-  const getUserEmoji = Container.useRPC(RPCChatTypes.localUserEmojisRpcPromise)
-  const [customEmoji, setCustomEmoji] = React.useState<RPCChatTypes.Emoji[]>([])
+  const getUserEmoji = Container.useRPC(T.RPCChat.localUserEmojisRpcPromise)
+  const [customEmoji, setCustomEmoji] = React.useState<T.RPCChat.Emoji[]>([])
   const [filter, setFilter] = React.useState('')
 
   const doGetUserEmoji = () => {
@@ -222,7 +220,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
     getUserEmoji(
       [
         {
-          convID: Chat2Types.keyToConversationID(convID),
+          convID: T.Chat.keyToConversationID(convID),
           opts: {
             getAliases: true,
             getCreationInfo: true,
@@ -231,7 +229,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
         },
       ],
       result => {
-        let emojis: Array<RPCChatTypes.Emoji> = []
+        let emojis: Array<T.RPCChat.Emoji> = []
         result.emojis.emojis?.forEach(g => {
           emojis = emojis.concat(g.emojis ?? [])
         })
@@ -254,7 +252,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
     doGetUserEmoji()
   })
 
-  let filteredEmoji: RPCChatTypes.Emoji[] = customEmoji
+  let filteredEmoji: T.RPCChat.Emoji[] = customEmoji
   if (filter != '') {
     filteredEmoji = filteredEmoji.filter(e => e.alias.includes(filter.toLowerCase()))
   }

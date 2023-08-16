@@ -1,17 +1,16 @@
+import * as T from '../../../constants/types'
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import * as Types from '../../../constants/types/teams'
-import type * as ChatTypes from '../../../constants/types/chat2'
 import {pluralize} from '../../../util/string'
 import {useAllChannelMetas} from '../../common/channel-hooks'
 
 type Props = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   // undefined means use the currently selected channels in the store (under the channel tab of the team page)
-  conversationIDKey?: ChatTypes.ConversationIDKey
+  conversationIDKey?: T.Chat.ConversationIDKey
 }
 
 const Header = () => (
@@ -22,12 +21,12 @@ const Header = () => (
 )
 
 const DeleteChannel = (props: Props) => {
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
   const routePropChannel = props.conversationIDKey
   const storeSelectedChannels = C.useTeamsState(s => s.teamSelectedChannels.get(teamID))
 
   // When the channels get deleted, the values in the store are gone but we should keep displaying the same thing.
-  const [channelIDs] = React.useState<ChatTypes.ConversationIDKey[]>(
+  const [channelIDs] = React.useState<T.Chat.ConversationIDKey[]>(
     routePropChannel ? [routePropChannel] : storeSelectedChannels ? [...storeSelectedChannels] : []
   )
 

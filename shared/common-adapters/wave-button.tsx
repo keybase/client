@@ -7,7 +7,7 @@ import Button from './button'
 import Emoji from './emoji'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import type * as ChatTypes from '../constants/types/chat2'
+import type * as T from '../constants/types'
 import logger from '../logger'
 
 const Kb = {
@@ -25,7 +25,7 @@ type Props = {
   toMany?: boolean
   disabled?: boolean
 } & (
-  | {conversationIDKey: ChatTypes.ConversationIDKey; username?: never}
+  | {conversationIDKey: T.Chat.ConversationIDKey; username?: never}
   | {conversationIDKey?: never; username: string}
 )
 

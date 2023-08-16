@@ -1,11 +1,8 @@
 import * as C from '..'
-import * as ChatTypes from '../types/chat2'
+import * as T from '../types'
 import * as Container from '../../util/container'
-import * as RPCChatTypes from '../types/rpc-chat-gen'
-import * as RPCTypes from '../types/rpc-gen'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../../logger'
-import type * as Types from '../types/push'
 import {isIOS, isAndroid} from '../platform'
 import {
   androidGetRegistrationToken,
@@ -59,24 +56,22 @@ type PushN = {
   message: string
 } & Data
 
-const anyToConversationMembersType = (
-  a: string | number
-): RPCChatTypes.ConversationMembersType | undefined => {
+const anyToConversationMembersType = (a: string | number): T.RPCChat.ConversationMembersType | undefined => {
   const membersTypeNumber: number = typeof a === 'string' ? parseInt(a, 10) : a || -1
   switch (membersTypeNumber) {
-    case RPCChatTypes.ConversationMembersType.kbfs:
-      return RPCChatTypes.ConversationMembersType.kbfs
-    case RPCChatTypes.ConversationMembersType.team:
-      return RPCChatTypes.ConversationMembersType.team
-    case RPCChatTypes.ConversationMembersType.impteamnative:
-      return RPCChatTypes.ConversationMembersType.impteamnative
-    case RPCChatTypes.ConversationMembersType.impteamupgrade:
-      return RPCChatTypes.ConversationMembersType.impteamupgrade
+    case T.RPCChat.ConversationMembersType.kbfs:
+      return T.RPCChat.ConversationMembersType.kbfs
+    case T.RPCChat.ConversationMembersType.team:
+      return T.RPCChat.ConversationMembersType.team
+    case T.RPCChat.ConversationMembersType.impteamnative:
+      return T.RPCChat.ConversationMembersType.impteamnative
+    case T.RPCChat.ConversationMembersType.impteamupgrade:
+      return T.RPCChat.ConversationMembersType.impteamupgrade
     default:
       return undefined
   }
 }
-const normalizePush = (_n?: Object): Types.PushNotification | undefined => {
+const normalizePush = (_n?: Object): T.Push.PushNotification | undefined => {
   try {
     if (!_n) {
       return undefined
@@ -100,7 +95,7 @@ const normalizePush = (_n?: Object): Types.PushNotification | undefined => {
       case 'chat.newmessage':
         return data.convID
           ? {
-              conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
+              conversationIDKey: T.Chat.stringToConversationIDKey(data.convID),
               membersType: anyToConversationMembersType(data.t),
               type: 'chat.newmessage',
               unboxPayload: data.m || '',
@@ -112,7 +107,7 @@ const normalizePush = (_n?: Object): Types.PushNotification | undefined => {
           const membersType = anyToConversationMembersType(data.t)
           if (membersType) {
             return {
-              conversationIDKey: ChatTypes.stringToConversationIDKey(data.c),
+              conversationIDKey: T.Chat.stringToConversationIDKey(data.c),
               membersType,
               type: 'chat.newmessageSilent_2',
               unboxPayload: data.m || '',
@@ -131,7 +126,7 @@ const normalizePush = (_n?: Object): Types.PushNotification | undefined => {
       case 'chat.extension':
         return data.convID
           ? {
-              conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
+              conversationIDKey: T.Chat.stringToConversationIDKey(data.convID),
               type: 'chat.extension',
             }
           : undefined
@@ -191,9 +186,9 @@ const listenForNativeAndroidIntentNotifications = async () => {
     const url = evt.localPath
 
     if (url) {
-      setAndroidShare({type: RPCTypes.IncomingShareType.file, url})
+      setAndroidShare({type: T.RPCGen.IncomingShareType.file, url})
     } else if (text) {
-      setAndroidShare({text, type: RPCTypes.IncomingShareType.text})
+      setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
     }
   })
 }

@@ -1,22 +1,20 @@
+import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
-import {type ConversationIDKey, keyToConversationID} from '../../constants/types/chat2'
-import type {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import {Activity, useChannelParticipants} from '../common'
 
-const useRecentJoins = (conversationIDKey: ConversationIDKey) => {
+const useRecentJoins = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const [recentJoins, setRecentJoins] = React.useState<number | undefined>(undefined)
-  const getRecentJoinsRPC = Container.useRPC(RPCChatGen.localGetRecentJoinsLocalRpcPromise)
+  const getRecentJoinsRPC = Container.useRPC(T.RPCChat.localGetRecentJoinsLocalRpcPromise)
   React.useEffect(() => {
     setRecentJoins(undefined)
     getRecentJoinsRPC(
-      [{convID: keyToConversationID(conversationIDKey)}],
+      [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
       r => setRecentJoins(r),
       () => {}
     )
@@ -25,8 +23,8 @@ const useRecentJoins = (conversationIDKey: ConversationIDKey) => {
 }
 
 type HeaderTitleProps = {
-  teamID: TeamID
-  conversationIDKey: ConversationIDKey
+  teamID: T.Teams.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey
 }
 
 const HeaderTitle = (props: HeaderTitleProps) => {

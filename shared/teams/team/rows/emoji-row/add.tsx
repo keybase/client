@@ -1,14 +1,13 @@
 import * as C from '../../../../constants'
+import type * as T from '../../../../constants/types'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import type * as Types from '../../../../constants/types/teams'
 import * as Constants from '../../../../constants/teams'
 import * as Container from '../../../../util/container'
-import type * as ChatTypes from '../../../../constants/types/chat2'
 
 type OwnProps = {
-  teamID: Types.TeamID
-  convID: ChatTypes.ConversationIDKey
+  teamID: T.Teams.TeamID
+  convID: T.Chat.ConversationIDKey
   filter: string
   setFilter: (filter: string) => void
 }

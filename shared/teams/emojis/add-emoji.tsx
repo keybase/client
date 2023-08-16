@@ -1,11 +1,8 @@
+import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as React from 'react'
-import * as TeamsTypes from '../../constants/types/teams'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
-import * as FsTypes from '../../constants/types/fs'
-import * as ChatTypes from '../../constants/types/chat2'
 import {AliasInput, Modal} from './common'
 import useRPC from '../../util/use-rpc'
 import {pickImages} from '../../util/pick-files'
@@ -15,31 +12,31 @@ import {useEmojiState} from './use-emoji'
 const pickEmojisPromise = async () => pickImages('Select emoji images to upload')
 
 type Props = {
-  conversationIDKey: ChatTypes.ConversationIDKey
-  teamID: TeamsTypes.TeamID // not supported yet
+  conversationIDKey: T.Chat.ConversationIDKey
+  teamID: T.Teams.TeamID // not supported yet
 }
 type RoutableProps = {
-  conversationIDKey: ChatTypes.ConversationIDKey
-  teamID: TeamsTypes.TeamID // not supported yet
+  conversationIDKey: T.Chat.ConversationIDKey
+  teamID: T.Teams.TeamID // not supported yet
 }
 
 // don't prefill on mobile since it's always a long random string.
 const filePathToDefaultAlias = Styles.isMobile
   ? () => ''
   : (path: string) => {
-      const name = FsTypes.getLocalPathName(path)
+      const name = T.FS.getLocalPathName(path)
       const lastDot = name.lastIndexOf('.')
       return kebabCase(lastDot > 0 ? name.slice(0, lastDot) : name)
     }
 
 const useDoAddEmojis = (
-  conversationIDKey: ChatTypes.ConversationIDKey,
+  conversationIDKey: T.Chat.ConversationIDKey,
   emojisToAdd: Array<EmojiToAdd>,
   setErrors: (errors: Map<string, string>) => void,
   removeFilePath: (toRemove: Set<string> | string) => void,
   onChange?: () => void
 ) => {
-  const addEmojisRpc = useRPC(RPCChatGen.localAddEmojisRpcPromise)
+  const addEmojisRpc = useRPC(T.RPCChat.localAddEmojisRpcPromise)
   const [waitingAddEmojis, setWaitingAddEmojis] = React.useState(false)
   const [bannerError, setBannerError] = React.useState('')
   const clearBannerError = React.useCallback(() => setBannerError(''), [setBannerError])
@@ -55,7 +52,7 @@ const useDoAddEmojis = (
                 aliases: emojisToAdd.map(e => e.alias),
                 // TODO add plumbing when editing an existing emoji.
                 allowOverwrite: emojisToAdd.map(() => false),
-                convID: ChatTypes.keyToConversationID(conversationIDKey),
+                convID: T.Chat.keyToConversationID(conversationIDKey),
                 filenames: emojisToAdd.map(e => e.path),
               },
             ],
@@ -81,7 +78,7 @@ const useDoAddEmojis = (
   return {bannerError, clearBannerError, doAddEmojis, waitingAddEmojis}
 }
 
-const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () => void) => {
+const useStuff = (conversationIDKey: T.Chat.ConversationIDKey, onChange?: () => void) => {
   const [filePaths, setFilePaths] = React.useState<Array<string>>([])
 
   const [aliasMap, setAliasMap] = React.useState(new Map<string, string>())
@@ -203,7 +200,7 @@ export const AddEmojiModal = (props: Props) => {
 
 const AddEmojiModalWrapper = (routableProps: RoutableProps) => {
   const conversationIDKey = routableProps.conversationIDKey
-  const teamID = routableProps.teamID ?? TeamsTypes.noTeamID
+  const teamID = routableProps.teamID ?? T.Teams.noTeamID
   return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} />
 }
 export default AddEmojiModalWrapper

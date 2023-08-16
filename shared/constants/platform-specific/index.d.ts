@@ -1,5 +1,4 @@
-import type * as RPCChatTypes from '../types/rpc-chat-gen'
-import type * as Types from '../types/chat2'
+import type * as T from '../types'
 
 type NextURI = string
 
@@ -13,8 +12,8 @@ export declare function showShareActionSheet(options: {
 }>
 
 export declare function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void>
-export declare function requestLocationPermission(mode: RPCChatTypes.UIWatchPositionPerm): Promise<void>
-export declare function watchPositionForMap(conversationIDKey: Types.ConversationIDKey): Promise<() => void>
+export declare function requestLocationPermission(mode: T.RPCChat.UIWatchPositionPerm): Promise<void>
+export declare function watchPositionForMap(conversationIDKey: T.Chat.ConversationIDKey): Promise<() => void>
 
 export declare function initPlatformListener(): void
 export declare function requestPermissionsToWrite(): Promise<void>

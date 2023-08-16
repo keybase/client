@@ -1,12 +1,11 @@
 import * as C from '../../constants'
+import type * as T from '../../constants/types'
 import * as ChatConstants from '../../constants/chat2'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
-import type * as ChatTypes from '../../constants/types/chat2'
-import type * as Types from '../../constants/types/teams'
 import {FloatingRolePicker} from '../role-picker'
 import {pluralize} from '../../util/string'
 import {useFocusEffect} from '@react-navigation/core'
@@ -16,15 +15,15 @@ type TeamSelectableTab = 'teamMembers' | 'teamChannels'
 type ChannelSelectableTab = 'channelMembers'
 
 type TeamActionsProps = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }
 type TeamProps = TeamActionsProps & {
   selectedTab: TeamSelectableTab
 }
 
 type ChannelActionsProps = {
-  conversationIDKey: ChatTypes.ConversationIDKey
-  teamID: Types.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey
+  teamID: T.Teams.TeamID
 }
 type ChannelProps = ChannelActionsProps & {
   selectedTab: ChannelSelectableTab
@@ -247,7 +246,7 @@ function allSameOrNull<T>(arr: T[]): T | null {
   const first = arr[0]
   return (arr.some(r => r !== first) ? null : first) ?? null
 }
-const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: string[]}) => {
+const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: string[]}) => {
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const roles = members.map(username => teamDetails?.members.get(username)?.type)
   const currentRole = allSameOrNull(roles) ?? undefined
@@ -267,7 +266,7 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
   const disabledReasons = C.useTeamsState(s => Constants.getDisabledReasonsForRolePicker(s, teamID, members))
   const disableButton = disabledReasons.admin !== undefined
   const editMembership = C.useTeamsState(s => s.dispatch.editMembership)
-  const onChangeRoles = (role: Types.TeamRoleType) => editMembership(teamID, members, role)
+  const onChangeRoles = (role: T.Teams.TeamRoleType) => editMembership(teamID, members, role)
 
   return (
     <FloatingRolePicker

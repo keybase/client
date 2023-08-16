@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
-import type * as Types from '../../../constants/types/teams'
-import type * as ChatTypes from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import type {Tab as TabType} from '../../../common-adapters/tabs'
@@ -9,8 +8,8 @@ export type TabKey = 'members' | 'attachments' | 'bots' | 'settings' | 'loading'
 
 export type Props = {
   admin: boolean
-  teamID: Types.TeamID
-  conversationIDKey: ChatTypes.ConversationIDKey
+  teamID: T.Teams.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey
   selectedTab: TabKey
   setSelectedTab: (t: TabKey) => void
 }

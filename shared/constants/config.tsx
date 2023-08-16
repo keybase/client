@@ -1,18 +1,13 @@
 import * as C from '.'
-import * as ChatTypes from './types/chat2'
-import * as DeviceTypes from './types/devices'
+import * as T from './types'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as RPCTypes from './types/rpc-gen'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Stats from '../engine/stats'
 import * as Z from '../util/zustand'
 import {noConversationIDKey} from './chat2'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
-import type * as RPCTypesGregor from './types/rpc-gregor-gen'
 import type * as Types from './types/config'
-import type {ConversationIDKey} from './types/chat2'
-import type * as TeamTypes from './types/teams'
 import type {Tab} from './tabs'
 import uniq from 'lodash/uniq'
 import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '../util/errors'
@@ -52,15 +47,15 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 export type Store = {
   allowAnimatedEmojis: boolean
   androidShare?:
-    | {type: RPCTypes.IncomingShareType.file; url: string}
-    | {type: RPCTypes.IncomingShareType.text; text: string}
+    | {type: T.RPCGen.IncomingShareType.file; url: string}
+    | {type: T.RPCGen.IncomingShareType.text; text: string}
   appFocused: boolean
-  badgeState?: RPCTypes.BadgeState
+  badgeState?: T.RPCGen.BadgeState
   configuredAccounts: Array<Types.ConfiguredAccount>
   defaultUsername: string
   globalError?: Error | RPCError
-  gregorReachable?: RPCTypes.Reachable
-  gregorPushState: Array<{md: RPCTypesGregor.Metadata; item: RPCTypesGregor.Item}>
+  gregorReachable?: T.RPCGen.Reachable
+  gregorPushState: Array<{md: T.RPCGregor.Metadata; item: T.RPCGregor.Item}>
   loginError?: RPCError
   httpSrv: {
     address: string
@@ -86,20 +81,20 @@ export type Store = {
   outOfDate: Types.OutOfDate
   remoteWindowNeedsProps: Map<string, Map<string, number>>
   revokedTrigger: number
-  runtimeStats?: RPCTypes.RuntimeStats
+  runtimeStats?: T.RPCGen.RuntimeStats
   startup: {
     loaded: boolean
     wasFromPush: boolean
-    conversation: ConversationIDKey
+    conversation: T.Chat.ConversationIDKey
     pushPayload: string
     followUser: string
     link: string
     tab?: Tab
   }
   unlockFoldersDevices: Array<{
-    type: DeviceTypes.DeviceType
+    type: T.Devices.DeviceType
     name: string
-    deviceID: DeviceTypes.DeviceID
+    deviceID: T.Devices.DeviceID
   }>
   unlockFoldersError: string
   useNativeFrame: boolean
@@ -212,7 +207,7 @@ type State = Store & {
     onEngineDisonnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => void
-    openUnlockFolders: (devices: Array<RPCTypes.Device>) => void
+    openUnlockFolders: (devices: Array<T.RPCGen.Device>) => void
     powerMonitorEvent: (event: string) => void
     resetState: () => void
     remoteWindowNeedsProps: (component: string, params: string) => void
@@ -225,7 +220,7 @@ type State = Store & {
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: any) => void
     setGregorReachable: (r: Store['gregorReachable']) => void
-    setGregorPushState: (state: RPCTypes.Gregor1.State) => void
+    setGregorPushState: (state: T.RPCGen.Gregor1.State) => void
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
@@ -245,7 +240,7 @@ type State = Store & {
     toggleRuntimeStats: () => void
     updateApp: () => void
     updateGregorCategory: (category: string, body: string, dtime?: {offset: number; time: number}) => void
-    updateRuntimeStats: (stats?: RPCTypes.RuntimeStats) => void
+    updateRuntimeStats: (stats?: T.RPCGen.RuntimeStats) => void
     updateWindowState: (ws: Omit<Store['windowState'], 'isMaximized'>) => void
     windowShown: (win: string) => void
   }
@@ -258,11 +253,11 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
 
   const _checkForUpdate = async () => {
     try {
-      const {status, message} = await RPCTypes.configGetUpdateInfoRpcPromise()
+      const {status, message} = await T.RPCGen.configGetUpdateInfoRpcPromise()
       get().dispatch.setOutOfDate(
-        status !== RPCTypes.UpdateInfoStatus.upToDate
+        status !== T.RPCGen.UpdateInfoStatus.upToDate
           ? {
-              critical: status === RPCTypes.UpdateInfoStatus.criticallyOutOfDate,
+              critical: status === T.RPCGen.UpdateInfoStatus.criticallyOutOfDate,
               message,
               outOfDate: true,
               updating: false,
@@ -376,7 +371,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.unlockFoldersSubmitPaperKey: {
-          RPCTypes.loginPaperKeySubmitRpcPromise(
+          T.RPCGen.loginPaperKeySubmitRpcPromise(
             {paperPhrase: action.payload.paperKey},
             'unlock-folders:waiting'
           )
@@ -391,7 +386,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.closeUnlockFolders: {
-          RPCTypes.rekeyRekeyStatusFinishRpcPromise()
+          T.RPCGen.rekeyRekeyStatusFinishRpcPromise()
             .then(() => {})
             .catch(() => {})
           get().dispatch.openUnlockFolders([])
@@ -479,7 +474,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     },
     initNotifySound: () => {
       const f = async () => {
-        const val = await RPCTypes.configGuiGetValueRpcPromise({path: notifySoundKey})
+        const val = await T.RPCGen.configGuiGetValueRpcPromise({path: notifySoundKey})
         const notifySound = val.b
         if (typeof notifySound === 'boolean') {
           set(s => {
@@ -491,7 +486,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     },
     initOpenAtLogin: () => {
       const f = async () => {
-        const val = await RPCTypes.configGuiGetValueRpcPromise({path: openAtLoginKey})
+        const val = await T.RPCGen.configGuiGetValueRpcPromise({path: openAtLoginKey})
         const openAtLogin = val.b
         if (typeof openAtLogin === 'boolean') {
           get().dispatch.setOpenAtLogin(openAtLogin)
@@ -501,7 +496,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     },
     initUseNativeFrame: () => {
       const f = async () => {
-        const val = await RPCTypes.configGuiGetValueRpcPromise({path: nativeFrameKey})
+        const val = await T.RPCGen.configGuiGetValueRpcPromise({path: nativeFrameKey})
         const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
         set(s => {
           s.useNativeFrame = useNativeFrame
@@ -519,7 +514,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     loadIsOnline: () => {
       const f = async () => {
         try {
-          const isOnline = await RPCTypes.loginIsOnlineRpcPromise(undefined)
+          const isOnline = await T.RPCGen.loginIsOnlineRpcPromise(undefined)
           set(s => {
             s.isOnline = isOnline
           })
@@ -541,7 +536,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
           logger.info(`getFollowerInfo: init; uid=${uid}`)
           if (uid) {
             // request follower info in the background
-            RPCTypes.configRequestFollowingAndUnverifiedFollowersRpcPromise()
+            T.RPCGen.configRequestFollowingAndUnverifiedFollowersRpcPromise()
               .then(() => {})
               .catch(() => {})
           }
@@ -549,7 +544,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
 
         const updateServerConfig = async () => {
           if (get().loggedIn) {
-            await RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
+            await T.RPCGen.configUpdateLastLoggedInAndServerConfigRpcPromise({
               serverConfigPath: C.serverConfigFileName,
             })
           }
@@ -570,7 +565,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
             const {inboxRefresh} = C.useChatState.getState().dispatch
             inboxRefresh('bootstrap')
           }
-          const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
+          const rows = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
           const ri = rows?.i ?? -1
           if (ri > 0) {
             C.useChatState.getState().dispatch.setInboxNumSmallRows(ri, true)
@@ -587,12 +582,12 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     login: (username, passphrase) => {
       const cancelDesc = 'Canceling RPC'
       const cancelOnCallback = (_: unknown, response: CommonResponseHandler) => {
-        response.error({code: RPCTypes.StatusCode.scgeneric, desc: cancelDesc})
+        response.error({code: T.RPCGen.StatusCode.scgeneric, desc: cancelDesc})
       }
       const ignoreCallback = () => {}
       const f = async () => {
         try {
-          await RPCTypes.loginLoginRpcListener({
+          await T.RPCGen.loginLoginRpcListener({
             customResponseIncomingCallMap: {
               'keybase.1.gpgUi.selectKey': cancelOnCallback,
               'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
@@ -604,7 +599,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
               'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
               'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
               'keybase.1.secretUi.getPassphrase': (params, response) => {
-                if (params.pinentry.type === RPCTypes.PassphraseType.passPhrase) {
+                if (params.pinentry.type === T.RPCGen.PassphraseType.passPhrase) {
                   // Service asking us again due to a bad passphrase?
                   if (params.pinentry.retryLabel) {
                     cancelOnCallback(params, response)
@@ -612,7 +607,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
                     if (retryLabel === invalidPasswordErrorString) {
                       retryLabel = 'Incorrect password.'
                     }
-                    const error = new RPCError(retryLabel, RPCTypes.StatusCode.scinputerror)
+                    const error = new RPCError(retryLabel, T.RPCGen.StatusCode.scinputerror)
                     get().dispatch.loginError(error)
                   } else {
                     response.result({passphrase, storeSecret: false})
@@ -630,7 +625,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
               'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
             },
             params: {
-              clientType: RPCTypes.ClientType.guiMain,
+              clientType: T.RPCGen.ClientType.guiMain,
               deviceName: '',
               deviceType: isMobile ? 'mobile' : 'desktop',
               doUserSwitch: true,
@@ -645,7 +640,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
           if (!(error instanceof RPCError)) {
             return
           }
-          if (error.code === RPCTypes.StatusCode.scalreadyloggedin) {
+          if (error.code === T.RPCGen.StatusCode.scalreadyloggedin) {
             get().dispatch.setLoggedIn(true, false)
           } else if (error.desc !== cancelDesc) {
             // If we're canceling then ignore the error
@@ -668,7 +663,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     logoutAndTryToLogInAs: username => {
       const f = async () => {
         if (get().loggedIn) {
-          await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true}, loginWaitingKey)
+          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, loginWaitingKey)
         }
         get().dispatch.setDefaultUsername(username)
       }
@@ -682,7 +677,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       // This should be run on app start and service re-connect in case the service somehow crashed or was restarted manually.
       const startReachability = async () => {
         try {
-          const reachability = await RPCTypes.reachabilityStartReachabilityRpcPromise()
+          const reachability = await T.RPCGen.reachabilityStartReachabilityRpcPromise()
           get().dispatch.setGregorReachable(reachability.reachable)
         } catch (err) {
           logger.warn('error bootstrapping reachability: ', err)
@@ -693,7 +688,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       // If ever you want to get OOBMs for a different system, then you need to enter it here.
       const registerForGregorNotifications = async () => {
         try {
-          await RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: []})
+          await T.RPCGen.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: []})
           logger.info('Registered gregor listener')
         } catch (error) {
           logger.warn('error in registering gregor listener: ', error)
@@ -781,7 +776,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         s.unlockFoldersDevices = devices.map(({name, type, deviceID}) => ({
           deviceID,
           name,
-          type: DeviceTypes.stringToDeviceType(type),
+          type: T.Devices.stringToDeviceType(type),
         }))
       })
     },
@@ -799,7 +794,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       const next = get().networkStatus
       if (next === old) return
       const updateGregor = async () => {
-        const reachability = await RPCTypes.reachabilityCheckReachabilityRpcPromise()
+        const reachability = await T.RPCGen.reachabilityCheckReachabilityRpcPromise()
         get().dispatch.setGregorReachable(reachability.reachable)
       }
       Z.ignorePromise(updateGregor())
@@ -807,7 +802,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       const updateFS = async () => {
         if (isInit) return
         try {
-          await RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
+          await T.RPCGen.SimpleFSSimpleFSCheckReachabilityRpcPromise()
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return
@@ -819,7 +814,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     },
     powerMonitorEvent: event => {
       const f = async () => {
-        await RPCTypes.appStatePowerMonitorEventRpcPromise({event})
+        await T.RPCGen.appStatePowerMonitorEventRpcPromise({event})
       }
       Z.ignorePromise(f())
     },
@@ -917,8 +912,8 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         if (!b) return
         const deletedTeams = b.deletedTeams || []
         const newTeams = new Set<string>(b.newTeams || [])
-        const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = b.teamsWithResetUsers || []
-        const teamsWithResetUsersMap = new Map<TeamTypes.TeamID, Set<string>>()
+        const teamsWithResetUsers: Array<T.RPCGen.TeamMemberOutReset> = b.teamsWithResetUsers || []
+        const teamsWithResetUsersMap = new Map<T.Teams.TeamID, Set<string>>()
         teamsWithResetUsers.forEach(entry => {
           const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
           existing.add(entry.username)
@@ -931,7 +926,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       const updateChat = () => {
         if (!b) return
         b.conversations?.forEach(c => {
-          const id = ChatTypes.conversationIDToKey(c.convID)
+          const id = T.Chat.conversationIDToKey(c.convID)
           C.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
           C.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
         })
@@ -988,7 +983,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         s.gregorReachable = r
       })
       // Re-get info about our account if you log in/we're done handshaking/became reachable
-      if (r === RPCTypes.Reachable.yes) {
+      if (r === T.RPCGen.Reachable.yes) {
         // not in waiting state
         if (C.useDaemonState.getState().handshakeWaiters.size === 0) {
           Z.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(true))
@@ -1066,7 +1061,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         s.notifySound = n
       })
       ignorePromise(
-        RPCTypes.configGuiSetValueRpcPromise({
+        T.RPCGen.configGuiSetValueRpcPromise({
           path: notifySoundKey,
           value: {
             b: n,
@@ -1106,7 +1101,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         s.useNativeFrame = use
       })
       ignorePromise(
-        RPCTypes.configGuiSetValueRpcPromise({
+        T.RPCGen.configGuiSetValueRpcPromise({
           path: nativeFrameKey,
           value: {
             b: use,
@@ -1134,13 +1129,13 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     },
     toggleRuntimeStats: () => {
       const f = async () => {
-        await RPCTypes.configToggleRuntimeStatsRpcPromise()
+        await T.RPCGen.configToggleRuntimeStatsRpcPromise()
       }
       ignorePromise(f())
     },
     updateApp: () => {
       const f = async () => {
-        await RPCTypes.configStartUpdateIfNeededRpcPromise()
+        await T.RPCGen.configStartUpdateIfNeededRpcPromise()
       }
       ignorePromise(f())
       // * If user choose to update:
@@ -1160,7 +1155,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     updateGregorCategory: (category, body, dtime) => {
       const f = async () => {
         try {
-          await RPCTypes.gregorUpdateCategoryRpcPromise({
+          await T.RPCGen.gregorUpdateCategoryRpcPromise({
             body,
             category,
             dtime: dtime || {offset: 0, time: 0},
@@ -1189,7 +1184,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
 
       const windowStateKey = 'windowState'
       ignorePromise(
-        RPCTypes.configGuiSetValueRpcPromise({
+        T.RPCGen.configGuiSetValueRpcPromise({
           path: windowStateKey,
           value: {
             isNull: false,

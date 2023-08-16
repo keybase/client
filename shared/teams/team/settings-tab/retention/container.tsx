@@ -1,25 +1,23 @@
 import * as C from '../../../../constants'
+import type * as T from '../../../../constants/types'
 import * as Constants from '../../../../constants/teams'
-import type * as TeamsTypes from '../../../../constants/types/teams'
 import RetentionPicker, {type RetentionEntityType} from '.'
-import type {ConversationIDKey} from '../../../../constants/types/chat2'
-import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import type {StylesCrossPlatform} from '../../../../styles'
 
 export type OwnProps = {
-  conversationIDKey?: ConversationIDKey
+  conversationIDKey?: T.Chat.ConversationIDKey
   containerStyle?: StylesCrossPlatform
   dropdownStyle?: StylesCrossPlatform
   entityType: RetentionEntityType
   showSaveIndicator: boolean
-  teamID: TeamsTypes.TeamID
+  teamID: T.Teams.TeamID
 }
 
 export default (ownProps: OwnProps) => {
   const {entityType, conversationIDKey: _cid, teamID} = ownProps
 
   let loading = false
-  let teamPolicy: RetentionPolicy | undefined = undefined
+  let teamPolicy: T.Retention.RetentionPolicy | undefined = undefined
 
   if (_cid) {
   } else if (!entityType.endsWith('team')) {
@@ -50,7 +48,7 @@ export default (ownProps: OwnProps) => {
   const showOverrideNotice = entityType === 'big team'
   const setTeamRetentionPolicy = C.useTeamsState(s => s.dispatch.setTeamRetentionPolicy)
   const setConvRetentionPolicy = C.useConvoState(conversationIDKey, s => s.dispatch.setConvRetentionPolicy)
-  const saveRetentionPolicy = (policy: RetentionPolicy) => {
+  const saveRetentionPolicy = (policy: T.Retention.RetentionPolicy) => {
     if (['small team', 'big team'].includes(entityType)) {
       setTeamRetentionPolicy(teamID, policy)
     } else if (['adhoc', 'channel'].includes(entityType)) {

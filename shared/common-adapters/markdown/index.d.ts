@@ -1,7 +1,6 @@
 import * as React from 'react'
-import type * as Types from '../../constants/types/chat2'
+import type * as T from '../../constants/types'
 import {StylesTextCrossPlatform, LineClampType} from '../../common-adapters/text'
-import {MessageText, MessageAttachment} from '../../constants/types/chat2'
 
 type MarkdownComponentType =
   | 'inline-code'
@@ -27,7 +26,7 @@ export type MarkdownCreateComponent = (
 ) => React.ReactNode
 
 export type MarkdownMeta = {
-  message: MessageText | MessageAttachment
+  message: T.Chat.MessageText | T.Chat.MessageAttachment
 }
 
 export type StyleOverride = {
@@ -65,7 +64,7 @@ export type Props = {
   // TODO type this up or remove it
   style?: any
   allowFontScaling?: boolean
-  messageType?: Types.MessageType
+  messageType?: T.Chat.MessageType
   // This changes the specific style for specific types of text
   // for example you may want to make paragraphs, italics, etc to be black_50
   // but want blue_30 for the inline code

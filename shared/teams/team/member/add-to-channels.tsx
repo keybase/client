@@ -1,13 +1,11 @@
 import * as C from '../../../constants'
+import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as ChatConstants from '../../../constants/chat2'
 import * as Constants from '../../../constants/teams'
-import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
-import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
-import * as ChatTypes from '../../../constants/types/chat2'
 import * as Common from '../../common'
 import {pluralize} from '../../../util/string'
 import {memoize} from '../../../util/memoize'
@@ -15,14 +13,14 @@ import {useAllChannelMetas} from '../../common/channel-hooks'
 import {useEditState} from './use-edit'
 
 type Props = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   usernames?: Array<string> // undefined means the user themself
 }
 
 const getChannelsForList = memoize(
-  (channels: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>, usernames: string[]) => {
+  (channels: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>, usernames: string[]) => {
     const processed = [...channels.values()].reduce(
-      ({list, general}: {general: ChatTypes.ConversationMeta; list: Array<ChatTypes.ConversationMeta>}, c) =>
+      ({list, general}: {general: T.Chat.ConversationMeta; list: Array<T.Chat.ConversationMeta>}, c) =>
         c.channelname === 'general' ? {general: c, list} : {general, list: [...list, c]},
       {general: ChatConstants.makeConversationMeta(), list: []}
     )
@@ -45,7 +43,7 @@ const getChannelsForList = memoize(
 )
 
 const AddToChannels = (props: Props) => {
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
   const myUsername = C.useCurrentUserState(s => s.username)
   const usernames = props.usernames ?? [myUsername]
   const mode = props.usernames ? 'others' : 'self'
@@ -76,8 +74,8 @@ const AddToChannels = (props: Props) => {
       }
     }),
   ]
-  const [selected, setSelected] = React.useState(new Set<ChatTypes.ConversationIDKey>())
-  const onSelect = (convIDKey: ChatTypes.ConversationIDKey) => {
+  const [selected, setSelected] = React.useState(new Set<T.Chat.ConversationIDKey>())
+  const onSelect = (convIDKey: T.Chat.ConversationIDKey) => {
     if (convIDKey === channelMetaGeneral.conversationIDKey) return
     if (selected.has(convIDKey)) {
       selected.delete(convIDKey)
@@ -93,7 +91,7 @@ const AddToChannels = (props: Props) => {
   const onCancel = () => nav.safeNavigateUp()
   const onCreate = () => nav.safeNavigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
 
-  const submit = Container.useRPC(RPCChatGen.localBulkAddToManyConvsRpcPromise)
+  const submit = Container.useRPC(T.RPCChat.localBulkAddToManyConvsRpcPromise)
   const [waiting, setWaiting] = React.useState(false)
   const onFinish = () => {
     if (!selected.size) {
@@ -102,7 +100,7 @@ const AddToChannels = (props: Props) => {
     }
     setWaiting(true)
     submit(
-      [{conversations: [...selected].map(ChatTypes.keyToConversationID), usernames}],
+      [{conversations: [...selected].map(T.Chat.keyToConversationID), usernames}],
       () => {
         setWaiting(false)
         onCancel()
@@ -283,7 +281,7 @@ const SelfChannelActions = ({
   reloadChannels,
   selfMode,
 }: {
-  meta: ChatTypes.ConversationMeta
+  meta: T.Chat.ConversationMeta
   reloadChannels: () => Promise<void>
   selfMode: boolean
 }) => {
@@ -335,10 +333,10 @@ const SelfChannelActions = ({
     })
   }, [nav, meta])
 
-  const joinRPC = Container.useRPC(RPCChatGen.localJoinConversationByIDLocalRpcPromise)
-  const leaveRPC = Container.useRPC(RPCChatGen.localLeaveConversationLocalRpcPromise)
+  const joinRPC = Container.useRPC(T.RPCChat.localJoinConversationByIDLocalRpcPromise)
+  const leaveRPC = Container.useRPC(T.RPCChat.localLeaveConversationLocalRpcPromise)
 
-  const convID = ChatTypes.keyToConversationID(meta.conversationIDKey)
+  const convID = T.Chat.keyToConversationID(meta.conversationIDKey)
   const onLeave = React.useCallback(() => {
     setWaiting(true)
     leaveRPC(
@@ -438,7 +436,7 @@ const SelfChannelActions = ({
   )
 }
 type ChannelRowProps = {
-  channelMeta: ChatTypes.ConversationMeta
+  channelMeta: T.Chat.ConversationMeta
   selected: boolean
   onSelect: () => void
   mode: 'self' | 'others'
