@@ -1,11 +1,9 @@
 import * as C from '../../../../constants'
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 
-type Props = {
-  messageID: Types.MessageID
-}
+type Props = {messageID: T.Chat.MessageID}
 
 const Pin = (props: Props) => {
   const {messageID} = props

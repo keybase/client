@@ -6,8 +6,7 @@ import * as React from 'react'
 import * as Styles from '../../../styles'
 import ReactButton from './react-button/container'
 import shallowEqual from 'shallowequal'
-import type * as Types from '../../../constants/types/chat2'
-import type * as UsersTypes from '../../../constants/types/users'
+import type * as T from '../../../constants/types'
 import {OrdinalContext} from './ids-context'
 
 export type Props = {
@@ -16,7 +15,7 @@ export type Props = {
   onHidden: () => void
   onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void
   onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
   reactions: Array<{
     emoji: string
     users: Array<{
@@ -33,13 +32,13 @@ type OwnProps = {
   onHidden: () => void
   onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void
   onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
   visible: boolean
 }
 
 const emptyStateProps = {
-  _reactions: new Map<string, Types.ReactionDesc>(),
-  _usersInfo: new Map<string, UsersTypes.UserInfo>(),
+  _reactions: new Map<string, T.Chat.ReactionDesc>(),
+  _usersInfo: new Map<string, T.Users.UserInfo>(),
 }
 
 const ReactionTooltip = (p: OwnProps) => {
@@ -204,7 +203,7 @@ const renderSectionHeader = ({
 }: {
   section: {
     data: Array<any>
-    ordinal: Types.Ordinal
+    ordinal: T.Chat.Ordinal
     title: string
   }
 }) => (

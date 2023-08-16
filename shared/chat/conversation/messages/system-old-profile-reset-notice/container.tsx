@@ -1,5 +1,5 @@
 import * as C from '../../../../constants'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import OldProfileResetNotice from '.'
 
 export default () => {
@@ -8,7 +8,7 @@ export default () => {
   const _participants = participantInfo.all
   const nextConversationIDKey = meta.supersededBy
   const username = meta.wasFinalizedBy || ''
-  const onOpenConversation = (conversationIDKey: Types.ConversationIDKey) => {
+  const onOpenConversation = (conversationIDKey: T.Chat.ConversationIDKey) => {
     C.getConvoState(conversationIDKey).dispatch.navigateToThread('jumpFromReset')
   }
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)

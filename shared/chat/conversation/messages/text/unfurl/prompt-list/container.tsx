@@ -1,11 +1,10 @@
 import * as C from '../../../../../../constants'
 import * as React from 'react'
 import {OrdinalContext} from '../../../ids-context'
-import * as Types from '../../../../../../constants/types/chat2'
-import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../../../constants/types'
 import UnfurlPromptList from '.'
 
-const noMessageID = Types.numberToMessageID(0)
+const noMessageID = T.Chat.numberToMessageID(0)
 
 const UnfurlPromptListContainer = React.memo(function UnfurlPromptListContainer() {
   const ordinal = React.useContext(OrdinalContext)
@@ -13,11 +12,7 @@ const UnfurlPromptListContainer = React.memo(function UnfurlPromptListContainer(
   const messageID = message && message.type === 'text' ? message.id : noMessageID
   const promptDomains = C.useChatContext(s => s.unfurlPrompt).get(messageID)
   const unfurlResolvePrompt = C.useChatContext(s => s.dispatch.unfurlResolvePrompt)
-  const _setPolicy = (
-    messageID: Types.MessageID,
-    domain: string,
-    result: RPCChatTypes.UnfurlPromptResult
-  ) => {
+  const _setPolicy = (messageID: T.Chat.MessageID, domain: string, result: T.RPCChat.UnfurlPromptResult) => {
     unfurlResolvePrompt(messageID, domain, result)
   }
   const props = {
@@ -26,23 +21,23 @@ const UnfurlPromptListContainer = React.memo(function UnfurlPromptListContainer(
       onAccept: () =>
         _setPolicy(messageID, domain, {
           accept: domain,
-          actionType: RPCChatTypes.UnfurlPromptAction.accept,
+          actionType: T.RPCChat.UnfurlPromptAction.accept,
         }),
       onAlways: () =>
         _setPolicy(messageID, domain, {
-          actionType: RPCChatTypes.UnfurlPromptAction.always,
+          actionType: T.RPCChat.UnfurlPromptAction.always,
         }),
       onNever: () =>
         _setPolicy(messageID, domain, {
-          actionType: RPCChatTypes.UnfurlPromptAction.never,
+          actionType: T.RPCChat.UnfurlPromptAction.never,
         }),
       onNotnow: () =>
         _setPolicy(messageID, domain, {
-          actionType: RPCChatTypes.UnfurlPromptAction.notnow,
+          actionType: T.RPCChat.UnfurlPromptAction.notnow,
         }),
       onOnetime: () =>
         _setPolicy(messageID, domain, {
-          actionType: RPCChatTypes.UnfurlPromptAction.onetime,
+          actionType: T.RPCChat.UnfurlPromptAction.onetime,
           onetime: domain,
         }),
     })),

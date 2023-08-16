@@ -1,12 +1,12 @@
 import * as C from '../../../../../../constants'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as Styles from '../../../../../../styles'
-import type * as Types from '../../../../../../constants/types/chat2'
+import type * as T from '../../../../../../constants/types'
 import openURL from '../../../../../../util/open-url'
 import LocationMap from '../../../../../location-map'
 
 type Props = {
-  coord: Types.Coordinate
+  coord: T.Chat.Coordinate
   isAuthor: boolean
   author?: string
   isLiveLocation: boolean

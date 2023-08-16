@@ -1,9 +1,9 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import SystemNewChannel from '.'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 
-type OwnProps = {message: Types.MessageSystemNewChannel}
+type OwnProps = {message: T.Chat.MessageSystemNewChannel}
 
 const SystemNewChannelContainer = React.memo(function SystemNewChannelContainer(p: OwnProps) {
   const {message} = p

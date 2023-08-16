@@ -5,16 +5,16 @@ import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import {OrdinalContext, HighlightedContext} from '../ids-context'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 
-export const useReply = (ordinal: Types.Ordinal) => {
+export const useReply = (ordinal: T.Chat.Ordinal) => {
   const showReplyTo = C.useChatContext(s => !!s.messageMap.get(ordinal)?.replyTo)
   return showReplyTo ? <Reply /> : null
 }
 
 const emptyMessage = Constants.makeMessageText()
 
-const ReplyToContext = React.createContext<Types.Message>(emptyMessage)
+const ReplyToContext = React.createContext<T.Chat.Message>(emptyMessage)
 
 const AvatarHolder = () => {
   const {author} = React.useContext(ReplyToContext)
