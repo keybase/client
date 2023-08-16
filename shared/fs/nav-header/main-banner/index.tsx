@@ -1,29 +1,29 @@
 import * as Kb from '../../../common-adapters'
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import * as Styles from '../../../styles'
 
 type Props = {
   onRetry: () => void
-  bannerType: Types.MainBannerType
+  bannerType: T.FS.MainBannerType
 }
 
 const Banner = (props: Props) => {
   switch (props.bannerType) {
-    case Types.MainBannerType.None:
+    case T.FS.MainBannerType.None:
       return null
-    case Types.MainBannerType.Offline:
+    case T.FS.MainBannerType.Offline:
       return (
         <Kb.Banner color="blue">
           <Kb.BannerParagraph bannerColor="blue" content="You are offline." />
         </Kb.Banner>
       )
-    case Types.MainBannerType.TryingToConnect:
+    case T.FS.MainBannerType.TryingToConnect:
       return (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.loadingLineContainer}>
           <Kb.LoadingLine />
         </Kb.Box2>
       )
-    case Types.MainBannerType.OutOfSpace:
+    case T.FS.MainBannerType.OutOfSpace:
       return (
         <Kb.Banner color="red">
           <Kb.BannerParagraph

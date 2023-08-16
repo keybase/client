@@ -3,7 +3,7 @@ import * as EngineGen from '../actions/engine-gen-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
-import * as Types from './types/fs'
+import * as T from './types'
 import * as Z from '../util/zustand'
 import {requestPermissionsToWrite} from '../constants/platform-specific'
 import NotifyPopup from '../util/notify-popup'
@@ -20,16 +20,16 @@ export const commitEditWaitingKey = 'fs:commitEditWaitingKey'
 export const setSyncOnCellularWaitingKey = 'fs:setSyncOnCellular'
 
 const subscriptionDeduplicateIntervalSecond = 1
-export const defaultPath = Types.stringToPath('/keybase')
+export const defaultPath = T.FS.stringToPath('/keybase')
 
 export const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   switch (rpcFolderType) {
     case RPCTypes.FolderType.private:
-      return Types.TlfType.Private
+      return T.FS.TlfType.Private
     case RPCTypes.FolderType.public:
-      return Types.TlfType.Public
+      return T.FS.TlfType.Public
     case RPCTypes.FolderType.team:
-      return Types.TlfType.Team
+      return T.FS.TlfType.Team
     default:
       return null
   }
@@ -37,12 +37,12 @@ export const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
 
 export const rpcConflictStateToConflictState = (
   rpcConflictState?: RPCTypes.ConflictState
-): Types.ConflictState => {
+): T.FS.ConflictState => {
   if (rpcConflictState) {
     if (rpcConflictState.conflictStateType === RPCTypes.ConflictStateType.normalview) {
       const nv = rpcConflictState.normalview
       return makeConflictStateNormalView({
-        localViewTlfPaths: (nv?.localViews || []).reduce<Array<Types.Path>>((arr, p) => {
+        localViewTlfPaths: (nv?.localViews || []).reduce<Array<T.FS.Path>>((arr, p) => {
           p.PathType === RPCTypes.PathType.kbfs && arr.push(rpcPathToPath(p.kbfs))
           return arr
         }, []),
@@ -63,9 +63,9 @@ export const rpcConflictStateToConflictState = (
 
 export const getSyncConfigFromRPC = (
   tlfName: string,
-  tlfType: Types.TlfType,
+  tlfType: T.FS.TlfType,
   config?: RPCTypes.FolderSyncConfig
-): Types.TlfSyncConfig => {
+): T.FS.TlfSyncConfig => {
   if (!config) {
     return tlfSyncDisabled
   }
@@ -77,7 +77,7 @@ export const getSyncConfigFromRPC = (
     case RPCTypes.FolderSyncMode.partial:
       return makeTlfSyncPartial({
         enabledPaths: config.paths
-          ? config.paths.map(str => Types.getPathFromRelative(tlfName, tlfType, str))
+          ? config.paths.map(str => T.FS.getPathFromRelative(tlfName, tlfType, str))
           : [],
       })
     default:
@@ -92,28 +92,28 @@ export const ExitCodeFuseKextPermissionError = 5
 // See Installer.m: KBExitAuthCanceledError
 export const ExitCodeAuthCanceledError = 6
 
-export const emptyNewFolder: Types.Edit = {
+export const emptyNewFolder: T.FS.Edit = {
   error: undefined,
   name: 'New Folder',
   originalName: 'New Folder',
-  parentPath: Types.stringToPath('/keybase'),
-  type: Types.EditType.NewFolder,
+  parentPath: T.FS.stringToPath('/keybase'),
+  type: T.FS.EditType.NewFolder,
 }
 
-export const prefetchNotStarted: Types.PrefetchNotStarted = {
-  state: Types.PrefetchState.NotStarted,
+export const prefetchNotStarted: T.FS.PrefetchNotStarted = {
+  state: T.FS.PrefetchState.NotStarted,
 }
 
-export const prefetchComplete: Types.PrefetchComplete = {
-  state: Types.PrefetchState.Complete,
+export const prefetchComplete: T.FS.PrefetchComplete = {
+  state: T.FS.PrefetchState.Complete,
 }
 
-export const emptyPrefetchInProgress: Types.PrefetchInProgress = {
+export const emptyPrefetchInProgress: T.FS.PrefetchInProgress = {
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
   startTime: 0,
-  state: Types.PrefetchState.InProgress,
+  state: T.FS.PrefetchState.InProgress,
 }
 
 const pathItemMetadataDefault = {
@@ -125,67 +125,67 @@ const pathItemMetadataDefault = {
   writable: false,
 }
 
-export const emptyFolder: Types.FolderPathItem = {
+export const emptyFolder: T.FS.FolderPathItem = {
   ...pathItemMetadataDefault,
   children: new Set(),
-  progress: Types.ProgressType.Pending,
-  type: Types.PathType.Folder,
+  progress: T.FS.ProgressType.Pending,
+  type: T.FS.PathType.Folder,
 }
 
-export const emptyFile: Types.FilePathItem = {
+export const emptyFile: T.FS.FilePathItem = {
   ...pathItemMetadataDefault,
-  type: Types.PathType.File,
+  type: T.FS.PathType.File,
 }
 
-export const emptySymlink: Types.SymlinkPathItem = {
+export const emptySymlink: T.FS.SymlinkPathItem = {
   ...pathItemMetadataDefault,
   linkTarget: '',
-  type: Types.PathType.Symlink,
+  type: T.FS.PathType.Symlink,
 }
 
-export const unknownPathItem: Types.UnknownPathItem = {
+export const unknownPathItem: T.FS.UnknownPathItem = {
   ...pathItemMetadataDefault,
-  type: Types.PathType.Unknown,
+  type: T.FS.PathType.Unknown,
 }
 
-export const tlfSyncEnabled: Types.TlfSyncEnabled = {
-  mode: Types.TlfSyncMode.Enabled,
+export const tlfSyncEnabled: T.FS.TlfSyncEnabled = {
+  mode: T.FS.TlfSyncMode.Enabled,
 }
 
-export const tlfSyncDisabled: Types.TlfSyncDisabled = {
-  mode: Types.TlfSyncMode.Disabled,
+export const tlfSyncDisabled: T.FS.TlfSyncDisabled = {
+  mode: T.FS.TlfSyncMode.Disabled,
 }
 
 export const makeTlfSyncPartial = ({
   enabledPaths,
 }: {
-  enabledPaths?: Types.TlfSyncPartial['enabledPaths']
-}): Types.TlfSyncPartial => ({
+  enabledPaths?: T.FS.TlfSyncPartial['enabledPaths']
+}): T.FS.TlfSyncPartial => ({
   enabledPaths: [...(enabledPaths || [])],
-  mode: Types.TlfSyncMode.Partial,
+  mode: T.FS.TlfSyncMode.Partial,
 })
 
 export const makeConflictStateNormalView = ({
   localViewTlfPaths,
   resolvingConflict,
   stuckInConflict,
-}: Partial<Types.ConflictStateNormalView>): Types.ConflictStateNormalView => ({
+}: Partial<T.FS.ConflictStateNormalView>): T.FS.ConflictStateNormalView => ({
   localViewTlfPaths: [...(localViewTlfPaths || [])],
   resolvingConflict: resolvingConflict || false,
   stuckInConflict: stuckInConflict || false,
-  type: Types.ConflictStateType.NormalView,
+  type: T.FS.ConflictStateType.NormalView,
 })
 
 export const tlfNormalViewWithNoConflict = makeConflictStateNormalView({})
 
 export const makeConflictStateManualResolvingLocalView = ({
   normalViewTlfPath,
-}: Partial<Types.ConflictStateManualResolvingLocalView>): Types.ConflictStateManualResolvingLocalView => ({
+}: Partial<T.FS.ConflictStateManualResolvingLocalView>): T.FS.ConflictStateManualResolvingLocalView => ({
   normalViewTlfPath: normalViewTlfPath || defaultPath,
-  type: Types.ConflictStateType.ManualResolvingLocalView,
+  type: T.FS.ConflictStateType.ManualResolvingLocalView,
 })
 
-export const makeTlf = (p: Partial<Types.Tlf>): Types.Tlf => {
+export const makeTlf = (p: Partial<T.FS.Tlf>): T.FS.Tlf => {
   const {conflictState, isFavorite, isIgnored, isNew, name, resetParticipants, syncConfig, teamId, tlfMtime} =
     p
   return {
@@ -206,28 +206,28 @@ export const makeTlf = (p: Partial<Types.Tlf>): Types.Tlf => {
   }
 }
 
-export const emptySyncingFoldersProgress: Types.SyncingFoldersProgress = {
+export const emptySyncingFoldersProgress: T.FS.SyncingFoldersProgress = {
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
   start: 0,
 }
 
-export const emptyOverallSyncStatus: Types.OverallSyncStatus = {
-  diskSpaceStatus: Types.DiskSpaceStatus.Ok,
+export const emptyOverallSyncStatus: T.FS.OverallSyncStatus = {
+  diskSpaceStatus: T.FS.DiskSpaceStatus.Ok,
   showingBanner: false,
   syncingFoldersProgress: emptySyncingFoldersProgress,
 }
 
-export const defaultPathUserSetting: Types.PathUserSetting = {
-  sort: Types.SortSetting.NameAsc,
+export const defaultPathUserSetting: T.FS.PathUserSetting = {
+  sort: T.FS.SortSetting.NameAsc,
 }
 
-export const defaultTlfListPathUserSetting: Types.PathUserSetting = {
-  sort: Types.SortSetting.TimeAsc,
+export const defaultTlfListPathUserSetting: T.FS.PathUserSetting = {
+  sort: T.FS.SortSetting.TimeAsc,
 }
 
-export const emptyDownloadState: Types.DownloadState = {
+export const emptyDownloadState: T.FS.DownloadState = {
   canceled: false,
   done: false,
   endEstimate: 0,
@@ -236,47 +236,45 @@ export const emptyDownloadState: Types.DownloadState = {
   progress: 0,
 }
 
-export const emptyDownloadInfo: Types.DownloadInfo = {
+export const emptyDownloadInfo: T.FS.DownloadInfo = {
   filename: '',
   isRegularDownload: false,
   path: defaultPath,
   startTime: 0,
 }
 
-export const emptyPathItemActionMenu: Types.PathItemActionMenu = {
+export const emptyPathItemActionMenu: T.FS.PathItemActionMenu = {
   downloadID: undefined,
   downloadIntent: undefined,
-  previousView: Types.PathItemActionMenuView.Root,
-  view: Types.PathItemActionMenuView.Root,
+  previousView: T.FS.PathItemActionMenuView.Root,
+  view: T.FS.PathItemActionMenuView.Root,
 }
 
-export const driverStatusUnknown: Types.DriverStatusUnknown = {
-  type: Types.DriverStatusType.Unknown,
+export const driverStatusUnknown: T.FS.DriverStatusUnknown = {
+  type: T.FS.DriverStatusType.Unknown,
 } as const
 
-export const emptyDriverStatusEnabled: Types.DriverStatusEnabled = {
+export const emptyDriverStatusEnabled: T.FS.DriverStatusEnabled = {
   dokanOutdated: false,
   dokanUninstallExecPath: undefined,
   isDisabling: false,
-  type: Types.DriverStatusType.Enabled,
+  type: T.FS.DriverStatusType.Enabled,
 } as const
 
-export const emptyDriverStatusDisabled: Types.DriverStatusDisabled = {
+export const emptyDriverStatusDisabled: T.FS.DriverStatusDisabled = {
   isEnabling: false,
   kextPermissionError: false,
-  type: Types.DriverStatusType.Disabled,
+  type: T.FS.DriverStatusType.Disabled,
 } as const
 
-export const defaultDriverStatus: Types.DriverStatus = isLinux
-  ? emptyDriverStatusEnabled
-  : driverStatusUnknown
+export const defaultDriverStatus: T.FS.DriverStatus = isLinux ? emptyDriverStatusEnabled : driverStatusUnknown
 
-export const unknownKbfsDaemonStatus: Types.KbfsDaemonStatus = {
-  onlineStatus: Types.KbfsDaemonOnlineStatus.Unknown,
-  rpcStatus: Types.KbfsDaemonRpcStatus.Waiting,
+export const unknownKbfsDaemonStatus: T.FS.KbfsDaemonStatus = {
+  onlineStatus: T.FS.KbfsDaemonOnlineStatus.Unknown,
+  rpcStatus: T.FS.KbfsDaemonRpcStatus.Waiting,
 }
 
-export const emptySettings: Types.Settings = {
+export const emptySettings: T.FS.Settings = {
   isLoading: false,
   loaded: false,
   sfmiBannerDismissed: false,
@@ -284,19 +282,19 @@ export const emptySettings: Types.Settings = {
   syncOnCellular: false,
 }
 
-export const emptyPathInfo: Types.PathInfo = {
+export const emptyPathInfo: T.FS.PathInfo = {
   deeplinkPath: '',
   platformAfterMountPath: '',
 }
 
-export const emptyFileContext: Types.FileContext = {
+export const emptyFileContext: T.FS.FileContext = {
   contentType: '',
   url: '',
   viewType: RPCTypes.GUIViewType.default,
 }
 
-export const getPathItem = (pathItems: Map<Types.Path, Types.PathItem>, path: Types.Path): Types.PathItem =>
-  pathItems.get(path) || (unknownPathItem as Types.PathItem)
+export const getPathItem = (pathItems: Map<T.FS.Path, T.FS.PathItem>, path: T.FS.Path): T.FS.PathItem =>
+  pathItems.get(path) || (unknownPathItem as T.FS.PathItem)
 
 // RPC expects a string that's interpreted as [16]byte on Go side and it has to
 // be unique among all ongoing ops at any given time. uuidv1 may exceed 16
@@ -316,25 +314,25 @@ export const makeUUID = () => {
 
 export const clientID = makeUUID()
 export const pathToRPCPath = (
-  path: Types.Path
+  path: T.FS.Path
 ): {PathType: RPCTypes.PathType.kbfs; kbfs: RPCTypes.KBFSPath} => ({
   PathType: RPCTypes.PathType.kbfs,
   kbfs: {
     identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
-    path: Types.pathToString(path).substring('/keybase'.length) || '/',
+    path: T.FS.pathToString(path).substring('/keybase'.length) || '/',
   },
 })
 
-export const rpcPathToPath = (rpcPath: RPCTypes.KBFSPath) => Types.pathConcat(defaultPath, rpcPath.path)
+export const rpcPathToPath = (rpcPath: RPCTypes.KBFSPath) => T.FS.pathConcat(defaultPath, rpcPath.path)
 
-export const pathTypeToTextType = (type: Types.PathType) =>
-  type === Types.PathType.Folder ? 'BodySemibold' : 'Body'
+export const pathTypeToTextType = (type: T.FS.PathType) =>
+  type === T.FS.PathType.Folder ? 'BodySemibold' : 'Body'
 
 export const splitTlfIntoUsernames = (tlf: string): Array<string> =>
   tlf.split(' ')[0]?.replace(/#/g, ',').split(',') ?? []
 
-export const getUsernamesFromPath = (path: Types.Path): Array<string> => {
-  const elems = Types.getPathElements(path)
+export const getUsernamesFromPath = (path: T.FS.Path): Array<string> => {
+  const elems = T.FS.getPathElements(path)
   return elems.length < 3 ? [] : splitTlfIntoUsernames(elems[2]!)
 }
 
@@ -352,14 +350,14 @@ export const humanReadableFileSize = (size: number) => {
   return `${size} B`
 }
 
-export const downloadIsOngoing = (dlState: Types.DownloadState) =>
+export const downloadIsOngoing = (dlState: T.FS.DownloadState) =>
   dlState !== emptyDownloadState && !dlState.error && !dlState.done && !dlState.canceled
 
 export const getDownloadIntent = (
-  path: Types.Path,
-  downloads: Types.Downloads,
-  pathItemActionMenu: Types.PathItemActionMenu
-): Types.DownloadIntent | undefined => {
+  path: T.FS.Path,
+  downloads: T.FS.Downloads,
+  pathItemActionMenu: T.FS.PathItemActionMenu
+): T.FS.DownloadIntent | undefined => {
   const found = [...downloads.info].find(([_, info]) => info.path === path)
   if (!found) {
     return undefined
@@ -372,41 +370,41 @@ export const getDownloadIntent = (
   if (pathItemActionMenu.downloadID === downloadID) {
     return pathItemActionMenu.downloadIntent
   }
-  return Types.DownloadIntent.None
+  return T.FS.DownloadIntent.None
 }
 
-export const emptyTlfUpdate: Types.TlfUpdate = {
+export const emptyTlfUpdate: T.FS.TlfUpdate = {
   history: [],
-  path: Types.stringToPath(''),
+  path: T.FS.stringToPath(''),
   serverTime: 0,
   writer: '',
 }
 
-export const emptyTlfEdit: Types.TlfEdit = {
-  editType: Types.FileEditType.Unknown,
+export const emptyTlfEdit: T.FS.TlfEdit = {
+  editType: T.FS.FileEditType.Unknown,
   filename: '',
   serverTime: 0,
 }
 
-const fsNotificationTypeToEditType = (fsNotificationType: number): Types.FileEditType => {
+const fsNotificationTypeToEditType = (fsNotificationType: number): T.FS.FileEditType => {
   switch (fsNotificationType) {
     case RPCTypes.FSNotificationType.fileCreated:
-      return Types.FileEditType.Created
+      return T.FS.FileEditType.Created
     case RPCTypes.FSNotificationType.fileModified:
-      return Types.FileEditType.Modified
+      return T.FS.FileEditType.Modified
     case RPCTypes.FSNotificationType.fileDeleted:
-      return Types.FileEditType.Deleted
+      return T.FS.FileEditType.Deleted
     case RPCTypes.FSNotificationType.fileRenamed:
-      return Types.FileEditType.Renamed
+      return T.FS.FileEditType.Renamed
     default:
-      return Types.FileEditType.Unknown
+      return T.FS.FileEditType.Unknown
   }
 }
 
 export const userTlfHistoryRPCToState = (
   history: Array<RPCTypes.FSFolderEditHistory>
-): Types.UserTlfUpdates => {
-  let updates: Array<Types.TlfUpdate> = []
+): T.FS.UserTlfUpdates => {
+  let updates: Array<T.FS.TlfUpdate> = []
   history.forEach(folder => {
     const updateServerTime = folder.serverTime
     const path = pathFromFolderRPC(folder.folder)
@@ -429,8 +427,8 @@ export const userTlfHistoryRPCToState = (
   return updates
 }
 
-export const canSaveMedia = (pathItem: Types.PathItem, fileContext: Types.FileContext): boolean => {
-  if (pathItem.type !== Types.PathType.File || fileContext === emptyFileContext) {
+export const canSaveMedia = (pathItem: T.FS.PathItem, fileContext: T.FS.FileContext): boolean => {
+  if (pathItem.type !== T.FS.PathType.File || fileContext === emptyFileContext) {
     return false
   }
   return (
@@ -438,31 +436,31 @@ export const canSaveMedia = (pathItem: Types.PathItem, fileContext: Types.FileCo
   )
 }
 
-export const folderRPCFromPath = (path: Types.Path): RPCTypes.FolderHandle | undefined => {
-  const pathElems = Types.getPathElements(path)
+export const folderRPCFromPath = (path: T.FS.Path): RPCTypes.FolderHandle | undefined => {
+  const pathElems = T.FS.getPathElements(path)
   if (pathElems.length === 0) return undefined
 
-  const visibility = Types.getVisibilityFromElems(pathElems)
+  const visibility = T.FS.getVisibilityFromElems(pathElems)
   if (visibility === undefined) return undefined
 
-  const name = Types.getPathNameFromElems(pathElems)
+  const name = T.FS.getPathNameFromElems(pathElems)
   if (name === '') return undefined
 
   return {
     created: false,
-    folderType: Types.getRPCFolderTypeFromVisibility(visibility),
+    folderType: T.FS.getRPCFolderTypeFromVisibility(visibility),
     name,
   }
 }
 
-export const pathFromFolderRPC = (folder: RPCTypes.Folder): Types.Path => {
-  const visibility = Types.getVisibilityFromRPCFolderType(folder.folderType)
-  if (!visibility) return Types.stringToPath('')
-  return Types.stringToPath(`/keybase/${visibility}/${folder.name}`)
+export const pathFromFolderRPC = (folder: RPCTypes.Folder): T.FS.Path => {
+  const visibility = T.FS.getVisibilityFromRPCFolderType(folder.folderType)
+  if (!visibility) return T.FS.stringToPath('')
+  return T.FS.stringToPath(`/keybase/${visibility}/${folder.name}`)
 }
 
-export const showIgnoreFolder = (path: Types.Path, username?: string): boolean => {
-  const elems = Types.getPathElements(path)
+export const showIgnoreFolder = (path: T.FS.Path, username?: string): boolean => {
+  const elems = T.FS.getPathElements(path)
   if (elems.length !== 3) {
     return false
   }
@@ -475,57 +473,57 @@ export const syntheticEventToTargetRect = (evt?: React.SyntheticEvent): ClientRe
 export const invalidTokenError = new Error('invalid token')
 export const notFoundError = new Error('not found')
 
-export const makeEditID = (): Types.EditID => Types.stringToEditID(makeUUID())
+export const makeEditID = (): T.FS.EditID => T.FS.stringToEditID(makeUUID())
 
-export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType): Types.TlfList => {
+export const getTlfListFromType = (tlfs: T.FS.Tlfs, tlfType: T.FS.TlfType): T.FS.TlfList => {
   switch (tlfType) {
-    case Types.TlfType.Private:
+    case T.FS.TlfType.Private:
       return tlfs.private
-    case Types.TlfType.Public:
+    case T.FS.TlfType.Public:
       return tlfs.public
-    case Types.TlfType.Team:
+    case T.FS.TlfType.Team:
       return tlfs.team
     default:
       return new Map()
   }
 }
 
-export const computeBadgeNumberForTlfList = (tlfList: Types.TlfList): number =>
+export const computeBadgeNumberForTlfList = (tlfList: T.FS.TlfList): number =>
   [...tlfList.values()].reduce((accumulator, tlf) => (tlfIsBadged(tlf) ? accumulator + 1 : accumulator), 0)
 
-export const computeBadgeNumberForAll = (tlfs: Types.Tlfs): number =>
-  [Types.TlfType.Private, Types.TlfType.Public, Types.TlfType.Team]
+export const computeBadgeNumberForAll = (tlfs: T.FS.Tlfs): number =>
+  [T.FS.TlfType.Private, T.FS.TlfType.Public, T.FS.TlfType.Team]
     .map(tlfType => computeBadgeNumberForTlfList(getTlfListFromType(tlfs, tlfType)))
     .reduce((sum, count) => sum + count, 0)
 
-export const getTlfPath = (path: Types.Path): Types.Path => {
-  const elems = Types.getPathElements(path)
-  return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]!), elems[2]!) : undefined
+export const getTlfPath = (path: T.FS.Path): T.FS.Path => {
+  const elems = T.FS.getPathElements(path)
+  return elems.length > 2 ? T.FS.pathConcat(T.FS.pathConcat(defaultPath, elems[1]!), elems[2]!) : undefined
 }
 
 export const getTlfListAndTypeFromPath = (
-  tlfs: Types.Tlfs,
-  path: Types.Path
+  tlfs: T.FS.Tlfs,
+  path: T.FS.Path
 ): {
-  tlfList: Types.TlfList
-  tlfType: Types.TlfType
+  tlfList: T.FS.TlfList
+  tlfType: T.FS.TlfType
 } => {
-  const visibility = Types.getPathVisibility(path)
+  const visibility = T.FS.getPathVisibility(path)
   switch (visibility) {
-    case Types.TlfType.Private:
-    case Types.TlfType.Public:
-    case Types.TlfType.Team: {
-      const tlfType: Types.TlfType = visibility
+    case T.FS.TlfType.Private:
+    case T.FS.TlfType.Public:
+    case T.FS.TlfType.Team: {
+      const tlfType: T.FS.TlfType = visibility
       return {tlfList: getTlfListFromType(tlfs, tlfType), tlfType}
     }
     default:
-      return {tlfList: new Map(), tlfType: Types.TlfType.Private}
+      return {tlfList: new Map(), tlfType: T.FS.TlfType.Private}
   }
 }
 
 export const unknownTlf = makeTlf({})
-export const getTlfFromPathInFavoritesOnly = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
-  const elems = Types.getPathElements(path)
+export const getTlfFromPathInFavoritesOnly = (tlfs: T.FS.Tlfs, path: T.FS.Path): T.FS.Tlf => {
+  const elems = T.FS.getPathElements(path)
   if (elems.length < 3) {
     return unknownTlf
   }
@@ -533,47 +531,47 @@ export const getTlfFromPathInFavoritesOnly = (tlfs: Types.Tlfs, path: Types.Path
   return tlfList.get(elems[2]!) || unknownTlf
 }
 
-export const getTlfFromPath = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
+export const getTlfFromPath = (tlfs: T.FS.Tlfs, path: T.FS.Path): T.FS.Tlf => {
   const fromFavorites = getTlfFromPathInFavoritesOnly(tlfs, path)
   return fromFavorites !== unknownTlf
     ? fromFavorites
     : tlfs.additionalTlfs.get(getTlfPath(path)) || unknownTlf
 }
 
-export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: string): Types.Tlf => {
+export const getTlfFromTlfs = (tlfs: T.FS.Tlfs, tlfType: T.FS.TlfType, name: string): T.FS.Tlf => {
   switch (tlfType) {
-    case Types.TlfType.Private:
+    case T.FS.TlfType.Private:
       return tlfs.private.get(name) || unknownTlf
-    case Types.TlfType.Public:
+    case T.FS.TlfType.Public:
       return tlfs.public.get(name) || unknownTlf
-    case Types.TlfType.Team:
+    case T.FS.TlfType.Team:
       return tlfs.team.get(name) || unknownTlf
     default:
       return unknownTlf
   }
 }
 
-export const tlfTypeAndNameToPath = (tlfType: Types.TlfType, name: string): Types.Path =>
-  Types.stringToPath(`/keybase/${tlfType}/${name}`)
+export const tlfTypeAndNameToPath = (tlfType: T.FS.TlfType, name: string): T.FS.Path =>
+  T.FS.stringToPath(`/keybase/${tlfType}/${name}`)
 
-export const resetBannerType = (s: State, path: Types.Path): Types.ResetBannerType => {
+export const resetBannerType = (s: State, path: T.FS.Path): T.FS.ResetBannerType => {
   const resetParticipants = getTlfFromPath(s.tlfs, path).resetParticipants
   if (resetParticipants.length === 0) {
-    return Types.ResetBannerNoOthersType.None
+    return T.FS.ResetBannerNoOthersType.None
   }
 
   const you = C.useCurrentUserState.getState().username
   if (resetParticipants.findIndex(username => username === you) >= 0) {
-    return Types.ResetBannerNoOthersType.Self
+    return T.FS.ResetBannerNoOthersType.Self
   }
   return resetParticipants.length
 }
 
-export const getUploadedPath = (parentPath: Types.Path, localPath: string) =>
-  Types.pathConcat(parentPath, Types.getLocalPathName(localPath))
+export const getUploadedPath = (parentPath: T.FS.Path, localPath: string) =>
+  T.FS.pathConcat(parentPath, T.FS.getLocalPathName(localPath))
 
-export const usernameInPath = (username: string, path: Types.Path) => {
-  const elems = Types.getPathElements(path)
+export const usernameInPath = (username: string, path: T.FS.Path) => {
+  const elems = T.FS.getPathElements(path)
   return elems.length >= 3 && elems[2]!.split(',').includes(username)
 }
 
@@ -583,12 +581,12 @@ export const getUsernamesFromTlfName = (tlfName: string): Array<string> => {
 }
 
 export const isOfflineUnsynced = (
-  daemonStatus: Types.KbfsDaemonStatus,
-  pathItem: Types.PathItem,
-  path: Types.Path
+  daemonStatus: T.FS.KbfsDaemonStatus,
+  pathItem: T.FS.PathItem,
+  path: T.FS.Path
 ) =>
-  daemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline &&
-  Types.getPathLevel(path) > 2 &&
+  daemonStatus.onlineStatus === T.FS.KbfsDaemonOnlineStatus.Offline &&
+  T.FS.getPathLevel(path) > 2 &&
   pathItem.prefetchStatus !== prefetchComplete
 
 // To make sure we have consistent badging, all badging related stuff should go
@@ -599,40 +597,40 @@ export const isOfflineUnsynced = (
 //   and only if this funciton returns true.
 //
 // If we add more badges, this function should be updated.
-export const tlfIsBadged = (tlf: Types.Tlf) => !tlf.isIgnored && tlf.isNew
+export const tlfIsBadged = (tlf: T.FS.Tlf) => !tlf.isIgnored && tlf.isNew
 
-export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
-  const elemsA = Types.getPathElements(a)
-  const elemsB = Types.getPathElements(b)
+export const pathsInSameTlf = (a: T.FS.Path, b: T.FS.Path): boolean => {
+  const elemsA = T.FS.getPathElements(a)
+  const elemsB = T.FS.getPathElements(b)
   return elemsA.length >= 3 && elemsB.length >= 3 && elemsA[1] === elemsB[1] && elemsA[2] === elemsB[2]
 }
 
 const slashKeybaseSlashLength = '/keybase/'.length
 // TODO: move this to Go
-export const escapePath = (path: Types.Path): string =>
+export const escapePath = (path: T.FS.Path): string =>
   'keybase://' +
-  encodeURIComponent(Types.pathToString(path).slice(slashKeybaseSlashLength)).replace(
+  encodeURIComponent(T.FS.pathToString(path).slice(slashKeybaseSlashLength)).replace(
     // We need to do this because otherwise encodeURIComponent would encode
     // "/"s.
     /%2F/g,
     '/'
   )
 
-export const parsedPathRoot: Types.ParsedPathRoot = {kind: Types.PathKind.Root}
+export const parsedPathRoot: T.FS.ParsedPathRoot = {kind: T.FS.PathKind.Root}
 
-export const parsedPathPrivateList: Types.ParsedPathTlfList = {
-  kind: Types.PathKind.TlfList,
-  tlfType: Types.TlfType.Private,
+export const parsedPathPrivateList: T.FS.ParsedPathTlfList = {
+  kind: T.FS.PathKind.TlfList,
+  tlfType: T.FS.TlfType.Private,
 }
 
-export const parsedPathPublicList: Types.ParsedPathTlfList = {
-  kind: Types.PathKind.TlfList,
-  tlfType: Types.TlfType.Public,
+export const parsedPathPublicList: T.FS.ParsedPathTlfList = {
+  kind: T.FS.PathKind.TlfList,
+  tlfType: T.FS.TlfType.Public,
 }
 
-export const parsedPathTeamList: Types.ParsedPathTlfList = {
-  kind: Types.PathKind.TlfList,
-  tlfType: Types.TlfType.Team,
+export const parsedPathTeamList: T.FS.ParsedPathTlfList = {
+  kind: T.FS.PathKind.TlfList,
+  tlfType: T.FS.TlfType.Team,
 }
 
 const splitTlfIntoReadersAndWriters = (
@@ -649,8 +647,8 @@ const splitTlfIntoReadersAndWriters = (
 }
 
 // returns parsedPathRoot if unknown
-export const parsePath = (path: Types.Path): Types.ParsedPath => {
-  const elems = Types.getPathElements(path)
+export const parsePath = (path: T.FS.Path): T.FS.ParsedPath => {
+  const elems = T.FS.getPathElements(path)
   if (elems.length <= 1) {
     return parsedPathRoot
   }
@@ -661,17 +659,17 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
           return parsedPathPrivateList
         case 3:
           return {
-            kind: Types.PathKind.GroupTlf,
+            kind: T.FS.PathKind.GroupTlf,
             tlfName: elems[2]!,
-            tlfType: Types.TlfType.Private,
+            tlfType: T.FS.TlfType.Private,
             ...splitTlfIntoReadersAndWriters(elems[2]!),
           }
         default:
           return {
-            kind: Types.PathKind.InGroupTlf,
+            kind: T.FS.PathKind.InGroupTlf,
             rest: elems.slice(3),
             tlfName: elems[2] ?? '',
-            tlfType: Types.TlfType.Private,
+            tlfType: T.FS.TlfType.Private,
             ...splitTlfIntoReadersAndWriters(elems[2] ?? ''),
           }
       }
@@ -681,17 +679,17 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
           return parsedPathPublicList
         case 3:
           return {
-            kind: Types.PathKind.GroupTlf,
+            kind: T.FS.PathKind.GroupTlf,
             tlfName: elems[2]!,
-            tlfType: Types.TlfType.Public,
+            tlfType: T.FS.TlfType.Public,
             ...splitTlfIntoReadersAndWriters(elems[2]!),
           }
         default:
           return {
-            kind: Types.PathKind.InGroupTlf,
+            kind: T.FS.PathKind.InGroupTlf,
             rest: elems.slice(3),
             tlfName: elems[2] ?? '',
-            tlfType: Types.TlfType.Public,
+            tlfType: T.FS.TlfType.Public,
             ...splitTlfIntoReadersAndWriters(elems[2] ?? ''),
           }
       }
@@ -701,18 +699,18 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
           return parsedPathTeamList
         case 3:
           return {
-            kind: Types.PathKind.TeamTlf,
+            kind: T.FS.PathKind.TeamTlf,
             team: elems[2]!,
             tlfName: elems[2]!,
-            tlfType: Types.TlfType.Team,
+            tlfType: T.FS.TlfType.Team,
           }
         default:
           return {
-            kind: Types.PathKind.InTeamTlf,
+            kind: T.FS.PathKind.InTeamTlf,
             rest: elems.slice(3),
             team: elems[2] ?? '',
             tlfName: elems[2] ?? '',
-            tlfType: Types.TlfType.Team,
+            tlfType: T.FS.TlfType.Team,
           }
       }
     default:
@@ -720,37 +718,37 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
   }
 }
 
-export const rebasePathToDifferentTlf = (path: Types.Path, newTlfPath: Types.Path) =>
-  Types.pathConcat(newTlfPath, Types.getPathElements(path).slice(3).join('/'))
+export const rebasePathToDifferentTlf = (path: T.FS.Path, newTlfPath: T.FS.Path) =>
+  T.FS.pathConcat(newTlfPath, T.FS.getPathElements(path).slice(3).join('/'))
 
-export const canChat = (path: Types.Path) => {
+export const canChat = (path: T.FS.Path) => {
   const parsedPath = parsePath(path)
   switch (parsedPath.kind) {
-    case Types.PathKind.Root:
-    case Types.PathKind.TlfList:
+    case T.FS.PathKind.Root:
+    case T.FS.PathKind.TlfList:
       return false
-    case Types.PathKind.GroupTlf:
-    case Types.PathKind.TeamTlf:
+    case T.FS.PathKind.GroupTlf:
+    case T.FS.PathKind.TeamTlf:
       return true
-    case Types.PathKind.InGroupTlf:
-    case Types.PathKind.InTeamTlf:
+    case T.FS.PathKind.InGroupTlf:
+    case T.FS.PathKind.InTeamTlf:
       return true
     default:
       return false
   }
 }
 
-export const isTeamPath = (path: Types.Path): boolean => {
+export const isTeamPath = (path: T.FS.Path): boolean => {
   const parsedPath = parsePath(path)
-  return parsedPath.kind !== Types.PathKind.Root && parsedPath.tlfType === Types.TlfType.Team
+  return parsedPath.kind !== T.FS.PathKind.Root && parsedPath.tlfType === T.FS.TlfType.Team
 }
 
-export const getChatTarget = (path: Types.Path, me: string): string => {
+export const getChatTarget = (path: T.FS.Path, me: string): string => {
   const parsedPath = parsePath(path)
-  if (parsedPath.kind !== Types.PathKind.Root && parsedPath.tlfType === Types.TlfType.Team) {
+  if (parsedPath.kind !== T.FS.PathKind.Root && parsedPath.tlfType === T.FS.TlfType.Team) {
     return 'team conversation'
   }
-  if (parsedPath.kind === Types.PathKind.GroupTlf || parsedPath.kind === Types.PathKind.InGroupTlf) {
+  if (parsedPath.kind === T.FS.PathKind.GroupTlf || parsedPath.kind === T.FS.PathKind.InGroupTlf) {
     if (parsedPath.writers.length === 1 && !parsedPath.readers && parsedPath.writers[0] === me) {
       return 'yourself'
     }
@@ -765,30 +763,30 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
   return 'conversation'
 }
 
-export const getSharePathArrayDescription = (paths: Array<Types.LocalPath>): string => {
-  return !paths.length ? '' : paths.length === 1 ? Types.getPathName(paths[0]) : `${paths.length} items`
+export const getSharePathArrayDescription = (paths: Array<T.FS.LocalPath>): string => {
+  return !paths.length ? '' : paths.length === 1 ? T.FS.getPathName(paths[0]) : `${paths.length} items`
 }
 
-export const getDestinationPickerPathName = (picker: Types.DestinationPicker): string =>
-  picker.source.type === Types.DestinationPickerSource.MoveOrCopy
-    ? Types.getPathName(picker.source.path)
-    : picker.source.type === Types.DestinationPickerSource.IncomingShare
+export const getDestinationPickerPathName = (picker: T.FS.DestinationPicker): string =>
+  picker.source.type === T.FS.DestinationPickerSource.MoveOrCopy
+    ? T.FS.getPathName(picker.source.path)
+    : picker.source.type === T.FS.DestinationPickerSource.IncomingShare
     ? Array.isArray(picker.source.source)
       ? getSharePathArrayDescription(
           picker.source.source
-            .map(({originalPath}) => (originalPath ? Types.getLocalPathName(originalPath) : ''))
+            .map(({originalPath}) => (originalPath ? T.FS.getLocalPathName(originalPath) : ''))
             .filter(Boolean)
         )
       : picker.source.source
     : ''
 
-const isPathEnabledForSync = (syncConfig: Types.TlfSyncConfig, path: Types.Path): boolean => {
+const isPathEnabledForSync = (syncConfig: T.FS.TlfSyncConfig, path: T.FS.Path): boolean => {
   switch (syncConfig.mode) {
-    case Types.TlfSyncMode.Disabled:
+    case T.FS.TlfSyncMode.Disabled:
       return false
-    case Types.TlfSyncMode.Enabled:
+    case T.FS.TlfSyncMode.Enabled:
       return true
-    case Types.TlfSyncMode.Partial:
+    case T.FS.TlfSyncMode.Partial:
       // TODO: when we enable partial sync lookup, remember to deal with
       // potential ".." traversal as well.
       return syncConfig.enabledPaths.includes(path)
@@ -798,91 +796,91 @@ const isPathEnabledForSync = (syncConfig: Types.TlfSyncConfig, path: Types.Path)
 }
 
 export const getUploadIconForTlfType = (
-  kbfsDaemonStatus: Types.KbfsDaemonStatus,
-  uploads: Types.Uploads,
-  tlfList: Types.TlfList,
-  tlfType: Types.TlfType
-): Types.UploadIcon | undefined => {
+  kbfsDaemonStatus: T.FS.KbfsDaemonStatus,
+  uploads: T.FS.Uploads,
+  tlfList: T.FS.TlfList,
+  tlfType: T.FS.TlfType
+): T.FS.UploadIcon | undefined => {
   if (
     [...tlfList].some(
       ([_, tlf]) =>
-        tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
+        tlf.conflictState.type === T.FS.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
     )
   ) {
-    return Types.UploadIcon.UploadingStuck
+    return T.FS.UploadIcon.UploadingStuck
   }
 
-  const prefix = Types.pathToString(Types.getTlfTypePathFromTlfType(tlfType))
+  const prefix = T.FS.pathToString(T.FS.getTlfTypePathFromTlfType(tlfType))
   if (
-    [...uploads.syncingPaths].some(p => Types.pathToString(p).startsWith(prefix)) ||
-    [...uploads.writingToJournal.keys()].some(p => Types.pathToString(p).startsWith(prefix))
+    [...uploads.syncingPaths].some(p => T.FS.pathToString(p).startsWith(prefix)) ||
+    [...uploads.writingToJournal.keys()].some(p => T.FS.pathToString(p).startsWith(prefix))
   ) {
-    return kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
-      ? Types.UploadIcon.AwaitingToUpload
-      : Types.UploadIcon.Uploading
+    return kbfsDaemonStatus.onlineStatus === T.FS.KbfsDaemonOnlineStatus.Offline
+      ? T.FS.UploadIcon.AwaitingToUpload
+      : T.FS.UploadIcon.Uploading
   }
 
   return undefined
 }
 
-export const tlfIsStuckInConflict = (tlf: Types.Tlf) =>
-  tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
+export const tlfIsStuckInConflict = (tlf: T.FS.Tlf) =>
+  tlf.conflictState.type === T.FS.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
 
 export const getPathStatusIconInMergeProps = (
-  kbfsDaemonStatus: Types.KbfsDaemonStatus,
-  tlf: Types.Tlf,
-  pathItem: Types.PathItem,
-  uploadingPaths: Set<Types.Path>,
-  path: Types.Path
-): Types.PathStatusIcon => {
+  kbfsDaemonStatus: T.FS.KbfsDaemonStatus,
+  tlf: T.FS.Tlf,
+  pathItem: T.FS.PathItem,
+  uploadingPaths: Set<T.FS.Path>,
+  path: T.FS.Path
+): T.FS.PathStatusIcon => {
   // There's no upload or sync for local conflict view.
-  if (tlf.conflictState.type === Types.ConflictStateType.ManualResolvingLocalView) {
-    return Types.LocalConflictStatus
+  if (tlf.conflictState.type === T.FS.ConflictStateType.ManualResolvingLocalView) {
+    return T.FS.LocalConflictStatus
   }
 
   // uploading state has higher priority
   if (uploadingPaths.has(path)) {
-    return tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
-      ? Types.UploadIcon.UploadingStuck
-      : kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
-      ? Types.UploadIcon.AwaitingToUpload
-      : Types.UploadIcon.Uploading
+    return tlf.conflictState.type === T.FS.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
+      ? T.FS.UploadIcon.UploadingStuck
+      : kbfsDaemonStatus.onlineStatus === T.FS.KbfsDaemonOnlineStatus.Offline
+      ? T.FS.UploadIcon.AwaitingToUpload
+      : T.FS.UploadIcon.Uploading
   }
   if (!isPathEnabledForSync(tlf.syncConfig, path)) {
-    return Types.NonUploadStaticSyncStatus.OnlineOnly
+    return T.FS.NonUploadStaticSyncStatus.OnlineOnly
   }
 
   if (
     !tlf.syncConfig ||
-    (pathItem === unknownPathItem && tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled)
+    (pathItem === unknownPathItem && tlf.syncConfig.mode !== T.FS.TlfSyncMode.Disabled)
   ) {
-    return Types.NonUploadStaticSyncStatus.Unknown
+    return T.FS.NonUploadStaticSyncStatus.Unknown
   }
 
   // TODO: what about 'sync-error'?
 
   // We don't have an upload state, and sync is enabled for this path.
   switch (pathItem.prefetchStatus.state) {
-    case Types.PrefetchState.NotStarted:
-      return Types.NonUploadStaticSyncStatus.AwaitingToSync
-    case Types.PrefetchState.Complete:
-      return Types.NonUploadStaticSyncStatus.Synced
-    case Types.PrefetchState.InProgress: {
-      if (kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline) {
-        return Types.NonUploadStaticSyncStatus.AwaitingToSync
+    case T.FS.PrefetchState.NotStarted:
+      return T.FS.NonUploadStaticSyncStatus.AwaitingToSync
+    case T.FS.PrefetchState.Complete:
+      return T.FS.NonUploadStaticSyncStatus.Synced
+    case T.FS.PrefetchState.InProgress: {
+      if (kbfsDaemonStatus.onlineStatus === T.FS.KbfsDaemonOnlineStatus.Offline) {
+        return T.FS.NonUploadStaticSyncStatus.AwaitingToSync
       }
-      const inProgress: Types.PrefetchInProgress = pathItem.prefetchStatus
+      const inProgress: T.FS.PrefetchInProgress = pathItem.prefetchStatus
       if (inProgress.bytesTotal === 0) {
-        return Types.NonUploadStaticSyncStatus.AwaitingToSync
+        return T.FS.NonUploadStaticSyncStatus.AwaitingToSync
       }
       return inProgress.bytesFetched / inProgress.bytesTotal
     }
     default:
-      return Types.NonUploadStaticSyncStatus.Unknown
+      return T.FS.NonUploadStaticSyncStatus.Unknown
   }
 }
 
-export const makeActionsForDestinationPickerOpen = (index: number, path: Types.Path) => {
+export const makeActionsForDestinationPickerOpen = (index: number, path: T.FS.Path) => {
   _useState.getState().dispatch.setDestinationPickerParentPath(index, path)
   C.useRouterState.getState().dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
 }
@@ -891,30 +889,30 @@ export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, SettingsConstant
 
 export const makeActionForOpenPathInFilesTab = (
   // TODO: remove the second arg when we are done with migrating to nav2
-  path: Types.Path
+  path: T.FS.Path
 ) => {
   C.useRouterState.getState().dispatch.navigateAppend({props: {path}, selected: 'fsRoot'})
 }
 
 export const getMainBannerType = (
-  kbfsDaemonStatus: Types.KbfsDaemonStatus,
-  overallSyncStatus: Types.OverallSyncStatus
-): Types.MainBannerType => {
-  if (kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline) {
-    return Types.MainBannerType.Offline
-  } else if (kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Trying) {
-    return Types.MainBannerType.TryingToConnect
+  kbfsDaemonStatus: T.FS.KbfsDaemonStatus,
+  overallSyncStatus: T.FS.OverallSyncStatus
+): T.FS.MainBannerType => {
+  if (kbfsDaemonStatus.onlineStatus === T.FS.KbfsDaemonOnlineStatus.Offline) {
+    return T.FS.MainBannerType.Offline
+  } else if (kbfsDaemonStatus.onlineStatus === T.FS.KbfsDaemonOnlineStatus.Trying) {
+    return T.FS.MainBannerType.TryingToConnect
   } else if (overallSyncStatus.diskSpaceStatus === 'error') {
-    return Types.MainBannerType.OutOfSpace
+    return T.FS.MainBannerType.OutOfSpace
   } else {
-    return Types.MainBannerType.None
+    return T.FS.MainBannerType.None
   }
 }
 
-export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>
-  Types.getPathLevel(path) <= 3 || pathItem.type === Types.PathType.Folder
+export const isFolder = (path: T.FS.Path, pathItem: T.FS.PathItem) =>
+  T.FS.getPathLevel(path) <= 3 || pathItem.type === T.FS.PathType.Folder
 
-export const isInTlf = (path: Types.Path) => Types.getPathLevel(path) > 2
+export const isInTlf = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2
 
 export const humanizeBytes = (n: number, numDecimals: number): string => {
   const kb = 1024
@@ -946,30 +944,30 @@ export const humanizeBytesOfTotal = (n: number, d: number): string => {
   return `${(n / gb).toFixed(2)} of ${(d / gb).toFixed(2)} GB`
 }
 
-export const hasPublicTag = (path: Types.Path): boolean => {
+export const hasPublicTag = (path: T.FS.Path): boolean => {
   const publicPrefix = '/keybase/public/'
   // The slash after public in `publicPrefix` prevents /keybase/public from counting.
-  return Types.pathToString(path).startsWith(publicPrefix)
+  return T.FS.pathToString(path).startsWith(publicPrefix)
 }
 
 export const getPathUserSetting = (
-  pathUserSettings: Map<Types.Path, Types.PathUserSetting>,
-  path: Types.Path
-): Types.PathUserSetting =>
+  pathUserSettings: Map<T.FS.Path, T.FS.PathUserSetting>,
+  path: T.FS.Path
+): T.FS.PathUserSetting =>
   pathUserSettings.get(path) ||
-  (Types.getPathLevel(path) < 3 ? defaultTlfListPathUserSetting : defaultPathUserSetting)
+  (T.FS.getPathLevel(path) < 3 ? defaultTlfListPathUserSetting : defaultPathUserSetting)
 
 export const showSortSetting = (
-  path: Types.Path,
-  pathItem: Types.PathItem,
-  kbfsDaemonStatus: Types.KbfsDaemonStatus
+  path: T.FS.Path,
+  pathItem: T.FS.PathItem,
+  kbfsDaemonStatus: T.FS.KbfsDaemonStatus
 ) =>
   !isMobile &&
   path !== defaultPath &&
-  (Types.getPathLevel(path) === 2 || (pathItem.type === Types.PathType.Folder && !!pathItem.children.size)) &&
+  (T.FS.getPathLevel(path) === 2 || (pathItem.type === T.FS.PathType.Folder && !!pathItem.children.size)) &&
   !isOfflineUnsynced(kbfsDaemonStatus, pathItem, path)
 
-export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Types.SoftError | undefined => {
+export const getSoftError = (softErrors: T.FS.SoftErrors, path: T.FS.Path): T.FS.SoftError | undefined => {
   const pathError = softErrors.pathErrors.get(path)
   if (pathError) {
     return pathError
@@ -981,10 +979,10 @@ export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Ty
   return (tlfPath && softErrors.tlfErrors.get(tlfPath)) || undefined
 }
 
-export const hasSpecialFileElement = (path: Types.Path): boolean =>
-  Types.getPathElements(path).some(elem => elem.startsWith('.kbfs'))
+export const hasSpecialFileElement = (path: T.FS.Path): boolean =>
+  T.FS.getPathElements(path).some(elem => elem.startsWith('.kbfs'))
 
-export const sfmiInfoLoaded = (settings: Types.Settings, driverStatus: Types.DriverStatus): boolean =>
+export const sfmiInfoLoaded = (settings: T.FS.Settings, driverStatus: T.FS.DriverStatus): boolean =>
   settings.loaded && driverStatus !== driverStatusUnknown
 
 // This isn't perfect since it doesn't cover the case of multi-writer public
@@ -992,11 +990,11 @@ export const sfmiInfoLoaded = (settings: Types.Settings, driverStatus: Types.Dri
 // some new caching in KBFS to plumb it into the Tlfs structure without
 // awful overhead.
 export const hideOrDisableInDestinationPicker = (
-  tlfType: Types.TlfType,
+  tlfType: T.FS.TlfType,
   name: string,
   username: string,
   destinationPickerIndex?: number
-) => typeof destinationPickerIndex === 'number' && tlfType === Types.TlfType.Public && name !== username
+) => typeof destinationPickerIndex === 'number' && tlfType === T.FS.TlfType.Public && name !== username
 
 const noAccessErrorCodes = [
   RPCTypes.StatusCode.scsimplefsnoaccess,
@@ -1004,7 +1002,7 @@ const noAccessErrorCodes = [
   RPCTypes.StatusCode.scteamreaderror,
 ]
 
-export const errorToActionOrThrow = (error: any, path?: Types.Path) => {
+export const errorToActionOrThrow = (error: any, path?: T.FS.Path) => {
   if (error?.code === RPCTypes.StatusCode.sckbfsclienttimeout) {
     _useState.getState().dispatch.checkKbfsDaemonRpcStatus()
     return
@@ -1023,13 +1021,13 @@ export const errorToActionOrThrow = (error: any, path?: Types.Path) => {
     return undefined
   }
   if (path && error?.code === RPCTypes.StatusCode.scsimplefsnotexist) {
-    _useState.getState().dispatch.setPathSoftError(path, Types.SoftError.Nonexistent)
+    _useState.getState().dispatch.setPathSoftError(path, T.FS.SoftError.Nonexistent)
     return
   }
   if (path && noAccessErrorCodes.includes(error?.code)) {
     const tlfPath = getTlfPath(path)
     if (tlfPath) {
-      _useState.getState().dispatch.setTlfSoftError(tlfPath, Types.SoftError.NoAccess)
+      _useState.getState().dispatch.setTlfSoftError(tlfPath, T.FS.SoftError.NoAccess)
       return
     }
   }
@@ -1044,25 +1042,25 @@ export const errorToActionOrThrow = (error: any, path?: Types.Path) => {
 type Store = {
   badge: RPCTypes.FilesTabBadge
   criticalUpdate: boolean
-  destinationPicker: Types.DestinationPicker
-  downloads: Types.Downloads
-  edits: Types.Edits
+  destinationPicker: T.FS.DestinationPicker
+  downloads: T.FS.Downloads
+  edits: T.FS.Edits
   errors: Array<string>
-  fileContext: Map<Types.Path, Types.FileContext>
+  fileContext: Map<T.FS.Path, T.FS.FileContext>
   folderViewFilter: string | undefined // on mobile, '' is expanded empty, undefined is unexpanded
-  kbfsDaemonStatus: Types.KbfsDaemonStatus
+  kbfsDaemonStatus: T.FS.KbfsDaemonStatus
   lastPublicBannerClosedTlf: string
-  overallSyncStatus: Types.OverallSyncStatus
-  pathItemActionMenu: Types.PathItemActionMenu
-  pathItems: Types.PathItems
-  pathInfos: Map<Types.Path, Types.PathInfo>
-  pathUserSettings: Map<Types.Path, Types.PathUserSetting>
-  settings: Types.Settings
-  sfmi: Types.SystemFileManagerIntegration
-  softErrors: Types.SoftErrors
-  tlfUpdates: Types.UserTlfUpdates
-  tlfs: Types.Tlfs
-  uploads: Types.Uploads
+  overallSyncStatus: T.FS.OverallSyncStatus
+  pathItemActionMenu: T.FS.PathItemActionMenu
+  pathItems: T.FS.PathItems
+  pathInfos: Map<T.FS.Path, T.FS.PathInfo>
+  pathUserSettings: Map<T.FS.Path, T.FS.PathUserSetting>
+  settings: T.FS.Settings
+  sfmi: T.FS.SystemFileManagerIntegration
+  softErrors: T.FS.SoftErrors
+  tlfUpdates: T.FS.UserTlfUpdates
+  tlfs: T.FS.Tlfs
+  uploads: T.FS.Uploads
 }
 const initialStore: Store = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -1070,7 +1068,7 @@ const initialStore: Store = {
   destinationPicker: {
     destinationParentPath: [],
     source: {
-      type: Types.DestinationPickerSource.None,
+      type: T.FS.DestinationPickerSource.None,
     },
   },
   downloads: {
@@ -1119,13 +1117,13 @@ type State = Store & {
   dispatch: {
     cancelDownload: (downloadID: string) => void
     checkKbfsDaemonRpcStatus: () => void
-    commitEdit: (editID: Types.EditID) => void
-    deleteFile: (path: Types.Path) => void
-    discardEdit: (editID: Types.EditID) => void
+    commitEdit: (editID: T.FS.EditID) => void
+    deleteFile: (path: T.FS.Path) => void
+    discardEdit: (editID: T.FS.EditID) => void
     dismissDownload: (downloadID: string) => void
     dismissRedbar: (index: number) => void
     dismissUpload: (uploadID: string) => void
-    download: (path: Types.Path, type: 'download' | 'share' | 'saveMedia') => void
+    download: (path: T.FS.Path, type: 'download' | 'share' | 'saveMedia') => void
     driverDisable: () => void
     driverDisabling: () => void
     driverEnable: (isRetry?: boolean) => void
@@ -1137,45 +1135,45 @@ type State = Store & {
       afterKbfsDaemonRpcStatusChanged?: () => void
       finishedDownloadWithIntentMobile?: (
         downloadID: string,
-        downloadIntent: Types.DownloadIntent,
+        downloadIntent: T.FS.DownloadIntent,
         mimeType: string
       ) => void
       finishedRegularDownloadMobile?: (downloadID: string, mimeType: string) => void
-      openFilesFromWidgetDesktop?: (path: Types.Path) => void
-      openAndUploadDesktop?: (type: Types.OpenDialogType, parentPath: Types.Path) => void
-      pickAndUploadMobile?: (type: Types.MobilePickType, parentPath: Types.Path) => void
+      openFilesFromWidgetDesktop?: (path: T.FS.Path) => void
+      openAndUploadDesktop?: (type: T.FS.OpenDialogType, parentPath: T.FS.Path) => void
+      pickAndUploadMobile?: (type: T.FS.MobilePickType, parentPath: T.FS.Path) => void
       openLocalPathInSystemFileManagerDesktop?: (localPath: string) => void
-      openPathInSystemFileManagerDesktop?: (path: Types.Path) => void
+      openPathInSystemFileManagerDesktop?: (path: T.FS.Path) => void
       openSecurityPreferencesDesktop?: () => void
       refreshDriverStatusDesktop?: () => void
       refreshMountDirsDesktop?: () => void
       setSfmiBannerDismissedDesktop?: (dismissed: boolean) => void
-      uploadFromDragAndDropDesktop?: (parentPath: Types.Path, localPaths: Array<string>) => void
+      uploadFromDragAndDropDesktop?: (parentPath: T.FS.Path, localPaths: Array<string>) => void
     }
-    editError: (editID: Types.EditID, error: string) => void
-    editSuccess: (editID: Types.EditID) => void
+    editError: (editID: T.FS.EditID, error: string) => void
+    editSuccess: (editID: T.FS.EditID) => void
     favoritesLoad: () => void
-    favoriteIgnore: (path: Types.Path) => void
-    finishManualConflictResolution: (localViewTlfPath: Types.Path) => void
-    folderListLoad: (path: Types.Path, recursive: boolean) => void
+    favoriteIgnore: (path: T.FS.Path) => void
+    finishManualConflictResolution: (localViewTlfPath: T.FS.Path) => void
+    folderListLoad: (path: T.FS.Path, recursive: boolean) => void
     getOnlineStatus: () => void
-    journalUpdate: (syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: number) => void
+    journalUpdate: (syncingPaths: Array<T.FS.Path>, totalSyncingBytes: number, endEstimate?: number) => void
     kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => void
-    kbfsDaemonRpcStatusChanged: (rpcStatus: Types.KbfsDaemonRpcStatus) => void
+    kbfsDaemonRpcStatusChanged: (rpcStatus: T.FS.KbfsDaemonRpcStatus) => void
     letResetUserBackIn: (id: RPCTypes.TeamID, username: string) => void
-    loadAdditionalTlf: (tlfPath: Types.Path) => void
-    loadFileContext: (path: Types.Path) => void
+    loadAdditionalTlf: (tlfPath: T.FS.Path) => void
+    loadFileContext: (path: T.FS.Path) => void
     loadFilesTabBadge: () => void
-    loadPathInfo: (path: Types.Path) => void
-    loadPathMetadata: (path: Types.Path) => void
+    loadPathInfo: (path: T.FS.Path) => void
+    loadPathMetadata: (path: T.FS.Path) => void
     loadSettings: () => void
-    loadTlfSyncConfig: (tlfPath: Types.Path) => void
+    loadTlfSyncConfig: (tlfPath: T.FS.Path) => void
     loadUploadStatus: () => void
     loadDownloadInfo: (downloadID: string) => void
     loadDownloadStatus: () => void
-    loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => void
-    newFolderRow: (parentPath: Types.Path) => void
-    moveOrCopy: (destinationParentPath: Types.Path, type: 'move' | 'copy') => void
+    loadedPathInfo: (path: T.FS.Path, info: T.FS.PathInfo) => void
+    newFolderRow: (parentPath: T.FS.Path) => void
+    moveOrCopy: (destinationParentPath: T.FS.Path, type: 'move' | 'copy') => void
     onChangedFocus: (appFocused: boolean) => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     onPathChange: (clientID: string, path: string, topics: RPCTypes.PathSubscriptionTopic[]) => void
@@ -1185,39 +1183,39 @@ type State = Store & {
     resetState: () => void
     setCriticalUpdate: (u: boolean) => void
     setDebugLevel: (level: string) => void
-    setDestinationPickerParentPath: (index: number, path: Types.Path) => void
+    setDestinationPickerParentPath: (index: number, path: T.FS.Path) => void
     setDirectMountDir: (directMountDir: string) => void
-    setDriverStatus: (driverStatus: Types.DriverStatus) => void
-    setEditName: (editID: Types.EditID, name: string) => void
+    setDriverStatus: (driverStatus: T.FS.DriverStatus) => void
+    setEditName: (editID: T.FS.EditID, name: string) => void
     setFolderViewFilter: (filter?: string) => void
     setIncomingShareSource: (source: Array<RPCTypes.IncomingShareItem>) => void
     setLastPublicBannerClosedTlf: (tlf: string) => void
-    setMoveOrCopySource: (path: Types.Path) => void
-    setPathItemActionMenuDownload: (downloadID?: string, intent?: Types.DownloadIntent) => void
-    setPathItemActionMenuView: (view: Types.PathItemActionMenuView) => void
+    setMoveOrCopySource: (path: T.FS.Path) => void
+    setPathItemActionMenuDownload: (downloadID?: string, intent?: T.FS.DownloadIntent) => void
+    setPathItemActionMenuView: (view: T.FS.PathItemActionMenuView) => void
     setPreferredMountDirs: (preferredMountDirs: Array<string>) => void
-    setPathSoftError: (path: Types.Path, softError?: Types.SoftError) => void
+    setPathSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
     setSpaceAvailableNotificationThreshold: (spaceAvailableNotificationThreshold: number) => void
-    setTlfSoftError: (path: Types.Path, softError?: Types.SoftError) => void
+    setTlfSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
     setTlfsAsUnloaded: () => void
-    setTlfSyncConfig: (tlfPath: Types.Path, enabled: boolean) => void
-    setSorting: (path: Types.Path, sortSetting: Types.SortSetting) => void
+    setTlfSyncConfig: (tlfPath: T.FS.Path, enabled: boolean) => void
+    setSorting: (path: T.FS.Path, sortSetting: T.FS.SortSetting) => void
     setupSubscriptions: () => void
-    showIncomingShare: (initialDestinationParentPath: Types.Path) => void
-    showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
-    startManualConflictResolution: (tlfPath: Types.Path) => void
-    startRename: (path: Types.Path) => void
+    showIncomingShare: (initialDestinationParentPath: T.FS.Path) => void
+    showMoveOrCopy: (initialDestinationParentPath: T.FS.Path) => void
+    startManualConflictResolution: (tlfPath: T.FS.Path) => void
+    startRename: (path: T.FS.Path) => void
     subscribeNonPath: (subscriptionID: string, topic: RPCTypes.SubscriptionTopic) => void
-    subscribePath: (subscriptionID: string, path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => void
+    subscribePath: (subscriptionID: string, path: T.FS.Path, topic: RPCTypes.PathSubscriptionTopic) => void
     syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
     unsubscribe: (subscriptionID: string) => void
-    upload: (parentPath: Types.Path, localPath: string) => void
+    upload: (parentPath: T.FS.Path, localPath: string) => void
     userIn: () => void
     userOut: () => void
     userFileEditsLoad: () => void
     waitForKbfsDaemon: () => void
   }
-  getUploadIconForFilesTab: () => Types.UploadIcon | undefined
+  getUploadIconForFilesTab: () => T.FS.UploadIcon | undefined
 }
 
 const getPrefetchStatusFromRPC = (
@@ -1251,39 +1249,36 @@ const direntToMetadata = (d: RPCTypes.Dirent) => ({
   writable: d.writable,
 })
 
-const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>): Types.PathItem => {
+const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>): T.FS.PathItem => {
   switch (d.direntType) {
     case RPCTypes.DirentType.dir:
       return {
         ...emptyFolder,
         ...direntToMetadata(d),
         children: new Set(children || []),
-        progress: children ? Types.ProgressType.Loaded : Types.ProgressType.Pending,
-      } as Types.PathItem
+        progress: children ? T.FS.ProgressType.Loaded : T.FS.ProgressType.Pending,
+      } as T.FS.PathItem
     case RPCTypes.DirentType.sym:
       return {
         ...emptySymlink,
         ...direntToMetadata(d),
         // TODO: plumb link target
-      } as Types.PathItem
+      } as T.FS.PathItem
     case RPCTypes.DirentType.file:
     case RPCTypes.DirentType.exec:
       return {
         ...emptyFile,
         ...direntToMetadata(d),
-      } as Types.PathItem
+      } as T.FS.PathItem
   }
 }
 
-const updatePathItem = (
-  oldPathItem: Types.PathItem,
-  newPathItemFromAction: Types.PathItem
-): Types.PathItem => {
+const updatePathItem = (oldPathItem: T.FS.PathItem, newPathItemFromAction: T.FS.PathItem): T.FS.PathItem => {
   if (
-    oldPathItem.type === Types.PathType.Folder &&
-    newPathItemFromAction.type === Types.PathType.Folder &&
-    oldPathItem.progress === Types.ProgressType.Loaded &&
-    newPathItemFromAction.progress === Types.ProgressType.Pending
+    oldPathItem.type === T.FS.PathType.Folder &&
+    newPathItemFromAction.type === T.FS.PathType.Folder &&
+    oldPathItem.progress === T.FS.ProgressType.Loaded &&
+    newPathItemFromAction.progress === T.FS.ProgressType.Pending
   ) {
     // The new one doesn't have children, but the old one has. We don't
     // want to override a loaded folder into pending. So first set the children
@@ -1291,7 +1286,7 @@ const updatePathItem = (
     const newPathItemNoOverridingChildrenAndProgress = {
       ...newPathItemFromAction,
       children: oldPathItem.children,
-      progress: Types.ProgressType.Loaded,
+      progress: T.FS.ProgressType.Loaded,
     }
     return newPathItemNoOverridingChildrenAndProgress
   }
@@ -1306,11 +1301,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
   const getUploadIconForFilesTab = () => {
     switch (get().badge) {
       case RPCTypes.FilesTabBadge.awaitingUpload:
-        return Types.UploadIcon.AwaitingToUpload
+        return T.FS.UploadIcon.AwaitingToUpload
       case RPCTypes.FilesTabBadge.uploadingStuck:
-        return Types.UploadIcon.UploadingStuck
+        return T.FS.UploadIcon.UploadingStuck
       case RPCTypes.FilesTabBadge.uploading:
-        return Types.UploadIcon.Uploading
+        return T.FS.UploadIcon.Uploading
       case RPCTypes.FilesTabBadge.none:
         return undefined
     }
@@ -1356,14 +1351,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
           clientType: RPCTypes.ClientType.kbfs,
           timeout: 0, // Don't wait; just check if it's there.
         })
-        const newStatus = connected ? Types.KbfsDaemonRpcStatus.Connected : Types.KbfsDaemonRpcStatus.Waiting
+        const newStatus = connected ? T.FS.KbfsDaemonRpcStatus.Connected : T.FS.KbfsDaemonRpcStatus.Waiting
         const kbfsDaemonStatus = get().kbfsDaemonStatus
         const {kbfsDaemonRpcStatusChanged, waitForKbfsDaemon} = get().dispatch
 
         if (kbfsDaemonStatus.rpcStatus !== newStatus) {
           kbfsDaemonRpcStatusChanged(newStatus)
         }
-        if (newStatus === Types.KbfsDaemonRpcStatus.Waiting) {
+        if (newStatus === T.FS.KbfsDaemonRpcStatus.Waiting) {
           waitForKbfsDaemon()
         }
       }
@@ -1376,11 +1371,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       const f = async () => {
         switch (edit.type) {
-          case Types.EditType.NewFolder:
+          case T.FS.EditType.NewFolder:
             try {
               await RPCTypes.SimpleFSSimpleFSOpenRpcPromise(
                 {
-                  dest: pathToRPCPath(Types.pathConcat(edit.parentPath, edit.name)),
+                  dest: pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.name)),
                   flags: RPCTypes.OpenFlags.directory,
                   opID: makeUUID(),
                 },
@@ -1392,14 +1387,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
               errorToActionOrThrow(e, edit.parentPath)
               return
             }
-          case Types.EditType.Rename:
+          case T.FS.EditType.Rename:
             try {
               const opID = makeUUID()
               await RPCTypes.SimpleFSSimpleFSMoveRpcPromise({
-                dest: pathToRPCPath(Types.pathConcat(edit.parentPath, edit.name)),
+                dest: pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.name)),
                 opID,
                 overwriteExistingFiles: false,
-                src: pathToRPCPath(Types.pathConcat(edit.parentPath, edit.originalName)),
+                src: pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.originalName)),
               })
               await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, commitEditWaitingKey)
               get().dispatch.editSuccess(editID)
@@ -1473,7 +1468,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         if (type !== 'download') {
           get().dispatch.setPathItemActionMenuDownload(
             downloadID,
-            type === 'share' ? Types.DownloadIntent.Share : Types.DownloadIntent.CameraRoll
+            type === 'share' ? T.FS.DownloadIntent.Share : T.FS.DownloadIntent.CameraRoll
           )
         }
       }
@@ -1484,7 +1479,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     driverDisabling: () => {
       set(s => {
-        if (s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled) {
+        if (s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled) {
           s.sfmi.driverStatus.isDisabling = true
         }
       })
@@ -1492,7 +1487,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     driverEnable: isRetry => {
       set(s => {
-        if (s.sfmi.driverStatus.type === Types.DriverStatusType.Disabled) {
+        if (s.sfmi.driverStatus.type === T.FS.DriverStatusType.Disabled) {
           s.sfmi.driverStatus.isEnabling = true
         }
       })
@@ -1500,7 +1495,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     driverKextPermissionError: () => {
       set(s => {
-        if (s.sfmi.driverStatus.type === Types.DriverStatusType.Disabled) {
+        if (s.sfmi.driverStatus.type === T.FS.DriverStatusType.Disabled) {
           s.sfmi.driverStatus.kextPermissionError = true
           s.sfmi.driverStatus.isEnabling = false
         }
@@ -1546,8 +1541,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
         } catch (error) {
           errorToActionOrThrow(error, path)
           set(s => {
-            const elems = Types.getPathElements(path)
-            const visibility = Types.getVisibilityFromElems(elems)
+            const elems = T.FS.getPathElements(path)
+            const visibility = T.FS.getVisibilityFromElems(elems)
             if (!visibility) {
               return
             }
@@ -1560,8 +1555,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
       }
       set(s => {
-        const elems = Types.getPathElements(path)
-        const visibility = Types.getVisibilityFromElems(elems)
+        const elems = T.FS.getPathElements(path)
+        const visibility = T.FS.getVisibilityFromElems(elems)
         if (!visibility) {
           return
         }
@@ -1600,7 +1595,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             folders.forEach(folder => {
               const tlfType = rpcFolderTypeToTlfType(folder.folderType)
               const tlfName =
-                tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
+                tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
                   ? tlfToPreferredOrder(folder.name, C.useCurrentUserState.getState().username)
                   : folder.name
               tlfType &&
@@ -1677,7 +1672,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             const [parent, child] = d.name.split('/')
             if (child) {
               // Only add to the children set if the parent definitely has children.
-              const fullParent = Types.pathConcat(rootPath, parent ?? '')
+              const fullParent = T.FS.pathConcat(rootPath, parent ?? '')
               let children = m.get(fullParent)
               if (!children) {
                 children = new Set<string>()
@@ -1693,19 +1688,19 @@ export const _useState = Z.createZustand<State>((set, get) => {
               children.add(d.name)
             }
             return m
-          }, new Map<Types.Path, Set<string>>())
+          }, new Map<T.FS.Path, Set<string>>())
 
           const direntToPathAndPathItem = (d: RPCTypes.Dirent) => {
-            const path = Types.pathConcat(rootPath, d.name)
+            const path = T.FS.pathConcat(rootPath, d.name)
             const entry = makeEntry(d, childMap.get(path))
-            if (entry.type === Types.PathType.Folder && isRecursive && !d.name.includes('/')) {
+            if (entry.type === T.FS.PathType.Folder && isRecursive && !d.name.includes('/')) {
               // Since we are loading with a depth of 2, first level directories are
               // considered "loaded".
               return [
                 path,
                 {
                   ...entry,
-                  progress: Types.ProgressType.Loaded,
+                  progress: T.FS.ProgressType.Loaded,
                 },
               ] as const
             }
@@ -1715,27 +1710,27 @@ export const _useState = Z.createZustand<State>((set, get) => {
           // Get metadata fields of the directory that we just loaded from state to
           // avoid overriding them.
           const rootPathItem = getPathItem(get().pathItems, rootPath)
-          const rootFolder: Types.FolderPathItem = {
-            ...(rootPathItem.type === Types.PathType.Folder
+          const rootFolder: T.FS.FolderPathItem = {
+            ...(rootPathItem.type === T.FS.PathType.Folder
               ? rootPathItem
-              : {...emptyFolder, name: Types.getPathName(rootPath)}),
+              : {...emptyFolder, name: T.FS.getPathName(rootPath)}),
             children: new Set(childMap.get(rootPath)),
-            progress: Types.ProgressType.Loaded,
+            progress: T.FS.ProgressType.Loaded,
           }
 
-          const pathItems = new Map<Types.Path, Types.PathItem>([
-            ...(Types.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder] as const] : []),
+          const pathItems = new Map<T.FS.Path, T.FS.PathItem>([
+            ...(T.FS.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder] as const] : []),
             ...entries.map(direntToPathAndPathItem),
           ] as const)
           set(s => {
             pathItems.forEach((pathItemFromAction, path) => {
               const oldPathItem = getPathItem(s.pathItems, path)
               const newPathItem = updatePathItem(oldPathItem, pathItemFromAction)
-              oldPathItem.type === Types.PathType.Folder &&
+              oldPathItem.type === T.FS.PathType.Folder &&
                 oldPathItem.children.forEach(
                   name =>
-                    (newPathItem.type !== Types.PathType.Folder || !newPathItem.children.has(name)) &&
-                    s.pathItems.delete(Types.pathConcat(path, name))
+                    (newPathItem.type !== T.FS.PathType.Folder || !newPathItem.children.has(name)) &&
+                    s.pathItems.delete(T.FS.pathConcat(path, name))
                 )
               s.pathItems.set(path, newPathItem)
             })
@@ -1743,11 +1738,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
             // Remove Rename edits that are for path items that don't exist anymore in
             // case when/if a new item is added later the edit causes confusion.
             const newEntries = [...s.edits.entries()].filter(([_, edit]) => {
-              if (edit.type !== Types.EditType.Rename) {
+              if (edit.type !== T.FS.EditType.Rename) {
                 return true
               }
               const parent = getPathItem(s.pathItems, edit.parentPath)
-              if (parent.type === Types.PathType.Folder && parent.children.has(edit.name)) {
+              if (parent.type === T.FS.PathType.Folder && parent.children.has(edit.name)) {
                 return true
               }
               return false
@@ -1780,24 +1775,24 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.kbfsDaemonStatus.onlineStatus =
           onlineStatus === RPCTypes.KbfsOnlineStatus.offline
-            ? Types.KbfsDaemonOnlineStatus.Offline
+            ? T.FS.KbfsDaemonOnlineStatus.Offline
             : onlineStatus === RPCTypes.KbfsOnlineStatus.trying
-            ? Types.KbfsDaemonOnlineStatus.Trying
+            ? T.FS.KbfsDaemonOnlineStatus.Trying
             : onlineStatus === RPCTypes.KbfsOnlineStatus.online
-            ? Types.KbfsDaemonOnlineStatus.Online
-            : Types.KbfsDaemonOnlineStatus.Unknown
+            ? T.FS.KbfsDaemonOnlineStatus.Online
+            : T.FS.KbfsDaemonOnlineStatus.Unknown
       })
     },
     kbfsDaemonRpcStatusChanged: rpcStatus => {
       set(s => {
-        if (rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
-          s.kbfsDaemonStatus.onlineStatus = Types.KbfsDaemonOnlineStatus.Offline
+        if (rpcStatus !== T.FS.KbfsDaemonRpcStatus.Connected) {
+          s.kbfsDaemonStatus.onlineStatus = T.FS.KbfsDaemonOnlineStatus.Offline
         }
         s.kbfsDaemonStatus.rpcStatus = rpcStatus
       })
 
       const kbfsDaemonStatus = get().kbfsDaemonStatus
-      if (kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
+      if (kbfsDaemonStatus.rpcStatus !== T.FS.KbfsDaemonRpcStatus.Connected) {
         get().dispatch.setTlfsAsUnloaded()
       }
 
@@ -1805,7 +1800,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const oldFsBadgeSubscriptionID = fsBadgeSubscriptionID
         fsBadgeSubscriptionID = makeUUID()
         const kbfsDaemonStatus = get().kbfsDaemonStatus
-        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
           if (oldFsBadgeSubscriptionID) {
             get().dispatch.unsubscribe(oldFsBadgeSubscriptionID)
           }
@@ -1820,11 +1815,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const oldSettingsSubscriptionID = settingsSubscriptionID
         settingsSubscriptionID = makeUUID()
         const kbfsDaemonStatus = get().kbfsDaemonStatus
-        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
           get().dispatch.loadSettings()
         }
 
-        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
           if (oldSettingsSubscriptionID) {
             get().dispatch.unsubscribe(oldSettingsSubscriptionID)
           }
@@ -1838,11 +1833,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
         uploadStatusSubscriptionID = makeUUID()
         const kbfsDaemonStatus = get().kbfsDaemonStatus
 
-        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
           get().dispatch.loadUploadStatus()
         }
 
-        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
           if (oldUploadStatusSubscriptionID) {
             get().dispatch.unsubscribe(oldUploadStatusSubscriptionID)
           }
@@ -1856,7 +1851,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const oldJournalStatusSubscriptionID = journalStatusSubscriptionID
         journalStatusSubscriptionID = makeUUID()
         const kbfsDaemonStatus = get().kbfsDaemonStatus
-        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
           if (oldJournalStatusSubscriptionID) {
             get().dispatch.unsubscribe(oldJournalStatusSubscriptionID)
           }
@@ -1882,7 +1877,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     loadAdditionalTlf: tlfPath => {
       const f = async () => {
-        if (Types.getPathLevel(tlfPath) !== 3) {
+        if (T.FS.getPathLevel(tlfPath) !== 3) {
           logger.warn('loadAdditionalTlf called on non-TLF path')
           return
         }
@@ -1892,7 +1887,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
           const tlfType = rpcFolderTypeToTlfType(folder.folderType)
           const tlfName =
-            tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
+            tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
               ? tlfToPreferredOrder(folder.name, C.useCurrentUserState.getState().username)
               : folder.name
 
@@ -1943,7 +1938,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             s.downloads.info.set(downloadID, {
               filename: res.filename,
               isRegularDownload: res.isRegularDownload,
-              path: Types.stringToPath('/keybase' + res.path.path),
+              path: T.FS.stringToPath('/keybase' + res.path.path),
               startTime: res.startTime,
             })
           })
@@ -2031,7 +2026,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     loadPathInfo: path => {
       const f = async () => {
         const pathInfo = await RPCTypes.kbfsMountGetKBFSPathInfoRpcPromise({
-          standardPath: Types.pathToString(path),
+          standardPath: T.FS.pathToString(path),
         })
         get().dispatch.loadedPathInfo(path, {
           deeplinkPath: pathInfo.deeplinkPath,
@@ -2091,7 +2086,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     loadTlfSyncConfig: tlfPath => {
       const f = async () => {
         const parsedPath = parsePath(tlfPath)
-        if (parsedPath.kind !== Types.PathKind.GroupTlf && parsedPath.kind !== Types.PathKind.TeamTlf) {
+        if (parsedPath.kind !== T.FS.PathKind.GroupTlf && parsedPath.kind !== T.FS.PathKind.TeamTlf) {
           return
         }
         try {
@@ -2110,7 +2105,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               return
             }
 
-            const tlfPath = Types.pathConcat(Types.pathConcat(defaultPath, tlfType), tlfName)
+            const tlfPath = T.FS.pathConcat(T.FS.pathConcat(defaultPath, tlfType), tlfName)
             const oldTlfFromAdditional = s.tlfs.additionalTlfs.get(tlfPath) || unknownTlf
             if (oldTlfFromAdditional !== unknownTlf) {
               s.tlfs.additionalTlfs = new Map([
@@ -2162,21 +2157,21 @@ export const _useState = Z.createZustand<State>((set, get) => {
         s.pathInfos.set(path, info)
       })
     },
-    moveOrCopy: (destinationParentPath: Types.Path, type: 'move' | 'copy') => {
+    moveOrCopy: (destinationParentPath: T.FS.Path, type: 'move' | 'copy') => {
       const f = async () => {
         const zState = get()
-        if (zState.destinationPicker.source.type === Types.DestinationPickerSource.None) {
+        if (zState.destinationPicker.source.type === T.FS.DestinationPickerSource.None) {
           return
         }
 
         const params =
-          zState.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
+          zState.destinationPicker.source.type === T.FS.DestinationPickerSource.MoveOrCopy
             ? [
                 {
                   dest: pathToRPCPath(
-                    Types.pathConcat(
+                    T.FS.pathConcat(
                       destinationParentPath,
-                      Types.getPathName(zState.destinationPicker.source.path)
+                      T.FS.getPathName(zState.destinationPicker.source.path)
                     )
                   ),
                   opID: makeUUID(),
@@ -2189,9 +2184,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 .filter(({originalPath}) => !!originalPath)
                 .map(({originalPath, scaledPath}) => ({
                   dest: pathToRPCPath(
-                    Types.pathConcat(
+                    T.FS.pathConcat(
                       destinationParentPath,
-                      Types.getLocalPathName(originalPath)
+                      T.FS.getLocalPathName(originalPath)
                       // We use the local path name here since we only care about file name.
                     )
                   ),
@@ -2199,7 +2194,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                   overwriteExistingFiles: false,
                   src: {
                     PathType: RPCTypes.PathType.local,
-                    local: Types.getNormalizedLocalPath(
+                    local: T.FS.getNormalizedLocalPath(
                       C.useConfigState.getState().incomingShareUseOriginal
                         ? originalPath
                         : scaledPath || originalPath
@@ -2226,7 +2221,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     newFolderRow: parentPath => {
       const parentPathItem = getPathItem(get().pathItems, parentPath)
-      if (parentPathItem.type !== Types.PathType.Folder) {
+      if (parentPathItem.type !== T.FS.PathType.Folder) {
         console.warn(`bad parentPath: ${parentPathItem.type}`)
         return
       }
@@ -2253,7 +2248,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const driverStatus = get().sfmi.driverStatus
       if (
         appFocused &&
-        driverStatus.type === Types.DriverStatusType.Disabled &&
+        driverStatus.type === T.FS.DriverStatusType.Disabled &&
         driverStatus.kextPermissionError
       ) {
         get().dispatch.driverEnable(true)
@@ -2286,10 +2281,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
       topics.forEach(topic => {
         switch (topic) {
           case RPCTypes.PathSubscriptionTopic.children:
-            folderListLoad(Types.stringToPath(path), false)
+            folderListLoad(T.FS.stringToPath(path), false)
             break
           case RPCTypes.PathSubscriptionTopic.stat:
-            get().dispatch.loadPathMetadata(Types.stringToPath(path))
+            get().dispatch.loadPathMetadata(T.FS.stringToPath(path))
             break
         }
       })
@@ -2350,7 +2345,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 filter: RPCTypes.ListFilter.filterSystemHidden,
               })
             get().dispatch.journalUpdate(
-              (syncingPaths || []).map(Types.stringToPath),
+              (syncingPaths || []).map(T.FS.stringToPath),
               totalSyncingBytes,
               endEstimate ?? undefined
             )
@@ -2425,7 +2420,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     setIncomingShareSource: source => {
       set(s => {
-        s.destinationPicker.source = {source, type: Types.DestinationPickerSource.IncomingShare}
+        s.destinationPicker.source = {source, type: T.FS.DestinationPickerSource.IncomingShare}
       })
     },
     setLastPublicBannerClosedTlf: tlf => {
@@ -2435,7 +2430,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     setMoveOrCopySource: path => {
       set(s => {
-        s.destinationPicker.source = {path, type: Types.DestinationPickerSource.MoveOrCopy}
+        s.destinationPicker.source = {path, type: T.FS.DestinationPickerSource.MoveOrCopy}
       })
     },
     setPathItemActionMenuDownload: (downloadID, intent) => {
@@ -2519,8 +2514,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     showIncomingShare: initialDestinationParentPath => {
       set(s => {
-        if (s.destinationPicker.source.type !== Types.DestinationPickerSource.IncomingShare) {
-          s.destinationPicker.source = {source: [], type: Types.DestinationPickerSource.IncomingShare}
+        if (s.destinationPicker.source.type !== T.FS.DestinationPickerSource.IncomingShare) {
+          s.destinationPicker.source = {source: [], type: T.FS.DestinationPickerSource.IncomingShare}
         }
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
       })
@@ -2529,11 +2524,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
     showMoveOrCopy: initialDestinationParentPath => {
       set(s => {
         s.destinationPicker.source =
-          s.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
+          s.destinationPicker.source.type === T.FS.DestinationPickerSource.MoveOrCopy
             ? s.destinationPicker.source
             : {
                 path: defaultPath,
-                type: Types.DestinationPickerSource.MoveOrCopy,
+                type: T.FS.DestinationPickerSource.MoveOrCopy,
               }
 
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
@@ -2551,14 +2546,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     startRename: path => {
-      const parentPath = Types.getPathParent(path)
-      const originalName = Types.getPathName(path)
+      const parentPath = T.FS.getPathParent(path)
+      const originalName = T.FS.getPathName(path)
       set(s => {
         s.edits.set(makeEditID(), {
           name: originalName,
           originalName,
           parentPath,
-          type: Types.EditType.Rename,
+          type: T.FS.EditType.Rename,
         })
       })
     },
@@ -2585,7 +2580,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             clientID,
             deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
             identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
-            kbfsPath: Types.pathToString(path),
+            kbfsPath: T.FS.pathToString(path),
             subscriptionID,
             topic,
           })
@@ -2603,10 +2598,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     syncStatusChanged: status => {
       const diskSpaceStatus = status.outOfSyncSpace
-        ? Types.DiskSpaceStatus.Error
+        ? T.FS.DiskSpaceStatus.Error
         : status.localDiskBytesAvailable < get().settings.spaceAvailableNotificationThreshold
-        ? Types.DiskSpaceStatus.Warning
-        : Types.DiskSpaceStatus.Ok
+        ? T.FS.DiskSpaceStatus.Warning
+        : T.FS.DiskSpaceStatus.Ok
 
       const oldStatus = get().overallSyncStatus.diskSpaceStatus
       set(s => {
@@ -2617,7 +2612,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       // Only notify about the disk space status if it has changed.
       if (oldStatus !== diskSpaceStatus) {
         switch (diskSpaceStatus) {
-          case Types.DiskSpaceStatus.Error: {
+          case T.FS.DiskSpaceStatus.Error: {
             NotifyPopup('Sync Error', {
               body: 'You are out of disk space. Some folders could not be synced.',
               sound: true,
@@ -2625,7 +2620,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             C.useNotifState.getState().dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
             break
           }
-          case Types.DiskSpaceStatus.Warning:
+          case T.FS.DiskSpaceStatus.Warning:
             {
               const threshold = humanizeBytes(get().settings.spaceAvailableNotificationThreshold, 0)
               NotifyPopup('Disk Space Low', {
@@ -2633,14 +2628,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
               })
               // Only show the banner if the previous state was OK and the new state
               // is warning. Otherwise we rely on the previous state of the banner.
-              if (oldStatus === Types.DiskSpaceStatus.Ok) {
+              if (oldStatus === T.FS.DiskSpaceStatus.Ok) {
                 set(s => {
                   s.overallSyncStatus.showingBanner = true
                 })
               }
             }
             break
-          case Types.DiskSpaceStatus.Ok:
+          case T.FS.DiskSpaceStatus.Ok:
             break
           default:
         }
@@ -2662,7 +2657,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await RPCTypes.SimpleFSSimpleFSStartUploadRpcPromise({
-            sourceLocalPath: Types.getNormalizedLocalPath(localPath),
+            sourceLocalPath: T.FS.getNormalizedLocalPath(localPath),
             targetParentPath: pathToRPCPath(parentPath).kbfs,
           })
         } catch (err) {
@@ -2699,7 +2694,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     waitForKbfsDaemon: () => {
       set(s => {
-        s.kbfsDaemonStatus.rpcStatus = Types.KbfsDaemonRpcStatus.Waiting
+        s.kbfsDaemonStatus.rpcStatus = T.FS.KbfsDaemonRpcStatus.Waiting
       })
       const f = async () => {
         if (waitForKbfsDaemonInProgress) {

@@ -1,4 +1,4 @@
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -7,7 +7,7 @@ import debounce from 'lodash/debounce'
 
 type Props = {
   onCancel?: () => void
-  path: Types.Path
+  path: T.FS.Path
   style?: Styles.StylesCrossPlatform
 }
 
@@ -22,7 +22,7 @@ const FolderViewFilter = (props: Props) => {
     [setFolderViewFilter]
   )
 
-  return C.isFolder(props.path, pathItem) && Types.getPathLevel(props.path) > 1 ? (
+  return C.isFolder(props.path, pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
     <Kb.SearchFilter
       size="small"
       placeholderCentered={true}

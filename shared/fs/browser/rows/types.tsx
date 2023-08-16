@@ -1,4 +1,4 @@
-import type * as Types from '../../../constants/types/fs'
+import type * as T from '../../../constants/types'
 import type * as React from 'react'
 
 export enum RowType {
@@ -13,9 +13,9 @@ export enum RowType {
 
 export type TlfTypeRowItem = {
   key: string
-  name: Types.TlfType
+  name: T.FS.TlfType
   rowType: RowType.TlfType
-  type: Types.PathType.Folder
+  type: T.FS.PathType.Folder
 }
 
 export type TlfRowItem = {
@@ -25,34 +25,34 @@ export type TlfRowItem = {
   name: string
   rowType: RowType.Tlf
   tlfMtime: number
-  tlfType: Types.TlfType
-  type: Types.PathType.Folder
+  tlfType: T.FS.TlfType
+  type: T.FS.PathType.Folder
 }
 
 export type StillRowItem = {
-  editID?: Types.EditID // empty if not being renamed
+  editID?: T.FS.EditID // empty if not being renamed
   key: string
   lastModifiedTimestamp: number
   name: string
-  path: Types.Path
+  path: T.FS.Path
   rowType: RowType.Still
-  type: Types.PathType
+  type: T.FS.PathType
 }
 
 export type NewFolderRowItem = {
-  editType: Types.EditType
-  editID: Types.EditID
+  editType: T.FS.EditType
+  editID: T.FS.EditID
   key: string
   name: string
   rowType: RowType.NewFolder
-  type: Types.PathType.Folder
+  type: T.FS.PathType.Folder
 }
 
 export type PlaceholderRowItem = {
   key: string
   name: string
   rowType: RowType.Placeholder
-  type: Types.PathType.Folder | Types.PathType.File
+  type: T.FS.PathType.Folder | T.FS.PathType.File
 }
 
 export type EmptyRowItem = {

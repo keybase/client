@@ -1,5 +1,5 @@
 import * as C from '../../../constants'
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Constants from '../../../constants/fs'
 import * as Container from '../../../util/container'
@@ -12,18 +12,18 @@ import * as Util from '../../../util/kbfs'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
-  path: Types.Path
+  path: T.FS.Path
   mode: 'row' | 'screen'
 }
 
-const needConfirm = (pathItem: Types.PathItem) =>
-  pathItem.type === Types.PathType.File && pathItem.size > 50 * 1024 * 1024
+const needConfirm = (pathItem: T.FS.PathItem) =>
+  pathItem.type === T.FS.PathType.File && pathItem.size > 50 * 1024 * 1024
 
 const getDownloadingState = memoize(
   (
-    downloads: Types.Downloads,
+    downloads: T.FS.Downloads,
     downloadID: string | undefined,
-    pathItemActionMenu: Types.PathItemActionMenu
+    pathItemActionMenu: T.FS.PathItemActionMenu
   ) => {
     if (!downloadID) {
       return {done: true, saving: false, sharing: false}
@@ -36,8 +36,8 @@ const getDownloadingState = memoize(
     }
     return {
       done,
-      saving: intent === Types.DownloadIntent.CameraRoll,
-      sharing: intent === Types.DownloadIntent.Share,
+      saving: intent === T.FS.DownloadIntent.CameraRoll,
+      sharing: intent === T.FS.DownloadIntent.Share,
     }
   }
 )
@@ -64,7 +64,7 @@ export default (ownProps: OwnProps) => {
   const _pathItem = C.useFSState(s => Constants.getPathItem(s.pathItems, path))
   const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
   const _downloadID = _pathItemActionMenu.downloadID
-  const _sfmiEnabled = C.useFSState(s => s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled)
+  const _sfmiEnabled = C.useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
   const _username = C.useCurrentUserState(s => s.username)
   const _view = _pathItemActionMenu.view
   const _cancel = cancelDownload
@@ -72,10 +72,10 @@ export default (ownProps: OwnProps) => {
   const setPathItemActionMenuView = C.useFSState(s => s.dispatch.setPathItemActionMenuView)
 
   const _confirmSaveMedia = React.useCallback(() => {
-    setPathItemActionMenuView(Types.PathItemActionMenuView.ConfirmSaveMedia)
+    setPathItemActionMenuView(T.FS.PathItemActionMenuView.ConfirmSaveMedia)
   }, [setPathItemActionMenuView])
   const _confirmSendToOtherApp = React.useCallback(() => {
-    setPathItemActionMenuView(Types.PathItemActionMenuView.ConfirmSendToOtherApp)
+    setPathItemActionMenuView(T.FS.PathItemActionMenuView.ConfirmSendToOtherApp)
   }, [setPathItemActionMenuView])
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _delete = () => {
@@ -95,7 +95,7 @@ export default (ownProps: OwnProps) => {
       reason: 'files',
       // tlfToParticipantsOrTeamname will route both public and private
       // folders to a private chat, which is exactly what we want.
-      ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
+      ...Util.tlfToParticipantsOrTeamname(T.FS.pathToString(path)),
     })
   }
   const startRename = C.useFSState(s => s.dispatch.startRename)
@@ -116,7 +116,7 @@ export default (ownProps: OwnProps) => {
     download(path, 'share')
   }, [download, path])
   const _share = React.useCallback(() => {
-    setPathItemActionMenuView(Types.PathItemActionMenuView.Share)
+    setPathItemActionMenuView(T.FS.PathItemActionMenuView.Share)
   }, [setPathItemActionMenuView])
   const openPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop

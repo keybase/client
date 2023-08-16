@@ -1,17 +1,17 @@
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import type * as Styles from '../../styles'
 
 type Props = {
   onClick: () => void
-  path: Types.Path
-  pathItem: Types.PathItem
+  path: T.FS.Path
+  pathItem: T.FS.PathItem
   style?: Styles.StylesCrossPlatform
 }
 
 export const FolderViewFilterIcon = (props: Props) =>
-  C.isFolder(props.path, props.pathItem) && Types.getPathLevel(props.path) > 1 ? (
+  C.isFolder(props.path, props.pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
     <Kb.Icon type="iconfont-filter" onClick={props.onClick} padding="tiny" style={props.style} />
   ) : null
 

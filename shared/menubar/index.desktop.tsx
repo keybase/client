@@ -1,9 +1,8 @@
 import * as C from '../constants'
 import * as R from '../constants/remote'
 import * as Container from '../util/container'
-import * as FsTypes from '../constants/types/fs'
+import * as T from '../constants/types'
 import * as Kb from '../common-adapters'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Styles from '../styles'
@@ -14,7 +13,6 @@ import KB2 from '../util/electron.desktop'
 import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
 import openUrl from '../util/open-url'
-import type * as ConfigTypes from '../constants/types/config'
 import {Loading} from '../fs/simple-screens'
 import {isLinux, isDarwin} from '../constants/platform'
 import {type _InnerMenuItem} from '../common-adapters/floating-menu/menu-layout'
@@ -23,13 +21,13 @@ import {useUploadCountdown} from '../fs/footer/use-upload-countdown'
 const {hideWindow, ctlQuit} = KB2.functions
 
 export type Props = {
-  daemonHandshakeState: ConfigTypes.DaemonHandshakeState
+  daemonHandshakeState: T.Config.DaemonHandshakeState
   darkMode: boolean
-  diskSpaceStatus: FsTypes.DiskSpaceStatus
+  diskSpaceStatus: T.FS.DiskSpaceStatus
   loggedIn: boolean
-  kbfsDaemonStatus: FsTypes.KbfsDaemonStatus
+  kbfsDaemonStatus: T.FS.KbfsDaemonStatus
   kbfsEnabled: boolean
-  outOfDate: ConfigTypes.OutOfDate
+  outOfDate: T.Config.OutOfDate
   showingDiskSpaceBanner: boolean
   username: string
   navBadges: Map<string, number>
@@ -98,7 +96,7 @@ const useMenuItems = (
         onClick: () => {
           if (!__DEV__) {
             if (isLinux) {
-              R.remoteDispatch(RemoteGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
+              R.remoteDispatch(RemoteGen.createStop({exitCode: T.RPCGen.ExitCode.ok}))
             } else {
               R.remoteDispatch(RemoteGen.createDumpLogs({reason: 'quitting through menu'}))
             }
@@ -257,7 +255,7 @@ const LoggedIn = (p: Props) => {
       <OutOfDate outOfDate={outOfDate} />
       <Kb.ScrollView style={styles.flexOne}>
         <ChatContainer convLimit={5} />
-        {kbfsDaemonStatus.rpcStatus === FsTypes.KbfsDaemonRpcStatus.Connected ? (
+        {kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected ? (
           <FilesPreview />
         ) : (
           <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>
@@ -268,7 +266,7 @@ const LoggedIn = (p: Props) => {
       <Kb.Box style={styles.footer}>
         <UploadWithCountdown
           endEstimate={endEstimate}
-          isOnline={kbfsDaemonStatus.onlineStatus !== FsTypes.KbfsDaemonOnlineStatus.Offline}
+          isOnline={kbfsDaemonStatus.onlineStatus !== T.FS.KbfsDaemonOnlineStatus.Offline}
           files={files}
           fileName={fileName}
           totalSyncingBytes={totalSyncingBytes}
@@ -279,7 +277,7 @@ const LoggedIn = (p: Props) => {
   )
 }
 
-const LoggedOut = (p: {daemonHandshakeState: ConfigTypes.DaemonHandshakeState; loggedIn: boolean}) => {
+const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; loggedIn: boolean}) => {
   const {daemonHandshakeState, loggedIn} = p
 
   const fullyLoggedOut = daemonHandshakeState === 'done' && !loggedIn

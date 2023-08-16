@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
-import type * as T from '../../../constants/types'
+import * as T from '../../../constants/types'
 import * as Constants from '../../../constants/chat2'
-import * as FsTypes from '../../../constants/types/fs'
 import GetTitles, {type Info} from '.'
 
 type OwnProps = {
@@ -51,7 +50,7 @@ export default (ownProps: OwnProps) => {
     onCancel,
     onSubmit,
     pathAndInfos: pathAndOutboxIDs.map(({path, outboxID}) => {
-      const filename = FsTypes.getLocalPathName(path)
+      const filename = T.FS.getLocalPathName(path)
       const info: Info = {
         filename,
         outboxID: outboxID,

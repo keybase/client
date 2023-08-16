@@ -1,13 +1,13 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
 import * as React from 'react'
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import {rowStyles} from './common'
 
 type Props = {
-  editID: Types.EditID
+  editID: T.FS.EditID
 }
 
 const Editing = ({editID}: Props) => {
@@ -32,7 +32,7 @@ const Editing = ({editID}: Props) => {
       firstItem={true /* we add divider in Rows */}
       statusIcon={
         <Kb.Icon
-          type={edit.type === Types.EditType.NewFolder ? 'iconfont-add' : 'iconfont-edit'}
+          type={edit.type === T.FS.EditType.NewFolder ? 'iconfont-add' : 'iconfont-edit'}
           sizeType="Small"
           padding="xtiny"
         />
@@ -67,13 +67,13 @@ const Editing = ({editID}: Props) => {
             key="create"
             style={styles.button}
             small={true}
-            label={edit.error ? 'Retry' : edit.type === Types.EditType.NewFolder ? 'Create' : 'Save'}
+            label={edit.error ? 'Retry' : edit.type === T.FS.EditType.NewFolder ? 'Create' : 'Save'}
             waitingKey={Constants.commitEditWaitingKey}
             onClick={onSubmit}
           />
           <Kb.Icon
             onClick={onCancel}
-            type={edit.type === Types.EditType.NewFolder ? 'iconfont-trash' : 'iconfont-close'}
+            type={edit.type === T.FS.EditType.NewFolder ? 'iconfont-trash' : 'iconfont-close'}
             color={Styles.globalColors.black_50}
             hoverColor={Styles.globalColors.black}
             style={styles.iconCancel}

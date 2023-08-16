@@ -1,12 +1,12 @@
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Platforms from '../../constants/platform'
 import type * as Styles from '../../styles'
 
 type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
   style?: Styles.StylesCrossPlatform
 }
 
@@ -75,28 +75,28 @@ export default (ownProps: OwnProps) => {
   const openAndUploadDesktop = C.useFSState(s => s.dispatch.dynamic.openAndUploadDesktop)
   const pickAndUploadMobile = C.useFSState(s => s.dispatch.dynamic.pickAndUploadMobile)
   const _openAndUploadBoth = () => {
-    openAndUploadDesktop?.(Types.OpenDialogType.Both, ownProps.path)
+    openAndUploadDesktop?.(T.FS.OpenDialogType.Both, ownProps.path)
   }
   const openAndUploadBoth = Platforms.isDarwin ? _openAndUploadBoth : undefined
   const _openAndUploadDirectory = () => {
-    openAndUploadDesktop?.(Types.OpenDialogType.Directory, ownProps.path)
+    openAndUploadDesktop?.(T.FS.OpenDialogType.Directory, ownProps.path)
   }
   const openAndUploadDirectory =
     Platforms.isElectron && !Platforms.isDarwin ? _openAndUploadDirectory : undefined
   const _openAndUploadFile = () => {
-    openAndUploadDesktop?.(Types.OpenDialogType.File, ownProps.path)
+    openAndUploadDesktop?.(T.FS.OpenDialogType.File, ownProps.path)
   }
   const openAndUploadFile = Platforms.isElectron && !Platforms.isDarwin ? _openAndUploadFile : undefined
   const _pickAndUploadMixed = () => {
-    pickAndUploadMobile?.(Types.MobilePickType.Mixed, ownProps.path)
+    pickAndUploadMobile?.(T.FS.MobilePickType.Mixed, ownProps.path)
   }
   const pickAndUploadMixed = Platforms.isIOS ? _pickAndUploadMixed : undefined
   const _pickAndUploadPhoto = () => {
-    pickAndUploadMobile?.(Types.MobilePickType.Photo, ownProps.path)
+    pickAndUploadMobile?.(T.FS.MobilePickType.Photo, ownProps.path)
   }
   const pickAndUploadPhoto = Platforms.isAndroid ? _pickAndUploadPhoto : undefined
   const _pickAndUploadVideo = () => {
-    pickAndUploadMobile?.(Types.MobilePickType.Video, ownProps.path)
+    pickAndUploadMobile?.(T.FS.MobilePickType.Video, ownProps.path)
   }
   const pickAndUploadVideo = Platforms.isAndroid ? _pickAndUploadVideo : undefined
 

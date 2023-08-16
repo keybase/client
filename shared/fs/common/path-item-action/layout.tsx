@@ -1,6 +1,6 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import {isMobile, isIOS} from '../../../constants/platform'
 
 export type Layout = {
@@ -37,7 +37,7 @@ const empty = {
   share: false,
 }
 
-const isMyOwn = (parsedPath: Types.ParsedPathGroupTlf, me: string) =>
+const isMyOwn = (parsedPath: T.FS.ParsedPathGroupTlf, me: string) =>
   !me
     ? false
     : (!parsedPath.readers || !parsedPath.readers.length) &&
@@ -46,58 +46,58 @@ const isMyOwn = (parsedPath: Types.ParsedPathGroupTlf, me: string) =>
 
 const getRawLayout = (
   mode: 'row' | 'screen',
-  path: Types.Path,
-  pathItem: Types.PathItem,
-  fileContext: Types.FileContext,
+  path: T.FS.Path,
+  pathItem: T.FS.PathItem,
+  fileContext: T.FS.FileContext,
   me: string
 ): Layout => {
   const parsedPath = C.parsePath(path)
   switch (parsedPath.kind) {
-    case Types.PathKind.Root:
+    case T.FS.PathKind.Root:
       // should never happen
       return empty
-    case Types.PathKind.TlfList:
+    case T.FS.PathKind.TlfList:
       return {
         ...empty,
         showInSystemFileManager: !isMobile,
       }
-    case Types.PathKind.GroupTlf:
-    case Types.PathKind.TeamTlf:
+    case T.FS.PathKind.GroupTlf:
+    case T.FS.PathKind.TeamTlf:
       return {
         ...empty,
         ...(mode === 'screen'
           ? {
               newFolder: pathItem.writable,
-              openChatNonTeam: parsedPath.kind === Types.PathKind.GroupTlf,
-              openChatTeam: parsedPath.kind === Types.PathKind.TeamTlf,
+              openChatNonTeam: parsedPath.kind === T.FS.PathKind.GroupTlf,
+              openChatTeam: parsedPath.kind === T.FS.PathKind.TeamTlf,
             }
           : {}),
-        ignoreTlf: parsedPath.kind === Types.PathKind.TeamTlf || !isMyOwn(parsedPath, me),
+        ignoreTlf: parsedPath.kind === T.FS.PathKind.TeamTlf || !isMyOwn(parsedPath, me),
         showInSystemFileManager: !isMobile,
       }
-    case Types.PathKind.InGroupTlf:
-    case Types.PathKind.InTeamTlf:
+    case T.FS.PathKind.InGroupTlf:
+    case T.FS.PathKind.InTeamTlf:
       // inside tlf
       return {
         ...empty,
         ...(mode === 'screen'
           ? {
-              newFolder: pathItem.writable && pathItem.type === Types.PathType.Folder,
-              openChatNonTeam: parsedPath.kind === Types.PathKind.InGroupTlf,
-              openChatTeam: parsedPath.kind === Types.PathKind.InTeamTlf,
+              newFolder: pathItem.writable && pathItem.type === T.FS.PathType.Folder,
+              openChatNonTeam: parsedPath.kind === T.FS.PathKind.InGroupTlf,
+              openChatTeam: parsedPath.kind === T.FS.PathKind.InTeamTlf,
             }
           : {}),
         delete: pathItem.writable,
-        download: pathItem.type === Types.PathType.File && !isIOS,
+        download: pathItem.type === T.FS.PathType.File && !isIOS,
         moveOrCopy: true,
         rename: pathItem.writable && mode === 'row',
         saveMedia:
-          isMobile && pathItem.type === Types.PathType.File && Constants.canSaveMedia(pathItem, fileContext),
+          isMobile && pathItem.type === T.FS.PathType.File && Constants.canSaveMedia(pathItem, fileContext),
         showInSystemFileManager: !isMobile,
         // share menu items
         // eslint-disable-next-line sort-keys
-        sendAttachmentToChat: pathItem.type === Types.PathType.File,
-        sendToOtherApp: pathItem.type === Types.PathType.File && isMobile,
+        sendAttachmentToChat: pathItem.type === T.FS.PathType.File,
+        sendToOtherApp: pathItem.type === T.FS.PathType.File && isMobile,
       }
     default:
       return empty
@@ -124,24 +124,24 @@ const filterForOnlyShares = (layout: Layout): Layout => ({
 
 export const getRootLayout = (
   mode: 'row' | 'screen',
-  path: Types.Path,
-  pathItem: Types.PathItem,
-  fileContext: Types.FileContext,
+  path: T.FS.Path,
+  pathItem: T.FS.PathItem,
+  fileContext: T.FS.FileContext,
   me: string
 ): Layout => consolidateShares(getRawLayout(mode, path, pathItem, fileContext, me))
 
 export const getShareLayout = (
   mode: 'row' | 'screen',
-  path: Types.Path,
-  pathItem: Types.PathItem,
-  fileContext: Types.FileContext,
+  path: T.FS.Path,
+  pathItem: T.FS.PathItem,
+  fileContext: T.FS.FileContext,
   me: string
 ): Layout => filterForOnlyShares(getRawLayout(mode, path, pathItem, fileContext, me))
 
 export const hasShare = (
   mode: 'row' | 'screen',
-  path: Types.Path,
-  pathItem: Types.PathItem,
-  fileContext: Types.FileContext
+  path: T.FS.Path,
+  pathItem: T.FS.PathItem,
+  fileContext: T.FS.FileContext
 ): boolean =>
   totalShare(getRawLayout(mode, path, pathItem, fileContext, '' /* username doesn't matter for shares */)) > 0

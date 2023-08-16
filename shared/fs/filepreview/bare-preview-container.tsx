@@ -1,9 +1,9 @@
 import * as C from '../../constants'
 import * as Container from '../../util/container'
-import type * as Types from '../../constants/types/fs'
+import type * as T from '../../constants/types'
 import BarePreview from './bare-preview'
 
-type OwnProps = {path: Types.Path}
+type OwnProps = {path: T.FS.Path}
 
 const ConnectedBarePreview = (ownProps: OwnProps) => {
   const path = ownProps.path ?? C.defaultPath

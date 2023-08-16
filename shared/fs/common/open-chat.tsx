@@ -1,12 +1,12 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Util from '../../util/kbfs'
 
 type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
 }
 
 const OpenChat = (props: any) =>
@@ -40,7 +40,7 @@ export default (ownProps: OwnProps) => {
       reason: 'files',
       // tlfToParticipantsOrTeamname will route both public and private
       // folders to a private chat, which is exactly what we want.
-      ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
+      ...Util.tlfToParticipantsOrTeamname(T.FS.pathToString(path)),
     })
   }
 

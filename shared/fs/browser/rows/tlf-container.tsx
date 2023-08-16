@@ -1,6 +1,6 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import {useOpen} from '../../common/use-open'
 import Tlf from './tlf'
 
@@ -9,7 +9,7 @@ export type OwnProps = {
   disabled: boolean
   mixedMode?: boolean
   name: string
-  tlfType: Types.TlfType
+  tlfType: T.FS.TlfType
 }
 
 const TLFContainer = (p: OwnProps) => {
@@ -23,7 +23,7 @@ const TLFContainer = (p: OwnProps) => {
     destinationPickerIndex,
     disabled,
     isIgnored: tlf.isIgnored,
-    loadPathMetadata: tlf.syncConfig && tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled,
+    loadPathMetadata: tlf.syncConfig && tlf.syncConfig.mode !== T.FS.TlfSyncMode.Disabled,
     mixedMode,
     name,
     onOpen,

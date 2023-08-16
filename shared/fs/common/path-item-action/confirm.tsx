@@ -1,4 +1,4 @@
-import type * as Types from '../../../constants/types/fs'
+import type * as T from '../../../constants/types'
 import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
@@ -8,7 +8,7 @@ export type Props = {
   confirm: (() => void) | 'disabled'
   floatingMenuProps: FloatingMenuProps
   action: 'save-media' | 'send-to-other-app'
-  path: Types.Path
+  path: T.FS.Path
   size: number
 }
 

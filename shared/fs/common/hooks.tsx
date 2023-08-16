@@ -1,8 +1,7 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import logger from '../../logger'
@@ -10,13 +9,13 @@ import * as Platform from '../../constants/platform'
 import type * as Styles from '../../styles'
 import type {StylesTextCrossPlatform} from '../../common-adapters/text'
 
-const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
+const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
 
-const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => {
+const useFsPathSubscriptionEffect = (path: T.FS.Path, topic: T.RPCGen.PathSubscriptionTopic) => {
   const subscribePath = C.useFSState(s => s.dispatch.subscribePath)
   const unsubscribe = C.useFSState(s => s.dispatch.unsubscribe)
   React.useEffect(() => {
-    if (Types.getPathLevel(path) < 3) {
+    if (T.FS.getPathLevel(path) < 3) {
       return () => {}
     }
 
@@ -26,7 +25,7 @@ const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubsc
   }, [subscribePath, unsubscribe, path, topic])
 }
 
-const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
+const useFsNonPathSubscriptionEffect = (topic: T.RPCGen.SubscriptionTopic) => {
   const subscribeNonPath = C.useFSState(s => s.dispatch.subscribeNonPath)
   const unsubscribe = C.useFSState(s => s.dispatch.unsubscribe)
   React.useEffect(() => {
@@ -38,15 +37,15 @@ const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
   }, [subscribeNonPath, unsubscribe, topic])
 }
 
-export const useFsPathMetadata = (path: Types.Path) => {
-  useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.stat)
+export const useFsPathMetadata = (path: T.FS.Path) => {
+  useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat)
   React.useEffect(() => {
     isPathItem(path) && C.useFSState.getState().dispatch.loadPathMetadata(path)
   }, [path])
 }
 
-export const useFsChildren = (path: Types.Path, initialLoadRecursive?: boolean) => {
-  useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.children)
+export const useFsChildren = (path: T.FS.Path, initialLoadRecursive?: boolean) => {
+  useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.children)
   const {folderListLoad} = C.useFSState.getState().dispatch
   React.useEffect(() => {
     isPathItem(path) && folderListLoad(path, initialLoadRecursive || false)
@@ -54,14 +53,14 @@ export const useFsChildren = (path: Types.Path, initialLoadRecursive?: boolean) 
 }
 
 export const useFsTlfs = () => {
-  useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.favorites)
+  useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites)
   const favoritesLoad = C.useFSState(s => s.dispatch.favoritesLoad)
   React.useEffect(() => {
     favoritesLoad()
   }, [favoritesLoad])
 }
 
-export const useFsTlf = (path: Types.Path) => {
+export const useFsTlf = (path: T.FS.Path) => {
   const tlfPath = Constants.getTlfPath(path)
   const tlfs = C.useFSState(s => s.tlfs)
   const loadAdditionalTlf = C.useFSState(s => s.dispatch.loadAdditionalTlf)
@@ -92,14 +91,14 @@ export const useFsTlf = (path: Types.Path) => {
 }
 
 export const useFsOnlineStatus = () => {
-  useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.onlineStatus)
+  useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.onlineStatus)
   const getOnlineStatus = C.useFSState(s => s.dispatch.getOnlineStatus)
   React.useEffect(() => {
     getOnlineStatus()
   }, [getOnlineStatus])
 }
 
-export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): Types.PathInfo => {
+export const useFsPathInfo = (path: T.FS.Path, knownPathInfo: T.FS.PathInfo): T.FS.PathInfo => {
   const pathInfo = C.useFSState(s => s.pathInfos.get(path) || Constants.emptyPathInfo)
   const alreadyKnown = knownPathInfo !== Constants.emptyPathInfo
   React.useEffect(() => {
@@ -114,12 +113,12 @@ export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): 
   return alreadyKnown ? knownPathInfo : pathInfo
 }
 
-export const useFsSoftError = (path: Types.Path): Types.SoftError | undefined => {
+export const useFsSoftError = (path: T.FS.Path): T.FS.SoftError | undefined => {
   const softErrors = C.useFSState(s => s.softErrors)
   return Constants.getSoftError(softErrors, path)
 }
 
-export const useFsDownloadInfo = (downloadID: string): Types.DownloadInfo => {
+export const useFsDownloadInfo = (downloadID: string): T.FS.DownloadInfo => {
   const info = C.useFSState(s => s.downloads.info.get(downloadID) || Constants.emptyDownloadInfo)
   const loadDownloadInfo = C.useFSState(s => s.dispatch.loadDownloadInfo)
   React.useEffect(() => {
@@ -130,20 +129,20 @@ export const useFsDownloadInfo = (downloadID: string): Types.DownloadInfo => {
 }
 
 export const useFsDownloadStatus = () => {
-  useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.downloadStatus)
+  useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.downloadStatus)
   const loadDownloadStatus = C.useFSState(s => s.dispatch.loadDownloadStatus)
   React.useEffect(() => {
     loadDownloadStatus()
   }, [loadDownloadStatus])
 }
 
-export const useFsFileContext = (path: Types.Path) => {
+export const useFsFileContext = (path: T.FS.Path) => {
   const pathItem = C.useFSState(s => Constants.getPathItem(s.pathItems, path))
   const [urlError, setUrlError] = React.useState<string>('')
   const loadFileContext = C.useFSState(s => s.dispatch.loadFileContext)
   React.useEffect(() => {
     urlError && logger.info(`urlError: ${urlError}`)
-    pathItem.type === Types.PathType.File && loadFileContext(path)
+    pathItem.type === T.FS.PathType.File && loadFileContext(path)
   }, [
     loadFileContext,
     path,
@@ -158,7 +157,7 @@ export const useFsFileContext = (path: Types.Path) => {
 }
 
 export const useFsWatchDownloadForMobile = isMobile
-  ? (downloadID: string, downloadIntent?: Types.DownloadIntent): boolean => {
+  ? (downloadID: string, downloadIntent?: T.FS.DownloadIntent): boolean => {
       const dlState = C.useFSState(s => s.downloads.state.get(downloadID) || Constants.emptyDownloadState)
       const finished = dlState !== Constants.emptyDownloadState && !Constants.downloadIsOngoing(dlState)
 
@@ -183,7 +182,7 @@ export const useFsWatchDownloadForMobile = isMobile
           setJustDoneWithIntent(false)
           return
         }
-        if (downloadIntent === Types.DownloadIntent.None) {
+        if (downloadIntent === T.FS.DownloadIntent.None) {
           finishedRegularDownloadMobile?.(downloadID, mimeType)
           return
         }

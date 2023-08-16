@@ -1,11 +1,11 @@
 import * as Kb from '../common-adapters'
-import type * as FsTypes from '../constants/types/fs'
+import type * as T from '../constants/types'
 
 type Props = {
   hidden: boolean
   onClose: () => void
   onRetry: () => void
-  diskSpaceStatus: FsTypes.DiskSpaceStatus
+  diskSpaceStatus: T.FS.DiskSpaceStatus
 }
 
 const SpaceWarning = (props: Props) => {

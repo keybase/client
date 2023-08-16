@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as Types from '../../../constants/types/fs'
+import type * as T from '../../../constants/types'
 import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
@@ -30,8 +30,8 @@ export type Clickable = ClickableComponent | ClickableIcon
 export type Props = {
   clickable: Clickable
   mode: 'row' | 'screen'
-  path: Types.Path
-  initView: Types.PathItemActionMenuView
+  path: T.FS.Path
+  initView: T.FS.PathItemActionMenuView
 }
 
 const IconClickable = (props: any) => (

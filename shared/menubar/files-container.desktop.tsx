@@ -1,6 +1,6 @@
 import * as C from '../constants'
 import * as R from '../constants/remote'
-import * as FsTypes from '../constants/types/fs'
+import * as T from '../constants/types'
 import * as RemoteGen from '../actions/remote-gen'
 import * as FsUtil from '../util/kbfs'
 import * as TimestampUtil from '../util/timestamp'
@@ -18,9 +18,9 @@ const FilesContainer = () => {
         __STORYBOOK__
           ? []
           : remoteTlfUpdates.map(c => {
-              const tlf = FsTypes.pathToString(c.tlf)
+              const tlf = T.FS.pathToString(c.tlf)
               const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
-              const tlfType = FsTypes.getPathVisibility(c.tlf) || FsTypes.TlfType.Private
+              const tlfType = T.FS.getPathVisibility(c.tlf) || T.FS.TlfType.Private
               return {
                 onClickAvatar: () => showUserProfile(c.writer),
                 onSelectPath: () =>

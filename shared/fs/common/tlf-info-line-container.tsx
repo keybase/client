@@ -1,10 +1,10 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import TlfInfoLine from './tlf-info-line'
 
 export type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
   mixedMode?: boolean
   mode: 'row' | 'default'
 }
@@ -22,7 +22,7 @@ export default (ownProps: OwnProps) => {
       !!resetParticipants.length &&
       (resetParticipants.includes(_username) || resetParticipants),
     tlfMtime: _tlf.tlfMtime,
-    tlfType: Types.getPathVisibility(ownProps.path),
+    tlfType: T.FS.getPathVisibility(ownProps.path),
   }
   return <TlfInfoLine {...props} />
 }

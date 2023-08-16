@@ -1,10 +1,10 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import Sort from './sort'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 
 type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
 }
 
 export default (ownProps: OwnProps) => {
@@ -19,25 +19,25 @@ export default (ownProps: OwnProps) => {
     path === C.defaultPath
       ? undefined
       : () => {
-          setSorting(path, Types.SortSetting.NameAsc)
+          setSorting(path, T.FS.SortSetting.NameAsc)
         }
   const sortByNameDesc =
     path === C.defaultPath
       ? undefined
       : () => {
-          setSorting(path, Types.SortSetting.NameDesc)
+          setSorting(path, T.FS.SortSetting.NameDesc)
         }
   const sortByTimeAsc =
     path === C.defaultPath
       ? undefined
       : () => {
-          setSorting(path, Types.SortSetting.TimeAsc)
+          setSorting(path, T.FS.SortSetting.TimeAsc)
         }
   const sortByTimeDesc =
     path === C.defaultPath
       ? undefined
       : () => {
-          setSorting(path, Types.SortSetting.TimeDesc)
+          setSorting(path, T.FS.SortSetting.TimeDesc)
         }
   const props = {
     sortByNameAsc,

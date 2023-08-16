@@ -1,7 +1,7 @@
 import * as C from '..'
 import * as Constants from '../fs'
 import logger from '../../logger'
-import * as Types from '../types/fs'
+import * as T from '../types'
 import * as Z from '../../util/zustand'
 import * as Styles from '../../styles'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
@@ -41,15 +41,15 @@ export default function initNative() {
         const {localPath} = downloadState
         try {
           switch (downloadIntent) {
-            case Types.DownloadIntent.CameraRoll:
+            case T.FS.DownloadIntent.CameraRoll:
               await saveAttachmentToCameraRoll(localPath, mimeType)
               dismissDownload(downloadID)
               return
-            case Types.DownloadIntent.Share:
+            case T.FS.DownloadIntent.Share:
               await showShareActionSheet({filePath: localPath, mimeType})
               dismissDownload(downloadID)
               return
-            case Types.DownloadIntent.None:
+            case T.FS.DownloadIntent.None:
               return
             default:
               return

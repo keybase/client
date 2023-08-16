@@ -1,7 +1,7 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
 import Banner from './index'
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 
 const ConnectedBanner = () => {
   const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
@@ -11,7 +11,7 @@ const ConnectedBanner = () => {
   const loadPathMetadata = C.useFSState(s => s.dispatch.loadPathMetadata)
   // This LoadPathMetadata triggers a sync retry.
   const onRetry = () => {
-    loadPathMetadata(Types.stringToPath('/keybase/private' + _name))
+    loadPathMetadata(T.FS.stringToPath('/keybase/private' + _name))
   }
 
   const props = {

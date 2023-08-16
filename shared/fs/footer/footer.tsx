@@ -1,12 +1,12 @@
 import * as Kb from '../../common-adapters'
-import type * as Types from '../../constants/types/fs'
+import type * as T from '../../constants/types'
 import Upload from './upload-container'
 import Downloads from './downloads'
 import ProofBroken from './proof-broken'
 
 type Props = {
   onlyShowProofBroken?: boolean
-  path: Types.Path
+  path: T.FS.Path
 }
 
 const Footer = (props: Props) => (

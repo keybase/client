@@ -1,4 +1,4 @@
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import Upload from './upload'
 import {useUploadCountdown} from './use-upload-countdown'
 import * as C from '../../constants'
@@ -15,7 +15,7 @@ const getDebugToggleShow = () => {
   let showing = false
   return () => {
     journalUpdate(
-      showing ? [] : [Types.stringToPath('/keybase')],
+      showing ? [] : [T.FS.stringToPath('/keybase')],
       showing ? 0 : 1,
       showing ? undefined : Date.now() + 1000 * 60 * 60
     )
@@ -35,7 +35,7 @@ const UpoadContainer = () => {
 
   // Filter out folder paths.
   const filePaths = [...uploads.syncingPaths].filter(
-    path => C.getPathItem(pathItems, path).type !== Types.PathType.Folder
+    path => C.getPathItem(pathItems, path).type !== T.FS.PathType.Folder
   )
 
   const np = useUploadCountdown({
@@ -44,9 +44,9 @@ const UpoadContainer = () => {
     // flakes on our perception of overall upload status.
     debugToggleShow,
     endEstimate: enableDebugUploadBanner ? (uploads.endEstimate || 0) + 32000 : uploads.endEstimate || 0,
-    fileName: filePaths.length === 1 ? Types.getPathName(filePaths[1] || Types.stringToPath('')) : undefined,
+    fileName: filePaths.length === 1 ? T.FS.getPathName(filePaths[1] || T.FS.stringToPath('')) : undefined,
     files: filePaths.length,
-    isOnline: kbfsDaemonStatus.onlineStatus !== Types.KbfsDaemonOnlineStatus.Offline,
+    isOnline: kbfsDaemonStatus.onlineStatus !== T.FS.KbfsDaemonOnlineStatus.Offline,
     totalSyncingBytes: uploads.totalSyncingBytes,
   })
 

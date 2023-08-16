@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 type Props = {
-  driverStatus: Types.DriverStatus
+  driverStatus: T.FS.DriverStatus
   onCancel: () => void // must be ownProps.navigateUp() or idempotent in a way
   openSecurityPrefs: () => void
 }
@@ -35,7 +35,7 @@ const Illustration = () => (
 
 class CancelWhenEnabled extends React.PureComponent<Props> {
   _cancelOnEnabled = () =>
-    this.props.driverStatus.type === Types.DriverStatusType.Enabled && this.props.onCancel()
+    this.props.driverStatus.type === T.FS.DriverStatusType.Enabled && this.props.onCancel()
   componentDidMount() {
     this._cancelOnEnabled()
   }
@@ -81,7 +81,7 @@ const InstallSecurityPrefs = (props: Props) => (
           Open Security & Privacy Settings
         </Kb.Text>
       </Kb.Box2>
-      {props.driverStatus.type === Types.DriverStatusType.Disabled && props.driverStatus.isEnabling && (
+      {props.driverStatus.type === T.FS.DriverStatusType.Disabled && props.driverStatus.isEnabling && (
         <Kb.Box style={styles.enablingContainer}>
           <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true} centerChildren={true}>
             <Kb.ProgressIndicator type="Small" white={true} />
@@ -153,7 +153,7 @@ const styles = Styles.styleSheetCreate(
         maxWidth: 480,
         textAlign: 'center',
       },
-    } as const)
+    }) as const
 )
 
 export default InstallSecurityPrefs

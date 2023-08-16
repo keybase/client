@@ -1,10 +1,10 @@
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import PathStatusIcon from './path-status-icon'
 
 type OwnPropsPathItem = {
-  path: Types.Path
+  path: T.FS.Path
   showTooltipOnPressMobile?: boolean
 }
 
@@ -14,7 +14,7 @@ const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
   const _tlf = C.useFSState(s => C.getTlfFromPath(s.tlfs, ownProps.path))
   const _uploads = C.useFSState(s => s.uploads.syncingPaths)
   const props = {
-    isFolder: _pathItem.type === Types.PathType.Folder,
+    isFolder: _pathItem.type === T.FS.PathType.Folder,
     showTooltipOnPressMobile: ownProps.showTooltipOnPressMobile,
     statusIcon: Constants.getPathStatusIconInMergeProps(
       _kbfsDaemonStatus,
@@ -28,7 +28,7 @@ const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
 }
 
 type OwnPropsTlfType = {
-  tlfType?: Types.TlfType
+  tlfType?: T.FS.TlfType
 }
 
 const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
@@ -48,15 +48,15 @@ const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
 }
 
 type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
   showTooltipOnPressMobile?: boolean
 }
 
 const PathStatusIconConnected = (props: OwnProps) =>
-  Types.getPathLevel(props.path) > 2 ? (
+  T.FS.getPathLevel(props.path) > 2 ? (
     <PathStatusIconPathItem path={props.path} showTooltipOnPressMobile={props.showTooltipOnPressMobile} />
   ) : (
-    <PathStatusIconTlfType tlfType={Types.getTlfTypeFromPath(props.path)} />
+    <PathStatusIconTlfType tlfType={T.FS.getTlfTypeFromPath(props.path)} />
   )
 
 export default PathStatusIconConnected

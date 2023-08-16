@@ -1,10 +1,10 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import type * as Types from '../../../../constants/types/fs'
+import type * as T from '../../../../constants/types'
 import ReallyDelete from '.'
 
 type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
   mode: 'row' | 'screen'
 }
 

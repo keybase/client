@@ -1,12 +1,12 @@
 import * as C from '../../../constants'
 import * as React from 'react'
 import Confirm, {type Props} from './confirm'
-import type * as Types from '../../../constants/types/fs'
+import type * as T from '../../../constants/types'
 import type {FloatingMenuProps} from './types'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
-  path: Types.Path
+  path: T.FS.Path
 }
 
 export default (ownProps: OwnProps) => {

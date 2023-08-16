@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
 import * as C from '../../../constants'
 import * as Kbfs from '../../common/hooks'
@@ -11,7 +11,7 @@ type ActionOrInProgress = (() => void) | 'in-progress'
 
 type Props = {
   floatingMenuProps: FloatingMenuProps
-  path: Types.Path
+  path: T.FS.Path
   copyPath?: () => void
   delete?: () => void
   download?: () => void
@@ -21,7 +21,7 @@ type Props = {
   newFolder?: () => void
   openChatNonTeam?: () => void
   openChatTeam?: () => void
-  pathItemType: Types.PathType
+  pathItemType: T.FS.PathType
   rename?: () => void
   saveMedia?: ActionOrInProgress
   showInSystemFileManager?: () => void
@@ -112,7 +112,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
               props.sendAttachmentToChat && props.sendAttachmentToChat()
             },
             subTitle: `The ${
-              props.pathItemType === Types.PathType.Folder ? 'folder' : 'file'
+              props.pathItemType === T.FS.PathType.Folder ? 'folder' : 'file'
             } will be sent as an attachment.`,
             title: 'Attach in another conversation',
           },

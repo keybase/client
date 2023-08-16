@@ -1,15 +1,15 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import openUrl from '../../util/open-url'
 
 type Props = {
-  path: Types.Path
+  path: T.FS.Path
 }
 
-const getTlfName = (parsedPath: Types.ParsedPath): string => {
-  if (parsedPath.kind === Types.PathKind.Root || parsedPath.kind === Types.PathKind.TlfList) {
+const getTlfName = (parsedPath: T.FS.ParsedPath): string => {
+  if (parsedPath.kind === T.FS.PathKind.Root || parsedPath.kind === T.FS.PathKind.TlfList) {
     return ''
   }
   return parsedPath.tlfName
@@ -34,11 +34,11 @@ const PublicBanner = ({path}: Props) => {
     }
   }, [setLastPublicBannerClosedTlf, tlfName, lastPublicBannerClosedTlf])
 
-  if (parsedPath.kind !== Types.PathKind.GroupTlf && parsedPath.kind !== Types.PathKind.InGroupTlf) {
+  if (parsedPath.kind !== T.FS.PathKind.GroupTlf && parsedPath.kind !== T.FS.PathKind.InGroupTlf) {
     return null
   }
 
-  const isPublic = parsedPath.tlfType === Types.TlfType.Public
+  const isPublic = parsedPath.tlfType === T.FS.TlfType.Public
   const closedThisBannerLast = lastPublicBannerClosedTlf === tlfName
 
   if (!isWritable || !isPublic || closedThisBannerLast) {

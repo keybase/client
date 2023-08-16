@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import {useFuseClosedSourceConsent} from './hooks'
 import * as C from '../../constants'
 import {fileUIName} from '../../constants/platform'
@@ -15,10 +15,10 @@ const SFMIPopup = (props: Props) => {
   const driverEnable = C.useFSState(s => s.dispatch.driverEnable)
   const {driverStatus} = sfmi
   const {type} = driverStatus
-  const isEnabling = type === Types.DriverStatusType.Disabled ? driverStatus.isEnabling : false
+  const isEnabling = type === T.FS.DriverStatusType.Disabled ? driverStatus.isEnabling : false
   const enableDriver = React.useCallback(() => driverEnable(), [driverEnable])
   const {canContinue, component: fuseConsentComponent} = useFuseClosedSourceConsent(
-    type === Types.DriverStatusType.Disabled && isEnabling,
+    type === T.FS.DriverStatusType.Disabled && isEnabling,
     undefined,
     undefined
   )
@@ -56,7 +56,7 @@ const SFMIPopup = (props: Props) => {
               <Kb.Button
                 type="Success"
                 label="Yes, enable"
-                waiting={type === Types.DriverStatusType.Disabled && isEnabling}
+                waiting={type === T.FS.DriverStatusType.Disabled && isEnabling}
                 disabled={!canContinue}
                 onClick={enableDriver}
               />
@@ -69,7 +69,7 @@ const SFMIPopup = (props: Props) => {
   )
   const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
-  if (type !== Types.DriverStatusType.Disabled) {
+  if (type !== T.FS.DriverStatusType.Disabled) {
     return null
   }
   return (

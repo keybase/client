@@ -1,6 +1,6 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import * as RowTypes from './types'
 import {isMobile} from '../../../constants/platform'
 import {sortRowItems, type SortableRowItem} from './sort'
@@ -9,20 +9,20 @@ import {asRows as topBarAsRow} from '../../top-bar'
 import {memoize} from '../../../util/memoize'
 
 type OwnProps = {
-  path: Types.Path // path to the parent folder containering the rows,
+  path: T.FS.Path // path to the parent folder containering the rows,
   destinationPickerIndex?: number
   headerRows?: Array<RowTypes.HeaderRowItem>
 }
 
 const getStillRows = memoize(
   (
-    pathItems: Map<Types.Path, Types.PathItem>,
-    parentPath: Types.Path,
+    pathItems: Map<T.FS.Path, T.FS.PathItem>,
+    parentPath: T.FS.Path,
     names: Set<string>
   ): Array<RowTypes.StillRowItem> =>
     [...names].reduce<Array<RowTypes.StillRowItem>>((items, name) => {
-      const item = C.getPathItem(pathItems, Types.pathConcat(parentPath, name))
-      const path = Types.pathConcat(parentPath, item.name)
+      const item = C.getPathItem(pathItems, T.FS.pathConcat(parentPath, name))
+      const path = T.FS.pathConcat(parentPath, item.name)
       return [
         ...items,
         {
@@ -39,32 +39,32 @@ const getStillRows = memoize(
 )
 
 const _getPlaceholderRows = (
-  type: Types.PathType.File | Types.PathType.Folder
+  type: T.FS.PathType.File | T.FS.PathType.Folder
 ): Array<RowTypes.PlaceholderRowItem> => [
   {key: 'placeholder:1', name: '1', rowType: RowTypes.RowType.Placeholder, type},
   {key: 'placeholder:2', name: '2', rowType: RowTypes.RowType.Placeholder, type},
   {key: 'placeholder:3', name: '3', rowType: RowTypes.RowType.Placeholder, type},
 ]
-const filePlaceholderRows = _getPlaceholderRows(Types.PathType.File)
-const folderPlaceholderRows = _getPlaceholderRows(Types.PathType.Folder)
+const filePlaceholderRows = _getPlaceholderRows(T.FS.PathType.File)
+const folderPlaceholderRows = _getPlaceholderRows(T.FS.PathType.Folder)
 
 const _makeInTlfRows = memoize(
-  (parentPath: Types.Path, edits: Map<Types.EditID, Types.Edit>, stillRows: Array<RowTypes.StillRowItem>) => {
+  (parentPath: T.FS.Path, edits: Map<T.FS.EditID, T.FS.Edit>, stillRows: Array<RowTypes.StillRowItem>) => {
     const relevantEdits = [...edits].filter(([_, edit]) => edit.parentPath === parentPath)
     const newFolderRows: Array<SortableRowItem> = relevantEdits
-      .filter(([_, edit]) => edit.type === Types.EditType.NewFolder)
+      .filter(([_, edit]) => edit.type === T.FS.EditType.NewFolder)
       .map(([editID, edit]) => ({
         editID,
         editType: edit.type,
-        key: `edit:${Types.editIDToString(editID)}`,
+        key: `edit:${T.FS.editIDToString(editID)}`,
         name: edit.name,
         // fields for sortable
         rowType: RowTypes.RowType.NewFolder,
-        type: Types.PathType.Folder,
+        type: T.FS.PathType.Folder,
       }))
     const renameEdits = new Map(
       relevantEdits
-        .filter(([_, edit]) => edit.type === Types.EditType.Rename)
+        .filter(([_, edit]) => edit.type === T.FS.EditType.Rename)
         .map(([editID, edit]) => [edit.originalName, editID])
     )
     return newFolderRows.concat(
@@ -82,14 +82,14 @@ const _makeInTlfRows = memoize(
 
 const getInTlfItemsFromStateProps = (
   stateProps: StateProps,
-  path: Types.Path
+  path: T.FS.Path
 ): Array<RowTypes.NamedRowItem> => {
   const _pathItem = C.getPathItem(stateProps._pathItems, path)
-  if (_pathItem.type !== Types.PathType.Folder) {
+  if (_pathItem.type !== T.FS.PathType.Folder) {
     return filePlaceholderRows
   }
 
-  if (_pathItem.progress === Types.ProgressType.Pending) {
+  if (_pathItem.progress === T.FS.ProgressType.Pending) {
     return filePlaceholderRows
   }
 
@@ -100,8 +100,8 @@ const getInTlfItemsFromStateProps = (
 
 const getTlfRowsFromTlfs = memoize(
   (
-    tlfs: Map<string, Types.Tlf>,
-    tlfType: Types.TlfType,
+    tlfs: Map<string, T.FS.Tlf>,
+    tlfType: T.FS.TlfType,
     username: string,
     destinationPickerIndex?: number
   ): Array<SortableRowItem> =>
@@ -115,22 +115,22 @@ const getTlfRowsFromTlfs = memoize(
         rowType: RowTypes.RowType.Tlf,
         tlfMtime,
         tlfType,
-        type: Types.PathType.Folder,
+        type: T.FS.PathType.Folder,
       }))
 )
 
 type StateProps = {
-  _edits: Types.Edits
+  _edits: T.FS.Edits
   _filter: string | undefined
-  _pathItems: Types.PathItems
-  _sortSetting: Types.SortSetting
-  _tlfs: Types.Tlfs
+  _pathItems: T.FS.PathItems
+  _sortSetting: T.FS.SortSetting
+  _tlfs: T.FS.Tlfs
   _username: string
 }
 
 const getTlfItemsFromStateProps = (
   stateProps: StateProps,
-  path: Types.Path,
+  path: T.FS.Path,
   destinationPickerIndex?: number
 ): Array<RowTypes.NamedRowItem> => {
   if (stateProps._tlfs.private.size === 0) {
@@ -144,16 +144,16 @@ const getTlfItemsFromStateProps = (
   return sortRowItems(
     getTlfRowsFromTlfs(tlfList, tlfType, stateProps._username, destinationPickerIndex),
     stateProps._sortSetting,
-    (Types.pathIsNonTeamTLFList(path) && stateProps._username) || ''
+    (T.FS.pathIsNonTeamTLFList(path) && stateProps._username) || ''
   )
 }
 
 const getNormalRowItemsFromStateProps = (
   stateProps: StateProps,
-  path: Types.Path,
+  path: T.FS.Path,
   destinationPickerIndex?: number
 ): Array<RowTypes.NamedRowItem> => {
-  const level = Types.getPathLevel(path)
+  const level = T.FS.getPathLevel(path)
   switch (level) {
     case 0:
     case 1:
