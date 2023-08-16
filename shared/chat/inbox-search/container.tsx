@@ -1,8 +1,8 @@
 import * as C from '../../constants'
+import type * as T from '../../constants/types'
 import * as Constants from '../../constants/chat2'
 import InboxSearch from '.'
 import * as React from 'react'
-import type * as Types from '../../constants/types/chat2'
 
 type OwnProps = {
   header?: React.ReactElement | null
@@ -22,7 +22,7 @@ export default (ownProps: OwnProps) => {
     navigateAppend({props: {botUsername: username}, selected: 'chatInstallBotPick'})
   }
   const onSelectConversation = (
-    conversationIDKey: Types.ConversationIDKey,
+    conversationIDKey: T.Chat.ConversationIDKey,
     selectedIndex: number,
     query: string
   ) => {

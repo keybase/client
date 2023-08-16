@@ -1,19 +1,18 @@
 import * as C from '../../../../constants'
+import * as T from '../../../../constants/types'
 import * as Common from './common'
-import {memoize} from '../../../../util/memoize'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import type * as Types from '../../../../constants/types/chat2'
 import shallowEqual from 'shallowequal'
+import {memoize} from '../../../../util/memoize'
 
-const getCommandPrefix = (command: RPCChatTypes.ConversationCommand) => {
+const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {
   return command.username ? '!' : '/'
 }
 
 export const transformer = (
-  command: RPCChatTypes.ConversationCommand,
+  command: T.RPCChat.ConversationCommand,
   _: unknown,
   tData: Common.TransformerData,
   preview: boolean
@@ -22,11 +21,11 @@ export const transformer = (
   return Common.standardTransformer(`${prefix}${command.name}`, tData, preview)
 }
 
-export const keyExtractor = (c: RPCChatTypes.ConversationCommand) => c.name + c.username
+export const keyExtractor = (c: T.RPCChat.ConversationCommand) => c.name + c.username
 
 const getBotRestrictBlockMap = (
-  settings: Map<string, RPCChatTypes.Keybase1.TeamBotSettings | undefined>,
-  conversationIDKey: Types.ConversationIDKey,
+  settings: Map<string, T.RPCChat.Keybase1.TeamBotSettings | undefined>,
+  conversationIDKey: T.Chat.ConversationIDKey,
   bots: Array<string>
 ) => {
   const blocks = new Map<string, boolean>()
@@ -42,7 +41,7 @@ const getBotRestrictBlockMap = (
   })
   return blocks
 }
-const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
+const blankCommands: Array<T.RPCChat.ConversationCommand> = []
 const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
   const {selected, item: command} = p
   const prefix = getCommandPrefix(command)
@@ -50,7 +49,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
   const enabled = C.useChatContext(s => {
     const {botCommands} = s.meta
     const suggestBotCommands =
-      botCommands.typ === RPCChatTypes.ConversationCommandGroupsTyp.custom
+      botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
         ? botCommands.custom.commands || blankCommands
         : blankCommands
 
@@ -108,8 +107,8 @@ type UseDataSourceProps = {
 
 const getMaxCmdLength = memoize(
   (
-    suggestBotCommands: Array<RPCChatTypes.ConversationCommand>,
-    suggestCommands: Array<RPCChatTypes.ConversationCommand>
+    suggestBotCommands: Array<T.RPCChat.ConversationCommand>,
+    suggestCommands: Array<T.RPCChat.ConversationCommand>
   ) =>
     suggestCommands
       .concat(suggestBotCommands || [])
@@ -128,11 +127,11 @@ export const useDataSource = (p: UseDataSourceProps) => {
 
     const {botCommands, commands} = s.meta
     const suggestBotCommands =
-      botCommands.typ === RPCChatTypes.ConversationCommandGroupsTyp.custom
+      botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
         ? botCommands.custom.commands || blankCommands
         : blankCommands
     const suggestCommands =
-      commands.typ === RPCChatTypes.ConversationCommandGroupsTyp.builtin
+      commands.typ === T.RPCChat.ConversationCommandGroupsTyp.builtin
         ? staticConfig
           ? staticConfig.builtinCommands[commands.builtin] || blankCommands
           : blankCommands
@@ -161,12 +160,12 @@ export const useDataSource = (p: UseDataSourceProps) => {
   }, shallowEqual)
 }
 
-type CommandType = RPCChatTypes.ConversationCommand
+type CommandType = T.RPCChat.ConversationCommand
 type ListProps = Pick<
   Common.ListProps<CommandType>,
   'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   filter: string
   onSelected: (item: CommandType, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>

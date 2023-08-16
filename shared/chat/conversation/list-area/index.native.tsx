@@ -7,7 +7,7 @@ import * as Styles from '../../../styles'
 import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import type {ItemType} from '.'
 import {FlatList} from 'react-native'
 import {SeparatorMapContext} from '../messages/ids-context'
@@ -35,16 +35,16 @@ const maintainVisibleContentPosition = {
 }
 
 const useScrolling = (p: {
-  centeredOrdinal: Types.Ordinal
-  messageOrdinals: Array<Types.Ordinal>
+  centeredOrdinal: T.Chat.Ordinal
+  messageOrdinals: Array<T.Chat.Ordinal>
   cidChanged: boolean
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   listRef: React.MutableRefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
   requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
 }) => {
   const {messageOrdinals, requestScrollToBottomRef} = p
   const {cidChanged, listRef, centeredOrdinal} = p
-  const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
+  const lastLoadOrdinal = React.useRef<T.Chat.Ordinal>(-1)
   const oldestOrdinal = messageOrdinals.at(-1) ?? -1
   const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
 
@@ -100,7 +100,7 @@ const useScrolling = (p: {
 const emptyMap = new Map()
 
 const ConversationList = React.memo(function ConversationList(p: {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
 }) {
   const debugWhichList = __DEV__ ? (
@@ -127,7 +127,7 @@ const ConversationList = React.memo(function ConversationList(p: {
   // map to help the sep know the previous value
   const separatorMap = React.useMemo(() => {
     if (usingFlashList) return emptyMap
-    const sm = new Map<Types.Ordinal, Types.Ordinal>()
+    const sm = new Map<T.Chat.Ordinal, T.Chat.Ordinal>()
     let p = 0
     for (const o of _messageOrdinals ?? []) {
       sm.set(o, p)
@@ -158,18 +158,18 @@ const ConversationList = React.memo(function ConversationList(p: {
     [messageOrdinals, messageTypeMap]
   )
 
-  const recycleTypeRef = React.useRef(new Map<Types.Ordinal, string>())
+  const recycleTypeRef = React.useRef(new Map<T.Chat.Ordinal, string>())
   if (cidChanged || lastED !== extraData) {
     recycleTypeRef.current = new Map()
     setLastED(extraData)
   }
-  const setRecycleType = React.useCallback((ordinal: Types.Ordinal, type: string) => {
+  const setRecycleType = React.useCallback((ordinal: T.Chat.Ordinal, type: string) => {
     recycleTypeRef.current.set(ordinal, type)
   }, [])
 
   const numOrdinals = messageOrdinals.length
 
-  const getItemType = Container.useEvent((ordinal: Types.Ordinal, idx: number) => {
+  const getItemType = Container.useEvent((ordinal: T.Chat.Ordinal, idx: number) => {
     if (!ordinal) {
       return 'null'
     }

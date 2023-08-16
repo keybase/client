@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as Types from '../../../constants/types/chat2'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as T from '../../../constants/types'
 import type {StylesTextCrossPlatform} from '../../../common-adapters/text'
 import TeamMention from './team'
 
@@ -20,7 +19,7 @@ export default (ownProps: OwnProps) => {
     s.maybeMentionMap.get(Constants.getTeamMentionName(name, channel))
   )
   const mentionInfo =
-    maybeMentionInfo && maybeMentionInfo.status === RPCChatTypes.UIMaybeMentionStatus.team
+    maybeMentionInfo && maybeMentionInfo.status === T.RPCChat.UIMaybeMentionStatus.team
       ? maybeMentionInfo.team
       : null
   const _convID = mentionInfo ? mentionInfo.convID : undefined
@@ -41,7 +40,7 @@ export default (ownProps: OwnProps) => {
   const joinTeam = C.useTeamsState(s => s.dispatch.joinTeam)
   const onJoinTeam = joinTeam
 
-  const convID = _convID ? Types.stringToConversationIDKey(_convID) : undefined
+  const convID = _convID ? T.Chat.stringToConversationIDKey(_convID) : undefined
   const props = {
     allowFontScaling: !!allowFontScaling,
     channel: channel,

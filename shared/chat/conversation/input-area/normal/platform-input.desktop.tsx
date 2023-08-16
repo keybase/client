@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import Typing from './typing'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import type {Props} from './platform-input'
 import {EmojiPickerDesktop} from '../../../emoji-picker/container'
 import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
@@ -171,7 +171,7 @@ const FileButton = (p: {htmlInputRef: HtmlInputRefType}) => {
   )
 }
 
-const Footer = (p: {conversationIDKey: Types.ConversationIDKey; focusInput: () => void}) => {
+const Footer = (p: {conversationIDKey: T.Chat.ConversationIDKey; focusInput: () => void}) => {
   return (
     <Kb.Box style={styles.footerContainer}>
       <Typing />

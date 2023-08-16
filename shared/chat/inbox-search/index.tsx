@@ -1,4 +1,5 @@
 import * as C from '../../constants'
+import type * as T from '../../constants/types'
 import * as Constants from '../../constants/chat2'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
@@ -7,21 +8,19 @@ import Rover from './background'
 import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
 import SelectableSmallTeam from '../selectable-small-team-container'
 import TeamInfo from '../../profile/user/teams/teaminfo'
-import type * as RPCTypes from '../../constants/types/rpc-gen'
-import type * as Types from '../../constants/types/chat2'
 import type {Section as _Section} from '../../common-adapters/section-list'
 import {Bot} from '../conversation/info-panel/bot'
 import {TeamAvatar} from '../avatars'
 import {inboxWidth} from '../inbox/row/sizes'
 
 type NameResult = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   name: string
   type: 'big' | 'small'
 }
 
 type TextResult = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   type: 'big' | 'small'
   name: string
   numHits: number
@@ -33,30 +32,30 @@ type SectionExtra<T> = {
   onCollapse: () => void
   onSelect: (item: T, index: number) => void
   renderHeader: (section: Section<T>) => React.ReactNode
-  status: Types.InboxSearchStatus
+  status: T.Chat.InboxSearchStatus
   title: string
 }
 type Section<T> = _Section<T, SectionExtra<T>>
 
 export type Props = {
-  botsResults: Array<RPCTypes.FeaturedBot>
+  botsResults: Array<T.RPCGen.FeaturedBot>
   botsResultsSuggested: boolean
-  botsStatus: Types.InboxSearchStatus
+  botsStatus: T.Chat.InboxSearchStatus
   header?: React.ReactElement | null
   indexPercent: number
   nameResults: Array<NameResult>
   nameResultsUnread: boolean
-  nameStatus: Types.InboxSearchStatus
+  nameStatus: T.Chat.InboxSearchStatus
   onInstallBot: (username: string) => void
   onCancel: () => void
-  onSelectConversation: (arg0: Types.ConversationIDKey, arg1: number, arg2: string) => void
-  openTeamsResults: Array<Types.InboxSearchOpenTeamHit>
+  onSelectConversation: (arg0: T.Chat.ConversationIDKey, arg1: number, arg2: string) => void
+  openTeamsResults: Array<T.Chat.InboxSearchOpenTeamHit>
   openTeamsResultsSuggested: boolean
-  openTeamsStatus: Types.InboxSearchStatus
+  openTeamsStatus: T.Chat.InboxSearchStatus
   query: string
   selectedIndex: number
   textResults: Array<TextResult>
-  textStatus: Types.InboxSearchStatus
+  textStatus: T.Chat.InboxSearchStatus
 }
 
 type State = {
@@ -81,7 +80,7 @@ class InboxSearch extends React.Component<Props, State> {
   }
 
   private renderOpenTeams = (h: {
-    item: Types.InboxSearchOpenTeamHit
+    item: T.Chat.InboxSearchOpenTeamHit
     section: {indexOffset: number}
     index: number
   }) => {
@@ -99,7 +98,7 @@ class InboxSearch extends React.Component<Props, State> {
     )
   }
 
-  private renderBots = (h: {item: RPCTypes.FeaturedBot; section: {indexOffset: number}; index: number}) => {
+  private renderBots = (h: {item: T.RPCGen.FeaturedBot; section: {indexOffset: number}; index: number}) => {
     const {item, index} = h
     return <Bot {...item} onClick={this.props.onInstallBot} firstItem={index === 0} hideHover={true} />
   }
@@ -168,7 +167,7 @@ class InboxSearch extends React.Component<Props, State> {
   private selectText = (item: TextResult, index: number) => {
     this.props.onSelectConversation(item.conversationIDKey, index, item.query)
   }
-  private selectBot = (item: RPCTypes.FeaturedBot) => {
+  private selectBot = (item: T.RPCGen.FeaturedBot) => {
     this.props.onInstallBot(item.botUsername)
   }
   private renderNameHeader = (section: Section<NameResult>) => {
@@ -217,7 +216,7 @@ class InboxSearch extends React.Component<Props, State> {
     return this.state.botsAll ? this.props.botsResults : this.props.botsResults.slice(0, 3)
   }
 
-  private renderBotsHeader = (section: Section<RPCTypes.FeaturedBot>) => {
+  private renderBotsHeader = (section: Section<T.RPCGen.FeaturedBot>) => {
     const showMore = this.props.botsResults.length > 3 && !this.state.botsCollapsed
     const label = (
       <Kb.Box2 direction="horizontal" gap="xtiny">
@@ -285,15 +284,15 @@ class InboxSearch extends React.Component<Props, State> {
   }: {
     section:
       | Section<NameResult>
-      | Section<Types.InboxSearchOpenTeamHit>
-      | Section<RPCTypes.FeaturedBot>
+      | Section<T.Chat.InboxSearchOpenTeamHit>
+      | Section<T.RPCGen.FeaturedBot>
       | Section<TextResult>
   }): React.ReactNode => {
     // @ts-ignore
     return section.renderHeader(section)
   }
   private keyExtractor = (
-    _: RPCTypes.FeaturedBot | Types.InboxSearchOpenTeamHit | NameResult | TextResult,
+    _: T.RPCGen.FeaturedBot | T.Chat.InboxSearchOpenTeamHit | NameResult | TextResult,
     index: number
   ) => index
 
@@ -320,7 +319,7 @@ class InboxSearch extends React.Component<Props, State> {
       status: this.props.nameStatus,
       title: this.props.nameResultsUnread ? 'Unread' : 'Chats',
     }
-    const openTeamsSection: Section<Types.InboxSearchOpenTeamHit> = {
+    const openTeamsSection: Section<T.Chat.InboxSearchOpenTeamHit> = {
       data: openTeamsResults,
       indexOffset: nameResults.length,
       isCollapsed: this.state.openTeamsCollapsed,
@@ -332,7 +331,7 @@ class InboxSearch extends React.Component<Props, State> {
       status: this.props.openTeamsStatus,
       title: this.props.openTeamsResultsSuggested ? 'Suggested teams' : 'Open teams',
     }
-    const botsSection: Section<RPCTypes.FeaturedBot> = {
+    const botsSection: Section<T.RPCGen.FeaturedBot> = {
       data: botsResults,
       indexOffset: openTeamsResults.length + nameResults.length,
       isCollapsed: this.state.botsCollapsed,
@@ -380,7 +379,7 @@ class InboxSearch extends React.Component<Props, State> {
 }
 
 export const rowHeight = Styles.isMobile ? 64 : 56
-type OpenTeamProps = Types.InboxSearchOpenTeamHit & {
+type OpenTeamProps = T.Chat.InboxSearchOpenTeamHit & {
   isSelected: boolean
 }
 const OpenTeamRow = (p: OpenTeamProps) => {

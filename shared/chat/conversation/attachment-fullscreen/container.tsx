@@ -1,8 +1,6 @@
 import * as C from '../../../constants'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
+import * as T from '../../../constants/types'
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import Fullscreen from '.'
 import * as Container from '../../../util/container'
@@ -12,8 +10,8 @@ import {maxWidth, maxHeight} from '../messages/attachment/shared'
 const blankMessage = Constants.makeMessageAttachment({})
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey // needed by page
-  ordinal: Types.Ordinal
+  conversationIDKey: T.Chat.ConversationIDKey // needed by page
+  ordinal: T.Chat.Ordinal
 }
 
 const Connected = (props: OwnProps) => {
@@ -53,17 +51,17 @@ const Connected = (props: OwnProps) => {
     maxHeight
   )
 
-  const submit = Container.useRPC(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise)
+  const submit = Container.useRPC(T.RPCChat.localGetNextAttachmentMessageLocalRpcPromise)
 
   const onSwitchAttachment = (backInTime: boolean) => {
     if (conversationIDKey !== blankMessage.conversationIDKey) {
       submit(
         [
           {
-            assetTypes: [RPCChatTypes.AssetMetadataType.image, RPCChatTypes.AssetMetadataType.video],
+            assetTypes: [T.RPCChat.AssetMetadataType.image, T.RPCChat.AssetMetadataType.video],
             backInTime,
-            convID: Types.keyToConversationID(conversationIDKey),
-            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+            convID: T.Chat.keyToConversationID(conversationIDKey),
+            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
             messageID: id,
           },
         ],

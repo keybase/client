@@ -1,13 +1,12 @@
 import * as C from '../../../constants'
+import type * as T from '../../../constants/types'
 import * as Constants from '../../../constants/chat2'
 import * as FsTypes from '../../../constants/types/fs'
 import GetTitles, {type Info} from '.'
-import type * as Types from '../../../constants/types/chat2'
-import type * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey // needed by page
-  pathAndOutboxIDs: Array<Types.PathAndOutboxID>
+  conversationIDKey: T.Chat.ConversationIDKey // needed by page
+  pathAndOutboxIDs: Array<T.Chat.PathAndOutboxID>
   titles?: Array<string>
   selectConversationWithReason?: 'extension' | 'files'
   // If tlfName is set, we'll use Chat2Gen.createAttachmentsUpload. Otherwise
@@ -26,7 +25,7 @@ export default (ownProps: OwnProps) => {
   const attachmentUploadCanceled = C.useChatContext(s => s.dispatch.attachmentUploadCanceled)
   const onCancel = () => {
     attachmentUploadCanceled(
-      pathAndOutboxIDs.reduce((l: Array<RPCChatTypes.OutboxID>, {outboxID}) => {
+      pathAndOutboxIDs.reduce((l: Array<T.RPCChat.OutboxID>, {outboxID}) => {
         if (outboxID) {
           l.push(outboxID)
         }

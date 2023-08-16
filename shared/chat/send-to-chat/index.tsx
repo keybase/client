@@ -1,11 +1,10 @@
 import * as C from '../../constants'
+import * as T from '../../constants/types'
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../../fs/common'
 import * as Styles from '../../styles'
-import type * as ChatTypes from '../../constants/types/chat2'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 
@@ -54,7 +53,7 @@ export const MobileSendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
-  const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, tlfName: string) => {
+  const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
     text && injectIntoInput(text)
     if (sendPaths?.length) {
       navigateAppend({
@@ -87,14 +86,14 @@ const DesktopSendToChat = (props: Props) => {
   const onCancel = () => {
     clearModals()
   }
-  const onSelect = (convID: ChatTypes.ConversationIDKey, convname: string) => {
+  const onSelect = (convID: T.Chat.ConversationIDKey, convname: string) => {
     setConversationIDKey(convID)
     setConvName(convname)
   }
   const attachmentsUpload = C.useChatContext(s => s.dispatch.attachmentsUpload)
   const onSend = () => {
     sendPaths?.forEach(path =>
-      attachmentsUpload([{path: Types.pathToString(path)}], [title], `${username},${convName.split('#')[0]}`)
+      attachmentsUpload([{path: T.FS.pathToString(path)}], [title], `${username},${convName.split('#')[0]}`)
     )
     clearModals()
     C.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
@@ -120,12 +119,12 @@ const DesktopSendToChat = (props: Props) => {
 type DesktopSendToChatRenderProps = {
   enabled: boolean
   convName: string
-  path: Types.Path
+  path: T.FS.Path
   title: string
   setTitle: (title: string) => void
   onSend: () => void
   onCancel: () => void
-  onSelect: (convID: ChatTypes.ConversationIDKey, convName: string) => void
+  onSelect: (convID: T.Chat.ConversationIDKey, convName: string) => void
 }
 
 export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => {
@@ -144,7 +143,7 @@ export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => 
             gap="tiny"
           >
             <Kbfs.ItemIcon size={48} path={props.path} badgeOverride="iconfont-attachment" />
-            <Kb.Text type="BodySmall">{Types.getPathName(props.path)}</Kb.Text>
+            <Kb.Text type="BodySmall">{T.FS.getPathName(props.path)}</Kb.Text>
           </Kb.Box2>
           <ChooseConversation
             convName={props.convName}
