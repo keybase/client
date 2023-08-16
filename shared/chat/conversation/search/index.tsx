@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {formatTimeForMessages} from '../../../util/timestamp'
@@ -14,7 +14,7 @@ type SearchHit = {
 
 export type Props = {
   clearInitialText: () => void
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   hits: Array<SearchHit>
   initialText?: string
   loadSearchHit: (hit: number) => void
@@ -22,7 +22,7 @@ export type Props = {
   onSearch: (toFind: string) => void
   onToggleThreadSearch: () => void
   selfHide: () => void
-  status?: Types.ThreadSearchStatus
+  status?: T.Chat.ThreadSearchStatus
   style?: Styles.StylesCrossPlatform
 }
 
@@ -120,7 +120,7 @@ class ThreadSearch extends React.Component<Props, State> {
 }
 
 type SearchProps = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   submitSearch: () => void
   selectResult: (arg0: number) => void
   onEnter: () => void
@@ -360,5 +360,5 @@ const styles = Styles.styleSheetCreate(
       results: {color: Styles.globalColors.black_50},
       resultsContainer: {flexShrink: 0},
       time: {flexShrink: 0},
-    } as const)
+    }) as const
 )
