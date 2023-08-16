@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 import type {ButtonType} from '../../common-adapters/button'
 import {SignupScreen} from '../../signup/common'
 import {globalColors} from '../../styles'
@@ -35,13 +35,13 @@ export default ConnectedExplainDevice
 
 export type Props = {
   deviceName: string
-  deviceType?: RPCTypes.DeviceType
+  deviceType?: T.RPCGen.DeviceType
   onBack: () => void
   onComplete: () => void
 }
 
 const ExplainDevice = (props: Props) => {
-  const explainingMobile = props.deviceType === RPCTypes.DeviceType.mobile
+  const explainingMobile = props.deviceType === T.RPCGen.DeviceType.mobile
 
   return (
     <SignupScreen

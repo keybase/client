@@ -1,6 +1,5 @@
 import * as C from '.'
-import * as RPCChatTypes from './types/rpc-chat-gen'
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
 import * as Z from '../util/zustand'
 
 export const contactSettingsSaveWaitingKey = 'settings:contactSettingsSaveWaitingKey'
@@ -8,17 +7,17 @@ export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
 export const contactSettingsLoadWaitingKey = 'settings:contactSettingsLoadWaitingKey'
 
 export type ChatUnfurlState = {
-  unfurlMode?: RPCChatTypes.UnfurlMode
+  unfurlMode?: T.RPCChat.UnfurlMode
   unfurlWhitelist?: Array<string>
   unfurlError?: string
 }
 
 export type ContactSettingsState = {
   error: string
-  settings?: RPCTypes.ContactSettings
+  settings?: T.RPCGen.ContactSettings
 }
 
-export type ContactSettingsTeamsList = {[k in RPCTypes.TeamID]: boolean}
+export type ContactSettingsTeamsList = {[k in T.RPCGen.TeamID]: boolean}
 
 type Store = {
   contactSettings: ContactSettingsState
@@ -43,7 +42,7 @@ export type State = Store & {
     ) => void
     contactSettingsRefresh: () => void
     unfurlSettingsRefresh: () => void
-    unfurlSettingsSaved: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => void
+    unfurlSettingsSaved: (mode: T.RPCChat.UnfurlMode, whitelist: Array<string>) => void
     resetState: 'default'
   }
 }
@@ -56,7 +55,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          const settings = await RPCTypes.accountUserGetContactSettingsRpcPromise(
+          const settings = await T.RPCGen.accountUserGetContactSettingsRpcPromise(
             undefined,
             contactSettingsLoadWaitingKey
           )
@@ -90,7 +89,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           teams,
         }
         try {
-          await RPCTypes.accountUserSetContactSettingsRpcPromise({settings}, contactSettingsSaveWaitingKey)
+          await T.RPCGen.accountUserSetContactSettingsRpcPromise({settings}, contactSettingsSaveWaitingKey)
           get().dispatch.contactSettingsRefresh()
         } catch {
           set(s => {
@@ -107,7 +106,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          const result = await RPCChatTypes.localGetUnfurlSettingsRpcPromise(undefined, chatUnfurlWaitingKey)
+          const result = await T.RPCChat.localGetUnfurlSettingsRpcPromise(undefined, chatUnfurlWaitingKey)
           set(s => {
             s.unfurl = {
               unfurlError: undefined,
@@ -132,7 +131,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          await RPCChatTypes.localSaveUnfurlSettingsRpcPromise(
+          await T.RPCChat.localSaveUnfurlSettingsRpcPromise(
             {mode: unfurlMode, whitelist: unfurlWhitelist},
             chatUnfurlWaitingKey
           )

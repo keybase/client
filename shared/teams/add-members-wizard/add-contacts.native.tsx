@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
-import * as RPCGen from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 import {pluralize} from '../../util/string'
 import {ModalTitle} from '../common'
 import ContactsList, {useContacts, EnableContactsPopup, type Contact} from '../common/contacts-list.native'
@@ -29,7 +29,7 @@ const AddContacts = () => {
   }
 
   const [waiting, setWaiting] = React.useState(false)
-  const toAssertionsRPC = Container.useRPC(RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
+  const toAssertionsRPC = Container.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
 
   const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
 

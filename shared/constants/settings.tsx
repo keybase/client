@@ -1,5 +1,5 @@
 import * as C from '.'
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types/rpc-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import openURL from '../util/open-url'
 import * as Z from '../util/zustand'
@@ -65,7 +65,7 @@ type Store = {
   checkPasswordIsCorrect?: boolean
   didToggleCertificatePinning?: boolean
   lockdownModeEnabled?: boolean
-  proxyData?: RPCTypes.ProxyData
+  proxyData?: T.RPCGen.ProxyData
 }
 
 const initialStore: Store = {
@@ -90,8 +90,8 @@ export type State = Store & {
     resetState: 'default'
     setDidToggleCertificatePinning: (t?: boolean) => void
     setLockdownMode: (l: boolean) => void
-    setProxyData: (proxyData: RPCTypes.ProxyData) => void
-    stop: (exitCode: RPCTypes.ExitCode) => void
+    setProxyData: (proxyData: T.RPCGen.ProxyData) => void
+    stop: (exitCode: T.RPCGen.ExitCode) => void
     trace: (durationSeconds: number) => void
   }
 }
@@ -122,7 +122,7 @@ export const _useState = Z.createZustand<State>(set => {
         s.checkPasswordIsCorrect = undefined
       })
       const f = async () => {
-        const res = await RPCTypes.accountPassphraseCheckRpcPromise({passphrase}, checkPasswordWaitingKey)
+        const res = await T.RPCGen.accountPassphraseCheckRpcPromise({passphrase}, checkPasswordWaitingKey)
         set(s => {
           s.checkPasswordIsCorrect = res
         })
@@ -131,7 +131,7 @@ export const _useState = Z.createZustand<State>(set => {
     },
     dbNuke: () => {
       const f = async () => {
-        await RPCTypes.ctlDbNukeRpcPromise(undefined, settingsWaitingKey)
+        await T.RPCGen.ctlDbNukeRpcPromise(undefined, settingsWaitingKey)
       }
       Z.ignorePromise(f())
     },
@@ -143,7 +143,7 @@ export const _useState = Z.createZustand<State>(set => {
           throw new Error('Unable to delete account: no username set')
         }
 
-        await RPCTypes.loginAccountDeleteRpcPromise({passphrase}, settingsWaitingKey)
+        await T.RPCGen.loginAccountDeleteRpcPromise({passphrase}, settingsWaitingKey)
         C.useConfigState.getState().dispatch.setJustDeletedSelf(username)
         C.useRouterState.getState().dispatch.navigateAppend(Tabs.loginTab)
       }
@@ -155,7 +155,7 @@ export const _useState = Z.createZustand<State>(set => {
           return
         }
         try {
-          const result = await RPCTypes.accountGetLockdownModeRpcPromise(
+          const result = await T.RPCGen.accountGetLockdownModeRpcPromise(
             undefined,
             loadLockdownModeWaitingKey
           )
@@ -173,7 +173,7 @@ export const _useState = Z.createZustand<State>(set => {
     loadProxyData: () => {
       const f = async () => {
         try {
-          const result = await RPCTypes.configGetProxyDataRpcPromise()
+          const result = await T.RPCGen.configGetProxyDataRpcPromise()
           set(s => {
             s.proxyData = result
           })
@@ -190,7 +190,7 @@ export const _useState = Z.createZustand<State>(set => {
           return
         }
         try {
-          const settings = await RPCTypes.userLoadMySettingsRpcPromise(undefined, loadSettingsWaitingKey)
+          const settings = await T.RPCGen.userLoadMySettingsRpcPromise(undefined, loadSettingsWaitingKey)
           C.useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
           C.useSettingsPhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
           maybeLoadAppLink()
@@ -206,7 +206,7 @@ export const _useState = Z.createZustand<State>(set => {
     },
     loginBrowserViaWebAuthToken: () => {
       const f = async () => {
-        const link = await RPCTypes.configGenerateWebAuthTokenRpcPromise()
+        const link = await T.RPCGen.configGenerateWebAuthTokenRpcPromise()
         openURL(link)
       }
       Z.ignorePromise(f())
@@ -218,7 +218,7 @@ export const _useState = Z.createZustand<State>(set => {
           C.useSettingsEmailState.getState().dispatch.notifyEmailVerified(action.payload.params.emailAddress)
           break
         case EngineGen.keybase1NotifyUsersPasswordChanged: {
-          const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
+          const randomPW = action.payload.params.state === T.RPCGen.PassphraseState.random
           C.useSettingsPasswordState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
           break
         }
@@ -237,7 +237,7 @@ export const _useState = Z.createZustand<State>(set => {
     },
     processorProfile: profileDurationSeconds => {
       const f = async () => {
-        await RPCTypes.pprofLogProcessorProfileRpcPromise({
+        await T.RPCGen.pprofLogProcessorProfileRpcPromise({
           logDirForMobile: pprofDir,
           profileDurationSeconds,
         })
@@ -265,7 +265,7 @@ export const _useState = Z.createZustand<State>(set => {
           return
         }
         try {
-          await RPCTypes.accountSetLockdownModeRpcPromise({enabled}, setLockdownModeWaitingKey)
+          await T.RPCGen.accountSetLockdownModeRpcPromise({enabled}, setLockdownModeWaitingKey)
           set(s => {
             s.lockdownModeEnabled = enabled
           })
@@ -280,7 +280,7 @@ export const _useState = Z.createZustand<State>(set => {
     setProxyData: proxyData => {
       const f = async () => {
         try {
-          await RPCTypes.configSetProxyDataRpcPromise({proxyData})
+          await T.RPCGen.configSetProxyDataRpcPromise({proxyData})
         } catch (err) {
           logger.warn('Error in saving proxy data', err)
         }
@@ -289,13 +289,13 @@ export const _useState = Z.createZustand<State>(set => {
     },
     stop: exitCode => {
       const f = async () => {
-        await RPCTypes.ctlStopRpcPromise({exitCode})
+        await T.RPCGen.ctlStopRpcPromise({exitCode})
       }
       Z.ignorePromise(f())
     },
     trace: durationSeconds => {
       const f = async () => {
-        await RPCTypes.pprofLogTraceRpcPromise({
+        await T.RPCGen.pprofLogTraceRpcPromise({
           logDirForMobile: pprofDir,
           traceDurationSeconds: durationSeconds,
         })

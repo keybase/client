@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/tracker2'
-import type * as Types from '../../../constants/types/tracker2'
 import * as T from '../../../constants/types'
 import Teams, {type Props} from '.'
 
@@ -8,7 +7,7 @@ type OwnProps = {
   username: string
 }
 
-const noTeams = new Array<Types.TeamShowcase>()
+const noTeams = new Array<T.Tracker.TeamShowcase>()
 
 export default (ownProps: OwnProps) => {
   const d = C.useTrackerState(s => Constants.getDetails(s, ownProps.username))

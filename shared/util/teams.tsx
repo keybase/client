@@ -1,5 +1,5 @@
 import {publicAdminsLimit} from '../constants/teams'
-import type {RetentionPolicy} from '../constants/types/retention-policy'
+import type * as T from '../constants/types'
 
 type SortedAdmins = {
   publicAdmins: Array<string>
@@ -24,8 +24,8 @@ function parsePublicAdmins(publicAdmins: Array<string>, you?: string): SortedAdm
 
 // Parses retention policies into a string suitable for display at the top of a conversation
 function makeRetentionNotice(
-  policy: RetentionPolicy,
-  teamPolicy: RetentionPolicy,
+  policy: T.Retention.RetentionPolicy,
+  teamPolicy: T.Retention.RetentionPolicy,
   teamType: 'adhoc' | 'big' | 'small'
 ): string | undefined {
   if (policy.type === 'retain' || (policy.type === 'inherit' && teamPolicy.type === 'retain')) {

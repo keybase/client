@@ -1,18 +1,18 @@
 import * as C from '../../constants'
 import Announcement from '.'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 import * as Tabs from '../../constants/tabs'
 import * as SettingsTabs from '../../constants/settings'
 import openURL from '../../util/open-url'
 import * as Container from '../../util/container'
 
 type OwnProps = {
-  appLink?: RPCTypes.AppLinkType
+  appLink?: T.RPCGen.AppLinkType
   badged: boolean
   confirmLabel?: string
   dismissable: boolean
   iconUrl?: string
-  id: RPCTypes.HomeScreenAnnouncementID
+  id: T.RPCGen.HomeScreenAnnouncementID
   text: string
   url?: string
 }
@@ -30,39 +30,39 @@ export default (ownProps: OwnProps) => {
     }
 
     switch (appLink) {
-      case RPCTypes.AppLinkType.people:
+      case T.RPCGen.AppLinkType.people:
         break
-      case RPCTypes.AppLinkType.chat:
+      case T.RPCGen.AppLinkType.chat:
         navigateToInbox()
         break
-      case RPCTypes.AppLinkType.files:
+      case T.RPCGen.AppLinkType.files:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.fsTab)
         if (Container.isMobile) {
           navigateAppend(SettingsTabs.fsTab)
         }
         break
-      case RPCTypes.AppLinkType.wallet:
+      case T.RPCGen.AppLinkType.wallet:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.walletsTab)
         if (Container.isMobile) {
           navigateAppend(SettingsTabs.walletsTab)
         }
         break
-      case RPCTypes.AppLinkType.git:
+      case T.RPCGen.AppLinkType.git:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.gitTab)
         if (Container.isMobile) {
           navigateAppend({props: {}, selected: SettingsTabs.gitTab})
         }
         break
-      case RPCTypes.AppLinkType.devices:
+      case T.RPCGen.AppLinkType.devices:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.devicesTab)
         if (Container.isMobile) {
           navigateAppend(SettingsTabs.devicesTab)
         }
         break
-      case RPCTypes.AppLinkType.settings:
+      case T.RPCGen.AppLinkType.settings:
         switchTab(Tabs.settingsTab)
         break
-      case RPCTypes.AppLinkType.teams:
+      case T.RPCGen.AppLinkType.teams:
         switchTab(Tabs.teamsTab)
         break
     }

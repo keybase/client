@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import ConfirmOrPending from '.'
-import {ProofStatus} from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 import {globalColors} from '../../styles'
 
 export default () => {
@@ -10,8 +10,9 @@ export default () => {
   const username = C.useProfileState(s => s.username)
   const backToProfile = C.useProfileState(s => s.dispatch.backToProfile)
 
-  const isGood = proofFound && proofStatus === ProofStatus.ok
-  const isPending = !isGood && !proofFound && !!proofStatus && proofStatus <= ProofStatus.baseHardError
+  const isGood = proofFound && proofStatus === T.RPCGen.ProofStatus.ok
+  const isPending =
+    !isGood && !proofFound && !!proofStatus && proofStatus <= T.RPCGen.ProofStatus.baseHardError
 
   if (!platform) {
     throw new Error('No platform passed to confirm or pending container')

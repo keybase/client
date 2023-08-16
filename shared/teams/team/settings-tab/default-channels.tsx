@@ -3,18 +3,18 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
-import type * as Types from '../../../constants/types/teams'
+import type * as T from '../../../constants/types'
 import * as Constants from '../../../constants/teams'
 import type {RPCError} from '../../../util/errors'
 import {ChannelsWidget} from '../../common'
 
 type Props = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }
 
-export const useDefaultChannels = (teamID: Types.TeamID) => {
+export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
   const getDefaultChannelsRPC = Container.useRPC(RPCChatGen.localGetDefaultTeamChannelsLocalRpcPromise)
-  const [defaultChannels, setDefaultChannels] = React.useState<Array<Types.ChannelNameID>>([])
+  const [defaultChannels, setDefaultChannels] = React.useState<Array<T.Teams.ChannelNameID>>([])
   const [defaultChannelsWaiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState<RPCError | undefined>()
 
@@ -53,7 +53,7 @@ const DefaultChannels = (props: Props) => {
   // const canEdit = Container.useSelector(s => Constants.getCanPerformByID(s, teamID).manageMembers)
   const canEdit = C.useTeamsState(s => ['admin', 'owner'].includes(Constants.getRole(s, teamID)))
 
-  const onAdd = (channels: Array<Types.ChannelNameID>) => {
+  const onAdd = (channels: Array<T.Teams.ChannelNameID>) => {
     setWaiting(true)
     const convs = defaultChannels
       .concat(channels)
@@ -72,7 +72,7 @@ const DefaultChannels = (props: Props) => {
     )
   }
 
-  const onRemove = (channel: Types.ChannelNameID) => {
+  const onRemove = (channel: T.Teams.ChannelNameID) => {
     const toRemoveIdx = defaultChannels.findIndex(c => c.conversationIDKey === channel.conversationIDKey)
     if (toRemoveIdx >= 0) {
       const channelsCopy = defaultChannels.slice()

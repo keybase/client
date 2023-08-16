@@ -2,20 +2,20 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 
 const ConfirmReset = () => {
   const hasWallet = C.useAutoResetState(s => s.hasWallet)
   const error = C.useAutoResetState(s => s.error)
   const submitResetPassword = C.useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
   const onContinue = React.useCallback(() => {
-    submitResetPassword?.(RPCTypes.ResetPromptResponse.confirmReset)
+    submitResetPassword?.(T.RPCGen.ResetPromptResponse.confirmReset)
   }, [submitResetPassword])
   const onCancelReset = React.useCallback(() => {
-    submitResetPassword?.(RPCTypes.ResetPromptResponse.cancelReset)
+    submitResetPassword?.(T.RPCGen.ResetPromptResponse.cancelReset)
   }, [submitResetPassword])
   const onClose = React.useCallback(() => {
-    submitResetPassword?.(RPCTypes.ResetPromptResponse.nothing)
+    submitResetPassword?.(T.RPCGen.ResetPromptResponse.nothing)
   }, [submitResetPassword])
 
   const [checks, setChecks] = React.useState({
