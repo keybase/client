@@ -4,11 +4,11 @@ import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
-import type * as TeamsTypes from '../constants/types/teams'
+import type * as T from '../constants/types'
 import {useAllChannelMetas} from '../teams/common/channel-hooks'
 
 type OwnProps = {
-  teamID: TeamsTypes.TeamID
+  teamID: T.Teams.TeamID
   repoID: string
   selected: string
 }

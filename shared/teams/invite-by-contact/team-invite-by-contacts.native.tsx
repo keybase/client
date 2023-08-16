@@ -2,7 +2,7 @@ import * as C from '../../constants'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as React from 'react'
-import type * as Types from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 import useContacts, {type Contact} from '../common/use-contacts.native'
 import {InviteByContact, type ContactRowProps} from './index.native'
 import {useTeamDetailsSubscribe} from '../subscriber'
@@ -19,7 +19,7 @@ const extractPhoneNumber = (name: string, region: string): string => {
 // contacts and show whether the contact is invited already or not. Returns a
 // mapping of potential contact values to invite IDs.
 const mapExistingInvitesToValues = (
-  invites: Types.TeamDetails['invites'],
+  invites: T.Teams.TeamDetails['invites'],
   region: string
 ): Map<string, string> => {
   const ret = new Map<string, string>()
@@ -40,7 +40,7 @@ const mapExistingInvitesToValues = (
 }
 
 type Props = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }
 
 const TeamInviteByContact = (props: Props) => {
@@ -53,7 +53,7 @@ const TeamInviteByContact = (props: Props) => {
 
   const nav = Container.useSafeNavigation()
 
-  const [selectedRole, setSelectedRole] = React.useState('writer' as Types.TeamRoleType)
+  const [selectedRole, setSelectedRole] = React.useState('writer' as T.Teams.TeamRoleType)
 
   const loadingInvites = C.useTeamsState(s => s.teamNameToLoadingInvites.get(teamname))
   const resetErrorInEmailInvite = C.useTeamsState(s => s.dispatch.resetErrorInEmailInvite)
@@ -63,7 +63,7 @@ const TeamInviteByContact = (props: Props) => {
   }, [resetErrorInEmailInvite, nav])
 
   const onRoleChange = React.useCallback(
-    (role: Types.TeamRoleType) => {
+    (role: T.Teams.TeamRoleType) => {
       setSelectedRole(role)
     },
     [setSelectedRole]

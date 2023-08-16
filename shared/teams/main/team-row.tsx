@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
-import type * as Types from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 import TeamMenu from '../team/menu-container'
 import {pluralize} from '../../util/string'
 import {Activity} from '../common'
@@ -12,7 +12,7 @@ import {Activity} from '../common'
 type Props = {
   firstItem: boolean
   showChat?: boolean // default true
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }
 
 const TeamRow = (props: Props) => {

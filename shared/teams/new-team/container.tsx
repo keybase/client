@@ -2,12 +2,12 @@ import * as C from '../../constants'
 import NewTeamDialog from '.'
 import upperFirst from 'lodash/upperFirst'
 import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
+import * as T from '../../constants/types'
 
-type OwnProps = {subteamOf?: Types.TeamID}
+type OwnProps = {subteamOf?: T.Teams.TeamID}
 
 export default (ownProps: OwnProps) => {
-  const subteamOf = ownProps.subteamOf ?? Types.noTeamID
+  const subteamOf = ownProps.subteamOf ?? T.Teams.noTeamID
   const baseTeam = C.useTeamsState(s => Constants.getTeamMeta(s, subteamOf).teamname)
   const errorText = C.useTeamsState(s => upperFirst(s.errorInTeamCreation))
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

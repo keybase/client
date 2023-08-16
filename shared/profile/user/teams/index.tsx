@@ -1,18 +1,17 @@
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import type * as Types from '../../../constants/types/tracker2'
 import * as Styles from '../../../styles'
-import type {TeamID} from '../../../constants/types/teams'
+import type * as T from '../../../constants/types'
 import OpenMeta from './openmeta'
 import TeamInfo from './teaminfo'
 
 export type Props = {
   // lint totally confused
-  teamShowcase: ReadonlyArray<Types.TeamShowcase>
+  teamShowcase: ReadonlyArray<T.Tracker.TeamShowcase>
   teamMeta: {
     [K in string]: {
       inTeam: boolean
-      teamID: TeamID
+      teamID: T.Teams.TeamID
     }
   }
   onJoinTeam: (teamname: string) => void
@@ -96,7 +95,7 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'center',
         color: Styles.globalColors.black_50,
       },
-    } as const)
+    }) as const
 )
 
 export default Teams

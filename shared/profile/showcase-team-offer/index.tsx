@@ -1,12 +1,12 @@
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {teamWaitingKey} from '../../constants/teams'
-import type * as Types from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 import {useTeamsSubscribe} from '../../teams/subscriber'
 
 export type RowProps = {
   canShowcase: boolean
-  name: Types.Teamname
+  name: T.Teams.Teamname
   isOpen: boolean
   membercount: number
   onPromote: (promote: boolean) => void
@@ -17,8 +17,8 @@ export type RowProps = {
 
 export type Props = {
   onCancel: () => void
-  onPromote: (teamID: Types.TeamID, promote: boolean) => void
-  teams: ReadonlyArray<Types.TeamMeta>
+  onPromote: (teamID: T.Teams.TeamID, promote: boolean) => void
+  teams: ReadonlyArray<T.Teams.TeamMeta>
   waiting: Map<string, number>
 }
 
@@ -181,7 +181,7 @@ const styles = Styles.styleSheetCreate(
       teamText: {
         alignSelf: 'flex-start',
       },
-    } as const)
+    }) as const
 )
 
 export default ShowcaseTeamOffer

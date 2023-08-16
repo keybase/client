@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {FloatingRolePicker} from '../role-picker'
 import capitalize from 'lodash/capitalize'
-import type {TeamRoleType} from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 
 export type Props = {
   errorMessage: string
@@ -11,7 +11,7 @@ export type Props = {
   name: string
   onClearInviteError: () => void
   onClose: () => void
-  onInvite: (invitees: string, role: TeamRoleType) => void
+  onInvite: (invitees: string, role: T.Teams.TeamRoleType) => void
   waitingKey: string
 }
 
@@ -32,7 +32,7 @@ const _makeDropdownItem = (item: string) => (
 type State = {
   invitees: string
   malformedEmails: Set<string>
-  role: TeamRoleType
+  role: T.Teams.TeamRoleType
   isRolePickerOpen: boolean
 }
 
@@ -41,7 +41,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     invitees: '',
     isRolePickerOpen: false,
     malformedEmails: this.props.malformedEmails,
-    role: 'reader' as TeamRoleType,
+    role: 'reader' as T.Teams.TeamRoleType,
   }
 
   componentDidUpdate(_: Props, prevState: State) {
@@ -60,7 +60,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     this.setState({isRolePickerOpen: false})
   }
 
-  onConfirmRolePicker = (role: TeamRoleType) => {
+  onConfirmRolePicker = (role: T.Teams.TeamRoleType) => {
     this.setState({isRolePickerOpen: false, role})
   }
 
@@ -76,7 +76,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     this.setState({invitees: [...malformedEmails].join('\n'), malformedEmails})
   }
 
-  _setRole = (role: TeamRoleType) => this.setState({role})
+  _setRole = (role: T.Teams.TeamRoleType) => this.setState({role})
 
   _onInvite = () => this.props.onInvite(this.state.invitees, this.state.role)
 

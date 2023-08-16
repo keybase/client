@@ -1,7 +1,7 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/tracker2'
 import type * as Types from '../../../constants/types/tracker2'
-import {noTeamID} from '../../../constants/types/teams'
+import * as T from '../../../constants/types'
 import Teams, {type Props} from '.'
 
 type OwnProps = {
@@ -34,7 +34,7 @@ export default (ownProps: OwnProps) => {
     onJoinTeam: onJoinTeam,
     onViewTeam: onViewTeam,
     teamMeta: teamShowcase.reduce<Props['teamMeta']>((map, t) => {
-      const teamID = _teamNameToID.get(t.name) || noTeamID
+      const teamID = _teamNameToID.get(t.name) || T.Teams.noTeamID
       map[t.name] = {
         inTeam: !!((_roles.get(teamID)?.role || 'none') !== 'none'),
         teamID,

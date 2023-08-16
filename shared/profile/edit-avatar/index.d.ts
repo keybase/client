@@ -1,12 +1,11 @@
-import {Component} from 'react'
+import * as React from 'react'
 import {ImageInfo} from '../../util/expo-image-picker.native'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Types from '../../constants/types/teams'
+import * as T from '../../constants/types'
 
 type TeamProps = {
   createdTeam?: boolean
   showBack?: boolean
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   teamname: string
   type: 'team'
   wizard: boolean
@@ -16,7 +15,7 @@ type ProfileProps = {
   createdTeam?: false
   onSkip?: undefined
   teamname?: string
-  teamID?: Types.TeamID
+  teamID?: T.Teams.TeamID
   type: 'profile'
   showBack?: false
   wizard?: false
@@ -29,7 +28,7 @@ export type Props = {
   onClose: () => void
   onSave: (
     filename: string,
-    crop?: RPCTypes.ImageCropRect,
+    crop?: T.RPCGen.ImageCropRect,
     scaledWidth?: number,
     offsetLeft?: number,
     offsetTop?: number
@@ -39,4 +38,4 @@ export type Props = {
   waitingKey: string
 } & (TeamProps | ProfileProps)
 
-export default class Render extends Component<Props> {}
+export default class Render extends React.Component<Props> {}

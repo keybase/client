@@ -1,12 +1,4 @@
-import {type TeamID} from '../constants/types/teams'
-import type {
-  AllowedNamespace,
-  FollowingState,
-  GoButtonLabel,
-  SearchResults,
-  SelectedUser,
-  ServiceIdWithContact,
-} from '../constants/types/team-building'
+import type * as T from '../constants/types'
 
 export type SearchResult = {
   contact: boolean
@@ -15,11 +7,11 @@ export type SearchResult = {
   prettyName: string
   pictureUrl?: string
   displayLabel: string
-  services: {[K in ServiceIdWithContact]?: string}
+  services: {[K in T.TB.ServiceIdWithContact]?: string}
   inTeam: boolean
   isPreExistingTeamMember: boolean
   isYou: boolean
-  followingState: FollowingState
+  followingState: T.TB.FollowingState
   isImportButton?: false
   isSearchHint?: false
 }
@@ -44,13 +36,13 @@ export type SearchRecSection = {
 
 export type Props = {
   error?: string
-  filterServices?: Array<ServiceIdWithContact>
+  filterServices?: Array<T.TB.ServiceIdWithContact>
   focusInputCounter: number
-  goButtonLabel?: GoButtonLabel
+  goButtonLabel?: T.TB.GoButtonLabel
   highlightedIndex: number
-  namespace: AllowedNamespace
+  namespace: T.TB.AllowedNamespace
   onAdd: (userId: string) => void
-  onChangeService: (newService: ServiceIdWithContact) => void
+  onChangeService: (newService: T.TB.ServiceIdWithContact) => void
   onChangeText: (newText: string) => void
   onClear: () => void
   onClose: () => void
@@ -61,15 +53,15 @@ export type Props = {
   onSearchForMore: (len: number) => void
   onUpArrowKeyDown: () => void
   recommendations?: Array<SearchRecSection>
-  search: (query: string, service: ServiceIdWithContact) => void
+  search: (query: string, service: T.TB.ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | undefined
   searchString: string
-  selectedService: ServiceIdWithContact
-  serviceResultCount: {[K in ServiceIdWithContact]?: number | undefined}
+  selectedService: T.TB.ServiceIdWithContact
+  serviceResultCount: {[K in T.TB.ServiceIdWithContact]?: number | undefined}
   showServiceResultCount: boolean
-  teamBuildingSearchResults: SearchResults
-  teamID: TeamID | undefined
-  teamSoFar: Array<SelectedUser>
+  teamBuildingSearchResults: T.TB.SearchResults
+  teamID: T.Teams.TeamID | undefined
+  teamSoFar: Array<T.TB.SelectedUser>
 }
 
 export type OnScrollProps = {

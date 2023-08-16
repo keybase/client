@@ -5,8 +5,7 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat2'
-import * as Types from '../../constants/types/teams'
-import * as RPCGen from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 import {assertionToDisplay} from '../../common-adapters/usernames'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
@@ -31,7 +30,7 @@ const AddMembersConfirm = () => {
     s => s.addMembersWizard
   )
   const isSubteam = C.useTeamsState(s => Constants.getTeamMeta(s, teamID)?.teamname.includes('.'))
-  const fromNewTeamWizard = teamID === Types.newTeamWizardTeamID
+  const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
   const isBigTeam = C.useChatState(s => (fromNewTeamWizard ? false : ChatConstants.isBigTeam(s, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
   const isInTeam = C.useTeamsState(s => Constants.getRole(s, teamID) !== 'none')
@@ -58,7 +57,7 @@ const AddMembersConfirm = () => {
   const newTeamWaiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
   const waiting = _waiting || newTeamWaiting
 
-  const addMembers = Container.useRPC(RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
+  const addMembers = Container.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
   const finishNewTeamWizard = C.useTeamsState(s => s.dispatch.finishNewTeamWizard)
   const finishedAddMembersWizard = C.useTeamsState(s => s.dispatch.finishedAddMembersWizard)
 
@@ -77,7 +76,7 @@ const AddMembersConfirm = () => {
               teamID,
               users: addingMembers.map(member => ({
                 assertion: member.assertion,
-                role: RPCGen.TeamRole[member.role],
+                role: T.RPCGen.TeamRole[member.role],
               })),
             },
           ],
@@ -245,7 +244,7 @@ const AddMoreMembers = () => {
     </>
   )
 }
-type RoleType = Types.AddingMemberTeamRoleType | 'setIndividually'
+type RoleType = T.Teams.AddingMemberTeamRoleType | 'setIndividually'
 
 type RoleSelectorProps = {
   disabledRoles: DisabledRoles
@@ -339,7 +338,7 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
   return <Kb.ScrollView style={styles.addingMembers}>{content}</Kb.ScrollView>
 }
 
-const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles; lastMember?: boolean}) => {
+const AddingMember = (props: T.Teams.AddingMember & {disabledRoles: DisabledRoles; lastMember?: boolean}) => {
   const addMembersWizardRemoveMember = C.useTeamsState(s => s.dispatch.addMembersWizardRemoveMember)
   const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   const onRemove = () => {
@@ -349,7 +348,7 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
     }
   }
   const role = C.useTeamsState(s => s.addMembersWizard.role)
-  const individualRole: Types.MaybeTeamRoleType = C.useTeamsState(
+  const individualRole: T.Teams.MaybeTeamRoleType = C.useTeamsState(
     s =>
       s.addMembersWizard.addingMembers.find(m => m.assertion === props.assertion)?.role ??
       (role === 'setIndividually' ? 'writer' : role)
@@ -410,7 +409,7 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
   )
 }
 
-const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
+const DefaultChannels = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const {defaultChannels, defaultChannelsWaiting} = useDefaultChannels(teamID)
   const addToChannels = C.useTeamsState(s => s.addMembersWizard.addToChannels)
   const allKeybaseUsers = C.useTeamsState(
@@ -421,13 +420,13 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
   )
   const onChangeFromDefault = () => addMembersWizardSetDefaultChannels([])
   const onAdd = React.useCallback(
-    (toAdd: Array<Types.ChannelNameID>) => {
+    (toAdd: Array<T.Teams.ChannelNameID>) => {
       addMembersWizardSetDefaultChannels(toAdd)
     },
     [addMembersWizardSetDefaultChannels]
   )
   const onRemove = React.useCallback(
-    (toRemove: Types.ChannelNameID) => {
+    (toRemove: T.Teams.ChannelNameID) => {
       addMembersWizardSetDefaultChannels(undefined, toRemove)
     },
     [addMembersWizardSetDefaultChannels]

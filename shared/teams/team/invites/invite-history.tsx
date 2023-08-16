@@ -3,21 +3,21 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import * as Types from '../../../constants/types/teams'
+import * as T from '../../../constants/types'
 import {memoize} from '../../../util/memoize'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import {ModalTitle} from '../../common'
 import {InviteItem} from './invite-item'
 import type {Section} from '../../../common-adapters/section-list'
 
-type Props = {teamID: Types.TeamID}
+type Props = {teamID: T.Teams.TeamID}
 
 const splitInviteLinks = memoize(
   (
-    inviteLinks?: Array<Types.InviteLink>
+    inviteLinks?: Array<T.Teams.InviteLink>
   ): {
-    invalid: Array<Types.InviteLink>
-    valid: Array<Types.InviteLink>
+    invalid: Array<T.Teams.InviteLink>
+    valid: Array<T.Teams.InviteLink>
   } => ({
     invalid: [...(inviteLinks || [])].filter(i => !i.isValid),
     valid: [...(inviteLinks || [])].filter(i => i.isValid),
@@ -25,7 +25,7 @@ const splitInviteLinks = memoize(
 )
 
 const InviteHistory = (props: Props) => {
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
   useTeamDetailsSubscribe(teamID)
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const loading = !teamDetails
@@ -35,8 +35,8 @@ const InviteHistory = (props: Props) => {
   const onGenerate = () => nav.safeNavigateAppend({props: {teamID}, selected: 'teamInviteLinksGenerate'})
   const inviteLinks = teamDetails?.inviteLinks
   const {invalid, valid} = splitInviteLinks(inviteLinks)
-  const data: Array<Types.InviteLink> = showingValid ? valid : invalid
-  const sections: Array<Section<Types.InviteLink>> = [
+  const data: Array<T.Teams.InviteLink> = showingValid ? valid : invalid
+  const sections: Array<Section<T.Teams.InviteLink>> = [
     {
       data,
       key: 'invites',

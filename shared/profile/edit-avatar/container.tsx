@@ -1,10 +1,9 @@
 import * as C from '../../constants'
 import EditAvatar from '.'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as TeamsConstants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/teams'
+import * as T from '../../constants/types'
 import type * as ImagePicker from 'expo-image-picker'
 
 type OwnProps = {
@@ -43,7 +42,7 @@ export default (ownProps: OwnProps) => {
     _filename: string,
     teamname: string,
     sendChatNotification: boolean,
-    crop?: RPCTypes.ImageCropRect
+    crop?: T.RPCGen.ImageCropRect
   ) => {
     const filename = Styles.unnormalizePath(_filename)
     uploadTeamAvatar(teamname, filename, sendChatNotification, crop)
@@ -51,12 +50,12 @@ export default (ownProps: OwnProps) => {
 
   const uploadAvatar = C.useProfileState(s => s.dispatch.uploadAvatar)
 
-  const onSaveUserAvatar = (_filename: string, crop?: RPCTypes.ImageCropRect) => {
+  const onSaveUserAvatar = (_filename: string, crop?: T.RPCGen.ImageCropRect) => {
     const filename = Styles.unnormalizePath(_filename)
     uploadAvatar(filename, crop)
   }
   const setTeamWizardAvatar = C.useTeamsState(s => s.dispatch.setTeamWizardAvatar)
-  const onSaveWizardAvatar = (_filename: string, crop?: Types.AvatarCrop) => {
+  const onSaveWizardAvatar = (_filename: string, crop?: T.Teams.AvatarCrop) => {
     const filename = Styles.unnormalizePath(_filename)
     setTeamWizardAvatar(crop, filename)
   }
@@ -67,7 +66,7 @@ export default (ownProps: OwnProps) => {
   let error = ''
   if (sperror) {
     error =
-      sperror.code === RPCTypes.StatusCode.scgeneric
+      sperror.code === T.RPCGen.StatusCode.scgeneric
         ? sperror.desc
         : Container.isNetworkErr(sperror.code)
         ? 'Connection lost. Please check your network and try again.'
@@ -89,7 +88,7 @@ export default (ownProps: OwnProps) => {
         createdTeam,
         onSave: (
           filename: string,
-          crop?: RPCTypes.ImageCropRect,
+          crop?: T.RPCGen.ImageCropRect,
           scaledWidth?: number,
           offsetLeft?: number,
           offsetTop?: number

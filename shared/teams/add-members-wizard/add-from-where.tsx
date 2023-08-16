@@ -2,7 +2,7 @@ import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as Types from '../../constants/types/teams'
+import * as T from '../../constants/types'
 import * as Constants from '../../constants/teams'
 import {ModalTitle} from '../common'
 
@@ -28,7 +28,7 @@ const AddFromWhere = () => {
   const nav = Container.useSafeNavigation()
   const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
   const cancelAddMembersWizard = C.useTeamsState(s => s.dispatch.cancelAddMembersWizard)
-  const newTeam: boolean = teamID === Types.newTeamWizardTeamID
+  const newTeam: boolean = teamID === T.Teams.newTeamWizardTeamID
   // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
   const createTeamError = C.useTeamsState(s => (newTeam ? s.newTeamWizard.error : undefined))
   const onClose = () => cancelAddMembersWizard()

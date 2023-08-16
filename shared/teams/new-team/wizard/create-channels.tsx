@@ -1,7 +1,7 @@
 import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Types from '../../../constants/types/teams'
+import * as T from '../../../constants/types'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
 import {pluralize} from '../../../util/string'
@@ -9,7 +9,7 @@ import {ModalTitle} from '../../common'
 
 type Props = {
   onSubmitChannels?: (channels: Array<string>) => void
-  teamID?: Types.TeamID
+  teamID?: T.Teams.TeamID
   waiting?: boolean
   banners?: React.ReactNode
 }
@@ -19,7 +19,7 @@ const cleanChannelname = (name: string) => name.replace(/[^0-9a-zA-Z_-]/, '')
 const CreateChannel = (props: Props) => {
   const {onSubmitChannels, waiting} = props
   const nav = Container.useSafeNavigation()
-  const teamID = props.teamID || Types.newTeamWizardTeamID
+  const teamID = props.teamID || T.Teams.newTeamWizardTeamID
   const initialChannels = C.useTeamsState(s => s.newTeamWizard.channels) ?? ['hellos', 'random', '']
 
   const [channels, setChannels] = React.useState<Array<string>>([...initialChannels])

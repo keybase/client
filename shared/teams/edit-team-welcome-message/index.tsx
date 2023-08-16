@@ -4,19 +4,19 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
+import * as T from '../../constants/types'
 import {computeWelcomeMessageTextRaw} from '../../chat/conversation/messages/cards/team-journey/util'
 
-type Props = {teamID: Types.TeamID}
+type Props = {teamID: T.Teams.TeamID}
 
 // welcomeMessageMaxLen is duplicated at
 // go/chat/server.go:welcomeMessageMaxLen; keep the values in sync!
 const welcomeMessageMaxLen = 400
 
 const EditTeamWelcomeMessage = (props: Props) => {
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
 
-  if (teamID === Types.noTeamID) {
+  if (teamID === T.Teams.noTeamID) {
     throw new Error(`There was a problem loading the welcome message page, please report this error.`)
   }
 
