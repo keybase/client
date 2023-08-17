@@ -2700,13 +2700,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.threadSearchQuery = query
       })
     },
-    setTyping: t => {
+    setTyping: throttle(t => {
       set(s => {
         if (!isEqual(s.typing, t)) {
           s.typing = t
         }
       })
-    },
+    }, 2000),
     setupSubscriptions: () => {
       // TODO
     },
