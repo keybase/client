@@ -14,7 +14,6 @@ import * as ConfigConstants from '../config'
 import HiddenString from '../../util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '../../logger'
-import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import throttle from 'lodash/throttle'
@@ -224,7 +223,7 @@ export type ConvoState = ConvoStore & {
     messageReplyPrivately: (ordinal: T.Chat.Ordinal) => void
     messageRetry: (outboxID: T.Chat.OutboxID) => void
     messageSend: (text: string, replyTo?: T.Chat.MessageID, waitingKey?: string) => void
-    messagesAdd: (messages: Array<T.Chat.Message>, forceContainsLatestCalc?: boolean) => void
+    messagesAdd: (messages: Array<T.Chat.Message>) => void
     messagesClear: () => void
     messagesExploded: (messageIDs: Array<T.RPCChat.MessageID>, explodedBy?: string) => void
     messagesWereDeleted: (p: {
@@ -306,6 +305,7 @@ export type ConvoState = ConvoStore & {
     ) => void
     unfurlRemove: (messageID: T.Chat.MessageID) => void
     updateDraft: (text: string) => void
+    updateContainsLatestMessage: (force: boolean) => void
     unfurlTogglePrompt: (messageID: T.Chat.MessageID, domain: string, show: boolean) => void
     unreadUpdated: (unread: number) => void
     updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
@@ -980,7 +980,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             if (shouldClearOthers) {
               dispatch.messagesClear()
             }
-            dispatch.messagesAdd(messages, forceContainsLatestCalc)
+            dispatch.messagesAdd(messages)
+            if (forceContainsLatestCalc) {
+              dispatch.updateContainsLatestMessage(forceContainsLatestCalc)
+            }
             if (centeredMessageID) {
               const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
               dispatch.setMessageCenterOrdinal({
@@ -1493,7 +1496,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       get().dispatch.setReplyTo(0)
       get().dispatch.setCommandMarkdown()
     },
-    messagesAdd: (_messages, _forceContainsLatestCalc) => {
+    messagesAdd: _messages => {
       // TEMP
       window.NOJIMA = get
       // TEMP
@@ -1513,8 +1516,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 s.pendingOutboxToOrdinal.set(m.outboxID, m.ordinal)
               }
               const mapOrdinal = (m.outboxID && s.pendingOutboxToOrdinal.get(m.outboxID)) || m.ordinal
-              // TODO upgrade messages
-              s.messageMap.set(mapOrdinal, m)
+              s.messageMap.set(mapOrdinal, {...m, ordinal: mapOrdinal})
               if (m.type === 'text') {
                 s.messageTypeMap.delete(mapOrdinal)
               } else {
@@ -1528,7 +1530,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       impl()
       return
 
-      const p = {forceContainsLatestCalc: _forceContainsLatestCalc, messages: _messages}
       /**
        * currnt impl:
        * split into deletedMessages and messages
@@ -1566,170 +1567,148 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
        * maybe update ceneterd ordinal
        */
 
-      console.log('aaa messages add', p)
-      // pull out deletes and handle at the end
-      const [messages, deletedMessages] = partition<T.Chat.Message>(p.messages, m => m.type !== 'deleted')
-      logger.info(`messagesAdd: messages: ${messages.length} deleted: ${deletedMessages.length}`)
-      const conversationIDKey = get().id
-      // we want the clear applied when we call findExisting
-      const oldPendingOutboxToOrdinal = new Map(get().pendingOutboxToOrdinal)
-      const oldMessageMap = new Map(get().messageMap)
+      // const p = {messages: _messages}
+      // console.log('aaa messages add', p)
+      // // pull out deletes and handle at the end
+      // const [messages, deletedMessages] = partition<T.Chat.Message>(p.messages, m => m.type !== 'deleted')
+      // logger.info(`messagesAdd: messages: ${messages.length} deleted: ${deletedMessages.length}`)
+      // // we want the clear applied when we call findExisting
+      // const oldPendingOutboxToOrdinal = new Map(get().pendingOutboxToOrdinal)
+      // const oldMessageMap = new Map(get().messageMap)
 
-      // so we can keep messages if they haven't mutated
-      const previousMessageMap = new Map(get().messageMap)
-      const {dispatch} = get()
+      // // so we can keep messages if they haven't mutated
+      // const previousMessageMap = new Map(get().messageMap)
+      // const {dispatch} = get()
 
-      // Update any pending messages
-      const pendingOutboxToOrdinal = new Map(oldPendingOutboxToOrdinal)
-      messages.forEach(message => {
-        if (message.submitState === 'pending' && message.outboxID) {
-          logger.info(
-            `messagesAdd: setting new outbox ordinal: ${message.ordinal} outboxID: ${message.outboxID}`
-          )
-          pendingOutboxToOrdinal.set(message.outboxID, message.ordinal)
-        }
-      })
+      // // Update any pending messages
+      // const pendingOutboxToOrdinal = new Map(oldPendingOutboxToOrdinal)
+      // messages.forEach(message => {
+      //   if (message.submitState === 'pending' && message.outboxID) {
+      //     logger.info(
+      //       `messagesAdd: setting new outbox ordinal: ${message.ordinal} outboxID: ${message.outboxID}`
+      //     )
+      //     pendingOutboxToOrdinal.set(message.outboxID, message.ordinal)
+      //   }
+      // })
 
-      const findExistingSentOrPending = (m: T.Chat.Message) => {
-        // something we sent
-        if (m.outboxID) {
-          // and we know about it
-          const ordinal = oldPendingOutboxToOrdinal.get(m.outboxID)
-          if (ordinal) {
-            return oldMessageMap.get(ordinal)
-          }
-        }
-        const pendingOrdinal = messageIDToOrdinal(oldMessageMap, oldPendingOutboxToOrdinal, m.id)
-        if (pendingOrdinal) {
-          return oldMessageMap.get(pendingOrdinal)
-        }
-        return null
-      }
+      // const findExistingSentOrPending = (m: T.Chat.Message) => {
+      //   // something we sent
+      //   if (m.outboxID) {
+      //     // and we know about it
+      //     const ordinal = oldPendingOutboxToOrdinal.get(m.outboxID)
+      //     if (ordinal) {
+      //       return oldMessageMap.get(ordinal)
+      //     }
+      //   }
+      //   const pendingOrdinal = messageIDToOrdinal(oldMessageMap, oldPendingOutboxToOrdinal, m.id)
+      //   if (pendingOrdinal) {
+      //     return oldMessageMap.get(pendingOrdinal)
+      //   }
+      //   return null
+      // }
 
-      // remove all deleted messages from ordinals that we are passed as a parameter
-      const os =
-        get().messageOrdinals?.reduce((arr, o) => {
-          if (deletedMessages.find(m => m.ordinal === o)) {
-            return arr
-          }
-          arr.push(o)
-          return arr
-        }, new Array<T.Chat.Ordinal>()) ?? []
+      // // remove all deleted messages from ordinals that we are passed as a parameter
+      // const os =
+      //   get().messageOrdinals?.reduce((arr, o) => {
+      //     if (deletedMessages.find(m => m.ordinal === o)) {
+      //       return arr
+      //     }
+      //     arr.push(o)
+      //     return arr
+      //   }, new Array<T.Chat.Ordinal>()) ?? []
 
-      dispatch.setMessageOrdinals(os)
+      // dispatch.setMessageOrdinals(os)
 
-      const removedOrdinals: Array<T.Chat.Ordinal> = []
-      const ordinals = messages.reduce<Array<T.Chat.Ordinal>>((arr, message) => {
-        if (message.type === 'placeholder') {
-          // sometimes we send then get a placeholder for that send. Lets see if we already have the message id for the sent
-          // and ignore the placeholder in that instance
-          logger.info(`messagesAdd: got placeholder message with id: ${message.id}`)
-          const existingOrdinal = messageIDToOrdinal(oldMessageMap, pendingOutboxToOrdinal, message.id)
-          if (!existingOrdinal) {
-            arr.push(message.ordinal)
-          } else {
-            logger.info(
-              `messagesAdd: skipping placeholder for message with id ${message.id} because already exists`
-            )
-          }
-        } else {
-          // Sendable so we might have an existing message
-          const existing = findExistingSentOrPending(message)
-          if (!existing || sortedIndexOf(get().messageOrdinals ?? [], existing.ordinal) === -1) {
-            arr.push(message.ordinal)
-          } else {
-            logger.info(
-              `messagesAdd: skipping existing message for ordinal add: ordinal: ${message.ordinal} outboxID: ${message.outboxID}`
-            )
-          }
-          // We might have a placeholder for this message in there with ordinal of its own ID, let's
-          // get rid of it if that is the case
-          const lookupID = message.id || existing?.id
-          if (lookupID) {
-            const oldMsg = oldMessageMap.get(T.Chat.numberToOrdinal(lookupID))
-            if (
-              oldMsg?.type === 'placeholder' &&
-              // don't delete the placeholder if we're just about to replace it ourselves
-              oldMsg.ordinal !== message.ordinal
-            ) {
-              logger.info(`messagesAdd: removing old placeholder: ${oldMsg.ordinal}`)
-              removedOrdinals.push(oldMsg.ordinal)
-            }
-          }
-        }
-        return arr
-      }, [])
+      // const removedOrdinals: Array<T.Chat.Ordinal> = []
+      // const ordinals = messages.reduce<Array<T.Chat.Ordinal>>((arr, message) => {
+      //   if (message.type === 'placeholder') {
+      //     // sometimes we send then get a placeholder for that send. Lets see if we already have the message id for the sent
+      //     // and ignore the placeholder in that instance
+      //     logger.info(`messagesAdd: got placeholder message with id: ${message.id}`)
+      //     const existingOrdinal = messageIDToOrdinal(oldMessageMap, pendingOutboxToOrdinal, message.id)
+      //     if (!existingOrdinal) {
+      //       arr.push(message.ordinal)
+      //     } else {
+      //       logger.info(
+      //         `messagesAdd: skipping placeholder for message with id ${message.id} because already exists`
+      //       )
+      //     }
+      //   } else {
+      //     // Sendable so we might have an existing message
+      //     const existing = findExistingSentOrPending(message)
+      //     if (!existing || sortedIndexOf(get().messageOrdinals ?? [], existing.ordinal) === -1) {
+      //       arr.push(message.ordinal)
+      //     } else {
+      //       logger.info(
+      //         `messagesAdd: skipping existing message for ordinal add: ordinal: ${message.ordinal} outboxID: ${message.outboxID}`
+      //       )
+      //     }
+      //     // We might have a placeholder for this message in there with ordinal of its own ID, let's
+      //     // get rid of it if that is the case
+      //     const lookupID = message.id || existing?.id
+      //     if (lookupID) {
+      //       const oldMsg = oldMessageMap.get(T.Chat.numberToOrdinal(lookupID))
+      //       if (
+      //         oldMsg?.type === 'placeholder' &&
+      //         // don't delete the placeholder if we're just about to replace it ourselves
+      //         oldMsg.ordinal !== message.ordinal
+      //       ) {
+      //         logger.info(`messagesAdd: removing old placeholder: ${oldMsg.ordinal}`)
+      //         removedOrdinals.push(oldMsg.ordinal)
+      //       }
+      //     }
+      //   }
+      //   return arr
+      // }, [])
 
-      // add new ones, remove deleted ones, sort. This pass is for when we remove placeholder messages
-      // with their resolved ids
-      // need to convert to a set and back due to needing to dedupe, could look into why this is necessary
-      const oss =
-        get().messageOrdinals?.reduce((s, o) => {
-          if (removedOrdinals.includes(o)) {
-            return s
-          }
-          s.add(o)
-          return s
-        }, new Set(ordinals)) ?? new Set(ordinals)
-      dispatch.setMessageOrdinals([...oss].sort((a, b) => a - b))
+      // // add new ones, remove deleted ones, sort. This pass is for when we remove placeholder messages
+      // // with their resolved ids
+      // // need to convert to a set and back due to needing to dedupe, could look into why this is necessary
+      // const oss =
+      //   get().messageOrdinals?.reduce((s, o) => {
+      //     if (removedOrdinals.includes(o)) {
+      //       return s
+      //     }
+      //     s.add(o)
+      //     return s
+      //   }, new Set(ordinals)) ?? new Set(ordinals)
+      // dispatch.setMessageOrdinals([...oss].sort((a, b) => a - b))
 
-      // clear out message map of deleted stuff
-      const messageMap = new Map(oldMessageMap)
-      deletedMessages.forEach(m => messageMap.delete(m.ordinal))
-      removedOrdinals.forEach(o => messageMap.delete(o))
+      // // clear out message map of deleted stuff
+      // const messageMap = new Map(oldMessageMap)
+      // deletedMessages.forEach(m => messageMap.delete(m.ordinal))
+      // removedOrdinals.forEach(o => messageMap.delete(o))
 
-      deletedMessages.forEach(m => {
-        dispatch.setMessageTypeMap(m.ordinal, undefined)
-      })
-      removedOrdinals.forEach(o => {
-        dispatch.setMessageTypeMap(o, undefined)
-      })
+      // deletedMessages.forEach(m => {
+      //   dispatch.setMessageTypeMap(m.ordinal, undefined)
+      // })
+      // removedOrdinals.forEach(o => {
+      //   dispatch.setMessageTypeMap(o, undefined)
+      // })
 
-      // update messages
-      messages.forEach(message => {
-        const oldSentOrPending = findExistingSentOrPending(message)
-        let toSet: T.Chat.Message | undefined
-        if (oldSentOrPending) {
-          toSet = Message.upgradeMessage(oldSentOrPending, message)
-          logger.info(`messagesAdd: upgrade message: ordinal: ${message.ordinal} id: ${message.id}`)
-        } else {
-          toSet = Message.mergeMessage(previousMessageMap.get(message.ordinal), message)
-        }
-        messageMap.set(toSet.ordinal, toSet)
+      // // update messages
+      // messages.forEach(message => {
+      //   const oldSentOrPending = findExistingSentOrPending(message)
+      //   let toSet: T.Chat.Message | undefined
+      //   if (oldSentOrPending) {
+      //     toSet = Message.upgradeMessage(oldSentOrPending, message)
+      //     logger.info(`messagesAdd: upgrade message: ordinal: ${message.ordinal} id: ${message.id}`)
+      //   } else {
+      //     toSet = Message.mergeMessage(previousMessageMap.get(message.ordinal), message)
+      //   }
+      //   messageMap.set(toSet.ordinal, toSet)
 
-        if (toSet.type === 'text') {
-          dispatch.setMessageTypeMap(toSet.ordinal, undefined)
-        } else {
-          const subType = Message.getMessageRenderType(toSet)
-          dispatch.setMessageTypeMap(toSet.ordinal, subType)
-        }
-      })
+      //   if (toSet.type === 'text') {
+      //     dispatch.setMessageTypeMap(toSet.ordinal, undefined)
+      //   } else {
+      //     const subType = Message.getMessageRenderType(toSet)
+      //     dispatch.setMessageTypeMap(toSet.ordinal, subType)
+      //   }
+      // })
 
-      let containsLatestMessage = get().containsLatestMessage || false
-      if (!p.forceContainsLatestCalc && containsLatestMessage) {
-        // do nothing
-      } else {
-        const meta = get().meta
-        const ordinals = get().messageOrdinals ?? []
-        let maxMsgID = 0
-        for (let i = ordinals.length - 1; i >= 0; i--) {
-          const ordinal = ordinals[i]!
-          const message = messageMap.get(ordinal)
-          if (message && message.id > 0) {
-            maxMsgID = message.id
-            break
-          }
-        }
-        if (meta.conversationIDKey === conversationIDKey && maxMsgID >= meta.maxVisibleMsgID) {
-          containsLatestMessage = true
-        } else if (p.forceContainsLatestCalc) {
-          containsLatestMessage = false
-        }
-      }
-      dispatch.setContainsLatestMessage(containsLatestMessage)
-      dispatch.replaceMessageMap(messageMap)
-      dispatch.setPendingOutboxToOrdinal(pendingOutboxToOrdinal)
-      dispatch.markThreadAsRead()
+      // dispatch.replaceMessageMap(messageMap)
+      // dispatch.setPendingOutboxToOrdinal(pendingOutboxToOrdinal)
+      // dispatch.markThreadAsRead()
       // if (p.centeredMessageID) {
       //   const cm = p.centeredMessageID
       //   const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(cm.messageID))
@@ -3227,6 +3206,26 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
       })
+    },
+    updateContainsLatestMessage: force => {
+      // already good
+      if (!force && get().containsLatestMessage) return
+      const {meta, messageMap, messageOrdinals} = get()
+      // is our meta good?
+      if (meta.conversationIDKey !== get().id) return
+
+      const ordinals = messageOrdinals ?? []
+      let maxMsgID = 0
+      // find a valid ordinal
+      for (let i = ordinals.length - 1; i >= 0; i--) {
+        const ordinal = ordinals[i]!
+        const message = messageMap.get(ordinal)
+        if (message && message.id > 0) {
+          maxMsgID = message.id
+          break
+        }
+      }
+      dispatch.setContainsLatestMessage(maxMsgID >= meta.maxVisibleMsgID)
     },
     updateDraft: throttle(text => {
       const f = async () => {
