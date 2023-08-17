@@ -224,18 +224,8 @@ export type ConvoState = ConvoStore & {
     messageReplyPrivately: (ordinal: T.Chat.Ordinal) => void
     messageRetry: (outboxID: T.Chat.OutboxID) => void
     messageSend: (text: string, replyTo?: T.Chat.MessageID, waitingKey?: string) => void
-    messagesAdd: (p: {
-      contextType: string
-      messages: Array<T.Chat.Message>
-      // true if these should be the only messages we know about
-      shouldClearOthers?: boolean
-      centeredMessageID?: {
-        conversationIDKey: T.Chat.ConversationIDKey
-        messageID: T.Chat.MessageID
-        highlightMode: T.Chat.CenterOrdinalHighlightMode
-      }
-      forceContainsLatestCalc?: boolean
-    }) => void
+    messagesAdd: (messages: Array<T.Chat.Message>, forceContainsLatestCalc?: boolean) => void
+    messagesClear: () => void
     messagesExploded: (messageIDs: Array<T.RPCChat.MessageID>, explodedBy?: string) => void
     messagesWereDeleted: (p: {
       messageIDs?: Array<T.RPCChat.MessageID>
@@ -987,13 +977,17 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           dispatch.setMoreToLoad(moreToLoad)
 
           if (messages.length) {
-            dispatch.messagesAdd({
-              centeredMessageID,
-              contextType: 'threadLoad',
-              forceContainsLatestCalc,
-              messages,
-              shouldClearOthers,
-            })
+            if (shouldClearOthers) {
+              dispatch.messagesClear()
+            }
+            dispatch.messagesAdd(messages, forceContainsLatestCalc)
+            if (centeredMessageID) {
+              const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
+              dispatch.setMessageCenterOrdinal({
+                highlightMode: centeredMessageID.highlightMode,
+                ordinal,
+              })
+            }
           }
         }
 
@@ -1503,13 +1497,49 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       get().dispatch.setReplyTo(0)
       get().dispatch.setCommandMarkdown()
     },
-    messagesAdd: p => {
-      const {contextType, shouldClearOthers} = p
+    messagesAdd: (_messages, _forceContainsLatestCalc) => {
+      const p = {forceContainsLatestCalc: _forceContainsLatestCalc, messages: _messages}
+      /**
+       * currnt impl:
+       * split into deletedMessages and messages
+       * copy pendingOrdinal and messageMap into old*
+       * copy messageMap into previousMessageMap?
+       * copy oldPendingOrdinal to local pendingOutboxtoordinal
+       * if message is pending w/ outboxID, add it to pendingOutboxtoordinal
+       *
+       * helper: findExistingSentOrPending
+       * if m.outboxID and in oldPendingOutboxToOrdinal return oldMessageMap message
+       * else see if there is a pendingOrdinal from messageIDToOrdinal
+       *
+       * helper: messageIDToOrdinal
+       * if we have a messageMap message w/ the id, we return the ordinal
+       * else iterate through sent messages to see if the id exists in a pending ordinal
+       *
+       * go through messageOrdinals and remove any that were incoming as deleted, update message ordinals
+       * ( we do this again later for some reason)
+       *
+       * go through messages and find placeholders. resolve the placeholders, ignore them if we have data for them
+       * figure out ordinals from messages, sort
+       *
+       * make a localcopy of message map and delete deletes and rmeovedOrdinals
+       * clear out mesagesmaptype
+       *
+       * iterate over messages and update its copy in message map
+       * update messagetypemap
+       *
+       * maybe update containsLatestMessage
+       *
+       * write messageMap
+       * write pendingOutobx to orndianl
+       * write maybe mark  as read
+       *
+       * maybe update ceneterd ordinal
+       */
+
+      console.log('aaa messages add', p)
       // pull out deletes and handle at the end
       const [messages, deletedMessages] = partition<T.Chat.Message>(p.messages, m => m.type !== 'deleted')
-      logger.info(
-        `messagesAdd: running in context: ${contextType} messages: ${messages.length} deleted: ${deletedMessages.length}`
-      )
+      logger.info(`messagesAdd: messages: ${messages.length} deleted: ${deletedMessages.length}`)
       const conversationIDKey = get().id
       // we want the clear applied when we call findExisting
       const oldPendingOutboxToOrdinal = new Map(get().pendingOutboxToOrdinal)
@@ -1518,14 +1548,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       // so we can keep messages if they haven't mutated
       const previousMessageMap = new Map(get().messageMap)
       const {dispatch} = get()
-
-      if (shouldClearOthers) {
-        logger.info(`messagesAdd: clearing existing data`)
-        oldPendingOutboxToOrdinal.clear()
-        oldMessageMap.clear()
-        dispatch.clearMessageTypeMap()
-        dispatch.setMessageOrdinals(undefined)
-      }
 
       // Update any pending messages
       const pendingOutboxToOrdinal = new Map(oldPendingOutboxToOrdinal)
@@ -1678,14 +1700,22 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       dispatch.replaceMessageMap(messageMap)
       dispatch.setPendingOutboxToOrdinal(pendingOutboxToOrdinal)
       dispatch.markThreadAsRead()
-      if (p.centeredMessageID) {
-        const cm = p.centeredMessageID
-        const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(cm.messageID))
-        dispatch.setMessageCenterOrdinal({
-          highlightMode: cm.highlightMode,
-          ordinal,
-        })
-      }
+      // if (p.centeredMessageID) {
+      //   const cm = p.centeredMessageID
+      //   const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(cm.messageID))
+      //   dispatch.setMessageCenterOrdinal({
+      //     highlightMode: cm.highlightMode,
+      //     ordinal,
+      //   })
+      // }
+    },
+    messagesClear: () => {
+      set(s => {
+        s.pendingOutboxToOrdinal.clear()
+        s.messageMap.clear()
+      })
+      get().dispatch.clearMessageTypeMap()
+      get().dispatch.setMessageOrdinals()
     },
     messagesExploded: (messageIDs, explodedBy) => {
       const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
@@ -2139,10 +2169,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         } else if (shouldAddMessage) {
           // A normal message
-          dispatch.messagesAdd({
-            contextType: 'incoming',
-            messages: [message],
-          })
+          dispatch.messagesAdd([message])
         }
       } else if (cMsg.state === T.RPCChat.MessageUnboxedState.valid) {
         const {valid} = cMsg
@@ -2160,10 +2187,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 devicename
               )
               if (modMessage) {
-                dispatch.messagesAdd({
-                  contextType: 'incoming',
-                  messages: [modMessage],
-                })
+                dispatch.messagesAdd([modMessage])
               }
             }
             break
