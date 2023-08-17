@@ -160,6 +160,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   )
 
   const messageSend = C.useChatContext(s => s.dispatch.messageSend)
+  const messageEdit = C.useChatContext(s => s.dispatch.messageEdit)
   const onSubmit = React.useCallback(
     (text: string) => {
       if (!text) return
@@ -168,7 +169,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
       const cs = C.getConvoState(conversationIDKey)
       const editOrdinal = cs.editing
       if (editOrdinal) {
-        messageSend(text, replyTo)
+        messageEdit(editOrdinal, text)
       } else {
         messageSend(text, replyTo)
       }
@@ -182,7 +183,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
         jumpToRecent()
       }
     },
-    [injectText, messageSend, conversationIDKey, onRequestScrollToBottom, jumpToRecent, replyTo]
+    [messageEdit, injectText, messageSend, conversationIDKey, onRequestScrollToBottom, jumpToRecent, replyTo]
   )
 
   Container.useDepChangeEffect(() => {
