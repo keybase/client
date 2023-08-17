@@ -1,10 +1,8 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as ConfigConstants from '../../constants/config'
-import * as Constants from '../../constants/settings'
 
 type CheckboxesProps = {
   checkData: boolean
@@ -36,15 +34,15 @@ const Checkboxes = (props: CheckboxesProps) => (
 )
 
 const DeleteConfirm = () => {
-  const hasPassword = Constants.usePasswordState(s => !s.randomPW)
-  const deleteAccountForever = Constants.useState(s => s.dispatch.deleteAccountForever)
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const hasPassword = C.useSettingsPasswordState(s => !s.randomPW)
+  const deleteAccountForever = C.useSettingsState(s => s.dispatch.deleteAccountForever)
+  const username = C.useCurrentUserState(s => s.username)
   const [checkData, setCheckData] = React.useState(false)
   const [checkTeams, setCheckTeams] = React.useState(false)
   const [checkUsername, setCheckUsername] = React.useState(false)
   const nav = Container.useSafeNavigation()
   const onCancel = () => nav.safeNavigateUp()
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteForever = () => {
     if (Styles.isMobile && hasPassword) {
       navigateAppend('checkPassphraseBeforeDeleteAccount')

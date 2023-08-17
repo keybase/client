@@ -3,7 +3,7 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
-import {type DeviceType} from '../../../../../constants/types/devices'
+import type * as T from '../../../../../constants/types'
 
 const headerIconType = Styles.isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'
 const headerIconHeight = Styles.isMobile ? 96 : 72
@@ -14,7 +14,7 @@ type Props = {
   botUsername?: string
   deviceName: string
   deviceRevokedAt?: number
-  deviceType: DeviceType
+  deviceType: T.Devices.DeviceType
   explodesAt: number
   hideTimer: boolean
   items: Kb.MenuItems
@@ -225,7 +225,7 @@ const styles = Styles.styleSheetCreate(
       user: {
         alignItems: 'center',
       },
-    } as const)
+    }) as const
 )
 
 export default ExplodingPopupMenu

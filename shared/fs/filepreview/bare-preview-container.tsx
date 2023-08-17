@@ -1,14 +1,13 @@
-import * as RouterConstants from '../../constants/router2'
-import * as Constants from '../../constants/fs'
+import * as C from '../../constants'
 import * as Container from '../../util/container'
-import type * as Types from '../../constants/types/fs'
+import type * as T from '../../constants/types'
 import BarePreview from './bare-preview'
 
-type OwnProps = {path: Types.Path}
+type OwnProps = {path: T.FS.Path}
 
 const ConnectedBarePreview = (ownProps: OwnProps) => {
-  const path = ownProps.path ?? Constants.defaultPath
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const path = ownProps.path ?? C.defaultPath
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => navigateUp()
   const props = {onBack, path}
   return <BarePreview {...props} />

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/chat2'
-import type * as WalletTypes from '../../../constants/types/wallets'
+import type * as T from '../../../constants/types'
 import PaymentStatusError from './error'
 import Text from '../../../common-adapters/text'
 import {Box2} from '../../../common-adapters/box'
@@ -25,8 +24,8 @@ export type Props = {
   allowPopup: boolean
   errorDetail?: string
   isSendError: boolean
-  message: Types.MessageText
-  paymentID?: WalletTypes.PaymentID
+  message: T.Chat.MessageText
+  paymentID?: T.Wallets.PaymentID
   status: Status
   text: string
 }

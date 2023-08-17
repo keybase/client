@@ -1,16 +1,11 @@
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/teams'
-import * as UsersConstants from '../../../../constants/users'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as ConfigConstants from '../../../../constants/config'
-import * as ProfileConstants from '../../../../constants/profile'
-import * as TrackerConstants from '../../../../constants/tracker2'
-import type * as Types from '../../../../constants/types/teams'
+import type * as T from '../../../../constants/types'
 import {TeamMemberRow} from '.'
 import * as Container from '../../../../util/container'
 
 type OwnProps = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   username: string
   firstItem: boolean
 }
@@ -19,43 +14,43 @@ const blankInfo = Constants.initialMemberInfo
 
 export default (ownProps: OwnProps) => {
   const {teamID, firstItem, username} = ownProps
-  const {members} = Constants.useState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
-  const {teamname} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
+  const {members} = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
+  const {teamname} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
   const info = members.get(username) || blankInfo
 
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const fullName = you ? 'You' : info.fullName
   const needsPUK = info.needsPUK
   const roleType = info.type
   const status = info.status
   const waitingForAdd = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
   const waitingForRemove = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, username))
-  const youCanManageMembers = Constants.useState(s => Constants.getCanPerform(s, teamname).manageMembers)
-  const dispatch = Container.useDispatch()
-  const setUserBlocks = UsersConstants.useState(s => s.dispatch.setUserBlocks)
+  const youCanManageMembers = C.useTeamsState(s => Constants.getCanPerform(s, teamname).manageMembers)
+  const setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
   const onBlock = () => {
     username && setUserBlocks([{setChatBlock: true, setFollowBlock: true, username}])
   }
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => {
-    username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'}))
+    username && previewConversation({participants: [username], reason: 'teamMember'})
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = () => {
     navigateAppend({props: {teamID, username}, selected: 'teamMember'})
   }
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = () => {
     username && showUserProfile(username)
   }
-  const reAddToTeam = Constants.useState(s => s.dispatch.reAddToTeam)
-  const removeMember = Constants.useState(s => s.dispatch.removeMember)
+  const reAddToTeam = C.useTeamsState(s => s.dispatch.reAddToTeam)
+  const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
   const onReAddToTeam = () => {
     reAddToTeam(teamID, username)
   }
   const onRemoveFromTeam = () => {
     removeMember(teamID, username)
   }
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onShowTracker = () => {
     if (Container.isMobile) {
       showUserProfile(username)

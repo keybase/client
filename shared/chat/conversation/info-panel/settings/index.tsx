@@ -1,31 +1,27 @@
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as ConfigConstants from '../../../../constants/config'
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../constants/types'
 import * as React from 'react'
-import * as RouterConstants from '../../../../constants/router2'
 import * as Styles from '../../../../styles'
 import * as TeamConstants from '../../../../constants/teams'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
 import RetentionPicker from '../../../../teams/team/settings-tab/retention/container'
-import type * as Types from '../../../../constants/types/chat2'
 
 type EntityType = 'adhoc' | 'small team' | 'channel'
-type SettingsPanelProps = {conversationIDKey: Types.ConversationIDKey; isPreview: boolean}
+type SettingsPanelProps = {isPreview: boolean}
 
 const SettingsPanel = (props: SettingsPanelProps) => {
-  const {conversationIDKey, isPreview} = props
-  const dispatch = Container.useDispatch()
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const {isPreview} = props
+  const username = C.useCurrentUserState(s => s.username)
+  const meta = C.useChatContext(s => s.meta)
   const {status, teamname, teamType, channelname, teamID} = meta
-  const yourOperations = TeamConstants.useState(s =>
+  const yourOperations = C.useTeamsState(s =>
     teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined
   )
-  const ignored = status === RPCChatTypes.ConversationStatus.ignored
+  const ignored = status === T.RPCChat.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'
 
   const spinnerForLeave = Container.useAnyWaiting(Constants.waitingKeyLeaveConversation)
@@ -40,39 +36,41 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     entityType = 'adhoc'
   }
 
-  const teamMembers = TeamConstants.useState(s => s.teamIDToMembers.get(teamID))
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
-  )
+  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
+  const participantInfo = C.useChatContext(s => s.participants)
   const membersForBlock = (teamMembers?.size ? [...teamMembers.keys()] : participantInfo.name).filter(
     u => u !== username && !Constants.isAssertion(u)
   )
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const onShowClearConversationDialog = () => {
-    navigateAppend({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'})
+    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}))
   }
 
-  const onHideConv = () => dispatch(Chat2Gen.createHideConversation({conversationIDKey}))
-  const onUnhideConv = () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey}))
+  const hideConversation = C.useChatContext(s => s.dispatch.hideConversation)
+  const onHideConv = () => hideConversation(true)
+  const onUnhideConv = () => hideConversation(false)
   const onShowBlockConversationDialog = membersForBlock.length
     ? () => {
-        navigateAppend({
+        navigateAppend(convID => ({
           props: {
             blockUserByDefault: true,
-            convID: conversationIDKey,
+            convID,
             others: membersForBlock,
             team: teamname,
           },
           selected: 'chatBlockingModal',
-        })
+        }))
       }
     : onHideConv
 
-  const onLeaveConversation = () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey}))
+  const leaveConversation = C.useChatContext(s => s.dispatch.leaveConversation)
+  const onLeaveConversation = () => {
+    leaveConversation()
+  }
 
   const showDangerZone = canDeleteHistory || entityType === 'adhoc' || entityType !== 'channel'
-
+  const conversationIDKey = C.useChatContext(s => s.id)
   return (
     <Kb.ScrollView>
       <Kb.Box2
@@ -88,7 +86,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             <Kb.Button type="Success" mode="Primary" label="Join channel" style={styles.buttonStyle} />
           </Kb.Box2>
         ) : (
-          <Notifications conversationIDKey={conversationIDKey} />
+          <Notifications />
         )}
         {entityType === 'channel' && channelname !== 'general' && !isPreview && (
           <Kb.Button
@@ -104,15 +102,15 @@ const SettingsPanel = (props: SettingsPanelProps) => {
         )}
         <Kb.Text type="Header">Conversation</Kb.Text>
         <RetentionPicker
-          conversationIDKey={['adhoc', 'channel'].includes(entityType) ? conversationIDKey : undefined}
+          conversationIDKey={
+            ['adhoc', 'channel'].includes(entityType) ? conversationIDKey : C.noConversationIDKey
+          }
           dropdownStyle={styles.retentionDropdownStyle}
           entityType={entityType}
           showSaveIndicator={true}
           teamID={teamID}
         />
-        {(entityType === 'channel' || entityType === 'small team') && (
-          <MinWriterRole conversationIDKey={conversationIDKey} />
-        )}
+        {(entityType === 'channel' || entityType === 'small team') && <MinWriterRole />}
 
         {showDangerZone ? (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
@@ -187,7 +185,6 @@ const styles = Styles.styleSheetCreate(
 )
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   isPreview: boolean
   renderTabs: () => React.ReactNode
   commonSections: Array<unknown>
@@ -204,9 +201,7 @@ const SettingsTab = (p: Props) => {
         {
           data: [{key: 'tab'}],
           key: 'settings-panel',
-          renderItem: () => (
-            <SettingsPanel conversationIDKey={p.conversationIDKey} isPreview={p.isPreview} key="settings" />
-          ),
+          renderItem: () => <SettingsPanel isPreview={p.isPreview} key="settings" />,
           renderSectionHeader: p.renderTabs,
         },
       ]}

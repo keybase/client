@@ -1,8 +1,6 @@
-import * as ARConstants from '../../constants/autoreset'
-import * as RouterConstants from '../../constants/router2'
-import * as Constants from '../../constants/provision'
+import * as C from '../../constants'
 import * as Container from '../../util/container'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 import * as React from 'react'
 import * as SignupConstants from '../../constants/signup'
 import Username from '.'
@@ -16,13 +14,13 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
   let inlineSignUpLink = false
   if (inlineRPCError) {
     switch (inlineRPCError.code) {
-      case RPCTypes.StatusCode.scnotfound:
+      case T.RPCGen.StatusCode.scnotfound:
         // If it's a "not found" error, we will show "go to signup" link,
         // otherwise just the error.
         inlineError = ''
         inlineSignUpLink = true
         break
-      case RPCTypes.StatusCode.scbadusername:
+      case T.RPCGen.StatusCode.scbadusername:
         inlineError = SignupConstants.usernameHint
         inlineSignUpLink = false
         break
@@ -32,27 +30,27 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
 }
 
 const UsernameOrEmailContainer = (op: OwnProps) => {
-  const _resetBannerUser = ARConstants.useState(s => s.username)
+  const _resetBannerUser = C.useAutoResetState(s => s.username)
   const resetBannerUser = op.fromReset ? _resetBannerUser : undefined
-  const _error = Constants.useState(s => s.error)
-  const {inlineError, inlineSignUpLink} = Constants.useState(
+  const _error = C.useProvisionState(s => s.error)
+  const {inlineError, inlineSignUpLink} = C.useProvisionState(
     s => decodeInlineError(s.inlineError),
     shallowEqual
   )
   const error = _error ? _error : inlineError && !inlineSignUpLink ? inlineError : ''
   // So we can clear the error if the name is changed
-  const username = Constants.useState(s => s.username)
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
+  const username = C.useProvisionState(s => s.username)
+  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
   const hasError = !!error || !!inlineError || inlineSignUpLink
 
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, hasError)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onForgotUsername = React.useCallback(() => navigateAppend('forgotUsername'), [navigateAppend])
-  const requestAutoInvite = SignupConstants.useState(s => s.dispatch.requestAutoInvite)
+  const requestAutoInvite = C.useSignupState(s => s.dispatch.requestAutoInvite)
   const onGoToSignup = requestAutoInvite
-  const setUsername = Constants.useState(s => s.dispatch.dynamic.setUsername)
+  const setUsername = C.useProvisionState(s => s.dispatch.dynamic.setUsername)
   const onSubmit = React.useCallback(
     (username: string) => {
       !waiting && setUsername?.(username)

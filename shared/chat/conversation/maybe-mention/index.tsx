@@ -1,7 +1,6 @@
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as C from '../../../constants'
+import * as T from '../../../constants/types'
 import * as Constants from '../../../constants/chat2'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Container from '../../../util/container'
 import Text, {type StylesTextCrossPlatform} from '../../../common-adapters/text'
 import Mention from '../../../common-adapters/mention-container'
 import TeamMention from './team-container'
@@ -12,14 +11,14 @@ const Kb = {Mention, Text}
 type Props = {
   allowFontScaling?: boolean
   channel: string
-  info?: RPCChatTypes.UIMaybeMentionInfo
+  info?: T.RPCChat.UIMaybeMentionInfo
   name: string
   onResolve: () => void
   style?: StylesTextCrossPlatform
 }
 
 const MaybeMention = (props: Props) => {
-  if (!props.info || props.info.status === RPCChatTypes.UIMaybeMentionStatus.nothing) {
+  if (!props.info || props.info.status === T.RPCChat.UIMaybeMentionStatus.nothing) {
     let text = `@${props.name}`
     if (props.channel.length > 0) {
       text += `#${props.channel}`
@@ -31,7 +30,7 @@ const MaybeMention = (props: Props) => {
     )
   }
   switch (props.info.status) {
-    case RPCChatTypes.UIMaybeMentionStatus.unknown:
+    case T.RPCChat.UIMaybeMentionStatus.unknown:
       return (
         <UnknownMention
           allowFontScaling={props.allowFontScaling}
@@ -41,9 +40,9 @@ const MaybeMention = (props: Props) => {
           style={props.style}
         />
       )
-    case RPCChatTypes.UIMaybeMentionStatus.user:
+    case T.RPCChat.UIMaybeMentionStatus.user:
       return <Kb.Mention username={props.name} />
-    case RPCChatTypes.UIMaybeMentionStatus.team:
+    case T.RPCChat.UIMaybeMentionStatus.team:
       return (
         <TeamMention
           allowFontScaling={props.allowFontScaling}
@@ -63,12 +62,11 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const info = Container.useSelector(state =>
-    state.chat2.maybeMentionMap.get(Constants.getTeamMentionName(ownProps.name, ownProps.channel))
-  )
-  const dispatch = Container.useDispatch()
+  const {name, channel} = ownProps
+  const info = C.useChatState(s => s.maybeMentionMap.get(Constants.getTeamMentionName(name, channel)))
+  const resolveMaybeMention = C.useChatContext(s => s.dispatch.resolveMaybeMention)
   const onResolve = () => {
-    dispatch(Chat2Gen.createResolveMaybeMention({channel: ownProps.channel, name: ownProps.name}))
+    resolveMaybeMention(channel, name)
   }
   const props = {
     allowFontScaling: ownProps.allowFontScaling,

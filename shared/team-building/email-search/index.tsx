@@ -1,26 +1,25 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Constants from '../../constants/team-building'
-import type * as Types from '../../constants/types/team-building'
-import type {AllowedNamespace} from '../../constants/types/team-building'
+import type * as T from '../../constants/types'
 import {validateEmailAddress} from '../../util/email-address'
 import {UserMatchMention} from '../phone-search'
 import ContinueButton from '../continue-button'
 
 type EmailSearchProps = {
   continueLabel: string
-  namespace: AllowedNamespace
+  namespace: T.TB.AllowedNamespace
   search: (query: string, service: 'email') => void
 }
 
 const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
-  const teamBuildingSearchResults = Constants.useContext(s => s.searchResults)
+  const teamBuildingSearchResults = C.useTBContext(s => s.searchResults)
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
-  const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
-  const user: Types.User | undefined = teamBuildingSearchResults.get(emailString)?.get('email')?.[0]
+  const waiting = Container.useAnyWaiting(C.tbSearchWaitingKey)
+  const user: T.TB.User | undefined = teamBuildingSearchResults.get(emailString)?.get('email')?.[0]
   const canSubmit = !!user && !waiting && isEmailValid
 
   const onChange = React.useCallback(
@@ -37,7 +36,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
     [search]
   )
 
-  const addUsersToTeamSoFar = Constants.useContext(s => s.dispatch.addUsersToTeamSoFar)
+  const addUsersToTeamSoFar = C.useTBContext(s => s.dispatch.addUsersToTeamSoFar)
 
   const onSubmit = React.useCallback(() => {
     if (!user || !canSubmit) {
@@ -149,7 +148,7 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-start',
         marginLeft: Styles.globalMargins.small,
       },
-    } as const)
+    }) as const
 )
 
 export default EmailSearch

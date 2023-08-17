@@ -1,7 +1,7 @@
 import * as React from 'react'
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
-import * as Constants from '../../../constants/fs'
+import * as C from '../../../constants'
 import * as Kbfs from '../../common/hooks'
 import type {FloatingMenuProps} from './types'
 import {fileUIName} from '../../../constants/platform'
@@ -11,7 +11,7 @@ type ActionOrInProgress = (() => void) | 'in-progress'
 
 type Props = {
   floatingMenuProps: FloatingMenuProps
-  path: Types.Path
+  path: T.FS.Path
   copyPath?: () => void
   delete?: () => void
   download?: () => void
@@ -21,7 +21,7 @@ type Props = {
   newFolder?: () => void
   openChatNonTeam?: () => void
   openChatTeam?: () => void
-  pathItemType: Types.PathType
+  pathItemType: T.FS.PathType
   rename?: () => void
   saveMedia?: ActionOrInProgress
   showInSystemFileManager?: () => void
@@ -112,7 +112,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
               props.sendAttachmentToChat && props.sendAttachmentToChat()
             },
             subTitle: `The ${
-              props.pathItemType === Types.PathType.Folder ? 'folder' : 'file'
+              props.pathItemType === T.FS.PathType.Folder ? 'folder' : 'file'
             } will be sent as an attachment.`,
             title: 'Attach in another conversation',
           },
@@ -188,10 +188,10 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
 
 const PathItemActionMenu = (props: Props) => {
   Kbfs.useFsFileContext(props.path)
-  const {downloadID, downloadIntent} = Constants.useState(s => s.pathItemActionMenu)
+  const {downloadID, downloadIntent} = C.useFSState(s => s.pathItemActionMenu)
   const justDoneWithIntent = Kbfs.useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
 
-  const dismissDownload = Constants.useState(s => s.dispatch.dismissDownload)
+  const dismissDownload = C.useFSState(s => s.dispatch.dismissDownload)
   const {
     floatingMenuProps: {hide},
   } = props

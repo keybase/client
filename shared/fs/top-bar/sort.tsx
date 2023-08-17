@@ -1,32 +1,32 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 
 export type SortBarProps = {
   sortByNameAsc?: () => void
   sortByNameDesc?: () => void
   sortByTimeAsc?: () => void
   sortByTimeDesc?: () => void
-  sortSetting?: Types.SortSetting
+  sortSetting?: T.FS.SortSetting
 }
 
-const getTextFromSortSetting = (sortSetting: Types.SortSetting) => {
+const getTextFromSortSetting = (sortSetting: T.FS.SortSetting) => {
   switch (sortSetting) {
-    case Types.SortSetting.NameAsc:
+    case T.FS.SortSetting.NameAsc:
       return 'Name A to Z'
-    case Types.SortSetting.NameDesc:
+    case T.FS.SortSetting.NameDesc:
       return 'Name Z to A'
-    case Types.SortSetting.TimeAsc:
+    case T.FS.SortSetting.TimeAsc:
       return 'Recent first'
-    case Types.SortSetting.TimeDesc:
+    case T.FS.SortSetting.TimeDesc:
       return 'Older first'
     default:
       return 'Name A to Z'
   }
 }
 
-const makeSortOptionItem = (sortSetting: Types.SortSetting, onClick?: () => void) => ({
+const makeSortOptionItem = (sortSetting: T.FS.SortSetting, onClick?: () => void) => ({
   onClick,
   title: getTextFromSortSetting(sortSetting),
 })
@@ -44,10 +44,10 @@ const Sort = (props: SortBarProps) => {
           position="bottom left"
           closeOnSelect={true}
           items={[
-            ...(sortByNameAsc ? [makeSortOptionItem(Types.SortSetting.NameAsc, sortByNameAsc)] : []),
-            ...(sortByNameDesc ? [makeSortOptionItem(Types.SortSetting.NameDesc, sortByNameDesc)] : []),
-            ...(sortByTimeAsc ? [makeSortOptionItem(Types.SortSetting.TimeAsc, sortByTimeAsc)] : []),
-            ...(sortByTimeDesc ? [makeSortOptionItem(Types.SortSetting.TimeDesc, sortByTimeDesc)] : []),
+            ...(sortByNameAsc ? [makeSortOptionItem(T.FS.SortSetting.NameAsc, sortByNameAsc)] : []),
+            ...(sortByNameDesc ? [makeSortOptionItem(T.FS.SortSetting.NameDesc, sortByNameDesc)] : []),
+            ...(sortByTimeAsc ? [makeSortOptionItem(T.FS.SortSetting.TimeAsc, sortByTimeAsc)] : []),
+            ...(sortByTimeDesc ? [makeSortOptionItem(T.FS.SortSetting.TimeDesc, sortByTimeDesc)] : []),
           ]}
         />
       )

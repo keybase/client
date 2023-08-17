@@ -1,7 +1,6 @@
-import * as Container from '../util/container'
-import * as ConfigConstants from '../constants/config'
-import * as ProfileConstants from '../constants/profile'
-import * as FsTypes from '../constants/types/fs'
+import * as C from '../constants'
+import * as R from '../constants/remote'
+import * as T from '../constants/types'
 import * as RemoteGen from '../actions/remote-gen'
 import * as FsUtil from '../util/kbfs'
 import * as TimestampUtil from '../util/timestamp'
@@ -9,23 +8,23 @@ import {FilesPreview} from './files.desktop'
 import type {DeserializeProps} from '../menubar/remote-serializer.desktop'
 
 const FilesContainer = () => {
-  const state = Container.useRemoteStore<DeserializeProps>()
+  const state = C.useRemoteStore<DeserializeProps>()
   const {remoteTlfUpdates} = state
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const dispatch = Container.useDispatch()
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const username = C.useCurrentUserState(s => s.username)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   return (
     <FilesPreview
       userTlfUpdates={
         __STORYBOOK__
           ? []
           : remoteTlfUpdates.map(c => {
-              const tlf = FsTypes.pathToString(c.tlf)
+              const tlf = T.FS.pathToString(c.tlf)
               const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
-              const tlfType = FsTypes.getPathVisibility(c.tlf) || FsTypes.TlfType.Private
+              const tlfType = T.FS.getPathVisibility(c.tlf) || T.FS.TlfType.Private
               return {
                 onClickAvatar: () => showUserProfile(c.writer),
-                onSelectPath: () => c.tlf && dispatch(RemoteGen.createOpenFilesFromWidget({path: c.tlf})),
+                onSelectPath: () =>
+                  c.tlf && R.remoteDispatch(RemoteGen.createOpenFilesFromWidget({path: c.tlf})),
                 participants: participants || [],
                 path: c.tlf,
                 teamname: teamname || '',
@@ -35,7 +34,7 @@ const FilesContainer = () => {
                 tlfType,
                 updates: c.updates.map(({path, uploading}) => {
                   return {
-                    onClick: () => path && dispatch(RemoteGen.createOpenFilesFromWidget({path})),
+                    onClick: () => path && R.remoteDispatch(RemoteGen.createOpenFilesFromWidget({path})),
                     path,
                     tlfType,
                     uploading,

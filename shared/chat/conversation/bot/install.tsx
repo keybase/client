@@ -1,43 +1,37 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as BotsConstants from '../../../constants/bots'
-import * as RouterConstants from '../../../constants/router2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as TeamConstants from '../../../constants/teams'
-import * as TeamTypes from '../../../constants/types/teams'
 import ChannelPicker from './channel-picker'
 import openURL from '../../../util/open-url'
-import type * as RPCTypes from '../../../constants/types/rpc-gen'
-import type * as Types from '../../../constants/types/chat2'
+import * as T from '../../../constants/types'
 import {useAllChannelMetas} from '../../../teams/common/channel-hooks'
 
 const RestrictedItem = '---RESTRICTED---'
 
-export const useBotConversationIDKey = (inConvIDKey?: Types.ConversationIDKey, teamID?: TeamTypes.TeamID) => {
+export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, teamID?: T.Teams.TeamID) => {
   const [conversationIDKey, setConversationIDKey] = React.useState(inConvIDKey)
-  const generalConvID = Container.useSelector(
-    (state: Container.TypedState) => teamID && state.chat2.teamIDToGeneralConvID.get(teamID)
-  )
-  const dispatch = Container.useDispatch()
+  const generalConvID = C.useChatState(s => teamID && s.teamIDToGeneralConvID.get(teamID))
+  const findGeneralConvIDFromTeamID = C.useChatState(s => s.dispatch.findGeneralConvIDFromTeamID)
   React.useEffect(() => {
     if (!conversationIDKey && teamID) {
       if (!generalConvID) {
-        dispatch(Chat2Gen.createFindGeneralConvIDFromTeamID({teamID}))
+        findGeneralConvIDFromTeamID(teamID)
       } else {
         setConversationIDKey(generalConvID)
       }
     }
-  }, [conversationIDKey, dispatch, generalConvID, teamID])
+  }, [conversationIDKey, findGeneralConvIDFromTeamID, generalConvID, teamID])
   return conversationIDKey
 }
 
 type LoaderProps = {
   botUsername: string
-  conversationIDKey?: Types.ConversationIDKey
-  teamID?: TeamTypes.TeamID
+  conversationIDKey?: T.Chat.ConversationIDKey
+  teamID?: T.Teams.TeamID
 }
 
 const InstallBotPopupLoader = (props: LoaderProps) => {
@@ -45,13 +39,20 @@ const InstallBotPopupLoader = (props: LoaderProps) => {
   const inConvIDKey = props.conversationIDKey
   const teamID = props.teamID
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
-  return <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
+  if (!inConvIDKey) return null
+  return (
+    <C.ChatProvider id={inConvIDKey}>
+      <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
+    </C.ChatProvider>
+  )
 }
 
 type Props = {
   botUsername: string
-  conversationIDKey?: Types.ConversationIDKey
+  conversationIDKey?: T.Chat.ConversationIDKey
 }
+
+const blankCommands: Array<T.RPCChat.ConversationCommand> = []
 
 const InstallBotPopup = (props: Props) => {
   const {botUsername, conversationIDKey} = props
@@ -65,40 +66,33 @@ const InstallBotPopup = (props: Props) => {
   const [installInConvs, setInstallInConvs] = React.useState<string[]>([])
   const [disableDone, setDisableDone] = React.useState(false)
 
-  const meta = Container.useSelector(state =>
-    conversationIDKey ? state.chat2.metaMap.get(conversationIDKey) : undefined
-  )
+  const botPublicCommands = C.useChatState(s => s.botPublicCommands.get(botUsername))
+  const meta = C.useChatContext(s => s.meta)
+  const commands = React.useMemo(() => {
+    const {botCommands} = meta
+    const commands = (
+      botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
+        ? botCommands.custom.commands || blankCommands
+        : blankCommands
+    )
+      .filter(c => c.username === botUsername)
+      .map(c => c.name)
+    const convCommands: T.Chat.BotPublicCommands = {commands, loadError: false}
+    return commands.length > 0 ? convCommands : botPublicCommands
+  }, [meta, botPublicCommands, botUsername])
 
-  // TODO will thrash every time
-  const commands = Container.useSelector(state => {
-    let commands: Array<string> = []
-    if (conversationIDKey && meta) {
-      commands = Constants.getBotCommands(state, conversationIDKey)
-        .filter(c => c.username === botUsername)
-        .map(c => c.name)
-    }
-    const convCommands: Types.BotPublicCommands = {commands, loadError: false}
-    return commands.length > 0 ? convCommands : state.chat2.botPublicCommands.get(botUsername)
-  })
-
-  const featured = BotsConstants.useState(s => s.featuredBotsMap.get(botUsername))
-  const teamRole = Container.useSelector(state =>
-    conversationIDKey ? state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername) : undefined
-  )
+  const featured = C.useBotsState(s => s.featuredBotsMap.get(botUsername))
+  const teamRole = C.useChatContext(s => s.botTeamRoleMap.get(botUsername))
   const inTeam = teamRole !== undefined ? !!teamRole : undefined
   const inTeamUnrestricted = inTeam && teamRole === 'bot'
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
 
-  const readOnly = TeamConstants.useState(s =>
+  const readOnly = C.useTeamsState(s =>
     meta?.teamname ? !TeamConstants.getCanPerformByID(s, meta.teamID).manageBots : false
   )
-  const settings = Container.useSelector(state =>
-    conversationIDKey
-      ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
-      : undefined
-  )
+  const settings = C.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
   let teamname: string | undefined
-  let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
+  let teamID: T.Teams.TeamID = T.Teams.noTeamID
   if (meta?.teamname) {
     teamID = meta.teamID
     teamname = meta.teamname
@@ -107,9 +101,9 @@ const InstallBotPopup = (props: Props) => {
   const {channelMetas} = useAllChannelMetas(teamID)
   const error = Container.useAnyErrors([Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove])
   // dispatch
-  const dispatch = Container.useDispatch()
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const addBotMember = C.useChatContext(s => s.dispatch.addBotMember)
   const onClose = () => {
     Styles.isMobile ? navigateUp() : clearModals()
   }
@@ -127,32 +121,16 @@ const InstallBotPopup = (props: Props) => {
     if (!conversationIDKey) {
       return
     }
-    dispatch(
-      Chat2Gen.createAddBotMember({
-        allowCommands: installWithCommands,
-        allowMentions: installWithMentions,
-        conversationIDKey,
-        convs: installInConvs,
-        restricted: installWithRestrict,
-        username: botUsername,
-      })
-    )
+    addBotMember(botUsername, installWithCommands, installWithMentions, installWithRestrict, installInConvs)
   }
+  const editBotSettings = C.useChatContext(s => s.dispatch.editBotSettings)
   const onEdit = () => {
     if (!conversationIDKey) {
       return
     }
-    dispatch(
-      Chat2Gen.createEditBotSettings({
-        allowCommands: installWithCommands,
-        allowMentions: installWithMentions,
-        conversationIDKey,
-        convs: installInConvs,
-        username: botUsername,
-      })
-    )
+    editBotSettings(botUsername, installWithCommands, installWithMentions, installInConvs)
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onRemove = () => {
     if (!conversationIDKey) {
       return
@@ -166,24 +144,28 @@ const InstallBotPopup = (props: Props) => {
     navigateAppend({props: {}, selected: 'feedback'})
   }
 
+  const refreshBotSettings = C.useChatContext(s => s.dispatch.refreshBotSettings)
+  const refreshBotRoleInConv = C.useChatContext(s => s.dispatch.refreshBotRoleInConv)
+
   // lifecycle
   React.useEffect(() => {
     if (conversationIDKey) {
-      dispatch(Chat2Gen.createRefreshBotRoleInConv({conversationIDKey, username: botUsername}))
+      refreshBotRoleInConv(botUsername)
       if (inTeam) {
-        dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
+        refreshBotSettings(botUsername)
       }
     }
-  }, [conversationIDKey, inTeam, dispatch, botUsername])
+  }, [refreshBotRoleInConv, refreshBotSettings, conversationIDKey, inTeam, botUsername])
   const noCommands = !commands?.commands
 
   const dispatchClearWaiting = Container.useDispatchClearWaiting()
+  const refreshBotPublicCommands = C.useChatState(s => s.dispatch.refreshBotPublicCommands)
   React.useEffect(() => {
     dispatchClearWaiting([Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove])
     if (noCommands) {
-      dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
+      refreshBotPublicCommands(botUsername)
     }
-  }, [dispatchClearWaiting, dispatch, noCommands, botUsername])
+  }, [dispatchClearWaiting, refreshBotPublicCommands, noCommands, botUsername])
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>
@@ -446,7 +428,7 @@ const InstallBotPopup = (props: Props) => {
     />
   )
   const backButton = Styles.isMobile ? 'Back' : <Kb.Icon type="iconfont-arrow-left" />
-  const enabled = !!conversationIDKey && inTeam !== undefined
+  const enabled = !!conversationIDKey
   return (
     <Kb.Modal
       onClose={!Styles.isMobile ? onClose : undefined}
@@ -512,7 +494,7 @@ const InstallBotPopup = (props: Props) => {
 }
 
 type CommandsLabelProps = {
-  commands: Types.BotPublicCommands | undefined
+  commands: T.Chat.BotPublicCommands | undefined
 }
 
 const maxCommandsShown = 3
@@ -564,9 +546,9 @@ const CommandsLabel = (props: CommandsLabelProps) => {
 }
 
 type PermsListProps = {
-  channelMetas?: Map<Types.ConversationIDKey, Types.ConversationMeta>
-  commands: Types.BotPublicCommands | undefined
-  settings?: RPCTypes.TeamBotSettings
+  channelMetas?: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
+  commands: T.Chat.BotPublicCommands | undefined
+  settings?: T.RPCGen.TeamBotSettings
   username: string
 }
 

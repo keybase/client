@@ -1,40 +1,40 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/chat2'
-import * as Types from '../../constants/types/chat2'
-import * as Chat2Gen from '../../actions/chat2-gen'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as T from '../../constants/types'
 import Inbox, {type Props} from '.'
-import {appendNewChatBuilder} from '../../actions/typed-routes'
 import {useIsFocused} from '@react-navigation/core'
 import isEqual from 'lodash/isEqual'
 
 type OwnProps = {
   navKey: string
-  conversationIDKey?: Types.ConversationIDKey
+  conversationIDKey?: T.Chat.ConversationIDKey
 }
 
 const makeBigRows = (
-  bigTeams: Array<RPCChatTypes.UIInboxBigTeamRow>,
-  selectedConversationIDKey: Types.ConversationIDKey
-): Array<Types.ChatInboxRowItemBig | Types.ChatInboxRowItemBigHeader | Types.ChatInboxRowItemTeamBuilder> => {
+  bigTeams: Array<T.RPCChat.UIInboxBigTeamRow>,
+  selectedConversationIDKey: T.Chat.ConversationIDKey
+): Array<
+  T.Chat.ChatInboxRowItemBig | T.Chat.ChatInboxRowItemBigHeader | T.Chat.ChatInboxRowItemTeamBuilder
+> => {
   return bigTeams.map(t => {
     switch (t.state) {
-      case RPCChatTypes.UIInboxBigTeamRowTyp.channel: {
-        const conversationIDKey = Types.stringToConversationIDKey(t.channel.convID)
+      case T.RPCChat.UIInboxBigTeamRowTyp.channel: {
+        const conversationIDKey = T.Chat.stringToConversationIDKey(t.channel.convID)
         return {
           channelname: t.channel.channelname,
           conversationIDKey,
           isMuted: t.channel.isMuted,
           selected: conversationIDKey === selectedConversationIDKey,
-          snippetDecoration: RPCChatTypes.SnippetDecoration.none,
+          snippetDecoration: T.RPCChat.SnippetDecoration.none,
           teamname: t.channel.teamname,
           type: 'big',
         }
       }
-      case RPCChatTypes.UIInboxBigTeamRowTyp.label:
+      case T.RPCChat.UIInboxBigTeamRowTyp.label:
         return {
-          snippetDecoration: RPCChatTypes.SnippetDecoration.none,
+          snippetDecoration: T.RPCChat.SnippetDecoration.none,
           teamID: t.label.id,
           teamname: t.label.name,
           type: 'bigHeader',
@@ -46,11 +46,11 @@ const makeBigRows = (
 }
 
 const makeSmallRows = (
-  smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>,
-  selectedConversationIDKey: Types.ConversationIDKey
-): Array<Types.ChatInboxRowItemSmall | Types.ChatInboxRowItemTeamBuilder> => {
+  smallTeams: Array<T.RPCChat.UIInboxSmallTeamRow>,
+  selectedConversationIDKey: T.Chat.ConversationIDKey
+): Array<T.Chat.ChatInboxRowItemSmall | T.Chat.ChatInboxRowItemTeamBuilder> => {
   return smallTeams.map(t => {
-    const conversationIDKey = Types.stringToConversationIDKey(t.convID)
+    const conversationIDKey = T.Chat.stringToConversationIDKey(t.convID)
     return {
       conversationIDKey,
       isTeam: t.isTeam,
@@ -70,61 +70,45 @@ type WrapperProps = Pick<
 >
 
 const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
-  const dispatch = Container.useDispatch()
-  const inboxHasLoaded = Container.useSelector(state => state.chat2.inboxHasLoaded)
+  const inboxHasLoaded = C.useChatState(s => s.inboxHasLoaded)
+  const queueMetaToRequest = C.useChatState(s => s.dispatch.queueMetaToRequest)
   const isFocused = useIsFocused()
-  const inboxNumSmallRows = Container.useSelector(state => state.chat2.inboxNumSmallRows ?? 5)
-  const allowShowFloatingButton = Container.useSelector(state => {
-    const {inboxLayout} = state.chat2
-    const inboxNumSmallRows = state.chat2.inboxNumSmallRows ?? 5
+  const inboxNumSmallRows = C.useChatState(s => s.inboxNumSmallRows ?? 5)
+  const allowShowFloatingButton = C.useChatState(s => {
+    const {inboxLayout} = s
+    const inboxNumSmallRows = s.inboxNumSmallRows ?? 5
     return inboxLayout
       ? (inboxLayout.smallTeams || []).length > inboxNumSmallRows && !!(inboxLayout.bigTeams || []).length
       : false
   })
 
+  const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
   // a hack to have it check for marked as read when we mount as the focus events don't fire always
-  const onNewChat = React.useCallback(() => {
-    appendNewChatBuilder()
-  }, [])
-  const onUntrustedInboxVisible = React.useCallback(
-    (conversationIDKeys: Array<Types.ConversationIDKey>) => {
-      dispatch(
-        Chat2Gen.createMetaNeedsUpdating({
-          conversationIDKeys,
-          reason: 'untrusted inbox visible',
-        })
-      )
-    },
-    [dispatch]
-  )
-  const setInboxNumSmallRows = React.useCallback(
-    (rows: number) => {
-      dispatch(Chat2Gen.createSetInboxNumSmallRows({rows}))
-    },
-    [dispatch]
-  )
-  const toggleSmallTeamsExpanded = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleSmallTeamsExpanded())
-  }, [dispatch])
+  const onNewChat = appendNewChatBuilder
+  const onUntrustedInboxVisible = queueMetaToRequest
 
+  const setInboxNumSmallRows = C.useChatState(s => s.dispatch.setInboxNumSmallRows)
+  const toggleSmallTeamsExpanded = C.useChatState(s => s.dispatch.toggleSmallTeamsExpanded)
   const [lastIsFocused, setLastIsFocused] = React.useState(isFocused)
 
   if (lastIsFocused !== isFocused) {
     setLastIsFocused(isFocused)
     if (Container.isMobile) {
       if (isFocused && Constants.isSplit) {
-        dispatch(Chat2Gen.createTabSelected())
+        C.getConvoState(C.getSelectedConversation()).dispatch.tabSelected()
       }
     }
   }
 
+  const inboxRefresh = C.useChatState(s => s.dispatch.inboxRefresh)
+
   Container.useOnMountOnce(() => {
     if (!Container.isMobile) {
       // On mobile this is taken care of by NavigationEvents.
-      dispatch(Chat2Gen.createTabSelected())
+      C.getConvoState(C.getSelectedConversation()).dispatch.tabSelected()
     }
     if (!inboxHasLoaded) {
-      dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'}))
+      inboxRefresh('componentNeverLoaded')
     }
   })
 
@@ -142,15 +126,19 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
 })
 
 const Connected = (ownProps: OwnProps) => {
-  const {inboxLayout, inboxHasLoaded} = Container.useSelector(state => state.chat2)
+  const inboxLayout = C.useChatState(s => s.inboxLayout)
+  const inboxHasLoaded = C.useChatState(s => s.inboxHasLoaded)
   const {conversationIDKey} = ownProps
   const neverLoaded = !inboxHasLoaded
-  const inboxNumSmallRows = Container.useSelector(state => state.chat2.inboxNumSmallRows ?? 5)
-  const _badgeMap = Container.useSelector(state => state.chat2.badgeMap)
+  const inboxNumSmallRows = C.useChatState(s => s.inboxNumSmallRows ?? 5)
+  const badgeCountsChanged = C.useChatState(s => s.badgeCountsChanged)
+  const _badgeMap = React.useMemo(() => {
+    return C.useChatState.getState().getBadgeMap(badgeCountsChanged)
+  }, [badgeCountsChanged])
   const _inboxLayout = inboxLayout
-  const _selectedConversationIDKey = conversationIDKey ?? Constants.noConversationIDKey
-  const isSearching = Container.useSelector(state => !!state.chat2.inboxSearch)
-  const smallTeamsExpanded = Container.useSelector(state => state.chat2.smallTeamsExpanded)
+  const _selectedConversationIDKey = conversationIDKey ?? C.noConversationIDKey
+  const isSearching = C.useChatState(s => !!s.inboxSearch)
+  const smallTeamsExpanded = C.useChatState(s => s.smallTeamsExpanded)
   const {navKey} = ownProps
   const bigTeams = _inboxLayout ? _inboxLayout.bigTeams || [] : []
   const showAllSmallRows = smallTeamsExpanded || !bigTeams.length
@@ -161,11 +149,11 @@ const Connected = (ownProps: OwnProps) => {
   }
   const smallRows = makeSmallRows(smallTeams, _selectedConversationIDKey)
   const bigRows = makeBigRows(bigTeams, _selectedConversationIDKey)
-  const teamBuilder: Types.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
+  const teamBuilder: T.Chat.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
 
   const hasAllSmallTeamConvs =
     (_inboxLayout?.smallTeams?.length ?? 0) === (_inboxLayout?.totalSmallTeams ?? 0)
-  const divider: Array<Types.ChatInboxRowItemDivider | Types.ChatInboxRowItemTeamBuilder> =
+  const divider: Array<T.Chat.ChatInboxRowItemDivider | T.Chat.ChatInboxRowItemTeamBuilder> =
     bigRows.length !== 0 || !hasAllSmallTeamConvs
       ? [{showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold, type: 'divider'}]
       : []
@@ -180,7 +168,7 @@ const Connected = (ownProps: OwnProps) => {
       bigRows.push(teamBuilder)
     }
   }
-  const nextRows: Array<Types.ChatInboxRowItem> = [...smallRows, ...divider, ...bigRows]
+  const nextRows: Array<T.Chat.ChatInboxRowItem> = [...smallRows, ...divider, ...bigRows]
   let rows = nextRows
   // TODO better fix later
   if (isEqual(rows, cachedRows)) {
@@ -217,7 +205,7 @@ const Connected = (ownProps: OwnProps) => {
   return <InboxWrapper {...props} />
 }
 
-let cachedRows: Array<Types.ChatInboxRowItem> = []
+let cachedRows: Array<T.Chat.ChatInboxRowItem> = []
 const emptyMap = new Map()
 
 export default Connected

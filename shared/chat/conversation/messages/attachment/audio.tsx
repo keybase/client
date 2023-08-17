@@ -1,25 +1,23 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import * as Constants from '../../../../constants/chat2'
-import * as FSConstants from '../../../../constants/fs'
-import {ConvoIDContext, OrdinalContext} from '../ids-context'
+import {OrdinalContext} from '../ids-context'
 import AudioPlayer from '../../../audio/audio-player'
 
 const missingMessage = Constants.makeMessageAttachment()
 const AudioAttachment = () => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
 
   // TODO not message
-  const message = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+  const message = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m : missingMessage
   })
   const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(message.transferState)
   const hasProgress = Constants.messageAttachmentHasProgress(message)
-  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {

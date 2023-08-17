@@ -1,28 +1,29 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
+import * as T from '../../constants/types'
 import {computeWelcomeMessageTextRaw} from '../../chat/conversation/messages/cards/team-journey/util'
 
-type Props = {teamID: Types.TeamID}
+type Props = {teamID: T.Teams.TeamID}
 
 // welcomeMessageMaxLen is duplicated at
 // go/chat/server.go:welcomeMessageMaxLen; keep the values in sync!
 const welcomeMessageMaxLen = 400
 
 const EditTeamWelcomeMessage = (props: Props) => {
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
 
-  if (teamID === Types.noTeamID) {
+  if (teamID === T.Teams.noTeamID) {
     throw new Error(`There was a problem loading the welcome message page, please report this error.`)
   }
 
   const waitingKey = Constants.setWelcomeMessageWaitingKey(teamID)
   const waiting = Container.useAnyWaiting(waitingKey)
-  const error = Constants.useState(s => s.errorInEditWelcomeMessage)
-  const origWelcomeMessage = Constants.useState(s => s.teamIDToWelcomeMessage.get(teamID))
+  const error = C.useTeamsState(s => s.errorInEditWelcomeMessage)
+  const origWelcomeMessage = C.useTeamsState(s => s.teamIDToWelcomeMessage.get(teamID))
 
   const [welcomeMessage, setWelcomeMessage] = React.useState({
     raw: origWelcomeMessage?.raw ?? '',
@@ -30,8 +31,7 @@ const EditTeamWelcomeMessage = (props: Props) => {
   })
   const showNoWelcomeMessage = welcomeMessage.set && welcomeMessage.raw.length === 0
 
-  const _setWelcomeMessage = Constants.useState(s => s.dispatch.setWelcomeMessage)
-  const dispatch = Container.useDispatch()
+  const _setWelcomeMessage = C.useTeamsState(s => s.dispatch.setWelcomeMessage)
   const nav = Container.useSafeNavigation()
   const onSave = () => _setWelcomeMessage(teamID, welcomeMessage)
   const onClose = () => nav.safeNavigateUp()
@@ -39,7 +39,7 @@ const EditTeamWelcomeMessage = (props: Props) => {
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
     if (!waiting && wasWaiting && !error) nav.safeNavigateUp()
-  }, [waiting, wasWaiting, nav, dispatch, error])
+  }, [waiting, wasWaiting, nav, error])
 
   return (
     <Kb.Modal

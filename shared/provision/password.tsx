@@ -1,6 +1,4 @@
-import * as Constants from '../constants/provision'
-import * as RouterConstants from '../constants/router2'
-import * as RecoverConstants from '../constants/recover-password'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -10,19 +8,19 @@ import {SignupScreen, errorBanner} from '../signup/common'
 import {isMobile} from '../constants/platform'
 
 export default () => {
-  const error = Constants.useState(s => s.error)
-  const resetEmailSent = RecoverConstants.useState(s => s.resetEmailSent)
-  const username = Constants.useState(s => s.username)
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
-  const startRecoverPassword = RecoverConstants.useState(s => s.dispatch.startRecoverPassword)
+  const error = C.useProvisionState(s => s.error)
+  const resetEmailSent = C.useRecoverState(s => s.resetEmailSent)
+  const username = C.useProvisionState(s => s.username)
+  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const startRecoverPassword = C.useRecoverState(s => s.dispatch.startRecoverPassword)
   const _onForgotPassword = (username: string) => {
     startRecoverPassword({abortProvisioning: true, username})
   }
   const onBack = () => {
     navigateUp()
   }
-  const onSubmit = Constants.useState(s => s.dispatch.dynamic.setPassphrase)
+  const onSubmit = C.useProvisionState(s => s.dispatch.dynamic.setPassphrase)
   const props = {
     error,
     onBack,
@@ -49,7 +47,7 @@ const Password = (props: Props) => {
   const [password, setPassword] = React.useState('')
   const {onSubmit} = props
   const _onSubmit = React.useCallback(() => onSubmit(password), [password, onSubmit])
-  const resetState = RecoverConstants.useState(s => s.dispatch.resetState)
+  const resetState = C.useRecoverState(s => s.dispatch.resetState)
   React.useEffect(
     () => () => {
       resetState()

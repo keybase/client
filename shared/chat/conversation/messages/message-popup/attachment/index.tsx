@@ -2,14 +2,14 @@ import * as React from 'react'
 import MessagePopupHeader from '../header'
 import {FloatingMenu, type MenuItem, type MenuItems} from '../../../../../common-adapters'
 import {type Position, fileUIName, type StylesCrossPlatform} from '../../../../../styles'
-import type {DeviceType} from '../../../../../constants/types/devices'
+import type * as T from '../../../../../constants/types'
 import ReactionItem from '../reactionitem'
 
 type Props = {
   attachTo?: () => React.Component<any> | null
   author: string
   deviceName: string
-  deviceType: DeviceType
+  deviceType: T.Devices.DeviceType
   deviceRevokedAt?: number
   onAddReaction?: () => void
   onAllMedia: () => void

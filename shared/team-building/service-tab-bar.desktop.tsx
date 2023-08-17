@@ -3,7 +3,7 @@ import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
 import difference from 'lodash/difference'
-import type {ServiceIdWithContact} from '../constants/types/team-building'
+import type * as T from '../constants/types'
 import type {Props, IconProps} from './service-tab-bar'
 
 const ServiceIcon = (props: IconProps) => {
@@ -70,8 +70,8 @@ const ServiceIcon = (props: IconProps) => {
 }
 
 const MoreNetworksButton = (props: {
-  services: Array<ServiceIdWithContact>
-  onChangeService: (service: ServiceIdWithContact) => void
+  services: Array<T.TB.ServiceIdWithContact>
+  onChangeService: (service: T.TB.ServiceIdWithContact) => void
 }) => {
   const {services, onChangeService} = props
   const makePopup = React.useCallback(
@@ -121,7 +121,7 @@ const MoreNetworksButton = (props: {
   )
 }
 
-const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
+const MoreNetworkItem = (props: {service: T.TB.ServiceIdWithContact}) => (
   <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
     <Kb.Icon
       style={styles.moreNetworkItemIcon}
@@ -134,11 +134,11 @@ const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
 
 export const ServiceTabBar = (props: Props) => {
   const [lastSelectedUnlockedService, setLastSelectedUnlockedService] = React.useState<
-    ServiceIdWithContact | undefined
+    T.TB.ServiceIdWithContact | undefined
   >()
   const {services, onChangeService: propsOnChangeService, servicesShown: nLocked = 3} = props
   const onChangeService = React.useCallback(
-    (service: ServiceIdWithContact) => {
+    (service: T.TB.ServiceIdWithContact) => {
       if (services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {
         setLastSelectedUnlockedService(service)
       }
@@ -251,7 +251,7 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
         minHeight: 30,
       },
-    } as const)
+    }) as const
 )
 
 export default ServiceTabBar

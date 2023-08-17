@@ -1,21 +1,21 @@
+import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
-import * as RouterConstants from '../../constants/router2'
 import Files, {defaultNotificationThreshold, allowedNotificationThresholds} from '.'
 import type {PickerItem} from '../../common-adapters/floating-picker'
 import {isMobile} from '../../constants/platform'
 
 const SettingsFiles = () => {
-  const areSettingsLoading = Constants.useState(s => s.settings.isLoading)
-  const driverEnable = Constants.useState(s => s.dispatch.driverEnable)
-  const driverDisable = Constants.useState(s => s.dispatch.driverDisable)
-  const driverStatus = Constants.useState(s => s.sfmi.driverStatus)
-  const setSpaceAvailableNotificationThreshold = Constants.useState(
+  const areSettingsLoading = C.useFSState(s => s.settings.isLoading)
+  const driverEnable = C.useFSState(s => s.dispatch.driverEnable)
+  const driverDisable = C.useFSState(s => s.dispatch.driverDisable)
+  const driverStatus = C.useFSState(s => s.sfmi.driverStatus)
+  const setSpaceAvailableNotificationThreshold = C.useFSState(
     s => s.dispatch.setSpaceAvailableNotificationThreshold
   )
-  const spaceAvailableNotificationThreshold = Constants.useState(
+  const spaceAvailableNotificationThreshold = C.useFSState(
     s => s.settings.spaceAvailableNotificationThreshold
   )
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = isMobile
     ? () => {
         navigateUp()
@@ -29,7 +29,7 @@ const SettingsFiles = () => {
     driverEnable()
   }
   const onSetSyncNotificationThreshold = setSpaceAvailableNotificationThreshold
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowKextPermissionPopup = () => {
     navigateAppend('kextPermission')
   }

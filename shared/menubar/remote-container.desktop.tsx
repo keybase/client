@@ -1,42 +1,48 @@
-import * as ConfigConstants from '../constants/config'
-import * as UsersConstants from '../constants/users'
-import * as Container from '../util/container'
-import * as Followers from '../constants/followers'
+import * as C from '../constants'
 import Menubar from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import {useAvatarState} from '../common-adapters/avatar-zus'
 
 const RemoteContainer = () => {
-  const {
-    avatarRefreshCounter,
-    daemonHandshakeState,
-    followers,
-    following,
-    loggedIn,
-    outOfDate,
-    username,
-    httpSrvAddress,
-    httpSrvToken,
-    windowShownCountNum,
-    infoMap,
-    ...rest
-  } = Container.useRemoteStore<DeserializeProps>()
+  const d = C.useRemoteStore<DeserializeProps>()
+  const {avatarRefreshCounter, badgeMap, daemonHandshakeState, darkMode, diskSpaceStatus, endEstimate} = d
+  const {fileName, files, followers, following, httpSrvAddress, httpSrvToken, infoMap} = d
+  const {kbfsDaemonStatus, kbfsEnabled, loggedIn, metaMap, navBadges, outOfDate} = d
+  const {showingDiskSpaceBanner, totalSyncingBytes, unreadMap, username, windowShownCountNum} = d
   useAvatarState(s => s.dispatch.replace)(avatarRefreshCounter)
-  ConfigConstants.useDaemonState(s => s.dispatch.setState)(daemonHandshakeState)
-  Followers.useFollowerState(s => s.dispatch.replace)(followers, following)
-  UsersConstants.useState(s => s.dispatch.replace)(infoMap)
-  ConfigConstants.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
-  ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
-  ConfigConstants.useConfigState(s => s.dispatch.setOutOfDate)(outOfDate)
-  ConfigConstants.useConfigState(s => s.dispatch.setLoggedIn)(loggedIn, false)
+  C.useDaemonState(s => s.dispatch.setState)(daemonHandshakeState)
+  C.useFollowerState(s => s.dispatch.replace)(followers, following)
+  C.useUsersState(s => s.dispatch.replace)(infoMap)
+  C.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
+  C.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
+  C.useConfigState(s => s.dispatch.setOutOfDate)(outOfDate)
+  C.useConfigState(s => s.dispatch.setLoggedIn)(loggedIn, false)
+  for (const [id, unread] of unreadMap) {
+    C.getConvoState(id).dispatch.unreadUpdated(unread)
+  }
+  for (const [id, badge] of badgeMap) {
+    C.getConvoState(id).dispatch.badgesUpdated(badge)
+  }
+  for (const [id, meta] of metaMap) {
+    C.getConvoState(id).dispatch.updateMeta(meta)
+  }
   return (
     <Menubar
-      {...rest}
-      loggedIn={loggedIn}
-      username={username}
       daemonHandshakeState={daemonHandshakeState}
-      windowShownCount={windowShownCountNum}
+      darkMode={darkMode}
+      diskSpaceStatus={diskSpaceStatus}
+      endEstimate={endEstimate}
+      fileName={fileName}
+      files={files}
+      kbfsDaemonStatus={kbfsDaemonStatus}
+      kbfsEnabled={kbfsEnabled}
+      loggedIn={loggedIn}
+      navBadges={navBadges}
       outOfDate={outOfDate}
+      showingDiskSpaceBanner={showingDiskSpaceBanner}
+      totalSyncingBytes={totalSyncingBytes}
+      username={username}
+      windowShownCount={windowShownCountNum}
     />
   )
 }

@@ -1,72 +1,68 @@
+import * as C from '../../constants'
 import Announcement from '.'
-import * as Chat2Gen from '../../actions/chat2-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 import * as Tabs from '../../constants/tabs'
-import * as RouterConstants from '../../constants/router2'
-import * as Constants from '../../constants/people'
 import * as SettingsTabs from '../../constants/settings'
 import openURL from '../../util/open-url'
 import * as Container from '../../util/container'
 
 type OwnProps = {
-  appLink?: RPCTypes.AppLinkType
+  appLink?: T.RPCGen.AppLinkType
   badged: boolean
   confirmLabel?: string
   dismissable: boolean
   iconUrl?: string
-  id: RPCTypes.HomeScreenAnnouncementID
+  id: T.RPCGen.HomeScreenAnnouncementID
   text: string
   url?: string
 }
 
 export default (ownProps: OwnProps) => {
   const {appLink, badged, confirmLabel, iconUrl, id, text, url, dismissable} = ownProps
-  const dispatch = Container.useDispatch()
-
-  const loadPeople = Constants.useState(s => s.dispatch.loadPeople)
-  const dismissAnnouncement = Constants.useState(s => s.dispatch.dismissAnnouncement)
-
-  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const loadPeople = C.usePeopleState(s => s.dispatch.loadPeople)
+  const dismissAnnouncement = C.usePeopleState(s => s.dispatch.dismissAnnouncement)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateToInbox = C.useChatState(s => s.dispatch.navigateToInbox)
   const onConfirm = () => {
     if (url) {
       openURL(url)
     }
 
     switch (appLink) {
-      case RPCTypes.AppLinkType.people:
+      case T.RPCGen.AppLinkType.people:
         break
-      case RPCTypes.AppLinkType.chat:
-        dispatch(Chat2Gen.createNavigateToInbox())
+      case T.RPCGen.AppLinkType.chat:
+        navigateToInbox()
         break
-      case RPCTypes.AppLinkType.files:
+      case T.RPCGen.AppLinkType.files:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.fsTab)
         if (Container.isMobile) {
           navigateAppend(SettingsTabs.fsTab)
         }
         break
-      case RPCTypes.AppLinkType.wallet:
+      case T.RPCGen.AppLinkType.wallet:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.walletsTab)
         if (Container.isMobile) {
           navigateAppend(SettingsTabs.walletsTab)
         }
         break
-      case RPCTypes.AppLinkType.git:
+      case T.RPCGen.AppLinkType.git:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.gitTab)
         if (Container.isMobile) {
           navigateAppend({props: {}, selected: SettingsTabs.gitTab})
         }
         break
-      case RPCTypes.AppLinkType.devices:
+      case T.RPCGen.AppLinkType.devices:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.devicesTab)
         if (Container.isMobile) {
           navigateAppend(SettingsTabs.devicesTab)
         }
         break
-      case RPCTypes.AppLinkType.settings:
+      case T.RPCGen.AppLinkType.settings:
         switchTab(Tabs.settingsTab)
         break
-      case RPCTypes.AppLinkType.teams:
+      case T.RPCGen.AppLinkType.teams:
         switchTab(Tabs.teamsTab)
         break
     }

@@ -1,23 +1,28 @@
-import * as Chat2Gen from '../actions/chat2-gen'
-import * as Container from '../util/container'
+import * as C from '../constants'
+import * as R from '../constants/remote'
+import * as RemoteGen from '../actions/remote-gen'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import type * as Types from '../constants/types/chat2'
+import type * as T from '../constants/types'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import {SmallTeam} from '../chat/inbox/row/small-team'
 
 type RowProps = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
 }
 
 const RemoteSmallTeam = (props: RowProps) => {
   const {conversationIDKey} = props
-  const state = Container.useRemoteStore<DeserializeProps>()
+  const state = C.useRemoteStore<DeserializeProps>()
   const {conversationsToSend} = state
   const conversation = conversationsToSend.find(c => c.conversationIDKey === conversationIDKey)
+  const onSelectConversation = () => {
+    R.remoteDispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey}))
+  }
 
   return (
     <SmallTeam
+      onSelectConversation={onSelectConversation}
       conversationIDKey={conversationIDKey}
       isInWidget={true}
       isSelected={false}
@@ -29,26 +34,25 @@ const RemoteSmallTeam = (props: RowProps) => {
 }
 
 const ChatPreview = (p: {convLimit?: number}) => {
-  const state = Container.useRemoteStore<DeserializeProps>()
-  const dispatch = Container.useDispatch()
+  const state = C.useRemoteStore<DeserializeProps>()
   const {convLimit} = p
   const {conversationsToSend} = state
 
-  const convRows = __STORYBOOK__
-    ? []
-    : conversationsToSend
-        .slice(0, convLimit ? convLimit : conversationsToSend.length)
-        .map(c => c.conversationIDKey)
+  const convRows = conversationsToSend
+    .slice(0, convLimit ? convLimit : conversationsToSend.length)
+    .map(c => c.conversationIDKey)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
       {convRows.map(id => (
-        <RemoteSmallTeam key={id} conversationIDKey={id} />
+        <C.ChatProvider key={id} id={id}>
+          <RemoteSmallTeam conversationIDKey={id} />
+        </C.ChatProvider>
       ))}
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonContainer}>
         <Kb.Button
           label="Open inbox"
-          onClick={() => dispatch(Chat2Gen.createOpenChatFromWidget({}))}
+          onClick={() => R.remoteDispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey: ''}))}
           small={true}
           mode="Secondary"
         />

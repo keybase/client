@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as Constants from '../../constants/crypto'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
@@ -8,7 +9,7 @@ import {OperationOutput, OutputActionsBar, SignedSender} from '../output'
 const operation = Constants.Operations.Decrypt
 
 export const DecryptInput = () => {
-  const resetOperation = Constants.useState(s => s.dispatch.resetOperation)
+  const resetOperation = C.useCryptoState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
       if (Container.isMobile) {

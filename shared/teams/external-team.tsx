@@ -1,11 +1,10 @@
+import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as Constants from '../constants/teams'
-import * as ProfileConstants from '../constants/profile'
-import * as RPCGen from '../constants/types/rpc-gen'
-import * as Chat2Gen from '../actions/chat2-gen'
+import * as T from '../constants/types'
 import {useTeamLinkPopup} from './common'
 import {pluralize} from '../util/string'
 import {memoize} from '../util/memoize'
@@ -16,8 +15,8 @@ type Props = {teamname: string}
 const ExternalTeam = (props: Props) => {
   const teamname = props.teamname
 
-  const getTeamInfo = Container.useRPC(RPCGen.teamsGetUntrustedTeamInfoRpcPromise)
-  const [teamInfo, setTeamInfo] = React.useState<RPCGen.UntrustedTeamInfo | undefined>()
+  const getTeamInfo = Container.useRPC(T.RPCGen.teamsGetUntrustedTeamInfoRpcPromise)
+  const [teamInfo, setTeamInfo] = React.useState<T.RPCGen.UntrustedTeamInfo | undefined>()
   const [waiting, setWaiting] = React.useState(false)
 
   React.useEffect(() => {
@@ -69,10 +68,10 @@ const ExternalTeam = (props: Props) => {
 }
 
 type ExternalTeamProps = {
-  info: RPCGen.UntrustedTeamInfo
+  info: T.RPCGen.UntrustedTeamInfo
 }
 
-const orderMembers = memoize((members?: Array<RPCGen.TeamMemberRole>) =>
+const orderMembers = memoize((members?: Array<T.RPCGen.TeamMemberRole>) =>
   (members || []).sort((memberA, memberB) =>
     memberB.role === memberA.role
       ? memberA.username.localeCompare(memberB.username)
@@ -178,12 +177,11 @@ const Header = ({info}: ExternalTeamProps) => {
   )
 }
 
-const Member = ({member, firstItem}: {member: RPCGen.TeamMemberRole; firstItem: boolean}) => {
-  const dispatch = Container.useDispatch()
-  const onChat = () =>
-    dispatch(Chat2Gen.createPreviewConversation({participants: [member.username], reason: 'teamMember'}))
+const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem: boolean}) => {
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const onChat = () => previewConversation({participants: [member.username], reason: 'teamMember'})
   const roleString = Constants.teamRoleByEnum[member.role]
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   return (
     <Kb.ListItem2
       firstItem={firstItem}
@@ -204,7 +202,7 @@ const Member = ({member, firstItem}: {member: RPCGen.TeamMemberRole; firstItem: 
                 •
               </Kb.Text>
             )}
-            {[RPCGen.TeamRole.admin, RPCGen.TeamRole.owner].includes(member.role) && (
+            {[T.RPCGen.TeamRole.admin, T.RPCGen.TeamRole.owner].includes(member.role) && (
               <Kb.Icon
                 type={`iconfont-crown-${roleString}` as Kb.IconType}
                 sizeType="Small"

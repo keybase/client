@@ -3,11 +3,11 @@
 // On the main window we plumb through our props and we 'mirror' the props using this helper
 // We start up and send an action to the main window which then sends us 'props'
 import {createStore, applyMiddleware, type Store} from 'redux'
-import type {TypedActions} from '../../actions/typed-actions-gen'
+import * as R from '../../constants/remote'
 import * as RemoteGen from '../../actions/remote-gen'
 import KB2 from '../../util/electron.desktop'
 
-const {mainWindowDispatch, ipcRendererOn} = KB2.functions
+const {ipcRendererOn} = KB2.functions
 
 const updateStore = 'remoteStore:update'
 // Special action that's not sent
@@ -76,7 +76,7 @@ class RemoteStore {
     }
 
     // Search for the main window and ask it directly for our props
-    mainWindowDispatch(
+    R.remoteDispatch(
       RemoteGen.createRemoteWindowWantsProps({
         component: props.windowComponent,
         param: props.windowParam,
@@ -87,15 +87,15 @@ class RemoteStore {
 
 const sendToRemoteMiddleware =
   () =>
-  (next: (action: TypedActions | UpdateStoreAction) => void) =>
-  (action: TypedActions | UpdateStoreAction) => {
+  (next: (action: RemoteGen.Actions | UpdateStoreAction) => void) =>
+  (action: RemoteGen.Actions | UpdateStoreAction) => {
     if (action.constructor === Function) {
       throw new Error('pure actions only allowed in remote store2')
     } else if (action.type === updateStore) {
       // Don't forward our internal updateStore call
       return next(action)
     } else {
-      mainWindowDispatch(action)
+      R.remoteDispatch(action)
     }
     return next(action)
   }

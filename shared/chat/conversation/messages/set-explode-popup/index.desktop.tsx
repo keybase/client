@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type {MessageExplodeDescription} from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import {Box2, Icon, Text, FloatingMenu, type MenuItems} from '../../../../common-adapters'
 import {platformStyles, globalColors} from '../../../../styles'
 import type {Props} from '.'
@@ -14,7 +14,7 @@ const quantityTextStyle = platformStyles({
 })
 
 type ItemProps = {
-  desc: MessageExplodeDescription
+  desc: T.Chat.MessageExplodeDescription
   selected: boolean
 }
 

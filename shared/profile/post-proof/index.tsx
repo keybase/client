@@ -1,10 +1,10 @@
+import * as C from '../../constants'
 import * as React from 'react'
-import * as Constants from '../../constants/profile'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {subtitle} from '../../util/platforms'
 import openUrl from '../../util/open-url'
-import type {ProvablePlatformsType} from '../../constants/types/more'
+import type * as T from '../../constants/types'
 import Modal from '../modal'
 
 export type Props = {
@@ -13,7 +13,7 @@ export type Props = {
   onCancel: () => void
   onSubmit: () => void
   openLinkBeforeSubmit: boolean
-  platform: ProvablePlatformsType
+  platform: T.More.ProvablePlatformsType
   platformUserName: string
   proofText: string
   url: string
@@ -194,7 +194,7 @@ class PostProof extends React.Component<Props, State> {
                 <Kb.WaitingButton
                   onClick={props.onSubmit}
                   label={onCompleteText || ''}
-                  waitingKey={Constants.waitingKey}
+                  waitingKey={C.profileWaitingKey}
                 />
               ) : (
                 <Kb.Button

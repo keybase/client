@@ -1,11 +1,11 @@
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles/index'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import TopBar from '../top-bar'
-import * as Constants from '../../constants/fs'
+import * as C from '../../constants'
 
 type Props = {
-  path: Types.Path
+  path: T.FS.Path
   syncEnabled: boolean
 }
 
@@ -38,19 +38,19 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.blueGrey,
         flex: 1,
       },
-    } as const)
+    }) as const
 )
 
 type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
 }
 
 export default (ownProps: OwnProps) => {
   const {path} = ownProps
-  const syncConfig = Constants.useState(s => Constants.getTlfFromPath(s.tlfs, path).syncConfig)
+  const syncConfig = C.useFSState(s => C.getTlfFromPath(s.tlfs, path).syncConfig)
   const props = {
     ...ownProps,
-    syncEnabled: !!syncConfig && syncConfig.mode === Types.TlfSyncMode.Enabled,
+    syncEnabled: !!syncConfig && syncConfig.mode === T.FS.TlfSyncMode.Enabled,
   }
   return <OfflineFolder {...props} />
 }

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../constants/types'
 import type {Props} from './suggestion-list'
 import SafeReactList from '../../../../common-adapters/safe-react-list'
 import type RL from 'react-list'
@@ -40,7 +40,7 @@ class SuggestionList extends React.Component<Props> {
           />
         </Kb.ScrollView>
         {this.props.suggestBotCommandsUpdateStatus &&
-          this.props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank && (
+          this.props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank && (
             <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">
               <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
             </Kb.Box2>
@@ -60,7 +60,7 @@ const styles = Styles.styleSheetCreate(
       },
       fullHeight: {height: '100%'},
       listContainer: {backgroundColor: Styles.globalColors.white, borderRadius: 4, maxHeight: 224},
-    } as const)
+    }) as const
 )
 
 export default SuggestionList

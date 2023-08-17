@@ -1,17 +1,14 @@
-import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
+import * as C from '../../../../constants'
 import * as React from 'react'
-import * as TeamsConstants from '../../../../constants/teams'
 import SystemNewChannel from '.'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 
-type OwnProps = {message: Types.MessageSystemNewChannel}
+type OwnProps = {message: T.Chat.MessageSystemNewChannel}
 
 const SystemNewChannelContainer = React.memo(function SystemNewChannelContainer(p: OwnProps) {
   const {message} = p
-  const {conversationIDKey} = message
-  const {teamID} = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const manageChatChannels = TeamsConstants.useState(s => s.dispatch.manageChatChannels)
+  const {teamID} = C.useChatContext(s => s.meta)
+  const manageChatChannels = C.useTeamsState(s => s.dispatch.manageChatChannels)
   const onManageChannels = React.useCallback(() => {
     manageChatChannels(teamID)
   }, [manageChatChannels, teamID])

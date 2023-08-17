@@ -1,22 +1,21 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Constants from '../../constants/autoreset'
-import * as RecoverConstants from '../../constants/recover-password'
+import * as T from '../../constants/types'
 
 const ConfirmReset = () => {
-  const hasWallet = Constants.useState(s => s.hasWallet)
-  const error = Constants.useState(s => s.error)
-  const submitResetPassword = RecoverConstants.useState(s => s.dispatch.dynamic.submitResetPassword)
+  const hasWallet = C.useAutoResetState(s => s.hasWallet)
+  const error = C.useAutoResetState(s => s.error)
+  const submitResetPassword = C.useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
   const onContinue = React.useCallback(() => {
-    submitResetPassword?.(RPCTypes.ResetPromptResponse.confirmReset)
+    submitResetPassword?.(T.RPCGen.ResetPromptResponse.confirmReset)
   }, [submitResetPassword])
   const onCancelReset = React.useCallback(() => {
-    submitResetPassword?.(RPCTypes.ResetPromptResponse.cancelReset)
+    submitResetPassword?.(T.RPCGen.ResetPromptResponse.cancelReset)
   }, [submitResetPassword])
   const onClose = React.useCallback(() => {
-    submitResetPassword?.(RPCTypes.ResetPromptResponse.nothing)
+    submitResetPassword?.(T.RPCGen.ResetPromptResponse.nothing)
   }, [submitResetPassword])
 
   const [checks, setChecks] = React.useState({
@@ -45,7 +44,7 @@ const ConfirmReset = () => {
               onClick={onContinue}
               type="Danger"
               fullWidth={true}
-              waitingKey={Constants.actuallyResetWaitingKey}
+              waitingKey={C.actuallyResetWaitingKey}
             />
             <Kb.Button label="Close" onClick={onClose} type="Dim" fullWidth={true} />
           </Kb.ButtonBar>

@@ -1,3 +1,4 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import logger from '../../../logger'
 import BigTeamHeader from './big-team-header'
@@ -5,11 +6,11 @@ import BigTeamChannel from './big-team-channel'
 import SmallTeam from './small-team/container'
 import {BigTeamsLabel} from './big-teams-label'
 import {Box} from '../../../common-adapters'
-import {globalStyles, globalMargins, isMobile} from '../../../styles'
-import type * as Types from '../../../constants/types/chat2'
+import * as Styles from '../../../styles'
+import type * as T from '../../../constants/types'
 
 const makeRow = (
-  item: Types.ChatInboxRowItem,
+  item: T.Chat.ChatInboxRowItem,
   navKey: string,
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
 ) => {
@@ -22,28 +23,31 @@ const makeRow = (
   }
   switch (item.type) {
     case 'bigHeader':
-      return <BigTeamHeader teamname={item.teamname} teamID={item.teamID} navKey={navKey} />
+      return (
+        <C.ChatProvider id={C.dummyConversationIDKey}>
+          <BigTeamHeader teamname={item.teamname} teamID={item.teamID} navKey={navKey} />
+        </C.ChatProvider>
+      )
     case 'big':
       return (
-        <BigTeamChannel
-          conversationIDKey={item.conversationIDKey}
-          layoutChannelname={item.channelname}
-          selected={item.selected}
-          navKey={navKey}
-        />
+        <C.ChatProvider id={item.conversationIDKey}>
+          <BigTeamChannel layoutChannelname={item.channelname} selected={item.selected} navKey={navKey} />
+        </C.ChatProvider>
       )
     case 'small':
       return (
-        <SmallTeam
-          isInWidget={false}
-          conversationIDKey={item.conversationIDKey}
-          layoutIsTeam={item.isTeam}
-          layoutName={item.teamname}
-          isSelected={item.selected}
-          layoutTime={item.time}
-          layoutSnippet={item.snippet}
-          swipeCloseRef={swipeCloseRef}
-        />
+        <C.ChatProvider id={item.conversationIDKey}>
+          <SmallTeam
+            isInWidget={false}
+            conversationIDKey={item.conversationIDKey}
+            layoutIsTeam={item.isTeam}
+            layoutName={item.teamname}
+            isSelected={item.selected}
+            layoutTime={item.time}
+            layoutSnippet={item.snippet}
+            swipeCloseRef={swipeCloseRef}
+          />
+        </C.ChatProvider>
       )
     default:
   }
@@ -52,10 +56,10 @@ const makeRow = (
 }
 
 const _bigTeamLabelStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
-  height: isMobile ? 32 : 24,
-  marginLeft: globalMargins.tiny,
+  height: Styles.isMobile ? 32 : 24,
+  marginLeft: Styles.globalMargins.tiny,
 }
 
 export {makeRow}

@@ -1,18 +1,16 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/teams'
-import * as FsConstants from '../../constants/fs'
-import * as FsTypes from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import capitalize from 'lodash/capitalize'
-import type * as Types from '../../constants/types/teams'
+import * as T from '../../constants/types'
 import {pluralize} from '../../util/string'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
   onHidden: () => void
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   visible: boolean
 }
 
@@ -21,7 +19,7 @@ type Props = {
   items: Kb.MenuItems
   teamname: string
   memberCount: number
-  role: Types.TeamRoleType
+  role: T.Teams.TeamRoleType
   onHidden: () => void
   visible: boolean
 }
@@ -82,17 +80,17 @@ const styles = Styles.styleSheetCreate(() => ({
 
 export default (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const {teamname, role, memberCount} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
-  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
+  const {teamname, role, memberCount} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
   const canDeleteTeam = yourOperations.deleteTeam
   const canInvite = yourOperations.manageMembers
-  const canLeaveTeam = Constants.useState(s => !Constants.isLastOwner(s, teamID) && role !== 'none')
+  const canLeaveTeam = C.useTeamsState(s => !Constants.isLastOwner(s, teamID) && role !== 'none')
   const canViewFolder = !yourOperations.joinTeam
-  const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onAddOrInvitePeople = () => {
     startAddMembersWizard(teamID)
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteTeam = () => {
     navigateAppend({props: {teamID}, selected: 'teamDeleteTeam'})
   }
@@ -100,7 +98,7 @@ export default (ownProps: OwnProps) => {
     navigateAppend({props: {teamID}, selected: 'teamReallyLeaveTeam'})
   }
   const onOpenFolder = (teamname: string) => {
-    FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
+    C.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
   }
 
   const items: Kb.MenuItems = ['Divider']
@@ -141,7 +139,7 @@ export default (ownProps: OwnProps) => {
     items,
     memberCount: memberCount,
     onHidden: ownProps.onHidden,
-    role: role as Types.TeamRoleType,
+    role: role as T.Teams.TeamRoleType,
     teamname: teamname,
     visible: ownProps.visible,
   }

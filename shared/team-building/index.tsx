@@ -1,11 +1,10 @@
+import * as C from '../constants'
 import * as ChatConstants from '../constants/chat2'
-import * as Constants from '../constants/team-building'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
-import * as TeamConstants from '../constants/teams'
-import * as TeamBuildingTypes from '../constants/types/team-building'
+import * as T from '../constants/types'
 import EmailSearch from './email-search'
 import Input from './input'
 import PhoneSearch from './phone-search'
@@ -20,10 +19,10 @@ import {FilteredServiceTabBar} from './filtered-service-tab-bar'
 import {modalHeaderProps} from './modal-header-props'
 import {useSharedValue} from '../common-adapters/reanimated'
 
-const deriveTeamSoFar = (teamSoFar: Set<TeamBuildingTypes.User>): Array<TeamBuildingTypes.SelectedUser> =>
+const deriveTeamSoFar = (teamSoFar: Set<T.TB.User>): Array<T.TB.SelectedUser> =>
   [...teamSoFar].map(userInfo => {
     let username = ''
-    let serviceId: TeamBuildingTypes.ServiceIdWithContact
+    let serviceId: T.TB.ServiceIdWithContact
     if (userInfo.contact && userInfo.serviceMap.keybase) {
       // resolved contact - pass username @ 'keybase' to teambox
       // so keybase avatar is rendered.
@@ -48,10 +47,10 @@ const deriveTeamSoFar = (teamSoFar: Set<TeamBuildingTypes.User>): Array<TeamBuil
   })
 
 type OwnProps = {
-  namespace: TeamBuildingTypes.AllowedNamespace
+  namespace: T.TB.AllowedNamespace
   teamID?: string
-  filterServices?: Array<TeamBuildingTypes.ServiceIdWithContact>
-  goButtonLabel?: TeamBuildingTypes.GoButtonLabel
+  filterServices?: Array<T.TB.ServiceIdWithContact>
+  goButtonLabel?: T.TB.GoButtonLabel
   title?: string
   recommendedHideYourself?: boolean
 }
@@ -66,8 +65,7 @@ const TeamBuilding = (p: OwnProps) => {
   const [enterInputCounter, setEnterInputCounter] = React.useState(0)
   const [highlightedIndex, setHighlightedIndex] = React.useState(0)
   const [searchString, setSearchString] = React.useState('')
-  const [selectedService, setSelectedService] =
-    React.useState<TeamBuildingTypes.ServiceIdWithContact>('keybase')
+  const [selectedService, setSelectedService] = React.useState<T.TB.ServiceIdWithContact>('keybase')
 
   const onDownArrowKeyDown = React.useCallback(() => {
     setHighlightedIndex(old => old + 1)
@@ -85,27 +83,27 @@ const TeamBuilding = (p: OwnProps) => {
     setEnterInputCounter(old => old + 1)
   }, [setEnterInputCounter])
 
-  const searchResults = Constants.useContext(s => s.searchResults)
-  const error = Constants.useContext(s => s.error)
-  const _teamSoFar = Constants.useContext(s => s.teamSoFar)
-  const userRecs = Constants.useContext(s => s.userRecs)
+  const searchResults = C.useTBContext(s => s.searchResults)
+  const error = C.useTBContext(s => s.error)
+  const _teamSoFar = C.useTBContext(s => s.teamSoFar)
+  const userRecs = C.useTBContext(s => s.userRecs)
 
-  const userResults: Array<TeamBuildingTypes.User> | undefined = searchResults
+  const userResults: Array<T.TB.User> | undefined = searchResults
     .get(trim(searchString))
     ?.get(selectedService)
 
   const teamSoFar = deriveTeamSoFar(_teamSoFar)
 
-  const cancelTeamBuilding = Constants.useContext(s => s.dispatch.cancelTeamBuilding)
-  const finishTeamBuilding = Constants.useContext(s => s.dispatch.finishTeamBuilding)
-  const finishedTeamBuilding = Constants.useContext(s => s.dispatch.finishedTeamBuilding)
-  const removeUsersFromTeamSoFar = Constants.useContext(s => s.dispatch.removeUsersFromTeamSoFar)
-  const addUsersToTeamSoFar = Constants.useContext(s => s.dispatch.addUsersToTeamSoFar)
-  const fetchUserRecs = Constants.useContext(s => s.dispatch.fetchUserRecs)
+  const cancelTeamBuilding = C.useTBContext(s => s.dispatch.cancelTeamBuilding)
+  const finishTeamBuilding = C.useTBContext(s => s.dispatch.finishTeamBuilding)
+  const finishedTeamBuilding = C.useTBContext(s => s.dispatch.finishedTeamBuilding)
+  const removeUsersFromTeamSoFar = C.useTBContext(s => s.dispatch.removeUsersFromTeamSoFar)
+  const addUsersToTeamSoFar = C.useTBContext(s => s.dispatch.addUsersToTeamSoFar)
+  const fetchUserRecs = C.useTBContext(s => s.dispatch.fetchUserRecs)
 
-  const _search = Constants.useContext(s => s.dispatch.search)
+  const _search = C.useTBContext(s => s.dispatch.search)
   const search = Container.useThrottledCallback(
-    (query: string, service: TeamBuildingTypes.ServiceIdWithContact, limit?: number) => {
+    (query: string, service: T.TB.ServiceIdWithContact, limit?: number) => {
       _search(query, service, namespace === 'chat2', limit)
     },
     500
@@ -157,17 +155,17 @@ const TeamBuilding = (p: OwnProps) => {
   )
 
   const onChangeService = React.useCallback(
-    (service: TeamBuildingTypes.ServiceIdWithContact) => {
+    (service: T.TB.ServiceIdWithContact) => {
       setSelectedService(service)
       incFocusInputCounter()
-      if (!TeamBuildingTypes.isContactServiceId(service)) {
+      if (!T.TB.isContactServiceId(service)) {
         search(searchString, service)
       }
     },
     [search, incFocusInputCounter, setSelectedService, searchString]
   )
 
-  const title = TeamConstants.useState(s =>
+  const title = C.useTeamsState(s =>
     namespace === 'teams' ? `Add to ${getTeamMeta(s, teamID ?? '').teamname}` : p.title ?? ''
   )
 
@@ -257,7 +255,7 @@ const TeamBuilding = (p: OwnProps) => {
       teamSoFar={teamSoFar}
       searchString={searchString}
       goButtonLabel={goButtonLabel}
-      waitingKey={teamID ? TeamConstants.teamWaitingKey(teamID) : undefined}
+      waitingKey={teamID ? C.teamWaitingKey(teamID) : undefined}
     />
   )
 
@@ -337,7 +335,7 @@ const styles = Styles.styleSheetCreate(
         height: 48,
         width: 48,
       },
-    } as const)
+    }) as const
 )
 
 export default TeamBuilding

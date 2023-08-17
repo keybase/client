@@ -2,7 +2,7 @@
 // Listens for requests from the main process (which proxies requests from other windows) to kick off an update
 // If asked we'll send all props, otherwise we do a shallow compare and send the different ones
 import * as React from 'react'
-import * as ConfigConstants from '../../constants/config'
+import * as C from '../../constants'
 import throttle from 'lodash/throttle'
 import KB2 from '../../util/electron.desktop'
 
@@ -22,7 +22,7 @@ export default function useSerializeProps<ProxyProps extends {}, SerializeProps 
 ) {
   const lastSent = React.useRef<Partial<SerializeProps>>({})
   const lastForceUpdate = React.useRef<number>(-1)
-  const currentForceUpdate = ConfigConstants.useConfigState(
+  const currentForceUpdate = C.useConfigState(
     s => s.remoteWindowNeedsProps.get(windowComponent)?.get(windowParam) ?? 0
   )
   const throttledSend = React.useRef(

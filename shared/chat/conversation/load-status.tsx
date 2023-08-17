@@ -1,9 +1,8 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as T from '../../constants/types'
 import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/chat2'
 
 const ValidatedStatus = () => {
   const [visible, setVisible] = React.useState(true)
@@ -22,37 +21,35 @@ const ValidatedStatus = () => {
   ) : null
 }
 
-const getBkgColor = (status: RPCChatTypes.UIChatThreadStatus) => {
-  switch (status.typ) {
-    case RPCChatTypes.UIChatThreadStatusTyp.validated:
+const getBkgColor = (status: T.RPCChat.UIChatThreadStatusTyp) => {
+  switch (status) {
+    case T.RPCChat.UIChatThreadStatusTyp.validated:
       return 'green'
     default:
       return 'grey'
   }
 }
 
-const ThreadLoadStatus = (p: {conversationIDKey: Types.ConversationIDKey}) => {
-  const {conversationIDKey} = p
+const ThreadLoadStatus = () => {
+  const status = C.useChatContext(s => s.threadLoadStatus)
 
-  const status = Container.useSelector(state => state.chat2.threadLoadStatus.get(conversationIDKey))
-
-  if (!status || status.typ === RPCChatTypes.UIChatThreadStatusTyp.none) {
+  if (status === T.RPCChat.UIChatThreadStatusTyp.none) {
     return null
   }
-  switch (status.typ) {
-    case RPCChatTypes.UIChatThreadStatusTyp.server:
+  switch (status) {
+    case T.RPCChat.UIChatThreadStatusTyp.server:
       return (
         <Kb.Banner color={getBkgColor(status)} small={true} style={styles.banner}>
           Syncing messages with server...
         </Kb.Banner>
       )
-    case RPCChatTypes.UIChatThreadStatusTyp.validating:
+    case T.RPCChat.UIChatThreadStatusTyp.validating:
       return (
         <Kb.Banner color={getBkgColor(status)} small={true} style={styles.banner}>
           Validating sender signing keys...
         </Kb.Banner>
       )
-    case RPCChatTypes.UIChatThreadStatusTyp.validated:
+    case T.RPCChat.UIChatThreadStatusTyp.validated:
       return <ValidatedStatus />
   }
 }
@@ -63,7 +60,7 @@ const styles = Styles.styleSheetCreate(
       banner: {
         padding: Styles.globalMargins.xxtiny,
       },
-    } as const)
+    }) as const
 )
 
 export default ThreadLoadStatus

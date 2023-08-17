@@ -1,13 +1,9 @@
-import * as RouterConstants from '../constants/router2'
-import * as Constants from '../constants/git'
-import * as ConfigConstants from '../constants/config'
-import * as FsConstants from '../constants/fs'
-import * as FsTypes from '../constants/types/fs'
+import * as C from '../constants'
+import * as T from '../constants/types'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as TeamConstants from '../constants/teams'
-import * as TrackerConstants from '../constants/tracker2'
 import openURL from '../util/open-url'
 
 export const NewContext = React.createContext(new Set())
@@ -19,21 +15,19 @@ type OwnProps = {
   onToggleExpand: (id: string) => void
 }
 
-const noGit = Constants.makeGitInfo()
+const noGit = C.makeGitInfo()
 const ConnectedRow = (ownProps: OwnProps) => {
   const {id, expanded} = ownProps
-  const git = Constants.useGitState(s => s.idToInfo.get(id) || noGit)
-  const teamID = TeamConstants.useState(s =>
-    git.teamname ? TeamConstants.getTeamID(s, git.teamname) : undefined
-  )
+  const git = C.useGitState(s => s.idToInfo.get(id) || noGit)
+  const teamID = C.useTeamsState(s => (git.teamname ? TeamConstants.getTeamID(s, git.teamname) : undefined))
   const isNew = React.useContext(NewContext).has(id)
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const setTeamRepoSettings = Constants.useGitState(s => s.dispatch.setTeamRepoSettings)
-  const _onBrowseGitRepo = (path: FsTypes.Path) => {
-    FsConstants.makeActionForOpenPathInFilesTab(path)
+  const you = C.useCurrentUserState(s => s.username)
+  const setTeamRepoSettings = C.useGitState(s => s.dispatch.setTeamRepoSettings)
+  const _onBrowseGitRepo = (path: T.FS.Path) => {
+    C.makeActionForOpenPathInFilesTab(path)
   }
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onOpenChannelSelection = () => {
     teamID &&
       navigateAppend({
@@ -44,8 +38,8 @@ const ConnectedRow = (ownProps: OwnProps) => {
   const _setDisableChat = (disabled: boolean, repoID: string, teamname: string) => {
     setTeamRepoSettings('', teamname, repoID, disabled)
   }
-  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const openUserTracker = (username: string) => {
     showUser(username, true)
   }
@@ -66,7 +60,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
     name: git.name,
     onBrowseGitRepo: () =>
       _onBrowseGitRepo(
-        FsTypes.stringToPath(
+        T.FS.stringToPath(
           git.url.replace(/keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/, '/keybase/$1/.kbfs_autogit/$3')
         )
       ),

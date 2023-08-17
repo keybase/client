@@ -1,4 +1,4 @@
-import type * as Types from '../../../constants/types/teams'
+import type * as T from '../../../constants/types'
 
 // Weights for sorting team members
 // 2 is neutral
@@ -26,10 +26,10 @@ const getWeights = (manageMembers: boolean) => {
 }
 
 export const getOrderedMemberArray = (
-  memberInfo: Map<string, Types.MemberInfo> | undefined,
+  memberInfo: Map<string, T.Teams.MemberInfo> | undefined,
   you: string | undefined,
-  yourOperations: Types.TeamOperations
-): Array<Types.MemberInfo> =>
+  yourOperations: T.Teams.TeamOperations
+): Array<T.Teams.MemberInfo> =>
   memberInfo
     ? [...memberInfo.values()]
         .sort((a, b) => {
@@ -56,12 +56,12 @@ export const getOrderedMemberArray = (
         )
     : []
 
-export const getOrderedBotsArray = (memberInfo: Map<string, Types.MemberInfo> | undefined) =>
+export const getOrderedBotsArray = (memberInfo: Map<string, T.Teams.MemberInfo> | undefined) =>
   memberInfo
     ? [...memberInfo.values()]
         .sort((a, b) => a.username.localeCompare(b.username))
         .filter(m => m.type === 'restrictedbot' || m.type === 'bot')
     : []
 
-export const sortInvites = (a: Types.InviteInfo, b: Types.InviteInfo) =>
+export const sortInvites = (a: T.Teams.InviteInfo, b: T.Teams.InviteInfo) =>
   (a.email || a.username || a.name || a.id || '').localeCompare(b.email || b.username || b.name || b.id || '')

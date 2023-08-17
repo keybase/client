@@ -1,17 +1,12 @@
+import * as C from '../../../../../../constants'
 import * as Kb from '../../../../../../common-adapters/index'
-import * as Container from '../../../../../../util/container'
-import * as Chat2Gen from '../../../../../../actions/chat2-gen'
-import * as ConfigConstants from '../../../../../../constants/config'
-import * as RouterConstants from '../../../../../../constants/router2'
 import * as Styles from '../../../../../../styles'
-import type * as Types from '../../../../../../constants/types/chat2'
+import type * as T from '../../../../../../constants/types'
 import openURL from '../../../../../../util/open-url'
 import LocationMap from '../../../../../location-map'
-import HiddenString from '../../../../../../util/hidden-string'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
-  coord: Types.Coordinate
+  coord: T.Chat.Coordinate
   isAuthor: boolean
   author?: string
   isLiveLocation: boolean
@@ -19,12 +14,11 @@ type Props = {
 }
 
 const UnfurlMapPopup = (props: Props) => {
-  const {coord, isAuthor, isLiveLocation, url, conversationIDKey} = props
+  const {coord, isAuthor, isLiveLocation, url} = props
   const author = props.author ?? ''
-  const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
+  const httpSrv = C.useConfigState(s => s.httpSrv)
 
-  const dispatch = Container.useDispatch()
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
   }
@@ -32,14 +26,10 @@ const UnfurlMapPopup = (props: Props) => {
     onClose()
     openURL(url)
   }
+  const messageSend = C.useChatContext(s => s.dispatch.messageSend)
   const onStopSharing = () => {
     onClose()
-    dispatch(
-      Chat2Gen.createMessageSend({
-        conversationIDKey,
-        text: new HiddenString('/location stop'),
-      })
-    )
+    messageSend('/location stop')
   }
 
   const width = Math.ceil(Styles.dimensionWidth)

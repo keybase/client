@@ -1,6 +1,6 @@
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import type * as Types from '../../constants/types/fs'
+import type * as T from '../../constants/types'
 import {formatTimeForFS} from '../../util/timestamp'
 
 export type Props = {
@@ -9,7 +9,7 @@ export type Props = {
   mode: 'row' | 'default'
   reset: boolean | Array<string>
   tlfMtime: number
-  tlfType: Types.Visibility
+  tlfType: T.FS.Visibility
 }
 
 const getOtherResetText = (names: Array<string>): string => {
@@ -18,9 +18,7 @@ const getOtherResetText = (names: Array<string>): string => {
   } else if (names.length === 2) {
     return `${names[0]} and ${names[1]} have reset or deleted their accounts.`
   }
-  return `${names.slice(0, -1).join(', ')}, and ${
-    names[names.length - 1]
-  } have reset or deleted their accounts.`
+  return `${names.slice(0, -1).join(', ')}, and ${names.at(-1)} have reset or deleted their accounts.`
 }
 
 const newMetaMaybe = (props: Props) =>
@@ -150,7 +148,7 @@ const styles = Styles.styleSheetCreate(
           flexShrink: 1,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default TlfInfoLine

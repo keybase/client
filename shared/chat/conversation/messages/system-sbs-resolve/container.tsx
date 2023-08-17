@@ -1,14 +1,14 @@
+import * as C from '../../../../constants'
 import SystemInviteAccepted from '.'
-import type * as Types from '../../../../constants/types/chat2'
-import * as ConfigConstants from '../../../../constants/config'
+import type * as T from '../../../../constants/types'
 
 type OwnProps = {
-  message: Types.MessageSystemSBSResolved
+  message: T.Chat.MessageSystemSBSResolved
 }
 
 export default (ownProps: OwnProps) => {
   const {message} = ownProps
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const props = {
     message,
     you,

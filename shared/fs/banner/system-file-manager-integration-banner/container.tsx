@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Constants from '../../../constants/fs'
+import * as C from '../../../constants'
 import Banner from './index'
 
 type OwnProps = {
@@ -7,13 +7,11 @@ type OwnProps = {
 }
 
 const SFMIContainer = (op: OwnProps) => {
-  const driverStatus = Constants.useState(s => s.sfmi.driverStatus)
-  const driverEnable = Constants.useState(s => s.dispatch.driverEnable)
-  const driverDisable = Constants.useState(s => s.dispatch.driverDisable)
-  const setSfmiBannerDismissedDesktop = Constants.useState(
-    s => s.dispatch.dynamic.setSfmiBannerDismissedDesktop
-  )
-  const settings = Constants.useState(s => s.settings)
+  const driverStatus = C.useFSState(s => s.sfmi.driverStatus)
+  const driverEnable = C.useFSState(s => s.dispatch.driverEnable)
+  const driverDisable = C.useFSState(s => s.dispatch.driverDisable)
+  const setSfmiBannerDismissedDesktop = C.useFSState(s => s.dispatch.dynamic.setSfmiBannerDismissedDesktop)
+  const settings = C.useFSState(s => s.settings)
   const onDisable = React.useCallback(() => driverDisable(), [driverDisable])
   const onDismiss = React.useCallback(
     () => setSfmiBannerDismissedDesktop?.(true),

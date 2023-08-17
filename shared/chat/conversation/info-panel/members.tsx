@@ -1,18 +1,15 @@
+import * as C from '../../../constants'
 import * as Container from '../../../util/container'
 import * as TeamConstants from '../../../constants/teams'
 import * as Constants from '../../../constants/chat2'
-import * as UsersConstants from '../../../constants/users'
-import * as ProfileConstants from '../../../constants/profile'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Types from '../../../constants/types/chat2'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as T from '../../../constants/types'
 import Participant from './participant'
 import * as Styles from '../../../styles'
 import shallowEqual from 'shallowequal'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   renderTabs: () => React.ReactNode
   commonSections: Array<unknown>
 }
@@ -21,32 +18,29 @@ const auditingBannerItem = 'auditing banner'
 const spinnerItem = 'spinner item'
 
 const MembersTab = (props: Props) => {
-  const {conversationIDKey} = props
-  const infoMap = UsersConstants.useState(s => s.infoMap)
-  const {channelname, teamID, teamname} = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const infoMap = C.useUsersState(s => s.infoMap)
+  const {channelname, teamID, teamname} = C.useChatContext(s => {
+    const {meta} = s
     const {teamID, channelname, teamname} = meta
     return {channelname, teamID, teamname}
   }, shallowEqual)
 
-  const teamMembers = TeamConstants.useState(s => s.teamIDToMembers.get(teamID))
+  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && !teamMembers
-  const refreshParticipants = Container.useRPC(RPCChatTypes.localRefreshParticipantsRpcPromise)
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
+  const refreshParticipants = Container.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const participants = C.useChatContext(
+    s => Constants.getBotsAndParticipants(s.meta, s.participants).participants
   )
-  const participants = Container.useSelector(
-    state => Constants.getBotsAndParticipants(state, conversationIDKey).participants
-  )
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
+  const cidChanged = C.useCIDChanged(conversationIDKey)
   const [lastTeamName, setLastTeamName] = React.useState('')
-  if (lastTeamName !== teamname || lastCID !== conversationIDKey) {
+  if (lastTeamName !== teamname || cidChanged) {
     setLastTeamName(teamname)
-    setLastCID(conversationIDKey)
     if (teamname) {
       refreshParticipants(
-        [{convID: Types.keyToConversationID(conversationIDKey)}],
+        [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
         () => {},
         () => {}
       )
@@ -75,7 +69,7 @@ const MembersTab = (props: Props) => {
       return l.username.localeCompare(r.username)
     })
 
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onShowProfile = showUserProfile
 
   const sections = showSpinner
@@ -130,5 +124,5 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       membersSpinner: {marginTop: Styles.globalMargins.small},
-    } as const)
+    }) as const
 )

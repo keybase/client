@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Types from '../../../constants/types/fs'
-import * as Constants from '../../../constants/fs'
+import * as T from '../../../constants/types'
+import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import Rows from '../rows/rows-container'
@@ -12,7 +12,7 @@ import NavHeaderTitle from '../../nav-header/title'
 type Props = {
   index: number
   isShare: boolean
-  parentPath: Types.Path
+  parentPath: T.FS.Path
   targetName: string
   onBack?: () => void
   onCancel?: () => void
@@ -69,7 +69,7 @@ const makeTitle = (props: Props) => {
       <Kb.Text type="Header" style={{flexShrink: 0}}>
         Move or Copy “
       </Kb.Text>
-      <FsCommon.ItemIcon size={16} path={Types.pathConcat(props.parentPath, props.targetName)} />
+      <FsCommon.ItemIcon size={16} path={T.FS.pathConcat(props.parentPath, props.targetName)} />
       <FsCommon.Filename type="Header" filename={props.targetName} />
       <Kb.Text type="Header" style={{flexShrink: 0}}>
         ”
@@ -136,7 +136,7 @@ const DestinationPicker = (props: Props) => {
             </Kb.Text>
           </Kb.ClickableBox>
         )}
-        {props.parentPath === Constants.defaultPath ? (
+        {props.parentPath === C.defaultPath ? (
           <Root destinationPickerIndex={props.index} />
         ) : (
           <Rows path={props.parentPath} destinationPickerIndex={props.index} />
@@ -204,5 +204,5 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.blueDark,
         marginLeft: Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )

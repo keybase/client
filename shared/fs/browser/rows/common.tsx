@@ -1,11 +1,11 @@
 import * as Styles from '../../../styles'
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import {OpenInSystemFileManager, ItemIcon, PathItemAction, PathStatusIcon} from '../../common'
 
 export type StillCommonProps = {
-  path: Types.Path
+  path: T.FS.Path
   inDestinationPicker?: boolean
   onOpen?: () => void
   mixedMode?: boolean
@@ -56,13 +56,13 @@ export const StillCommon = (
     action={
       !props.inDestinationPicker &&
       !props.writingToJournal &&
-      Types.getPathLevel(props.path) > 2 && (
+      T.FS.getPathLevel(props.path) > 2 && (
         <Kb.Box2 direction="horizontal">
           <OpenInSystemFileManager path={props.path} />
           <PathItemAction
             path={props.path}
             clickable={{type: 'icon'}}
-            initView={Types.PathItemActionMenuView.Root}
+            initView={T.FS.PathItemActionMenuView.Root}
             mode="row"
           />
         </Kb.Box2>
@@ -93,7 +93,7 @@ export const rowStyles = Styles.styleSheetCreate(
           flexShrink: 1,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export const normalRowHeight = Kb.smallListItem2Height

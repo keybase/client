@@ -1,27 +1,20 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
+import type * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/teams'
-import type * as ChatTypes from '../../../constants/types/chat2'
-import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
-import * as UsersConstants from '../../../constants/users'
-import * as ProfileConstants from '../../../constants/profile'
-import * as ChatConstants from '../../../constants/chat2'
-import * as ConfigConstants from '../../../constants/config'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import MenuHeader from '../../team/rows/menu-header.new'
 
 type Props = {
-  conversationIDKey: ChatTypes.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   firstItem: boolean
   isGeneral: boolean
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   username: string
 }
 
-const showCrown: Types.BoolTypeMap = {
+const showCrown: T.Teams.BoolTypeMap = {
   admin: true,
   bot: false,
   owner: true,
@@ -36,16 +29,16 @@ const showCrown: Types.BoolTypeMap = {
 
 const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
-  const infoMap = UsersConstants.useState(s => s.infoMap)
-  const participantInfo = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey))
-  const teamMemberInfo = Constants.useState(
+  const infoMap = C.useUsersState(s => s.infoMap)
+  const participantInfo = C.useConvoState(conversationIDKey, s => s.participants)
+  const teamMemberInfo = C.useTeamsState(
     s => s.teamDetails.get(teamID)?.members?.get(username) ?? Constants.initialMemberInfo
   )
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type
-  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
   const crown = React.useMemo(() => {
     return active && roleType && showCrown[roleType] ? (
       <Kb.Icon
@@ -72,20 +65,20 @@ const ChannelMemberRow = (props: Props) => {
   const roleLabel = !!active && !!teamMemberInfo.type && Constants.typeToLabel[teamMemberInfo.type]
   const isYou = you === username
 
-  const dispatch = Container.useDispatch()
-  const channelSelectedMembers = Constants.useState(s => s.channelSelectedMembers.get(conversationIDKey))
+  const channelSelectedMembers = C.useTeamsState(s => s.channelSelectedMembers.get(conversationIDKey))
   const anySelected = !!channelSelectedMembers?.size
   const memberSelected = !!channelSelectedMembers?.has(username)
 
-  const channelSetMemberSelected = Constants.useState(s => s.dispatch.channelSetMemberSelected)
+  const channelSetMemberSelected = C.useTeamsState(s => s.dispatch.channelSetMemberSelected)
 
   const onSelect = (selected: boolean) => {
     channelSetMemberSelected(conversationIDKey, username, selected)
   }
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onChat = React.useCallback(() => {
-    username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'}))
-  }, [username, dispatch])
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+    username && previewConversation({participants: [username], reason: 'teamMember'})
+  }, [username, previewConversation])
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onEditMember = React.useCallback(() => {
     yourOperations.manageMembers &&
       username &&
@@ -127,8 +120,8 @@ const ChannelMemberRow = (props: Props) => {
     </Kb.Box2>
   )
 
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
-  const setUserBlocks = UsersConstants.useState(s => s.dispatch.setUserBlocks)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p

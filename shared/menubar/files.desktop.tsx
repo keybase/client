@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import * as FsTypes from '../constants/types/fs'
+import * as T from '../constants/types'
 import {Filename} from '../fs/common'
 
 type FileUpdateProps = {
-  path: FsTypes.Path
-  tlfType: FsTypes.TlfType
+  path: T.FS.Path
+  tlfType: T.FS.TlfType
   uploading: boolean
   onClick: () => void
 }
@@ -18,9 +18,9 @@ type FileUpdatesProps = {
 export type UserTlfUpdateRowProps = {
   onClickAvatar: () => void
   onSelectPath: () => void
-  path: FsTypes.Path
+  path: T.FS.Path
   writer: string
-  tlfType: FsTypes.TlfType
+  tlfType: T.FS.TlfType
   participants: Array<string>
   teamname: string
   timestamp: string
@@ -92,7 +92,7 @@ const defaultNumFileOptionsShown = 3
 const FileUpdates = (props: FileUpdatesProps & FileUpdatesHocProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     {props.updates.slice(0, props.isShowingAll ? props.updates.length : defaultNumFileOptionsShown).map(u => (
-      <FileUpdate key={FsTypes.pathToString(u.path)} {...u} />
+      <FileUpdate key={T.FS.pathToString(u.path)} {...u} />
     ))}
     {props.updates.length > defaultNumFileOptionsShown && !props.isShowingAll && (
       <FileUpdatesShowAll
@@ -250,5 +250,5 @@ const styles = Styles.styleSheetCreate(
           wordBreak: 'break-all',
         },
       }),
-    } as const)
+    }) as const
 )

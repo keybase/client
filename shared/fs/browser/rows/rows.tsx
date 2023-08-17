@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import * as RowTypes from './types'
-import type * as Types from '../../../constants/types/fs'
+import type * as T from '../../../constants/types'
 import Placeholder from './placeholder'
 import TlfType from './tlf-type-container'
 import Tlf from './tlf-container'
@@ -16,7 +16,7 @@ export type Props = {
   emptyMode: 'empty' | 'not-empty-but-no-match' | 'not-empty'
   destinationPickerIndex?: number
   items: Array<RowTypes.RowItem>
-  path: Types.Path
+  path: T.FS.Path
 }
 
 export const WrapRow = ({children}: {children: React.ReactNode}) => (
@@ -178,7 +178,7 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
         height: normalRowHeight,
       },
-    } as const)
+    }) as const
 )
 
 const getRowHeight = (row: RowTypes.RowItem) =>

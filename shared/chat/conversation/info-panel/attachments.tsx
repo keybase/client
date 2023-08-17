@@ -1,13 +1,11 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
-import * as FSConstants from '../../../constants/fs'
 import * as Kb from '../../../common-adapters'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import chunk from 'lodash/chunk'
-import type * as Types from '../../../constants/types/chat2'
 import type {Section} from '../../../common-adapters/section-list'
 import {formatAudioRecordDuration, formatTimeForMessages} from '../../../util/timestamp'
 import {infoPanelWidth} from './common'
@@ -50,7 +48,7 @@ type Doc = {
   ctime: number
   downloading: boolean
   fileName: string
-  message?: Types.Message
+  message?: T.Chat.Message
   name: string
   progress: number
   onDownload?: () => void
@@ -174,7 +172,6 @@ const DocViewRow = (props: DocViewRowProps) => {
     return !!item.message
   }, [item])
   const {toggleShowingPopup, popup} = useMessagePopup({
-    conversationIDKey: item.message?.conversationIDKey ?? '',
     ordinal: item.message?.id ?? 0,
     shouldShow,
   })
@@ -211,8 +208,8 @@ const DocViewRow = (props: DocViewRowProps) => {
 }
 
 type SelectorProps = {
-  selectedView: RPCChatTypes.GalleryItemTyp
-  onSelectView: (typ: RPCChatTypes.GalleryItemTyp) => void
+  selectedView: T.RPCChat.GalleryItemTyp
+  onSelectView: (typ: T.RPCChat.GalleryItemTyp) => void
 }
 
 const getBkgColor = (selected: boolean) =>
@@ -223,38 +220,38 @@ const getColor = (selected: boolean) =>
 const AttachmentTypeSelector = (props: SelectorProps) => (
   <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.selectorContainer} fullWidth={true}>
     <Kb.ClickableBox
-      onClick={() => props.onSelectView(RPCChatTypes.GalleryItemTyp.media)}
+      onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.media)}
       style={Styles.collapseStyles([
         styles.selectorItemContainer,
         styles.selectorMediaContainer,
-        getBkgColor(props.selectedView === RPCChatTypes.GalleryItemTyp.media),
+        getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.media),
       ])}
     >
-      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === RPCChatTypes.GalleryItemTyp.media)}>
+      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.media)}>
         Media
       </Kb.Text>
     </Kb.ClickableBox>
     <Kb.ClickableBox
-      onClick={() => props.onSelectView(RPCChatTypes.GalleryItemTyp.doc)}
+      onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.doc)}
       style={Styles.collapseStyles([
         styles.selectorDocContainer,
         styles.selectorItemContainer,
-        getBkgColor(props.selectedView === RPCChatTypes.GalleryItemTyp.doc),
+        getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc),
       ])}
     >
-      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === RPCChatTypes.GalleryItemTyp.doc)}>
+      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc)}>
         Docs
       </Kb.Text>
     </Kb.ClickableBox>
     <Kb.ClickableBox
-      onClick={() => props.onSelectView(RPCChatTypes.GalleryItemTyp.link)}
+      onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.link)}
       style={Styles.collapseStyles([
         styles.selectorItemContainer,
         styles.selectorLinkContainer,
-        getBkgColor(props.selectedView === RPCChatTypes.GalleryItemTyp.link),
+        getBkgColor(props.selectedView === T.RPCChat.GalleryItemTyp.link),
       ])}
     >
-      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === RPCChatTypes.GalleryItemTyp.link)}>
+      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.link)}>
         Links
       </Kb.Text>
     </Kb.ClickableBox>
@@ -381,95 +378,75 @@ const linkStyleOverride = {
 }
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   renderTabs: () => React.ReactNode
   commonSections: Array<Section<{key: string}, {title?: string}>>
 }
 
-const getFromMsgID = (info: Types.AttachmentViewInfo): Types.MessageID | undefined => {
+const getFromMsgID = (info: T.Chat.AttachmentViewInfo): T.Chat.MessageID | undefined => {
   if (info.last || info.status !== 'success') {
     return undefined
   }
-  const lastMessage = info.messages.length > 0 ? info.messages[info.messages.length - 1] : undefined
+  const lastMessage = info.messages.length > 0 ? info.messages.at(-1) : undefined
   return lastMessage?.id
 }
-
-const noAttachmentView = Constants.makeAttachmentViewInfo()
 
 export const useAttachmentSections = (
   p: Props,
   loadImmediately: boolean,
   useFlexWrap: boolean
 ): Array<Section<any, {title?: string}>> => {
-  const {conversationIDKey} = p
-  const dispatch = Container.useDispatch()
-  const [selectedAttachmentView, onSelectAttachmentView] = React.useState<RPCChatTypes.GalleryItemTyp>(
-    RPCChatTypes.GalleryItemTyp.media
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const [selectedAttachmentView, onSelectAttachmentView] = React.useState<T.RPCChat.GalleryItemTyp>(
+    T.RPCChat.GalleryItemTyp.media
   )
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
+  const cidChanged = C.useCIDChanged(conversationIDKey)
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
+  const loadAttachmentView = C.useChatContext(s => s.dispatch.loadAttachmentView)
 
   Container.useOnMountOnce(() => {
-    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType: selectedAttachmentView}))
+    loadAttachmentView(selectedAttachmentView)
   })
-  if (lastCID !== conversationIDKey || lastSAV !== selectedAttachmentView) {
-    setLastCID(conversationIDKey)
+  if (cidChanged || lastSAV !== selectedAttachmentView) {
     setLastSAV(selectedAttachmentView)
     if (loadImmediately) {
-      dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType: selectedAttachmentView}))
+      loadAttachmentView(selectedAttachmentView)
     }
   }
 
-  const attachmentView = Container.useSelector(state => state.chat2.attachmentViewMap.get(conversationIDKey))
-  const attachmentInfo = attachmentView?.get(selectedAttachmentView) || noAttachmentView
-  const fromMsgID = getFromMsgID(attachmentInfo)
+  const attachmentView = C.useChatContext(s => s.attachmentViewMap)
+  const attachmentInfo = attachmentView.get(selectedAttachmentView)
+  const fromMsgID = attachmentInfo ? getFromMsgID(attachmentInfo) : undefined
 
-  const onLoadMore = fromMsgID
-    ? () =>
-        dispatch(
-          Chat2Gen.createLoadAttachmentView({
-            conversationIDKey,
-            fromMsgID,
-            viewType: selectedAttachmentView,
-          })
-        )
-    : undefined
+  const onLoadMore = fromMsgID ? () => loadAttachmentView(selectedAttachmentView, fromMsgID) : undefined
 
-  const onAttachmentViewChange = (viewType: RPCChatTypes.GalleryItemTyp) => {
+  const onAttachmentViewChange = (viewType: T.RPCChat.GalleryItemTyp) => {
     onSelectAttachmentView(viewType)
   }
 
   const loadAttachments = () => {
-    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType: selectedAttachmentView}))
+    loadAttachmentView(selectedAttachmentView)
   }
 
-  const onMediaClick = (message: Types.MessageAttachment) =>
-    dispatch(
-      Chat2Gen.createAttachmentPreviewSelect({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.id,
-      })
-    )
+  const attachmentPreviewSelect = C.useChatContext(s => s.dispatch.attachmentPreviewSelect)
+  const onMediaClick = (message: T.Chat.MessageAttachment) => attachmentPreviewSelect(message.id)
 
-  const onDocDownload = (message: Types.MessageAttachment) => {
+  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
+  const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
+
+  const onDocDownload = (message: T.Chat.MessageAttachment) => {
     if (Styles.isMobile) {
-      dispatch(Chat2Gen.createMessageAttachmentNativeShare({message}))
+      messageAttachmentNativeShare(message)
     } else {
       if (!message.downloadPath) {
-        dispatch(
-          Chat2Gen.createAttachmentDownload({
-            conversationIDKey: message.conversationIDKey,
-            ordinal: message.id,
-          })
-        )
+        attachmentDownload(message.id)
       }
     }
   }
 
-  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
-  const onShowInFinder = (message: Types.MessageAttachment) =>
+  const onShowInFinder = (message: T.Chat.MessageAttachment) =>
     message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
 
   const commonSections: Array<InfoPanelSection> = [
@@ -488,7 +465,7 @@ export const useAttachmentSections = (
     data: [{key: 'load more'}],
     key: 'load-more',
     renderItem: () => {
-      const status = attachmentInfo.status
+      const status = attachmentInfo?.status
       if (onLoadMore && status !== 'loading') {
         return (
           <Kb.Button
@@ -517,7 +494,7 @@ export const useAttachmentSections = (
   }
 
   let sections: Array<InfoPanelSection>
-  if (attachmentInfo.messages.length === 0 && attachmentInfo.status !== 'loading') {
+  if (!attachmentInfo?.messages.length && attachmentInfo?.status !== 'loading') {
     sections = [
       {
         data: [{key: 'no-attachments'}],
@@ -532,12 +509,12 @@ export const useAttachmentSections = (
     sections = [...commonSections, ...sections, loadMoreSection]
   } else {
     switch (selectedAttachmentView) {
-      case RPCChatTypes.GalleryItemTyp.media:
+      case T.RPCChat.GalleryItemTyp.media:
         {
           const rowSize = 4 // count of images in each row
           const maxMediaThumbSize = infoPanelWidth() / rowSize
           const s = formMonths(
-            (attachmentInfo.messages as Array<Types.MessageAttachment>).map(
+            (attachmentInfo.messages as Array<T.Chat.MessageAttachment>).map(
               m =>
                 ({
                   audioDuration: m.audioDuration,
@@ -588,9 +565,9 @@ export const useAttachmentSections = (
           sections = [...commonSections, ...s, loadMoreSection]
         }
         break
-      case RPCChatTypes.GalleryItemTyp.doc:
+      case T.RPCChat.GalleryItemTyp.doc:
         {
-          const docs = (attachmentInfo.messages as Array<Types.MessageAttachment>).map(m => ({
+          const docs = (attachmentInfo.messages as Array<T.Chat.MessageAttachment>).map(m => ({
             author: m.author,
             ctime: m.timestamp,
             downloading: m.transferState === 'downloading',
@@ -612,7 +589,7 @@ export const useAttachmentSections = (
           sections = [...commonSections, ...s, loadMoreSection]
         }
         break
-      case RPCChatTypes.GalleryItemTyp.link:
+      case T.RPCChat.GalleryItemTyp.link:
         {
           const links = attachmentInfo.messages.reduce<
             Array<{
@@ -636,7 +613,7 @@ export const useAttachmentSections = (
               })
             } else {
               ;[...m.unfurls.values()].forEach((u, i) => {
-                if (u.unfurl.unfurlType === RPCChatTypes.UnfurlType.generic) {
+                if (u.unfurl.unfurlType === T.RPCChat.UnfurlType.generic) {
                   l.push({
                     author: m.author,
                     ctime: m.timestamp,

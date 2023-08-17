@@ -1,9 +1,9 @@
 import Text, {type StylesTextCrossPlatform} from './text'
-import type {ConversationIDKey} from '../constants/types/chat2'
+import type * as T from '../constants/types'
 
 export type Props = {
   name: string
-  convID: ConversationIDKey
+  convID: T.Chat.ConversationIDKey
   style: StylesTextCrossPlatform
   allowFontScaling?: boolean
   onClick: () => void

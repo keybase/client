@@ -1,14 +1,13 @@
 import * as Z from '../util/zustand'
-import * as RPCTypes from './types/rpc-gen'
-import * as Types from './types/devices'
+import * as T from './types'
 import {memoize} from '../util/memoize'
 
-const initialStore: Types.State = {
+const initialStore: T.Devices.State = {
   deviceMap: new Map(),
   isNew: new Set(),
 }
 
-type State = Types.State & {
+type State = T.Devices.State & {
   dispatch: {
     load: () => void
     clearBadges: () => void
@@ -17,14 +16,14 @@ type State = Types.State & {
   }
 }
 
-export const useDevicesState = Z.createZustand<State>(set => {
+export const _useState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
     clearBadges: () => {
-      Z.ignorePromise(RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise())
+      Z.ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())
     },
     load: () => {
       const f = async () => {
-        const results = await RPCTypes.deviceDeviceHistoryListRpcPromise(undefined, waitingKey)
+        const results = await T.RPCGen.deviceDeviceHistoryListRpcPromise(undefined, waitingKey)
         set(s => {
           s.deviceMap = new Map(
             results?.map(r => {
@@ -50,11 +49,11 @@ export const useDevicesState = Z.createZustand<State>(set => {
   }
 })
 
-const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
+const rpcDeviceToDevice = (d: T.RPCGen.DeviceDetail): T.Devices.Device =>
   makeDevice({
     created: d.device.cTime,
     currentDevice: d.currentDevice,
-    deviceID: Types.stringToDeviceID(d.device.deviceID),
+    deviceID: T.Devices.stringToDeviceID(d.device.deviceID),
     deviceNumberOfType: d.device.deviceNumberOfType,
     lastUsed: d.device.lastUsedTime,
     name: d.device.name,
@@ -62,26 +61,26 @@ const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
     provisionerName: d.provisioner ? d.provisioner.name : undefined,
     revokedAt: d.revokedAt || undefined,
     revokedByName: d.revokedByDevice ? d.revokedByDevice.name : undefined,
-    type: Types.stringToDeviceType(d.device.type),
+    type: T.Devices.stringToDeviceType(d.device.type),
   })
 
-export const emptyDevice: Types.Device = {
+export const emptyDevice: T.Devices.Device = {
   created: 0,
   currentDevice: false,
-  deviceID: Types.stringToDeviceID(''),
+  deviceID: T.Devices.stringToDeviceID(''),
   deviceNumberOfType: 0,
   lastUsed: 0,
   name: '',
-  type: Types.stringToDeviceType('desktop'),
+  type: T.Devices.stringToDeviceType('desktop'),
 }
 
-const makeDevice = (d?: Partial<Types.Device>): Types.Device =>
+const makeDevice = (d?: Partial<T.Devices.Device>): T.Devices.Device =>
   d ? Object.assign({...emptyDevice}, d) : emptyDevice
 
 export const waitingKey = 'devices:devicesPage'
 
 export const useActiveDeviceCounts = () => {
-  const ds = useDevicesState(s => s.deviceMap)
+  const ds = _useState(s => s.deviceMap)
   return [...ds.values()].reduce((c, v) => {
     if (!v.revokedAt) {
       ++c
@@ -91,7 +90,7 @@ export const useActiveDeviceCounts = () => {
 }
 
 export const useRevokedDeviceCounts = () => {
-  const ds = useDevicesState(s => s.deviceMap)
+  const ds = _useState(s => s.deviceMap)
   return [...ds.values()].reduce((c, v) => {
     if (v.revokedAt) {
       ++c
@@ -106,12 +105,12 @@ export const useRevokedDeviceCounts = () => {
 // as the background #
 export const numBackgrounds = 10
 
-export const useDeviceIconNumber = (deviceID: Types.DeviceID) => {
-  const devices = useDevicesState(s => s.deviceMap)
-  return (((devices.get(deviceID)?.deviceNumberOfType ?? 0) % numBackgrounds) + 1) as Types.IconNumber
+export const useDeviceIconNumber = (deviceID: T.Devices.DeviceID) => {
+  const devices = _useState(s => s.deviceMap)
+  return (((devices.get(deviceID)?.deviceNumberOfType ?? 0) % numBackgrounds) + 1) as T.Devices.IconNumber
 }
 
-const getNextDeviceIconNumberInner = memoize((devices: Map<Types.DeviceID, Types.Device>) => {
+const getNextDeviceIconNumberInner = memoize((devices: Map<T.Devices.DeviceID, T.Devices.Device>) => {
   // Find the max device number and add one (+ one more since these are 1-indexed)
   const result = {backup: 1, desktop: 1, mobile: 1}
   devices.forEach(device => {
@@ -122,6 +121,6 @@ const getNextDeviceIconNumberInner = memoize((devices: Map<Types.DeviceID, Types
   return {desktop: (result.desktop % numBackgrounds) + 1, mobile: (result.mobile % numBackgrounds) + 1}
 })
 export const useNextDeviceIconNumber = () => {
-  const dm = useDevicesState(s => s.deviceMap)
+  const dm = _useState(s => s.deviceMap)
   return getNextDeviceIconNumberInner(dm)
 }

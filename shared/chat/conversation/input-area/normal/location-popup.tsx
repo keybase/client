@@ -1,51 +1,36 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as Container from '../../../../util/container'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as ConfigConstants from '../../../../constants/config'
-import * as Constants from '../../../../constants/chat2'
-import * as RouterConstants from '../../../../constants/router2'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import type * as Types from '../../../../constants/types/chat2'
+import * as T from '../../../../constants/types'
 import LocationMap from '../../../location-map'
-import HiddenString from '../../../../util/hidden-string'
-import {watchPositionForMap} from '../../../../actions/platform-specific'
-import shallowEqual from 'shallowequal'
+import {watchPositionForMap} from '../../../../constants/platform-specific'
 
-type Props = {conversationIDKey: Types.ConversationIDKey}
+type Props = {conversationIDKey: T.Chat.ConversationIDKey}
 
 const LocationPopup = (props: Props) => {
-  const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
-  const {location, locationDenied} = Container.useSelector(state => {
-    const location = state.chat2.lastCoord
-    const locationDenied =
-      state.chat2.commandStatusMap.get(conversationIDKey)?.displayType ===
-      RPCChatTypes.UICommandStatusDisplayTyp.error
-    return {location, locationDenied, username}
-  }, shallowEqual)
+  const conversationIDKey = props.conversationIDKey ?? C.noConversationIDKey
+  const username = C.useCurrentUserState(s => s.username)
+  const httpSrv = C.useConfigState(s => s.httpSrv)
+  const location = C.useChatState(s => s.lastCoord)
+  const locationDenied = C.useChatContext(
+    s => s.commandStatus?.displayType == T.RPCChat.UICommandStatusDisplayTyp.error
+  )
   const [mapLoaded, setMapLoaded] = React.useState(false)
-  const dispatch = Container.useDispatch()
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
   }
-  const onSettings = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const onSettings = C.useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const messageSend = C.useChatContext(s => s.dispatch.messageSend)
   const onLocationShare = (duration: string) => {
     onClose()
-    dispatch(
-      Chat2Gen.createMessageSend({
-        conversationIDKey,
-        text: duration ? new HiddenString(`/location live ${duration}`) : new HiddenString('/location'),
-      })
-    )
+    messageSend(duration ? `/location live ${duration}` : '/location')
   }
 
   React.useEffect(() => {
     let unwatch: undefined | (() => void)
-    watchPositionForMap(dispatch, conversationIDKey)
+    watchPositionForMap(conversationIDKey)
       .then(unsub => {
         unwatch = unsub
       })
@@ -53,7 +38,7 @@ const LocationPopup = (props: Props) => {
     return () => {
       unwatch?.()
     }
-  }, [dispatch, conversationIDKey])
+  }, [conversationIDKey])
 
   const width = Math.ceil(Styles.dimensionWidth)
   const height = Math.ceil(Styles.dimensionHeight - 320)

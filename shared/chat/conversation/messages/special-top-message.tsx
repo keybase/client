@@ -1,15 +1,10 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as ConfigConstants from '../../../constants/config'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
-import * as FsConstants from '../../../constants/fs'
-import * as FsTypes from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import Separator from './separator'
-import {ConvoIDContext} from './ids-context'
 import HelloBotCard from './cards/hello-bot'
 import MakeTeamCard from './cards/make-team'
 import NewChatCard from './cards/new-chat'
@@ -19,21 +14,17 @@ import shallowEqual from 'shallowequal'
 import {usingFlashList} from '../list-area/flashlist-config'
 
 const ErrorMessage = () => {
-  const createConversationError = Container.useSelector(state => state.chat2.createConversationError)
-  const dispatch = Container.useDispatch()
+  const createConversationError = C.useChatState(s => s.createConversationError)
+  const createConversation = C.useChatState(s => s.dispatch.createConversation)
 
   const _onCreateWithoutThem = React.useCallback(
     (allowedUsers: Array<string>) => {
-      dispatch(Chat2Gen.createCreateConversation({participants: allowedUsers}))
+      createConversation(allowedUsers)
     },
-    [dispatch]
+    [createConversation]
   )
 
-  const _onBack = React.useCallback(() => {
-    dispatch(Chat2Gen.createNavigateToInbox())
-  }, [dispatch])
-
-  const onBack = Styles.isMobile ? _onBack : null
+  const onBack = C.useChatState(s => (Styles.isMobile ? s.dispatch.navigateToInbox : null))
 
   let createConversationDisallowedUsers: Array<string> = []
   let createConversationErrorDescription = ''
@@ -41,7 +32,7 @@ const ErrorMessage = () => {
   let onCreateWithoutThem: (() => void) | undefined
   if (createConversationError) {
     const {allowedUsers, code, disallowedUsers, message} = createConversationError
-    if (code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+    if (code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
       if (disallowedUsers.length === 1 && allowedUsers.length === 0) {
         // One-on-one conversation.
         createConversationErrorHeader = `You cannot start a conversation with @${disallowedUsers[0]}.`
@@ -112,19 +103,15 @@ const ErrorMessage = () => {
 }
 
 const SpecialTopMessage = React.memo(function SpecialTopMessage() {
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const data = Container.useSelector(state => {
-    const ordinals = state.chat2.messageOrdinals.get(conversationIDKey)
+  const username = C.useCurrentUserState(s => s.username)
+  const loadMoreType = C.useChatContext(s => (s.moreToLoad ? 'moreToLoad' : 'noMoreToLoad'))
+  const ordinals = C.useChatContext(s => s.messageOrdinals)
+  const data = C.useChatContext(s => {
     const hasLoadedEver = ordinals !== undefined
     const ordinal = ordinals?.[0] ?? 0
 
-    const meta = Constants.getMeta(state, conversationIDKey)
+    const meta = s.meta
     const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
-    const loadMoreType =
-      state.chat2.moreToLoadMap.get(conversationIDKey) !== false
-        ? ('moreToLoad' as const)
-        : ('noMoreToLoad' as const)
 
     return {
       hasLoadedEver,
@@ -137,7 +124,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       username,
     }
   }, shallowEqual)
-  const {hasLoadedEver, loadMoreType, ordinal, retentionPolicy} = data
+  const {hasLoadedEver, ordinal, retentionPolicy} = data
   const {supersedes, teamType, teamRetentionPolicy} = data
   // we defer showing this so it doesn't flash so much
   const [allowDigging, setAllowDigging] = React.useState(false)
@@ -160,26 +147,22 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   }, [])
 
   // could not expose this and just return an enum for the is*convos
-  const participantInfoAll = Container.useSelector(
-    state => Constants.getParticipantInfo(state, conversationIDKey).all,
-    (a, b) => shallowEqual(a, b)
-  )
+  const participantInfoAll = C.useChatContext(s => s.participants.all)
 
-  let pendingState: 'waiting' | 'error' | 'done'
-  switch (conversationIDKey) {
-    case Constants.pendingWaitingConversationIDKey:
-      pendingState = 'waiting'
-      break
-    case Constants.pendingErrorConversationIDKey:
-      pendingState = 'error'
-      break
-    default:
-      pendingState = 'done'
-      break
-  }
+  const pendingState = C.useChatContext(s => {
+    switch (s.id) {
+      case Constants.pendingWaitingConversationIDKey:
+        return 'waiting'
+      case Constants.pendingErrorConversationIDKey:
+        return 'error'
+      default:
+        return 'done'
+    }
+  })
+
   const showTeamOffer =
     hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && participantInfoAll.length > 2
-  const hasOlderResetConversation = supersedes !== Constants.noConversationIDKey
+  const hasOlderResetConversation = supersedes !== C.noConversationIDKey
   // don't show default header in the case of the retention notice being visible
   const showRetentionNotice =
     retentionPolicy.type !== 'retain' &&
@@ -190,16 +173,14 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
     teamType === 'adhoc' && participantInfoAll.length === 1 && participantInfoAll.includes(username)
 
   const openPrivateFolder = React.useCallback(() => {
-    FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/private/${username}`))
+    C.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${username}`))
   }, [username])
 
   return (
     <Kb.Box>
-      {loadMoreType === 'noMoreToLoad' && showRetentionNotice && (
-        <RetentionNotice conversationIDKey={conversationIDKey} />
-      )}
+      {loadMoreType === 'noMoreToLoad' && showRetentionNotice && <RetentionNotice />}
       <Kb.Box style={styles.spacer} />
-      {hasOlderResetConversation && <ProfileResetNotice conversationIDKey={conversationIDKey} />}
+      {hasOlderResetConversation && <ProfileResetNotice />}
       {pendingState === 'waiting' && (
         <Kb.Box style={styles.more}>
           <Kb.Text type="BodySmall">Loading...</Kb.Text>
@@ -217,7 +198,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       )}
       {showTeamOffer && (
         <Kb.Box style={styles.more}>
-          <MakeTeamCard conversationIDKey={conversationIDKey} />
+          <MakeTeamCard />
         </Kb.Box>
       )}
       {allowDigging && loadMoreType === 'moreToLoad' && pendingState === 'done' && (

@@ -1,21 +1,21 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
-import type * as Types from '../../constants/types/fs'
+import type * as T from '../../constants/types'
 import ConflictBanner from './conflict-banner'
 import openUrl from '../../util/open-url'
 
 type OwnProps = {
-  path: Types.Path
+  path: T.FS.Path
 }
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _tlf = Constants.useState(s => Constants.getTlfFromPath(s.tlfs, path))
-  const finishManualConflictResolution = Constants.useState(s => s.dispatch.finishManualConflictResolution)
-  const startManualConflictResolution = Constants.useState(s => s.dispatch.startManualConflictResolution)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const _tlf = C.useFSState(s => C.getTlfFromPath(s.tlfs, path))
+  const finishManualConflictResolution = C.useFSState(s => s.dispatch.finishManualConflictResolution)
+  const startManualConflictResolution = C.useFSState(s => s.dispatch.startManualConflictResolution)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onFeedback = React.useCallback(() => {
     navigateAppend({
       props: {feedback: `Conflict Resolution failed in \`${path}\`.\n`},
@@ -26,7 +26,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     finishManualConflictResolution(path)
   }, [finishManualConflictResolution, path])
   const onGoToSamePathInDifferentTlf = React.useCallback(
-    (tlfPath: Types.Path) => {
+    (tlfPath: T.FS.Path) => {
       navigateAppend({props: {path: Constants.rebasePathToDifferentTlf(path, tlfPath)}, selected: 'fsRoot'})
     },
     [navigateAppend, path]
@@ -38,12 +38,12 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     startManualConflictResolution(path)
   }, [startManualConflictResolution, path])
 
-  const openPathInSystemFileManagerDesktop = Constants.useState(
+  const openPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
   )
 
   const openInSystemFileManager = React.useCallback(
-    (path: Types.Path) => {
+    (path: T.FS.Path) => {
       openPathInSystemFileManagerDesktop?.(path)
     },
     [openPathInSystemFileManagerDesktop]

@@ -1,25 +1,23 @@
-import * as RouterConstants from '../../../../../../constants/router2'
-import * as Container from '../../../../../../util/container'
+import * as C from '../../../../../../constants'
 import * as Kb from '../../../../../../common-adapters/index'
-import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../../../constants/types'
 import * as React from 'react'
 import * as Styles from '../../../../../../styles'
 import UnfurlImage from './image'
 import shallowEqual from 'shallowequal'
-import {ConvoIDContext, OrdinalContext} from '../../../ids-context'
+import {OrdinalContext} from '../../../ids-context'
 import {formatDurationForLocation} from '../../../../../../util/timestamp'
 import {getUnfurlInfo} from './use-redux'
 import {maxWidth} from '../../../attachment/shared'
 
 const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const {idx} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
-  const data = Container.useSelector(state => {
-    const {unfurl, youAreAuthor, author} = getUnfurlInfo(state, conversationIDKey, ordinal, idx)
-    if (unfurl?.unfurlType !== RPCChatTypes.UnfurlType.generic) {
+  const data = C.useChatContext(s => {
+    const {unfurl, youAreAuthor, author} = getUnfurlInfo(s, ordinal, idx)
+    if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.generic) {
       return null
     }
     const {generic} = unfurl
@@ -56,7 +54,6 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
     navigateAppend({
       props: {
         author,
-        conversationIDKey,
         coord,
         isAuthor: youAreAuthor,
         isLiveLocation: !!liveLocationEndTime && !isLiveLocationDone,

@@ -1,10 +1,8 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
-import * as SettingsConstants from '../../constants/settings'
-import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/signup'
 import * as Platform from '../../constants/platform'
-import * as PushConstants from '../../constants/push'
 import EnterEmail, {type Props} from '.'
 
 type WatcherProps = Props & {
@@ -36,29 +34,27 @@ const WatchForSuccess = (props: WatcherProps) => {
 }
 
 const ConnectedEnterEmail = () => {
-  const _showPushPrompt = PushConstants.useState(
-    s => Platform.isMobile && !s.hasPermissions && s.showPushPrompt
-  )
-  const addedEmail = SettingsConstants.useEmailState(s => s.addedEmail)
-  const error = SettingsConstants.useEmailState(s => s.error)
-  const initialEmail = Constants.useState(s => s.email)
-  const waiting = Container.useAnyWaiting(SettingsConstants.addEmailWaitingKey)
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const _showPushPrompt = C.usePushState(s => Platform.isMobile && !s.hasPermissions && s.showPushPrompt)
+  const addedEmail = C.useSettingsEmailState(s => s.addedEmail)
+  const error = C.useSettingsEmailState(s => s.error)
+  const initialEmail = C.useSignupState(s => s.email)
+  const waiting = Container.useAnyWaiting(C.addEmailWaitingKey)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const _navClearModals = () => {
     clearModals()
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _navToPushPrompt = () => {
     navigateAppend('settingsPushPrompt', true)
   }
 
-  const setJustSignedUpEmail = Constants.useState(s => s.dispatch.setJustSignedUpEmail)
+  const setJustSignedUpEmail = C.useSignupState(s => s.dispatch.setJustSignedUpEmail)
   const _onSkip = () => {
     setJustSignedUpEmail(Constants.noEmail)
   }
   const _onSuccess = setJustSignedUpEmail
 
-  const addEmail = SettingsConstants.useEmailState(s => s.dispatch.addEmail)
+  const addEmail = C.useSettingsEmailState(s => s.dispatch.addEmail)
   const onCreate = addEmail
   const props = {
     addedEmail: addedEmail,

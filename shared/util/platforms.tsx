@@ -1,7 +1,7 @@
-import type {PlatformsExpandedType} from '../constants/types/more'
+import type * as T from '../constants/types'
 import type {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 
-export function subtitle(platform: PlatformsExpandedType): string {
+export function subtitle(platform: T.More.PlatformsExpandedType): string {
   switch (platform) {
     case 'zcash':
     case 'btc':

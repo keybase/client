@@ -1,10 +1,9 @@
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as Container from '../../../../../util/container'
+import * as C from '../../../../../constants'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../../styles'
 import type {Props} from '.'
-import {GetIdsContext} from '../../ids-context'
+import {OrdinalContext} from '../../ids-context'
 import {SwipeTrigger} from '../../../../../common-adapters/swipeable.native'
 import {dismiss} from '../../../../../util/keyboard'
 import {Pressable} from 'react-native'
@@ -13,7 +12,6 @@ import {Pressable} from 'react-native'
 const LongPressable = React.memo(function LongPressable(props: Props) {
   const {children, onLongPress, style} = props
   const onPress = React.useCallback(() => dismiss(), [])
-  const getIds = React.useContext(GetIdsContext)
 
   // uncomment to debug measuring issues w/ items
   const onLayout = undefined /*useDebugLayout(
@@ -43,12 +41,13 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
     )
   }, [])
 
-  const dispatch = Container.useDispatch()
+  const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
+  const ordinal = React.useContext(OrdinalContext)
   const onSwipeLeft = React.useCallback(() => {
-    const {conversationIDKey, ordinal} = getIds()
-    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
-    dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey, hide: true}))
-  }, [dispatch, getIds])
+    setReplyTo(ordinal)
+    toggleThreadSearch(true)
+  }, [setReplyTo, toggleThreadSearch, ordinal])
 
   // Only swipeable if there is an onSwipeLeft handler
   if (onSwipeLeft) {
@@ -80,7 +79,7 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexBoxColumn,
         position: 'relative',
       },
-    } as const)
+    }) as const
 )
 
 export default LongPressable

@@ -1,15 +1,10 @@
+import * as C from '../constants'
 import './tab-bar.css'
-import * as ConfigConstants from '../constants/config'
-import * as ProvisionConstants from '../constants/provision'
 import * as Container from '../util/container'
-import * as RouterConstants from '../constants/router2'
-import * as FsConstants from '../constants/fs'
-import * as ProfileConstants from '../constants/profile'
-import * as NotifConstants from '../constants/notifications'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
 import * as Platforms from '../constants/platform'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 import * as React from 'react'
 import * as SettingsConstants from '../constants/settings'
 import * as Styles from '../styles'
@@ -30,7 +25,7 @@ export type Props = {
 }
 
 const FilesTabBadge = () => {
-  const uploadIcon = FsConstants.useState(s => s.getUploadIconForFilesTab())
+  const uploadIcon = C.useFSState(s => s.getUploadIconForFilesTab())
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.badgeIconUpload} /> : null
 }
 
@@ -38,26 +33,26 @@ const Header = () => {
   const [showingMenu, setShowingMenu] = React.useState(false)
   const attachmentRef = React.useRef<Kb.Box2>(null)
   const getAttachmentRef = () => attachmentRef.current
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const fullname = TrackerConstants.useState(s => TrackerConstants.getDetails(s, username).fullname || '')
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const username = C.useCurrentUserState(s => s.username)
+  const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, username).fullname || '')
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onProfileClick = () => showUserProfile(username)
   const onClickWrapper = () => {
     setShowingMenu(false)
     onProfileClick()
   }
 
-  const startProvision = ProvisionConstants.useState(s => s.dispatch.startProvision)
-  const stop = SettingsConstants.useState(s => s.dispatch.stop)
+  const startProvision = C.useProvisionState(s => s.dispatch.startProvision)
+  const stop = C.useSettingsState(s => s.dispatch.stop)
   const onAddAccount = () => {
     startProvision()
   }
   const onHelp = () => openURL('https://book.keybase.io')
-  const dumpLogs = ConfigConstants.useConfigState(s => s.dispatch.dumpLogs)
+  const dumpLogs = C.useConfigState(s => s.dispatch.dumpLogs)
   const onQuit = () => {
     if (!__DEV__) {
       if (isLinux) {
-        stop(RPCTypes.ExitCode.ok)
+        stop(T.RPCGen.ExitCode.ok)
       } else {
         Container.ignorePromise(dumpLogs?.('quitting through menu') ?? Promise.resolve())
       }
@@ -68,9 +63,9 @@ const Header = () => {
       ctlQuit?.()
     }, 2000)
   }
-  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onSettings = () => switchTab(Tabs.settingsTab)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSignOut = () => navigateAppend(SettingsConstants.logOutTab)
 
   const menuHeader = () => (
@@ -159,7 +154,7 @@ const hotKeys = Object.keys(keysMap)
 
 const TabBar = React.memo(function TabBar(props: Props) {
   const {navigation, state} = props
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
   const onHotKey = React.useCallback(
     (cmd: string) => {
       // @ts-ignore
@@ -204,8 +199,8 @@ type TabProps = {
 
 const TabBadge = (p: {name: Tabs.Tab}) => {
   const {name} = p
-  const badgeNumbers = NotifConstants.useState(s => s.navBadges)
-  const fsCriticalUpdate = FsConstants.useState(s => s.criticalUpdate)
+  const badgeNumbers = C.useNotifState(s => s.navBadges)
+  const fsCriticalUpdate = C.useFSState(s => s.criticalUpdate)
   const badge = (badgeNumbers.get(name) ?? 0) + (name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
   return badge ? <Kb.Badge className="tab-badge" badgeNumber={badge} /> : null
 }
@@ -213,10 +208,10 @@ const TabBadge = (p: {name: Tabs.Tab}) => {
 const Tab = React.memo(function Tab(props: TabProps) {
   const {tab, index, isSelected, onSelectTab} = props
   const {label} = Tabs.desktopTabMeta[tab]
-  const accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
-  const current = ConfigConstants.useCurrentUserState(s => s.username)
-  const setUserSwitching = ConfigConstants.useConfigState(s => s.dispatch.setUserSwitching)
-  const login = ConfigConstants.useConfigState(s => s.dispatch.login)
+  const accountRows = C.useConfigState(s => s.configuredAccounts)
+  const current = C.useCurrentUserState(s => s.username)
+  const setUserSwitching = C.useConfigState(s => s.dispatch.setUserSwitching)
+  const login = C.useConfigState(s => s.dispatch.login)
   const onQuickSwitch = React.useMemo(
     () =>
       index === 0

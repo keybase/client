@@ -1,16 +1,14 @@
-import * as RouterConstants from '../../constants/router2'
-import * as Constants from '../../constants/profile'
-import * as ConfigConstants from '../../constants/config'
+import * as C from '../../constants'
 import PostProof from '.'
 
 export default () => {
-  const platform = Constants.useState(s => s.platform)
-  const errorText = Constants.useState(s => s.errorText)
-  const username = Constants.useState(s => s.username)
-  let proofText = Constants.useState(s => s.proofText)
+  const platform = C.useProfileState(s => s.platform)
+  const errorText = C.useProfileState(s => s.errorText)
+  const username = C.useProfileState(s => s.username)
+  let proofText = C.useProfileState(s => s.proofText)
 
-  const cancelAddProof = Constants.useState(s => s.dispatch.dynamic.cancelAddProof)
-  const checkProof = Constants.useState(s => s.dispatch.checkProof)
+  const cancelAddProof = C.useProfileState(s => s.dispatch.dynamic.cancelAddProof)
+  const checkProof = C.useProfileState(s => s.dispatch.checkProof)
 
   if (
     !platform ||
@@ -49,8 +47,8 @@ export default () => {
 
   const platformUserName = username
 
-  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     clearModals()
     cancelAddProof?.()

@@ -1,26 +1,31 @@
+import * as C from '../../constants'
 import * as Constants from '../../constants/teams'
-import * as RouterConstants from '../../constants/router2'
-import type * as Types from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 import {InviteByEmailDesktop} from '.'
 
 type OwnProps = {teamID: string}
 
 export default (ownProps: OwnProps) => {
   const teamID = ownProps.teamID
-  const {teamname} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
-  const inviteError = Constants.useState(s => s.errorInEmailInvite)
+  const {teamname} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const inviteError = C.useTeamsState(s => s.errorInEmailInvite)
   const errorMessage = inviteError.message
   const malformedEmails = inviteError.malformed
   const name = teamname
   const waitingKey = Constants.addToTeamByEmailWaitingKey(teamname) || ''
-  const inviteToTeamByEmail = Constants.useState(s => s.dispatch.inviteToTeamByEmail)
-  const _onInvite = (teamname: string, teamID: Types.TeamID, invitees: string, role: Types.TeamRoleType) => {
+  const inviteToTeamByEmail = C.useTeamsState(s => s.dispatch.inviteToTeamByEmail)
+  const _onInvite = (
+    teamname: string,
+    teamID: T.Teams.TeamID,
+    invitees: string,
+    role: T.Teams.TeamRoleType
+  ) => {
     inviteToTeamByEmail(invitees, role, teamID, teamname)
   }
-  const resetErrorInEmailInvite = Constants.useState(s => s.dispatch.resetErrorInEmailInvite)
+  const resetErrorInEmailInvite = C.useTeamsState(s => s.dispatch.resetErrorInEmailInvite)
   // should only be called on unmount
   const onClearInviteError = resetErrorInEmailInvite
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onClose = () => {
     navigateUp()
   }
@@ -30,7 +35,7 @@ export default (ownProps: OwnProps) => {
     name,
     onClearInviteError: onClearInviteError,
     onClose: onClose,
-    onInvite: (invitees: string, role: Types.TeamRoleType) => {
+    onInvite: (invitees: string, role: T.Teams.TeamRoleType) => {
       _onInvite(name, teamID, invitees, role)
     },
     teamID,

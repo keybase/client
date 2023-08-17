@@ -1,30 +1,26 @@
-import type * as Types from '../constants/types/chat2'
+import * as C from '../constants'
+import type * as T from '../constants/types'
 import * as React from 'react'
-import * as Chat2Gen from '../actions/chat2-gen'
 import {Channel} from './channel'
-import * as Container from '../util/container'
 import type {StylesTextCrossPlatform} from './text'
 
 type OwnProps = {
   name: string
-  convID: Types.ConversationIDKey
+  convID: T.Chat.ConversationIDKey
   style: StylesTextCrossPlatform
   allowFontScaling?: boolean
 }
 
 export default (ownProps: OwnProps) => {
-  const dispatch = Container.useDispatch()
-
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const _onClick = React.useCallback(
-    (name: string, convID: Types.ConversationIDKey) =>
-      dispatch(
-        Chat2Gen.createPreviewConversation({
-          channelname: name,
-          conversationIDKey: convID,
-          reason: 'messageLink',
-        })
-      ),
-    [dispatch]
+    (name: string, convID: T.Chat.ConversationIDKey) =>
+      previewConversation({
+        channelname: name,
+        conversationIDKey: convID,
+        reason: 'messageLink',
+      }),
+    [previewConversation]
   )
 
   const props = {

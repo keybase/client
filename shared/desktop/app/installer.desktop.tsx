@@ -1,5 +1,6 @@
 import * as Electron from 'electron'
 import * as RemoteGen from '../../actions/remote-gen'
+import * as R from '../../constants/remote'
 import fs from 'fs'
 import path from 'path'
 import exec from './exec.desktop'
@@ -8,7 +9,6 @@ import {ctlQuit} from './ctl.desktop'
 import {isDarwin} from '../../constants/platform'
 import logger from '../../logger'
 import zlib from 'zlib'
-import type {TypedActions} from '../../actions/typed-actions-gen'
 
 const file = path.join(Electron.app.getPath('userData'), 'installer.json')
 
@@ -54,12 +54,7 @@ type ResultType =
     }
   | undefined
 
-const checkErrors = (
-  dispatch: (action: TypedActions) => void,
-  result: ResultType,
-  errors: Array<string>,
-  errorTypes: ErrorTypes
-) => {
+const checkErrors = (result: ResultType, errors: Array<string>, errorTypes: ErrorTypes) => {
   // Copied from old constants/favorite.js
   // See Installer.m: KBExitFuseKextError
   const ExitCodeFuseKextError = 4
@@ -96,7 +91,7 @@ const checkErrors = (
     } else if (cr.name === 'helper' && cr.exitCode === ExitFuseCriticalUpdate) {
       logger.info('[Installer] fuse critical update, setting badge')
       // ignore critical update error, it's just to coerce specific behavior in the Go installer
-      dispatch(RemoteGen.createSetCriticalUpdate({critical: true}))
+      R.remoteDispatch(RemoteGen.createSetCriticalUpdate({critical: true}))
       return
     } else if (cr.name === 'helper' && cr.exitCode === ExitFuseCriticalUpdateFailed) {
       errorTypes.fuse = true
@@ -121,7 +116,7 @@ const checkErrors = (
 }
 
 type CB = (err?: Error) => void
-const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) => {
+const darwinInstall = (callback: CB) => {
   logger.info('[Installer]: Installer check starting now')
   const keybaseBin = keybaseBinPath()
   if (!keybaseBin) {
@@ -169,7 +164,7 @@ const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) =
       try {
         const result = JSON.parse(stdout) as ResultType
         if (result) {
-          checkErrors(dispatch, result, errors, errorTypes)
+          checkErrors(result, errors, errorTypes)
         } else {
           errors.push(`There was an error trying to run the install. No output.`)
         }
@@ -231,5 +226,5 @@ const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) =
   )
 }
 
-const install = isDarwin ? darwinInstall : (_: unknown, callback: CB) => callback() // nothing on other platforms
+const install = isDarwin ? darwinInstall : (callback: CB) => callback() // nothing on other platforms
 export default install

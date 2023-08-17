@@ -2,13 +2,13 @@ import logger from '../../logger'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
-import type {ConfiguredAccount} from '../../constants/types/config'
+import type * as T from '../../constants/types'
 import {Picker} from '@react-native-picker/picker'
 import {TouchableWithoutFeedback, Modal} from 'react-native'
 
 type Props = {
   type: 'Username'
-  options: Array<ConfiguredAccount>
+  options: Array<T.Config.ConfiguredAccount>
   onClick: (option: string, index: number) => void
   onPress?: void
   onOther?: () => void
@@ -227,7 +227,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'flex-end',
       },
       pickerIOS: {backgroundColor: Styles.globalColors.white},
-    } as const)
+    }) as const
 )
 
 export default Dropdown

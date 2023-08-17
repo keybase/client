@@ -1,29 +1,28 @@
+import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import * as Constants from '../constants/team-building'
-import * as SettingsConstants from '../constants/settings'
 import * as Container from '../util/container'
-import type * as Types from 'constants/types/team-building'
-import type {AllowedNamespace} from '../constants/types/team-building'
+import type * as T from 'constants/types'
 import ContinueButton from './continue-button'
 
 type PhoneSearchProps = {
   continueLabel: string
-  namespace: AllowedNamespace
+  namespace: T.TB.AllowedNamespace
   search: (query: string, service: 'phone') => void
 }
 
 const PhoneSearch = (props: PhoneSearchProps) => {
   const {namespace} = props
-  const teamBuildingSearchResults = Constants.useContext(s => s.searchResults)
+  const teamBuildingSearchResults = C.useTBContext(s => s.searchResults)
   const [isPhoneValid, setPhoneValidity] = React.useState(false)
   const [phoneNumber, setPhoneNumber] = React.useState('')
   const [phoneInputKey, setPhoneInputKey] = React.useState(0)
   const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
-  const loadDefaultPhoneCountry = SettingsConstants.usePhoneState(s => s.dispatch.loadDefaultPhoneCountry)
+  const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
   // trigger a default phone number country rpc if it's not already loaded
-  const defaultCountry = SettingsConstants.usePhoneState(s => s.defaultCountry)
+  const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
   React.useEffect(() => {
     !defaultCountry && loadDefaultPhoneCountry()
   }, [defaultCountry, loadDefaultPhoneCountry])
@@ -36,9 +35,9 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     }
   }
 
-  const addUsersToTeamSoFar = Constants.useContext(s => s.dispatch.addUsersToTeamSoFar)
+  const addUsersToTeamSoFar = C.useTBContext(s => s.dispatch.addUsersToTeamSoFar)
 
-  const user: Types.User | undefined = isPhoneValid
+  const user: T.TB.User | undefined = isPhoneValid
     ? teamBuildingSearchResults.get(phoneNumber)?.get('phone')?.[0]
     : undefined
 
@@ -160,7 +159,7 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-start',
         justifyContent: 'center',
       },
-    } as const)
+    }) as const
 )
 
 export default PhoneSearch

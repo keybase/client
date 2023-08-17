@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as Types from '../../../constants/types/tracker2'
+import type * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {SiteIcon} from '../shared'
@@ -8,7 +8,7 @@ import {makeInsertMatcher} from '../../../util/string'
 export type IdentityProvider = {
   name: string
   desc: string
-  icon: Types.SiteIconSet
+  icon: T.Tracker.SiteIconSet
   key: string
   new: boolean
 }
@@ -235,7 +235,7 @@ const styles = Styles.styleSheetCreate(
         ...rightColumnStyle,
         color: Styles.globalColors.black,
       },
-    } as const)
+    }) as const
 )
 
 export default ProofsList

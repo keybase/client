@@ -1,16 +1,10 @@
+import * as C from '../../constants'
+import * as T from '../../constants/types'
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../../fs/common'
 import * as Styles from '../../styles'
-import * as Chat2Gen from '../../actions/chat2-gen'
-import * as ChatConstants from '../../constants/chat2'
-import * as Container from '../../util/container'
-import * as ConfigConstants from '../../constants/config'
-import * as RouterConstants from '../../constants/router2'
-import type * as ChatTypes from '../../constants/types/chat2'
-import HiddenString from '../../util/hidden-string'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 
@@ -23,9 +17,9 @@ type Props = {
 
 const MobileSendToChatRoutable = (props: Props) => {
   const {canBack, isFromShareExtension, sendPaths, text} = props
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => clearModals()
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => navigateUp()
 
   return (
@@ -57,11 +51,10 @@ const MobileSendToChatRoutable = (props: Props) => {
 
 export const MobileSendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
-  const dispatch = Container.useDispatch()
-
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
-  const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, tlfName: string) => {
-    text && dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString(text)}))
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
+  const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
+    text && injectIntoInput(text)
     if (sendPaths?.length) {
       navigateAppend({
         props: {
@@ -73,11 +66,8 @@ export const MobileSendToChat = (props: Props) => {
         selected: 'chatAttachmentGetTitles',
       })
     } else {
-      dispatch(
-        Chat2Gen.createNavigateToThread({
-          conversationIDKey,
-          reason: isFromShareExtension ? 'extension' : 'files',
-        })
+      C.getConvoState(conversationIDKey).dispatch.navigateToThread(
+        isFromShareExtension ? 'extension' : 'files'
       )
     }
   }
@@ -89,36 +79,29 @@ const noPaths = new Array<string>()
 const DesktopSendToChat = (props: Props) => {
   const sendPaths = props.sendPaths ?? noPaths
   const [title, setTitle] = React.useState('')
-  const [conversationIDKey, setConversationIDKey] = React.useState(ChatConstants.noConversationIDKey)
+  const [conversationIDKey, setConversationIDKey] = React.useState(C.noConversationIDKey)
   const [convName, setConvName] = React.useState('')
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const dispatch = Container.useDispatch()
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const username = C.useCurrentUserState(s => s.username)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     clearModals()
   }
-  const onSelect = (convID: ChatTypes.ConversationIDKey, convname: string) => {
+  const onSelect = (convID: T.Chat.ConversationIDKey, convname: string) => {
     setConversationIDKey(convID)
     setConvName(convname)
   }
+  const attachmentsUpload = C.useChatContext(s => s.dispatch.attachmentsUpload)
   const onSend = () => {
     sendPaths?.forEach(path =>
-      dispatch(
-        Chat2Gen.createAttachmentsUpload({
-          conversationIDKey,
-          paths: [{path: Types.pathToString(path)}],
-          titles: [title],
-          tlfName: `${username},${convName.split('#')[0]}`,
-        })
-      )
+      attachmentsUpload([{path: T.FS.pathToString(path)}], [title], `${username},${convName.split('#')[0]}`)
     )
     clearModals()
-    dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'files'}))
+    C.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
   }
   return (
     <Kb.PopupWrapper>
       <DesktopSendToChatRender
-        enabled={conversationIDKey !== ChatConstants.noConversationIDKey}
+        enabled={conversationIDKey !== C.noConversationIDKey}
         convName={convName}
         // If we ever support sending multiples from desktop this will need to
         // change.
@@ -136,12 +119,12 @@ const DesktopSendToChat = (props: Props) => {
 type DesktopSendToChatRenderProps = {
   enabled: boolean
   convName: string
-  path: Types.Path
+  path: T.FS.Path
   title: string
   setTitle: (title: string) => void
   onSend: () => void
   onCancel: () => void
-  onSelect: (convID: ChatTypes.ConversationIDKey, convName: string) => void
+  onSelect: (convID: T.Chat.ConversationIDKey, convName: string) => void
 }
 
 export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => {
@@ -160,7 +143,7 @@ export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => 
             gap="tiny"
           >
             <Kbfs.ItemIcon size={48} path={props.path} badgeOverride="iconfont-attachment" />
-            <Kb.Text type="BodySmall">{Types.getPathName(props.path)}</Kb.Text>
+            <Kb.Text type="BodySmall">{T.FS.getPathName(props.path)}</Kb.Text>
           </Kb.Box2>
           <ChooseConversation
             convName={props.convName}

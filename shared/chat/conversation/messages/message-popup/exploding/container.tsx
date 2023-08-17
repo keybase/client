@@ -1,16 +1,12 @@
-import * as RouterConstants from '../../../../../constants/router2'
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/chat2'
-import * as FSConstants from '../../../../../constants/fs'
 import * as Container from '../../../../../util/container'
-import * as ConfigConstants from '../../../../../constants/config'
 import * as React from 'react'
 import * as TeamConstants from '../../../../../constants/teams'
 import Exploding from '.'
 import ReactionItem from '../reactionitem'
 import openURL from '../../../../../util/open-url'
-import type * as TeamTypes from '../../../../../constants/types/teams'
-import type * as Types from '../../../../../constants/types/chat2'
+import type * as T from '../../../../../constants/types'
 import type {MenuItems} from '../../../../../common-adapters'
 import type {Position} from '../../../../../styles'
 import type {StylesCrossPlatform} from '../../../../../styles/css'
@@ -19,8 +15,7 @@ import {makeMessageText} from '../../../../../constants/chat2/message'
 
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
-  ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
+  ordinal: T.Chat.Ordinal
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform
@@ -30,17 +25,15 @@ export type OwnProps = {
 const emptyMessage = makeMessageText({})
 
 export default (ownProps: OwnProps) => {
-  const {conversationIDKey, ordinal} = ownProps
+  const {ordinal} = ownProps
   // TODO remove
-  const m = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
+  const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const message = m?.type === 'text' || m?.type === 'attachment' ? m : emptyMessage
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const you = C.useCurrentUserState(s => s.username)
   const yourMessage = message.author === you
-  const meta = Container.useSelector(state => Constants.getMeta(state, message.conversationIDKey))
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, message.conversationIDKey)
-  )
-  const _canDeleteHistory = TeamConstants.useState(
+  const meta = C.useChatContext(s => s.meta)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const _canDeleteHistory = C.useTeamsState(
     s => meta.teamType === 'adhoc' || TeamConstants.getCanPerformByID(s, meta.teamID).deleteChatHistory
   )
   const _canExplodeNow = (yourMessage || _canDeleteHistory) && message.isDeleteable
@@ -51,10 +44,8 @@ export default (ownProps: OwnProps) => {
     !yourMessage &&
     message.type === 'text' &&
     (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
-  const authorIsBot = TeamConstants.useState(s =>
-    Constants.messageAuthorIsBot(s, meta, message, participantInfo)
-  )
-  const _teamMembers = TeamConstants.useState(s => s.teamIDToMembers.get(meta.teamID))
+  const authorIsBot = C.useTeamsState(s => Constants.messageAuthorIsBot(s, meta, message, participantInfo))
+  const _teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(meta.teamID))
 
   const _authorIsBot = authorIsBot
   const _participants = participantInfo.all
@@ -68,133 +59,92 @@ export default (ownProps: OwnProps) => {
   const explodesAt = message.explodingTime
   const hideTimer = message.submitState === 'pending' || message.submitState === 'failed'
   const timestamp = message.timestamp
-
-  const dispatch = Container.useDispatch()
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const _onAddReaction = () => {
-    navigateAppend({
+    navigateAppend(conversationIDKey => ({
       props: {
-        conversationIDKey: ownProps.conversationIDKey,
+        conversationIDKey,
         onPickAddToMessageOrdinal: ownProps.ordinal,
         pickKey: 'reaction',
       },
       selected: 'chatChooseEmoji',
-    })
+    }))
   }
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const _onAllMedia = () => {
-    dispatch(
-      Chat2Gen.createShowInfoPanel({
-        conversationIDKey: ownProps.conversationIDKey,
-        show: true,
-        tab: 'attachments',
-      })
-    )
+    showInfoPanel(true, 'attachments')
   }
-  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const _onCopy = (h: Container.HiddenString) => {
     copyToClipboard(h.stringValue())
   }
-  const _onDownload = (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createAttachmentDownload({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.id,
-      })
-    )
+  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
+  const _onDownload = (message: T.Chat.Message) => {
+    attachmentDownload(message.id)
   }
+  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const _onEdit = () => {
-    dispatch(
-      Chat2Gen.createMessageSetEditing({
-        conversationIDKey: ownProps.conversationIDKey,
-        ordinal: ownProps.ordinal,
-      })
-    )
+    setEditing(ownProps.ordinal)
   }
+  const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
   const _onExplodeNow = () => {
-    dispatch(
-      Chat2Gen.createMessageDelete({
-        conversationIDKey: ownProps.conversationIDKey,
-        ordinal: ownProps.ordinal,
-      })
-    )
+    messageDelete(ownProps.ordinal)
   }
   const _onForward = () => {
-    navigateAppend({
-      props: {ordinal: ownProps.ordinal, srcConvID: ownProps.conversationIDKey},
+    navigateAppend(conversationIDKey => ({
+      props: {conversationIDKey, ordinal: ownProps.ordinal},
       selected: 'chatForwardMsgPick',
-    })
+    }))
   }
   const _onInstallBot = (author: string) => {
-    navigateAppend({props: {botUsername: author}, selected: 'chatInstallBotPick'})
+    navigateAppend(() => ({props: {botUsername: author}, selected: 'chatInstallBotPick'}))
   }
-  const _onKick = (teamID: TeamTypes.TeamID, username: string) => {
-    navigateAppend({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'})
+  const _onKick = (teamID: T.Teams.TeamID, username: string) => {
+    navigateAppend(() => ({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}))
   }
+  const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
   const _onMarkAsUnread = (id: number) => {
-    dispatch(
-      Chat2Gen.createMarkAsUnread({
-        conversationIDKey: ownProps.conversationIDKey,
-        readMsgID: id,
-      })
-    )
+    setMarkAsUnread(id)
   }
-  const _onPinMessage = (id: number) => {
-    dispatch(
-      Chat2Gen.createPinMessage({
-        conversationIDKey: ownProps.conversationIDKey,
-        messageID: id,
-      })
-    )
-  }
+  const _onPinMessage = C.useChatContext(s => s.dispatch.pinMessage)
+  const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const _onReact = (emoji: string) => {
-    dispatch(
-      Chat2Gen.createToggleMessageReaction({
-        conversationIDKey: ownProps.conversationIDKey,
-        emoji,
-        ordinal: ownProps.ordinal,
-      })
-    )
+    toggleMessageReaction(ownProps.ordinal, emoji)
   }
+  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
   const _onReply = () => {
-    dispatch(
-      Chat2Gen.createToggleReplyToMessage({
-        conversationIDKey: ownProps.conversationIDKey,
-        ordinal: ownProps.ordinal,
-      })
-    )
+    setReplyTo(ownProps.ordinal)
   }
+  const messageReplyPrivately = C.useChatContext(s => s.dispatch.messageReplyPrivately)
   const _onReplyPrivately = () => {
-    dispatch(
-      Chat2Gen.createMessageReplyPrivately({
-        ordinal: ownProps.ordinal,
-        sourceConversationIDKey: ownProps.conversationIDKey,
-      })
-    )
+    messageReplyPrivately(ownProps.ordinal)
   }
-  const _onSaveAttachment = (message: Types.Message) => {
-    dispatch(Chat2Gen.createMessageAttachmentNativeSave({message}))
+  const messageAttachmentNativeSave = C.useChatContext(s => s.dispatch.messageAttachmentNativeSave)
+  const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
+  const _onSaveAttachment = (message: T.Chat.Message) => {
+    messageAttachmentNativeSave(message)
   }
-  const _onShareAttachment = (message: Types.Message) => {
-    dispatch(Chat2Gen.createMessageAttachmentNativeShare({message}))
+  const _onShareAttachment = (message: T.Chat.Message) => {
+    messageAttachmentNativeShare(message)
   }
-  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
-  const _onShowInFinder = (message: Types.Message) => {
+  const _onShowInFinder = (message: T.Chat.Message) => {
     message.type === 'attachment' &&
       message.downloadPath &&
       openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
   }
-  const _onUserBlock = (message: Types.Message, isSingle: boolean) => {
-    navigateAppend({
+  const _onUserBlock = (message: T.Chat.Message, isSingle: boolean) => {
+    navigateAppend(convID => ({
       props: {
         blockUserByDefault: true,
         context: isSingle ? 'message-popup-single' : 'message-popup',
-        convID: message.conversationIDKey,
+        convID,
         username: message.author,
       },
       selected: 'chatBlockingModal',
-    })
+    }))
   }
 
   const authorInTeam = _teamMembers?.has(message.author) ?? true

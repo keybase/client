@@ -1,4 +1,4 @@
-import * as Constants from '../../constants/push'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import type {NotificationsSettingsState} from '../../constants/settings-notifications'
@@ -84,7 +84,7 @@ const PhoneSection = (props: Props) => (
   />
 )
 const Notifications = (props: Props) => {
-  const mobileHasPermissions = Constants.useState(s => s.hasPermissions)
+  const mobileHasPermissions = C.usePushState(s => s.hasPermissions)
   return !props.groups || !props.groups.get('email')?.settings ? (
     <Kb.Box2 direction="vertical" style={styles.loading}>
       <Kb.ProgressIndicator type="Small" style={{width: Styles.globalMargins.medium}} />
@@ -130,7 +130,7 @@ const styles = Styles.styleSheetCreate(
         common: {flex: 1, padding: Styles.globalMargins.small, paddingRight: 0, width: '100%'},
         isElectron: Styles.desktopStyles.scrollable,
       }),
-    } as const)
+    }) as const
 )
 
 export default Notifications

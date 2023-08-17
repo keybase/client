@@ -1,12 +1,12 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/recover-password'
 import _Password from '../../settings/password'
 
 const Password = () => {
-  const error = Constants.useState(s => s.passwordError)
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const submitPassword = Constants.useState(s => s.dispatch.dynamic.submitPassword)
+  const error = C.useRecoverState(s => s.passwordError)
+  const waiting = Container.useAnyWaiting(C.recoverWaitingKey)
+  const submitPassword = C.useRecoverState(s => s.dispatch.dynamic.submitPassword)
   const onSave = (p: string) => {
     submitPassword?.(p)
   }

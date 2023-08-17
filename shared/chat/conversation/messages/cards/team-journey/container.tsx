@@ -1,30 +1,24 @@
-import * as RouterConstants from '../../../../../constants/router2'
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as C from '../../../../../constants'
+import * as T from '../../../../../constants/types'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import * as Kb from '../../../../../common-adapters'
-import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as TeamConstants from '../../../../../constants/teams'
-import type * as ChatTypes from '../../../../../constants/types/chat2'
-import type * as MessageTypes from '../../../../../constants/types/chat2/message'
-import type * as TeamTypes from '../../../../../constants/types/teams'
 import {TeamJourney, type Action} from '.'
 import {makeMessageJourneycard} from '../../../../../constants/chat2/message'
 import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '../../../../../teams/common/channel-hooks'
 
 type OwnProps = {
-  conversationIDKey: ChatTypes.ConversationIDKey
-  ordinal: ChatTypes.Ordinal
+  ordinal: T.Chat.Ordinal
 }
 
 type Props = {
   canShowcase: boolean
   cannotWrite: boolean
   channelname: string
-  conversationIDKey: ChatTypes.ConversationIDKey
-  message: MessageTypes.MessageJourneycard
+  message: T.Chat.MessageJourneycard
   onAddPeopleToTeam: () => void
   onBrowseChannels: () => void
   onCreateChatChannels: () => void
@@ -34,10 +28,10 @@ type Props = {
   onScrollBack: () => void
   onShowTeam: () => void
   onAuthorClick: () => void
-  teamID: TeamTypes.TeamID
+  teamID: T.Teams.TeamID
   teamname: string
   isBigTeam: boolean
-  welcomeMessage?: RPCChatTypes.WelcomeMessageDisplay
+  welcomeMessage?: T.RPCChat.WelcomeMessageDisplay
 }
 
 const TeamJourneyContainer = (props: Props) => {
@@ -46,11 +40,11 @@ const TeamJourneyContainer = (props: Props) => {
   let actions: Array<Action> = []
 
   const dontCallRPC =
-    props.message.cardType !== RPCChatTypes.JourneycardType.popularChannels &&
-    props.message.cardType !== RPCChatTypes.JourneycardType.msgNoAnswer
+    props.message.cardType !== T.RPCChat.JourneycardType.popularChannels &&
+    props.message.cardType !== T.RPCChat.JourneycardType.msgNoAnswer
   const {channelMetas} = useAllChannelMetas(props.teamID, dontCallRPC)
   // Take the top three channels with most recent activity.
-  const joinableStatuses = new Set<ChatTypes.ConversationMeta['membershipType']>([
+  const joinableStatuses = new Set<T.Chat.ConversationMeta['membershipType']>([
     // keep in sync with journey_card_manager.go
     'notMember' as const,
     'youAreReset' as const,
@@ -60,7 +54,7 @@ const TeamJourneyContainer = (props: Props) => {
     .sort((x, y) => y.timestamp - x.timestamp)
 
   switch (props.message.cardType) {
-    case RPCChatTypes.JourneycardType.welcome:
+    case T.RPCChat.JourneycardType.welcome:
       image = 'icon-illustration-welcome-96'
       if (!props.cannotWrite) {
         actions.push('wave')
@@ -77,7 +71,7 @@ const TeamJourneyContainer = (props: Props) => {
         textComponent = <Kb.ProgressIndicator />
       }
       break
-    case RPCChatTypes.JourneycardType.popularChannels:
+    case T.RPCChat.JourneycardType.popularChannels:
       {
         const otherChannelsForPopular = otherChannelsBase
           .filter(({membershipType}) => joinableStatuses.has(membershipType))
@@ -101,15 +95,15 @@ const TeamJourneyContainer = (props: Props) => {
         )
       }
       break
-    case RPCChatTypes.JourneycardType.addPeople:
+    case T.RPCChat.JourneycardType.addPeople:
       return null
-    case RPCChatTypes.JourneycardType.createChannels:
+    case T.RPCChat.JourneycardType.createChannels:
       return null
-    case RPCChatTypes.JourneycardType.msgAttention:
+    case T.RPCChat.JourneycardType.msgAttention:
       return null
-    case RPCChatTypes.JourneycardType.channelInactive:
+    case T.RPCChat.JourneycardType.channelInactive:
       return null
-    case RPCChatTypes.JourneycardType.msgNoAnswer:
+    case T.RPCChat.JourneycardType.msgNoAnswer:
       return null
     default:
       console.warn(`Unexpected journey card type: ${props.message.cardType}`)
@@ -122,7 +116,6 @@ const TeamJourneyContainer = (props: Props) => {
       image={image}
       onAuthorClick={props.onAuthorClick}
       teamname={props.teamname}
-      conversationIDKey={props.conversationIDKey}
       textComponent={textComponent}
       onDismiss={props.onDismiss}
       mode="chat"
@@ -133,52 +126,47 @@ const TeamJourneyContainer = (props: Props) => {
 const emptyJourney = makeMessageJourneycard({})
 
 const TeamJourneyConnected = (ownProps: OwnProps) => {
-  const {conversationIDKey, ordinal} = ownProps
-  const m = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
+  const {ordinal} = ownProps
+  const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const message = m?.type === 'journeycard' ? m : emptyJourney
-  const conv = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const conv = C.useChatContext(s => s.meta)
   const {cannotWrite, channelname, teamname, teamID} = conv
   const welcomeMessage = {display: '', raw: '', set: false}
   const _teamID = teamID
-  const canShowcase = TeamConstants.useState(s => TeamConstants.canShowcase(s, teamID))
-  const isBigTeam = Container.useSelector(state => TeamConstants.isBigTeam(state, teamID))
-
-  const dispatch = Container.useDispatch()
-
-  const startAddMembersWizard = TeamConstants.useState(s => s.dispatch.startAddMembersWizard)
-  const _onAddPeopleToTeam = (teamID: TeamTypes.TeamID) => startAddMembersWizard(teamID)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
-  const _onAuthorClick = (teamID: TeamTypes.TeamID) => navigateAppend({props: {teamID}, selected: 'team'})
+  const canShowcase = C.useTeamsState(s => TeamConstants.canShowcase(s, teamID))
+  const isBigTeam = C.useChatState(s => Constants.isBigTeam(s, teamID))
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const _onAddPeopleToTeam = (teamID: T.Teams.TeamID) => startAddMembersWizard(teamID)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const _onAuthorClick = (teamID: T.Teams.TeamID) => navigateAppend({props: {teamID}, selected: 'team'})
   const _onCreateChannel = (teamID: string) =>
     navigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
-  const _onDismiss = (
-    conversationIDKey: ChatTypes.ConversationIDKey,
-    cardType: RPCChatTypes.JourneycardType,
-    ordinal: ChatTypes.Ordinal
-  ) => dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal}))
+  const dismissJourneycard = C.useChatContext(s => s.dispatch.dismissJourneycard)
+  const _onDismiss = (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) =>
+    dismissJourneycard(cardType, ordinal)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const _onGoToChannel = (channelname: string, teamname: string) =>
-    dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname}))
-  const manageChatChannels = TeamConstants.useState(s => s.dispatch.manageChatChannels)
+    previewConversation({channelname, reason: 'journeyCardPopular', teamname})
+  const manageChatChannels = C.useTeamsState(s => s.dispatch.manageChatChannels)
   const _onManageChannels = (teamID: string) => manageChatChannels(teamID)
 
-  const setMemberPublicity = TeamConstants.useState(s => s.dispatch.setMemberPublicity)
+  const setMemberPublicity = C.useTeamsState(s => s.dispatch.setMemberPublicity)
   const _onPublishTeam = (teamID: string) => {
     navigateAppend('profileShowcaseTeamOffer')
     setMemberPublicity(teamID, true)
   }
-  const _onShowTeam = (teamID: TeamTypes.TeamID) => navigateAppend({props: {teamID}, selected: 'team'})
+  const _onShowTeam = (teamID: T.Teams.TeamID) => navigateAppend({props: {teamID}, selected: 'team'})
   const props = {
     canShowcase,
     cannotWrite,
     channelname,
-    conversationIDKey,
     isBigTeam,
     message,
     onAddPeopleToTeam: () => _onAddPeopleToTeam(_teamID),
     onAuthorClick: () => _onAuthorClick(_teamID),
     onBrowseChannels: () => _onManageChannels(_teamID),
     onCreateChatChannels: () => _onCreateChannel(_teamID),
-    onDismiss: () => _onDismiss(conversationIDKey, message.cardType, message.ordinal),
+    onDismiss: () => _onDismiss(message.cardType, message.ordinal),
     onGoToChannel: (channelName: string) => _onGoToChannel(channelName, teamname),
     onPublishTeam: () => _onPublishTeam(_teamID),
     onScrollBack: () => console.log('onScrollBack'),

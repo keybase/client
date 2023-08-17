@@ -1,16 +1,16 @@
 import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import {fileUIName} from '../../constants/platform'
 
 export type Props = {
-  conflictState: Types.ConflictState
+  conflictState: T.FS.ConflictState
   onFeedback: () => void
   onFinishResolving: () => void
-  onGoToSamePathInDifferentTlf: (tlfPath: Types.Path) => void
+  onGoToSamePathInDifferentTlf: (tlfPath: T.FS.Path) => void
   onHelp: () => void
   onStartResolving: () => void
-  openInSystemFileManager: (path: Types.Path) => void
-  tlfPath: Types.Path
+  openInSystemFileManager: (path: T.FS.Path) => void
+  tlfPath: T.FS.Path
 }
 
 const getActions = (props: Props) => ({
@@ -22,7 +22,7 @@ const getActions = (props: Props) => ({
 
 const ConflictBanner = (props: Props) => {
   switch (props.conflictState.type) {
-    case Types.ConflictStateType.NormalView: {
+    case T.FS.ConflictStateType.NormalView: {
       const {helpAction, startRes} = getActions(props)
       if (props.conflictState.stuckInConflict) {
         const color = props.conflictState.localViewTlfPaths.length ? 'red' : 'yellow'
@@ -66,7 +66,7 @@ const ConflictBanner = (props: Props) => {
       }
       return null
     }
-    case Types.ConflictStateType.ManualResolvingLocalView: {
+    case T.FS.ConflictStateType.ManualResolvingLocalView: {
       const conflictState = props.conflictState
       const {finishRes, helpAction} = getActions(props)
       return (
@@ -77,7 +77,7 @@ const ConflictBanner = (props: Props) => {
               'This is a conflicted copy of ',
               {
                 onClick: () => props.onGoToSamePathInDifferentTlf(conflictState.normalViewTlfPath),
-                text: Types.pathToString(conflictState.normalViewTlfPath),
+                text: T.FS.pathToString(conflictState.normalViewTlfPath),
               },
               '.',
             ]}

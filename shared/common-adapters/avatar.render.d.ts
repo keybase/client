@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as TeamsTypes from '../constants/types/teams'
+import * as T from '../constants/types'
 import {StylesCrossPlatform} from '../styles'
 import {IconType, IconStyle} from './icon'
 
@@ -9,7 +9,7 @@ export type Props = {
   borderColor?: string
   blocked?: boolean
   children?: React.ReactNode
-  crop?: TeamsTypes.AvatarCrop
+  crop?: T.Teams.AvatarCrop
   editable?: boolean
   followIconSize: number
   followIconType?: IconType

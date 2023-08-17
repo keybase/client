@@ -1,22 +1,18 @@
+import * as C from '../../../../constants'
 import * as Container from '../../../../util/container'
-import * as FsConstants from '../../../../constants/fs'
-import * as TrackerConstants from '../../../../constants/tracker2'
-import * as FsTypes from '../../../../constants/types/fs'
-import * as GitConstants from '../../../../constants/git'
-import * as ProfileConstants from '../../../../constants/profile'
 import * as React from 'react'
 import Git from '.'
-import type * as Types from '../../../../constants/types/chat2'
+import * as T from '../../../../constants/types'
 
 type OwnProps = {
-  message: Types.MessageSystemGitPush
+  message: T.Chat.MessageSystemGitPush
 }
 
 const GitContainer = React.memo(function GitContainer(p: OwnProps) {
   const {message} = p
   const onClickCommit = React.useCallback(
     (commitHash: string) => {
-      const path = FsTypes.stringToPath(
+      const path = T.FS.stringToPath(
         '/keybase/team/' +
           message.team +
           '/.kbfs_autogit/' +
@@ -24,19 +20,19 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
           '/.kbfs_autogit_commit_' +
           commitHash
       )
-      FsConstants.makeActionForOpenPathInFilesTab(path)
+      C.makeActionForOpenPathInFilesTab(path)
     },
     [message]
   )
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onClickUserAvatar = React.useCallback(
     (username: string) => {
       Container.isMobile ? showUserProfile(username) : showUser(username, true)
     },
     [showUser, showUserProfile]
   )
-  const navigateToTeamRepo = GitConstants.useGitState(s => s.dispatch.navigateToTeamRepo)
+  const navigateToTeamRepo = C.useGitState(s => s.dispatch.navigateToTeamRepo)
   const onViewGitRepo = React.useCallback(
     (repoID: string, teamname: string) => {
       navigateToTeamRepo(teamname, repoID)

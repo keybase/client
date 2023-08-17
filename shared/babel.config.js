@@ -64,6 +64,7 @@ module.exports = function (api /*: any */) {
       plugins: [
         ...(skipAnimation ? [] : ['react-native-reanimated/plugin']),
         '@babel/plugin-proposal-numeric-separator',
+        '@babel/plugin-transform-export-namespace-from',
         isDev
           ? [
               '@babel/plugin-transform-react-jsx-development',

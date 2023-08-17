@@ -1,4 +1,4 @@
-import type * as Types from '../../../constants/types/teams'
+import type * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import type {Tab as TabType} from '../../../common-adapters/tabs'
@@ -13,13 +13,13 @@ type TeamTabsProps = {
   numRequests: number
   numSubteams: number
   resetUserCount: number
-  selectedTab?: Types.TabKey
-  setSelectedTab: (arg0: Types.TabKey) => void
+  selectedTab?: T.Teams.TabKey
+  setSelectedTab: (arg0: T.Teams.TabKey) => void
   showSubteams: boolean
 }
 
 const TeamTabs = (props: TeamTabsProps) => {
-  const tabs: Array<TabType<Types.TabKey>> = [
+  const tabs: Array<TabType<T.Teams.TabKey>> = [
     {badgeNumber: props.resetUserCount, title: 'members' as const},
     ...(!props.isBig ? [{title: 'emoji' as const}] : []),
     ...(props.isBig || props.admin ? [{title: 'channels' as const}] : []),

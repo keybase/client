@@ -1,29 +1,19 @@
-import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
-import type * as Types from '../../../../constants/types/chat2'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as C from '../../../../constants'
+import type * as T from '../../../../constants/types'
 import OldProfileResetNotice from '.'
 
-type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
-}
-
-export default (ownProps: OwnProps) => {
-  const {conversationIDKey} = ownProps
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
-  )
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+export default () => {
+  const participantInfo = C.useChatContext(s => s.participants)
+  const meta = C.useChatContext(s => s.meta)
   const _participants = participantInfo.all
   const nextConversationIDKey = meta.supersededBy
   const username = meta.wasFinalizedBy || ''
-
-  const dispatch = Container.useDispatch()
-  const onOpenConversation = (conversationIDKey: Types.ConversationIDKey) => {
-    dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'jumpFromReset'}))
+  const onOpenConversation = (conversationIDKey: T.Chat.ConversationIDKey) => {
+    C.getConvoState(conversationIDKey).dispatch.navigateToThread('jumpFromReset')
   }
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const startConversation = (participants: Array<string>) => {
-    dispatch(Chat2Gen.createPreviewConversation({participants, reason: 'fromAReset'}))
+    previewConversation({participants, reason: 'fromAReset'})
   }
   const props = {
     onOpenNewerConversation: nextConversationIDKey

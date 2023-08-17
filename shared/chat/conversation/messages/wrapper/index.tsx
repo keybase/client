@@ -25,7 +25,7 @@ import SetDescription from '../set-description/wrapper'
 import Pin from '../pin/wrapper'
 import SetChannelname from '../set-channelname/wrapper'
 import {type Props} from './wrapper'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 
 const typeMap = {
   'attachment:audio': WrapperAttachmentAudio,
@@ -53,11 +53,11 @@ const typeMap = {
   systemText: SystemText,
   systemUsersAddedToConversation: SystemUsersAddedToConv,
   text: Text,
-} satisfies Partial<Record<Types.RenderMessageType, React.NamedExoticComponent<Props>>> as Record<
-  Types.RenderMessageType,
+} satisfies Partial<Record<T.Chat.RenderMessageType, React.NamedExoticComponent<Props>>> as Record<
+  T.Chat.RenderMessageType,
   React.NamedExoticComponent<Props> | undefined
 >
 
-export const getMessageRender = (type: Types.RenderMessageType) => {
+export const getMessageRender = (type: T.Chat.RenderMessageType) => {
   return type === 'deleted' ? undefined : typeMap[type]
 }

@@ -1,29 +1,24 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as TeamConstants from '../../../constants/teams'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import {InfoPanel, type Panel} from '.'
 
 type Props = {
-  conversationIDKey?: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey // for page
   navigation?: any
 } & Partial<{
-  conversationIDKey?: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey // for page
   tab?: 'settings' | 'members' | 'attachments' | 'bots'
 }>
 
 const InfoPanelConnector = (props: Props) => {
-  const storeSelectedTab = Container.useSelector(state => state.chat2.infoPanelSelectedTab)
+  const storeSelectedTab = C.useChatState(s => s.infoPanelSelectedTab)
   const initialTab = props.tab ?? storeSelectedTab
-
-  const conversationIDKey: Types.ConversationIDKey =
-    props.conversationIDKey ?? props.conversationIDKey ?? Constants.noConversationIDKey
-
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const shouldNavigateOut = meta.conversationIDKey === Constants.noConversationIDKey
-  const yourRole = TeamConstants.useState(s => TeamConstants.getRole(s, meta.teamID))
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const meta = C.useConvoState(conversationIDKey, s => s.meta)
+  const shouldNavigateOut = meta.conversationIDKey === C.noConversationIDKey
+  const yourRole = C.useTeamsState(s => TeamConstants.getRole(s, meta.teamID))
   const isPreview = meta.membershipType === 'youArePreviewing'
   const channelname = meta.channelname
   const smallTeam = meta.teamType !== 'big'
@@ -32,12 +27,13 @@ const InfoPanelConnector = (props: Props) => {
   const [selectedTab, onSelectTab] = React.useState<Panel | undefined>(initialTab)
   const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
 
-  const dispatch = Container.useDispatch()
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
+  const clearAttachmentView = C.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
   const onCancel = () => {
-    dispatch(Chat2Gen.createShowInfoPanel({show: false}))
-    dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
+    showInfoPanel(false, undefined)
+    clearAttachmentView()
   }
-  const onGoToInbox = React.useCallback(() => dispatch(Chat2Gen.createNavigateToInbox()), [dispatch])
+  const onGoToInbox = C.useChatState(s => s.dispatch.navigateToInbox)
 
   if (lastSNO !== shouldNavigateOut) {
     setLastSNO(shouldNavigateOut)
@@ -52,7 +48,6 @@ const InfoPanelConnector = (props: Props) => {
       onSelectTab={onSelectTab}
       channelname={channelname}
       isPreview={isPreview}
-      selectedConversationIDKey={conversationIDKey}
       selectedTab={selectedTab ?? 'members'}
       smallTeam={smallTeam}
       teamname={teamname}

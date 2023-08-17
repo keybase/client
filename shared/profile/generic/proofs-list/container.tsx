@@ -1,16 +1,14 @@
-import * as RouterConstants from '../../../constants/router2'
-import * as Constants from '../../../constants/profile'
-import * as TrackerConstants from '../../../constants/tracker2'
+import * as C from '../../../constants'
 import ProofsList from '.'
 import * as Styles from '../../../styles'
 
 export default () => {
-  const _proofSuggestions = TrackerConstants.useState(s => s.proofSuggestions)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const _proofSuggestions = C.useTrackerState(s => s.proofSuggestions)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }
-  const addProof = Constants.useState(s => s.dispatch.addProof)
+  const addProof = C.useProfileState(s => s.dispatch.addProof)
   const providerClicked = (key: string) => {
     addProof(key, 'profile')
   }

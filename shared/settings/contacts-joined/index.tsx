@@ -1,18 +1,17 @@
+import * as C from '../../constants'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/settings'
-import * as Followers from '../../constants/followers'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import type * as RPCTypes from '../../constants/types/rpc-gen'
+import type * as T from '../../constants/types'
 import {FollowButton} from './buttons'
 
-const renderItem = (_: number, item: RPCTypes.ProcessedContact) => <Item item={item} />
+const renderItem = (_: number, item: T.RPCGen.ProcessedContact) => <Item item={item} />
 
-const Item = ({item}: {item: RPCTypes.ProcessedContact}) => {
+const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
   const username = item.username
   const label = item.contactName || item.component?.phoneNumber || item.component?.email || ''
 
-  const followThem = Followers.useFollowerState(s => s.following.has(username))
+  const followThem = C.useFollowerState(s => s.following.has(username))
   if (followThem) {
     return null
   }
@@ -35,7 +34,7 @@ const Item = ({item}: {item: RPCTypes.ProcessedContact}) => {
 }
 
 const ContactsJoinedModal = () => {
-  const people = Constants.useContactsState(s => s.alreadyOnKeybase)
+  const people = C.useSettingsContactsState(s => s.alreadyOnKeybase)
   const nav = Container.useSafeNavigation()
   const onClose = () => nav.safeNavigateUp()
   return (

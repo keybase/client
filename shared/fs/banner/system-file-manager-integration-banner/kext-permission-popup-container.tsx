@@ -1,14 +1,11 @@
 import * as React from 'react'
-import * as RouterConstants from '../../../constants/router2'
-import * as Constants from '../../../constants/fs'
+import * as C from '../../../constants'
 import KextPermissionPopup from './kext-permission-popup'
 
 const KPPContainer = () => {
-  const driverStatus = Constants.useState(s => s.sfmi.driverStatus)
-  const openSecurityPreferencesDesktop = Constants.useState(
-    s => s.dispatch.dynamic.openSecurityPreferencesDesktop
-  )
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const driverStatus = C.useFSState(s => s.sfmi.driverStatus)
+  const openSecurityPreferencesDesktop = C.useFSState(s => s.dispatch.dynamic.openSecurityPreferencesDesktop)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp
   const openSecurityPrefs = React.useCallback(
     () => openSecurityPreferencesDesktop?.(),

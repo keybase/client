@@ -1,17 +1,11 @@
-import * as Chat2Gen from '../actions/chat2-gen'
-import * as RouterConstants from './router2'
-import * as ProfileConstants from './profile'
-import * as RPCChatTypes from './types/rpc-chat-gen'
-import * as RPCTypes from './types/rpc-gen'
+import * as C from '.'
 import * as Tabs from './tabs'
-import * as WaitingConstants from './waiting'
 import * as Z from '../util/zustand'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../logger'
-import type * as Types from './types/push'
+import * as T from './types'
 import {isDevApplePushToken} from '../local-debug'
 import {isIOS} from './platform'
-import {useConfigState, useCurrentUserState, useLogoutState} from './config'
 import {
   iosGetHasShownPushPrompt,
   androidRequestPushPermissions,
@@ -30,11 +24,9 @@ const initialStore: Store = {
 }
 
 const monsterStorageKey = 'shownMonsterPushPrompt'
-export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
-
+export const _useState = Z.createZustand<State>((set, get) => {
   const neverShowMonsterAgain = async () => {
-    await RPCTypes.configGuiSetValueRpcPromise({
+    await T.RPCGen.configGuiSetValueRpcPromise({
       path: `ui.${monsterStorageKey}`,
       value: {b: true, isNull: false},
     })
@@ -69,7 +61,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     }
   }
 
-  const handleLoudMessage = async (notification: Types.PushNotification) => {
+  const handleLoudMessage = async (notification: T.Push.PushNotification) => {
     if (notification.type !== 'chat.newmessage') {
       return
     }
@@ -82,13 +74,11 @@ export const useState = Z.createZustand<State>((set, get) => {
     const {conversationIDKey, unboxPayload, membersType} = notification
 
     logger.warn('push selecting ', conversationIDKey)
-    reduxDispatch(
-      Chat2Gen.createNavigateToThread({conversationIDKey, pushBody: unboxPayload, reason: 'push'})
-    )
+    C.getConvoState(conversationIDKey).dispatch.navigateToThread('push', undefined, unboxPayload)
     if (unboxPayload && membersType && !isIOS) {
       logger.info('[Push] unboxing message')
       try {
-        await RPCChatTypes.localUnboxMobilePushNotificationRpcPromise({
+        await T.RPCChat.localUnboxMobilePushNotificationRpcPromise({
           convID: conversationIDKey,
           membersType,
           payload: unboxPayload,
@@ -126,14 +116,14 @@ export const useState = Z.createZustand<State>((set, get) => {
     deleteToken: version => {
       const f = async () => {
         const waitKey = 'push:deleteToken'
-        useLogoutState.getState().dispatch.wait(waitKey, version, true)
+        C.useLogoutState.getState().dispatch.wait(waitKey, version, true)
         try {
-          const deviceID = useCurrentUserState.getState().deviceID
+          const deviceID = C.useCurrentUserState.getState().deviceID
           if (!deviceID) {
             logger.info('[PushToken] no device id')
             return
           }
-          await RPCTypes.apiserverDeleteRpcPromise({
+          await T.RPCGen.apiserverDeleteRpcPromise({
             args: [
               {key: 'device_id', value: deviceID},
               {key: 'token_type', value: tokenType},
@@ -144,7 +134,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         } catch (e) {
           logger.error('[PushToken] delete failed', e)
         } finally {
-          useLogoutState.getState().dispatch.wait(waitKey, version, false)
+          C.useLogoutState.getState().dispatch.wait(waitKey, version, false)
         }
       }
       Z.ignorePromise(f())
@@ -173,19 +163,19 @@ export const useState = Z.createZustand<State>((set, get) => {
               if (notification.userInteraction) {
                 const {username} = notification
                 logger.info('[Push] follower: ', username)
-                ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+                C.useProfileState.getState().dispatch.showUserProfile(username)
               }
               break
             case 'chat.extension':
               {
                 const {conversationIDKey} = notification
-                reduxDispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'extension'}))
+                C.getConvoState(conversationIDKey).dispatch.navigateToThread('extension')
               }
               break
             case 'settings.contacts':
-              if (useConfigState.getState().loggedIn) {
-                RouterConstants.useState.getState().dispatch.switchTab(Tabs.peopleTab)
-                RouterConstants.useState.getState().dispatch.navUpToScreen('peopleRoot')
+              if (C.useConfigState.getState().loggedIn) {
+                C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
+                C.useRouterState.getState().dispatch.navUpToScreen('peopleRoot')
               }
               break
           }
@@ -208,7 +198,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         } else {
           const shownNativePushPromptTask = askNativeIfSystemPushPromptHasBeenShown
           const shownMonsterPushPromptTask = async () => {
-            const v = await RPCTypes.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
+            const v = await T.RPCGen.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
             return !!v.b
           }
           const [shownNativePushPrompt, shownMonsterPushPrompt] = await Promise.all([
@@ -238,19 +228,18 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     requestPermissions: () => {
       const f = async () => {
-        const ConfigConstants = await import('./config')
         if (isIOS) {
           const shownPushPrompt = await askNativeIfSystemPushPromptHasBeenShown()
           if (shownPushPrompt) {
             // we've already shown the prompt, take them to settings
-            ConfigConstants.useConfigState.getState().dispatch.dynamic.openAppSettings?.()
+            C.useConfigState.getState().dispatch.dynamic.openAppSettings?.()
             get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
             return
           }
         }
         try {
-          ConfigConstants.useConfigState.getState().dispatch.dynamic.openAppSettings?.()
-          const {increment} = WaitingConstants.useWaitingState.getState().dispatch
+          C.useConfigState.getState().dispatch.dynamic.openAppSettings?.()
+          const {increment} = C.useWaitingState.getState().dispatch
           increment(permissionsRequestingWaitingKey)
           logger.info('[PushRequesting] asking native')
           await requestPermissionsFromNative()
@@ -268,7 +257,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             })
           }
         } finally {
-          const {decrement} = WaitingConstants.useWaitingState.getState().dispatch
+          const {decrement} = C.useWaitingState.getState().dispatch
           decrement(permissionsRequestingWaitingKey)
           get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
         }
@@ -282,12 +271,12 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
 
       const uploadPushToken = async () => {
-        const {deviceID, username} = useCurrentUserState.getState()
+        const {deviceID, username} = C.useCurrentUserState.getState()
         if (!username || !deviceID) {
           return
         }
         try {
-          await RPCTypes.apiserverPostRpcPromise({
+          await T.RPCGen.apiserverPostRpcPromise({
             args: [
               {key: 'push_token', value: token},
               {key: 'device_id', value: deviceID},
@@ -316,11 +305,11 @@ export const useState = Z.createZustand<State>((set, get) => {
         // We've just started up, we don't have the permissions, we're logged in and we
         // haven't just signed up. This handles the scenario where the push notifications
         // permissions checker finishes after the routeToInitialScreen is done.
-        if (p.show && useConfigState.getState().loggedIn && !get().justSignedUp && !get().hasPermissions) {
+        if (p.show && C.useConfigState.getState().loggedIn && !get().justSignedUp && !get().hasPermissions) {
           logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
           await Z.timeoutPromise(100)
-          RouterConstants.useState.getState().dispatch.switchTab(Tabs.peopleTab)
-          RouterConstants.useState.getState().dispatch.navigateAppend('settingsPushPrompt')
+          C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
+          C.useRouterState.getState().dispatch.navigateAppend('settingsPushPrompt')
         }
       }
       Z.ignorePromise(monsterPrompt())

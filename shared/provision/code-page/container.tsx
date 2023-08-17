@@ -1,32 +1,29 @@
+import * as C from '../../constants'
 import * as React from 'react'
-import * as RouterConstants from '../../constants/router2'
-import * as Constants from '../../constants/provision'
 import * as Container from '../../util/container'
 import * as DevicesConstants from '../../constants/devices'
-import * as ConfigConstants from '../../constants/config'
 import CodePage2 from '.'
 
 const CodePageContainer = () => {
-  const storeDeviceName = ConfigConstants.useCurrentUserState(s => s.deviceName)
+  const storeDeviceName = C.useCurrentUserState(s => s.deviceName)
   const currentDeviceAlreadyProvisioned = !!storeDeviceName
   // we either have a name for real or we asked on a previous screen
-  const provisionDeviceName = Constants.useState(s => s.deviceName)
+  const provisionDeviceName = C.useProvisionState(s => s.deviceName)
   const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
-  const deviceID = ConfigConstants.useCurrentUserState(s => s.deviceID)
-  const currentDevice =
-    DevicesConstants.useDevicesState(s => s.deviceMap.get(deviceID)) ?? DevicesConstants.emptyDevice
-  const error = Constants.useState(s => s.error)
+  const deviceID = C.useCurrentUserState(s => s.deviceID)
+  const currentDevice = C.useDevicesState(s => s.deviceMap.get(deviceID)) ?? DevicesConstants.emptyDevice
+  const error = C.useProvisionState(s => s.error)
 
-  const otherDevice = Constants.useState(s => s.codePageOtherDevice)
+  const otherDevice = C.useProvisionState(s => s.codePageOtherDevice)
   const iconNumber = DevicesConstants.useDeviceIconNumber(otherDevice.id)
-  const textCode = Constants.useState(s => s.codePageIncomingTextCode)
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const submitTextCode = Constants.useState(s => s.dispatch.dynamic.submitTextCode)
+  const textCode = C.useProvisionState(s => s.codePageIncomingTextCode)
+  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const submitTextCode = C.useProvisionState(s => s.dispatch.dynamic.submitTextCode)
 
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
 
-  const cancel = Constants.useState(s => s.dispatch.dynamic.cancel)
+  const cancel = C.useProvisionState(s => s.dispatch.dynamic.cancel)
   const onClose = () => cancel?.()
   const onSubmitTextCode = React.useCallback(
     (code: string) => {

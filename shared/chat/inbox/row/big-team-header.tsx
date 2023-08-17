@@ -1,36 +1,38 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as RowSizes from './sizes'
 import * as Styles from '../../../styles'
 import * as TeamConstants from '../../../constants/teams'
-import type * as TeamTypes from '../../../constants/types/teams'
+import type * as T from '../../../constants/types'
 import TeamMenu from '../../conversation/info-panel/menu/container'
 
 type Props = {
   navKey: string
   teamname: string
-  teamID: TeamTypes.TeamID
+  teamID: T.Teams.TeamID
 }
 
 const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
   const {navKey, teamID, teamname} = props
-  const badgeSubscribe = TeamConstants.useState(s => !TeamConstants.isTeamWithChosenChannels(s, teamname))
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const badgeSubscribe = C.useTeamsState(s => !TeamConstants.isTeamWithChosenChannels(s, teamname))
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = () => navigateAppend({props: {teamID}, selected: 'team'}, false, navKey)
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
       return (
-        <TeamMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={toggleShowingPopup}
-          teamID={teamID}
-          hasHeader={true}
-          isSmallTeam={false}
-        />
+        <C.ChatProvider id={C.dummyConversationIDKey}>
+          <TeamMenu
+            attachTo={attachTo}
+            visible={true}
+            onHidden={toggleShowingPopup}
+            teamID={teamID}
+            hasHeader={true}
+            isSmallTeam={false}
+          />
+        </C.ChatProvider>
       )
     },
     [teamID]

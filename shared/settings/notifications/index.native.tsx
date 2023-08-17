@@ -1,4 +1,4 @@
-import * as Constants from '../../constants/push'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import Notifications from './render'
@@ -14,8 +14,8 @@ const MobileNotifications = (props: Props) => {
 }
 
 const TurnOnNotifications = () => {
-  const mobileHasPermissions = Constants.useState(s => s.hasPermissions)
-  const requestPermissions = Constants.useState(s => s.dispatch.requestPermissions)
+  const mobileHasPermissions = C.usePushState(s => s.hasPermissions)
+  const requestPermissions = C.usePushState(s => s.dispatch.requestPermissions)
   if (mobileHasPermissions) return null
   const onEnable = requestPermissions
   return (

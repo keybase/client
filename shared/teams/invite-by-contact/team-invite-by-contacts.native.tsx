@@ -1,8 +1,8 @@
+import * as C from '../../constants'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as React from 'react'
-import * as SettingsConstants from '../../constants/settings'
-import type * as Types from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 import useContacts, {type Contact} from '../common/use-contacts.native'
 import {InviteByContact, type ContactRowProps} from './index.native'
 import {useTeamDetailsSubscribe} from '../subscriber'
@@ -12,14 +12,14 @@ import {useTeamDetailsSubscribe} from '../subscriber'
 const extractPhoneNumber = (name: string, region: string): string => {
   const matches = /\((.*)\)/.exec(name)
   const maybeNumber = matches?.[1]?.replace(/[^0-9+]/g, '')
-  return (maybeNumber && SettingsConstants.getE164(maybeNumber, region)) ?? ''
+  return (maybeNumber && C.getE164(maybeNumber, region)) ?? ''
 }
 
 // Extract either emails or phone numbers from team invites, to match to
 // contacts and show whether the contact is invited already or not. Returns a
 // mapping of potential contact values to invite IDs.
 const mapExistingInvitesToValues = (
-  invites: Types.TeamDetails['invites'],
+  invites: T.Teams.TeamDetails['invites'],
   region: string
 ): Map<string, string> => {
   const ret = new Map<string, string>()
@@ -40,36 +40,36 @@ const mapExistingInvitesToValues = (
 }
 
 type Props = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }
 
 const TeamInviteByContact = (props: Props) => {
   const {teamID} = props
   const {contacts, region, errorMessage} = useContacts()
-  const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
-  const invites = Constants.useState(s => s.teamDetails.get(teamID) ?? Constants.emptyTeamDetails).invites
+  const teamname = C.useTeamsState(s => Constants.getTeamMeta(s, teamID).teamname)
+  const invites = C.useTeamsState(s => s.teamDetails.get(teamID) ?? Constants.emptyTeamDetails).invites
 
   useTeamDetailsSubscribe(teamID)
 
   const nav = Container.useSafeNavigation()
 
-  const [selectedRole, setSelectedRole] = React.useState('writer' as Types.TeamRoleType)
+  const [selectedRole, setSelectedRole] = React.useState('writer' as T.Teams.TeamRoleType)
 
-  const loadingInvites = Constants.useState(s => s.teamNameToLoadingInvites.get(teamname))
-  const resetErrorInEmailInvite = Constants.useState(s => s.dispatch.resetErrorInEmailInvite)
+  const loadingInvites = C.useTeamsState(s => s.teamNameToLoadingInvites.get(teamname))
+  const resetErrorInEmailInvite = C.useTeamsState(s => s.dispatch.resetErrorInEmailInvite)
   const onBack = React.useCallback(() => {
     nav.safeNavigateUp()
     resetErrorInEmailInvite()
   }, [resetErrorInEmailInvite, nav])
 
   const onRoleChange = React.useCallback(
-    (role: Types.TeamRoleType) => {
+    (role: T.Teams.TeamRoleType) => {
       setSelectedRole(role)
     },
     [setSelectedRole]
   )
-  const inviteToTeamByEmail = Constants.useState(s => s.dispatch.inviteToTeamByEmail)
-  const inviteToTeamByPhone = Constants.useState(s => s.dispatch.inviteToTeamByPhone)
+  const inviteToTeamByEmail = C.useTeamsState(s => s.dispatch.inviteToTeamByEmail)
+  const inviteToTeamByPhone = C.useTeamsState(s => s.dispatch.inviteToTeamByPhone)
 
   const onInviteContact = React.useCallback(
     (contact: Contact) => {
@@ -90,7 +90,7 @@ const TeamInviteByContact = (props: Props) => {
     [inviteToTeamByPhone, inviteToTeamByEmail, resetErrorInEmailInvite, selectedRole, teamID, teamname]
   )
 
-  const removePendingInvite = Constants.useState(s => s.dispatch.removePendingInvite)
+  const removePendingInvite = C.useTeamsState(s => s.dispatch.removePendingInvite)
   const onCancelInvite = React.useCallback(
     (inviteID: string) => {
       resetErrorInEmailInvite()

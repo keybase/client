@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import {TouchableWithoutFeedback, Keyboard} from 'react-native'
 import Badge from './badge'
 import Box from './box'
@@ -16,7 +16,7 @@ const Kb = {
 
 const BackButton = React.memo(function BackButton(props: Props) {
   const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onNavUp = React.useCallback(() => {
     // this helps with some timing issues w/ dismissing keyboard avoiding views
     Keyboard.dismiss()

@@ -1,11 +1,8 @@
-import * as ConfigConstants from '../../../../constants/config'
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import AccountPayment from '.'
-import shallowEqual from 'shallowequal'
-import type * as Types from '../../../../constants/types/chat2'
-import type * as WalletTypes from '../../../../constants/types/wallets'
+import type * as T from '../../../../constants/types'
 
 // Props for rendering the loading indicator
 const loadingProps = {
@@ -34,7 +31,7 @@ const failedProps = {
 }
 
 // Get action phrase for sendPayment msg
-const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender: boolean) => {
+const makeSendPaymentVerb = (status: T.Wallets.StatusSimplified, youAreSender: boolean) => {
   switch (status) {
     case 'pending':
       return 'sending'
@@ -49,16 +46,34 @@ const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender:
 }
 
 type OwnProps = {
-  message: Types.MessageSendPayment | Types.MessageRequestPayment
+  message: T.Chat.MessageSendPayment | T.Chat.MessageRequestPayment
+}
+
+const getRequestMessageInfo = (
+  accountsInfoMap: Constants.ConvoState['accountsInfoMap'],
+  message: T.Chat.MessageRequestPayment
+) => {
+  const maybeRequestInfo = accountsInfoMap.get(message.id)
+  if (!maybeRequestInfo) {
+    return message.requestInfo
+  }
+  if (maybeRequestInfo.type === 'requestInfo') {
+    return maybeRequestInfo
+  }
+  throw new Error(
+    `Found impossible type ${maybeRequestInfo.type} in info meant for requestPayment message. convID: ${message.conversationIDKey} msgID: ${message.id}`
+  )
 }
 
 const ConnectedAccountPayment = (ownProps: OwnProps) => {
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const stateProps = Container.useSelector(state => {
+  const you = C.useCurrentUserState(s => s.username)
+  const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
+
+  const stateProps = (() => {
     const youAreSender = ownProps.message.author === you
     switch (ownProps.message.type) {
       case 'sendPayment': {
-        const paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
+        const paymentInfo = Constants.getPaymentMessageInfo(accountsInfoMap, ownProps.message)
         if (!paymentInfo) {
           // waiting for service to load it (missed service cache on loading thread)
           return loadingProps
@@ -97,7 +112,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
       }
       case 'requestPayment': {
         const message = ownProps.message
-        const requestInfo = Constants.getRequestMessageInfo(state, message)
+        const requestInfo = getRequestMessageInfo(accountsInfoMap, message)
         if (!requestInfo) {
           // waiting for service to load it
           return loadingProps
@@ -128,7 +143,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
       default:
         return failedProps
     }
-  }, shallowEqual)
+  })()
 
   const props = {
     action: stateProps.action,

@@ -1,7 +1,7 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as TeamsConstants from '../../constants/teams'
-import * as RouterConstants from '../../constants/router2'
-import type * as TeamsTypes from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 import type {TextType} from '../text'
 import {TeamWithPopup} from './'
 
@@ -15,9 +15,9 @@ type OwnProps = {
 }
 
 const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
-  const teamID = TeamsConstants.useState(s => TeamsConstants.getTeamID(s, ownProps.teamName))
-  const meta = TeamsConstants.useState(s => TeamsConstants.getTeamMeta(s, teamID))
-  const description = TeamsConstants.useState(s => s.teamDetails.get(teamID)?.description) ?? ''
+  const teamID = C.useTeamsState(s => TeamsConstants.getTeamID(s, ownProps.teamName))
+  const meta = C.useTeamsState(s => TeamsConstants.getTeamMeta(s, teamID))
+  const description = C.useTeamsState(s => s.teamDetails.get(teamID)?.description) ?? ''
   const stateProps = {
     description,
     isMember: meta.isMember,
@@ -25,12 +25,12 @@ const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
     memberCount: meta.memberCount,
     teamID,
   }
-  const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
+  const joinTeam = C.useTeamsState(s => s.dispatch.joinTeam)
   const _onJoinTeam = joinTeam
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onViewTeam = React.useCallback(
-    (teamID: TeamsTypes.TeamID) => {
+    (teamID: T.Teams.TeamID) => {
       clearModals()
       navigateAppend({props: {teamID}, selected: 'team'})
     },

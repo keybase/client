@@ -1,9 +1,9 @@
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/teams'
-import * as ProfileConstants from '../../../../../constants/profile'
+import * as ChatConstants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import * as React from 'react'
-import type * as Types from '../../../../../constants/types/teams'
+import type * as T from '../../../../../constants/types'
 import type {RowProps} from '.'
 import {TeamRequestRow} from '.'
 import {sendNotificationFooter} from '../../../../role-picker'
@@ -14,7 +14,7 @@ type OwnProps = {
   fullName: string
   username: string
   reset?: boolean
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }
 
 type State = {
@@ -24,7 +24,7 @@ type State = {
 
 type ExtraProps = {
   _notifLabel: string
-  letIn: (sendNotification: boolean, role: Types.TeamRoleType) => void
+  letIn: (sendNotification: boolean, role: T.Teams.TeamRoleType) => void
 }
 
 class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, State> {
@@ -61,17 +61,16 @@ class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, Stat
 
 export default (ownProps: OwnProps) => {
   const {teamID, username, reset, fullName} = ownProps
-  const {teamname} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
-  const _notifLabel = Container.useSelector(state =>
-    Constants.isBigTeam(state, teamID) ? `Announce them in #general` : `Announce them in team chat`
+  const {teamname} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const _notifLabel = C.useChatState(s =>
+    ChatConstants.isBigTeam(s, teamID) ? `Announce them in #general` : `Announce them in team chat`
   )
-  const disabledReasonsForRolePicker = Constants.useState(s =>
+  const disabledReasonsForRolePicker = C.useTeamsState(s =>
     Constants.getDisabledReasonsForRolePicker(s, teamID, username)
   )
   const waiting = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
-  const dispatch = Container.useDispatch()
-  const removeMember = Constants.useState(s => s.dispatch.removeMember)
-  const ignoreRequest = Constants.useState(s => s.dispatch.ignoreRequest)
+  const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
+  const ignoreRequest = C.useTeamsState(s => s.dispatch.ignoreRequest)
 
   const _onIgnoreRequest = (teamname: string) => {
     if (reset) {
@@ -81,14 +80,15 @@ export default (ownProps: OwnProps) => {
     }
   }
 
-  const addToTeam = Constants.useState(s => s.dispatch.addToTeam)
-  const letIn = (sendNotification: boolean, role: Types.TeamRoleType) => {
+  const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
+  const letIn = (sendNotification: boolean, role: T.Teams.TeamRoleType) => {
     addToTeam(teamID, [{assertion: username, role}], sendNotification)
   }
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onChat = () => {
-    username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamInvite'}))
+    username && previewConversation({participants: [username], reason: 'teamInvite'})
   }
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = () => {
     showUserProfile(username)
   }

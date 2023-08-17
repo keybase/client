@@ -1,19 +1,19 @@
 import * as Container from '../../util/container'
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
+import * as T from '../../constants/types'
+import * as C from '../../constants'
 import SyncToggle from './sync-toggle'
 
 type OwnProps = {
-  tlfPath: Types.Path
+  tlfPath: T.FS.Path
 }
 
 export default (ownProps: OwnProps) => {
   const {tlfPath} = ownProps
-  const _tlfPathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, ownProps.tlfPath))
-  const _tlfs = Constants.useState(s => s.tlfs)
-  const waiting = Container.useAnyWaiting(Constants.syncToggleWaitingKey)
+  const _tlfPathItem = C.useFSState(s => C.getPathItem(s.pathItems, ownProps.tlfPath))
+  const _tlfs = C.useFSState(s => s.tlfs)
+  const waiting = Container.useAnyWaiting(C.syncToggleWaitingKey)
 
-  const setTlfSyncConfig = Constants.useState(s => s.dispatch.setTlfSyncConfig)
+  const setTlfSyncConfig = C.useFSState(s => s.dispatch.setTlfSyncConfig)
 
   const disableSync = () => {
     setTlfSyncConfig(tlfPath, false)
@@ -21,7 +21,7 @@ export default (ownProps: OwnProps) => {
   const enableSync = () => {
     setTlfSyncConfig(tlfPath, true)
   }
-  const syncConfig = Constants.getTlfFromPath(_tlfs, tlfPath).syncConfig
+  const syncConfig = C.getTlfFromPath(_tlfs, tlfPath).syncConfig
   const props = {
     disableSync,
     enableSync,
@@ -29,8 +29,8 @@ export default (ownProps: OwnProps) => {
     // Band-aid fix for when new user has a non-exisitent TLF which we
     // can't enable sync for yet.
     hideSyncToggle:
-      syncConfig.mode === Types.TlfSyncMode.Disabled &&
-      _tlfPathItem.type === Types.PathType.Folder &&
+      syncConfig.mode === T.FS.TlfSyncMode.Disabled &&
+      _tlfPathItem.type === T.FS.PathType.Folder &&
       !_tlfPathItem.children.size,
     syncConfig,
     waiting,

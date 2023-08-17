@@ -1,31 +1,31 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Types from '../../constants/types/teams'
+import * as T from '../../constants/types'
 import * as Styles from '../../styles'
-import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/teams'
 import {memoize} from '../../util/memoize'
 
 type Props = {
   members: string[]
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }
 
 const getSubteamNames = memoize(
-  (state: Constants.State, teamID: Types.TeamID): [string[], Types.TeamID[]] => {
-    const subteamIDs = [...(Constants.useState.getState().teamDetails.get(teamID)?.subteams ?? [])]
+  (state: Constants.State, teamID: T.Teams.TeamID): [string[], T.Teams.TeamID[]] => {
+    const subteamIDs = [...(C.useTeamsState.getState().teamDetails.get(teamID)?.subteams ?? [])]
     return [subteamIDs.map(id => Constants.getTeamMeta(state, id).teamname), subteamIDs]
   }
 )
 
 const ConfirmKickOut = (props: Props) => {
   const members = props.members
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
   const [subteamsToo, setSubteamsToo] = React.useState(false)
 
-  const [subteams, subteamIDs] = Constants.useState(s => getSubteamNames(s, teamID))
-  const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
+  const [subteams, subteamIDs] = C.useTeamsState(s => getSubteamNames(s, teamID))
+  const teamname = C.useTeamsState(s => Constants.getTeamMeta(s, teamID).teamname)
   const waitingKeys = ([] as string[]).concat.apply(
     members.map(member => Constants.removeMemberWaitingKey(teamID, member)),
     members.map(member => subteamIDs.map(subteamID => Constants.removeMemberWaitingKey(subteamID, member)))
@@ -34,8 +34,8 @@ const ConfirmKickOut = (props: Props) => {
   const nav = Container.useSafeNavigation()
   const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
 
-  const setMemberSelected = Constants.useState(s => s.dispatch.setMemberSelected)
-  const removeMember = Constants.useState(s => s.dispatch.removeMember)
+  const setMemberSelected = C.useTeamsState(s => s.dispatch.setMemberSelected)
+  const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
   // TODO(Y2K-1592): do this in one RPC
   const onRemove = () => {
     setMemberSelected(teamID, '', false, true)
@@ -47,7 +47,7 @@ const ConfirmKickOut = (props: Props) => {
   }
 
   const wasWaiting = Container.usePrevious(waiting)
-  const navUpToScreen = RouterConstants.useState(s => s.dispatch.navUpToScreen)
+  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   React.useEffect(() => {
     if (wasWaiting && !waiting) {
       navUpToScreen('team')

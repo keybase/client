@@ -1,23 +1,15 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Constants from '../../../constants/chat2'
-import * as UsersConstants from '../../../constants/users'
-import * as Container from '../../../util/container'
-import * as Followers from '../../../constants/followers'
+import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import openSMS from '../../../util/sms'
-import shallowEqual from 'shallowequal'
-import type * as Types from '../../../constants/types/chat2'
 import {InviteBanner} from '.'
-import {showShareActionSheet} from '../../../actions/platform-specific'
+import {showShareActionSheet} from '../../../constants/platform-specific'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
-const Invite = (p: {conversationIDKey: Types.ConversationIDKey}) => {
-  const {conversationIDKey} = p
-  const participantInfoAll = Container.useSelector(
-    state => Constants.getParticipantInfo(state, conversationIDKey).all
-  )
+const Invite = () => {
+  const participantInfo = C.useChatContext(s => s.participants)
+  const participantInfoAll = participantInfo.all
   const users = participantInfoAll.filter(p => p.includes('@'))
 
   const openShareSheet = () => {
@@ -35,14 +27,9 @@ const Invite = (p: {conversationIDKey: Types.ConversationIDKey}) => {
       .catch(() => {})
   }
 
-  const usernameToContactName = Container.useSelector(
-    state => Constants.getParticipantInfo(state, conversationIDKey).contactName
-  )
+  const usernameToContactName = participantInfo.contactName
 
-  const dispatch = Container.useDispatch()
-  const onDismiss = () => {
-    dispatch(Chat2Gen.createDismissBottomBanner({conversationIDKey}))
-  }
+  const onDismiss = C.useChatContext(s => s.dispatch.dismissBottomBanner)
 
   return (
     <InviteBanner
@@ -55,35 +42,31 @@ const Invite = (p: {conversationIDKey: Types.ConversationIDKey}) => {
   )
 }
 
-const Broken = (p: {conversationIDKey: Types.ConversationIDKey}) => {
-  const {conversationIDKey} = p
-
-  const following = Followers.useFollowerState(s => s.following)
-  const infoMap = UsersConstants.useState(s => s.infoMap)
-  const users = Container.useSelector(state => {
-    const participantInfoAll = Constants.getParticipantInfo(state, conversationIDKey).all
-    return participantInfoAll.filter(p => following.has(p) && infoMap.get(p)?.broken)
-  }, shallowEqual)
+const Broken = () => {
+  const following = C.useFollowerState(s => s.following)
+  const infoMap = C.useUsersState(s => s.infoMap)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const users = participantInfo.all.filter(p => following.has(p) && infoMap.get(p)?.broken)
   return <Kb.ProofBrokenBanner users={users} />
 }
 
-const BannerContainer = React.memo(function BannerContainer(p: {conversationIDKey: Types.ConversationIDKey}) {
-  const {conversationIDKey} = p
-  const following = Followers.useFollowerState(s => s.following)
-  const infoMap = UsersConstants.useState(s => s.infoMap)
-  const type = Container.useSelector(state => {
-    const teamType = Constants.getMeta(state, conversationIDKey).teamType
+const BannerContainer = React.memo(function BannerContainer() {
+  const following = C.useFollowerState(s => s.following)
+  const infoMap = C.useUsersState(s => s.infoMap)
+  const dismissed = C.useChatContext(s => s.dismissedInviteBanners)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const type = C.useChatContext(s => {
+    const teamType = s.meta.teamType
     if (teamType !== 'adhoc') {
       return 'none'
     }
-    const participantInfoAll = Constants.getParticipantInfo(state, conversationIDKey).all
+    const participantInfoAll = participantInfo.all
     const broken = participantInfoAll.some(p => following.has(p) && infoMap.get(p)?.broken)
     if (broken) {
       return 'broken'
     } else {
       const toInvite = participantInfoAll.some(p => p.includes('@'))
-      const dismissed = state.chat2.dismissedInviteBannersMap.get(conversationIDKey) || false
-      const hasMessages = !Constants.getMeta(state, conversationIDKey).isEmpty
+      const hasMessages = !s.meta.isEmpty
       if (toInvite && !dismissed && hasMessages) {
         return 'invite'
       } else {
@@ -94,9 +77,9 @@ const BannerContainer = React.memo(function BannerContainer(p: {conversationIDKe
 
   switch (type) {
     case 'invite':
-      return <Invite conversationIDKey={conversationIDKey} />
+      return <Invite />
     case 'broken':
-      return <Broken conversationIDKey={conversationIDKey} />
+      return <Broken />
     case 'none':
       return null
   }

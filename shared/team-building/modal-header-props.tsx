@@ -1,6 +1,6 @@
 import {ModalTitle as TeamsModalTitle} from '../teams/common'
 import type * as Types from './types'
-import {noTeamID} from '../constants/types/teams'
+import * as T from '../constants/types'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 
@@ -33,7 +33,7 @@ export const modalHeaderProps = (
             Done
           </Kb.Text>
         ) : undefined,
-        title: <TeamsModalTitle teamID={teamID ?? noTeamID} title="Search people" />,
+        title: <TeamsModalTitle teamID={teamID ?? T.Teams.noTeamID} title="Search people" />,
       }
     }
     case 'chat2': {
@@ -66,4 +66,4 @@ export const modalHeaderProps = (
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({hide: {opacity: 0}} as const))
+const styles = Styles.styleSheetCreate(() => ({hide: {opacity: 0}}) as const)

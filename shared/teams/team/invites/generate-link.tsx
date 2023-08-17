@@ -1,11 +1,10 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
-import * as Types from '../../../constants/types/teams'
-import * as RPCGen from '../../../constants/types/rpc-gen'
+import * as T from '../../../constants/types'
 import * as Styles from '../../../styles'
-import * as RouterConstants from '../../../constants/router2'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import {ModalTitle} from '../../common'
 import {FloatingRolePicker} from '../../role-picker'
@@ -13,15 +12,15 @@ import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {pluralize} from '../../../util/string'
 import {InviteItem} from './invite-item'
 
-type Props = {teamID: Types.TeamID}
+type Props = {teamID: T.Teams.TeamID}
 
 type RolePickerProps = {
   isRolePickerOpen: boolean
   onCancelRolePicker: () => void
-  onConfirmRolePicker: (role: Types.TeamRoleType) => void
+  onConfirmRolePicker: (role: T.Teams.TeamRoleType) => void
   onOpenRolePicker: () => void
-  teamRole: Types.TeamRoleType
-  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string | undefined}
+  teamRole: T.Teams.TeamRoleType
+  disabledReasonsForRolePicker: {[K in T.Teams.TeamRoleType]?: string | undefined}
 }
 
 const capitalize = (str: string) => {
@@ -64,20 +63,20 @@ const validityValuesMap = {
 }
 
 const GenerateLinkModal = (props: Props) => {
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
   const [validity, setValidity] = React.useState(validityOneYear)
   const [isRolePickerOpen, setRolePickerOpen] = React.useState(false)
-  const [teamRole, setTeamRole] = React.useState<Types.TeamRoleType>('reader')
+  const [teamRole, setTeamRole] = React.useState<T.Teams.TeamRoleType>('reader')
   const [inviteLinkURL, setInviteLinkURL] = React.useState('')
   const nav = Container.useSafeNavigation()
-  const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
+  const teamname = C.useTeamsState(s => Constants.getTeamMeta(s, teamID).teamname)
   useTeamDetailsSubscribe(teamID)
-  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const inviteLinks = teamDetails?.inviteLinks
   const inviteLink = [...(inviteLinks || [])].find(i => i.url == inviteLinkURL)
 
   const onBack = () => nav.safeNavigateUp()
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => clearModals()
 
   const makePopup = React.useCallback((p: Kb.Popup2Parms) => {
@@ -100,7 +99,7 @@ const GenerateLinkModal = (props: Props) => {
 
   const {toggleShowingPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
-  const generateLinkRPC = Container.useRPC(RPCGen.teamsTeamCreateSeitanInvitelinkWithDurationRpcPromise)
+  const generateLinkRPC = Container.useRPC(T.RPCGen.teamsTeamCreateSeitanInvitelinkWithDurationRpcPromise)
   const onGenerate = () => {
     const expireAfter = validityValuesMap[validity as keyof typeof validityValuesMap] ?? ''
     const maxUses = expireAfter == null ? 1 : -1
@@ -110,7 +109,7 @@ const GenerateLinkModal = (props: Props) => {
         {
           expireAfter,
           maxUses,
-          role: RPCGen.TeamRole[teamRole],
+          role: T.RPCGen.TeamRole[teamRole],
           teamname,
         },
         waitingKey,
@@ -127,7 +126,7 @@ const GenerateLinkModal = (props: Props) => {
     },
     isRolePickerOpen: isRolePickerOpen,
     onCancelRolePicker: () => setRolePickerOpen(false),
-    onConfirmRolePicker: (role: Types.TeamRoleType) => {
+    onConfirmRolePicker: (role: T.Teams.TeamRoleType) => {
       setRolePickerOpen(false)
       setTeamRole(role)
     },

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {isLargeScreen} from '../../../../../constants/platform'
-import type {MemberStatus, TeamRoleType} from '../../../../../constants/types/teams'
+import type * as T from '../../../../../constants/types'
 import BotMenu from '../bot-menu'
 
 export type Props = {
@@ -15,8 +15,8 @@ export type Props = {
   onShowTracker: () => void
   ownerTeam?: string
   ownerUser?: string
-  roleType: TeamRoleType
-  status: MemberStatus
+  roleType: T.Teams.TeamRoleType
+  status: T.Teams.MemberStatus
   username: string
 }
 

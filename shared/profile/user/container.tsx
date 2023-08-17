@@ -1,16 +1,16 @@
-import Profile2, {type BackgroundColorType} from '.'
-import * as RouterConstants from '../../constants/router2'
-import * as ConfigConstants from '../../constants/config'
+import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
-import * as ProfileConstants from '../../constants/profile'
-import * as Followers from '../../constants/followers'
 import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/tracker2'
+import type * as T from '../../constants/types'
 import {memoize} from '../../util/memoize'
+import Profile2, {type BackgroundColorType} from '.'
 
 export type OwnProps = {username: string}
 
-const headerBackgroundColorType = (state: Types.DetailsState, followThem: boolean): BackgroundColorType => {
+const headerBackgroundColorType = (
+  state: T.Tracker.DetailsState,
+  followThem: boolean
+): BackgroundColorType => {
   if (['broken', 'error'].includes(state)) {
     return 'red'
   } else if (state === 'notAUserYet') {
@@ -21,14 +21,14 @@ const headerBackgroundColorType = (state: Types.DetailsState, followThem: boolea
 }
 
 const filterWebOfTrustEntries = memoize(
-  (webOfTrustEntries: Array<Types.WebOfTrustEntry> | undefined): Array<Types.WebOfTrustEntry> =>
+  (webOfTrustEntries: Array<T.Tracker.WebOfTrustEntry> | undefined): Array<T.Tracker.WebOfTrustEntry> =>
     webOfTrustEntries ? webOfTrustEntries.filter(Constants.showableWotEntry) : []
 )
 
 const Connected = (ownProps: OwnProps) => {
   const {username} = ownProps
-  const d = Constants.useState(s => Constants.getDetails(s, username))
-  const myName = ConfigConstants.useCurrentUserState(s => s.username)
+  const d = C.useTrackerState(s => Constants.getDetails(s, username))
+  const myName = C.useCurrentUserState(s => s.username)
   const notAUser = d.state === 'notAUserYet'
   const userIsYou = username === myName
 
@@ -53,11 +53,11 @@ const Connected = (ownProps: OwnProps) => {
     username,
   }
 
-  const followThem = Followers.useFollowerState(s => s.following.has(username))
-  const followsYou = Followers.useFollowerState(s => s.followers.has(username))
+  const followThem = C.useFollowerState(s => s.following.has(username))
+  const followsYou = C.useFollowerState(s => s.followers.has(username))
   const mutualFollow = followThem && followsYou
-  const _suggestionKeys = Constants.useState(s => (userIsYou ? s.proofSuggestions : undefined))
-  const nonUserDetails = Constants.useState(s => Constants.getNonUserDetails(s, username))
+  const _suggestionKeys = C.useTrackerState(s => (userIsYou ? s.proofSuggestions : undefined))
+  const nonUserDetails = C.useTrackerState(s => Constants.getNonUserDetails(s, username))
   const stateProps = (() => {
     if (!notAUser) {
       // Keybase user
@@ -112,17 +112,17 @@ const Connected = (ownProps: OwnProps) => {
     }
   })()
 
-  const editAvatar = ProfileConstants.useState(s => s.dispatch.editAvatar)
+  const editAvatar = C.useProfileState(s => s.dispatch.editAvatar)
   const _onEditAvatar = editAvatar
   // const _onIKnowThem = (username: string, guiID: string) => {
   //   dispatch(
   //     RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})
   //   )
   // }
-  const showUser = Constants.useState(s => s.dispatch.showUser)
-  const getProofSuggestions = Constants.useState(s => s.dispatch.getProofSuggestions)
-  const loadNonUserProfile = Constants.useState(s => s.dispatch.loadNonUserProfile)
-  const _onReload = (username: string, isYou: boolean, state: Types.DetailsState) => {
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const getProofSuggestions = C.useTrackerState(s => s.dispatch.getProofSuggestions)
+  const loadNonUserProfile = C.useTrackerState(s => s.dispatch.loadNonUserProfile)
+  const _onReload = (username: string, isYou: boolean, state: T.Tracker.DetailsState) => {
     if (state !== 'valid' && !isYou) {
       // Might be a Keybase user or not, launch non-user profile fetch.
       loadNonUserProfile(username)
@@ -135,11 +135,11 @@ const Connected = (ownProps: OwnProps) => {
       }
     }
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onAddIdentity = () => {
     navigateAppend('profileProofsList')
   }
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }

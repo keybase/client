@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
@@ -6,13 +7,12 @@ import * as Constants from '../../constants/teams'
 import {Success} from '.'
 
 const JoinFromInvite = () => {
-  const dispatch = Container.useDispatch()
-  const {inviteID: id, inviteKey: key, inviteDetails: details} = Constants.useState(s => s.teamInviteDetails)
-  const error = Constants.useState(s => s.errorInTeamJoin)
+  const {inviteID: id, inviteKey: key, inviteDetails: details} = C.useTeamsState(s => s.teamInviteDetails)
+  const error = C.useTeamsState(s => s.errorInTeamJoin)
   const loaded = details !== undefined || !!error
 
-  const joinTeam = Constants.useState(s => s.dispatch.joinTeam)
-  const requestInviteLinkDetails = Constants.useState(s => s.dispatch.requestInviteLinkDetails)
+  const joinTeam = C.useTeamsState(s => s.dispatch.joinTeam)
+  const requestInviteLinkDetails = C.useTeamsState(s => s.dispatch.requestInviteLinkDetails)
 
   React.useEffect(() => {
     if (loaded) {
@@ -27,13 +27,13 @@ const JoinFromInvite = () => {
     // Otherwise we're reusing the join flow, so that we don't look up the invite id twice
     // (the invite id is derived from the key).
     joinTeam(key, true)
-  }, [requestInviteLinkDetails, joinTeam, loaded, dispatch, key, id])
+  }, [requestInviteLinkDetails, joinTeam, loaded, key, id])
 
   const [clickedJoin, setClickedJoin] = React.useState(false)
   const nav = Container.useSafeNavigation()
 
   const onNavUp = () => nav.safeNavigateUp()
-  const respondToInviteLink = Constants.useState(s => s.dispatch.dynamic.respondToInviteLink)
+  const respondToInviteLink = C.useTeamsState(s => s.dispatch.dynamic.respondToInviteLink)
   const onJoinTeam = () => {
     setClickedJoin(true)
     respondToInviteLink?.(true)

@@ -1,13 +1,9 @@
-import * as ChatTypes from '../../constants/types/chat2'
-import * as ConfigConstants from '../../constants/config'
+import * as C from '..'
+import * as T from '../types'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/push'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../../logger'
-import type * as Types from '../../constants/types/push'
-import {isIOS, isAndroid} from '../../constants/platform'
+import {isIOS, isAndroid} from '../platform'
 import {
   androidGetRegistrationToken,
   androidSetApplicationIconBadgeNumber,
@@ -60,24 +56,22 @@ type PushN = {
   message: string
 } & Data
 
-const anyToConversationMembersType = (
-  a: string | number
-): RPCChatTypes.ConversationMembersType | undefined => {
+const anyToConversationMembersType = (a: string | number): T.RPCChat.ConversationMembersType | undefined => {
   const membersTypeNumber: number = typeof a === 'string' ? parseInt(a, 10) : a || -1
   switch (membersTypeNumber) {
-    case RPCChatTypes.ConversationMembersType.kbfs:
-      return RPCChatTypes.ConversationMembersType.kbfs
-    case RPCChatTypes.ConversationMembersType.team:
-      return RPCChatTypes.ConversationMembersType.team
-    case RPCChatTypes.ConversationMembersType.impteamnative:
-      return RPCChatTypes.ConversationMembersType.impteamnative
-    case RPCChatTypes.ConversationMembersType.impteamupgrade:
-      return RPCChatTypes.ConversationMembersType.impteamupgrade
+    case T.RPCChat.ConversationMembersType.kbfs:
+      return T.RPCChat.ConversationMembersType.kbfs
+    case T.RPCChat.ConversationMembersType.team:
+      return T.RPCChat.ConversationMembersType.team
+    case T.RPCChat.ConversationMembersType.impteamnative:
+      return T.RPCChat.ConversationMembersType.impteamnative
+    case T.RPCChat.ConversationMembersType.impteamupgrade:
+      return T.RPCChat.ConversationMembersType.impteamupgrade
     default:
       return undefined
   }
 }
-const normalizePush = (_n?: Object): Types.PushNotification | undefined => {
+const normalizePush = (_n?: Object): T.Push.PushNotification | undefined => {
   try {
     if (!_n) {
       return undefined
@@ -101,7 +95,7 @@ const normalizePush = (_n?: Object): Types.PushNotification | undefined => {
       case 'chat.newmessage':
         return data.convID
           ? {
-              conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
+              conversationIDKey: T.Chat.stringToConversationIDKey(data.convID),
               membersType: anyToConversationMembersType(data.t),
               type: 'chat.newmessage',
               unboxPayload: data.m || '',
@@ -113,7 +107,7 @@ const normalizePush = (_n?: Object): Types.PushNotification | undefined => {
           const membersType = anyToConversationMembersType(data.t)
           if (membersType) {
             return {
-              conversationIDKey: ChatTypes.stringToConversationIDKey(data.c),
+              conversationIDKey: T.Chat.stringToConversationIDKey(data.c),
               membersType,
               type: 'chat.newmessageSilent_2',
               unboxPayload: data.m || '',
@@ -132,7 +126,7 @@ const normalizePush = (_n?: Object): Types.PushNotification | undefined => {
       case 'chat.extension':
         return data.convID
           ? {
-              conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
+              conversationIDKey: T.Chat.stringToConversationIDKey(data.convID),
               type: 'chat.extension',
             }
           : undefined
@@ -174,27 +168,27 @@ const listenForNativeAndroidIntentNotifications = async () => {
   const pushToken = await androidGetRegistrationToken()
   logger.debug('[PushToken] received new token: ', pushToken)
 
-  Constants.useState.getState().dispatch.setPushToken(pushToken)
+  C.usePushState.getState().dispatch.setPushToken(pushToken)
 
   const RNEmitter = getNativeEmitter()
   RNEmitter.addListener('initialIntentFromNotification', evt => {
     const notification = evt && normalizePush(evt)
     if (notification) {
-      Constants.useState.getState().dispatch.handlePush(notification)
+      C.usePushState.getState().dispatch.handlePush(notification)
     }
   })
 
   RNEmitter.addListener('onShareData', evt => {
     logger.debug('[ShareDataIntent]', evt)
-    const {setAndroidShare} = ConfigConstants.useConfigState.getState().dispatch
+    const {setAndroidShare} = C.useConfigState.getState().dispatch
 
     const text = evt.text
     const url = evt.localPath
 
     if (url) {
-      setAndroidShare({type: RPCTypes.IncomingShareType.file, url})
+      setAndroidShare({type: T.RPCGen.IncomingShareType.file, url})
     } else if (text) {
-      setAndroidShare({text, type: RPCTypes.IncomingShareType.text})
+      setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
     }
   })
 }
@@ -202,7 +196,7 @@ const listenForNativeAndroidIntentNotifications = async () => {
 const iosListenForPushNotificationsFromJS = () => {
   const onRegister = (token: string) => {
     logger.debug('[PushToken] received new token: ', token)
-    Constants.useState.getState().dispatch.setPushToken(token)
+    C.usePushState.getState().dispatch.setPushToken(token)
   }
 
   const onNotification = (n: Object) => {
@@ -212,7 +206,7 @@ const iosListenForPushNotificationsFromJS = () => {
       return
     }
 
-    Constants.useState.getState().dispatch.handlePush(notification)
+    C.usePushState.getState().dispatch.handlePush(notification)
   }
 
   isIOS && PushNotificationIOS.addEventListener('notification', onNotification)
@@ -268,7 +262,7 @@ const getInitialPushiOS = async () => {
 
 export const initPushListener = () => {
   // Permissions
-  ConfigConstants.useConfigState.subscribe((s, old) => {
+  C.useConfigState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     // Only recheck on foreground, not background
     if (s.mobileAppState !== 'active') {
@@ -276,7 +270,7 @@ export const initPushListener = () => {
       return
     }
     logger.debug(`[PushCheck] checking on foreground`)
-    Constants.useState
+    C.usePushState
       .getState()
       .dispatch.checkPermissions()
       .then(() => {})
@@ -284,13 +278,13 @@ export const initPushListener = () => {
   })
 
   // Token handling
-  ConfigConstants.useLogoutState.subscribe((s, old) => {
+  C.useLogoutState.subscribe((s, old) => {
     if (s.version === old.version) return
-    Constants.useState.getState().dispatch.deleteToken(s.version)
+    C.usePushState.getState().dispatch.deleteToken(s.version)
   })
 
   let lastCount = -1
-  ConfigConstants.useConfigState.subscribe((s, old) => {
+  C.useConfigState.subscribe((s, old) => {
     if (s.badgeState === old.badgeState) return
     if (!s.badgeState) return
     const count = s.badgeState.bigTeamBadgeCount + s.badgeState.smallTeamBadgeCount
@@ -302,9 +296,9 @@ export const initPushListener = () => {
     lastCount = count
   })
 
-  Constants.useState.getState().dispatch.initialPermissionsCheck()
+  C.usePushState.getState().dispatch.initialPermissionsCheck()
 
-  ConfigConstants.useDaemonState.subscribe((s, old) => {
+  C.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return
 
     const f = async () => {

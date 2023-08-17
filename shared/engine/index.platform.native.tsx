@@ -78,7 +78,6 @@ function createClient(
       logger.error('>>>> meta engine event JS thrown!', e)
     }
   })
-
   return client
 }
 

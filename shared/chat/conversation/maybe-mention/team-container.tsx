@@ -1,10 +1,6 @@
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as RouterConstants from '../../../constants/router2'
-import * as TeamsConstants from '../../../constants/teams'
-import * as Types from '../../../constants/types/chat2'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as Container from '../../../util/container'
+import * as T from '../../../constants/types'
 import type {StylesTextCrossPlatform} from '../../../common-adapters/text'
 import TeamMention from './team'
 
@@ -19,11 +15,11 @@ const noAdmins: Array<string> = []
 
 export default (ownProps: OwnProps) => {
   const {allowFontScaling, name, channel, style} = ownProps
-  const maybeMentionInfo = Container.useSelector(state =>
-    state.chat2.maybeMentionMap.get(Constants.getTeamMentionName(name, channel))
+  const maybeMentionInfo = C.useChatState(s =>
+    s.maybeMentionMap.get(Constants.getTeamMentionName(name, channel))
   )
   const mentionInfo =
-    maybeMentionInfo && maybeMentionInfo.status === RPCChatTypes.UIMaybeMentionStatus.team
+    maybeMentionInfo && maybeMentionInfo.status === T.RPCChat.UIMaybeMentionStatus.team
       ? maybeMentionInfo.team
       : null
   const _convID = mentionInfo ? mentionInfo.convID : undefined
@@ -34,20 +30,17 @@ export default (ownProps: OwnProps) => {
   const publicAdmins = mentionInfo?.publicAdmins || noAdmins
   const resolved = !!mentionInfo
 
-  const dispatch = Container.useDispatch()
-  const _onChat = (conversationIDKey: Types.ConversationIDKey) => {
-    dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'teamMention'}))
-  }
-  const showTeamByName = TeamsConstants.useState(s => s.dispatch.showTeamByName)
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const showTeamByName = C.useTeamsState(s => s.dispatch.showTeamByName)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const _onViewTeam = (teamname: string) => {
     clearModals()
     showTeamByName(teamname)
   }
-  const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
+  const joinTeam = C.useTeamsState(s => s.dispatch.joinTeam)
   const onJoinTeam = joinTeam
 
-  const convID = _convID ? Types.stringToConversationIDKey(_convID) : undefined
+  const convID = _convID ? T.Chat.stringToConversationIDKey(_convID) : undefined
   const props = {
     allowFontScaling: !!allowFontScaling,
     channel: channel,
@@ -56,7 +49,11 @@ export default (ownProps: OwnProps) => {
     isOpen: isOpen,
     name: name,
     numMembers: numMembers,
-    onChat: convID ? () => _onChat(convID) : undefined,
+    onChat: convID
+      ? () => {
+          previewConversation({conversationIDKey: convID, reason: 'teamMention'})
+        }
+      : undefined,
     onJoinTeam: onJoinTeam,
     onViewTeam: () => _onViewTeam(name),
     publicAdmins: publicAdmins,

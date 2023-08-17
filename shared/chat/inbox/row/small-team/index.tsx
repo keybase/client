@@ -1,30 +1,25 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Kb from '../../../../common-adapters'
-import * as Container from '../../../../util/container'
-import * as ConfigConstants from '../../../../constants/config'
 import * as Styles from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
-import type * as Types from '../../../../constants/types/chat2'
-import * as Constants from '../../../../constants/chat2'
+import * as T from '../../../../constants/types'
 import SwipeConvActions from './swipe-conv-actions'
 import shallowEqual from 'shallowequal'
 import './small-team.css'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {
   IsTeamContext,
   ParticipantsContext,
   TimeContext,
-  ConversationIDKeyContext,
   SnippetContext,
   SnippetDecorationContext,
 } from './contexts'
 
 export type Props = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   isInWidget: boolean
   isSelected: boolean
   layoutIsTeam?: boolean
@@ -32,43 +27,45 @@ export type Props = {
   layoutSnippet?: string
   layoutTime?: number
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
+  onSelectConversation?: () => void
 }
 
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
   const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime} = p
   const {conversationIDKey, isInWidget, swipeCloseRef} = p
 
-  const typingSnippet = Constants.useState(s => {
-    const typers = !isInWidget ? s.typingMap.get(conversationIDKey) : undefined
+  const typingSnippet = C.useChatContext(s => {
+    const typers = !isInWidget ? s.typing : undefined
     if (!typers?.size) return undefined
     return typers.size === 1
       ? `${typers.values().next().value as string} is typing...`
       : 'Multiple people typing...'
   })
 
-  const {isDecryptingSnippet, snippet, snippetDecoration} = Container.useSelector(state => {
-    const meta = state.chat2.metaMap.get(conversationIDKey)
+  const {isDecryptingSnippet, snippet, snippetDecoration} = C.useChatContext(s => {
+    const {meta} = s
     // only use layout if we don't have the meta at all
-    const maybeLayoutSnippet = meta === undefined ? layoutSnippet : undefined
-    const snippet = typingSnippet ?? meta?.snippetDecorated ?? maybeLayoutSnippet ?? ''
-    const trustedState = meta?.trustedState
+    const maybeLayoutSnippet = meta.conversationIDKey === C.noConversationIDKey ? layoutSnippet : undefined
+    const snippet = typingSnippet ?? meta.snippetDecorated ?? maybeLayoutSnippet ?? ''
+    const trustedState = meta.trustedState
     const isDecryptingSnippet =
       conversationIDKey && !snippet
         ? !trustedState || trustedState === 'requesting' || trustedState === 'untrusted'
         : false
-    const snippetDecoration = meta?.snippetDecoration ?? RPCChatTypes.SnippetDecoration.none
+    const snippetDecoration = meta?.snippetDecoration ?? T.RPCChat.SnippetDecoration.none
     return {isDecryptingSnippet, snippet, snippetDecoration}
   }, shallowEqual)
 
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const participants = Container.useSelector(state => {
-    const meta = state.chat2.metaMap.get(conversationIDKey)
-    const teamname = (meta?.teamname || layoutIsTeam ? layoutName : '') || ''
-    const channelname = isInWidget ? meta?.channelname ?? '' : ''
+  const you = C.useCurrentUserState(s => s.username)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const navigateToThread = C.useChatContext(s => s.dispatch.navigateToThread)
+  const participants = C.useChatContext(s => {
+    const {meta} = s
+    const teamname = (meta.teamname || layoutIsTeam ? layoutName : '') || ''
+    const channelname = isInWidget ? meta.channelname ?? '' : ''
     if (teamname && channelname) {
       return `${teamname}#${channelname}`
     }
-    const participantInfo = state.chat2.participantMap.get(conversationIDKey)
     if (participantInfo?.name.length) {
       // Filter out ourselves unless it's our 1:1 conversation
       return participantInfo.name.filter((participant, _, list) =>
@@ -81,16 +78,10 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
     return layoutName?.split(',') ?? []
   }, shallowEqual)
 
-  const dispatch = Container.useDispatch()
-  const _onSelectConversation: () => void = Container.useEvent(() => {
-    if (isInWidget) {
-      dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))
-    } else {
-      dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSmall'}))
-    }
-  })
-
-  const onSelectConversation = isSelected ? undefined : _onSelectConversation
+  const _onSelectConversation = React.useCallback(() => {
+    navigateToThread('inboxSmall')
+  }, [navigateToThread])
+  const onSelectConversation = isSelected ? undefined : p.onSelectConversation ?? _onSelectConversation
 
   const backgroundColor = isInWidget
     ? Styles.globalColors.white
@@ -131,19 +122,17 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   }, [backgroundColor, isDecryptingSnippet, isInWidget, isSelected, onSelectConversation, swipeCloseRef])
 
   return (
-    <ConversationIDKeyContext.Provider value={conversationIDKey}>
-      <IsTeamContext.Provider value={!!layoutIsTeam}>
-        <ParticipantsContext.Provider value={participants}>
-          <TimeContext.Provider value={layoutTime ?? 0}>
-            <SnippetContext.Provider value={snippet}>
-              <SnippetDecorationContext.Provider value={snippetDecoration}>
-                {children}
-              </SnippetDecorationContext.Provider>
-            </SnippetContext.Provider>
-          </TimeContext.Provider>
-        </ParticipantsContext.Provider>
-      </IsTeamContext.Provider>
-    </ConversationIDKeyContext.Provider>
+    <IsTeamContext.Provider value={!!layoutIsTeam}>
+      <ParticipantsContext.Provider value={participants}>
+        <TimeContext.Provider value={layoutTime ?? 0}>
+          <SnippetContext.Provider value={snippet}>
+            <SnippetDecorationContext.Provider value={snippetDecoration}>
+              {children}
+            </SnippetDecorationContext.Provider>
+          </SnippetContext.Provider>
+        </TimeContext.Provider>
+      </ParticipantsContext.Provider>
+    </IsTeamContext.Provider>
   )
 })
 
@@ -153,16 +142,15 @@ type RowAvatarProps = {
 }
 const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   const {backgroundColor, isSelected} = p
-  const conversationIDKey = React.useContext(ConversationIDKeyContext)
   const layoutIsTeam = React.useContext(IsTeamContext)
   const participants = React.useContext(ParticipantsContext)
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const {isLocked, isMuted} = Container.useSelector(state => {
-    const meta = state.chat2.metaMap.get(conversationIDKey)
-    const isLocked = meta?.rekeyers?.has(you) || (meta?.rekeyers.size ?? 0) > 0 || !!meta?.wasFinalizedBy
-    const isMuted = state.chat2.mutedMap.get(conversationIDKey) ?? false
-    return {isLocked, isMuted}
-  }, shallowEqual)
+  const isMuted = C.useChatContext(s => s.muted)
+  const you = C.useCurrentUserState(s => s.username)
+  const isLocked = C.useChatContext(s => {
+    const {meta} = s
+    const isLocked = meta.rekeyers.has(you) || meta.rekeyers.size > 0 || !!meta.wasFinalizedBy
+    return isLocked
+  })
 
   let participantOne = ''
   let participantTwo = ''

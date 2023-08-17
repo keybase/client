@@ -1,11 +1,11 @@
 import * as React from 'react'
-import {MessageAttachment} from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 export type Props = {
   path: string
   previewHeight: number
   previewWidth: number
   title: string
-  message: MessageAttachment
+  message: T.Chat.MessageAttachment
   progress: number
   progressLabel?: string
   onAllMedia: () => void

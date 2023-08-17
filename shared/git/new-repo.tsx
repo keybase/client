@@ -1,5 +1,4 @@
-import * as Constants from '../constants/git'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as TeamsConstants from '../constants/teams'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -10,21 +9,21 @@ type OwnProps = {isTeam: boolean}
 
 export default (ownProps: OwnProps) => {
   const {isTeam} = ownProps
-  const error = Constants.useGitState(s => s.error)
-  const teamnames = TeamsConstants.useState(s => s.teamnames)
+  const error = C.useGitState(s => s.error)
+  const teamnames = C.useTeamsState(s => s.teamnames)
   const teams = [...teamnames].sort(TeamsConstants.sortTeamnames)
 
-  const waitingKey = Constants.loadingWaitingKey
+  const waitingKey = C.gitWaitingKey
 
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
-  const getTeams = TeamsConstants.useState(s => s.dispatch.getTeams)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const getTeams = C.useTeamsState(s => s.dispatch.getTeams)
   const loadTeams = getTeams
   const onClose = () => {
     navigateUp()
   }
 
-  const createPersonalRepo = Constants.useGitState(s => s.dispatch.createPersonalRepo)
-  const createTeamRepo = Constants.useGitState(s => s.dispatch.createTeamRepo)
+  const createPersonalRepo = C.useGitState(s => s.dispatch.createPersonalRepo)
+  const createTeamRepo = C.useGitState(s => s.dispatch.createTeamRepo)
   const onCreate = (name: string, teamname: string, notifyTeam: boolean) => {
     if (isTeam && teamname) {
       createTeamRepo(name, teamname, notifyTeam)
@@ -33,8 +32,8 @@ export default (ownProps: OwnProps) => {
     }
     navigateUp()
   }
-  const launchNewTeamWizardOrModal = TeamsConstants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
-  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
+  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onNewTeam = () => {
     switchTab(teamsTab)
     launchNewTeamWizardOrModal()

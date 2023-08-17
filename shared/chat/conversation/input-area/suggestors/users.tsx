@@ -1,13 +1,10 @@
+import * as C from '../../../../constants'
+import * as T from '../../../../constants/types'
 import * as Common from './common'
 import * as Constants from '../../../../constants/chat2'
-import * as UsersConstants from '../../../../constants/users'
-import * as TeamConstants from '../../../../constants/teams'
-import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import type * as Types from '../../../../constants/types/chat2'
 
 export const transformer = (
   input: {
@@ -127,10 +124,10 @@ const filterAndJoin = (
   return teamNames ? teamNames : filterUsersAndTeams(users, teams, allChannels, filter)
 }
 
-const getTeams = (layout?: RPCChatTypes.UIInboxLayout) => {
+const getTeams = (layout?: T.RPCChat.UIInboxLayout) => {
   const bigTeams =
     layout?.bigTeams?.reduce<Array<string>>((arr, l) => {
-      l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label && arr.push(l.label.name)
+      l.state === T.RPCChat.UIInboxBigTeamRowTyp.label && arr.push(l.label.name)
       return arr
     }, []) ?? []
   const smallTeams =
@@ -141,15 +138,16 @@ const getTeams = (layout?: RPCChatTypes.UIInboxLayout) => {
   return bigTeams.concat(smallTeams).map(teamname => ({channelname: '', teamname}))
 }
 
-const useDataUsers = (conversationIDKey: Types.ConversationIDKey) => {
-  const infoMap = UsersConstants.useState(s => s.infoMap)
-  return Container.useSelector(state => {
-    const {teamID, teamType} = Constants.getMeta(state, conversationIDKey)
+const useDataUsers = () => {
+  const infoMap = C.useUsersState(s => s.infoMap)
+  const participantInfo = C.useChatContext(s => s.participants)
+  return C.useChatContext(s => {
+    const {teamID, teamType} = s.meta
     // TODO not reactive
-    const teamMembers = TeamConstants.useState.getState().teamIDToMembers.get(teamID)
+    const teamMembers = C.useTeamsState.getState().teamIDToMembers.get(teamID)
     const usernames = teamMembers
       ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))
-      : Constants.getParticipantInfo(state, conversationIDKey).all
+      : participantInfo.all
     const suggestions = usernames.map(username => ({
       fullName: infoMap.get(username)?.fullname || '',
       username,
@@ -164,12 +162,12 @@ const useDataUsers = (conversationIDKey: Types.ConversationIDKey) => {
 }
 
 const useDataTeams = () => {
-  const inboxLayout = Container.useSelector(state => state.chat2.inboxLayout)
+  const inboxLayout = C.useChatState(s => s.inboxLayout)
   const teams = React.useMemo(() => getTeams(inboxLayout), [inboxLayout])
   const allChannels = React.useMemo(
     () =>
       inboxLayout?.bigTeams?.reduce<Array<TeamListItem>>((arr, t) => {
-        if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+        if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {
           arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
         }
         return arr
@@ -179,9 +177,9 @@ const useDataTeams = () => {
   return {allChannels, teams}
 }
 
-const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
+const useDataSource = (filter: string) => {
   const fl = filter.toLowerCase()
-  const users = useDataUsers(conversationIDKey)
+  const users = useDataUsers()
   const {teams, allChannels} = useDataTeams()
   return filterAndJoin(users, teams, allChannels, fl)
 }
@@ -207,7 +205,6 @@ type ListProps = Pick<
   Common.ListProps<ListItem>,
   'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
-  conversationIDKey: Types.ConversationIDKey
   filter: string
   onSelected: (item: ListItem, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
@@ -261,7 +258,7 @@ const keyExtractor = (item: ListItem) => {
 
 export const UsersList = (p: ListProps) => {
   const {filter, ...rest} = p
-  const items = useDataSource(p.conversationIDKey, filter)
+  const items = useDataSource(filter)
   return (
     <Common.List
       {...rest}

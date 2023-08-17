@@ -1,5 +1,4 @@
-import * as ProfileConstants from '../../../constants/profile'
-import * as UsersConstants from '../../../constants/users'
+import * as C from '../../../constants'
 import Friend from '.'
 
 type OwnProps = {
@@ -8,9 +7,9 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const fullname = UsersConstants.useState(s => s.infoMap.get(ownProps.username)?.fullname ?? '')
+  const fullname = C.useUsersState(s => s.infoMap.get(ownProps.username)?.fullname ?? '')
   const username = ownProps.username
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const _onClick = showUserProfile
   const props = {
     fullname: fullname || '',

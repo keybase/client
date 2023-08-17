@@ -1,14 +1,11 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
+import * as C from '../constants'
 import * as React from 'react'
 import Avatar from './avatar.render'
 import {iconTypeToImgSet, urlsToImgSet, type IconType, type IconStyle} from './icon'
 import * as Styles from '../styles'
 import * as AvatarZus from './avatar-zus'
-import * as Followers from '../constants/followers'
-import * as ConfigConstants from '../constants/config'
-import * as UsersConstants from '../constants/users'
-import * as ProfileConstants from '../constants/profile'
-import type * as Types from '../constants/types/teams'
+import type * as T from '../constants/types'
 import './avatar.css'
 
 // Desktop sizes also imported for edit-avatar
@@ -24,7 +21,7 @@ type URLType = string
 export type OwnProps = {
   borderColor?: string
   children?: React.ReactNode
-  crop?: Types.AvatarCrop
+  crop?: T.Teams.AvatarCrop
   lighterPlaceholders?: boolean
   editable?: boolean
   imageOverrideUrl?: string
@@ -44,7 +41,7 @@ export type OwnProps = {
 export type Props = {
   borderColor?: string
   children?: React.ReactNode
-  crop?: Types.AvatarCrop
+  crop?: T.Teams.AvatarCrop
   editable?: boolean
   followIconSize: number
   followIconType?: IconType
@@ -114,15 +111,15 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
   const {username, showFollowingStatus, teamname} = ownProps
   const isTeam = ownProps.isTeam || !!teamname
   const counter = AvatarZus.useAvatarState(s => s.counts.get(username || teamname || '') ?? 0)
-  const following = Followers.useFollowerState(s =>
+  const following = C.useFollowerState(s =>
     showFollowingStatus && username ? s.following.has(username) : false
   )
-  const followsYou = Followers.useFollowerState(s =>
+  const followsYou = C.useFollowerState(s =>
     showFollowingStatus && username ? s.followers.has(username) : false
   )
-  const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
-  const blocked = UsersConstants.useState(s => s.blockMap?.get(username || teamname || '')?.chatBlocked)
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const httpSrv = C.useConfigState(s => s.httpSrv)
+  const blocked = C.useUsersState(s => s.blockMap?.get(username || teamname || '')?.chatBlocked)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const goToProfile = React.useCallback(
     () => username && showUserProfile(username),
     [showUserProfile, username]

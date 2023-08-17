@@ -1,26 +1,25 @@
+import * as C from '../../../constants'
 import * as React from 'react'
-import * as RouterConstants from '../../../constants/router2'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Styles from '../../../styles'
 import {ModalTitle} from '../../common'
-import * as Types from '../../../constants/types/teams'
+import * as T from '../../../constants/types'
 import {pluralize} from '../../../util/string'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
 import debounce from 'lodash/debounce'
 
 const getTeamTakenMessage = (status: number): string => {
   switch (status) {
-    case RPCTypes.StatusCode.scteambadnamereserveddb:
+    case T.RPCGen.StatusCode.scteambadnamereserveddb:
       return Styles.isMobile
         ? 'This team name is reserved by the Keybase team. Contact reservations@keybase.io to claim it.'
         : 'This team name is reserved by the Keybase team, possibly for your organization. Contact reservations@keybase.io to claim it.'
 
-    case RPCTypes.StatusCode.scteamnameconflictswithuser:
-    case RPCTypes.StatusCode.scteamexists:
+    case T.RPCGen.StatusCode.scteamnameconflictswithuser:
+    case T.RPCGen.StatusCode.scteamexists:
     default:
       return 'This team name is already taken.'
   }
@@ -30,8 +29,8 @@ const cannotJoinAsOwner = {admin: `Users can't join open teams as admins`}
 
 const NewTeamInfo = () => {
   const nav = Container.useSafeNavigation()
-  const teamWizardState = Constants.useState(s => s.newTeamWizard)
-  const parentName = Constants.useState(s =>
+  const teamWizardState = C.useTeamsState(s => s.newTeamWizard)
+  const parentName = C.useTeamsState(s =>
     teamWizardState.parentTeamID ? Constants.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined
   )
 
@@ -49,7 +48,7 @@ const NewTeamInfo = () => {
   // Also it shouldn't leak the names of subteams people make to the server
   // eslint-disable-next-line
   const checkTeamNameTaken = React.useCallback(
-    debounce(Container.useRPC(RPCTypes.teamsUntrustedTeamExistsRpcPromise), 100),
+    debounce(Container.useRPC(T.RPCGen.teamsUntrustedTeamExistsRpcPromise), 100),
     []
   )
   React.useEffect(() => {
@@ -84,16 +83,16 @@ const NewTeamInfo = () => {
       ? teamWizardState.profileShowcase
       : teamWizardState.teamType !== 'other' && teamWizardState.teamType !== 'subteam'
   )
-  const [realRole, setRealRole] = React.useState<Types.TeamRoleType>(teamWizardState.openTeamJoinRole)
+  const [realRole, setRealRole] = React.useState<T.Teams.TeamRoleType>(teamWizardState.openTeamJoinRole)
   const [rolePickerIsOpen, setRolePickerIsOpen] = React.useState(false)
 
   const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < minLength
 
   const onBack = () => nav.safeNavigateUp()
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => clearModals()
 
-  const setTeamWizardNameDescription = Constants.useState(s => s.dispatch.setTeamWizardNameDescription)
+  const setTeamWizardNameDescription = C.useTeamsState(s => s.dispatch.setTeamWizardNameDescription)
 
   const onContinue = () =>
     setTeamWizardNameDescription({
@@ -122,7 +121,7 @@ const NewTeamInfo = () => {
           ),
         title: (
           <ModalTitle
-            teamID={teamWizardState.parentTeamID ?? Types.newTeamWizardTeamID}
+            teamID={teamWizardState.parentTeamID ?? T.Teams.newTeamWizardTeamID}
             title={teamWizardState.teamType === 'subteam' ? 'Create a subteam' : 'Enter team info'}
           />
         ),

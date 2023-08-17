@@ -1,16 +1,11 @@
-import * as RouterConstants from '../../../../../constants/router2'
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/chat2'
-import * as TeamsConstants from '../../../../../constants/teams'
-import * as ProfileConstants from '../../../../../constants/profile'
 import * as Container from '../../../../../util/container'
-import * as DeeplinksConstants from '../../../../../constants/deeplinks'
-import * as ConfigConstants from '../../../../../constants/config'
+import {linkFromConvAndMessage} from '../../../../../constants'
 import Text from '.'
 import openURL from '../../../../../util/open-url'
 import * as React from 'react'
-import type * as TeamTypes from '../../../../../constants/types/teams'
-import type * as Types from '../../../../../constants/types/chat2'
+import type * as T from '../../../../../constants/types'
 import type {Position, StylesCrossPlatform} from '../../../../../styles'
 import {getCanPerformByID} from '../../../../../constants/teams'
 import {makeMessageText} from '../../../../../constants/chat2/message'
@@ -18,8 +13,7 @@ import {isIOS} from '../../../../../constants/platform'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
-  ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
+  ordinal: T.Chat.Ordinal
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform
@@ -29,17 +23,15 @@ type OwnProps = {
 const emptyMessage = makeMessageText({})
 
 export default (ownProps: OwnProps) => {
-  const {conversationIDKey, ordinal} = ownProps
-  const m = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
+  const {ordinal} = ownProps
+  const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const message = m ? m : emptyMessage
-  const meta = Container.useSelector(state => Constants.getMeta(state, message.conversationIDKey))
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, message.conversationIDKey)
-  )
-  const yourOperations = TeamsConstants.useState(s => getCanPerformByID(s, meta.teamID))
+  const meta = C.useChatContext(s => s.meta)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const yourOperations = C.useTeamsState(s => getCanPerformByID(s, meta.teamID))
   const _canDeleteHistory = yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations.deleteOtherMessages
-  const _label = Container.useSelector(state => Constants.getConversationLabel(state, meta, true))
+  const _label = Constants.getConversationLabel(participantInfo, meta, true)
   let _canPinMessage = message.type === 'text'
   if (_canPinMessage && meta.teamname) {
     _canPinMessage = yourOperations.pinMessage
@@ -47,21 +39,17 @@ export default (ownProps: OwnProps) => {
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
   const _canReplyPrivately =
     message.type === 'text' && (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
-  const authorIsBot = TeamsConstants.useState(s =>
-    Constants.messageAuthorIsBot(s, meta, message, participantInfo)
-  )
-  const _teamMembers = TeamsConstants.useState(s => s.teamIDToMembers.get(meta.teamID))
+  const authorIsBot = C.useTeamsState(s => Constants.messageAuthorIsBot(s, meta, message, participantInfo))
+  const _teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(meta.teamID))
   const _authorIsBot = authorIsBot
   const _isDeleteable = message.isDeleteable
   const _isEditable = message.isEditable
   const _participants = participantInfo.all
   const _teamID = meta.teamID
   const _teamname = meta.teamname
-  const _you = ConfigConstants.useCurrentUserState(s => s.username)
-
-  const dispatch = Container.useDispatch()
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
-  const _onAddReaction = (message: Types.Message) => {
+  const _you = C.useCurrentUserState(s => s.username)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const _onAddReaction = (message: T.Chat.Message) => {
     navigateAppend({
       props: {
         conversationIDKey: message.conversationIDKey,
@@ -71,89 +59,63 @@ export default (ownProps: OwnProps) => {
       selected: 'chatChooseEmoji',
     })
   }
-  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-  const _onCopy = (message: Types.Message) => {
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const _onCopy = (message: T.Chat.Message) => {
     if (message.type === 'text') {
       copyToClipboard(message.text.stringValue())
     }
   }
-  const _onCopyLink = (label: string, message: Types.Message) => {
-    copyToClipboard(DeeplinksConstants.linkFromConvAndMessage(label, message.id))
+  const _onCopyLink = (label: string, message: T.Chat.Message) => {
+    copyToClipboard(linkFromConvAndMessage(label, message.id))
   }
-  const _onDelete = (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createMessageDelete({conversationIDKey: message.conversationIDKey, ordinal: message.ordinal})
-    )
+  const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
+  const _onDelete = (message: T.Chat.Message) => {
+    messageDelete(message.ordinal)
   }
-  const _onDeleteMessageHistory = (message: Types.Message) => {
-    dispatch(Chat2Gen.createNavigateToThread({conversationIDKey: message.conversationIDKey, reason: 'misc'}))
+  const _onDeleteMessageHistory = (message: T.Chat.Message) => {
+    C.getConvoState(message.conversationIDKey).dispatch.navigateToThread('misc')
     navigateAppend({
       props: {conversationIDKey: message.conversationIDKey},
       selected: 'chatDeleteHistoryWarning',
     })
   }
-  const _onEdit = (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createMessageSetEditing({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
+  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
+  const _onEdit = (message: T.Chat.Message) => {
+    setEditing(message.ordinal)
   }
-  const _onForward = (message: Types.Message) => {
+  const _onForward = (message: T.Chat.Message) => {
     navigateAppend({
-      props: {ordinal: message.ordinal, srcConvID: message.conversationIDKey},
+      props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
       selected: 'chatForwardMsgPick',
     })
   }
-  const _onInstallBot = (message: Types.Message) => {
+  const _onInstallBot = (message: T.Chat.Message) => {
     navigateAppend({props: {botUsername: message.author}, selected: 'chatInstallBotPick'})
   }
-  const _onKick = (teamID: TeamTypes.TeamID, username: string) => {
+  const _onKick = (teamID: T.Teams.TeamID, username: string) => {
     navigateAppend({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'})
   }
-  const _onMarkAsUnread = (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createMarkAsUnread({
-        conversationIDKey: message.conversationIDKey,
-        readMsgID: message.id,
-      })
-    )
+  const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
+  const _onMarkAsUnread = (message: T.Chat.Message) => {
+    setMarkAsUnread(message.id)
   }
-  const _onPinMessage = (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createPinMessage({
-        conversationIDKey: message.conversationIDKey,
-        messageID: message.id,
-      })
-    )
+  const pinMessage = C.useChatContext(s => s.dispatch.pinMessage)
+  const _onPinMessage = (message: T.Chat.Message) => {
+    pinMessage(message.id)
   }
-  const _onReact = (message: Types.Message, emoji: string) => {
-    dispatch(
-      Chat2Gen.createToggleMessageReaction({
-        conversationIDKey: message.conversationIDKey,
-        emoji,
-        ordinal: message.ordinal,
-      })
-    )
+  const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
+  const _onReact = (message: T.Chat.Message, emoji: string) => {
+    toggleMessageReaction(message.ordinal, emoji)
   }
-  const _onReply = (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createToggleReplyToMessage({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
+  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
+  const _onReply = (message: T.Chat.Message) => {
+    setReplyTo(message.ordinal)
   }
-  const _onReplyPrivately = (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createMessageReplyPrivately({
-        ordinal: message.ordinal,
-        sourceConversationIDKey: message.conversationIDKey,
-      })
-    )
+  const messageReplyPrivately = C.useChatContext(s => s.dispatch.messageReplyPrivately)
+  const _onReplyPrivately = (message: T.Chat.Message) => {
+    messageReplyPrivately(message.ordinal)
   }
-  const _onUserBlock = (message: Types.Message, isSingle: boolean) => {
+  const _onUserBlock = (message: T.Chat.Message, isSingle: boolean) => {
     navigateAppend({
       props: {
         blockUserByDefault: true,
@@ -164,7 +126,7 @@ export default (ownProps: OwnProps) => {
       selected: 'chatBlockingModal',
     })
   }
-  const _onUserFilter = (message: Types.Message, isSingle: boolean) => {
+  const _onUserFilter = (message: T.Chat.Message, isSingle: boolean) => {
     navigateAppend({
       props: {
         blockUserByDefault: true,
@@ -176,7 +138,7 @@ export default (ownProps: OwnProps) => {
       selected: 'chatBlockingModal',
     })
   }
-  const _onUserFlag = (message: Types.Message, isSingle: boolean) => {
+  const _onUserFlag = (message: T.Chat.Message, isSingle: boolean) => {
     navigateAppend({
       props: {
         blockUserByDefault: true,
@@ -189,7 +151,7 @@ export default (ownProps: OwnProps) => {
       selected: 'chatBlockingModal',
     })
   }
-  const _onUserReport = (message: Types.Message, isSingle: boolean) => {
+  const _onUserReport = (message: T.Chat.Message, isSingle: boolean) => {
     navigateAppend({
       props: {
         blockUserByDefault: true,
@@ -202,7 +164,7 @@ export default (ownProps: OwnProps) => {
     })
   }
 
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const _onViewProfile = showUserProfile
   const yourMessage = message.author === _you
   const isDeleteable = !!(_isDeleteable && (yourMessage || _canAdminDelete))

@@ -1,17 +1,16 @@
-import * as RouterConstants from '../../constants/router2'
-import * as Constants from '../../constants/settings'
+import * as C from '../../constants'
 import {ProxySettings as ProxySettingsComponent, ProxySettingsPopup} from '.'
 
 const useConnect = () => {
-  const allowTlsMitmToggle = Constants.useState(s => s.didToggleCertificatePinning)
-  const setDidToggleCertificatePinning = Constants.useState(s => s.dispatch.setDidToggleCertificatePinning)
-  const proxyData = Constants.useState(s => s.proxyData)
-  const saveProxyData = Constants.useState(s => s.dispatch.setProxyData)
-  const loadProxyData = Constants.useState(s => s.dispatch.loadProxyData)
+  const allowTlsMitmToggle = C.useSettingsState(s => s.didToggleCertificatePinning)
+  const setDidToggleCertificatePinning = C.useSettingsState(s => s.dispatch.setDidToggleCertificatePinning)
+  const proxyData = C.useSettingsState(s => s.proxyData)
+  const saveProxyData = C.useSettingsState(s => s.dispatch.setProxyData)
+  const loadProxyData = C.useSettingsState(s => s.dispatch.loadProxyData)
   const resetCertPinningToggle = () => {
     setDidToggleCertificatePinning()
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onBack = () => {
     navigateAppend('login')
   }

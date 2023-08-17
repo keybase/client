@@ -1,13 +1,13 @@
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as Constants from '../../constants/fs'
+import * as C from '../../constants'
 import * as Kbfs from '../common'
 import Download from './download'
 import {downloadFolder} from '../../constants/platform'
 
 const Mobile = () => {
   Kbfs.useFsDownloadStatus()
-  const downloadIDs = Constants.useState(s => s.downloads.regularDownloads)
+  const downloadIDs = C.useFSState(s => s.downloads.regularDownloads)
   return downloadIDs.length ? (
     <>
       <Kb.Divider />
@@ -31,8 +31,8 @@ const Mobile = () => {
 
 const Desktop = () => {
   Kbfs.useFsDownloadStatus()
-  const downloadIDs = Constants.useState(s => s.downloads.regularDownloads)
-  const openLocalPathInSystemFileManagerDesktop = Constants.useState(
+  const downloadIDs = C.useFSState(s => s.downloads.regularDownloads)
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const openDownloadFolder = () => openLocalPathInSystemFileManagerDesktop?.(downloadFolder)

@@ -1,11 +1,10 @@
 import * as Kb from '../../../common-adapters'
-import * as RouterConstants from '../../../constants/router2'
-import * as Constants from '../../../constants/profile'
+import * as C from '../../../constants'
 import Modal from '../../modal'
 
 export default function Generate() {
-  const cancelPgpGen = Constants.useState(s => s.dispatch.dynamic.cancelPgpGen)
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const cancelPgpGen = C.useProfileState(s => s.dispatch.dynamic.cancelPgpGen)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     cancelPgpGen?.()
     clearModals()

@@ -1,31 +1,26 @@
-import * as RPCTypes from './types/rpc-gen'
+import * as C from '.'
+import * as T from './types'
 import * as React from 'react'
-import * as RouterConstants from './router2'
-import * as SettingsConstants from './settings'
-import * as UsersConstants from './users'
-import * as ProfileConstants from './profile'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import trim from 'lodash/trim'
-import type * as Types from './types/team-building'
-import type {TeamRoleType} from './types/teams'
 import {RPCError} from '../util/errors'
 import {mapGetEnsureValue} from '../util/map'
 import {serviceIdFromString} from '../util/platforms'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {validateEmailAddress} from '../util/email-address'
 
-const searchServices: Array<Types.ServiceId> = ['keybase', 'twitter', 'github', 'reddit', 'hackernews']
+const searchServices: Array<T.TB.ServiceId> = ['keybase', 'twitter', 'github', 'reddit', 'hackernews']
 
 // Order here determines order of tabs in team building
-export const allServices: Array<Types.ServiceIdWithContact> = [
+export const allServices: Array<T.TB.ServiceIdWithContact> = [
   ...searchServices.slice(0, 1),
   'phone',
   'email',
   ...searchServices.slice(1),
 ]
 
-export const selfToUser = (you: string): Types.User => ({
+export const selfToUser = (you: string): T.TB.User => ({
   id: you,
   prettyName: you,
   serviceId: 'keybase' as const,
@@ -36,19 +31,19 @@ export const selfToUser = (you: string): Types.User => ({
 export const searchWaitingKey = 'teamBuilding:search'
 
 export type Store = {
-  namespace: Types.AllowedNamespace
+  namespace: T.TB.AllowedNamespace
   error: string
-  teamSoFar: Set<Types.User>
-  searchResults: Types.SearchResults
-  serviceResultCount: Types.ServiceResultCount
-  finishedTeam: Set<Types.User>
-  finishedSelectedRole: TeamRoleType
+  teamSoFar: Set<T.TB.User>
+  searchResults: T.TB.SearchResults
+  serviceResultCount: T.TB.ServiceResultCount
+  finishedTeam: Set<T.TB.User>
+  finishedSelectedRole: T.Teams.TeamRoleType
   finishedSendNotification: boolean
-  searchQuery: Types.Query
-  selectedService: Types.ServiceIdWithContact
+  searchQuery: T.TB.Query
+  selectedService: T.TB.ServiceIdWithContact
   searchLimit: number
-  userRecs?: Array<Types.User>
-  selectedRole: TeamRoleType
+  userRecs?: Array<T.TB.User>
+  selectedRole: T.Teams.TeamRoleType
   sendNotification: boolean
 }
 export const initialStore: Store = {
@@ -69,22 +64,22 @@ export const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    addUsersToTeamSoFar: (users: Array<Types.User>) => void
+    addUsersToTeamSoFar: (users: Array<T.TB.User>) => void
     cancelTeamBuilding: () => void
     changeSendNotification: (sendNotification: boolean) => void
     closeTeamBuilding: () => void
     fetchUserRecs: () => void
     finishTeamBuilding: () => void
     finishedTeamBuilding: () => void
-    removeUsersFromTeamSoFar: (users: Array<Types.UserID>) => void
+    removeUsersFromTeamSoFar: (users: Array<T.TB.UserID>) => void
     resetState: () => void
     search: (
       query: string,
-      service: Types.ServiceIdWithContact,
+      service: T.TB.ServiceIdWithContact,
       includeContacts: boolean,
       limit?: number
     ) => void
-    selectRole: (role: TeamRoleType) => void
+    selectRole: (role: T.Teams.TeamRoleType) => void
     setError: (error: string) => void
   }
 }
@@ -97,9 +92,9 @@ const namespaceToRoute = new Map([
 ])
 
 const parseRawResultToUser = (
-  result: RPCTypes.APIUserSearchResult,
-  service: Types.ServiceIdWithContact
-): Types.User | undefined => {
+  result: T.RPCGen.APIUserSearchResult,
+  service: T.TB.ServiceIdWithContact
+): T.TB.User | undefined => {
   const serviceMap = Object.keys(result.servicesSummary || {}).reduce<{[key: string]: string}>(
     (acc, service_name) => {
       acc[service_name] = result.servicesSummary[service_name]?.username ?? ''
@@ -173,13 +168,13 @@ const parseRawResultToUser = (
 
 const apiSearch = async (
   query: string,
-  service: Types.ServiceIdWithContact,
+  service: T.TB.ServiceIdWithContact,
   maxResults: number,
   includeServicesSummary: boolean,
   includeContacts: boolean
-): Promise<Array<Types.User>> => {
+): Promise<Array<T.TB.User>> => {
   try {
-    const results = await RPCTypes.userSearchUserSearchRpcPromise(
+    const results = await T.RPCGen.userSearchUserSearchRpcPromise(
       {
         includeContacts: service === 'keybase' && includeContacts,
         includeServicesSummary,
@@ -189,7 +184,7 @@ const apiSearch = async (
       },
       searchWaitingKey
     )
-    return (results || []).reduce<Array<Types.User>>((arr, r) => {
+    return (results || []).reduce<Array<T.TB.User>>((arr, r) => {
       const u = parseRawResultToUser(r, service)
       u && arr.push(u)
       return arr
@@ -204,8 +199,8 @@ const apiSearch = async (
 
 const apiSearchOne = async (
   query: string,
-  service: Types.ServiceIdWithContact
-): Promise<Types.User | undefined> =>
+  service: T.TB.ServiceIdWithContact
+): Promise<T.TB.User | undefined> =>
   (
     await apiSearch(
       query,
@@ -217,9 +212,9 @@ const apiSearchOne = async (
   )[0]
 // If the query is a well-formatted phone number or email, do additional search
 // and if the result is not already in the list, insert at the beginning.
-async function specialContactSearch(users: Types.User[], query: string, region?: string) {
+async function specialContactSearch(users: T.TB.User[], query: string, region?: string) {
   const {validateNumber} = await import('../util/phone-numbers')
-  let result: Types.User | undefined
+  let result: T.TB.User | undefined
   const phoneNumber = validateNumber(query, region)
   if (phoneNumber.valid) {
     result = await apiSearchOne(phoneNumber.e164, 'phone')
@@ -242,7 +237,7 @@ type HasServiceMap = {
 const pluckServiceMap = (contact: HasServiceMap) =>
   Object.entries(contact.serviceMap || {})
     .concat([['keybase', contact.username]])
-    .reduce<Types.ServiceMap>((acc, [service, username]) => {
+    .reduce<T.TB.ServiceMap>((acc, [service, username]) => {
       if (serviceIdFromString(service) === service) {
         // Service can also give us proof values like "https" or "dns" that
         // we don't want here.
@@ -251,7 +246,7 @@ const pluckServiceMap = (contact: HasServiceMap) =>
       return acc
     }, {})
 
-const contactToUser = (contact: RPCTypes.ProcessedContact): Types.User => ({
+const contactToUser = (contact: T.RPCGen.ProcessedContact): T.TB.User => ({
   contact: true,
   id: contact.assertion,
   label: contact.displayLabel,
@@ -261,7 +256,7 @@ const contactToUser = (contact: RPCTypes.ProcessedContact): Types.User => ({
   username: contact.component.email || contact.component.phoneNumber || '',
 })
 
-const interestingPersonToUser = (person: RPCTypes.InterestingPerson): Types.User => {
+const interestingPersonToUser = (person: T.RPCGen.InterestingPerson): T.TB.User => {
   const {username, fullname} = person
   return {
     id: username,
@@ -287,7 +282,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           case 'people': {
             for (const user of teamSoFar) {
               const username = user.serviceMap.keybase || user.id
-              ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+              C.useProfileState.getState().dispatch.showUserProfile(username)
               break
             }
             // stop a silly race
@@ -310,11 +305,11 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       })
     },
     closeTeamBuilding: () => {
-      const modals = RouterConstants.getModalStack()
+      const modals = C.getModalStack()
       const routeNames = [...namespaceToRoute.values()]
-      const routeName = modals[modals.length - 1]?.name
+      const routeName = modals.at(-1)?.name
       if (routeNames.includes(routeName ?? '')) {
-        RouterConstants.useState.getState().dispatch.clearModals()
+        C.useRouterState.getState().dispatch.clearModals()
       }
     },
     fetchUserRecs: () => {
@@ -322,17 +317,16 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const f = async () => {
         try {
           const [_suggestionRes, _contactRes] = await Promise.all([
-            RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50, namespace: get().namespace}),
+            T.RPCGen.userInterestingPeopleRpcPromise({maxUsers: 50, namespace: get().namespace}),
             includeContacts
-              ? RPCTypes.contactsGetContactsForUserRecommendationsRpcPromise()
-              : Promise.resolve([] as RPCTypes.ProcessedContact[]),
+              ? T.RPCGen.contactsGetContactsForUserRecommendationsRpcPromise()
+              : Promise.resolve([] as T.RPCGen.ProcessedContact[]),
           ])
           const suggestionRes = _suggestionRes || []
           const contactRes = _contactRes || []
           const contacts = contactRes.map(contactToUser)
           let suggestions = suggestionRes.map(interestingPersonToUser)
-          const expectingContacts =
-            SettingsConstants.useContactsState.getState().importEnabled && includeContacts
+          const expectingContacts = C.useSettingsContactsState.getState().importEnabled && includeContacts
           if (expectingContacts) {
             suggestions = suggestions.slice(0, 10)
           }
@@ -354,18 +348,14 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       })
       get().dispatch.closeTeamBuilding()
       const {teamSoFar} = get()
-      const f = async () => {
-        const TeamsConstants = await import('./teams')
-        if (get().namespace === 'teams') {
-          TeamsConstants.useState
-            .getState()
-            .dispatch.addMembersWizardPushMembers(
-              [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
-            )
-          get().dispatch.finishedTeamBuilding()
-        }
+      if (get().namespace === 'teams') {
+        C.useTeamsState
+          .getState()
+          .dispatch.addMembersWizardPushMembers(
+            [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
+          )
+        get().dispatch.finishedTeamBuilding()
       }
-      Z.ignorePromise(f())
     },
     finishedTeamBuilding: () => {
       set(s => {
@@ -381,22 +371,17 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         }
       })
       const {finishedTeam, namespace} = get()
-      const f = async () => {
-        switch (namespace) {
-          case 'crypto': {
-            const CryptoConstants = await import('./crypto')
-            CryptoConstants.useState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
-            break
-          }
-          case 'chat2': {
-            const ChatConstants = await import('./chat2')
-            ChatConstants.useState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
-            break
-          }
-          default:
+      switch (namespace) {
+        case 'crypto': {
+          C.useCryptoState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
+          break
         }
+        case 'chat2': {
+          C.useChatState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
+          break
+        }
+        default:
       }
-      Z.ignorePromise(f())
       get().dispatch.closeTeamBuilding()
     },
     removeUsersFromTeamSoFar: users => {
@@ -441,7 +426,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         )
         if (selectedService === 'keybase') {
           // If we are on Keybase tab, do additional search if query is phone/email.
-          const userRegion = SettingsConstants.useContactsState.getState().userCountryCode
+          const userRegion = C.useSettingsContactsState.getState().userCountryCode
           users = await specialContactSearch(users, searchQuery, userRegion)
         }
         set(s => {
@@ -456,7 +441,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           }
           return arr
         }, new Array<{info: {fullname: string}; name: string}>())
-        UsersConstants.useState.getState().dispatch.updates(updates)
+        C.useUsersState.getState().dispatch.updates(updates)
         const blocks = users.reduce((arr, {serviceMap}) => {
           const {keybase} = serviceMap
           if (keybase) {
@@ -464,7 +449,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           }
           return arr
         }, new Array<string>())
-        blocks.length && UsersConstants.useState.getState().dispatch.getBlockState(blocks)
+        blocks.length && C.useUsersState.getState().dispatch.getBlockState(blocks)
       }
       Z.ignorePromise(f())
     },
@@ -486,21 +471,21 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
 }
 
 type MadeStore = UseBoundStore<StoreApi<State>>
-export const stores = new Map<Types.AllowedNamespace, MadeStore>()
+export const _stores = new Map<T.TB.AllowedNamespace, MadeStore>()
 
-const createTBStore = (namespace: Types.AllowedNamespace) => {
-  const existing = stores.get(namespace)
+const createTBStore = (namespace: T.TB.AllowedNamespace) => {
+  const existing = _stores.get(namespace)
   if (existing) return existing
   const next = Z.createZustand<State>(createSlice)
   next.setState({namespace})
-  stores.set(namespace, next)
+  _stores.set(namespace, next)
   return next
 }
 
 const Context = React.createContext<MadeStore | null>(null)
 
-type TBProviderProps = React.PropsWithChildren<{namespace: Types.AllowedNamespace}>
-export function Provider({children, ...props}: TBProviderProps) {
+type TBProviderProps = React.PropsWithChildren<{namespace: T.TB.AllowedNamespace}>
+export function _Provider({children, ...props}: TBProviderProps) {
   const storeRef = React.useRef<MadeStore>()
   if (!storeRef.current) {
     storeRef.current = createTBStore(props.namespace)
@@ -508,7 +493,10 @@ export function Provider({children, ...props}: TBProviderProps) {
   return <Context.Provider value={storeRef.current}>{children}</Context.Provider>
 }
 
-export function useContext<T>(selector: (state: State) => T, equalityFn?: (left: T, right: T) => boolean): T {
+export function _useContext<T>(
+  selector: (state: State) => T,
+  equalityFn?: (left: T, right: T) => boolean
+): T {
   const store = React.useContext(Context)
   if (!store) throw new Error('Missing TeambuildingContext.Provider in the tree')
   return useStore(store, selector, equalityFn)

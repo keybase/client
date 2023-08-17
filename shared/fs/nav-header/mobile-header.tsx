@@ -1,8 +1,9 @@
+import * as C from '../../constants'
+import * as Constants from '../../constants/fs'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as Constants from '../../constants/fs'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as Kbfs from '../common'
 import * as Container from '../../util/container'
 import Actions from './actions'
@@ -17,16 +18,16 @@ import MainBanner from './main-banner/container'
  */
 
 type Props = {
-  path: Types.Path
+  path: T.FS.Path
 }
 
-const MaybePublicTag = ({path}: {path: Types.Path}) =>
+const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
   Constants.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} /> : null
 
 const NavMobileHeader = (props: Props) => {
-  const expanded = Constants.useState(s => s.folderViewFilter !== undefined)
+  const expanded = C.useFSState(s => s.folderViewFilter !== undefined)
   const {pop} = Container.useNav()
-  const setFolderViewFilter = Constants.useState(s => s.dispatch.setFolderViewFilter)
+  const setFolderViewFilter = C.useFSState(s => s.dispatch.setFolderViewFilter)
 
   const filterDone = setFolderViewFilter
   const triggerFilterMobile = () => setFolderViewFilter('')
@@ -82,7 +83,7 @@ const NavMobileHeader = (props: Props) => {
   )
 }
 
-const getBaseHeight = (path: Types.Path) => {
+const getBaseHeight = (path: T.FS.Path) => {
   return (
     44 +
     (path === Constants.defaultPath
@@ -91,19 +92,17 @@ const getBaseHeight = (path: Types.Path) => {
   )
 }
 
-export const useHeaderHeight = (path: Types.Path) => {
-  const kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
-  const bannerType = Constants.useState(s =>
-    Constants.getMainBannerType(kbfsDaemonStatus, s.overallSyncStatus)
-  )
+export const useHeaderHeight = (path: T.FS.Path) => {
+  const kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
+  const bannerType = C.useFSState(s => Constants.getMainBannerType(kbfsDaemonStatus, s.overallSyncStatus))
   const base = getBaseHeight(path)
   switch (bannerType) {
-    case Types.MainBannerType.None:
-    case Types.MainBannerType.TryingToConnect:
+    case T.FS.MainBannerType.None:
+    case T.FS.MainBannerType.TryingToConnect:
       return base
-    case Types.MainBannerType.Offline:
+    case T.FS.MainBannerType.Offline:
       return base + 40
-    case Types.MainBannerType.OutOfSpace:
+    case T.FS.MainBannerType.OutOfSpace:
       return base + 73
   }
 }
@@ -153,7 +152,7 @@ const styles = Styles.styleSheetCreate(
         borderStyle: 'solid',
         minHeight: 44,
       },
-    } as const)
+    }) as const
 )
 
 export default NavMobileHeader

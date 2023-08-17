@@ -1,11 +1,8 @@
-import * as ConfigConstants from '../constants/config'
+import * as C from '../constants'
 import * as Constants from '../constants/chat2'
-import * as Container from '../util/container'
 import SelectableSmallTeam from './selectable-small-team'
-import type * as Types from '../constants/types/chat2'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
   filter?: string
   name: string
   numSearchHits?: number
@@ -16,15 +13,12 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const conversationIDKey = ownProps.conversationIDKey
-  const _hasBadge = Container.useSelector(state => Constants.getHasBadge(state, conversationIDKey))
-  const _hasUnread = Container.useSelector(state => Constants.getHasUnread(state, conversationIDKey))
-  const _meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const _participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
-  )
-  const _username = ConfigConstants.useCurrentUserState(s => s.username)
-  const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
+  const _hasBadge = C.useChatContext(s => s.badge > 0)
+  const _hasUnread = C.useChatContext(s => s.unread > 0)
+  const _meta = C.useChatContext(s => s.meta)
+  const _participantInfo = C.useChatContext(s => s.participants)
+  const _username = C.useCurrentUserState(s => s.username)
+  const isMuted = C.useChatContext(s => s.muted)
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
   const styles = Constants.getRowStyles(isSelected, _hasUnread)
   const participantNeedToRekey = _meta.rekeyers.size > 0

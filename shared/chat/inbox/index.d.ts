@@ -1,6 +1,5 @@
 import * as React from 'react'
-import {ConversationIDKey} from '../../constants/types/chat2'
-import * as Types from '../../constants/types/chat2'
+import * as T from '../../constants/types'
 
 export type Props = {
   allowShowFloatingButton: boolean
@@ -9,8 +8,8 @@ export type Props = {
   navKey: string
   neverLoaded: boolean
   onNewChat: () => void
-  onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void
-  rows: Array<Types.ChatInboxRowItem>
+  onUntrustedInboxVisible: (conversationIDKeys: Array<T.Chat.ConversationIDKey>) => void
+  rows: Array<T.Chat.ChatInboxRowItem>
   setInboxNumSmallRows: (rows: number) => void
   smallTeamsExpanded: boolean
   toggleSmallTeamsExpanded: () => void

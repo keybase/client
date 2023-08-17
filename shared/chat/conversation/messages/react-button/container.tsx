@@ -1,13 +1,9 @@
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as ConfigConstants from '../../../../constants/config'
-import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
+import * as C from '../../../../constants'
 import * as React from 'react'
-import * as RouterConstants from '../../../../constants/router2'
 import ReactButton, {NewReactionButton} from '.'
 import shallowEqual from 'shallowequal'
 import type {StylesCrossPlatform} from '../../../../styles'
-import {ConvoIDContext, OrdinalContext} from '../ids-context'
+import {OrdinalContext} from '../ids-context'
 
 export type OwnProps = {
   className?: string
@@ -20,13 +16,12 @@ export type OwnProps = {
 }
 
 const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProps) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
   const {emoji, className} = p
   const {getAttachmentRef, onLongPress, onShowPicker, showBorder, style} = p
-  const me = ConfigConstants.useCurrentUserState(s => s.username)
-  const {active, count, decorated} = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const me = C.useCurrentUserState(s => s.username)
+  const {active, count, decorated} = C.useChatContext(s => {
+    const message = s.messageMap.get(ordinal)
     const reaction = message?.reactions?.get(emoji || '')
     const active = [...(reaction?.users ?? [])].some(r => r.username === me)
     return {
@@ -36,23 +31,23 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
     }
   }, shallowEqual)
 
-  const dispatch = Container.useDispatch()
+  const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const onAddReaction = React.useCallback(
     (emoji: string) => {
-      dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal}))
+      toggleMessageReaction(ordinal, emoji)
     },
-    [dispatch, conversationIDKey, ordinal]
+    [toggleMessageReaction, ordinal]
   )
   const onClick = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji: emoji || '', ordinal}))
-  }, [dispatch, emoji, ordinal, conversationIDKey])
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+    toggleMessageReaction(ordinal, emoji || '')
+  }, [toggleMessageReaction, emoji, ordinal])
+  const navigateAppend = C.useChatNavigateAppend()
   const onOpenEmojiPicker = React.useCallback(() => {
-    navigateAppend({
+    navigateAppend(conversationIDKey => ({
       props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
       selected: 'chatChooseEmoji',
-    })
-  }, [navigateAppend, ordinal, conversationIDKey])
+    }))
+  }, [navigateAppend, ordinal])
 
   return emoji ? (
     <ReactButton

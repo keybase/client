@@ -1,23 +1,20 @@
-import * as Constants from '../constants/provision'
-import * as RouterConstants from '../constants/router2'
-import * as ARConstants from '../constants/autoreset'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
 import DeviceIcon from '../devices/device-icon'
-import {type Device} from '../constants/provision'
 import {SignupScreen} from '../signup/common'
 
 const SelectOtherDeviceContainer = () => {
-  const devices = Constants.useState(s => s.devices)
-  const submitDeviceSelect = Constants.useState(s => s.dispatch.dynamic.submitDeviceSelect)
-  const username = Constants.useState(s => s.username)
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const devices = C.useProvisionState(s => s.devices)
+  const submitDeviceSelect = C.useProvisionState(s => s.dispatch.dynamic.submitDeviceSelect)
+  const username = C.useProvisionState(s => s.username)
+  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, false)
-  const startAccountReset = ARConstants.useState(s => s.dispatch.startAccountReset)
+  const startAccountReset = C.useAutoResetState(s => s.dispatch.startAccountReset)
   const onResetAccount = React.useCallback(() => {
     startAccountReset(false, username)
   }, [startAccountReset, username])
@@ -40,14 +37,14 @@ export default SelectOtherDeviceContainer
 
 type Props = {
   passwordRecovery?: boolean
-  devices: ReadonlyArray<Device>
+  devices: ReadonlyArray<C.ProvisionDevice>
   onBack: () => void
   onSelect: (name: string) => void
   onResetAccount: () => void
 }
 
 const resetSignal = 'reset'
-type DeviceOrReset = Device | 'reset'
+type DeviceOrReset = C.ProvisionDevice | 'reset'
 export class SelectOtherDevice extends React.Component<Props> {
   _renderItem = (index: number, item: DeviceOrReset) => {
     if (item === resetSignal) {

@@ -1,36 +1,33 @@
+import * as C from '../../../../constants'
+import type * as T from '../../../../constants/types'
 import * as Constants from '../../../../constants/teams'
-import * as Container from '../../../../util/container'
-import type * as TeamsTypes from '../../../../constants/types/teams'
 import RetentionPicker, {type RetentionEntityType} from '.'
-import type {ConversationIDKey} from '../../../../constants/types/chat2'
-import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import type {StylesCrossPlatform} from '../../../../styles'
-import {createSetConvRetentionPolicy} from '../../../../actions/chat2-gen'
-import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
 
 export type OwnProps = {
-  conversationIDKey?: ConversationIDKey
+  conversationIDKey?: T.Chat.ConversationIDKey
   containerStyle?: StylesCrossPlatform
   dropdownStyle?: StylesCrossPlatform
   entityType: RetentionEntityType
   showSaveIndicator: boolean
-  teamID: TeamsTypes.TeamID
+  teamID: T.Teams.TeamID
 }
 
 export default (ownProps: OwnProps) => {
-  const {entityType, conversationIDKey, teamID} = ownProps
+  const {entityType, conversationIDKey: _cid, teamID} = ownProps
 
   let loading = false
-  let teamPolicy: RetentionPolicy | undefined = undefined
+  let teamPolicy: T.Retention.RetentionPolicy | undefined = undefined
 
-  let policy = Container.useSelector(state =>
-    conversationIDKey ? getConversationRetentionPolicy(state, conversationIDKey) : undefined
-  )
-  if (ownProps.conversationIDKey) {
+  if (_cid) {
   } else if (!entityType.endsWith('team')) {
     throw new Error(`RetentionPicker needs a conversationIDKey to set ${entityType} retention policies`)
   }
-  const tempPolicy = Constants.useState(s => Constants.getTeamRetentionPolicyByID(s, teamID))
+  const conversationIDKey = _cid ?? C.noConversationIDKey
+  let policy = C.useConvoState(conversationIDKey, s =>
+    _cid ? s.meta.retentionPolicy : Constants.retentionPolicies.policyRetain
+  )
+  const tempPolicy = C.useTeamsState(s => Constants.getTeamRetentionPolicyByID(s, teamID))
   if (entityType !== 'adhoc') {
     loading = !tempPolicy
     if (tempPolicy) {
@@ -42,22 +39,21 @@ export default (ownProps: OwnProps) => {
     }
   }
 
-  const canSetPolicy = Constants.useState(
+  const canSetPolicy = C.useTeamsState(
     s => entityType === 'adhoc' || Constants.getCanPerformByID(s, teamID).setRetentionPolicy
   )
-  if (!policy) return null
   const policyIsExploding =
     policy.type === 'explode' || (policy.type === 'inherit' && teamPolicy?.type === 'explode')
   const showInheritOption = entityType === 'channel'
   const showOverrideNotice = entityType === 'big team'
-  const dispatch = Container.useDispatch()
-  const setTeamRetentionPolicy = Constants.useState(s => s.dispatch.setTeamRetentionPolicy)
-  const saveRetentionPolicy = (policy: RetentionPolicy) => {
+  const setTeamRetentionPolicy = C.useTeamsState(s => s.dispatch.setTeamRetentionPolicy)
+  const setConvRetentionPolicy = C.useConvoState(conversationIDKey, s => s.dispatch.setConvRetentionPolicy)
+  const saveRetentionPolicy = (policy: T.Retention.RetentionPolicy) => {
     if (['small team', 'big team'].includes(entityType)) {
       setTeamRetentionPolicy(teamID, policy)
     } else if (['adhoc', 'channel'].includes(entityType)) {
       // we couldn't get here without throwing an error for !conversationIDKey
-      dispatch(createSetConvRetentionPolicy({conversationIDKey: conversationIDKey!, policy}))
+      setConvRetentionPolicy(policy)
     } else {
       throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
     }

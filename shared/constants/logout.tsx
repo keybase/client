@@ -1,8 +1,10 @@
-import * as RouterConstants from './router2'
+import * as C from '.'
 import logger from '../logger'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 // normally util.container but it re-exports from us so break the cycle
 import * as Z from '../util/zustand'
+import {passwordTab} from './settings'
+import {settingsTab} from './tabs'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -28,26 +30,23 @@ type State = Store & {
   }
 }
 
-export const useLogoutState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     requestLogout: () => {
       // Figure out whether we can log out using CanLogout, if so,
       // startLogoutHandshake, else do what's needed - right now only
       // redirect to set password screen.
       const f = async () => {
-        const canLogoutRes = await RPCTypes.userCanLogoutRpcPromise()
+        const canLogoutRes = await T.RPCGen.userCanLogoutRpcPromise()
         if (canLogoutRes.canLogout) {
           get().dispatch.start()
           return
         } else {
-          const {passwordTab} = await import('./settings')
-          const {settingsTab} = await import('./tabs')
-          const {isMobile} = await import('./platform')
-          if (isMobile) {
-            RouterConstants.useState.getState().dispatch.navigateAppend(passwordTab)
+          if (C.isMobile) {
+            C.useRouterState.getState().dispatch.navigateAppend(passwordTab)
           } else {
-            RouterConstants.useState.getState().dispatch.navigateAppend(settingsTab)
-            RouterConstants.useState.getState().dispatch.navigateAppend(passwordTab)
+            C.useRouterState.getState().dispatch.navigateAppend(settingsTab)
+            C.useRouterState.getState().dispatch.navigateAppend(passwordTab)
           }
         }
       }
@@ -66,6 +65,15 @@ export const useLogoutState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.version = version
       })
+
+      // Give time for all waiters to register and allow the case where there are no waiters
+      const f = async () => {
+        const waitKey = 'nullhandshake'
+        get().dispatch.wait(waitKey, version, true)
+        await Z.timeoutPromise(10)
+        get().dispatch.wait(waitKey, version, false)
+      }
+      Z.ignorePromise(f())
     },
     wait: (name, _version, increment) => {
       const {version} = get()
@@ -89,7 +97,7 @@ export const useLogoutState = Z.createZustand<State>((set, get) => {
       if (waiters.size > 0) {
         // still waiting for things to finish
       } else {
-        RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: false})
+        T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: false})
           .then(() => {})
           .catch(() => {})
       }

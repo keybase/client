@@ -1,14 +1,14 @@
+import * as C from '../constants'
 import * as TConstants from '../constants/teams'
-import * as Constants from '../constants/git'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
-import type * as TeamsTypes from '../constants/types/teams'
+import type * as T from '../constants/types'
 import {useAllChannelMetas} from '../teams/common/channel-hooks'
 
 type OwnProps = {
-  teamID: TeamsTypes.TeamID
+  teamID: T.Teams.TeamID
   repoID: string
   selected: string
 }
@@ -16,13 +16,13 @@ type OwnProps = {
 const SelectChannel = (ownProps: OwnProps) => {
   const {teamID, repoID} = ownProps
   const _selected = ownProps.selected
-  const teamname = TConstants.useState(s => TConstants.getTeamNameFromID(s, teamID) ?? '')
+  const teamname = C.useTeamsState(s => TConstants.getTeamNameFromID(s, teamID) ?? '')
   const {channelMetas} = useAllChannelMetas(teamID)
   const waiting = channelMetas === null
   const channelNames = channelMetas ? [...channelMetas.values()].map(info => info.channelname) : []
   const [selected, setSelected] = React.useState(_selected)
   const nav = Container.useSafeNavigation()
-  const setTeamRepoSettings = Constants.useGitState(s => s.dispatch.setTeamRepoSettings)
+  const setTeamRepoSettings = C.useGitState(s => s.dispatch.setTeamRepoSettings)
   const onSubmit = (channelName: string) => setTeamRepoSettings(channelName, teamname, repoID, false)
   const onCancel = () => nav.safeNavigateUp()
 

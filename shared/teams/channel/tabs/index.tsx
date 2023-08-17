@@ -1,7 +1,6 @@
-import type * as Types from '../../../constants/types/teams'
-import type * as ChatTypes from '../../../constants/types/chat2'
+import * as C from '../../../constants'
+import type * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
-import * as Constants from '../../../constants/teams'
 import * as Styles from '../../../styles'
 import type {Tab as TabType} from '../../../common-adapters/tabs'
 
@@ -9,15 +8,15 @@ export type TabKey = 'members' | 'attachments' | 'bots' | 'settings' | 'loading'
 
 export type Props = {
   admin: boolean
-  teamID: Types.TeamID
-  conversationIDKey: ChatTypes.ConversationIDKey
+  teamID: T.Teams.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey
   selectedTab: TabKey
   setSelectedTab: (t: TabKey) => void
 }
 
 const ChannelTabs = (props: Props) => {
   const {selectedTab, setSelectedTab} = props
-  const error = Constants.useState(s => s.errorInAddToTeam)
+  const error = C.useTeamsState(s => s.errorInAddToTeam)
   const tabs: Array<TabType<TabKey>> = [
     {title: 'members' as const},
     {title: 'attachments' as const},

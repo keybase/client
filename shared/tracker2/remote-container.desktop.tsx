@@ -1,12 +1,9 @@
 // Inside tracker we use an embedded Avatar which is connected.
-import * as Chat2Gen from '../actions/chat2-gen'
+import * as C from '../constants'
+import * as R from '../constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Constants from '../constants/tracker2'
-import * as UsersConstants from '../constants/users'
-import * as ConfigConstants from '../constants/config'
-import * as Followers from '../constants/followers'
-import * as Container from '../util/container'
-import type * as Types from '../constants/types/tracker2'
+import type * as T from '../constants/types'
 import Tracker from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import KB2 from '../util/electron.desktop'
@@ -14,7 +11,7 @@ import {useAvatarState} from '../common-adapters/avatar-zus'
 
 const {closeWindow} = KB2.functions
 
-const noDetails: Types.Details = {
+const noDetails: T.Tracker.Details = {
   blocked: false,
   guiID: '',
   hidFromFollowers: false,
@@ -25,8 +22,7 @@ const noDetails: Types.Details = {
 }
 
 const RemoteContainer = () => {
-  const state = Container.useRemoteStore<DeserializeProps>()
-  const dispatch = Container.useDispatch()
+  const state = C.useRemoteStore<DeserializeProps>()
   const {avatarRefreshCounter, darkMode, trackerUsername, tracker2, followers, following, username} = state
   const {httpSrvToken, httpSrvAddress, infoMap, blockMap} = state
   const {usernameToDetails} = tracker2
@@ -34,11 +30,12 @@ const RemoteContainer = () => {
   const {assertions, bio, followersCount, followingCount} = details
   const {guiID, location, reason, state: trackerState, teamShowcase} = details
   useAvatarState(s => s.dispatch.replace)(avatarRefreshCounter)
-  Followers.useFollowerState(s => s.dispatch.replace)(followers, following)
-  UsersConstants.useState(s => s.dispatch.replace)(infoMap, blockMap)
-  ConfigConstants.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
-  ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
-  Constants.useState(s => s.dispatch.replace)(tracker2.usernameToDetails)
+  C.useFollowerState(s => s.dispatch.replace)(followers, following)
+  C.useUsersState(s => s.dispatch.replace)(infoMap, blockMap)
+  C.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
+  C.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
+  C.useTrackerState(s => s.dispatch.replace)(tracker2.usernameToDetails)
+
   return (
     <Tracker
       assertionKeys={assertions ? [...assertions.keys()] : undefined}
@@ -49,20 +46,20 @@ const RemoteContainer = () => {
       guiID={guiID}
       isYou={username === trackerUsername}
       location={location}
-      onAccept={() => dispatch(RemoteGen.createTrackerChangeFollow({follow: true, guiID}))}
+      onAccept={() => R.remoteDispatch(RemoteGen.createTrackerChangeFollow({follow: true, guiID}))}
       onChat={() => {
-        dispatch(RemoteGen.createShowMain())
-        dispatch(Chat2Gen.createPreviewConversation({participants: [trackerUsername], reason: 'tracker'}))
+        R.remoteDispatch(RemoteGen.createShowMain())
+        R.remoteDispatch(RemoteGen.createPreviewConversation({participant: trackerUsername}))
       }}
       onClose={() => {
-        dispatch(RemoteGen.createTrackerCloseTracker({guiID}))
+        R.remoteDispatch(RemoteGen.createTrackerCloseTracker({guiID}))
         // close immediately
         closeWindow?.()
       }}
-      onFollow={() => dispatch(RemoteGen.createTrackerChangeFollow({follow: true, guiID}))}
-      onIgnoreFor24Hours={() => dispatch(RemoteGen.createTrackerIgnore({guiID}))}
+      onFollow={() => R.remoteDispatch(RemoteGen.createTrackerChangeFollow({follow: true, guiID}))}
+      onIgnoreFor24Hours={() => R.remoteDispatch(RemoteGen.createTrackerIgnore({guiID}))}
       onReload={() =>
-        dispatch(
+        R.remoteDispatch(
           RemoteGen.createTrackerLoad({
             assertion: trackerUsername,
             forceDisplay: true,

@@ -1,7 +1,6 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 // A screen we show when we have a problem loading a screen
 import * as Container from '../util/container'
-import * as ConfigConstants from '../constants/config'
 import * as React from 'react'
 import * as Styles from '../styles'
 import {Box2} from './box'
@@ -163,7 +162,7 @@ export default (ownProps: OwnProps) => {
     error = ownProps.errorFilter(error) ? error : undefined
   }
 
-  const _loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
+  const _loggedIn = C.useConfigState(s => s.loggedIn)
 
   const stateProps = {
     _loggedIn,
@@ -171,7 +170,7 @@ export default (ownProps: OwnProps) => {
     reason: (error && error.message) || '',
   }
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onFeedback = (loggedIn: boolean) => {
     if (loggedIn) {
       navigateAppend(settingsTab)

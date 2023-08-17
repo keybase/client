@@ -9,13 +9,16 @@ export const typePrefix = 'remote:'
 export const closeUnlockFolders = 'remote:closeUnlockFolders'
 export const dumpLogs = 'remote:dumpLogs'
 export const engineConnection = 'remote:engineConnection'
+export const inboxRefresh = 'remote:inboxRefresh'
 export const installerRan = 'remote:installerRan'
 export const link = 'remote:link'
+export const openChatFromWidget = 'remote:openChatFromWidget'
 export const openFilesFromWidget = 'remote:openFilesFromWidget'
 export const openPathInSystemFileManager = 'remote:openPathInSystemFileManager'
 export const pinentryOnCancel = 'remote:pinentryOnCancel'
 export const pinentryOnSubmit = 'remote:pinentryOnSubmit'
 export const powerMonitorEvent = 'remote:powerMonitorEvent'
+export const previewConversation = 'remote:previewConversation'
 export const remoteWindowWantsProps = 'remote:remoteWindowWantsProps'
 export const saltpackFileOpen = 'remote:saltpackFileOpen'
 export const setCriticalUpdate = 'remote:setCriticalUpdate'
@@ -75,7 +78,15 @@ export const createEngineConnection = (payload: {readonly connected: boolean}) =
   payload,
   type: engineConnection as typeof engineConnection,
 })
+export const createInboxRefresh = (payload?: undefined) => ({
+  payload,
+  type: inboxRefresh as typeof inboxRefresh,
+})
 export const createLink = (payload: {readonly link: string}) => ({payload, type: link as typeof link})
+export const createOpenChatFromWidget = (payload: {readonly conversationIDKey: string}) => ({
+  payload,
+  type: openChatFromWidget as typeof openChatFromWidget,
+})
 export const createOpenFilesFromWidget = (payload: {readonly path: string}) => ({
   payload,
   type: openFilesFromWidget as typeof openFilesFromWidget,
@@ -95,6 +106,10 @@ export const createPinentryOnSubmit = (payload: {readonly password: string}) => 
 export const createPowerMonitorEvent = (payload: {readonly event: string}) => ({
   payload,
   type: powerMonitorEvent as typeof powerMonitorEvent,
+})
+export const createPreviewConversation = (payload: {readonly participant: string}) => ({
+  payload,
+  type: previewConversation as typeof previewConversation,
 })
 export const createSaltpackFileOpen = (payload: {readonly path: string | HiddenString}) => ({
   payload,
@@ -160,13 +175,16 @@ export const createUserFileEditsLoad = (payload?: undefined) => ({
 export type CloseUnlockFoldersPayload = ReturnType<typeof createCloseUnlockFolders>
 export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type EngineConnectionPayload = ReturnType<typeof createEngineConnection>
+export type InboxRefreshPayload = ReturnType<typeof createInboxRefresh>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LinkPayload = ReturnType<typeof createLink>
+export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
 export type OpenFilesFromWidgetPayload = ReturnType<typeof createOpenFilesFromWidget>
 export type OpenPathInSystemFileManagerPayload = ReturnType<typeof createOpenPathInSystemFileManager>
 export type PinentryOnCancelPayload = ReturnType<typeof createPinentryOnCancel>
 export type PinentryOnSubmitPayload = ReturnType<typeof createPinentryOnSubmit>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
+export type PreviewConversationPayload = ReturnType<typeof createPreviewConversation>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type SaltpackFileOpenPayload = ReturnType<typeof createSaltpackFileOpen>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
@@ -191,13 +209,16 @@ export type Actions =
   | CloseUnlockFoldersPayload
   | DumpLogsPayload
   | EngineConnectionPayload
+  | InboxRefreshPayload
   | InstallerRanPayload
   | LinkPayload
+  | OpenChatFromWidgetPayload
   | OpenFilesFromWidgetPayload
   | OpenPathInSystemFileManagerPayload
   | PinentryOnCancelPayload
   | PinentryOnSubmitPayload
   | PowerMonitorEventPayload
+  | PreviewConversationPayload
   | RemoteWindowWantsPropsPayload
   | SaltpackFileOpenPayload
   | SetCriticalUpdatePayload

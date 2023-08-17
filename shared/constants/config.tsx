@@ -1,27 +1,20 @@
-import * as DarkMode from './darkmode'
-import * as DeviceTypes from './types/devices'
+import * as C from '.'
+import * as T from './types'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as Followers from './followers'
-import * as RPCTypes from './types/rpc-gen'
 import * as RemoteGen from '../actions/remote-gen'
-import * as RouterConstants from './router2'
 import * as Stats from '../engine/stats'
 import * as Z from '../util/zustand'
+import {noConversationIDKey} from './chat2'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
-import type * as RPCTypesGregor from './types/rpc-gregor-gen'
-import type * as Types from './types/config'
-import type {ConversationIDKey} from './types/chat2'
 import type {Tab} from './tabs'
 import uniq from 'lodash/uniq'
 import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '../util/errors'
 import {defaultUseNativeFrame, runMode, isMobile} from './platform'
-import {enableActionLogging} from '../local-debug'
-import {noConversationIDKey} from './types/chat2/common'
 import {type CommonResponseHandler} from '../engine/types'
 import {useAvatarState} from '../common-adapters/avatar-zus'
-import {useCurrentUserState} from './current-user'
-import {useDaemonState} from './daemon'
+import {initPlatformListener} from '../constants/platform-specific'
+import {mapGetEnsureValue} from '../util/map'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -53,15 +46,15 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 export type Store = {
   allowAnimatedEmojis: boolean
   androidShare?:
-    | {type: RPCTypes.IncomingShareType.file; url: string}
-    | {type: RPCTypes.IncomingShareType.text; text: string}
+    | {type: T.RPCGen.IncomingShareType.file; url: string}
+    | {type: T.RPCGen.IncomingShareType.text; text: string}
   appFocused: boolean
-  badgeState?: RPCTypes.BadgeState
-  configuredAccounts: Array<Types.ConfiguredAccount>
+  badgeState?: T.RPCGen.BadgeState
+  configuredAccounts: Array<T.Config.ConfiguredAccount>
   defaultUsername: string
   globalError?: Error | RPCError
-  gregorReachable?: RPCTypes.Reachable
-  gregorPushState: Array<{md: RPCTypesGregor.Metadata; item: RPCTypesGregor.Item}>
+  gregorReachable?: T.RPCGen.Reachable
+  gregorPushState: Array<{md: T.RPCGregor.Metadata; item: T.RPCGregor.Item}>
   loginError?: RPCError
   httpSrv: {
     address: string
@@ -81,26 +74,26 @@ export type Store = {
     | 'reloggedIn'
     | 'startupOrReloginButNotInARush'
   mobileAppState: 'active' | 'background' | 'inactive' | 'unknown'
-  networkStatus?: {online: boolean; type: Types.ConnectionType; isInit?: boolean}
+  networkStatus?: {online: boolean; type: T.Config.ConnectionType; isInit?: boolean}
   notifySound: boolean
   openAtLogin: boolean
-  outOfDate: Types.OutOfDate
+  outOfDate: T.Config.OutOfDate
   remoteWindowNeedsProps: Map<string, Map<string, number>>
   revokedTrigger: number
-  runtimeStats?: RPCTypes.RuntimeStats
+  runtimeStats?: T.RPCGen.RuntimeStats
   startup: {
     loaded: boolean
     wasFromPush: boolean
-    conversation: ConversationIDKey
+    conversation: T.Chat.ConversationIDKey
     pushPayload: string
     followUser: string
     link: string
     tab?: Tab
   }
   unlockFoldersDevices: Array<{
-    type: DeviceTypes.DeviceType
+    type: T.Devices.DeviceType
     name: string
-    deviceID: DeviceTypes.DeviceID
+    deviceID: T.Devices.DeviceID
   }>
   unlockFoldersError: string
   useNativeFrame: boolean
@@ -187,23 +180,8 @@ type State = Store & {
       openAppSettings?: () => void
       openAppStore?: () => void
       onEngineConnectedDesktop?: () => void
-      onEngineIncomingDesktop?: (
-        action:
-          | EngineGen.Keybase1LogsendPrepareLogsendPayload
-          | EngineGen.Keybase1NotifyAppExitPayload
-          | EngineGen.Keybase1NotifyFSFSActivityPayload
-          | EngineGen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
-          | EngineGen.Keybase1NotifyServiceShutdownPayload
-          | EngineGen.Keybase1LogUiLogPayload
-          | EngineGen.Keybase1NotifySessionClientOutOfDatePayload
-      ) => void
-      onEngineIncomingNative?: (
-        action:
-          | EngineGen.Chat1ChatUiChatClearWatchPayload
-          | EngineGen.Chat1ChatUiChatWatchPositionPayload
-          | EngineGen.Chat1ChatUiTriggerContactSyncPayload
-          | EngineGen.Keybase1LogUiLogPayload
-      ) => void
+      onEngineIncomingDesktop?: (action: EngineGen.Actions) => void
+      onEngineIncomingNative?: (action: EngineGen.Actions) => void
       persistRoute?: (path?: Array<any>) => void
       setNavigatorExistsNative?: () => void
       showMainNative?: () => void
@@ -226,20 +204,9 @@ type State = Store & {
     logoutAndTryToLogInAs: (username: string) => void
     onEngineConnected: () => void
     onEngineDisonnected: () => void
-    onEngineIncoming: (
-      action:
-        | EngineGen.Keybase1GregorUIPushStatePayload
-        | EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
-        | EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
-        | EngineGen.Keybase1NotifySessionLoggedInPayload
-        | EngineGen.Keybase1NotifySessionLoggedOutPayload
-        | EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload
-        | EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
-        | EngineGen.Keybase1NotifyTrackingTrackingInfoPayload
-        | EngineGen.Keybase1ReachabilityReachabilityChangedPayload
-    ) => void
-    osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => void
-    openUnlockFolders: (devices: Array<RPCTypes.Device>) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
+    osNetworkStatusChanged: (online: boolean, type: T.Config.ConnectionType, isInit?: boolean) => void
+    openUnlockFolders: (devices: Array<T.RPCGen.Device>) => void
     powerMonitorEvent: (event: string) => void
     resetState: () => void
     remoteWindowNeedsProps: (component: string, params: string) => void
@@ -252,7 +219,7 @@ type State = Store & {
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: any) => void
     setGregorReachable: (r: Store['gregorReachable']) => void
-    setGregorPushState: (state: RPCTypes.Gregor1.State) => void
+    setGregorPushState: (state: T.RPCGen.Gregor1.State) => void
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
@@ -263,32 +230,33 @@ type State = Store & {
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
     setStartupDetailsLoaded: () => void
     setOpenAtLogin: (open: boolean) => void
-    setOutOfDate: (outOfDate: Types.OutOfDate) => void
+    setOutOfDate: (outOfDate: T.Config.OutOfDate) => void
     setUserSwitching: (sw: boolean) => void
     setUseNativeFrame: (use: boolean) => void
     setWindowIsMax: (m: boolean) => void
+    setupSubscriptions: () => void
     showMain: () => void
     toggleRuntimeStats: () => void
     updateApp: () => void
     updateGregorCategory: (category: string, body: string, dtime?: {offset: number; time: number}) => void
-    updateRuntimeStats: (stats?: RPCTypes.RuntimeStats) => void
+    updateRuntimeStats: (stats?: T.RPCGen.RuntimeStats) => void
     updateWindowState: (ws: Omit<Store['windowState'], 'isMaximized'>) => void
     windowShown: (win: string) => void
   }
 }
 
 export const openAtLoginKey = 'openAtLogin'
-export const useConfigState = Z.createZustand<State>((set, get) => {
+export const _useConfigState = Z.createZustand<State>((set, get) => {
   const nativeFrameKey = 'useNativeFrame'
   const notifySoundKey = 'notifySound'
 
   const _checkForUpdate = async () => {
     try {
-      const {status, message} = await RPCTypes.configGetUpdateInfoRpcPromise()
+      const {status, message} = await T.RPCGen.configGetUpdateInfoRpcPromise()
       get().dispatch.setOutOfDate(
-        status !== RPCTypes.UpdateInfoStatus.upToDate
+        status !== T.RPCGen.UpdateInfoStatus.upToDate
           ? {
-              critical: status === RPCTypes.UpdateInfoStatus.criticallyOutOfDate,
+              critical: status === T.RPCGen.UpdateInfoStatus.criticallyOutOfDate,
               message,
               outOfDate: true,
               updating: false,
@@ -307,9 +275,19 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
   const dispatch: State['dispatch'] = {
     changedFocus: f => {
+      if (get().appFocused === f) return
       set(s => {
         s.appFocused = f
       })
+
+      if (!isMobile || !f) {
+        return
+      }
+      const {dispatch} = C.getConvoState(C.getSelectedConversation())
+      dispatch.loadMoreMessages({
+        reason: 'foregrounding',
+      })
+      dispatch.markThreadAsRead()
     },
     checkForUpdate: () => {
       const f = async () => {
@@ -340,87 +318,59 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       switch (action.type) {
         case RemoteGen.resetStore:
           break
+        case RemoteGen.openChatFromWidget: {
+          C.useConfigState.getState().dispatch.showMain()
+          C.getConvoState(
+            action.payload.conversationIDKey ?? C.noConversationIDKey
+          ).dispatch.navigateToThread('inboxSmall')
+          break
+        }
+        case RemoteGen.inboxRefresh: {
+          C.useChatState.getState().dispatch.inboxRefresh('widgetRefresh')
+          break
+        }
         case RemoteGen.engineConnection: {
-          const f = async () => {
-            const EngineConstants = await import('./engine')
-            if (action.payload.connected) {
-              EngineConstants.useState.getState().dispatch.connected()
-              get().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
-            } else {
-              EngineConstants.useState.getState().dispatch.disconnected()
-            }
+          if (action.payload.connected) {
+            C.useEngineState.getState().dispatch.onEngineConnected()
+          } else {
+            C.useEngineState.getState().dispatch.onEngineDisconnected()
           }
-          Z.ignorePromise(f())
           break
         }
         case RemoteGen.switchTab: {
-          const f = async () => {
-            const RouterConstants = await import('./router2')
-            RouterConstants.useState.getState().dispatch.switchTab(action.payload.tab)
-          }
-          Z.ignorePromise(f())
+          C.useRouterState.getState().dispatch.switchTab(action.payload.tab)
           break
         }
         case RemoteGen.setCriticalUpdate: {
-          const f = async () => {
-            const FSConstants = await import('./fs')
-            FSConstants.useState.getState().dispatch.setCriticalUpdate(action.payload.critical)
-          }
-          Z.ignorePromise(f())
+          C.useFSState.getState().dispatch.setCriticalUpdate(action.payload.critical)
           break
         }
         case RemoteGen.userFileEditsLoad: {
-          const f = async () => {
-            const FSConstants = await import('./fs')
-            FSConstants.useState.getState().dispatch.userFileEditsLoad()
-          }
-          Z.ignorePromise(f())
+          C.useFSState.getState().dispatch.userFileEditsLoad()
           break
         }
         case RemoteGen.openFilesFromWidget: {
-          const f = async () => {
-            const FSConstants = await import('./fs')
-            FSConstants.useState.getState().dispatch.dynamic.openFilesFromWidgetDesktop?.(action.payload.path)
-          }
-          Z.ignorePromise(f())
+          C.useFSState.getState().dispatch.dynamic.openFilesFromWidgetDesktop?.(action.payload.path)
           break
         }
         case RemoteGen.saltpackFileOpen: {
-          const f = async () => {
-            const DConstants = await import('./deeplinks')
-            DConstants.useState.getState().dispatch.handleSaltPackOpen(action.payload.path)
-          }
-          Z.ignorePromise(f())
+          C.useDeepLinksState.getState().dispatch.handleSaltPackOpen(action.payload.path)
           break
         }
         case RemoteGen.pinentryOnCancel: {
-          const f = async () => {
-            const PConstants = await import('./pinentry')
-            PConstants.useState.getState().dispatch.dynamic.onCancel?.()
-          }
-          Z.ignorePromise(f())
+          C.usePinentryState.getState().dispatch.dynamic.onCancel?.()
           break
         }
         case RemoteGen.pinentryOnSubmit: {
-          const f = async () => {
-            const PConstants = await import('./pinentry')
-            PConstants.useState.getState().dispatch.dynamic.onSubmit?.(action.payload.password)
-          }
-          Z.ignorePromise(f())
+          C.usePinentryState.getState().dispatch.dynamic.onSubmit?.(action.payload.password)
           break
         }
         case RemoteGen.openPathInSystemFileManager: {
-          const f = async () => {
-            const FSConstants = await import('./fs')
-            FSConstants.useState
-              .getState()
-              .dispatch.dynamic.openPathInSystemFileManagerDesktop?.(action.payload.path)
-          }
-          Z.ignorePromise(f())
+          C.useFSState.getState().dispatch.dynamic.openPathInSystemFileManagerDesktop?.(action.payload.path)
           break
         }
         case RemoteGen.unlockFoldersSubmitPaperKey: {
-          RPCTypes.loginPaperKeySubmitRpcPromise(
+          T.RPCGen.loginPaperKeySubmitRpcPromise(
             {paperPhrase: action.payload.paperKey},
             'unlock-folders:waiting'
           )
@@ -435,62 +385,36 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           break
         }
         case RemoteGen.closeUnlockFolders: {
-          RPCTypes.rekeyRekeyStatusFinishRpcPromise()
+          T.RPCGen.rekeyRekeyStatusFinishRpcPromise()
             .then(() => {})
             .catch(() => {})
           get().dispatch.openUnlockFolders([])
           break
         }
         case RemoteGen.stop: {
-          const f = async () => {
-            const SettingsConstants = await import('./settings')
-            SettingsConstants.useState.getState().dispatch.stop(action.payload.exitCode)
-          }
-          Z.ignorePromise(f())
+          C.useSettingsState.getState().dispatch.stop(action.payload.exitCode)
           break
         }
         case RemoteGen.trackerChangeFollow: {
-          const f = async () => {
-            const TrackerConstants = await import('./tracker2')
-            TrackerConstants.useState
-              .getState()
-              .dispatch.changeFollow(action.payload.guiID, action.payload.follow)
-          }
-          Z.ignorePromise(f())
+          C.useTrackerState.getState().dispatch.changeFollow(action.payload.guiID, action.payload.follow)
           break
         }
         case RemoteGen.trackerIgnore: {
-          const f = async () => {
-            const TrackerConstants = await import('./tracker2')
-            TrackerConstants.useState.getState().dispatch.ignore(action.payload.guiID)
-          }
-          Z.ignorePromise(f())
+          C.useTrackerState.getState().dispatch.ignore(action.payload.guiID)
           break
         }
         case RemoteGen.trackerCloseTracker: {
-          const f = async () => {
-            const TrackerConstants = await import('./tracker2')
-            TrackerConstants.useState.getState().dispatch.closeTracker(action.payload.guiID)
-          }
-          Z.ignorePromise(f())
+          C.useTrackerState.getState().dispatch.closeTracker(action.payload.guiID)
           break
         }
         case RemoteGen.trackerLoad: {
-          const f = async () => {
-            const TrackerConstants = await import('./tracker2')
-            TrackerConstants.useState.getState().dispatch.load(action.payload)
-          }
-          Z.ignorePromise(f())
+          C.useTrackerState.getState().dispatch.load(action.payload)
           break
         }
         case RemoteGen.link:
           {
             const {link} = action.payload
-            const f = async () => {
-              const DeepLinkConstants = await import('./deeplinks')
-              DeepLinkConstants.useState.getState().dispatch.handleAppLink(link)
-            }
-            Z.ignorePromise(f())
+            C.useDeepLinksState.getState().dispatch.handleAppLink(link)
           }
           break
         case RemoteGen.installerRan:
@@ -521,7 +445,14 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           get().dispatch.windowShown(action.payload.component)
           break
         case RemoteGen.setSystemDarkMode:
-          DarkMode.useDarkModeState.getState().dispatch.setSystemDarkMode(action.payload.dark)
+          C.useDarkModeState.getState().dispatch.setSystemDarkMode(action.payload.dark)
+          break
+        case RemoteGen.previewConversation:
+          {
+            C.useChatState
+              .getState()
+              .dispatch.previewConversation({participants: [action.payload.participant], reason: 'tracker'})
+          }
           break
       }
     },
@@ -542,7 +473,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     },
     initNotifySound: () => {
       const f = async () => {
-        const val = await RPCTypes.configGuiGetValueRpcPromise({path: notifySoundKey})
+        const val = await T.RPCGen.configGuiGetValueRpcPromise({path: notifySoundKey})
         const notifySound = val.b
         if (typeof notifySound === 'boolean') {
           set(s => {
@@ -554,7 +485,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     },
     initOpenAtLogin: () => {
       const f = async () => {
-        const val = await RPCTypes.configGuiGetValueRpcPromise({path: openAtLoginKey})
+        const val = await T.RPCGen.configGuiGetValueRpcPromise({path: openAtLoginKey})
         const openAtLogin = val.b
         if (typeof openAtLogin === 'boolean') {
           get().dispatch.setOpenAtLogin(openAtLogin)
@@ -564,7 +495,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     },
     initUseNativeFrame: () => {
       const f = async () => {
-        const val = await RPCTypes.configGuiGetValueRpcPromise({path: nativeFrameKey})
+        const val = await T.RPCGen.configGuiGetValueRpcPromise({path: nativeFrameKey})
         const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
         set(s => {
           s.useNativeFrame = useNativeFrame
@@ -576,11 +507,13 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.installerRanCount++
       })
+
+      C.useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
     },
     loadIsOnline: () => {
       const f = async () => {
         try {
-          const isOnline = await RPCTypes.loginIsOnlineRpcPromise(undefined)
+          const isOnline = await T.RPCGen.loginIsOnlineRpcPromise(undefined)
           set(s => {
             s.isOnline = isOnline
           })
@@ -591,79 +524,122 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     loadOnStart: phase => {
+      if (phase === get().loadOnStartPhase) return
       set(s => {
         s.loadOnStartPhase = phase
       })
+
+      if (phase === 'startupOrReloginButNotInARush') {
+        const getFollowerInfo = () => {
+          const {uid} = C.useCurrentUserState.getState()
+          logger.info(`getFollowerInfo: init; uid=${uid}`)
+          if (uid) {
+            // request follower info in the background
+            T.RPCGen.configRequestFollowingAndUnverifiedFollowersRpcPromise()
+              .then(() => {})
+              .catch(() => {})
+          }
+        }
+
+        const updateServerConfig = async () => {
+          if (get().loggedIn) {
+            await T.RPCGen.configUpdateLastLoggedInAndServerConfigRpcPromise({
+              serverConfigPath: C.serverConfigFileName,
+            })
+          }
+        }
+
+        const updateTeams = () => {
+          C.useTeamsState.getState().dispatch.getTeams()
+          C.useTeamsState.getState().dispatch.refreshTeamRoleMap()
+        }
+
+        const updateSettings = () => {
+          C.useSettingsContactsState.getState().dispatch.loadContactImportEnabled()
+        }
+
+        const updateChat = async () => {
+          // On login lets load the untrusted inbox. This helps make some flows easier
+          if (C.useCurrentUserState.getState().username) {
+            const {inboxRefresh} = C.useChatState.getState().dispatch
+            inboxRefresh('bootstrap')
+          }
+          const rows = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
+          const ri = rows?.i ?? -1
+          if (ri > 0) {
+            C.useChatState.getState().dispatch.setInboxNumSmallRows(ri, true)
+          }
+        }
+
+        getFollowerInfo()
+        Z.ignorePromise(updateServerConfig())
+        updateTeams()
+        updateSettings()
+        Z.ignorePromise(updateChat())
+      }
     },
     login: (username, passphrase) => {
       const cancelDesc = 'Canceling RPC'
       const cancelOnCallback = (_: unknown, response: CommonResponseHandler) => {
-        response.error({code: RPCTypes.StatusCode.scgeneric, desc: cancelDesc})
+        response.error({code: T.RPCGen.StatusCode.scgeneric, desc: cancelDesc})
       }
       const ignoreCallback = () => {}
       const f = async () => {
         try {
-          await RPCTypes.loginLoginRpcListener(
-            {
-              customResponseIncomingCallMap: {
-                'keybase.1.gpgUi.selectKey': cancelOnCallback,
-                'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
-                'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
-                'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
-                  cancelOnCallback(undefined, response)
-                  const f = async () => {
-                    const ProvisionConstants = await import('./provision')
-                    ProvisionConstants.useState.getState().dispatch.dynamic.setUsername?.(username)
-                  }
-                  Z.ignorePromise(f())
-                },
-                'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
-                'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
-                'keybase.1.secretUi.getPassphrase': (params, response) => {
-                  if (params.pinentry.type === RPCTypes.PassphraseType.passPhrase) {
-                    // Service asking us again due to a bad passphrase?
-                    if (params.pinentry.retryLabel) {
-                      cancelOnCallback(params, response)
-                      let retryLabel = params.pinentry.retryLabel
-                      if (retryLabel === invalidPasswordErrorString) {
-                        retryLabel = 'Incorrect password.'
-                      }
-                      const error = new RPCError(retryLabel, RPCTypes.StatusCode.scinputerror)
-                      get().dispatch.loginError(error)
-                    } else {
-                      response.result({passphrase, storeSecret: false})
-                    }
-                  } else {
+          await T.RPCGen.loginLoginRpcListener({
+            customResponseIncomingCallMap: {
+              'keybase.1.gpgUi.selectKey': cancelOnCallback,
+              'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
+              'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
+              'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
+                cancelOnCallback(undefined, response)
+                C.useProvisionState.getState().dispatch.dynamic.setUsername?.(username)
+              },
+              'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
+              'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
+              'keybase.1.secretUi.getPassphrase': (params, response) => {
+                if (params.pinentry.type === T.RPCGen.PassphraseType.passPhrase) {
+                  // Service asking us again due to a bad passphrase?
+                  if (params.pinentry.retryLabel) {
                     cancelOnCallback(params, response)
+                    let retryLabel = params.pinentry.retryLabel
+                    if (retryLabel === invalidPasswordErrorString) {
+                      retryLabel = 'Incorrect password.'
+                    }
+                    const error = new RPCError(retryLabel, T.RPCGen.StatusCode.scinputerror)
+                    get().dispatch.loginError(error)
+                  } else {
+                    response.result({passphrase, storeSecret: false})
                   }
-                },
+                } else {
+                  cancelOnCallback(params, response)
+                }
               },
-              // cancel if we get any of these callbacks, we're logging in, not provisioning
-              incomingCallMap: {
-                'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
-                'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
-                'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
-                'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
-              },
-              params: {
-                clientType: RPCTypes.ClientType.guiMain,
-                deviceName: '',
-                deviceType: isMobile ? 'mobile' : 'desktop',
-                doUserSwitch: true,
-                paperKey: '',
-                username,
-              },
-              waitingKey: loginWaitingKey,
             },
-            Z.dummyListenerApi
-          )
+            // cancel if we get any of these callbacks, we're logging in, not provisioning
+            incomingCallMap: {
+              'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
+              'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
+              'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
+              'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
+            },
+            params: {
+              clientType: T.RPCGen.ClientType.guiMain,
+              deviceName: '',
+              deviceType: isMobile ? 'mobile' : 'desktop',
+              doUserSwitch: true,
+              paperKey: '',
+              username,
+            },
+            waitingKey: loginWaitingKey,
+          })
           logger.info('login call succeeded')
           get().dispatch.setLoggedIn(true, false)
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return
           }
-          if (error.code === RPCTypes.StatusCode.scalreadyloggedin) {
+          if (error.code === T.RPCGen.StatusCode.scalreadyloggedin) {
             get().dispatch.setLoggedIn(true, false)
           } else if (error.desc !== cancelDesc) {
             // If we're canceling then ignore the error
@@ -686,21 +662,21 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     logoutAndTryToLogInAs: username => {
       const f = async () => {
         if (get().loggedIn) {
-          await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true}, loginWaitingKey)
+          await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, loginWaitingKey)
         }
         get().dispatch.setDefaultUsername(username)
       }
       Z.ignorePromise(f())
     },
     onEngineConnected: () => {
-      useDaemonState.getState().dispatch.startHandshake()
+      C.useDaemonState.getState().dispatch.startHandshake()
 
       // The startReachability RPC call both starts and returns the current
       // reachability state. Then we'll get updates of changes from this state via reachabilityChanged.
       // This should be run on app start and service re-connect in case the service somehow crashed or was restarted manually.
       const startReachability = async () => {
         try {
-          const reachability = await RPCTypes.reachabilityStartReachabilityRpcPromise()
+          const reachability = await T.RPCGen.reachabilityStartReachabilityRpcPromise()
           get().dispatch.setGregorReachable(reachability.reachable)
         } catch (err) {
           logger.warn('error bootstrapping reachability: ', err)
@@ -711,7 +687,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       // If ever you want to get OOBMs for a different system, then you need to enter it here.
       const registerForGregorNotifications = async () => {
         try {
-          await RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: []})
+          await T.RPCGen.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: []})
           logger.info('Registered gregor listener')
         } catch (error) {
           logger.warn('error in registering gregor listener: ', error)
@@ -720,13 +696,14 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(registerForGregorNotifications())
 
       get().dispatch.dynamic.onEngineConnectedDesktop?.()
+      C.useConfigState.getState().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
     },
     onEngineDisonnected: () => {
       const f = async () => {
         await logger.dump()
       }
       Z.ignorePromise(f())
-      useDaemonState.getState().dispatch.setError(new Error('Disconnected'))
+      C.useDaemonState.getState().dispatch.setError(new Error('Disconnected'))
     },
     onEngineIncoming: action => {
       switch (action.type) {
@@ -768,21 +745,17 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         }
         case EngineGen.keybase1NotifyTrackingTrackingChanged: {
           const {isTracking, username} = action.payload.params
-          Followers.useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
+          C.useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
           break
         }
         case EngineGen.keybase1NotifyTrackingTrackingInfo: {
           const {uid, followers: _newFollowers, followees: _newFollowing} = action.payload.params
-          if (useCurrentUserState.getState().uid !== uid) {
+          if (C.useCurrentUserState.getState().uid !== uid) {
             return
           }
           const newFollowers = new Set(_newFollowers)
           const newFollowing = new Set(_newFollowing)
-          const {
-            following: oldFollowing,
-            followers: oldFollowers,
-            dispatch,
-          } = Followers.useFollowerState.getState()
+          const {following: oldFollowing, followers: oldFollowers, dispatch} = C.useFollowerState.getState()
           const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
           const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
           dispatch.replace(followers, following)
@@ -794,6 +767,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
             get().dispatch.setGregorReachable(action.payload.params.reachability.reachable)
           }
           break
+        default:
       }
     },
     openUnlockFolders: devices => {
@@ -801,22 +775,45 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.unlockFoldersDevices = devices.map(({name, type, deviceID}) => ({
           deviceID,
           name,
-          type: DeviceTypes.stringToDeviceType(type),
+          type: T.Devices.stringToDeviceType(type),
         }))
       })
     },
-    osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => {
+    osNetworkStatusChanged: (online: boolean, type: T.Config.ConnectionType, isInit?: boolean) => {
+      const old = get().networkStatus
       set(s => {
-        s.networkStatus = {
-          isInit,
-          online,
-          type,
+        if (!s.networkStatus) {
+          s.networkStatus = {isInit, online, type}
+        } else {
+          s.networkStatus.isInit = isInit
+          s.networkStatus.online = online
+          s.networkStatus.type = type
         }
       })
+      const next = get().networkStatus
+      if (next === old) return
+      const updateGregor = async () => {
+        const reachability = await T.RPCGen.reachabilityCheckReachabilityRpcPromise()
+        get().dispatch.setGregorReachable(reachability.reachable)
+      }
+      Z.ignorePromise(updateGregor())
+
+      const updateFS = async () => {
+        if (isInit) return
+        try {
+          await T.RPCGen.SimpleFSSimpleFSCheckReachabilityRpcPromise()
+        } catch (error) {
+          if (!(error instanceof RPCError)) {
+            return
+          }
+          logger.warn(`failed to check KBFS reachability: ${error.message}`)
+        }
+      }
+      Z.ignorePromise(updateFS())
     },
     powerMonitorEvent: event => {
       const f = async () => {
-        await RPCTypes.appStatePowerMonitorEventRpcPromise({event})
+        await T.RPCGen.appStatePowerMonitorEventRpcPromise({event})
       }
       Z.ignorePromise(f())
     },
@@ -846,7 +843,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }))
     },
     revoke: name => {
-      const wasCurrentDevice = useCurrentUserState.getState().deviceName === name
+      const wasCurrentDevice = C.useCurrentUserState.getState().deviceName === name
       if (wasCurrentDevice) {
         const {configuredAccounts, defaultUsername} = get()
         const acc = configuredAccounts.find(n => n.username !== defaultUsername)
@@ -856,6 +853,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           s.justRevokedSelf = name
           s.revokedTrigger++
         })
+        C.useDaemonState.getState().dispatch.loadDaemonAccounts()
       }
     },
     setAccounts: a => {
@@ -874,13 +872,66 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       })
       // already loaded, so just go now
       if (get().startup.loaded) {
-        RouterConstants.useState.getState().dispatch.navigateAppend('incomingShareNew')
+        C.useRouterState.getState().dispatch.navigateAppend('incomingShareNew')
       }
     },
     setBadgeState: b => {
+      if (get().badgeState === b) return
       set(s => {
         s.badgeState = b
       })
+
+      const updateDevices = () => {
+        if (!b) return
+        const {setBadges} = C.useDevicesState.getState().dispatch
+        const {newDevices, revokedDevices} = b
+        setBadges(new Set([...(newDevices ?? []), ...(revokedDevices ?? [])]))
+      }
+      updateDevices()
+
+      const updateAutoReset = () => {
+        if (!b) return
+        const {resetState} = b
+        C.useAutoResetState.getState().dispatch.updateARState(resetState.active, resetState.endTime)
+      }
+      updateAutoReset()
+
+      const updateGit = () => {
+        const {setBadges} = C.useGitState.getState().dispatch
+        setBadges(new Set(b?.newGitRepoGlobalUniqueIDs))
+      }
+      updateGit()
+
+      const updateTeams = () => {
+        const loggedIn = get().loggedIn
+        if (!loggedIn) {
+          // Don't make any calls we don't have permission to.
+          return
+        }
+        if (!b) return
+        const deletedTeams = b.deletedTeams || []
+        const newTeams = new Set<string>(b.newTeams || [])
+        const teamsWithResetUsers: Array<T.RPCGen.TeamMemberOutReset> = b.teamsWithResetUsers || []
+        const teamsWithResetUsersMap = new Map<T.Teams.TeamID, Set<string>>()
+        teamsWithResetUsers.forEach(entry => {
+          const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
+          existing.add(entry.username)
+        })
+        // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
+        C.useTeamsState.getState().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
+      }
+      updateTeams()
+
+      const updateChat = () => {
+        if (!b) return
+        b.conversations?.forEach(c => {
+          const id = T.Chat.conversationIDToKey(c.convID)
+          C.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
+          C.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
+        })
+        C.useChatState.getState().dispatch.badgesUpdated(b.bigTeamBadgeCount, b.smallTeamBadgeCount)
+      }
+      updateChat()
     },
     setDefaultUsername: u => {
       set(s => {
@@ -897,10 +948,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         if (isErrorTransient(e)) {
           logger.info('globalError silencing:', e)
           return
-        }
-        if (enableActionLogging) {
-          const payload = {err: `Global Error: ${e.message} ${e.stack ?? ''}`}
-          logger.action({payload, type: 'config:globalError'})
         }
       }
       set(s => {
@@ -919,11 +966,30 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.gregorPushState = goodState
       })
+
+      const allowAnimatedEmojis = !goodState.find(i => i.item.category === 'emojianimations')
+      get().dispatch.setAllowAnimatedEmojis(allowAnimatedEmojis)
+
+      const lastSeenItem = goodState.find(i => i.item.category === 'whatsNewLastSeenVersion')
+      C.useWNState.getState().dispatch.updateLastSeen(lastSeenItem)
+      C.useTeamsState.getState().dispatch.onGregorPushState(goodState)
+      C.useChatState.getState().dispatch.updatedGregor(goodState)
     },
     setGregorReachable: (r: Store['gregorReachable']) => {
+      const old = get().gregorReachable
+      if (old === r) return
       set(s => {
         s.gregorReachable = r
       })
+      // Re-get info about our account if you log in/we're done handshaking/became reachable
+      if (r === T.RPCGen.Reachable.yes) {
+        // not in waiting state
+        if (C.useDaemonState.getState().handshakeWaiters.size === 0) {
+          Z.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(true))
+        }
+      }
+
+      C.useTeamsState.getState().dispatch.eagerLoadTeams()
     },
     setHTTPSrvInfo: (address, token) => {
       logger.info(`config reducer: http server info: addr: ${address} token: ${token}`)
@@ -942,16 +1008,49 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.justDeletedSelf = self
       })
     },
-    setLoggedIn: (l, causedByStartup) => {
+    setLoggedIn: (loggedIn, causedByStartup) => {
+      const changed = get().loggedIn !== loggedIn
       set(s => {
-        s.loggedIn = l
+        s.loggedIn = loggedIn
         s.loggedInCausedbyStartup = causedByStartup
       })
+
+      if (!changed) return
+
+      // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
+      if (!causedByStartup || !loggedIn) {
+        Z.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
+        C.useDaemonState.getState().dispatch.loadDaemonAccounts()
+      }
+
+      const {loadOnStart} = get().dispatch
+      if (loggedIn) {
+        if (!causedByStartup) {
+          loadOnStart('reloggedIn')
+          const f = async () => {
+            await Z.timeoutPromise(1000)
+            requestAnimationFrame(() => {
+              loadOnStart('startupOrReloginButNotInARush')
+            })
+          }
+          Z.ignorePromise(f())
+        }
+      } else {
+        Z.resetAllStores()
+      }
+
+      if (loggedIn) {
+        C.useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
+      }
     },
     setMobileAppState: nextAppState => {
+      if (get().mobileAppState === nextAppState) return
       set(s => {
         s.mobileAppState = nextAppState
       })
+      if (nextAppState === 'background' && C.useChatState.getState().inboxSearch) {
+        C.useChatState.getState().dispatch.toggleInboxSearch(false)
+      }
     },
     setNavigatorExists: () => {
       get().dispatch.dynamic.setNavigatorExistsNative?.()
@@ -961,7 +1060,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.notifySound = n
       })
       ignorePromise(
-        RPCTypes.configGuiSetValueRpcPromise({
+        T.RPCGen.configGuiSetValueRpcPromise({
           path: notifySoundKey,
           value: {
             b: n,
@@ -1001,7 +1100,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.useNativeFrame = use
       })
       ignorePromise(
-        RPCTypes.configGuiSetValueRpcPromise({
+        T.RPCGen.configGuiSetValueRpcPromise({
           path: nativeFrameKey,
           value: {
             b: use,
@@ -1020,18 +1119,22 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.windowState.isMaximized = m
       })
     },
+    setupSubscriptions: () => {
+      // Kick off platform specific stuff
+      initPlatformListener()
+    },
     showMain: () => {
       get().dispatch.dynamic.showMainNative?.()
     },
     toggleRuntimeStats: () => {
       const f = async () => {
-        await RPCTypes.configToggleRuntimeStatsRpcPromise()
+        await T.RPCGen.configToggleRuntimeStatsRpcPromise()
       }
       ignorePromise(f())
     },
     updateApp: () => {
       const f = async () => {
-        await RPCTypes.configStartUpdateIfNeededRpcPromise()
+        await T.RPCGen.configStartUpdateIfNeededRpcPromise()
       }
       ignorePromise(f())
       // * If user choose to update:
@@ -1051,7 +1154,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     updateGregorCategory: (category, body, dtime) => {
       const f = async () => {
         try {
-          await RPCTypes.gregorUpdateCategoryRpcPromise({
+          await T.RPCGen.gregorUpdateCategoryRpcPromise({
             body,
             category,
             dtime: dtime || {offset: 0, time: 0},
@@ -1080,7 +1183,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
       const windowStateKey = 'windowState'
       ignorePromise(
-        RPCTypes.configGuiSetValueRpcPromise({
+        T.RPCGen.configGuiSetValueRpcPromise({
           path: windowStateKey,
           value: {
             isNull: false,
@@ -1100,9 +1203,3 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     dispatch,
   }
 })
-
-export {useDaemonState, maxHandshakeTries} from './daemon'
-export {useFollowerState} from './followers'
-export {useLogoutState} from './logout'
-export {useActiveState} from './active'
-export {useCurrentUserState}

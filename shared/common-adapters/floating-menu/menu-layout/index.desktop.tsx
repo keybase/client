@@ -101,7 +101,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
     `
 
     const items = this.props.items.reduce<Array<'Divider' | MenuItem>>((arr, item) => {
-      if (item === 'Divider' && arr.length && arr[arr.length - 1] === 'Divider') {
+      if (item === 'Divider' && arr.length && arr.at(-1) === 'Divider') {
         return arr
       }
       item && arr.push(item)
@@ -190,7 +190,7 @@ const styles = Styles.styleSheetCreate(
         right: 0,
         top: Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )
 
 export default MenuLayout

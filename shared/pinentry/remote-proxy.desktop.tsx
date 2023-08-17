@@ -1,8 +1,7 @@
 // Manages remote pinentry windows
-import * as Constants from '../constants/pinentry'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as C from '../constants'
+import * as T from '../constants/types'
 import * as React from 'react'
-import * as DarkMode from '../constants/darkmode'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize, type ProxyProps} from './remote-serializer.desktop'
@@ -28,7 +27,7 @@ const Pinentry = (p: ProxyProps) => {
 const PinentryMemo = React.memo(Pinentry)
 
 const PinentryProxy = () => {
-  const {cancelLabel, prompt, retryLabel, showTyping, submitLabel, type, windowTitle} = Constants.useState(
+  const {cancelLabel, prompt, retryLabel, showTyping, submitLabel, type, windowTitle} = C.usePinentryState(
     s => {
       const {cancelLabel, prompt, retryLabel, showTyping, submitLabel, type, windowTitle} = s
       return {
@@ -43,8 +42,8 @@ const PinentryProxy = () => {
     },
     shallowEqual
   )
-  const show = type !== RPCTypes.PassphraseType.none && !!showTyping
-  const darkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
+  const show = type !== T.RPCGen.PassphraseType.none && !!showTyping
+  const darkMode = C.useDarkModeState(s => s.isDarkMode())
   if (show) {
     return (
       <PinentryMemo

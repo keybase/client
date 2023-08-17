@@ -1,6 +1,5 @@
+import * as C from '../../constants'
 import * as Constants from '../../constants/settings'
-import * as NotifConstants from '../../constants/notifications'
-import * as PushConstants from '../../constants/push'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as TabConstants from '../../constants/tabs'
@@ -16,8 +15,8 @@ type Props = {
 }
 
 const LeftNav = (props: Props) => {
-  const badgeNumbers = NotifConstants.useState(s => s.navBadges)
-  const badgeNotifications = PushConstants.useState(s => !s.hasPermissions)
+  const badgeNumbers = C.useNotifState(s => s.navBadges)
+  const badgeNotifications = C.usePushState(s => !s.hasPermissions)
   return (
     <Kb.ScrollView style={styles.container}>
       {Styles.isTablet && (

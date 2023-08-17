@@ -1,6 +1,5 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
-import * as Followers from '../../constants/followers'
 import Bio from '.'
 import shallowEqual from 'shallowequal'
 
@@ -11,7 +10,7 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {inTracker, username} = ownProps
-  const stateProps = Constants.useState(s => {
+  const stateProps = C.useTrackerState(s => {
     const d = Constants.getDetails(s, username)
     const common = {
       blocked: d.blocked,
@@ -39,13 +38,13 @@ export default (ownProps: OwnProps) => {
       }
     }
   }, shallowEqual)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }
 
-  const followThem = Followers.useFollowerState(s => s.following.has(username))
-  const followsYou = Followers.useFollowerState(s => s.followers.has(username))
+  const followThem = C.useFollowerState(s => s.following.has(username))
+  const followsYou = C.useFollowerState(s => s.followers.has(username))
 
   const props = {
     followThem,

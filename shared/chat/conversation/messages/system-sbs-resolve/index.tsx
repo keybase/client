@@ -1,11 +1,9 @@
-import type * as Types from '../../../../constants/types/chat2'
-import type * as TBTypes from '../../../../constants/types/team-building'
-import type {ServiceIdWithContact} from '../../../../constants/types/team-building'
+import type * as T from '../../../../constants/types'
 import * as Kb from '../../../../common-adapters'
 import {e164ToDisplay} from '../../../../util/phone-numbers'
 import UserNotice from '../user-notice'
 
-function serviceIdToPrettyName(serviceId: TBTypes.ServiceId): string {
+function serviceIdToPrettyName(serviceId: T.TB.ServiceId): string {
   return {
     facebook: 'Facebook',
     github: 'GitHub',
@@ -17,11 +15,11 @@ function serviceIdToPrettyName(serviceId: TBTypes.ServiceId): string {
 }
 
 type Props = {
-  message: Types.MessageSystemSBSResolved
+  message: T.Chat.MessageSystemSBSResolved
   you: string
 }
 
-const formatAssertion = (serviceUser: string, service: ServiceIdWithContact, isYou: boolean): string => {
+const formatAssertion = (serviceUser: string, service: T.TB.ServiceIdWithContact, isYou: boolean): string => {
   switch (service) {
     case 'phone':
       return `verified ${isYou ? 'your' : 'their'} phone number ${e164ToDisplay('+' + serviceUser)}`

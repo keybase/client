@@ -1,12 +1,9 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Container from '../../../../util/container'
-import * as ConfigConstants from '../../../../constants/config'
 import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import * as Constants from '../../../../constants/chat2'
-import shallowEqual from 'shallowequal'
-import {ConversationIDKeyContext, SnippetContext, SnippetDecorationContext} from './contexts'
+import * as T from '../../../../constants/types'
+import {SnippetContext, SnippetDecorationContext} from './contexts'
 
 type Props = {
   isDecryptingSnippet: boolean
@@ -38,12 +35,12 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Sty
   const defaultIconColor = isSelected ? Styles.globalColors.white : Styles.globalColors.black_20
 
   switch (decoration) {
-    case RPCChatTypes.SnippetDecoration.pendingMessage:
+    case T.RPCChat.SnippetDecoration.pendingMessage:
       snippetDecoration = (
         <SnippetDecoration type="iconfont-hourglass" color={defaultIconColor} tooltip="Sending…" />
       )
       break
-    case RPCChatTypes.SnippetDecoration.failedPendingMessage:
+    case T.RPCChat.SnippetDecoration.failedPendingMessage:
       snippetDecoration = (
         <SnippetDecoration
           type="iconfont-exclamation"
@@ -52,10 +49,10 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Sty
         />
       )
       break
-    case RPCChatTypes.SnippetDecoration.explodingMessage:
+    case T.RPCChat.SnippetDecoration.explodingMessage:
       snippetDecoration = <SnippetDecoration type="iconfont-timer-solid" color={defaultIconColor} />
       break
-    case RPCChatTypes.SnippetDecoration.explodedMessage:
+    case T.RPCChat.SnippetDecoration.explodedMessage:
       snippetDecoration = (
         <Kb.Text
           type="BodySmall"
@@ -68,25 +65,25 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Sty
       )
       exploded = true
       break
-    case RPCChatTypes.SnippetDecoration.audioAttachment:
+    case T.RPCChat.SnippetDecoration.audioAttachment:
       snippetDecoration = <SnippetDecoration type="iconfont-mic-solid" color={defaultIconColor} />
       break
-    case RPCChatTypes.SnippetDecoration.videoAttachment:
+    case T.RPCChat.SnippetDecoration.videoAttachment:
       snippetDecoration = <SnippetDecoration type="iconfont-film-solid" color={defaultIconColor} />
       break
-    case RPCChatTypes.SnippetDecoration.photoAttachment:
+    case T.RPCChat.SnippetDecoration.photoAttachment:
       snippetDecoration = <SnippetDecoration type="iconfont-camera-solid" color={defaultIconColor} />
       break
-    case RPCChatTypes.SnippetDecoration.fileAttachment:
+    case T.RPCChat.SnippetDecoration.fileAttachment:
       snippetDecoration = <SnippetDecoration type="iconfont-file-solid" color={defaultIconColor} />
       break
-    case RPCChatTypes.SnippetDecoration.stellarReceived:
+    case T.RPCChat.SnippetDecoration.stellarReceived:
       snippetDecoration = <SnippetDecoration type="iconfont-stellar-request" color={defaultIconColor} />
       break
-    case RPCChatTypes.SnippetDecoration.stellarSent:
+    case T.RPCChat.SnippetDecoration.stellarSent:
       snippetDecoration = <SnippetDecoration type="iconfont-stellar-send" color={defaultIconColor} />
       break
-    case RPCChatTypes.SnippetDecoration.pinnedMessage:
+    case T.RPCChat.SnippetDecoration.pinnedMessage:
       snippetDecoration = <SnippetDecoration type="iconfont-pin-solid" color={defaultIconColor} />
       break
     default:
@@ -109,40 +106,34 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Sty
 })
 
 const BottomLine = React.memo(function BottomLine(p: Props) {
-  const conversationIDKey = React.useContext(ConversationIDKeyContext)
   const {isSelected, backgroundColor, isInWidget, isDecryptingSnippet} = p
 
-  const isTypingSnippet = Constants.useState(s => {
-    const typers = !isInWidget ? s.typingMap.get(conversationIDKey) : undefined
+  const isTypingSnippet = C.useChatContext(s => {
+    const typers = !isInWidget ? s.typing : undefined
     return !!typers?.size
   })
 
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const data = Container.useSelector(state => {
-    const meta = state.chat2.metaMap.get(conversationIDKey)
-    const hasUnread = (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0
-    const youAreReset = meta?.membershipType === 'youAreReset'
-    const participantNeedToRekey = (meta?.rekeyers?.size ?? 0) > 0
-    const youNeedToRekey = meta?.rekeyers?.has(you) ?? false
-    const hasResetUsers = (meta?.resetParticipants.size ?? 0) > 0
-    const draft = (!isSelected && !hasUnread && state.chat2.draftMap.get(conversationIDKey)) || ''
-
-    return {
-      draft,
-      hasResetUsers,
-      hasUnread,
-      participantNeedToRekey,
-      youAreReset,
-      youNeedToRekey,
-    }
-  }, shallowEqual)
+  const you = C.useCurrentUserState(s => s.username)
+  const hasUnread = C.useChatContext(s => s.unread > 0)
+  const _draft = C.useChatContext(s => s.draft)
+  const meta = C.useChatContext(s => s.meta)
+  const youAreReset = meta.membershipType === 'youAreReset'
+  const participantNeedToRekey = (meta.rekeyers.size ?? 0) > 0
+  const youNeedToRekey = meta.rekeyers.has(you) ?? false
+  const hasResetUsers = (meta.resetParticipants.size ?? 0) > 0
+  const draft = (!isSelected && !hasUnread && _draft) || ''
 
   const props = {
-    ...data,
     backgroundColor,
+    draft,
+    hasResetUsers,
+    hasUnread,
     isDecryptingSnippet,
     isSelected,
     isTypingSnippet,
+    participantNeedToRekey,
+    youAreReset,
+    youNeedToRekey,
   }
 
   return <BottomLineImpl {...props} />
@@ -312,6 +303,6 @@ const styles = Styles.styleSheetCreate(
           lineHeight: 19,
         },
       }),
-    } as const)
+    }) as const
 )
 export {BottomLine}

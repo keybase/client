@@ -1,15 +1,12 @@
-import * as RPCTypes from './types/rpc-gen'
-import * as WaitingConstants from './waiting'
-import * as RouterConstants from './router2'
+import * as C from '.'
+import * as T from './types'
+import * as EngineGen from '../actions/engine-gen-gen'
 import openURL from '../util/open-url'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
-import {useCurrentUserState, useConfigState} from './config'
 import * as Tabs from './tabs'
 import logger from '../logger'
 import {pprofDir} from '../constants/platform'
-import {useState as usePhoneState} from './settings-phone'
-import {useState as useEmailState} from './settings-email'
 
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
@@ -68,7 +65,7 @@ type Store = {
   checkPasswordIsCorrect?: boolean
   didToggleCertificatePinning?: boolean
   lockdownModeEnabled?: boolean
-  proxyData?: RPCTypes.ProxyData
+  proxyData?: T.RPCGen.ProxyData
 }
 
 const initialStore: Store = {
@@ -87,35 +84,36 @@ export type State = Store & {
     loadProxyData: () => void
     loadSettings: () => void
     loginBrowserViaWebAuthToken: () => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     processorProfile: (durationSeconds: number) => void
     resetCheckPassword: () => void
     resetState: 'default'
     setDidToggleCertificatePinning: (t?: boolean) => void
     setLockdownMode: (l: boolean) => void
-    setProxyData: (proxyData: RPCTypes.ProxyData) => void
-    stop: (exitCode: RPCTypes.ExitCode) => void
+    setProxyData: (proxyData: T.RPCGen.ProxyData) => void
+    stop: (exitCode: T.RPCGen.ExitCode) => void
     trace: (durationSeconds: number) => void
   }
 }
 
 let maybeLoadAppLinkOnce = false
-export const useState = Z.createZustand<State>(set => {
+export const _useState = Z.createZustand<State>(set => {
   const maybeLoadAppLink = () => {
-    const phones = usePhoneState.getState().phones
+    const phones = C.useSettingsPhoneState.getState().phones
     if (!phones || phones.size > 0) {
       return
     }
 
     if (
       maybeLoadAppLinkOnce ||
-      !useConfigState.getState().startup.link ||
-      !useConfigState.getState().startup.link.endsWith('/phone-app')
+      !C.useConfigState.getState().startup.link ||
+      !C.useConfigState.getState().startup.link.endsWith('/phone-app')
     ) {
       return
     }
     maybeLoadAppLinkOnce = true
-    RouterConstants.useState.getState().dispatch.switchTab(Tabs.settingsTab)
-    RouterConstants.useState.getState().dispatch.navigateAppend('settingsAddPhone')
+    C.useRouterState.getState().dispatch.switchTab(Tabs.settingsTab)
+    C.useRouterState.getState().dispatch.navigateAppend('settingsAddPhone')
   }
 
   const dispatch: State['dispatch'] = {
@@ -124,7 +122,7 @@ export const useState = Z.createZustand<State>(set => {
         s.checkPasswordIsCorrect = undefined
       })
       const f = async () => {
-        const res = await RPCTypes.accountPassphraseCheckRpcPromise({passphrase}, checkPasswordWaitingKey)
+        const res = await T.RPCGen.accountPassphraseCheckRpcPromise({passphrase}, checkPasswordWaitingKey)
         set(s => {
           s.checkPasswordIsCorrect = res
         })
@@ -133,31 +131,31 @@ export const useState = Z.createZustand<State>(set => {
     },
     dbNuke: () => {
       const f = async () => {
-        await RPCTypes.ctlDbNukeRpcPromise(undefined, settingsWaitingKey)
+        await T.RPCGen.ctlDbNukeRpcPromise(undefined, settingsWaitingKey)
       }
       Z.ignorePromise(f())
     },
     deleteAccountForever: passphrase => {
       const f = async () => {
-        const username = useCurrentUserState.getState().username
+        const username = C.useCurrentUserState.getState().username
 
         if (!username) {
           throw new Error('Unable to delete account: no username set')
         }
 
-        await RPCTypes.loginAccountDeleteRpcPromise({passphrase}, settingsWaitingKey)
-        useConfigState.getState().dispatch.setJustDeletedSelf(username)
-        RouterConstants.useState.getState().dispatch.navigateAppend(Tabs.loginTab)
+        await T.RPCGen.loginAccountDeleteRpcPromise({passphrase}, settingsWaitingKey)
+        C.useConfigState.getState().dispatch.setJustDeletedSelf(username)
+        C.useRouterState.getState().dispatch.navigateAppend(Tabs.loginTab)
       }
       Z.ignorePromise(f())
     },
     loadLockdownMode: () => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!C.useConfigState.getState().loggedIn) {
           return
         }
         try {
-          const result = await RPCTypes.accountGetLockdownModeRpcPromise(
+          const result = await T.RPCGen.accountGetLockdownModeRpcPromise(
             undefined,
             loadLockdownModeWaitingKey
           )
@@ -175,7 +173,7 @@ export const useState = Z.createZustand<State>(set => {
     loadProxyData: () => {
       const f = async () => {
         try {
-          const result = await RPCTypes.configGetProxyDataRpcPromise()
+          const result = await T.RPCGen.configGetProxyDataRpcPromise()
           set(s => {
             s.proxyData = result
           })
@@ -188,13 +186,13 @@ export const useState = Z.createZustand<State>(set => {
     },
     loadSettings: () => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!C.useConfigState.getState().loggedIn) {
           return
         }
         try {
-          const settings = await RPCTypes.userLoadMySettingsRpcPromise(undefined, loadSettingsWaitingKey)
-          useEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
-          usePhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
+          const settings = await T.RPCGen.userLoadMySettingsRpcPromise(undefined, loadSettingsWaitingKey)
+          C.useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
+          C.useSettingsPhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
           maybeLoadAppLink()
         } catch (error) {
           if (!(error instanceof RPCError)) {
@@ -208,18 +206,42 @@ export const useState = Z.createZustand<State>(set => {
     },
     loginBrowserViaWebAuthToken: () => {
       const f = async () => {
-        const link = await RPCTypes.configGenerateWebAuthTokenRpcPromise()
+        const link = await T.RPCGen.configGenerateWebAuthTokenRpcPromise()
         openURL(link)
       }
       Z.ignorePromise(f())
     },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+          logger.info('email verified')
+          C.useSettingsEmailState.getState().dispatch.notifyEmailVerified(action.payload.params.emailAddress)
+          break
+        case EngineGen.keybase1NotifyUsersPasswordChanged: {
+          const randomPW = action.payload.params.state === T.RPCGen.PassphraseState.random
+          C.useSettingsPasswordState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
+          break
+        }
+        case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {
+          const {list} = action.payload.params
+          C.useSettingsPhoneState.getState().dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
+          break
+        }
+        case EngineGen.keybase1NotifyEmailAddressEmailsChanged: {
+          const list = action.payload.params.list ?? []
+          C.useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(list)
+          break
+        }
+        default:
+      }
+    },
     processorProfile: profileDurationSeconds => {
       const f = async () => {
-        await RPCTypes.pprofLogProcessorProfileRpcPromise({
+        await T.RPCGen.pprofLogProcessorProfileRpcPromise({
           logDirForMobile: pprofDir,
           profileDurationSeconds,
         })
-        const {decrement, increment} = WaitingConstants.useWaitingState.getState().dispatch
+        const {decrement, increment} = C.useWaitingState.getState().dispatch
         increment(processorProfileInProgressKey)
         await Z.timeoutPromise(profileDurationSeconds * 1_000)
         decrement(processorProfileInProgressKey)
@@ -239,11 +261,11 @@ export const useState = Z.createZustand<State>(set => {
     },
     setLockdownMode: enabled => {
       const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
+        if (!C.useConfigState.getState().loggedIn) {
           return
         }
         try {
-          await RPCTypes.accountSetLockdownModeRpcPromise({enabled}, setLockdownModeWaitingKey)
+          await T.RPCGen.accountSetLockdownModeRpcPromise({enabled}, setLockdownModeWaitingKey)
           set(s => {
             s.lockdownModeEnabled = enabled
           })
@@ -258,7 +280,7 @@ export const useState = Z.createZustand<State>(set => {
     setProxyData: proxyData => {
       const f = async () => {
         try {
-          await RPCTypes.configSetProxyDataRpcPromise({proxyData})
+          await T.RPCGen.configSetProxyDataRpcPromise({proxyData})
         } catch (err) {
           logger.warn('Error in saving proxy data', err)
         }
@@ -267,17 +289,17 @@ export const useState = Z.createZustand<State>(set => {
     },
     stop: exitCode => {
       const f = async () => {
-        await RPCTypes.ctlStopRpcPromise({exitCode})
+        await T.RPCGen.ctlStopRpcPromise({exitCode})
       }
       Z.ignorePromise(f())
     },
     trace: durationSeconds => {
       const f = async () => {
-        await RPCTypes.pprofLogTraceRpcPromise({
+        await T.RPCGen.pprofLogTraceRpcPromise({
           logDirForMobile: pprofDir,
           traceDurationSeconds: durationSeconds,
         })
-        const {decrement, increment} = WaitingConstants.useWaitingState.getState().dispatch
+        const {decrement, increment} = C.useWaitingState.getState().dispatch
         increment(traceInProgressKey)
         await Z.timeoutPromise(durationSeconds * 1_000)
         decrement(traceInProgressKey)
@@ -290,22 +312,3 @@ export const useState = Z.createZustand<State>(set => {
     dispatch,
   }
 })
-export {usePhoneState, useEmailState}
-export {useState as usePasswordState} from './settings-password'
-export {useState as useInvitesState} from './settings-invites'
-export {useState as useNotifState, refreshNotificationsWaitingKey} from './settings-notifications'
-export {
-  useState as useChatState,
-  contactSettingsSaveWaitingKey,
-  chatUnfurlWaitingKey,
-  contactSettingsLoadWaitingKey,
-} from './settings-chat'
-export {useState as useContactsState, importContactsWaitingKey} from './settings-contacts'
-
-export {
-  verifyPhoneNumberWaitingKey,
-  addPhoneNumberWaitingKey,
-  resendVerificationForPhoneWaitingKey,
-  getE164,
-} from './settings-phone'
-export {addEmailWaitingKey} from './settings-email'

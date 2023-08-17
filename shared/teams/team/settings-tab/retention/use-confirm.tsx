@@ -1,8 +1,8 @@
 import * as Z from '../../../../util/zustand'
-import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
+import type * as T from '../../../../constants/types'
 
 type Store = {
-  confirmed: RetentionPolicy | undefined
+  confirmed: T.Retention.RetentionPolicy | undefined
 }
 const initialStore: Store = {
   confirmed: undefined,
@@ -10,7 +10,7 @@ const initialStore: Store = {
 type State = Store & {
   dispatch: {
     resetState: 'default'
-    updateConfirm: (rt: RetentionPolicy | undefined) => void
+    updateConfirm: (rt: T.Retention.RetentionPolicy | undefined) => void
   }
 }
 

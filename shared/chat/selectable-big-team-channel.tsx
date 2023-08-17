@@ -4,7 +4,7 @@ import * as Styles from '../styles'
 import {TeamAvatar} from './avatars'
 import {pluralize} from '../util/string'
 import {BottomLine} from './inbox/row/small-team/bottom-line'
-import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'
+import type * as T from '../constants/types'
 import {SnippetContext} from './inbox/row/small-team/contexts'
 
 type Props = {
@@ -17,7 +17,7 @@ type Props = {
   showBadge: boolean
   showBold: boolean
   snippet?: string
-  snippetDecoration: RPCChatTypes.SnippetDecoration
+  snippetDecoration: T.RPCChat.SnippetDecoration
 }
 
 type State = {
@@ -176,7 +176,7 @@ const styles = Styles.styleSheetCreate(
         overflow: 'hidden',
         paddingRight: Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )
 
 export default SelectableBigTeamChannel

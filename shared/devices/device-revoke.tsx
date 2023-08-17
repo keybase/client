@@ -1,14 +1,12 @@
+import * as C from '../constants'
 import * as Constants from '../constants/devices'
-import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as SettingsConstants from '../constants/settings'
-import * as ConfigConstants from '../constants/config'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
-import type * as Types from '../constants/types/devices'
+import * as T from '../constants/types'
 
 type OwnProps = {deviceID: string}
 
@@ -46,14 +44,14 @@ const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: ()
       fullWidth={Styles.isMobile}
       type="Danger"
       label="Yes, delete it"
-      waitingKey={Constants.waitingKey}
+      waitingKey={C.devicesWaitingKey}
       onClick={onSubmit}
     />
     <Kb.Button fullWidth={Styles.isMobile} type="Dim" onClick={onCancel} label="Cancel" />
   </Kb.Box2>
 )
 
-const getIcon = (deviceType: Types.DeviceType, iconNumber: Types.IconNumber) => {
+const getIcon = (deviceType: T.Devices.DeviceType, iconNumber: T.Devices.IconNumber) => {
   let iconType: Kb.IconType
   const size = Styles.isMobile ? 64 : 48
   switch (deviceType) {
@@ -78,9 +76,9 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
     return []
   }
   try {
-    const tlfs = await RPCTypes.rekeyGetRevokeWarningRpcPromise(
+    const tlfs = await T.RPCGen.rekeyGetRevokeWarningRpcPromise(
       {actingDevice, targetDevice},
-      Constants.waitingKey
+      C.devicesWaitingKey
     )
     return tlfs.endangeredTLFs?.map(t => t.name) ?? []
   } catch (e) {
@@ -90,28 +88,28 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
 }
 
 const useRevoke = (deviceID = '') => {
-  const d = Constants.useDevicesState(s => s.deviceMap.get(deviceID))
-  const load = Constants.useDevicesState(s => s.dispatch.load)
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const d = C.useDevicesState(s => s.deviceMap.get(deviceID))
+  const load = C.useDevicesState(s => s.dispatch.load)
+  const username = C.useCurrentUserState(s => s.username)
   const wasCurrentDevice = d?.currentDevice ?? false
-  const navUpToScreen = RouterConstants.useState(s => s.dispatch.navUpToScreen)
+  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   const deviceName = d?.name ?? ''
   return React.useCallback(() => {
     const f = async () => {
       if (wasCurrentDevice) {
         try {
-          await RPCTypes.loginDeprovisionRpcPromise({doRevoke: true, username}, Constants.waitingKey)
+          await T.RPCGen.loginDeprovisionRpcPromise({doRevoke: true, username}, C.devicesWaitingKey)
           load()
-          ConfigConstants.useConfigState.getState().dispatch.revoke(deviceName)
+          C.useConfigState.getState().dispatch.revoke(deviceName)
         } catch {}
       } else {
         try {
-          await RPCTypes.revokeRevokeDeviceRpcPromise(
+          await T.RPCGen.revokeRevokeDeviceRpcPromise(
             {deviceID, forceLast: false, forceSelf: false},
-            Constants.waitingKey
+            C.devicesWaitingKey
           )
           load()
-          ConfigConstants.useConfigState.getState().dispatch.revoke(deviceName)
+          C.useConfigState.getState().dispatch.revoke(deviceName)
           navUpToScreen(
             Container.isMobile
               ? Container.isTablet
@@ -129,17 +127,17 @@ const useRevoke = (deviceID = '') => {
 const DeviceRevoke = (ownProps: OwnProps) => {
   const selectedDeviceID = ownProps.deviceID
   const [endangeredTLFs, setEndangeredTLFs] = React.useState(new Array<string>())
-  const device = Constants.useDevicesState(s => s.deviceMap.get(selectedDeviceID))
+  const device = C.useDevicesState(s => s.deviceMap.get(selectedDeviceID))
   const deviceID = device?.deviceID
   const deviceName = device?.name ?? ''
   const type = device?.type ?? 'desktop'
   const iconNumber = Constants.useDeviceIconNumber(selectedDeviceID)
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
+  const waiting = Container.useAnyWaiting(C.devicesWaitingKey)
   const onSubmit = useRevoke(deviceID)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp
 
-  const actingDevice = ConfigConstants.useCurrentUserState(s => s.deviceID)
+  const actingDevice = C.useCurrentUserState(s => s.deviceID)
   Container.useOnMountOnce(() => {
     const f = async () => {
       const tlfs = await loadEndangeredTLF(actingDevice, selectedDeviceID)

@@ -1,4 +1,5 @@
 import * as Channels from './channels'
+import * as C from '../../../../constants'
 import * as Commands from './commands'
 import * as Emoji from './emoji'
 import * as Kb from '../../../../common-adapters'
@@ -40,7 +41,7 @@ const suggestorToMarker = {
 
 type UseSuggestorsProps = Pick<
   Props,
-  'onChangeText' | 'suggestBotCommandsUpdateStatus' | 'suggestionOverlayStyle' | 'conversationIDKey'
+  'onChangeText' | 'suggestBotCommandsUpdateStatus' | 'suggestionOverlayStyle'
 > & {
   suggestionListStyle: any
   suggestionSpinnerStyle: any
@@ -89,7 +90,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
         wordRegex = / |\n/
       }
       const words = upToCursor.split(wordRegex)
-      const word = words[words.length - 1]
+      const word = words.at(-1)
       const position = {end: selection.start, start: selection.start - word!.length}
       return {position, word}
     }
@@ -106,10 +107,14 @@ export const useSyncInput = (p: UseSyncInputProps) => {
       // desktop would get the previous selection on arrowleft / arrowright
       const cursorInfo = getWordAtCursor()
       if (!cursorInfo) {
+        setInactive()
         return
       }
       const {word} = cursorInfo
-      if (!word) return
+      if (!word) {
+        setInactive()
+        return
+      }
       if (active) {
         const activeMarker = suggestorToMarker[active]
         const matchInfo = matchesMarker(word, activeMarker)
@@ -150,14 +155,11 @@ export const useSyncInput = (p: UseSyncInputProps) => {
       }
       const input = inputRef.current
       const cursorInfo = getWordAtCursor()
-      if (!cursorInfo?.word) {
-        return
-      }
-      const matchInfo = matchesMarker(cursorInfo.word, suggestorToMarker[active])
+      const matchInfo = matchesMarker(cursorInfo?.word ?? '', suggestorToMarker[active])
       const transformedText = transformers[active](
         value,
         matchInfo.marker,
-        {position: cursorInfo.position, text: lastTextRef.current},
+        {position: cursorInfo?.position ?? {end: null, start: null}, text: lastTextRef.current},
         !final
       )
       lastTextRef.current = transformedText.text
@@ -246,7 +248,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const [filter, setFilter] = React.useState('')
   const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
   const {onChangeText: onChangeTextProps} = p
-  const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle, conversationIDKey} = p
+  const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle} = p
   const {triggerTransform, checkTrigger, setInactive} = useSyncInput({
     active,
     filter,
@@ -304,7 +306,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   )
 
   const listProps = {
-    conversationIDKey,
     expanded,
     filter,
     listStyle: suggestionListStyle,
@@ -357,10 +358,13 @@ const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, inputRef} = p
   // @ts-ignore hacky but we want the actual input
   const getAttachmentRef = React.useCallback(() => inputRef.current?._input.current, [inputRef])
+  const conversationIdKey = C.useChatContext(s => s.id)
 
   return Styles.isMobile ? (
     <Kb.FloatingBox containerStyle={suggestionOverlayStyle} onHidden={setInactive}>
-      <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2>
+      <C.ChatProvider id={conversationIdKey}>
+        <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2>
+      </C.ChatProvider>
     </Kb.FloatingBox>
   ) : (
     <Kb.Overlay

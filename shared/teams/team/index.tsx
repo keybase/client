@@ -1,10 +1,10 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import * as BotsConstants from '../../constants/bots'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Types from '../../constants/types/teams'
+import * as T from '../../constants/types'
 import {useFocusEffect} from '@react-navigation/core'
 import {memoize} from '../../util/memoize'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
@@ -26,25 +26,25 @@ import {createAnimatedComponent} from '../../common-adapters/reanimated'
 import type {Props as SectionListProps, Section as SectionType} from '../../common-adapters/section-list'
 
 type Props = {
-  teamID: Types.TeamID
-  initialTab?: Types.TabKey
+  teamID: T.Teams.TeamID
+  initialTab?: T.Teams.TabKey
 }
 
 // keep track during session
 const lastSelectedTabs = {}
-const defaultTab: Types.TabKey = 'members'
+const defaultTab: T.Teams.TabKey = 'members'
 
 const useTabsState = (
-  teamID: Types.TeamID,
-  providedTab?: Types.TabKey
-): [Types.TabKey, (t: Types.TabKey) => void] => {
-  const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
+  teamID: T.Teams.TeamID,
+  providedTab?: T.Teams.TabKey
+): [T.Teams.TabKey, (t: T.Teams.TabKey) => void] => {
+  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
   // @ts-ignore
   const defaultSelectedTab = lastSelectedTabs[teamID] ?? providedTab ?? defaultTab
-  const [selectedTab, _setSelectedTab] = React.useState<Types.TabKey>(defaultSelectedTab)
-  const resetErrorInSettings = Constants.useState(s => s.dispatch.resetErrorInSettings)
+  const [selectedTab, _setSelectedTab] = React.useState<T.Teams.TabKey>(defaultSelectedTab)
+  const resetErrorInSettings = C.useTeamsState(s => s.dispatch.resetErrorInSettings)
   const setSelectedTab = React.useCallback(
-    (t: Types.TabKey) => {
+    (t: T.Teams.TabKey) => {
       // @ts-ignore
       lastSelectedTabs[teamID] = t
       if (selectedTab !== 'settings' && t === 'settings') {
@@ -68,12 +68,12 @@ const useTabsState = (
   return [selectedTab, setSelectedTab]
 }
 
-const getBots = memoize((members: Map<string, Types.MemberInfo>) =>
+const getBots = memoize((members: Map<string, T.Teams.MemberInfo>) =>
   [...members.values()].filter(m => m.type === 'restrictedbot' || m.type === 'bot')
 )
-const useLoadFeaturedBots = (teamDetails: Types.TeamDetails, shouldLoad: boolean) => {
-  const featuredBotsMap = BotsConstants.useState(s => s.featuredBotsMap)
-  const searchFeaturedBots = BotsConstants.useState(s => s.dispatch.searchFeaturedBots)
+const useLoadFeaturedBots = (teamDetails: T.Teams.TeamDetails, shouldLoad: boolean) => {
+  const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
+  const searchFeaturedBots = C.useBotsState(s => s.dispatch.searchFeaturedBots)
   const _bots = getBots(teamDetails.members)
   React.useEffect(() => {
     if (shouldLoad) {
@@ -89,14 +89,14 @@ const useLoadFeaturedBots = (teamDetails: Types.TeamDetails, shouldLoad: boolean
 const SectionList = createAnimatedComponent<SectionListProps<SectionType<Section>>>(Kb.SectionList as any)
 
 const Team = (props: Props) => {
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
   const initialTab = props.initialTab
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
 
-  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
-  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID), isEqual)
-  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
-  const teamSeen = Constants.useState(s => s.dispatch.teamSeen)
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
+  const teamMeta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID), isEqual)
+  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
+  const teamSeen = C.useTeamsState(s => s.dispatch.teamSeen)
 
   useFocusEffect(
     React.useCallback(() => {

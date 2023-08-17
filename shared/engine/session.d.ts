@@ -33,8 +33,7 @@ declare class Session {
   cancel: () => void
   incomingCall: (method: string, param: Object, response?: Object) => boolean
   start: (method: string, param?: Object, callback?: () => void) => void
-  constructor(arg0: {
-    dispatch: any
+  constructor(p: {
     sessionID: number
     incomingCallMap?: IncomingCallMap
     customResponseIncomingCallMap?: CustomResponseIncomingCallMap

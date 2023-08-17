@@ -1,6 +1,7 @@
-import * as React from 'react'
-import * as Types from '../../../constants/types/fs'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
+import * as React from 'react'
+import * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
 import {fileUIName} from '../../../constants/platform'
 import * as Styles from '../../../styles'
@@ -8,8 +9,8 @@ import * as Kbfs from '../../common'
 
 type Props = {
   alwaysShow?: boolean
-  driverStatus: Types.DriverStatus
-  settings: Types.Settings
+  driverStatus: T.FS.DriverStatus
+  settings: T.FS.Settings
   onDisable: () => void
   onDismiss: () => void
   onEnable: () => void
@@ -138,7 +139,7 @@ const ThisShouldNotHappen = () => (
 )
 
 const DokanOutdated = (props: Props) => {
-  if (props.driverStatus.type !== Types.DriverStatusType.Enabled) {
+  if (props.driverStatus.type !== T.FS.DriverStatusType.Enabled) {
     return <ThisShouldNotHappen />
   }
   return (
@@ -166,9 +167,9 @@ const DokanOutdated = (props: Props) => {
 
 type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
-  const preferredMountDirs = Constants.useState(s => s.sfmi.preferredMountDirs)
+  const preferredMountDirs = C.useFSState(s => s.sfmi.preferredMountDirs)
   const displayingMountDir = preferredMountDirs[0] || ''
-  const openLocalPathInSystemFileManagerDesktop = Constants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const open = displayingMountDir
@@ -195,7 +196,7 @@ const JustEnabled = ({onDismiss}: JustEnabledProps) => {
 }
 
 const Enabled = (props: Props) => {
-  if (props.driverStatus.type !== Types.DriverStatusType.Enabled) {
+  if (props.driverStatus.type !== T.FS.DriverStatusType.Enabled) {
     return <ThisShouldNotHappen />
   }
   if (props.driverStatus.dokanOutdated) {
@@ -217,11 +218,11 @@ const Enabled = (props: Props) => {
 
 const Disabled = (props: Props) => {
   const {canContinue, component} = Kbfs.useFuseClosedSourceConsent(
-    props.driverStatus.type === Types.DriverStatusType.Disabled && props.driverStatus.isEnabling,
+    props.driverStatus.type === T.FS.DriverStatusType.Disabled && props.driverStatus.isEnabling,
     Styles.globalColors.blue,
     backgroundToTextStyle(Background.Blue)
   )
-  if (props.driverStatus.type !== Types.DriverStatusType.Disabled) {
+  if (props.driverStatus.type !== T.FS.DriverStatusType.Disabled) {
     return <ThisShouldNotHappen />
   }
 
@@ -256,11 +257,11 @@ const SFMIBanner = (props: Props) => {
   }
 
   switch (props.driverStatus.type) {
-    case Types.DriverStatusType.Disabled:
+    case T.FS.DriverStatusType.Disabled:
       return props.alwaysShow || !props.settings.sfmiBannerDismissed ? <Disabled {...props} /> : null
-    case Types.DriverStatusType.Enabled:
+    case T.FS.DriverStatusType.Enabled:
       return props.alwaysShow || !props.settings.sfmiBannerDismissed ? <Enabled {...props} /> : null
-    case Types.DriverStatusType.Unknown:
+    case T.FS.DriverStatusType.Unknown:
       return <ThisShouldNotHappen />
   }
 }

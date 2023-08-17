@@ -1,11 +1,8 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
-import * as ProfileConstants from '../../constants/profile'
-import * as ConfigConstants from '../../constants/config'
-import type * as Types from '../../constants/types/tracker2'
+import type * as T from '../../constants/types'
 import Assertion from '.'
 import openUrl from '../../util/open-url'
-import type {PlatformsExpandedType} from '../../constants/types/more'
 
 type OwnProps = {
   isSuggestion?: boolean
@@ -37,8 +34,8 @@ export default (ownProps: OwnProps) => {
   let a = Constants.noAssertion
   let notAUser = false
   let stellarHidden = false
-  const isYours = ConfigConstants.useCurrentUserState(s => ownProps.username === s.username)
-  a = Constants.useState(s => {
+  const isYours = C.useCurrentUserState(s => ownProps.username === s.username)
+  a = C.useTrackerState(s => {
     if (ownProps.isSuggestion) {
       a = s.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) || Constants.noAssertion
     } else {
@@ -78,9 +75,9 @@ export default (ownProps: OwnProps) => {
   const timestamp = a.timestamp
   const type = a.type
   const value = a.value
-  const addProof = ProfileConstants.useState(s => s.dispatch.addProof)
-  const hideStellar = ProfileConstants.useState(s => s.dispatch.hideStellar)
-  const recheckProof = ProfileConstants.useState(s => s.dispatch.recheckProof)
+  const addProof = C.useProfileState(s => s.dispatch.addProof)
+  const hideStellar = C.useProfileState(s => s.dispatch.hideStellar)
+  const recheckProof = C.useProfileState(s => s.dispatch.recheckProof)
   const _onCreateProof = (type: string) => {
     addProof(type, 'profile')
   }
@@ -90,12 +87,12 @@ export default (ownProps: OwnProps) => {
   const _onRecheck = (sigID: string) => {
     recheckProof(sigID)
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onRevokeProof = (
-    type: PlatformsExpandedType,
+    type: T.More.PlatformsExpandedType,
     value: string,
     id: string,
-    icon: Types.SiteIconSet
+    icon: T.Tracker.SiteIconSet
   ) => {
     navigateAppend({
       props: {icon, platform: type, platformHandle: value, proofId: id},
@@ -112,7 +109,7 @@ export default (ownProps: OwnProps) => {
     onHideStellar: (hidden: boolean) => _onHideStellar(hidden),
     onRecheck: () => _onRecheck(_sigID),
     onRevoke: () => {
-      if (siteIconFull) _onRevokeProof(type as PlatformsExpandedType, value, _sigID, siteIconFull)
+      if (siteIconFull) _onRevokeProof(type as T.More.PlatformsExpandedType, value, _sigID, siteIconFull)
     },
     onShowProof: notAUser || !proofURL ? undefined : () => openUrl(proofURL),
     onShowSite: notAUser || !siteURL ? undefined : () => openUrl(siteURL),

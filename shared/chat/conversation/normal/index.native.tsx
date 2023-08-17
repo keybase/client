@@ -1,6 +1,5 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as KbMobile from '../../../common-adapters/mobile.native'
@@ -14,7 +13,6 @@ import InvitationToBlock from '../../blocking/invitation-to-block'
 import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message/container'
 import ThreadLoadStatus from '../load-status'
-import type * as Types from '../../../constants/types/chat2'
 import type {LayoutEvent} from '../../../common-adapters/box'
 import type {Props} from '.'
 import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
@@ -26,8 +24,8 @@ const Offline = () => (
   </Kb.Banner>
 )
 
-const LoadingLine = (p: {conversationIDKey: Types.ConversationIDKey}) => {
-  const {conversationIDKey} = p
+const LoadingLine = () => {
+  const conversationIDKey = C.useChatContext(s => s.id)
   const showLoader = Container.useAnyWaiting([
     Constants.waitingKeyThreadLoad(conversationIDKey),
     Constants.waitingKeyInboxSyncStarted,
@@ -36,7 +34,6 @@ const LoadingLine = (p: {conversationIDKey: Types.ConversationIDKey}) => {
 }
 
 const Conversation = React.memo(function Conversation(props: Props) {
-  const {conversationIDKey} = props
   const [maxInputArea, setMaxInputArea] = React.useState(0)
   const onLayout = React.useCallback((e: LayoutEvent) => {
     setMaxInputArea(e.nativeEvent.layout.height)
@@ -45,19 +42,18 @@ const Conversation = React.memo(function Conversation(props: Props) {
   const innerComponent = (
     <Kb.BoxGrow onLayout={onLayout}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
-        <ThreadLoadStatus conversationIDKey={conversationIDKey} />
-        <PinnedMessage conversationIDKey={conversationIDKey} />
+        <ThreadLoadStatus />
+        <PinnedMessage />
         <ListArea
           requestScrollToBottomRef={props.requestScrollToBottomRef}
           requestScrollDownRef={props.requestScrollDownRef}
           requestScrollUpRef={props.requestScrollUpRef}
           onFocusInput={props.onFocusInput}
-          conversationIDKey={conversationIDKey}
         />
-        <LoadingLine conversationIDKey={conversationIDKey} />
+        <LoadingLine />
       </Kb.Box2>
-      <InvitationToBlock conversationID={conversationIDKey} />
-      <Banner conversationIDKey={conversationIDKey} />
+      <InvitationToBlock />
+      <Banner />
       <MaxInputAreaContext.Provider value={maxInputArea}>
         <InputArea
           focusInputCounter={props.focusInputCounter}
@@ -65,14 +61,13 @@ const Conversation = React.memo(function Conversation(props: Props) {
           onRequestScrollDown={props.onRequestScrollDown}
           onRequestScrollToBottom={props.onRequestScrollToBottom}
           onRequestScrollUp={props.onRequestScrollUp}
-          conversationIDKey={conversationIDKey}
         />
       </MaxInputAreaContext.Provider>
     </Kb.BoxGrow>
   )
 
-  const dispatch = Container.useDispatch()
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
+  const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
   const onDropped = React.useCallback(
     (items: DropItems) => {
       let {attach, texts} = items.reduce(
@@ -94,30 +89,25 @@ const Conversation = React.memo(function Conversation(props: Props) {
           // just use the url and ignore the image
           attach = []
         } else {
-          navigateAppend({
+          navigateAppend(conversationIDKey => ({
             props: {conversationIDKey, pathAndOutboxIDs: attach, titles: texts},
             selected: 'chatAttachmentGetTitles',
-          })
+          }))
           return
         }
       }
       if (texts.length) {
-        dispatch(
-          Chat2Gen.createSetUnsentText({
-            conversationIDKey,
-            text: new Container.HiddenString(texts.join('\r')),
-          })
-        )
+        injectIntoInput(texts.join('\r'))
       }
 
       if (attach.length) {
-        navigateAppend({
+        navigateAppend(conversationIDKey => ({
           props: {conversationIDKey, pathAndOutboxIDs: attach},
           selected: 'chatAttachmentGetTitles',
-        })
+        }))
       }
     },
-    [navigateAppend, dispatch, conversationIDKey]
+    [injectIntoInput, navigateAppend]
   )
 
   const insets = useSafeAreaInsets()

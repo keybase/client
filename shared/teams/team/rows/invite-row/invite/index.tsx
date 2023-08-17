@@ -1,14 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import {typeToLabel} from '../../../../../constants/teams'
-import type {TeamRoleType} from '../../../../../constants/types/teams'
+import type * as T from '../../../../../constants/types'
 
 export type Props = {
   isKeybaseUser?: boolean
   label: string
   subLabel?: string
   onCancelInvite?: () => void
-  role: TeamRoleType
+  role: T.Teams.TeamRoleType
   firstItem: boolean
 }
 

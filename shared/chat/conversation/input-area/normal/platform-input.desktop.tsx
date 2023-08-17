@@ -1,14 +1,9 @@
-/* eslint-env browser */
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Container from '../../../../util/container'
-import * as ConfigConstants from '../../../../constants/config'
+import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as RouterConstants from '../../../../constants/router2'
 import * as Styles from '../../../../styles'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import Typing from './typing'
-import type * as Types from '../../../../constants/types/chat2'
 import type {Props} from './platform-input'
 import {EmojiPickerDesktop} from '../../../emoji-picker/container'
 import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
@@ -18,25 +13,24 @@ import {useSuggestors} from '../suggestors'
 type HtmlInputRefType = React.MutableRefObject<HTMLInputElement | null>
 type InputRefType = React.MutableRefObject<Kb.PlainInput | null>
 
-type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds' | 'conversationIDKey'> & {
+type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds'> & {
   focusInput: () => void
 }
 const ExplodingButton = (p: ExplodingButtonProps) => {
-  const {explodingModeSeconds, conversationIDKey, focusInput} = p
+  const {explodingModeSeconds, focusInput} = p
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
       return (
         <SetExplodingMessagePopup
           attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
           onAfterSelect={focusInput}
           onHidden={toggleShowingPopup}
           visible={true}
         />
       )
     },
-    [conversationIDKey, focusInput]
+    [focusInput]
   )
   const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
@@ -72,9 +66,9 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
   )
 }
 
-type EmojiButtonProps = Pick<Props, 'conversationIDKey'> & {inputRef: InputRefType}
+type EmojiButtonProps = {inputRef: InputRefType}
 const EmojiButton = (p: EmojiButtonProps) => {
-  const {inputRef, conversationIDKey} = p
+  const {inputRef} = p
   const insertEmoji = React.useCallback(
     (emojiColons: string) => {
       inputRef.current?.transformText(({text, selection}) => {
@@ -96,15 +90,11 @@ const EmojiButton = (p: EmojiButtonProps) => {
       const {attachTo, toggleShowingPopup} = p
       return (
         <Kb.Overlay attachTo={attachTo} visible={true} onHidden={toggleShowingPopup} position="top right">
-          <EmojiPickerDesktop
-            conversationIDKey={conversationIDKey}
-            onPickAction={insertEmoji}
-            onDidPick={toggleShowingPopup}
-          />
+          <EmojiPickerDesktop onPickAction={insertEmoji} onDidPick={toggleShowingPopup} />
         </Kb.Overlay>
       )
     },
-    [conversationIDKey, insertEmoji]
+    [insertEmoji]
   )
 
   const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup2(makePopup)
@@ -125,12 +115,9 @@ const EmojiButton = (p: EmojiButtonProps) => {
   )
 }
 
-const GiphyButton = (p: {conversationIDKey: Types.ConversationIDKey}) => {
-  const {conversationIDKey} = p
-  const dispatch = Container.useDispatch()
-  const onGiphyToggle = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleGiphyPrefill({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
+const GiphyButton = () => {
+  const toggleGiphyPrefill = C.useChatContext(s => s.dispatch.toggleGiphyPrefill)
+  const onGiphyToggle = toggleGiphyPrefill
 
   return (
     <Kb.WithTooltip tooltip="GIF">
@@ -148,9 +135,9 @@ const fileListToPaths = (f: any): Array<string> =>
     return f.path
   }) as any
 
-const FileButton = (p: {conversationIDKey: Types.ConversationIDKey; htmlInputRef: HtmlInputRefType}) => {
-  const {htmlInputRef, conversationIDKey} = p
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+const FileButton = (p: {htmlInputRef: HtmlInputRefType}) => {
+  const {htmlInputRef} = p
+  const navigateAppend = C.useChatNavigateAppend()
   const pickFile = React.useCallback(() => {
     const paths = fileListToPaths(htmlInputRef.current?.files)
     const pathAndOutboxIDs = paths.reduce<Array<{path: string}>>((arr, path: string) => {
@@ -158,13 +145,16 @@ const FileButton = (p: {conversationIDKey: Types.ConversationIDKey; htmlInputRef
       return arr
     }, [])
     if (pathAndOutboxIDs.length) {
-      navigateAppend({props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'})
+      navigateAppend(conversationIDKey => ({
+        props: {conversationIDKey, pathAndOutboxIDs},
+        selected: 'chatAttachmentGetTitles',
+      }))
     }
 
     if (htmlInputRef.current) {
       htmlInputRef.current.value = ''
     }
-  }, [htmlInputRef, navigateAppend, conversationIDKey])
+  }, [htmlInputRef, navigateAppend])
 
   const filePickerOpen = React.useCallback(() => {
     htmlInputRef.current?.click()
@@ -180,10 +170,10 @@ const FileButton = (p: {conversationIDKey: Types.ConversationIDKey; htmlInputRef
   )
 }
 
-const Footer = (p: {conversationIDKey: Types.ConversationIDKey; focusInput: () => void}) => {
+const Footer = (p: {focusInput: () => void}) => {
   return (
     <Kb.Box style={styles.footerContainer}>
-      <Typing conversationIDKey={p.conversationIDKey} />
+      <Typing />
       <Kb.Text lineClamp={1} type="BodyTiny" style={styles.footer} onClick={p.focusInput} selectable={true}>
         {`*bold*, _italics_, \`code\`, >quote, @user, @team, #channel`}
       </Kb.Text>
@@ -193,12 +183,7 @@ const Footer = (p: {conversationIDKey: Types.ConversationIDKey; focusInput: () =
 
 type UseKeyboardProps = Pick<
   Props,
-  | 'conversationIDKey'
-  | 'isEditing'
-  | 'onChangeText'
-  | 'onRequestScrollDown'
-  | 'onRequestScrollUp'
-  | 'showReplyPreview'
+  'isEditing' | 'onChangeText' | 'onRequestScrollDown' | 'onRequestScrollUp' | 'showReplyPreview'
 > & {
   focusInput: () => void
   htmlInputRef: HtmlInputRefType
@@ -207,13 +192,13 @@ type UseKeyboardProps = Pick<
   onCancelEditing: () => void
 }
 const useKeyboard = (p: UseKeyboardProps) => {
-  const {htmlInputRef, focusInput, isEditing, onKeyDown, conversationIDKey, onCancelEditing} = p
+  const {htmlInputRef, focusInput, isEditing, onKeyDown, onCancelEditing} = p
   const {onChangeText, onEditLastMessage, onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const lastText = React.useRef('')
-  const dispatch = Container.useDispatch()
+  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
   const onCancelReply = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
+    setReplyTo(0)
+  }, [setReplyTo])
 
   // Key-handling code shared by both the input key handler
   // (_onKeyDown) and the global key handler
@@ -305,20 +290,20 @@ const useKeyboard = (p: UseKeyboardProps) => {
   return {globalKeyDownPressHandler, inputKeyDown, onChangeText: onChangeTextInner}
 }
 
-type SideButtonsProps = Pick<Props, 'conversationIDKey' | 'cannotWrite'> & {
+type SideButtonsProps = Pick<Props, 'cannotWrite'> & {
   htmlInputRef: HtmlInputRefType
   inputRef: InputRefType
 }
 
 const SideButtons = (p: SideButtonsProps) => {
-  const {htmlInputRef, conversationIDKey, cannotWrite, inputRef} = p
+  const {htmlInputRef, cannotWrite, inputRef} = p
   return (
     <Kb.Box2 direction="horizontal">
       {!cannotWrite && (
         <>
-          <GiphyButton conversationIDKey={conversationIDKey} />
-          <EmojiButton inputRef={inputRef} conversationIDKey={conversationIDKey} />
-          <FileButton conversationIDKey={conversationIDKey} htmlInputRef={htmlInputRef} />
+          <GiphyButton />
+          <EmojiButton inputRef={inputRef} />
+          <FileButton htmlInputRef={htmlInputRef} />
         </>
       )}
     </Kb.Box2>
@@ -326,7 +311,7 @@ const SideButtons = (p: SideButtonsProps) => {
 }
 
 const PlatformInput = React.memo(function PlatformInput(p: Props) {
-  const {cannotWrite, conversationIDKey, explodingModeSeconds, onCancelEditing} = p
+  const {cannotWrite, explodingModeSeconds, onCancelEditing} = p
   const {hintText, inputSetRef, isEditing, onSubmit} = p
   const {onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
@@ -347,7 +332,6 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
     onKeyDown,
     onChangeText: onChangeTextSuggestors,
   } = useSuggestors({
-    conversationIDKey,
     expanded: false,
     inputRef,
     onChangeText: p.onChangeText,
@@ -361,19 +345,12 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const focusInput = React.useCallback(() => {
     inputRef.current?.focus()
   }, [inputRef])
-  const dispatch = Container.useDispatch()
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const onEditLastMessage = React.useCallback(() => {
-    dispatch(
-      Chat2Gen.createMessageSetEditing({
-        conversationIDKey,
-        editLastUser: you,
-      })
-    )
-  }, [dispatch, conversationIDKey, you])
+    setEditing(true)
+  }, [setEditing])
 
   const {globalKeyDownPressHandler, inputKeyDown, onChangeText} = useKeyboard({
-    conversationIDKey,
     focusInput,
     htmlInputRef,
     isEditing,
@@ -399,11 +376,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
             ])}
           >
             {!isEditing && !cannotWrite && (
-              <ExplodingButton
-                explodingModeSeconds={explodingModeSeconds}
-                conversationIDKey={conversationIDKey}
-                focusInput={focusInput}
-              />
+              <ExplodingButton explodingModeSeconds={explodingModeSeconds} focusInput={focusInput} />
             )}
             {isEditing && (
               <Kb.Button
@@ -434,14 +407,9 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
                 onKeyDown={inputKeyDown}
               />
             </Kb.Box2>
-            <SideButtons
-              cannotWrite={cannotWrite}
-              conversationIDKey={conversationIDKey}
-              htmlInputRef={htmlInputRef}
-              inputRef={inputRef}
-            />
+            <SideButtons cannotWrite={cannotWrite} htmlInputRef={htmlInputRef} inputRef={inputRef} />
           </Kb.Box>
-          <Footer conversationIDKey={conversationIDKey} focusInput={focusInput} />
+          <Footer focusInput={focusInput} />
         </Kb.Box>
       </KeyEventHandler>
     </>

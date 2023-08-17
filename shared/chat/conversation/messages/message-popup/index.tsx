@@ -1,6 +1,5 @@
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as React from 'react'
@@ -8,12 +7,11 @@ import AttachmentMessage from './attachment/container'
 import ExplodingMessage from './exploding/container'
 import JourneycardMessage from './journeycard/container'
 import TextMessage from './text/container'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import type {Position, StylesCrossPlatform} from '../../../../styles'
 
 type Props = {
-  ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
+  ordinal: T.Chat.Ordinal
   attachTo?: () => React.Component<any> | null
   onHidden: () => void
   position: Position
@@ -22,17 +20,14 @@ type Props = {
 }
 
 const MessagePopup = React.memo(function MessagePopup(p: Props) {
-  const {conversationIDKey, ordinal, attachTo, onHidden, position, style, visible} = p
-  const exploding = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.exploding
-  )
-  const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
+  const {ordinal, attachTo, onHidden, position, style, visible} = p
+  const exploding = C.useChatContext(s => s.messageMap.get(ordinal)?.exploding)
+  const type = C.useChatContext(s => s.messageMap.get(ordinal)?.type)
   switch (type) {
     case 'text':
       if (exploding) {
         return (
           <ExplodingMessage
-            conversationIDKey={conversationIDKey}
             ordinal={ordinal}
             attachTo={attachTo}
             onHidden={onHidden}
@@ -44,7 +39,6 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
       }
       return (
         <TextMessage
-          conversationIDKey={conversationIDKey}
           ordinal={ordinal}
           attachTo={attachTo}
           onHidden={onHidden}
@@ -69,7 +63,6 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
       return (
         <TextMessage
           attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
           ordinal={ordinal}
           onHidden={onHidden}
           position={position}
@@ -81,7 +74,6 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
       return (
         <JourneycardMessage
           attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
           ordinal={ordinal}
           onHidden={onHidden}
           position={position}
@@ -94,7 +86,6 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
         return (
           <ExplodingMessage
             attachTo={attachTo}
-            conversationIDKey={conversationIDKey}
             ordinal={ordinal}
             onHidden={onHidden}
             position={position}
@@ -106,7 +97,6 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
       return (
         <AttachmentMessage
           attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
           ordinal={ordinal}
           onHidden={onHidden}
           position={position}
@@ -122,11 +112,12 @@ export default MessagePopup
 
 // Mobile only
 type ModalProps = {
-  conversationIDKey: Types.ConversationIDKey
-  ordinal: Types.Ordinal
+  // needed for page
+  conversationIDKey: T.Chat.ConversationIDKey
+  ordinal: T.Chat.Ordinal
 }
 export const MessagePopupModal = (p: ModalProps) => {
-  const {conversationIDKey, ordinal} = p
+  const {ordinal} = p
   const {pop} = Container.useNav()
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
@@ -134,7 +125,6 @@ export const MessagePopupModal = (p: ModalProps) => {
       return pop ? (
         <Kb.FloatingModalContext.Provider value={true}>
           <MessagePopup
-            conversationIDKey={conversationIDKey}
             ordinal={ordinal}
             key="popup"
             attachTo={attachTo}
@@ -145,7 +135,7 @@ export const MessagePopupModal = (p: ModalProps) => {
         </Kb.FloatingModalContext.Provider>
       ) : null
     },
-    [conversationIDKey, ordinal, pop]
+    [ordinal, pop]
   )
   const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup2(makePopup)
   if (!showingPopup) {
@@ -160,18 +150,16 @@ export const MessagePopupModal = (p: ModalProps) => {
 }
 
 export const useMessagePopup = (p: {
-  conversationIDKey: Types.ConversationIDKey
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
   shouldShow?: () => boolean
   style?: Styles.StylesCrossPlatform
 }) => {
-  const {conversationIDKey, ordinal, shouldShow, style} = p
+  const {ordinal, shouldShow, style} = p
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {toggleShowingPopup, attachTo} = p
       return shouldShow?.() ?? true ? (
         <MessagePopup
-          conversationIDKey={conversationIDKey}
           ordinal={ordinal}
           key="popup"
           attachTo={attachTo}
@@ -182,10 +170,10 @@ export const useMessagePopup = (p: {
         />
       ) : null
     },
-    [conversationIDKey, ordinal, shouldShow, style]
+    [ordinal, shouldShow, style]
   )
   const desktopPopup = Kb.usePopup2(makePopup)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const mobilePopup: {
     popup: React.ReactNode
     popupAnchor: React.MutableRefObject<React.Component | null>
@@ -198,7 +186,10 @@ export const useMessagePopup = (p: {
     setShowingPopup: () => {},
     showingPopup: true,
     toggleShowingPopup: Container.useEvent(() => {
-      navigateAppend({props: {conversationIDKey, ordinal}, selected: 'chatMessagePopup'})
+      navigateAppend(conversationIDKey => ({
+        props: {conversationIDKey, ordinal},
+        selected: 'chatMessagePopup',
+      }))
     }),
   }
 

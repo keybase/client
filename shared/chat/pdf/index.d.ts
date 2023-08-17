@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Types from '../../constants/types/chat2'
+import type * as T from '../../constants/types'
 
 type Props = {
-  message: Types.MessageAttachment
+  message: T.Chat.MessageAttachment
   url?: string
 }
 export default class ChatPDF extends React.Component<Props> {}

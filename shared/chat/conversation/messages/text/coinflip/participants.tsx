@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import type * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
+import type * as T from '../../../../../constants/types'
 
 export type Props = {
   attachTo?: () => React.Component<any> | null
   onHidden: () => void
-  participants?: Array<RPCChatTypes.UICoinFlipParticipant>
+  participants?: Array<T.RPCChat.UICoinFlipParticipant>
   visible: boolean
 }
 
@@ -81,7 +81,7 @@ const styles = Styles.styleSheetCreate(
           paddingTop: Styles.globalMargins.xtiny,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default CoinFlipParticipants

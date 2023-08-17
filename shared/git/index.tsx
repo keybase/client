@@ -1,12 +1,11 @@
-import * as Constants from '../constants/git'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
 import Row, {NewContext} from './row'
 import sortBy from 'lodash/sortBy'
-import type * as Types from '../constants/types/git'
+import type * as T from '../constants/types'
 import {memoize} from '../util/memoize'
 import {union} from '../util/set'
 import {useFocusEffect} from '@react-navigation/core'
@@ -18,7 +17,7 @@ type OwnProps = {expanded?: string}
 // keep track in the module
 let moduleExpandedSet = new Set<string>()
 
-const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
+const getRepos = memoize((git: Map<string, T.Git.GitInfo>) =>
   sortBy([...git.values()], ['teamname', 'name']).reduce<{personals: Array<string>; teams: Array<string>}>(
     (pt, info) => {
       const target = info.teamname ? pt.teams : pt.personals
@@ -31,17 +30,17 @@ const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
 
 export default (ownProps: OwnProps) => {
   const initialExpandedSet = ownProps.expanded ? new Set([ownProps.expanded]) : undefined
-  const loading = Container.useAnyWaiting(Constants.loadingWaitingKey)
-  const {clearBadges, load, setError, error, idToInfo, isNew} = Constants.useGitState(s => {
+  const loading = Container.useAnyWaiting(C.gitWaitingKey)
+  const {clearBadges, load, setError, error, idToInfo, isNew} = C.useGitState(s => {
     const {dispatch, error, idToInfo, isNew} = s
     const {clearBadges, load, setError} = dispatch
     return {clearBadges, error, idToInfo, isNew, load, setError}
   }, shallowEqual)
   const {badged} = useLocalBadging(isNew, clearBadges)
   const {personals, teams} = getRepos(idToInfo)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowDelete = React.useCallback(
     (id: string) => {
       setError(undefined)
@@ -102,7 +101,7 @@ export default (ownProps: OwnProps) => {
 
   return (
     <Kb.Reloadable
-      waitingKeys={Constants.loadingWaitingKey}
+      waitingKeys={C.gitWaitingKey}
       onBack={Container.isMobile ? onBack : undefined}
       onReload={load}
       reloadOnMount={true}

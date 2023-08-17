@@ -3,9 +3,6 @@ import {getEngine} from './require'
 import {RPCError} from '../util/errors'
 import {printOutstandingRPCs} from '../local-debug'
 import type {CommonResponseHandler} from './types'
-import isArray from 'lodash/isArray'
-import type {ListenerApi} from '../util/redux-toolkit'
-import type {TypedActions} from '../actions/typed-actions-gen'
 
 type WaitingKey = string | Array<string>
 
@@ -43,16 +40,13 @@ const makeWaitingResponse = (_r?: Partial<CommonResponseHandler>, waitingKey?: W
 }
 
 // TODO could have a mechanism to ensure only one is in flight at a time. maybe by some key or something
-async function listener(
-  p: {
-    method: string
-    params?: Object
-    incomingCallMap?: {[K in string]: any}
-    customResponseIncomingCallMap?: {[K in string]: any}
-    waitingKey?: WaitingKey
-  },
-  listenerApi: ListenerApi
-) {
+async function listener(p: {
+  method: string
+  params?: Object
+  incomingCallMap?: {[K in string]: any}
+  customResponseIncomingCallMap?: {[K in string]: any}
+  waitingKey?: WaitingKey
+}) {
   return new Promise((resolve, reject) => {
     const {method, params, waitingKey} = p
     const incomingCallMap = p.incomingCallMap || {}
@@ -95,22 +89,12 @@ async function listener(
         // defer to process network first
         setTimeout(() => {
           const invokeAndDispatch = async () => {
-            let actions: Array<TypedActions | false> = []
             if (response) {
               const cb = customResponseIncomingCallMap[method]
-              if (cb) {
-                actions = await cb(params, response, listenerApi)
-              }
+              await cb?.(params, response)
             } else {
               const cb = incomingCallMap[method]
-              if (cb) {
-                actions = await cb(params, listenerApi)
-              }
-            }
-
-            const arr = isArray(actions) ? actions : [actions]
-            for (const act of arr) {
-              act && listenerApi.dispatch(act)
+              await cb?.(params)
             }
           }
 

@@ -1,27 +1,23 @@
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/chat2'
-import * as ConfigConstants from '../../constants/config'
-import * as ProfileConstants from '../../constants/profile'
 import * as Container from '../../util/container'
-import * as Chat2Gen from '../../actions/chat2-gen'
-type Props = {conversationID: string}
 
-const BlockButtons = (props: Props) => {
-  const dispatch = Container.useDispatch()
+const BlockButtons = () => {
   const nav = Container.useSafeNavigation()
+  const conversationIDKey = C.useChatContext(s => s.id)
 
-  const teamname = Container.useSelector(state => state.chat2.metaMap.get(props.conversationID)?.teamname)
-  const teamID = Container.useSelector(state => state.chat2.metaMap.get(props.conversationID)?.teamID ?? '')
-  const blockButtonInfo = Container.useSelector(state => {
-    const blockButtonsMap = state.chat2.blockButtonsMap
+  const teamname = C.useChatContext(s => s.meta.teamname)
+  const teamID = C.useChatContext(s => s.meta.teamID)
+  const blockButtonInfo = C.useChatState(s => {
+    const blockButtonsMap = s.blockButtonsMap
     return teamID ? blockButtonsMap.get(teamID) : undefined
   })
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, props.conversationID)
-  )
-  const currentUser = ConfigConstants.useCurrentUserState(s => s.username)
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const currentUser = C.useCurrentUserState(s => s.username)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const dismissBlockButtons = C.useChatContext(s => s.dispatch.dismissBlockButtons)
   if (!blockButtonInfo) {
     return null
   }
@@ -37,14 +33,14 @@ const BlockButtons = (props: Props) => {
     nav.safeNavigateAppend({
       props: {
         blockUserByDefault: true,
-        convID: props.conversationID,
+        convID: conversationIDKey,
         others: others,
         team: team,
         username: adder,
       },
       selected: 'chatBlockingModal',
     })
-  const onDismiss = () => dispatch(Chat2Gen.createDismissBlockButtons({teamID}))
+  const onDismiss = () => dismissBlockButtons(teamID)
 
   const buttonRow = (
     <Kb.ButtonBar
@@ -54,7 +50,7 @@ const BlockButtons = (props: Props) => {
     >
       <Kb.WaveButton
         small={true}
-        conversationIDKey={props.conversationID}
+        conversationIDKey={conversationIDKey}
         toMany={others.length > 0 || !!team}
         style={styles.waveButton}
       />

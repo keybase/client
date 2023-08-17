@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Types from '../../../constants/types/chat2'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as T from '../../../constants/types'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
 import logger from '../../../logger'
@@ -13,12 +12,12 @@ import {Avatars, TeamAvatar} from '../../avatars'
 
 type Props = {
   onDone?: () => void
-  onSelect: (conversationIDKey: Types.ConversationIDKey, convName: string) => void
+  onSelect: (conversationIDKey: T.Chat.ConversationIDKey, convName: string) => void
 }
 
 type Row = {
   isSelected: boolean
-  item: RPCChatTypes.SimpleSearchInboxConvNamesHit
+  item: T.RPCChat.SimpleSearchInboxConvNamesHit
   onSelect: () => void
 }
 
@@ -59,8 +58,8 @@ const ConversationList = (props: Props) => {
   const [query, setQuery] = React.useState('')
   const [waiting, setWaiting] = React.useState(false)
   const [selected, setSelected] = React.useState(0)
-  const [results, setResults] = React.useState<Array<RPCChatTypes.SimpleSearchInboxConvNamesHit>>([])
-  const submit = Container.useRPC(RPCChatTypes.localSimpleSearchInboxConvNamesRpcPromise)
+  const [results, setResults] = React.useState<Array<T.RPCChat.SimpleSearchInboxConvNamesHit>>([])
+  const submit = Container.useRPC(T.RPCChat.localSimpleSearchInboxConvNamesRpcPromise)
   const [lastQuery, setLastQuery] = React.useState('init')
   if (lastQuery !== query) {
     setLastQuery(query)
@@ -78,7 +77,7 @@ const ConversationList = (props: Props) => {
       }
     )
   }
-  const onSelect = (convID: Types.ConversationIDKey, convName: string) => {
+  const onSelect = (convID: T.Chat.ConversationIDKey, convName: string) => {
     props.onSelect(convID, convName)
     props.onDone?.()
   }
@@ -98,9 +97,9 @@ type ConversationListRenderProps = {
   selected: number
   setSelected: (selected: number) => void
   waiting: boolean
-  results: Array<RPCChatTypes.SimpleSearchInboxConvNamesHit>
+  results: Array<T.RPCChat.SimpleSearchInboxConvNamesHit>
   setQuery: (query: string) => void
-  onSelect: (conversationIDKey: Types.ConversationIDKey, convName: string) => void
+  onSelect: (conversationIDKey: T.Chat.ConversationIDKey, convName: string) => void
 }
 
 export const ConversationListRender = (props: ConversationListRenderProps) => {
@@ -130,7 +129,7 @@ export const ConversationListRender = (props: ConversationListRenderProps) => {
                 if (props.results.length > 0) {
                   const result = props.results[props.selected]
                   props.onSelect(
-                    result?.convID ? Types.conversationIDToKey(result?.convID) : '',
+                    result?.convID ? T.Chat.conversationIDToKey(result?.convID) : '',
                     result?.name ?? ''
                   )
                 }
@@ -145,7 +144,7 @@ export const ConversationListRender = (props: ConversationListRenderProps) => {
           items={props.results.map((r, index) => ({
             isSelected: index === props.selected,
             item: r,
-            onSelect: () => props.onSelect(Types.conversationIDToKey(r.convID), r.tlfName),
+            onSelect: () => props.onSelect(T.Chat.conversationIDToKey(r.convID), r.tlfName),
           }))}
           renderItem={_itemRenderer}
           indexAsKey={true}
@@ -174,7 +173,7 @@ const styles = Styles.styleSheetCreate(
           paddingBottom: Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default ConversationList

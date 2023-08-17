@@ -1,9 +1,9 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
+import * as T from '../constants/types'
 import * as Constants from '../constants/wallets'
 import * as WaitingConstants from '../constants/waiting'
 import {useFocusEffect} from '@react-navigation/native'
@@ -13,8 +13,8 @@ const Row = (p: {account: Constants.Account}) => {
   const {name, accountID, deviceReadOnly, balanceDescription, isDefault} = account
   const [sk, setSK] = React.useState('')
   const [err, setErr] = React.useState('')
-  const getSecretKey = Container.useRPC(RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const getSecretKey = Container.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onRemove = React.useCallback(() => {
     navigateAppend({props: {accountID}, selected: 'removeAccount'})
   }, [navigateAppend, accountID])
@@ -105,9 +105,9 @@ const Row = (p: {account: Constants.Account}) => {
 
 export default () => {
   const [acceptedDisclaimer, setAcceptedDisclaimer] = React.useState(false)
-  const checkDisclaimer = Container.useRPC(RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise)
+  const checkDisclaimer = Container.useRPC(T.RPCStellar.localHasAcceptedDisclaimerLocalRpcPromise)
 
-  const load = Constants.useState(s => s.dispatch.load)
+  const load = C.useWalletsState(s => s.dispatch.load)
 
   useFocusEffect(
     React.useCallback(() => {
@@ -125,7 +125,7 @@ export default () => {
     }, [load, checkDisclaimer])
   )
 
-  const accountMap = Constants.useState(s => s.accountMap)
+  const accountMap = C.useWalletsState(s => s.accountMap)
   const accounts = React.useMemo(() => {
     return [...accountMap.values()].sort((a, b) => {
       if (a.isDefault) return -1

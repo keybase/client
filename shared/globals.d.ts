@@ -19,7 +19,6 @@ export interface Console {
 declare global {
   var DEBUGmadeEngine: boolean | undefined
   var DEBUGStore: any
-  var DEBUGlistenersInited: boolean | undefined
   var DEBUGEngine: any
   var DEBUGLoaded: boolean | undefined
   var _fromPreload: any

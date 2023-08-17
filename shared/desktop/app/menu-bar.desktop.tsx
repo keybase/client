@@ -1,6 +1,6 @@
 // Entrypoint for the menubar node part
 import * as RemoteGen from '../../actions/remote-gen'
-import * as Chat2Gen from '../../actions/chat2-gen'
+import * as R from '../../constants/remote'
 import * as Electron from 'electron'
 import logger from '../../logger'
 import {isDarwin, isWindows, isLinux, getAssetPath} from '../../constants/platform.desktop'
@@ -10,9 +10,6 @@ import {getMainWindow} from './main-window.desktop'
 import getIcons from '../../menubar/icons'
 import os from 'os'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
-import KB2 from '../../util/electron.desktop'
-
-const {mainWindowDispatch} = KB2.functions
 
 const htmlFile = `${htmlPrefix}${assetRoot}menubar${__FILE_SUFFIX__}.html?param=menubar`
 
@@ -117,7 +114,7 @@ const MenuBar = () => {
 
   mb.on('ready', () => {
     // ask for an update in case we missed one
-    mainWindowDispatch(
+    R.remoteDispatch(
       RemoteGen.createRemoteWindowWantsProps({
         component: 'menubar',
         param: '',
@@ -151,7 +148,7 @@ const MenuBar = () => {
     })
 
     mb.window?.on('show', () => {
-      mainWindowDispatch(RemoteGen.createUpdateWindowShown({component: 'menu'}))
+      R.remoteDispatch(RemoteGen.createUpdateWindowShown({component: 'menu'}))
     })
 
     if (isLinux) {
@@ -195,11 +192,7 @@ const MenuBar = () => {
     }
 
     mb.on('show', () => {
-      mainWindowDispatch(
-        Chat2Gen.createInboxRefresh({
-          reason: 'widgetRefresh',
-        })
-      )
+      R.remoteDispatch(RemoteGen.createInboxRefresh())
       adjustForWindows()
     })
     mb.on('hide', () => {})

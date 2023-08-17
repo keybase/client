@@ -1,12 +1,12 @@
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import {isMobile} from '../../constants/platform'
 
 type OwnProps = {
-  path: Types.Path
-  reason: Types.SoftError
+  path: T.FS.Path
+  reason: T.FS.SoftError
 }
 
 type Props = OwnProps & {
@@ -14,7 +14,7 @@ type Props = OwnProps & {
 }
 
 const Explain = (props: Props) => {
-  const elems = Types.getPathElements(props.path)
+  const elems = T.FS.getPathElements(props.path)
   if (elems.length < 3) {
     return null
   }
@@ -101,11 +101,11 @@ const NonExistent = (props: Props) => (
 const Oops = (props: OwnProps) => {
   const nav = Container.useSafeNavigation()
   const openParent = () =>
-    nav.safeNavigateAppend({props: {path: Types.getPathParent(props.path)}, selected: 'fsRoot'})
+    nav.safeNavigateAppend({props: {path: T.FS.getPathParent(props.path)}, selected: 'fsRoot'})
   switch (props.reason) {
-    case Types.SoftError.NoAccess:
+    case T.FS.SoftError.NoAccess:
       return <NoAccess {...props} openParent={openParent} />
-    case Types.SoftError.Nonexistent:
+    case T.FS.SoftError.Nonexistent:
       return <NonExistent {...props} openParent={openParent} />
     default:
       return null

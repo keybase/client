@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Styles from '../../../../../styles'
-import type * as Types from '../../../../../constants/types/chat2'
 
 export type Props = {
   children: React.ReactNode

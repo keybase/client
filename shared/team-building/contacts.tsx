@@ -1,25 +1,20 @@
+import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import * as SettingsConstants from '../constants/settings'
-import * as Constants from '../constants/team-building'
-import type * as Types from '../constants/types/team-building'
+import type * as T from '../constants/types'
 
 const useContactsProps = () => {
-  const contactsImported = SettingsConstants.useContactsState(s => s.importEnabled)
-  const contactsPermissionStatus = SettingsConstants.useContactsState(s => s.permissionStatus)
-  const isImportPromptDismissed = SettingsConstants.useContactsState(s => s.importPromptDismissed)
-  const numContactsImported = SettingsConstants.useContactsState(s => s.importedCount || 0)
+  const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
+  const contactsPermissionStatus = C.useSettingsContactsState(s => s.permissionStatus)
+  const isImportPromptDismissed = C.useSettingsContactsState(s => s.importPromptDismissed)
+  const numContactsImported = C.useSettingsContactsState(s => s.importedCount || 0)
 
-  const importContactsLater = SettingsConstants.useContactsState(s => s.dispatch.importContactsLater)
-  const loadContactImportEnabled = SettingsConstants.useContactsState(
-    s => s.dispatch.loadContactImportEnabled
-  )
-  const editContactImportEnabled = SettingsConstants.useContactsState(
-    s => s.dispatch.editContactImportEnabled
-  )
-  const requestPermissions = SettingsConstants.useContactsState(s => s.dispatch.requestPermissions)
+  const importContactsLater = C.useSettingsContactsState(s => s.dispatch.importContactsLater)
+  const loadContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.loadContactImportEnabled)
+  const editContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.editContactImportEnabled)
+  const requestPermissions = C.useSettingsContactsState(s => s.dispatch.requestPermissions)
 
   const onAskForContactsLater = importContactsLater
   const onLoadContactsSetting = loadContactImportEnabled
@@ -50,8 +45,8 @@ const useContactsProps = () => {
 }
 
 export const ContactsBanner = (props: {
-  namespace: Types.AllowedNamespace
-  selectedService: Types.ServiceIdWithContact
+  namespace: T.TB.AllowedNamespace
+  selectedService: T.TB.ServiceIdWithContact
   onRedoSearch: () => void
 }) => {
   const {onRedoSearch, selectedService} = props
@@ -65,7 +60,7 @@ export const ContactsBanner = (props: {
     onLoadContactsSetting,
   } = useContactsProps()
 
-  const fetchUserRecs = Constants.useContext(s => s.dispatch.fetchUserRecs)
+  const fetchUserRecs = C.useTBContext(s => s.dispatch.fetchUserRecs)
   const onRedoRecs = fetchUserRecs
   const prevNumContactsImported = Container.usePrevious(numContactsImported)
 
@@ -202,5 +197,5 @@ const styles = Styles.styleSheetCreate(
         height: 64,
         justifyContent: 'flex-start',
       },
-    } as const)
+    }) as const
 )

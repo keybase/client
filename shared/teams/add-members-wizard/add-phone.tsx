@@ -1,16 +1,15 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
-import * as RPCGen from '../../constants/types/rpc-gen'
-import * as SettingsConstants from '../../constants/settings'
+import * as T from '../../constants/types'
 import {ModalTitle, usePhoneNumberList} from '../common'
 
 const waitingKey = 'phoneLookup'
 
 const AddPhone = () => {
-  const teamID = Constants.useState(s => s.addMembersWizard.teamID)
+  const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
   const [error, setError] = React.useState('')
   const nav = Container.useSafeNavigation()
   const onBack = () => nav.safeNavigateUp()
@@ -19,9 +18,8 @@ const AddPhone = () => {
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
   const waiting = Container.useAnyWaiting(waitingKey)
 
-  const defaultCountry = SettingsConstants.usePhoneState(s => s.defaultCountry)
-
-  const loadDefaultPhoneCountry = SettingsConstants.usePhoneState(s => s.dispatch.loadDefaultPhoneCountry)
+  const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
+  const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
 
   React.useEffect(() => {
     if (!defaultCountry) {
@@ -29,8 +27,8 @@ const AddPhone = () => {
     }
   }, [defaultCountry, loadDefaultPhoneCountry])
 
-  const emailsToAssertionsRPC = Container.useRPC(RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
-  const addMembersWizardPushMembers = Constants.useState(s => s.dispatch.addMembersWizardPushMembers)
+  const emailsToAssertionsRPC = Container.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
+  const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
   const onContinue = () => {
     setError('')
     emailsToAssertionsRPC(

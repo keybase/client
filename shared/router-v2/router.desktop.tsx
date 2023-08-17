@@ -1,5 +1,5 @@
 import * as Common from './common.desktop'
-import * as Constants from '../constants/router2'
+import * as C from '../constants'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Shim from './shim.desktop'
@@ -137,7 +137,7 @@ const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootSta
 const documentTitle = {
   formatter: () => {
     // @ts-ignore
-    const tabLabel: string = Tabs.desktopTabMeta[Constants.getTab() ?? '']?.label ?? ''
+    const tabLabel: string = Tabs.desktopTabMeta[C.getTab() ?? '']?.label ?? ''
     return `Keybase: ${tabLabel}`
   },
 }
@@ -147,7 +147,7 @@ const ElectronApp = () => {
 
   return (
     <NavigationContainer
-      ref={Constants.navigationRef_ as any}
+      ref={C.navigationRef_ as any}
       key={String(navKey)}
       theme={Shared.theme}
       initialState={initialState}

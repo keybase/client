@@ -1,7 +1,7 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
 import * as Kb from '../../../../../common-adapters'
-import type {DeviceType} from '../../../../../constants/types/devices'
+import type * as T from '../../../../../constants/types'
 import type {Position, StylesCrossPlatform} from '../../../../../styles'
 import ReactionItem from '../reactionitem'
 
@@ -11,7 +11,7 @@ type Props = {
   botUsername?: string
   deviceName: string
   deviceRevokedAt?: number
-  deviceType: DeviceType
+  deviceType: T.Devices.DeviceType
   onAddReaction?: () => void
   onCopy?: () => void
   onCopyLink?: () => void

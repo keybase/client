@@ -1,13 +1,12 @@
-import * as RouterConstants from '../../../constants/router2'
-import * as Constants from '../../../constants/signup'
+import * as C from '../../../constants'
 import InviteCode from '.'
 
 export default () => {
-  const error = Constants.useState(s => s.inviteCodeError)
-  const goBackAndClearErrors = Constants.useState(s => s.dispatch.goBackAndClearErrors)
-  const checkInviteCode = Constants.useState(s => s.dispatch.checkInviteCode)
+  const error = C.useSignupState(s => s.inviteCodeError)
+  const goBackAndClearErrors = C.useSignupState(s => s.dispatch.goBackAndClearErrors)
+  const checkInviteCode = C.useSignupState(s => s.dispatch.checkInviteCode)
   const onBack = goBackAndClearErrors
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onRequestInvite = () => {
     navigateAppend('signupRequestInvite')
   }

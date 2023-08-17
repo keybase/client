@@ -3,10 +3,10 @@ import * as Constants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
-import type * as ConfigTypes from '../../constants/types/config'
+import type * as T from '../../constants/types'
 
 export type AccountRowItem = {
-  account: ConfigTypes.ConfiguredAccount
+  account: T.Config.ConfiguredAccount
   fullName: string
 }
 

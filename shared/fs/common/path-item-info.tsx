@@ -1,5 +1,6 @@
-import * as Types from '../../constants/types/fs'
+import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
+import * as T from '../../constants/types'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import LastModifiedLine from './last-modified-line-container'
@@ -11,34 +12,34 @@ import {useFsChildren, useFsPathMetadata, useFsOnlineStatus, useFsSoftError} fro
 
 type Props = {
   containerStyle?: Styles.StylesCrossPlatform
-  path: Types.Path
+  path: T.FS.Path
 }
 
 const getNumberOfFilesAndFolders = (
-  pathItems: Types.PathItems,
-  path: Types.Path
+  pathItems: T.FS.PathItems,
+  path: T.FS.Path
 ): {folders: number; files: number; loaded: boolean} => {
-  const pathItem = Constants.getPathItem(pathItems, path)
-  return pathItem.type === Types.PathType.Folder
+  const pathItem = C.getPathItem(pathItems, path)
+  return pathItem.type === T.FS.PathType.Folder
     ? [...pathItem.children].reduce(
         ({folders, files, loaded}, p) => {
-          const item = Constants.getPathItem(pathItems, Types.pathConcat(path, p))
-          const isFolder = item.type === Types.PathType.Folder
-          const isFile = item.type !== Types.PathType.Folder && item !== Constants.unknownPathItem
+          const item = C.getPathItem(pathItems, T.FS.pathConcat(path, p))
+          const isFolder = item.type === T.FS.PathType.Folder
+          const isFile = item.type !== T.FS.PathType.Folder && item !== Constants.unknownPathItem
           return {
             files: files + (isFile ? 1 : 0),
             folders: folders + (isFolder ? 1 : 0),
             loaded,
           }
         },
-        {files: 0, folders: 0, loaded: pathItem.progress === Types.ProgressType.Loaded}
+        {files: 0, folders: 0, loaded: pathItem.progress === T.FS.ProgressType.Loaded}
       )
     : {files: 0, folders: 0, loaded: false}
 }
 
 const FilesAndFoldersCount = (props: Props) => {
   useFsChildren(props.path)
-  const pathItems = Constants.useState(s => s.pathItems)
+  const pathItems = C.useFSState(s => s.pathItems)
   const {files, folders, loaded} = getNumberOfFilesAndFolders(pathItems, props.path)
   return loaded ? (
     <Kb.Text type="BodySmall">
@@ -50,8 +51,8 @@ const FilesAndFoldersCount = (props: Props) => {
   )
 }
 
-const getTlfInfoLineOrLastModifiedLine = (path: Types.Path) => {
-  switch (Types.getPathLevel(path)) {
+const getTlfInfoLineOrLastModifiedLine = (path: T.FS.Path) => {
+  switch (T.FS.getPathLevel(path)) {
     case 0:
     case 1:
     case 2:
@@ -64,14 +65,14 @@ const getTlfInfoLineOrLastModifiedLine = (path: Types.Path) => {
   }
 }
 
-const SoftErrorBanner = ({path}: {path: Types.Path}) => {
+const SoftErrorBanner = ({path}: {path: T.FS.Path}) => {
   const softError = useFsSoftError(path)
   switch (softError) {
     case undefined:
       return null
-    case Types.SoftError.NoAccess:
+    case T.FS.SoftError.NoAccess:
       return <Kb.Banner color="blue">You don't have access to this folder or file.</Kb.Banner>
-    case Types.SoftError.Nonexistent:
+    case T.FS.SoftError.Nonexistent:
       return <Kb.Banner color="yellow">This file or folder doesn't exist.</Kb.Banner>
   }
 }
@@ -79,12 +80,12 @@ const SoftErrorBanner = ({path}: {path: Types.Path}) => {
 const PathItemInfo = (props: Props) => {
   useFsOnlineStatus() // when used in chat, we don't have this from Files tab
   useFsPathMetadata(props.path)
-  const pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, props.path))
+  const pathItem = C.useFSState(s => C.getPathItem(s.pathItems, props.path))
   const name = (
     <CommaSeparatedName
       center={true}
       type="BodySmallSemibold"
-      name={Types.getPathName(props.path)}
+      name={T.FS.getPathName(props.path)}
       elementStyle={styles.stylesNameText}
     />
   )
@@ -94,10 +95,10 @@ const PathItemInfo = (props: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={props.containerStyle}>
         <ItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
         <Kb.Box style={styles.nameTextBox}>{name}</Kb.Box>
-        {pathItem.type === Types.PathType.File && (
-          <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(pathItem.size)}</Kb.Text>
+        {pathItem.type === T.FS.PathType.File && (
+          <Kb.Text type="BodySmall">{C.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}
-        {Constants.isInTlf(props.path) && Constants.isFolder(props.path, pathItem) && (
+        {Constants.isInTlf(props.path) && C.isFolder(props.path, pathItem) && (
           <FilesAndFoldersCount {...props} />
         )}
         {getTlfInfoLineOrLastModifiedLine(props.path)}
@@ -127,5 +128,5 @@ const styles = Styles.styleSheetCreate(
       stylesNameText: {
         textAlign: 'center',
       },
-    } as const)
+    }) as const
 )

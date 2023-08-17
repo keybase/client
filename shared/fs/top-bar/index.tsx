@@ -1,13 +1,13 @@
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/fs'
+import * as T from '../../constants/types'
 import * as RowTypes from '../browser/rows/types'
 import Loading from './loading'
 import Sort from './sort-container'
 import SyncToggle from './sync-toggle-container'
 
 type Props = {
-  path: Types.Path
+  path: T.FS.Path
   mode?: 'offline' | 'default'
 }
 
@@ -24,7 +24,7 @@ const TopBar = (props: Props) => (
     {!Styles.isMobile && <Sort path={props.path} />}
     <Loading path={props.path} />
     <Kb.Box style={styles.flex} />
-    {Types.getPathLevel(props.path) === 3 && <SyncToggle tlfPath={props.path} />}
+    {T.FS.getPathLevel(props.path) === 3 && <SyncToggle tlfPath={props.path} />}
   </Kb.Box2>
 )
 
@@ -38,11 +38,11 @@ const styles = Styles.styleSheetCreate(
         height,
       },
       flex: {flex: 1},
-    } as const)
+    }) as const
 )
 
 export default TopBar
-export const asRows = (path: Types.Path): Array<RowTypes.HeaderRowItem> => [
+export const asRows = (path: T.FS.Path): Array<RowTypes.HeaderRowItem> => [
   {
     height,
     key: 'top-bar',

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as C from '../../../constants'
 import type * as Container from '../../../util/container'
 
 const Full = React.lazy(async () => import('./container'))
@@ -11,9 +12,9 @@ const getOptions = () => ({
 })
 
 const Screen = (p: OwnProps) => (
-  <React.Suspense>
+  <C.ProviderScreen rp={p}>
     <Full {...p.route.params} />
-  </React.Suspense>
+  </C.ProviderScreen>
 )
 
 export default {getOptions, getScreen: () => Screen}

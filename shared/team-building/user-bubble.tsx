@@ -1,11 +1,11 @@
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import type {ServiceIdWithContact} from '../constants/types/team-building'
+import type * as T from '../constants/types'
 import {e164ToDisplay} from '../util/phone-numbers'
 
 export type Props = {
   username: string
-  service: ServiceIdWithContact
+  service: T.TB.ServiceIdWithContact
   tooltip: string
   onRemove: () => void
 }
@@ -119,7 +119,7 @@ const styles = Styles.styleSheetCreate(
         top: 1,
       },
       userBubbleTitle: {color: Styles.globalColors.black},
-    } as const)
+    }) as const
 )
 
 export default UserBubble

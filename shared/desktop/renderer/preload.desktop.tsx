@@ -1,5 +1,5 @@
 import * as Electron from 'electron'
-import type {TypedActions} from '../../actions/typed-actions-gen'
+import type {Actions} from '../../actions/remote-gen'
 import {
   injectPreload,
   type KB2,
@@ -115,7 +115,7 @@ if (isRenderer) {
         isDirectory: async (path: string) => {
           return invoke({payload: {path}, type: 'isDirectory'})
         },
-        mainWindowDispatch: (action: TypedActions, nodeTypeOverride?: string) => {
+        mainWindowDispatch: (action: Actions, nodeTypeOverride?: string) => {
           Electron.ipcRenderer
             .invoke(nodeTypeOverride ?? 'KBdispatchAction', action)
             .then(() => {})
@@ -298,7 +298,7 @@ if (isRenderer) {
   const kb2 = {
     constants: kb2consts,
     functions: {
-      mainWindowDispatch: (action: TypedActions, nodeTypeOverride?: string) => {
+      mainWindowDispatch: (action: Actions, nodeTypeOverride?: string) => {
         getMainWindow()?.webContents.send(nodeTypeOverride ?? 'KBdispatchAction', action)
       },
     },

@@ -1,30 +1,28 @@
 // Just for desktop and tablet, we show inbox and conversation side by side
-import * as Chat2Gen from '../actions/chat2-gen'
-import * as Constants from '../constants/chat2'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as React from 'react'
-import type * as Types from '../constants/types/chat2'
+import type * as T from '../constants/types'
 import Conversation from './conversation/container'
 import Inbox from './inbox/container'
 import InboxSearch from './inbox-search/container'
 import InfoPanel from './conversation/info-panel/container'
 
-type Props = {conversationIDKey?: Types.ConversationIDKey; navKey?: string}
+type Props = {conversationIDKey?: T.Chat.ConversationIDKey; navKey?: string}
 
 const InboxAndConversation = React.memo(function InboxAndConversation(props?: Props) {
-  const conversationIDKey = props?.conversationIDKey ?? Constants.noConversationIDKey
+  const conversationIDKey = props?.conversationIDKey ?? C.noConversationIDKey
   const navKey = props?.navKey ?? ''
-  const dispatch = Container.useDispatch()
-  const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
-  const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
-  const validConvoID = conversationIDKey && conversationIDKey !== Constants.noConversationIDKey
-  const needSelectConvoID = Container.useSelector(state => {
+  const inboxSearch = C.useChatState(s => s.inboxSearch)
+  const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
+  const validConvoID = conversationIDKey && conversationIDKey !== C.noConversationIDKey
+  const needSelectConvoID = C.useChatState(s => {
     if (validConvoID) {
       return null
     }
-    const first = state.chat2.inboxLayout?.smallTeams?.[0]
+    const first = s.inboxLayout?.smallTeams?.[0]
     return first?.convID
   })
 
@@ -32,12 +30,7 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props?: Pr
     if (needSelectConvoID) {
       // hack to select the convo after we render
       setTimeout(() => {
-        dispatch(
-          Chat2Gen.createNavigateToThread({
-            conversationIDKey: needSelectConvoID,
-            reason: 'findNewestConversationFromLayout',
-          })
-        )
+        C.getConvoState(needSelectConvoID).dispatch.navigateToThread('findNewestConversationFromLayout')
       }, 1)
     }
   })
@@ -51,11 +44,15 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props?: Pr
           <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
         )}
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.conversation}>
-          <Conversation conversationIDKey={conversationIDKey} />
+          <C.ChatProvider id={conversationIDKey} canBeNull={true}>
+            <Conversation conversationIDKey={conversationIDKey} />
+          </C.ChatProvider>
         </Kb.Box2>
         {infoPanelShowing ? (
           <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
-            <InfoPanel conversationIDKey={conversationIDKey} />
+            <C.ChatProvider id={conversationIDKey} canBeNull={true}>
+              <InfoPanel conversationIDKey={conversationIDKey} />
+            </C.ChatProvider>
           </Kb.Box2>
         ) : null}
       </Kb.Box2>
@@ -76,7 +73,7 @@ const styles = Styles.styleSheetCreate(
         top: 0,
         width: 320,
       },
-    } as const)
+    }) as const
 )
 
 export default InboxAndConversation

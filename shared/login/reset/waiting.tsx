@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../../signup/common'
 import {addTicker, removeTicker} from '../../util/second-timer'
-import * as Constants from '../../constants/autoreset'
+import * as C from '../../constants'
 import * as Container from '../../util/container'
 import {formatDurationForAutoreset as formatDuration} from '../../util/timestamp'
 
@@ -15,23 +15,19 @@ const formatTimeLeft = (endTime: number) => {
 
 const Waiting = (props: Props) => {
   const {pipelineStarted} = props
-  const endTime = Constants.useState(s => s.endTime)
+  const endTime = C.useAutoResetState(s => s.endTime)
   const [formattedTime, setFormattedTime] = React.useState('a bit')
   const [hasSentAgain, setHasSentAgain] = React.useState(false)
   const [sendAgainSuccess, setSendAgainSuccess] = React.useState(false)
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
   const onClose = React.useCallback(() => nav.safeNavigateAppend('login', true), [nav])
-
-  const resetAccount = Constants.useState(s => s.dispatch.resetAccount)
+  const resetAccount = C.useAutoResetState(s => s.dispatch.resetAccount)
   const onSendAgain = React.useCallback(() => {
     setHasSentAgain(true)
     setSendAgainSuccess(false)
     resetAccount()
   }, [resetAccount])
-  const _sendAgainWaiting = Container.useAnyWaiting(Constants.enterPipelineWaitingKey)
+  const _sendAgainWaiting = Container.useAnyWaiting(C.enterPipelineWaitingKey)
   const sendAgainWaiting = hasSentAgain && _sendAgainWaiting
   const prevSendAgainWaiting = Container.usePrevious(sendAgainWaiting)
   React.useEffect(() => {
@@ -58,7 +54,7 @@ const Waiting = (props: Props) => {
     return function cleanup() {
       removeTicker(tickerID)
     }
-  }, [endTime, setFormattedTime, formattedTime, pipelineStarted, dispatch, nav])
+  }, [endTime, setFormattedTime, formattedTime, pipelineStarted, nav])
 
   return (
     <SignupScreen

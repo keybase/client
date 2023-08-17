@@ -3,6 +3,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as ReactDOM from 'react-dom/client'
+import {Provider} from 'react-redux'
 import RemoteStore from './store.desktop'
 import Root from '../renderer/container.desktop'
 import {disableDragDrop} from '../../util/drag-drop.desktop'
@@ -52,7 +53,9 @@ class RemoteComponentLoader extends React.Component<Props> {
     return (
       <div id="RemoteComponentRoot" style={this.props.style || (styles.container as any)}>
         <ErrorBoundary closeOnClick={closeWindow} fallbackStyle={styles.errorFallback}>
-          <Root store={this._store}>{this.props.children}</Root>
+          <Provider store={this._store}>
+            <Root>{this.props.children}</Root>
+          </Provider>
         </ErrorBoundary>
       </div>
     )

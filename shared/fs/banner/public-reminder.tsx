@@ -1,31 +1,30 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as ConfigConstants from '../../constants/config'
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
+import * as T from '../../constants/types'
 import openUrl from '../../util/open-url'
 
 type Props = {
-  path: Types.Path
+  path: T.FS.Path
 }
 
-const getTlfName = (parsedPath: Types.ParsedPath): string => {
-  if (parsedPath.kind === Types.PathKind.Root || parsedPath.kind === Types.PathKind.TlfList) {
+const getTlfName = (parsedPath: T.FS.ParsedPath): string => {
+  if (parsedPath.kind === T.FS.PathKind.Root || parsedPath.kind === T.FS.PathKind.TlfList) {
     return ''
   }
   return parsedPath.tlfName
 }
 
 const PublicBanner = ({path}: Props) => {
-  const isWritable = Constants.useState(s => Constants.getPathItem(s.pathItems, path).writable)
-  const lastPublicBannerClosedTlf = Constants.useState(s => s.lastPublicBannerClosedTlf)
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const isWritable = C.useFSState(s => C.getPathItem(s.pathItems, path).writable)
+  const lastPublicBannerClosedTlf = C.useFSState(s => s.lastPublicBannerClosedTlf)
+  const you = C.useCurrentUserState(s => s.username)
 
-  const setLastPublicBannerClosedTlf = Constants.useState(s => s.dispatch.setLastPublicBannerClosedTlf)
+  const setLastPublicBannerClosedTlf = C.useFSState(s => s.dispatch.setLastPublicBannerClosedTlf)
 
   const setLastClosed = () => setLastPublicBannerClosedTlf(tlfName)
 
-  const parsedPath = Constants.parsePath(path)
+  const parsedPath = C.parsePath(path)
   const tlfName = getTlfName(parsedPath)
 
   // If we're showing the banner for a new TLF, clear the closed state
@@ -35,11 +34,11 @@ const PublicBanner = ({path}: Props) => {
     }
   }, [setLastPublicBannerClosedTlf, tlfName, lastPublicBannerClosedTlf])
 
-  if (parsedPath.kind !== Types.PathKind.GroupTlf && parsedPath.kind !== Types.PathKind.InGroupTlf) {
+  if (parsedPath.kind !== T.FS.PathKind.GroupTlf && parsedPath.kind !== T.FS.PathKind.InGroupTlf) {
     return null
   }
 
-  const isPublic = parsedPath.tlfType === Types.TlfType.Public
+  const isPublic = parsedPath.tlfType === T.FS.TlfType.Public
   const closedThisBannerLast = lastPublicBannerClosedTlf === tlfName
 
   if (!isWritable || !isPublic || closedThisBannerLast) {

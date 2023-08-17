@@ -27,7 +27,7 @@ export const usePhoneNumberList = () => {
    */
   const addPhoneNumber = () => {
     phoneNumbers.push({
-      key: (phoneNumbers[phoneNumbers.length - 1]?.key ?? 0) + 1,
+      key: (phoneNumbers.at(-1)?.key ?? 0) + 1,
       phoneNumber: '',
       valid: false,
     })
@@ -45,9 +45,7 @@ export const usePhoneNumberList = () => {
    * Reset the list to contain one empty phone number.
    */
   const resetPhoneNumbers = () => {
-    setPhoneNumbers([
-      {key: (phoneNumbers[phoneNumbers.length - 1]?.key ?? -1) + 1, phoneNumber: '', valid: false},
-    ])
+    setPhoneNumbers([{key: (phoneNumbers.at(-1)?.key ?? -1) + 1, phoneNumber: '', valid: false}])
   }
 
   return {addPhoneNumber, phoneNumbers, removePhoneNumber, resetPhoneNumbers, setPhoneNumber}

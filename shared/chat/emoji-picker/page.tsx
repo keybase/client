@@ -1,13 +1,14 @@
 import * as React from 'react'
+import * as C from '../../constants'
 import type * as Container from '../../util/container'
 
 const Picker = React.lazy(async () => import('./container'))
 type OwnProps = Container.ViewPropsToPageProps<typeof Picker>
 
 const Screen = (p: OwnProps) => (
-  <React.Suspense>
+  <C.ProviderScreen rp={p}>
     <Picker {...p.route.params} />
-  </React.Suspense>
+  </C.ProviderScreen>
 )
 
 export default {getScreen: () => Screen}

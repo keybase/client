@@ -1,12 +1,12 @@
-import * as ConfigConstants from './config'
+import * as C from '.'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import {getEngine} from '../engine/require'
 
 type Store = {
-  devices: ConfigConstants.Store['unlockFoldersDevices']
+  devices: C.ConfigStore['unlockFoldersDevices']
   phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success'
 }
 
@@ -19,9 +19,7 @@ export type State = Store & {
   dispatch: {
     onBackFromPaperKey: () => void
     onEngineConnected: () => void
-    onEngineIncoming: (
-      action: EngineGen.Keybase1RekeyUIRefreshPayload | EngineGen.Keybase1RekeyUIDelegateRekeyUIPayload
-    ) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     toPaperKeyInput: () => void
     replace: (devices: Store['devices']) => void
     resetState: 'default'
@@ -29,7 +27,7 @@ export type State = Store & {
 }
 
 // this store is only in play in the remote window, its launched by ConfigConstants.unlockFoldersDevices
-export const useState = Z.createZustand<State>((set, _get) => {
+export const _useState = Z.createZustand<State>((set, _get) => {
   const dispatch: State['dispatch'] = {
     onBackFromPaperKey: () => {
       set(s => {
@@ -39,7 +37,7 @@ export const useState = Z.createZustand<State>((set, _get) => {
     onEngineConnected: () => {
       const f = async () => {
         try {
-          await RPCTypes.delegateUiCtlRegisterRekeyUIRpcPromise()
+          await T.RPCGen.delegateUiCtlRegisterRekeyUIRpcPromise()
           logger.info('Registered rekey ui')
         } catch (error) {
           logger.warn('error in registering rekey ui: ')
@@ -53,9 +51,7 @@ export const useState = Z.createZustand<State>((set, _get) => {
         case EngineGen.keybase1RekeyUIRefresh: {
           const {problemSetDevices} = action.payload.params
           logger.info('Asked for rekey')
-          ConfigConstants.useConfigState
-            .getState()
-            .dispatch.openUnlockFolders(problemSetDevices.devices ?? [])
+          C.useConfigState.getState().dispatch.openUnlockFolders(problemSetDevices.devices ?? [])
           break
         }
         case EngineGen.keybase1RekeyUIDelegateRekeyUI: {
@@ -65,9 +61,7 @@ export const useState = Z.createZustand<State>((set, _get) => {
             dangling: true,
             incomingCallMap: {
               'keybase.1.rekeyUI.refresh': ({problemSetDevices}) => {
-                ConfigConstants.useConfigState
-                  .getState()
-                  .dispatch.openUnlockFolders(problemSetDevices.devices ?? [])
+                C.useConfigState.getState().dispatch.openUnlockFolders(problemSetDevices.devices ?? [])
               },
               'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
             },
@@ -76,6 +70,7 @@ export const useState = Z.createZustand<State>((set, _get) => {
           response.result(session.id)
           break
         }
+        default:
       }
     },
     replace: devices => {

@@ -1,23 +1,21 @@
-import * as React from 'react'
-import type * as Types from '../../../constants/types/chat2'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as Container from '../../../util/container'
+import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as T from '../../../constants/types'
+import * as React from 'react'
 import * as RowSizes from './sizes'
+import * as Styles from '../../../styles'
 import {memoize} from '../../../util/memoize'
-import shallowEqual from 'shallowequal'
 
 type Props = {
   hiddenCountDelta?: number
   smallTeamsExpanded: boolean
-  rows: Array<Types.ChatInboxRowItem>
+  rows: Array<T.Chat.ChatInboxRowItem>
   showButton: boolean
   toggle: () => void
   style?: Styles.StylesCrossPlatform
 }
 
-const getRowCounts = memoize((badges: Types.ConversationCountMap, rows: Array<Types.ChatInboxRowItem>) => {
+const getRowCounts = memoize((badges: T.Chat.ConversationCountMap, rows: Array<T.Chat.ChatInboxRowItem>) => {
   let badgeCount = 0
   let hiddenCount = 0
 
@@ -33,12 +31,12 @@ const getRowCounts = memoize((badges: Types.ConversationCountMap, rows: Array<Ty
 
 const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
   const {rows, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
-  const {badges, smallTeamBadgeCount, totalSmallTeams} = Container.useSelector(state => {
-    const badges = state.chat2.badgeMap
-    const smallTeamBadgeCount = state.chat2.smallTeamBadgeCount
-    const totalSmallTeams = state.chat2.inboxLayout?.totalSmallTeams ?? 0
-    return {badges, smallTeamBadgeCount, totalSmallTeams}
-  }, shallowEqual)
+  const smallTeamBadgeCount = C.useChatState(s => s.smallTeamBadgeCount)
+  const totalSmallTeams = C.useChatState(s => s.inboxLayout?.totalSmallTeams ?? 0)
+  const badgeCountsChanged = C.useChatState(s => s.badgeCountsChanged)
+  const badges = React.useMemo(() => {
+    return C.useChatState.getState().getBadgeMap(badgeCountsChanged)
+  }, [badgeCountsChanged])
   // we remove the badge count of the stuff we're showing
   let {badgeCount, hiddenCount} = getRowCounts(badges, rows)
   badgeCount += smallTeamBadgeCount
@@ -49,7 +47,7 @@ const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
 
   // only show if there's more to load
   const reallyShow = showButton && !!hiddenCount
-  const loadMore = async () => RPCChatTypes.localRequestInboxSmallIncreaseRpcPromise().catch(() => {})
+  const loadMore = async () => T.RPCChat.localRequestInboxSmallIncreaseRpcPromise().catch(() => {})
 
   badgeCount = Math.max(0, badgeCount)
   hiddenCount = Math.max(0, hiddenCount)
@@ -116,7 +114,7 @@ const styles = Styles.styleSheetCreate(
         marginLeft: Styles.globalMargins.tiny,
         marginRight: Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )
 
 export default TeamsDivider

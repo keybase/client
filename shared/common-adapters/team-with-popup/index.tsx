@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import Text, {type TextType} from '../text'
 import TeamInfo from '../../profile/user/teams/teaminfo'
 import DelayedMounting from '../delayed-mounting'
-import type * as TeamsTypes from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 import {TeamDetailsSubscriber} from '../../teams/subscriber'
 
 const Kb = {
@@ -21,7 +21,7 @@ export type Props = {
   onViewTeam: () => void
   prefix?: string
   shouldLoadTeam?: boolean
-  teamID: TeamsTypes.TeamID
+  teamID: T.Teams.TeamID
   teamName: string
   type: TextType
   underline?: boolean
@@ -87,5 +87,5 @@ const styles = Styles.styleSheetCreate(
           whiteSpace: 'nowrap',
         },
       }),
-    } as const)
+    }) as const
 )

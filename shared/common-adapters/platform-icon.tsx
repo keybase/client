@@ -1,10 +1,10 @@
-import type {PlatformsExpandedType} from '../constants/types/more'
+import type * as T from '../constants/types'
 import Box from './box'
 import Icon, {type IconType} from './icon'
 import {isMobile} from '../constants/platform'
 
 type Props = {
-  platform: PlatformsExpandedType
+  platform: T.More.PlatformsExpandedType
   overlay: IconType
   overlayColor?: string
   style?: Object
@@ -40,7 +40,7 @@ function _specsForMobileOrDesktop() {
   } as any
 }
 
-const getSpecForPlatform = (platform: PlatformsExpandedType): IconSpec => {
+const getSpecForPlatform = (platform: T.More.PlatformsExpandedType): IconSpec => {
   const specs = _specsForMobileOrDesktop()
   return {...standardOffsets, ...specs[platform]}
 }

@@ -1,27 +1,21 @@
-import * as Container from '../../../../../../util/container'
+import * as C from '../../../../../../constants'
 import * as Kb from '../../../../../../common-adapters/index'
-import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
+import * as T from '../../../../../../constants/types'
 import * as React from 'react'
 import * as Styles from '../../../../../../styles'
 import UnfurlImage from './image'
 import shallowEqual from 'shallowequal'
-import {ConvoIDContext, OrdinalContext} from '../../../ids-context'
+import {OrdinalContext} from '../../../ids-context'
 import {formatTimeForMessages} from '../../../../../../util/timestamp'
 import {getUnfurlInfo, useActions} from './use-redux'
 
 const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const {idx} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
 
-  const data = Container.useSelector(state => {
-    const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(
-      state,
-      conversationIDKey,
-      ordinal,
-      idx
-    )
-    if (unfurl?.unfurlType !== RPCChatTypes.UnfurlType.generic) {
+  const data = C.useChatContext(s => {
+    const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(s, ordinal, idx)
+    if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.generic) {
       return null
     }
     const {generic} = unfurl
@@ -56,7 +50,6 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   }, shallowEqual)
 
   const {onClose, onToggleCollapse} = useActions(
-    conversationIDKey,
     data?.youAreAuthor ?? false,
     data?.unfurlMessageID ?? 0,
     ordinal
@@ -214,7 +207,7 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.fastBlank,
         ...Styles.globalStyles.fontSemibold,
       },
-    } as const)
+    }) as const
 )
 
 export default UnfurlGeneric

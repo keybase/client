@@ -10,8 +10,6 @@ export declare class Engine {
   reset(): void
   rpc(): void
   listenersAreReady(): void
-  // instead of dispatching incoming as an action, just call me back
-  registerRpcCallback<AT>(rpcName: string, cb: (action: AT) => void): void
   createSession(arg0: {
     incomingCallMap?: IncomingCallMapType
     waitingKey?: WaitingKey
@@ -26,6 +24,9 @@ export declare class Engine {
   }): void
 }
 export declare function getEngine(): Engine
-export declare function makeEngine(dispatch: (a: any) => any, dispatchBatch: (b: BatchParams) => void): Engine
+export declare function makeEngine(
+  emitWaiting: (b: BatchParams) => void,
+  onConnected: (c: boolean) => void
+): Engine
 export default getEngine
 export type {IncomingCallMapType, CustomResponseIncomingCallMapType}

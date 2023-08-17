@@ -1,16 +1,13 @@
-import * as Container from '../../../util/container'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Kb from '../../../common-adapters'
 import * as Constants from '../../../constants/chat2'
-import * as RouterConstants from '../../../constants/router2'
-import type * as Types from '../../../constants/types/chat2'
-import type * as TeamsTypes from '../../../constants/types/teams'
+import * as C from '../../../constants'
+import type * as T from '../../../constants/types'
 import {useBotConversationIDKey} from './install'
 
 type LoaderProps = {
   botUsername: string
-  conversationIDKey?: Types.ConversationIDKey
-  teamID?: TeamsTypes.TeamID
+  conversationIDKey?: T.Chat.ConversationIDKey
+  teamID?: T.Teams.TeamID
 }
 
 const ConfirmBotRemoveLoader = (props: LoaderProps) => {
@@ -23,20 +20,19 @@ const ConfirmBotRemoveLoader = (props: LoaderProps) => {
 
 type Props = {
   botUsername: string
-  conversationIDKey?: Types.ConversationIDKey
+  conversationIDKey?: T.Chat.ConversationIDKey
 }
 
 const ConfirmBotRemove = (props: Props) => {
   const {botUsername, conversationIDKey} = props
-  // dispatch
-  const dispatch = Container.useDispatch()
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const removeBotMember = C.useChatContext(s => s.dispatch.removeBotMember)
   const onClose = () => {
     clearModals()
   }
   const onRemove = conversationIDKey
     ? () => {
-        dispatch(Chat2Gen.createRemoveBotMember({conversationIDKey, username: botUsername}))
+        removeBotMember(botUsername)
       }
     : undefined
   return (

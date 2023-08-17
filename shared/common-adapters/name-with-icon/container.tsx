@@ -1,9 +1,6 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
-import * as ProfileConstants from '../../constants/profile'
-import * as RouterConstants from '../../constants/router2'
-import * as TeamsConstants from '../../constants/teams'
-import * as TrackerConstants from '../../constants/tracker2'
 import NameWithIcon, {type NameWithIconProps} from '.'
 
 export type ConnectedNameWithIconProps = {
@@ -14,20 +11,20 @@ type OwnProps = ConnectedNameWithIconProps
 
 const ConnectedNameWithIcon = (p: OwnProps) => {
   const {onClick, username, teamname, ...props} = p
-  const teamID = TeamsConstants.useState(s => s.teamNameToID.get(teamname ?? ''))
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const teamID = C.useTeamsState(s => s.teamNameToID.get(teamname ?? ''))
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onOpenTeamProfile = React.useCallback(() => {
     if (teamID) {
       clearModals()
       navigateAppend({props: {teamID}, selected: 'team'})
     }
   }, [clearModals, navigateAppend, teamID])
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onOpenTracker = React.useCallback(() => {
     username && showUser(username, true)
   }, [showUser, username])
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onOpenUserProfile = React.useCallback(() => {
     username && showUserProfile(username)
   }, [username, showUserProfile])

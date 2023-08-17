@@ -11,7 +11,7 @@ const initialStore: Store = {
   token: '',
 }
 
-export const useState = Z.createZustand<State>(() => {
+export const _useState = Z.createZustand<State>(() => {
   const dispatch: State['dispatch'] = {
     checkPermissions: async () => {
       return Promise.resolve(false)

@@ -1,12 +1,18 @@
+import * as C from '.'
+import {getNavigator} from '.'
 import logger from '../logger'
-import type * as Types from './types/config'
+import * as T from './types'
 import * as Z from '../util/zustand'
 
 export const maxHandshakeTries = 3
 
+// Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
+// normally this wouldn't be worth it but this is startup
+const getAccountsWaitKey = 'config.getAccounts'
+
 export type Store = {
   error?: Error
-  handshakeState: Types.DaemonHandshakeState
+  handshakeState: T.Config.DaemonHandshakeState
   handshakeFailedReason: string
   handshakeRetriesLeft: number
   handshakeWaiters: Map<string, number>
@@ -18,16 +24,18 @@ const initialStore: Store = {
   handshakeFailedReason: '',
   handshakeRetriesLeft: maxHandshakeTries,
   handshakeState: 'starting',
-  handshakeVersion: 1,
+  handshakeVersion: 0,
   handshakeWaiters: new Map(),
 }
 
 type State = Store & {
   dispatch: {
+    loadDaemonAccounts: () => void
+    loadDaemonBootstrapStatus: (force?: boolean) => Promise<void>
     resetState: () => void
     setError: (e?: Error) => void
     setFailed: (r: string) => void
-    setState: (s: Types.DaemonHandshakeState) => void
+    setState: (s: T.Config.DaemonHandshakeState) => void
     wait: (
       name: string,
       version: number,
@@ -42,7 +50,7 @@ type State = Store & {
   }
 }
 
-export const useDaemonState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const restartHandshake = () => {
     get().dispatch.onRestartHandshakeNative()
     get().dispatch.setState('starting')
@@ -81,18 +89,172 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
     return
   }
 
+  let loadDaemonBootstrapStatusDoneVersion = -1
   // When there are no more waiters, we can show the actual app
 
+  let _emitStartupOnLoadDaemonConnectedOnce = false
   const dispatch: State['dispatch'] = {
     daemonHandshake: version => {
       get().dispatch.setState('waitingForWaiters')
+      const changed = get().handshakeVersion !== version
       set(s => {
         s.handshakeVersion = version
         s.handshakeWaiters = new Map()
       })
+
+      if (!changed) return
+
+      const checkNav = (version: number) => {
+        // have one
+        if (getNavigator()) return
+        const name = 'nav'
+        const {wait} = get().dispatch
+        wait(name, version, true)
+        logger.info('Waiting on nav')
+        C.useConfigState.setState(s => {
+          s.dispatch.dynamic.setNavigatorExistsNative = () => {
+            if (getNavigator()) {
+              C.useConfigState.setState(s => {
+                s.dispatch.dynamic.setNavigatorExistsNative = undefined
+              })
+              wait(name, version, false)
+            } else {
+              logger.info('Waiting on nav, got setNavigator but nothing in constants?')
+            }
+          }
+        })
+      }
+      checkNav(version)
+
+      const f = async () => {
+        const name = 'config.getBootstrapStatus'
+        const {wait} = get().dispatch
+        wait(name, version, true)
+        await get().dispatch.loadDaemonBootstrapStatus()
+        C.useDarkModeState.getState().dispatch.loadDarkPrefs()
+        C.useChatState.getState().dispatch.loadStaticConfig()
+        wait(name, version, false)
+      }
+      Z.ignorePromise(f())
+      get().dispatch.loadDaemonAccounts()
     },
     daemonHandshakeDone: () => {
       get().dispatch.setState('done')
+    },
+    loadDaemonAccounts: () => {
+      const f = async () => {
+        const version = get().handshakeVersion
+
+        let handshakeWait = false
+        let handshakeVersion = 0
+
+        handshakeVersion = version
+        // did we beat getBootstrapStatus?
+        if (!C.useConfigState.getState().loggedIn) {
+          handshakeWait = true
+        }
+
+        const {wait} = get().dispatch
+        try {
+          if (handshakeWait) {
+            wait(getAccountsWaitKey, handshakeVersion, true)
+          }
+
+          const configuredAccounts = (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? []
+          // already have one?
+          const {defaultUsername} = C.useConfigState.getState()
+          const {setAccounts, setDefaultUsername} = C.useConfigState.getState().dispatch
+
+          let existingDefaultFound = false
+          let currentName = ''
+          const nextConfiguredAccounts: Array<T.Config.ConfiguredAccount> = []
+          const usernameToFullname: {[username: string]: string} = {}
+
+          configuredAccounts.forEach(account => {
+            const {username, isCurrent, fullname, hasStoredSecret} = account
+            if (username === defaultUsername) {
+              existingDefaultFound = true
+            }
+            if (isCurrent) {
+              currentName = account.username
+            }
+            nextConfiguredAccounts.push({hasStoredSecret, username})
+            usernameToFullname[username] = fullname
+          })
+          if (!existingDefaultFound) {
+            setDefaultUsername(currentName)
+          }
+          setAccounts(nextConfiguredAccounts)
+          C.useUsersState.getState().dispatch.updates(
+            Object.keys(usernameToFullname).map(name => ({
+              info: {fullname: usernameToFullname[name]},
+              name,
+            }))
+          )
+
+          if (handshakeWait) {
+            // someone dismissed this already?
+            const {handshakeWaiters} = get()
+            if (handshakeWaiters.get(getAccountsWaitKey)) {
+              wait(getAccountsWaitKey, handshakeVersion, false)
+            }
+          }
+        } catch (error) {
+          if (handshakeWait) {
+            // someone dismissed this already?
+            const {handshakeWaiters} = get()
+            if (handshakeWaiters.get(getAccountsWaitKey)) {
+              wait(getAccountsWaitKey, handshakeVersion, false, "Can't get accounts")
+            }
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    // set to true so we reget status when we're reachable again
+    loadDaemonBootstrapStatus: async force => {
+      const version = get().handshakeVersion
+      const {wait} = get().dispatch
+      if (loadDaemonBootstrapStatusDoneVersion === version && !force) {
+        return
+      }
+      loadDaemonBootstrapStatusDoneVersion = version
+
+      const f = async () => {
+        const {setBootstrap} = C.useCurrentUserState.getState().dispatch
+        const {setDefaultUsername} = C.useConfigState.getState().dispatch
+        const s = await T.RPCGen.configGetBootstrapStatusRpcPromise()
+        const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
+        setBootstrap({deviceID, deviceName, uid, username})
+        if (username) {
+          setDefaultUsername(username)
+        }
+        if (loggedIn) {
+          C.useConfigState.getState().dispatch.setUserSwitching(false)
+        }
+
+        logger.info(`[Bootstrap] loggedIn: ${loggedIn ? 1 : 0}`)
+        C.useConfigState.getState().dispatch.setLoggedIn(loggedIn, false)
+        C.useChatState.getState().dispatch.updateUserReacjis(userReacjis)
+
+        // set HTTP srv info
+        if (s.httpSrvInfo) {
+          logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
+          C.useConfigState.getState().dispatch.setHTTPSrvInfo(s.httpSrvInfo.address, s.httpSrvInfo.token)
+        } else {
+          logger.info(`[Bootstrap] http server: no info given`)
+        }
+
+        // if we're logged in act like getAccounts is done already
+        if (loggedIn) {
+          const {handshakeWaiters} = get()
+          if (handshakeWaiters.get(getAccountsWaitKey)) {
+            wait(getAccountsWaitKey, version, false)
+          }
+        }
+      }
+
+      return await f()
     },
     onRestartHandshakeNative: _onRestartHandshakeNative,
     resetState: () => {
@@ -121,9 +283,17 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       })
     },
     setState: ds => {
+      if (ds === get().handshakeState) return
       set(s => {
         s.handshakeState = ds
       })
+
+      if (ds !== 'done') return
+
+      if (!_emitStartupOnLoadDaemonConnectedOnce) {
+        _emitStartupOnLoadDaemonConnectedOnce = true
+        C.useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
+      }
     },
     startHandshake: () => {
       get().dispatch.setError()

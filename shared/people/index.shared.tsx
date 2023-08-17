@@ -1,9 +1,8 @@
+import * as C from '../constants'
 import * as React from 'react'
-import * as Constants from '../constants/people'
-import * as SignupConstants from '../constants/signup'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import type * as Types from '../constants/types/people'
+import type * as T from '../constants/types'
 import Announcement from './announcement/container'
 import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
@@ -12,7 +11,7 @@ import type {Props} from '.'
 import Todo from './todo/container'
 // import WotTask from './wot-task'
 
-export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => React.ReactNode = (
+export const itemToComponent: (item: T.People.PeopleScreenItem, props: Props) => React.ReactNode = (
   item,
   props
 ) => {
@@ -62,8 +61,8 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
 }
 
 const EmailVerificationBanner = () => {
-  const clearJustSignedUpEmail = SignupConstants.useState(s => s.dispatch.clearJustSignedUpEmail)
-  const signupEmail = SignupConstants.useState(s => s.justSignedUpEmail)
+  const clearJustSignedUpEmail = C.useSignupState(s => s.dispatch.clearJustSignedUpEmail)
+  const signupEmail = C.useSignupState(s => s.justSignedUpEmail)
   React.useEffect(
     () =>
       // Only have a cleanup function
@@ -86,8 +85,8 @@ const EmailVerificationBanner = () => {
 }
 
 const ResentEmailVerificationBanner = () => {
-  const resentEmail = Constants.useState(s => s.resentEmail)
-  const setResentEmail = Constants.useState(s => s.dispatch.setResentEmail)
+  const resentEmail = C.usePeopleState(s => s.resentEmail)
+  const setResentEmail = C.usePeopleState(s => s.dispatch.setResentEmail)
   React.useEffect(
     () =>
       // Only have a cleanup function

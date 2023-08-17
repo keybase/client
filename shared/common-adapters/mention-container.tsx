@@ -1,7 +1,4 @@
-import * as Followers from '../constants/followers'
-import * as ConfigConstants from '../constants/config'
-import * as ProfileConstants from '../constants/profile'
-import * as TrackerConstants from '../constants/tracker2'
+import * as C from '../constants'
 import Mention, {type OwnProps} from './mention'
 import {isSpecialMention} from '../constants/chat2'
 import * as Container from '../util/container'
@@ -9,8 +6,8 @@ import * as Container from '../util/container'
 export default (ownProps: OwnProps) => {
   let {username} = ownProps
   username = username.toLowerCase()
-  const following = Followers.useFollowerState(s => s.following.has(username))
-  const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
+  const following = C.useFollowerState(s => s.following.has(username))
+  const myUsername = C.useCurrentUserState(s => s.username)
   const theme = (() => {
     if (isSpecialMention(username)) {
       return 'highlight' as const
@@ -24,8 +21,8 @@ export default (ownProps: OwnProps) => {
     }
   })()
 
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const _onClick = () => {
     if (Container.isMobile) {
       showUserProfile(username)

@@ -1,37 +1,32 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Types from '../../../constants/types/chat2'
-import * as Constants from '../../../constants/chat2'
-import * as RouterConstants from '../../../constants/router2'
+import * as T from '../../../constants/types'
 import {Avatars, TeamAvatar} from '../../avatars'
 import debounce from 'lodash/debounce'
 import logger from '../../../logger'
 
 type Props = {
-  srcConvID: Types.ConversationIDKey
-  ordinal: Types.Ordinal
+  conversationIDKey: T.Chat.ConversationIDKey // for page
+  ordinal: T.Chat.Ordinal
 }
 
 type PickerState = 'picker' | 'title'
 
 const TeamPicker = (props: Props) => {
-  const srcConvID = props.srcConvID
+  const srcConvID = C.useChatContext(s => s.id)
   const ordinal = props.ordinal
-  const message = Container.useSelector(state => Constants.getMessage(state, srcConvID, ordinal))
+  const message = C.useChatContext(s => s.messageMap.get(ordinal))
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
   const dstConvIDRef = React.useRef<Buffer | undefined>()
-  const [results, setResults] = React.useState<Array<RPCChatTypes.ConvSearchHit>>([])
+  const [results, setResults] = React.useState<Array<T.RPCChat.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const fwdMsg = Container.useRPC(RPCChatTypes.localForwardMessageNonblockRpcPromise)
-  const submit = Container.useRPC(RPCChatTypes.localForwardMessageConvSearchRpcPromise)
-  const dispatch = Container.useDispatch()
+  const fwdMsg = Container.useRPC(T.RPCChat.localForwardMessageNonblockRpcPromise)
+  const submit = Container.useRPC(T.RPCChat.localForwardMessageConvSearchRpcPromise)
   const [lastTerm, setLastTerm] = React.useState('init')
   if (lastTerm !== term) {
     setLastTerm(term)
@@ -50,7 +45,7 @@ const TeamPicker = (props: Props) => {
     )
   }
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
   }
@@ -79,6 +74,7 @@ const TeamPicker = (props: Props) => {
     }
   }
 
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onSubmit = (event?: React.BaseSyntheticEvent) => {
     event?.preventDefault()
     event?.stopPropagation()
@@ -87,9 +83,9 @@ const TeamPicker = (props: Props) => {
       [
         {
           dstConvID: dstConvIDRef.current,
-          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
           msgID: message.id,
-          srcConvID: Types.keyToConversationID(srcConvID),
+          srcConvID: T.Chat.keyToConversationID(srcConvID),
           title,
         },
       ],
@@ -103,15 +99,13 @@ const TeamPicker = (props: Props) => {
       }
     )
     clearModals()
-    dispatch(
-      Chat2Gen.createPreviewConversation({
-        conversationIDKey: Types.conversationIDToKey(dstConvIDRef.current),
-        reason: 'forward',
-      })
-    )
+    previewConversation({
+      conversationIDKey: T.Chat.conversationIDToKey(dstConvIDRef.current),
+      reason: 'forward',
+    })
   }
 
-  const onSelect = (dstConvID: RPCChatTypes.ConversationID) => {
+  const onSelect = (dstConvID: T.RPCChat.ConversationID) => {
     if (!message) {
       setError('Something went wrong, please try again.')
       return
@@ -127,7 +121,7 @@ const TeamPicker = (props: Props) => {
     }
   }
 
-  const renderResult = (index: number, item: RPCChatTypes.ConvSearchHit) => {
+  const renderResult = (index: number, item: T.RPCChat.ConvSearchHit) => {
     return (
       <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.results}>

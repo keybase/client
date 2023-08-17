@@ -1,7 +1,7 @@
+import * as C from '../../../../../constants'
 import * as React from 'react'
-import {ConvoIDContext, OrdinalContext} from '../../ids-context'
 import * as Constants from '../../../../../constants/chat2'
-import * as Container from '../../../../../util/container'
+import {OrdinalContext} from '../../ids-context'
 import ExplodingMeta from '.'
 
 export type OwnProps = {
@@ -11,10 +11,9 @@ export type OwnProps = {
 const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: OwnProps) {
   const {onClick} = p
 
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
 
-  const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
+  const message = C.useChatContext(s => s.messageMap.get(ordinal))
   if (!message || (message.type !== 'text' && message.type !== 'attachment') || !message.exploding) {
     return null
   }

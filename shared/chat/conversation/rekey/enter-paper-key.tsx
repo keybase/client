@@ -1,18 +1,18 @@
 import {PaperKey} from '../../../provision/paper-key'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
+import * as T from '../../../constants/types'
 import * as Container from '../../../util/container'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 
 export default () => {
   const error = ''
   const hint = ''
   const waiting = false
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }
 
-  const checkPaperKeyRPC = Container.useRPC(RPCTypes.loginPaperKeySubmitRpcPromise)
+  const checkPaperKeyRPC = Container.useRPC(T.RPCGen.loginPaperKeySubmitRpcPromise)
   const onSubmit = (paperKey: string) => {
     checkPaperKeyRPC(
       [{paperPhrase: paperKey}],

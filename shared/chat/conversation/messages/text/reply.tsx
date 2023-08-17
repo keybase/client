@@ -1,23 +1,20 @@
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import {ConvoIDContext, OrdinalContext, GetIdsContext, HighlightedContext} from '../ids-context'
-import type * as Types from '../../../../constants/types/chat2'
+import {OrdinalContext, HighlightedContext} from '../ids-context'
+import type * as T from '../../../../constants/types'
 
-export const useReply = (ordinal: Types.Ordinal) => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const showReplyTo = Container.useSelector(
-    state => !!state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.replyTo
-  )
+export const useReply = (ordinal: T.Chat.Ordinal) => {
+  const showReplyTo = C.useChatContext(s => !!s.messageMap.get(ordinal)?.replyTo)
   return showReplyTo ? <Reply /> : null
 }
 
 const emptyMessage = Constants.makeMessageText()
 
-const ReplyToContext = React.createContext<Types.Message>(emptyMessage)
+const ReplyToContext = React.createContext<T.Chat.Message>(emptyMessage)
 
 const AvatarHolder = () => {
   const {author} = React.useContext(ReplyToContext)
@@ -126,19 +123,16 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
 })
 
 const Reply = React.memo(function Reply() {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const replyTo = Container.useSelector(state => {
-    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  const replyTo = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
     return m?.replyTo ?? emptyMessage
   })
 
-  const dispatch = Container.useDispatch()
-  const getIds = React.useContext(GetIdsContext)
+  const replyJump = C.useChatContext(s => s.dispatch.replyJump)
   const onClick = Container.useEvent(() => {
-    const {conversationIDKey} = getIds()
     const id = replyTo.id
-    id && dispatch(Chat2Gen.createReplyJump({conversationIDKey, messageID: id}))
+    id && replyJump(id)
   })
 
   if (!replyTo.id) return null
@@ -191,5 +185,5 @@ const styles = Styles.styleSheetCreate(
       replyUsername: {alignSelf: 'center'},
       replyUsernameHighlighted: {color: Styles.globalColors.blackOrBlack},
       textHighlighted: {color: Styles.globalColors.black_50OrBlack_50},
-    } as const)
+    }) as const
 )

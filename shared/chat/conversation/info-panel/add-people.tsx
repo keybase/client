@@ -1,12 +1,8 @@
+import * as C from '../../../constants'
 import * as React from 'react'
-import * as Constants from '../../../constants/chat2'
-import * as TeamsConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
-import * as RouterConstants from '../../../constants/router2'
 import * as Styles from '../../../styles'
-import type * as TeamTypes from '../../../constants/types/teams'
-import type * as Types from '../../../constants/types/chat2'
-import * as Container from '../../../util/container'
+import type * as T from '../../../constants/types'
 
 type Props = {
   isAdmin: boolean
@@ -71,27 +67,26 @@ const _AddPeople = (props: Props) => {
 _AddPeople.displayName = 'AddPeople'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
   isAdmin: boolean
   isGeneralChannel: boolean
 }
 
 const AddPeople = (ownProps: OwnProps) => {
-  const meta = Container.useSelector(state => Constants.getMeta(state, ownProps.conversationIDKey))
+  const meta = C.useChatContext(s => s.meta)
   const teamID = meta.teamID
-  const startAddMembersWizard = TeamsConstants.useState(s => s.dispatch.startAddMembersWizard)
-  const _onAddPeople = (teamID: TeamTypes.TeamID) => {
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const _onAddPeople = (teamID: T.Teams.TeamID) => {
     startAddMembersWizard(teamID)
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
-  const _onAddToChannel = (conversationIDKey: Types.ConversationIDKey, teamID: TeamTypes.TeamID) => {
-    navigateAppend({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'})
+  const navigateAppend = C.useChatNavigateAppend()
+  const _onAddToChannel = (teamID: T.Teams.TeamID) => {
+    navigateAppend(conversationIDKey => ({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}))
   }
   const props = {
     isAdmin: ownProps.isAdmin,
     isGeneralChannel: ownProps.isGeneralChannel,
     onAddPeople: () => _onAddPeople(teamID),
-    onAddToChannel: () => _onAddToChannel(ownProps.conversationIDKey, teamID),
+    onAddToChannel: () => _onAddToChannel(teamID),
   }
   return <_AddPeople {...props} />
 }

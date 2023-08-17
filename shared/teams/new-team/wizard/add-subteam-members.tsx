@@ -1,10 +1,10 @@
-import * as ConfigConstants from '../../../constants/config'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import * as Types from '../../../constants/types/teams'
+import * as T from '../../../constants/types'
 import {ModalTitle} from '../../common'
 import {pluralize} from '../../../util/string'
 import {useTeamDetailsSubscribe} from '../../subscriber'
@@ -15,18 +15,18 @@ const AddSubteamMembers = () => {
   const [filter, setFilter] = React.useState('')
   const filterL = filter.toLowerCase()
   const onBack = () => nav.safeNavigateUp()
-  const setTeamWizardSubteamMembers = Constants.useState(s => s.dispatch.setTeamWizardSubteamMembers)
-  const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
+  const setTeamWizardSubteamMembers = C.useTeamsState(s => s.dispatch.setTeamWizardSubteamMembers)
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onContinue = () =>
     selectedMembers.size
       ? setTeamWizardSubteamMembers([...selectedMembers])
-      : startAddMembersWizard(Types.newTeamWizardTeamID)
+      : startAddMembersWizard(T.Teams.newTeamWizardTeamID)
 
-  const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
-  const parentTeamID = Constants.useState(s => s.newTeamWizard.parentTeamID ?? Types.noTeamID)
+  const yourUsername = C.useCurrentUserState(s => s.username)
+  const parentTeamID = C.useTeamsState(s => s.newTeamWizard.parentTeamID ?? T.Teams.noTeamID)
   useTeamDetailsSubscribe(parentTeamID)
-  const parentTeamName = Constants.useState(s => Constants.getTeamMeta(s, parentTeamID).teamname)
-  const parentMembersMap = Constants.useState(
+  const parentTeamName = C.useTeamsState(s => Constants.getTeamMeta(s, parentTeamID).teamname)
+  const parentMembersMap = C.useTeamsState(
     s => (s.teamDetails.get(parentTeamID) ?? Constants.emptyTeamDetails).members
   )
   const parentMembers = [...parentMembersMap.values()].filter(
@@ -46,7 +46,7 @@ const AddSubteamMembers = () => {
     : 'Continue without members'
   const doneLabel = selectedMembers.size ? 'Done' : 'Skip'
 
-  const renderItem = (_: number, m: Types.MemberInfo) => {
+  const renderItem = (_: number, m: T.Teams.MemberInfo) => {
     const selected = selectedMembers.has(m.username)
     const onSelect = () => {
       // TODO: ensure performance (see Y2K-1666)
@@ -86,7 +86,7 @@ const AddSubteamMembers = () => {
             </Kb.Text>
           </Kb.Box2>
         ) : undefined,
-        title: <ModalTitle teamID={Types.newTeamWizardTeamID} title="Add members" />,
+        title: <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Add members" />,
       }}
       footer={
         Styles.isMobile

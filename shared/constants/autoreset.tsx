@@ -1,7 +1,6 @@
+import * as C from '.'
 import * as Z from '../util/zustand'
-import * as RouterConstants from '../constants/router2'
-import * as RPCGen from '../constants/types/rpc-gen'
-import * as ProvisionConstants from './provision'
+import * as T from '../constants/types'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
 
@@ -11,7 +10,7 @@ export const cancelResetWaitingKey = 'autoreset:cancelWaitingKey'
 
 type Store = {
   active: boolean
-  afterSubmitResetPrompt: (action: RPCGen.ResetPromptResponse) => void
+  afterSubmitResetPrompt: (action: T.RPCGen.ResetPromptResponse) => void
   endTime: number
   error: string
   hasWallet: boolean
@@ -21,7 +20,7 @@ type Store = {
 
 const initialStore: Store = {
   active: false,
-  afterSubmitResetPrompt: (_action: RPCGen.ResetPromptResponse) => {
+  afterSubmitResetPrompt: (_action: T.RPCGen.ResetPromptResponse) => {
     console.log('Unset afterSubmitResetPrompt called')
   },
   endTime: 0,
@@ -41,7 +40,7 @@ type State = Store & {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     cancelReset: () => {
       set(s => {
@@ -50,7 +49,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         logger.info('Cancelled autoreset from logged-in user')
         try {
-          await RPCGen.accountCancelResetRpcPromise(undefined, cancelResetWaitingKey)
+          await T.RPCGen.accountCancelResetRpcPromise(undefined, cancelResetWaitingKey)
           set(s => {
             s.active = false
           })
@@ -60,11 +59,11 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
           logger.error('Error in CancelAutoreset', error)
           switch (error.code) {
-            case RPCGen.StatusCode.scnosession:
+            case T.RPCGen.StatusCode.scnosession:
               // We got logged out because we were revoked (which might have been
               // becase the reset was completed and this device wasn't notified).
               return undefined
-            case RPCGen.StatusCode.scnotfound:
+            case T.RPCGen.StatusCode.scnotfound:
               // "User not in autoreset queue."
               // do nothing, fall out of the catch block to cancel reset modal.
               break
@@ -88,65 +87,62 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         const promptReset = (
-          params: RPCGen.MessageTypes['keybase.1.loginUi.promptResetAccount']['inParam'],
+          params: T.RPCGen.MessageTypes['keybase.1.loginUi.promptResetAccount']['inParam'],
           response: {
-            result: (reset: RPCGen.MessageTypes['keybase.1.loginUi.promptResetAccount']['outParam']) => void
+            result: (reset: T.RPCGen.MessageTypes['keybase.1.loginUi.promptResetAccount']['outParam']) => void
           }
         ) => {
-          if (params.prompt.t === RPCGen.ResetPromptType.complete) {
+          if (params.prompt.t === T.RPCGen.ResetPromptType.complete) {
             const {hasWallet} = params.prompt.complete
             logger.info('Showing final reset screen')
             set(s => {
               s.hasWallet = hasWallet
-              s.afterSubmitResetPrompt = (action: RPCGen.ResetPromptResponse) => {
+              s.afterSubmitResetPrompt = (action: T.RPCGen.ResetPromptResponse) => {
                 set(s => {
                   s.afterSubmitResetPrompt = initialStore.afterSubmitResetPrompt
                 })
                 response.result(action)
-                if (action === RPCGen.ResetPromptResponse.confirmReset) {
+                if (action === T.RPCGen.ResetPromptResponse.confirmReset) {
                   set(s => {
                     s.error = ''
                   })
-                  ProvisionConstants.useState.getState().dispatch.startProvision(get().username, true)
+                  C.useProvisionState.getState().dispatch.startProvision(get().username, true)
                 } else {
-                  RouterConstants.useState.getState().dispatch.navUpToScreen('login')
+                  C.useRouterState.getState().dispatch.navUpToScreen('login')
                 }
               }
             })
-            RouterConstants.useState.getState().dispatch.navigateAppend('resetConfirm', true)
+            C.useRouterState.getState().dispatch.navigateAppend('resetConfirm', true)
           } else {
             logger.info('Starting account reset process')
             get().dispatch.startAccountReset(true, '')
           }
         }
         try {
-          await RPCGen.accountEnterResetPipelineRpcListener(
-            {
-              customResponseIncomingCallMap: {'keybase.1.loginUi.promptResetAccount': promptReset},
-              incomingCallMap: {
-                'keybase.1.loginUi.displayResetProgress': params => {
-                  if (!params.needVerify) {
-                    set(s => {
-                      s.endTime = params.endTime * 1000
-                    })
-                  }
-                  RouterConstants.useState
-                    .getState()
-                    .dispatch.navigateAppend(
-                      {props: {pipelineStarted: !params.needVerify}, selected: 'resetWaiting'},
-                      true
-                    )
-                },
+          await T.RPCGen.accountEnterResetPipelineRpcListener({
+            customResponseIncomingCallMap: {'keybase.1.loginUi.promptResetAccount': promptReset},
+            incomingCallMap: {
+              'keybase.1.loginUi.displayResetProgress': params => {
+                if (!params.needVerify) {
+                  set(s => {
+                    s.endTime = params.endTime * 1000
+                  })
+                }
+                C.useRouterState
+                  .getState()
+                  .dispatch.navigateAppend(
+                    {props: {pipelineStarted: !params.needVerify}, selected: 'resetWaiting'},
+                    true
+                  )
               },
-              params: {
-                interactive: false,
-                passphrase: password,
-                usernameOrEmail: get().username,
-              },
-              waitingKey: enterPipelineWaitingKey,
             },
-            Z.dummyListenerApi
-          )
+            params: {
+              interactive: false,
+              passphrase: password,
+              usernameOrEmail: get().username,
+            },
+            waitingKey: enterPipelineWaitingKey,
+          })
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return
@@ -161,17 +157,13 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     resetState: 'default',
     startAccountReset: (skipPassword, _username) => {
-      const f = async () => {
-        const RecoverConstants = await import('./recover-password')
-        const username = _username || RecoverConstants.useState.getState().username
-        set(s => {
-          s.skipPassword = skipPassword
-          s.error = ''
-          s.username = username
-        })
-        RouterConstants.useState.getState().dispatch.navigateAppend('recoverPasswordPromptResetAccount', true)
-      }
-      Z.ignorePromise(f())
+      const username = _username || C.useRecoverState.getState().username
+      set(s => {
+        s.skipPassword = skipPassword
+        s.error = ''
+        s.username = username
+      })
+      C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordPromptResetAccount', true)
     },
     updateARState: (active, endTime) => {
       set(s => {

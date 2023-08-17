@@ -1,11 +1,12 @@
+import * as C from '.'
+import type * as T from './types'
 import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
 import * as Z from '../util/zustand'
 import * as Container from '../util/container'
-import * as Tabs from '../constants/tabs'
+import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
 import shallowEqual from 'shallowequal'
-import type {ConversationIDKey} from './types/chat2/common'
 import type {NavigationState} from '@react-navigation/core'
 import type {NavigateAppendType} from '../router-v2/route-params'
 export type PathParam = NavigateAppendType
@@ -82,7 +83,7 @@ export const getModalStack = (navState?: NavState) => {
 
 export const getVisibleScreen = (navState?: NavState) => {
   const visible = getVisiblePath(navState)
-  return visible[visible.length - 1]
+  return visible.at(-1)
 }
 
 type DeepWriteable<T> = {-readonly [P in keyof T]: DeepWriteable<T[P]>}
@@ -141,7 +142,7 @@ export const getTab = (navState?: NavState) => {
 
 const isSplit = !Container.isMobile || Container.isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
-export const navToThread = (conversationIDKey: ConversationIDKey) => {
+export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const rs = getRootState()
   // some kind of unknown race, just bail
   if (!rs) {
@@ -201,7 +202,7 @@ export const navToThread = (conversationIDKey: ConversationIDKey) => {
         params: {conversationIDKey},
       }
       // reuse visible route if it's the same
-      const visible = chatStack.state?.routes?.[chatStack.state?.routes?.length - 1]
+      const visible = chatStack.state?.routes?.at(-1)
       if (visible) {
         // @ts-ignore TODO better route types
         if (visible.name === 'chatConversation' && visible.params?.conversationIDKey === conversationIDKey) {
@@ -247,11 +248,16 @@ export type State = Store & {
     navUpToScreen: (name: string) => void
     popStack: () => void
     resetState: 'default'
+    setNavState: (ns: NavState) => void
     switchTab: (tab: Tabs.AppTab) => void
   }
+  appendEncryptRecipientsBuilder: () => void
+  appendNewChatBuilder: () => void
+  appendNewTeamBuilder: (teamID: T.Teams.TeamID) => void
+  appendPeopleBuilder: () => void
 }
 
-export const useState = Z.createZustand<State>(() => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearModals: () => {
       const n = _getNavigator()
@@ -302,7 +308,7 @@ export const useState = Z.createZustand<State>(() => {
         return
       }
       const vp = getVisiblePath(ns)
-      const visible = vp[vp.length - 1]
+      const visible = vp.at(-1)
       if (visible) {
         if (routeName === visible.name && shallowEqual(visible.params, params)) {
           console.log('Skipping append dupe')
@@ -333,6 +339,97 @@ export const useState = Z.createZustand<State>(() => {
       n?.dispatch(StackActions.popToTop())
     },
     resetState: 'default',
+    setNavState: next => {
+      const prev = get().navState
+      if (prev === next) return
+      set(s => {
+        s.navState = next
+      })
+
+      const updateTeamBuilding = () => {
+        const namespaces = ['chat2', 'crypto', 'teams', 'people'] as const
+        const namespaceToRoute = new Map([
+          ['chat2', 'chatNewChat'],
+          ['crypto', 'cryptoTeamBuilder'],
+          ['teams', 'teamsTeamBuilder'],
+          ['people', 'peopleTeamBuilder'],
+        ])
+        for (const namespace of namespaces) {
+          const wasTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(prev)?.name
+          if (wasTeamBuilding) {
+            // team building or modal on top of that still
+            const isTeamBuilding = namespaceToRoute.get(namespace) === getVisibleScreen(next)?.name
+            if (!isTeamBuilding) {
+              C.TBstores.get(namespace)?.getState().dispatch.cancelTeamBuilding()
+            }
+          }
+        }
+      }
+      updateTeamBuilding()
+
+      const updateFS = () => {
+        const {criticalUpdate, dispatch} = C.useFSState.getState()
+        // Clear critical update when we nav away from tab
+        if (criticalUpdate && prev && getTab(prev) === Tabs.fsTab && next && getTab(next) !== Tabs.fsTab) {
+          dispatch.setCriticalUpdate(false)
+        }
+        const fsRrouteNames = ['fsRoot', 'barePreview']
+        const wasScreen = fsRrouteNames.includes(getVisibleScreen(prev)?.name ?? '')
+        const isScreen = fsRrouteNames.includes(getVisibleScreen(next)?.name ?? '')
+        if (wasScreen !== isScreen) {
+          if (wasScreen) {
+            dispatch.userOut()
+          } else {
+            dispatch.userIn()
+          }
+        }
+      }
+      updateFS()
+
+      const updateSignup = () => {
+        // Clear "just signed up email" when you leave the people tab after signup
+        if (
+          C.useSignupState.getState().justSignedUpEmail &&
+          prev &&
+          getTab(prev) === Tabs.peopleTab &&
+          next &&
+          getTab(next) !== Tabs.peopleTab
+        ) {
+          C.useSignupState.getState().dispatch.clearJustSignedUpEmail()
+        }
+      }
+      updateSignup()
+
+      const updatePeople = () => {
+        if (prev && getTab(prev) === Tabs.peopleTab && next && getTab(next) !== Tabs.peopleTab) {
+          C.usePeopleState.getState().dispatch.markViewed()
+        }
+      }
+      updatePeople()
+
+      const updateTeams = () => {
+        if (prev && getTab(prev) === Tabs.teamsTab && next && getTab(next) !== Tabs.teamsTab) {
+          C.useTeamsState.getState().dispatch.clearNavBadges()
+        }
+      }
+      updateTeams()
+
+      const updateSettings = () => {
+        // Clear "check your inbox" in settings when you leave the settings tab
+        if (
+          C.useSettingsEmailState.getState().addedEmail &&
+          prev &&
+          getTab(prev) === Tabs.settingsTab &&
+          next &&
+          getTab(next) !== Tabs.settingsTab
+        ) {
+          C.useSettingsEmailState.getState().dispatch.resetAddedEmail()
+        }
+      }
+      updateSettings()
+
+      C.useChatState.getState().dispatch.onRouteChanged(prev, next)
+    },
     switchTab: name => {
       const n = _getNavigator()
       if (!n) return
@@ -344,8 +441,57 @@ export const useState = Z.createZustand<State>(() => {
       })
     },
   }
+
+  const appendPeopleBuilder = () => {
+    C.useRouterState.getState().dispatch.navigateAppend({
+      props: {
+        filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
+        namespace: 'people',
+        title: '',
+      },
+      selected: 'peopleTeamBuilder',
+    })
+  }
+
+  const appendNewChatBuilder = () => {
+    C.useRouterState
+      .getState()
+      .dispatch.navigateAppend({props: {namespace: 'chat2', title: 'New chat'}, selected: 'chatNewChat'})
+  }
+
+  // Unless you're within the add members wizard you probably should use `TeamsGen.startAddMembersWizard` instead
+  const appendNewTeamBuilder = (teamID: T.Teams.TeamID) => {
+    C.useRouterState.getState().dispatch.navigateAppend({
+      props: {
+        filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
+        goButtonLabel: 'Add',
+        namespace: 'teams',
+        teamID,
+        title: '',
+      },
+      selected: 'teamsTeamBuilder',
+    })
+  }
+
+  const appendEncryptRecipientsBuilder = () => {
+    C.useRouterState.getState().dispatch.navigateAppend({
+      props: {
+        filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
+        goButtonLabel: 'Add',
+        namespace: 'crypto',
+        recommendedHideYourself: true,
+        title: 'Recipients',
+      },
+      selected: 'cryptoTeamBuilder',
+    })
+  }
+
   return {
     ...initialStore,
+    appendEncryptRecipientsBuilder,
+    appendNewChatBuilder,
+    appendNewTeamBuilder,
+    appendPeopleBuilder,
     dispatch,
   }
 })

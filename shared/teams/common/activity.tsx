@@ -1,10 +1,11 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Types from '../../constants/types/teams'
+import * as T from '../../constants/types'
 import * as Constants from '../../constants/teams'
 
-type Props = {title: string; teamID: Types.TeamID}
+type Props = {title: string; teamID: T.Teams.TeamID}
 
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
   active: 'iconfont-campfire-burning',
@@ -14,7 +15,7 @@ const activityToLabel = {
   active: 'Active',
   recently: 'Recently active',
 }
-const Activity = ({level, style}: {level: Types.ActivityLevel; style?: Styles.StylesCrossPlatform}) =>
+const Activity = ({level, style}: {level: T.Teams.ActivityLevel; style?: Styles.StylesCrossPlatform}) =>
   level === 'none' ? null : (
     <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={Styles.isMobile} style={style}>
       <Kb.Icon
@@ -29,10 +30,10 @@ const Activity = ({level, style}: {level: Types.ActivityLevel; style?: Styles.St
   )
 
 export const ModalTitle = ({title, teamID}: Props) => {
-  const teamname = Constants.useState(state => Constants.getTeamMeta(state, teamID).teamname)
-  const avatarFilepath = Constants.useState(state => state.newTeamWizard.avatarFilename)
-  const avatarCrop = Constants.useState(state => state.newTeamWizard.avatarCrop)
-  const isNewTeamWizard = teamID == Types.newTeamWizardTeamID
+  const teamname = C.useTeamsState(state => Constants.getTeamMeta(state, teamID).teamname)
+  const avatarFilepath = C.useTeamsState(state => state.newTeamWizard.avatarFilename)
+  const avatarCrop = C.useTeamsState(state => state.newTeamWizard.avatarCrop)
+  const isNewTeamWizard = teamID == T.Teams.newTeamWizardTeamID
 
   return Styles.isMobile ? (
     <Kb.Box2 direction="vertical" alignItems="center">
@@ -68,8 +69,8 @@ export const ModalTitle = ({title, teamID}: Props) => {
  * @param forceLoad force a reload even if they're already loaded.
  */
 export const useActivityLevels = (forceLoad?: boolean) => {
-  const activityLevelsLoaded = Constants.useState(s => s.activityLevels.loaded)
-  const getActivityForTeams = Constants.useState(s => s.dispatch.getActivityForTeams)
+  const activityLevelsLoaded = C.useTeamsState(s => s.activityLevels.loaded)
+  const getActivityForTeams = C.useTeamsState(s => s.dispatch.getActivityForTeams)
   // keep whether we've triggered a load so we only do it once.
   const triggeredLoad = React.useRef(false)
   React.useEffect(() => {

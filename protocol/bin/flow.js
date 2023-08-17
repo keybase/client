@@ -206,11 +206,11 @@ function analyzeMessages(json, project) {
     if (isUIMethod) {
       project.incomingMaps[
         methodName
-      ] = `(params: MessageTypes[${methodName}]['inParam'] & {sessionID: number}) => IncomingReturn`
+      ] = `(params: MessageTypes[${methodName}]['inParam'] & {sessionID: number}) => void`
       if (!message.hasOwnProperty('notify')) {
         project.customResponseIncomingMaps[
           methodName
-        ] = `(params: MessageTypes[${methodName}]['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback, result: (res: MessageTypes[${methodName}]['outParam']) => void}) => IncomingReturn`
+        ] = `(params: MessageTypes[${methodName}]['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback, result: (res: MessageTypes[${methodName}]['outParam']) => void}) => void`
       }
     }
 
@@ -257,7 +257,7 @@ function engineListenerGen(methodName, name, justType) {
   }
   return justType
     ? `declare export function ${name}RpcListener (p: {params: MessageTypes[${methodName}]['inParam'], incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: WaitingKey}): CallEffect<void, () => void, Array<void>>`
-    : `export const ${name}RpcListener = (p: {params: MessageTypes[${methodName}]['inParam'], incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: WaitingKey}, listenerApi: ListenerApi):Promise<MessageTypes[${methodName}]['outParam']> => getEngineListener()({method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey}, listenerApi)`
+    : `export const ${name}RpcListener = (p: {params: MessageTypes[${methodName}]['inParam'], incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: WaitingKey}):Promise<MessageTypes[${methodName}]['outParam']> => getEngineListener()({method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})`
 }
 
 function rpcPromiseGen(methodName, name, justType) {
@@ -450,7 +450,7 @@ function writeFlow(typeDefs, project) {
 
   const engineImports = [
     project.hasEngine ? 'getEngine as engine' : '',
-    project.hasEngineListener ? 'getEngineListener, type ListenerApi' : '',
+    project.hasEngineListener ? 'getEngineListener' : '',
   ]
     .filter(f => f.length)
     .join(', ')
@@ -474,14 +474,6 @@ export type Uint64 = number
 ${project.hasEngine ? 'type WaitingKey = string | Array<string>' : ''}
 type SimpleError = {code?: number, desc?: string}
 export type IncomingErrorCallback = (err?: SimpleError | null) => void
-${
-  project.hasEngine
-    ? `
-import type {TypedActions} from '../../actions/typed-actions-gen'
-type IncomingReturn = Promise<Array<TypedActions> | TypedActions | false | undefined | void> | Array<TypedActions> | TypedActions | false | undefined | void
-`
-    : ''
-}
 
 `
   const consts = Object.keys(typeDefs.consts).map(k => typeDefs.consts[k])

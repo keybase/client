@@ -1,19 +1,17 @@
+import * as C from '../../constants'
 import * as Constants from '../../constants/teams'
-import * as RouterConstants from '../../constants/router2'
-import * as ConfigConstants from '../../constants/config'
 import * as Tracker2Constants from '../../constants/tracker2'
-import * as WaitingConstants from '../../constants/waiting'
 import Render from '.'
 
 export default () => {
-  const waiting = WaitingConstants.useWaitingState(s => s.counts)
-  const _you = ConfigConstants.useCurrentUserState(s => s.username)
-  const teamMeta = Constants.useState(s => s.teamMeta)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const waiting = C.useWaitingState(s => s.counts)
+  const _you = C.useCurrentUserState(s => s.username)
+  const teamMeta = C.useTeamsState(s => s.teamMeta)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = (you: string) => {
     // sadly a little racy, doing this for now
     setTimeout(() => {
-      Tracker2Constants.useState.getState().dispatch.load({
+      C.useTrackerState.getState().dispatch.load({
         assertion: you,
         guiID: Tracker2Constants.generateGUIID(),
         ignoreCache: true,
@@ -24,7 +22,7 @@ export default () => {
     navigateUp()
   }
 
-  const setMemberPublicity = Constants.useState(s => s.dispatch.setMemberPublicity)
+  const setMemberPublicity = C.useTeamsState(s => s.dispatch.setMemberPublicity)
   const onPromote = setMemberPublicity
   const props = {
     onCancel: () => onCancel(_you),

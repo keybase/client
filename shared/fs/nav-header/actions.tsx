@@ -1,5 +1,6 @@
-import * as Types from '../../constants/types/fs'
+import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
+import * as T from '../../constants/types'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
@@ -7,13 +8,13 @@ import * as Styles from '../../styles'
 
 type Props = {
   onTriggerFilterMobile: () => void
-  path: Types.Path
+  path: T.FS.Path
 }
 
 const FsNavHeaderRightActions = (props: Props) => {
-  const softErrors = Constants.useState(s => s.softErrors)
+  const softErrors = C.useFSState(s => s.softErrors)
   const hasSoftError = !!Constants.getSoftError(softErrors, props.path)
-  const setFolderViewFilter = Constants.useState(s => s.dispatch.setFolderViewFilter)
+  const setFolderViewFilter = C.useFSState(s => s.dispatch.setFolderViewFilter)
   React.useEffect(() => {
     !Styles.isMobile && setFolderViewFilter() // mobile is handled in mobile-header.tsx
   }, [setFolderViewFilter, props.path]) // clear if path changes or it's a new layer of mount
@@ -30,7 +31,7 @@ const FsNavHeaderRightActions = (props: Props) => {
       <Kbfs.PathItemAction
         path={props.path}
         clickable={{type: 'icon'}}
-        initView={Types.PathItemActionMenuView.Root}
+        initView={T.FS.PathItemActionMenuView.Root}
         mode="screen"
       />
     </Kb.Box2>
@@ -60,5 +61,5 @@ const styles = Styles.styleSheetCreate(
           marginRight: Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )

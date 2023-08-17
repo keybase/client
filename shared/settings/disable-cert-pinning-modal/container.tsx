@@ -1,13 +1,12 @@
-import * as RouterConstants from '../../constants/router2'
-import * as Constants from '../../constants/settings'
+import * as C from '../../constants'
 import ConfirmDisableCertPinningModal from '.'
 
 export default () => {
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }
-  const setDidToggleCertificatePinning = Constants.useState(s => s.dispatch.setDidToggleCertificatePinning)
+  const setDidToggleCertificatePinning = C.useSettingsState(s => s.dispatch.setDidToggleCertificatePinning)
   const onConfirm = () => {
     setDidToggleCertificatePinning(true)
     navigateUp()

@@ -1,4 +1,4 @@
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 import type * as Constants from '../constants/pinentry'
 
 export type ProxyProps = {
@@ -17,7 +17,7 @@ const initialState: DeserializeProps = {
     label: '',
     readonly: false,
   },
-  type: RPCTypes.PassphraseType.none,
+  type: T.RPCGen.PassphraseType.none,
   windowTitle: '',
 }
 

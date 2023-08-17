@@ -1,11 +1,9 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import * as RouterConstants from '../../../constants/router2'
-import * as BotsConstants from '../../../constants/bots'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as Types from '../../../constants/types/chat2'
+import * as T from '../../../constants/types'
 import {Avatars, TeamAvatar} from '../../avatars'
 import debounce from 'lodash/debounce'
 import logger from '../../../logger'
@@ -17,10 +15,10 @@ type Props = {
 const BotTeamPicker = (props: Props) => {
   const botUsername = props.botUsername
   const [term, setTerm] = React.useState('')
-  const [results, setResults] = React.useState<Array<RPCChatTypes.ConvSearchHit>>([])
+  const [results, setResults] = React.useState<Array<T.RPCChat.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const submit = Container.useRPC(RPCChatTypes.localAddBotConvSearchRpcPromise)
+  const submit = Container.useRPC(T.RPCChat.localAddBotConvSearchRpcPromise)
 
   const [lastTerm, setLastTerm] = React.useState('init')
   if (lastTerm !== term) {
@@ -40,25 +38,25 @@ const BotTeamPicker = (props: Props) => {
     )
   }
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
-  const onSelect = (convID: RPCChatTypes.ConversationID) => {
-    const conversationIDKey = Types.conversationIDToKey(convID)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onSelect = (convID: T.RPCChat.ConversationID) => {
+    const conversationIDKey = T.Chat.conversationIDToKey(convID)
     navigateAppend({
       props: {botUsername, conversationIDKey},
       selected: 'chatInstallBot',
     })
   }
 
-  const getFeaturedBots = BotsConstants.useState(s => s.dispatch.getFeaturedBots)
+  const getFeaturedBots = C.useBotsState(s => s.dispatch.getFeaturedBots)
   Container.useOnMountOnce(() => {
     getFeaturedBots()
   })
 
-  const renderResult = (index: number, item: RPCChatTypes.ConvSearchHit) => {
+  const renderResult = (index: number, item: T.RPCChat.ConvSearchHit) => {
     return (
       <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.results}>

@@ -1,24 +1,22 @@
+import * as C from '../constants'
 import * as React from 'react'
-import * as RouterConstants from '../constants/router2'
 import * as Kb from '../common-adapters'
-import * as Constants from '../constants/provision'
-import * as SettingsConstants from '../constants/settings'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import {SignupScreen, errorBanner} from '../signup/common'
 
 const ForgotUsername = () => {
-  const defaultCountry = SettingsConstants.usePhoneState(s => s.defaultCountry)
-  const loadDefaultPhoneCountry = SettingsConstants.usePhoneState(s => s.dispatch.loadDefaultPhoneCountry)
+  const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
+  const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
   // trigger a default phone number country rpc if it's not already loaded
   React.useEffect(() => {
     !defaultCountry && loadDefaultPhoneCountry()
   }, [defaultCountry, loadDefaultPhoneCountry])
 
-  const forgotUsernameResult = Constants.useState(s => s.forgotUsernameResult)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const forgotUsernameResult = C.useProvisionState(s => s.forgotUsernameResult)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
-  const waiting = Container.useAnyWaiting(Constants.forgotUsernameWaitingKey)
+  const waiting = Container.useAnyWaiting(C.forgotUsernameWaitingKey)
 
   const [emailSelected, setEmailSelected] = React.useState(true)
   const [email, setEmail] = React.useState('')
@@ -27,7 +25,7 @@ const ForgotUsername = () => {
   // truthy when it's valid. This is used in the form validation logic in the code.
   const [phoneNumber, setPhoneNumber] = React.useState<string | undefined>()
 
-  const forgotUsername = Constants.useState(s => s.dispatch.forgotUsername)
+  const forgotUsername = C.useProvisionState(s => s.dispatch.forgotUsername)
 
   const onSubmit = React.useCallback(() => {
     if (!emailSelected && phoneNumber) {

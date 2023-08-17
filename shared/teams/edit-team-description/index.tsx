@@ -1,30 +1,31 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as Types from '../../constants/types/teams'
+import * as T from '../../constants/types'
 import {ModalTitle} from '../common'
 
-type Props = {teamID: Types.TeamID}
+type Props = {teamID: T.Teams.TeamID}
 
 const EditTeamDescription = (props: Props) => {
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
 
-  const teamname = Constants.useState(s => Constants.getTeamNameFromID(s, teamID))
+  const teamname = C.useTeamsState(s => Constants.getTeamNameFromID(s, teamID))
   const waitingKey = Constants.teamWaitingKey(teamID)
   const waiting = Container.useAnyWaiting(waitingKey)
-  const error = Constants.useState(s => s.errorInEditDescription)
-  const origDescription = Constants.useState(s => s.teamDetails.get(teamID))?.description ?? ''
+  const error = C.useTeamsState(s => s.errorInEditDescription)
+  const origDescription = C.useTeamsState(s => s.teamDetails.get(teamID))?.description ?? ''
 
-  if (teamID === Types.noTeamID || teamname === null) {
+  if (teamID === T.Teams.noTeamID || teamname === null) {
     throw new Error(
       `There was a problem loading the description page, please report this error (teamID: ${teamID}, teamname: ${teamname}).`
     )
   }
 
   const [description, setDescription] = React.useState(origDescription)
-  const editTeamDescription = Constants.useState(s => s.dispatch.editTeamDescription)
+  const editTeamDescription = C.useTeamsState(s => s.dispatch.editTeamDescription)
 
   const nav = Container.useSafeNavigation()
   const onSave = () => editTeamDescription(teamID, description)

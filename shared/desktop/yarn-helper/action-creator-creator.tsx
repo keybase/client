@@ -116,7 +116,9 @@ function compileActionPayloads(_: ActionNS, actionName: ActionName) {
   return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
 }
 
-function compileActionCreator(_: ActionNS, actionName: ActionName, desc: ActionDesc) {
+function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
+  // don't make action creators for this
+  const allowCreate = ns !== 'engine-gen'
   const hasPayload = !!payloadKeys(desc).length
   const assignPayload = payloadOptional(desc)
   const comment = desc['_description']
@@ -128,7 +130,7 @@ function compileActionCreator(_: ActionNS, actionName: ActionName, desc: ActionD
   const payload = hasPayload
     ? `payload: ${printPayload(desc)}${assignPayload ? ' = {}' : ''}`
     : 'payload?: undefined'
-  return `${comment}export const create${capitalize(actionName)} = (${payload}) => (
+  return `${comment}${allowCreate ? 'export ' : ''}const create${capitalize(actionName)} = (${payload}) => (
   {payload, type: ${actionName} as typeof ${actionName}}
 )`
 }
@@ -137,17 +139,17 @@ function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, _: Actio
   return `export const ${actionName} = '${ns}:${actionName}'`
 }
 
-function makeTypedActions(created: Array<string>) {
-  return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-  ${created.map(c => `import type * as ${cleanName(c)} from './${c}-gen'`).join('\n')}
+// function makeTypedActions(created: Array<string>) {
+//   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
+//   ${created.map(c => `import type * as ${cleanName(c)} from './${c}-gen'`).join('\n')}
 
-  export type TypedActions = ${created.map(c => `${cleanName(c)}.Actions`).join(' | ')}
+//   export type TypedActions = ${created.map(c => `${cleanName(c)}.Actions`).join(' | ')}
 
-  type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never
-  type MapDiscriminatedUnion<T extends Record<K, string>, K extends keyof T> = { [V in T[K]]: DiscriminateUnion<T, K, V> };
-  export type TypedActionsMap = MapDiscriminatedUnion<TypedActions, 'type'>
-`
-}
+//   type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never
+//   type MapDiscriminatedUnion<T extends Record<K, string>, K extends keyof T> = { [V in T[K]]: DiscriminateUnion<T, K, V> };
+//   export type TypedActionsMap = MapDiscriminatedUnion<TypedActions, 'type'>
+// `
+// }
 
 async function main() {
   const root = path.join(__dirname, '../../actions/json')
@@ -174,14 +176,14 @@ async function main() {
     })
   await Promise.all(proms)
 
-  console.log(`Generating typed-actions-gen`)
-  const outPath = path.join(root, '..', 'typed-actions-gen.tsx')
-  const typedActions = makeTypedActions(created)
-  const generated: string = await prettier.format(typedActions, {
-    ...(await prettier.resolveConfig(outPath)),
-    parser: 'typescript',
-  })
-  fs.writeFileSync(outPath, generated)
+  // console.log(`Generating typed-actions-gen`)
+  // const outPath = path.join(root, '..', 'typed-actions-gen.tsx')
+  // const typedActions = makeTypedActions(created)
+  // const generated: string = await prettier.format(typedActions, {
+  //   ...(await prettier.resolveConfig(outPath)),
+  //   parser: 'typescript',
+  // })
+  // fs.writeFileSync(outPath, generated)
 }
 
 main()

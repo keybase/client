@@ -1,31 +1,30 @@
-import * as Constants from '../constants/devices'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
 import DeviceRow, {NewContext} from './row'
 import partition from 'lodash/partition'
-import type * as Types from '../constants/types/devices'
+import type * as T from '../constants/types'
 import {intersect} from '../util/set'
 import {useFocusEffect} from '@react-navigation/core'
 import {useLocalBadging} from '../util/use-local-badging'
 
-const sortDevices = (a: Types.Device, b: Types.Device) => {
+const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   if (a.currentDevice) return -1
   if (b.currentDevice) return 1
   return a.name.localeCompare(b.name)
 }
 
-const deviceToItem = (d: Types.Device) => ({id: d.deviceID, key: d.deviceID, type: 'device'}) as const
-const splitAndSortDevices = (deviceMap: Map<string, Types.Device>) =>
+const deviceToItem = (d: T.Devices.Device) => ({id: d.deviceID, key: d.deviceID, type: 'device'}) as const
+const splitAndSortDevices = (deviceMap: Map<string, T.Devices.Device>) =>
   partition([...deviceMap.values()].sort(sortDevices), d => d.revokedAt)
 
 const ReloadableDevices = () => {
-  const deviceMap = Constants.useDevicesState(s => s.deviceMap)
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const {load, clearBadges} = Constants.useDevicesState(s => s.dispatch)
-  const storeSet = Constants.useDevicesState(s => s.isNew)
+  const deviceMap = C.useDevicesState(s => s.deviceMap)
+  const waiting = Container.useAnyWaiting(C.devicesWaitingKey)
+  const {load, clearBadges} = C.useDevicesState(s => s.dispatch)
+  const storeSet = C.useDevicesState(s => s.isNew)
   const {badged} = useLocalBadging(storeSet, clearBadges)
 
   const newlyChangedItemIds = badged
@@ -36,12 +35,12 @@ const ReloadableDevices = () => {
     }, [load])
   )
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onAddDevice = (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
     // We don't have navigateAppend in upgraded routes
     navigateAppend({props: {highlight}, selected: 'deviceAdd'})
   }
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }
@@ -76,7 +75,7 @@ const ReloadableDevices = () => {
   return (
     <Kb.Reloadable
       onBack={Container.isMobile ? onBack : undefined}
-      waitingKeys={Constants.waitingKey}
+      waitingKeys={C.devicesWaitingKey}
       onReload={load}
       reloadOnMount={true}
       title={''}
@@ -89,7 +88,7 @@ const ReloadableDevices = () => {
 }
 
 type Item =
-  | {key: string; id: Types.DeviceID; type: 'device'}
+  | {key: string; id: T.Devices.DeviceID; type: 'device'}
   | {key: string; type: 'revokedHeader'}
   | {key: string; type: 'revokedNote'}
 

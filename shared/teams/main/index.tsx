@@ -1,8 +1,8 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import type * as Types from '../../constants/types/teams'
-import * as Constants from '../../constants/teams'
+import type * as T from '../../constants/types'
 import Banner from './banner'
 import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
@@ -17,15 +17,15 @@ type DeletedTeam = {
 export type OwnProps = {
   loaded: boolean
   deletedTeams: ReadonlyArray<DeletedTeam>
-  newTeams: Set<Types.TeamID>
+  newTeams: Set<T.Teams.TeamID>
   onHideChatBanner: () => void
-  onManageChat: (teamID: Types.TeamID) => void
-  onOpenFolder: (teamID: Types.TeamID) => void
+  onManageChat: (teamID: T.Teams.TeamID) => void
+  onOpenFolder: (teamID: T.Teams.TeamID) => void
   onReadMore: () => void
-  onViewTeam: (teamID: Types.TeamID) => void
-  teamresetusers: Map<Types.TeamID, Set<string>>
-  newTeamRequests: Map<Types.TeamID, Set<string>>
-  teams: Array<Types.TeamMeta>
+  onViewTeam: (teamID: T.Teams.TeamID) => void
+  teamresetusers: Map<T.Teams.TeamID, Set<string>>
+  newTeamRequests: Map<T.Teams.TeamID, Set<string>>
+  teams: Array<T.Teams.TeamMeta>
 }
 
 type HeaderProps = {
@@ -141,11 +141,11 @@ const sortOrderToTitle = {
   role: 'Your role',
 }
 const SortHeader = () => {
-  const setTeamListFilterSort = Constants.useState(s => s.dispatch.setTeamListFilterSort)
+  const setTeamListFilterSort = C.useTeamsState(s => s.dispatch.setTeamListFilterSort)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
-      const onChangeSort = (sortOrder: Types.TeamListSort) => setTeamListFilterSort(sortOrder)
+      const onChangeSort = (sortOrder: T.Teams.TeamListSort) => setTeamListFilterSort(sortOrder)
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
@@ -173,7 +173,7 @@ const SortHeader = () => {
   )
 
   const {popup, toggleShowingPopup, popupAnchor} = Kb.usePopup2(makePopup)
-  const sortOrder = Constants.useState(s => s.teamListSort)
+  const sortOrder = C.useTeamsState(s => s.teamListSort)
   return (
     <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>
       <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
@@ -192,7 +192,7 @@ const getMembersText = (count: number) => (count === -1 ? '' : `${count} ${plura
 type Row = {key: React.Key} & (
   | {type: '_banner' | '_sortHeader' | '_buttons' | '_footer'}
   | {team: DeletedTeam; type: 'deletedTeam'}
-  | {team: Types.TeamMeta; type: 'team'}
+  | {team: T.Teams.TeamMeta; type: 'team'}
 )
 
 class Teams extends React.PureComponent<Props> {
@@ -302,7 +302,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: -1,
       },
-    } as const)
+    }) as const
 )
 
 export default Teams

@@ -1,17 +1,17 @@
-import Banner from './index'
-import * as ConfigConstants from '../../../constants/config'
-import * as Types from '../../../constants/types/fs'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
+import Banner from './index'
+import * as T from '../../../constants/types'
 
 const ConnectedBanner = () => {
-  const _kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
-  const _name = ConfigConstants.useCurrentUserState(s => s.username)
-  const _overallSyncStatus = Constants.useState(s => s.overallSyncStatus)
+  const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
+  const _name = C.useCurrentUserState(s => s.username)
+  const _overallSyncStatus = C.useFSState(s => s.overallSyncStatus)
 
-  const loadPathMetadata = Constants.useState(s => s.dispatch.loadPathMetadata)
+  const loadPathMetadata = C.useFSState(s => s.dispatch.loadPathMetadata)
   // This LoadPathMetadata triggers a sync retry.
   const onRetry = () => {
-    loadPathMetadata(Types.stringToPath('/keybase/private' + _name))
+    loadPathMetadata(T.FS.stringToPath('/keybase/private' + _name))
   }
 
   const props = {

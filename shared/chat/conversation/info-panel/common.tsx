@@ -1,11 +1,8 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import * as ChatConstants from '../../../constants/chat2'
-import * as TeamsConstants from '../../../constants/teams'
-import type * as ChatTypes from '../../../constants/types/chat2'
-import type * as TeamTypes from '../../../constants/types/teams'
-import * as Container from '../../../util/container'
-import shallowEqual from 'shallowequal'
+import type * as ChatConstants from '../../../constants/chat2'
+import type * as T from '../../../constants/types'
 
 export const infoPanelWidthElectron = 320
 const infoPanelWidthPhone = Styles.dimensionWidth
@@ -22,16 +19,16 @@ export function infoPanelWidth() {
 }
 
 const emptyMap = new Map()
-const isBot = (type: TeamTypes.TeamRoleType) => type === 'bot' || type === 'restrictedbot'
+const isBot = (type: T.Teams.TeamRoleType) => type === 'bot' || type === 'restrictedbot'
 
-export const useTeamHumans = (teamID: TeamTypes.TeamID) => {
+export const useTeamHumans = (teamID: T.Teams.TeamID) => {
   const [lastTID, setLastTID] = React.useState('')
-  const getMembers = TeamsConstants.useState(s => s.dispatch.getMembers)
+  const getMembers = C.useTeamsState(s => s.dispatch.getMembers)
   if (lastTID !== teamID) {
     setLastTID(teamID)
     getMembers(teamID)
   }
-  const teamMembers = TeamsConstants.useState(s => s.teamIDToMembers.get(teamID)) || emptyMap
+  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID)) || emptyMap
   const bots = React.useMemo(() => {
     const ret = new Set<string>()
     teamMembers.forEach(({type}, username) => isBot(type) && ret.add(username))
@@ -41,13 +38,11 @@ export const useTeamHumans = (teamID: TeamTypes.TeamID) => {
   return {bots, teamHumanCount}
 }
 
-export const useHumans = (conversationIDKey: ChatTypes.ConversationIDKey) => {
-  const {participantInfo, teamType, teamID} = Container.useSelector(state => {
-    const meta = ChatConstants.getMeta(state, conversationIDKey)
-    const {teamType, teamID} = meta
-    const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
-    return {participantInfo, teamID, teamType}
-  }, shallowEqual)
+export const useHumans = (
+  participantInfo: ChatConstants.ConvoState['participants'],
+  meta: ChatConstants.ConvoState['meta']
+) => {
+  const {teamType, teamID} = meta
   const {bots, teamHumanCount} = useTeamHumans(teamID)
   const channelHumans =
     teamType === 'adhoc' ? participantInfo.name : participantInfo.all.filter(username => !bots.has(username))

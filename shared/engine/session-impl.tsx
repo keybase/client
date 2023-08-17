@@ -7,9 +7,7 @@ import {rpcLog, type invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {RPCError} from '../util/errors'
 import {getEngine} from './require'
-import isArray from 'lodash/isArray'
 import type {SessionID, EndHandlerType, MethodKey} from './types'
-import type {TypedDispatch} from '../util/container'
 
 type WaitingKey = string | Array<string>
 
@@ -43,10 +41,7 @@ class Session {
   _outgoingRequests: Array<any> = []
   _incomingRequests: Array<any> = []
 
-  _dispatch: TypedDispatch
-
   constructor(p: {
-    dispatch: TypedDispatch
     sessionID: SessionID
     incomingCallMap?: IncomingCallMapType
     customResponseIncomingCallMap?: CustomResponseIncomingCallMap
@@ -64,7 +59,6 @@ class Session {
     this._endHandler = p.endHandler
     this._cancelHandler = p.cancelHandler
     this._dangling = p.dangling || false
-    this._dispatch = p.dispatch
   }
 
   setId(_: SessionID) {
@@ -194,11 +188,7 @@ class Session {
     const waitingHandler = this._makeWaitingHandler(false, method, response && response.seqid)
     const incomingRequest = new IncomingRequest(method, param, response, waitingHandler, handler)
     this._incomingRequests.push(incomingRequest)
-    const actions = incomingRequest.handle()
-
-    const arr = isArray(actions) ? actions : [actions]
-    arr.forEach(a => !!a && this._dispatch(a))
-
+    incomingRequest.handle()
     return true
   }
 

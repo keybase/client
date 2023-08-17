@@ -1,9 +1,8 @@
+import * as C from '../constants'
 import * as React from 'react'
-import * as RouterConstants from '../constants/router2'
-import * as Container from '../util/container'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/fs'
-import * as Types from '../constants/types/fs'
+import * as Container from '../util/container'
+import * as T from '../constants/types'
 import Browser from './browser'
 import {NormalPreview} from './filepreview'
 import * as Kbfs from './common'
@@ -11,16 +10,16 @@ import * as SimpleScreens from './simple-screens'
 
 type ChooseComponentProps = {
   emitBarePreview: () => void
-  kbfsDaemonStatus: Types.KbfsDaemonStatus
-  path: Types.Path
-  pathType: Types.PathType
+  kbfsDaemonStatus: T.FS.KbfsDaemonStatus
+  path: T.FS.Path
+  pathType: T.FS.PathType
 }
 
 const ChooseComponent = (props: ChooseComponentProps) => {
   const {emitBarePreview} = props
 
-  const fileContext = Constants.useState(s => s.fileContext.get(props.path) || Constants.emptyFileContext)
-  const bare = Container.isMobile && fileContext.viewType === RPCTypes.GUIViewType.image
+  const fileContext = C.useFSState(s => s.fileContext.get(props.path) || Constants.emptyFileContext)
+  const bare = Container.isMobile && fileContext.viewType === T.RPCGen.GUIViewType.image
   React.useEffect(() => {
     bare && emitBarePreview()
   }, [bare, emitBarePreview])
@@ -32,7 +31,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   Kbfs.useFsTlf(props.path)
   const softError = Kbfs.useFsSoftError(props.path)
 
-  if (props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
+  if (props.kbfsDaemonStatus.rpcStatus !== T.FS.KbfsDaemonRpcStatus.Connected) {
     return <SimpleScreens.Loading />
   }
 
@@ -40,9 +39,9 @@ const ChooseComponent = (props: ChooseComponentProps) => {
     return <SimpleScreens.Oops path={props.path} reason={softError} />
   }
   switch (props.pathType) {
-    case Types.PathType.Folder:
+    case T.FS.PathType.Folder:
       return <Browser path={props.path} />
-    case Types.PathType.Unknown:
+    case T.FS.PathType.Unknown:
       return <SimpleScreens.Loading />
     default:
       if (fileContext === Constants.emptyFileContext) {
@@ -58,24 +57,24 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }
 }
 
-type OwnProps = {path?: Types.Path}
+type OwnProps = {path?: T.FS.Path}
 
 const Connected = (ownProps?: OwnProps) => {
-  const path = ownProps?.path ?? Constants.defaultPath
-  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
-  const kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const path = ownProps?.path ?? C.defaultPath
+  const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
+  const kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const emitBarePreview = () => {
     navigateUp()
     navigateAppend({props: {path}, selected: 'barePreview'})
   }
-  const isDefinitelyFolder = Types.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
+  const isDefinitelyFolder = T.FS.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
   const props = {
     emitBarePreview: emitBarePreview,
     kbfsDaemonStatus: kbfsDaemonStatus,
     path,
-    pathType: isDefinitelyFolder ? Types.PathType.Folder : _pathItem.type,
+    pathType: isDefinitelyFolder ? T.FS.PathType.Folder : _pathItem.type,
   }
   return <ChooseComponent {...props} />
 }

@@ -1,9 +1,9 @@
+import * as C from '../../../constants'
 import * as React from 'react'
-import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as RowSizes from './sizes'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as T from '../../../constants/types'
 import {BigTeamsLabel} from './big-teams-label'
 
 type Props = {
@@ -12,12 +12,12 @@ type Props = {
 
 const BigTeamsDivider = React.memo(function BigTeamsDivider(props: Props) {
   const {toggle} = props
-  const badgeCount = Container.useSelector(state => state.chat2.bigTeamBadgeCount)
+  const badgeCount = C.useChatState(s => s.bigTeamBadgeCount)
   return (
     <Kb.ClickableBox
       title="Teams with multiple channels."
       onClick={() => {
-        RPCChatTypes.localRequestInboxSmallResetRpcPromise().catch(() => {})
+        T.RPCChat.localRequestInboxSmallResetRpcPromise().catch(() => {})
         toggle()
       }}
       style={styles.container}
@@ -92,7 +92,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         marginTop: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )
 
 export default BigTeamsDivider

@@ -1,24 +1,21 @@
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as UsersConstants from '../../../constants/users'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import ReactButton from './react-button/container'
 import shallowEqual from 'shallowequal'
-import type * as Types from '../../../constants/types/chat2'
-import type * as UsersTypes from '../../../constants/types/users'
-import {ConvoIDContext, OrdinalContext} from './ids-context'
+import type * as T from '../../../constants/types'
+import {OrdinalContext} from './ids-context'
 
 export type Props = {
   attachmentRef?: () => React.Component<any> | null
-  conversationIDKey: Types.ConversationIDKey
   onAddReaction: () => void
   onHidden: () => void
   onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void
   onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
   reactions: Array<{
     emoji: string
     users: Array<{
@@ -31,26 +28,25 @@ export type Props = {
 
 type OwnProps = {
   attachmentRef?: any
-  conversationIDKey: Types.ConversationIDKey
   emoji?: string
   onHidden: () => void
   onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void
   onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
   visible: boolean
 }
 
 const emptyStateProps = {
-  _reactions: new Map<string, Types.ReactionDesc>(),
-  _usersInfo: new Map<string, UsersTypes.UserInfo>(),
+  _reactions: new Map<string, T.Chat.ReactionDesc>(),
+  _usersInfo: new Map<string, T.Users.UserInfo>(),
 }
 
 const ReactionTooltip = (p: OwnProps) => {
-  const {conversationIDKey, ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
+  const {ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
 
-  const infoMap = UsersConstants.useState(s => s.infoMap)
-  const {_reactions, good} = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const infoMap = C.useUsersState(s => s.infoMap)
+  const {_reactions, good} = C.useChatContext(s => {
+    const message = s.messageMap.get(ordinal)
     if (message && Constants.isMessageWithReactions(message)) {
       const _reactions = message.reactions
       return {_reactions, good: true}
@@ -59,14 +55,14 @@ const ReactionTooltip = (p: OwnProps) => {
   }, shallowEqual)
   const _usersInfo = good ? infoMap : emptyStateProps._usersInfo
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const onAddReaction = React.useCallback(() => {
     onHidden()
-    navigateAppend({
+    navigateAppend(conversationIDKey => ({
       props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
       selected: 'chatChooseEmoji',
-    })
-  }, [navigateAppend, onHidden, conversationIDKey, ordinal])
+    }))
+  }, [navigateAppend, onHidden, ordinal])
 
   let reactions = [..._reactions.keys()]
     .map(emoji => ({
@@ -98,7 +94,6 @@ const ReactionTooltip = (p: OwnProps) => {
   }
   const props = {
     attachmentRef,
-    conversationIDKey,
     onAddReaction,
     onHidden,
     onMouseLeave,
@@ -113,12 +108,12 @@ const ReactionTooltip = (p: OwnProps) => {
 
 const ReactionTooltipImpl = (props: Props) => {
   const insets = Kb.useSafeAreaInsets()
+  const conversationIDKey = C.useChatContext(s => s.id)
   if (!props.visible) {
     return null
   }
 
   const sections = props.reactions.map(r => ({
-    conversationIDKey: props.conversationIDKey,
     data: r.users.map(u => ({...u, key: `${u.username}:${r.emoji}`})),
     key: r.emoji,
     ordinal: props.ordinal,
@@ -134,7 +129,7 @@ const ReactionTooltipImpl = (props: Props) => {
       style={styles.overlay}
     >
       {/* need context since this uses a portal... */}
-      <ConvoIDContext.Provider value={props.conversationIDKey}>
+      <C.ChatProvider id={conversationIDKey}>
         <OrdinalContext.Provider value={props.ordinal}>
           <Kb.Box2
             onMouseLeave={props.onMouseLeave}
@@ -179,7 +174,7 @@ const ReactionTooltipImpl = (props: Props) => {
             )}
           </Kb.Box2>
         </OrdinalContext.Provider>
-      </ConvoIDContext.Provider>
+      </C.ChatProvider>
     </Kb.Overlay>
   )
 }
@@ -207,9 +202,8 @@ const renderSectionHeader = ({
   section,
 }: {
   section: {
-    conversationIDKey: Types.ConversationIDKey
     data: Array<any>
-    ordinal: Types.Ordinal
+    ordinal: T.Chat.Ordinal
     title: string
   }
 }) => (

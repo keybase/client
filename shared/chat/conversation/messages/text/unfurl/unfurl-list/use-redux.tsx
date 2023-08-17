@@ -1,35 +1,25 @@
+import * as C from '../../../../../../constants'
 import * as React from 'react'
-import * as Container from '../../../../../../util/container'
-import * as Chat2Gen from '../../../../../../actions/chat2-gen'
-import * as ConfigConstants from '../../../../../../constants/config'
-import type * as Types from '../../../../../../constants/types/chat2'
+import type * as Constants from '../../../../../../constants/chat2'
+import type * as T from '../../../../../../constants/types'
 
-export const useActions = (
-  conversationIDKey: Types.ConversationIDKey,
-  youAreAuthor: boolean,
-  messageID: Types.MessageID,
-  ordinal: Types.Ordinal
-) => {
-  const dispatch = Container.useDispatch()
+export const useActions = (youAreAuthor: boolean, messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => {
+  const unfurlRemove = C.useChatContext(s => s.dispatch.unfurlRemove)
   const onClose = React.useCallback(() => {
-    dispatch(Chat2Gen.createUnfurlRemove({conversationIDKey, messageID}))
-  }, [dispatch, conversationIDKey, messageID])
+    unfurlRemove(messageID)
+  }, [unfurlRemove, messageID])
+  const toggleMessageCollapse = C.useChatContext(s => s.dispatch.toggleMessageCollapse)
   const onToggleCollapse = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID, ordinal}))
-  }, [dispatch, conversationIDKey, messageID, ordinal])
+    toggleMessageCollapse(messageID, ordinal)
+  }, [toggleMessageCollapse, messageID, ordinal])
 
   return {onClose: youAreAuthor ? onClose : undefined, onToggleCollapse}
 }
 
-export const getUnfurlInfo = (
-  state: Container.TypedState,
-  conversationIDKey: Types.ConversationIDKey,
-  ordinal: Types.Ordinal,
-  idx: number
-) => {
-  const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+export const getUnfurlInfo = (state: Constants.ConvoState, ordinal: T.Chat.Ordinal, idx: number) => {
+  const message = state.messageMap.get(ordinal)
   const author = message?.author
-  const you = ConfigConstants.useCurrentUserState.getState().username
+  const you = C.useCurrentUserState.getState().username
   const youAreAuthor = author === you
   const unfurlInfo = [...(message?.unfurls?.values() ?? [])][idx]
 

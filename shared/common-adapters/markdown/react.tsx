@@ -122,7 +122,7 @@ const markdownStyles = Styles.styleSheetCreate(
         isElectron: {color: 'inherit', display: 'block', fontWeight: 'inherit', ...electronWrapStyle},
       } as const),
       wrapStyle: Styles.platformStyles({isElectron: electronWrapStyle}),
-    } as const)
+    }) as const
 )
 
 // TODO kill this when we remove the old markdown parser. This check is done at the parsing level.

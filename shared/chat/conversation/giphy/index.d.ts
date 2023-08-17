@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as T from '../../../constants/types'
 export type Props = {
-  previews?: Array<RPCChatTypes.GiphySearchResult>
+  previews?: Array<T.RPCChat.GiphySearchResult>
   galleryURL: string
-  onClick: (arg0: RPCChatTypes.GiphySearchResult) => void
+  onClick: (arg0: T.RPCChat.GiphySearchResult) => void
 }
 export default class GiphySearch extends React.Component<Props> {}

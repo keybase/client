@@ -1,10 +1,9 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as AutoresetConstants from '../../constants/autoreset'
-import * as Constants from '../../constants/recover-password'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as T from '../../constants/types'
 import {SignupScreen} from '../../signup/common'
 import type {ButtonType} from '../../common-adapters/button'
 
@@ -14,18 +13,18 @@ export type Props = {
 
 const PromptReset = (props: Props) => {
   const nav = Container.useSafeNavigation()
-  const skipPassword = AutoresetConstants.useState(s => s.skipPassword)
-  const error = AutoresetConstants.useState(s => s.error)
-  const resetAccount = AutoresetConstants.useState(s => s.dispatch.resetAccount)
+  const skipPassword = C.useAutoResetState(s => s.skipPassword)
+  const error = C.useAutoResetState(s => s.error)
+  const resetAccount = C.useAutoResetState(s => s.dispatch.resetAccount)
   const {resetPassword} = props
 
-  const submitResetPassword = Constants.useState(s => s.dispatch.dynamic.submitResetPassword)
-  const startRecoverPassword = Constants.useState(s => s.dispatch.startRecoverPassword)
-  const username = Constants.useState(s => s.username)
+  const submitResetPassword = C.useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
+  const startRecoverPassword = C.useRecoverState(s => s.dispatch.startRecoverPassword)
+  const username = C.useRecoverState(s => s.username)
 
   const onContinue = React.useCallback(() => {
     if (resetPassword) {
-      submitResetPassword?.(RPCTypes.ResetPromptResponse.confirmReset)
+      submitResetPassword?.(T.RPCGen.ResetPromptResponse.confirmReset)
     }
     if (skipPassword) {
       resetAccount()
@@ -49,7 +48,7 @@ const PromptReset = (props: Props) => {
           label: props.resetPassword ? 'Send a link' : 'Start account reset',
           onClick: onContinue,
           type: 'Default' as ButtonType,
-          waitingKey: AutoresetConstants.enterPipelineWaitingKey,
+          waitingKey: C.enterPipelineWaitingKey,
         },
       ]}
       banners={

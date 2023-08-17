@@ -1,15 +1,15 @@
 import * as React from 'react'
-import type * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
+import type * as T from '../../constants/types'
+import * as C from '../../constants'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import PathInfo from './path-info'
 import PathItemInfo from './path-item-info'
 
 type Props = {
-  knownPathInfo?: Types.PathInfo
+  knownPathInfo?: T.FS.PathInfo
   rawPath: string
-  standardPath: Types.Path
+  standardPath: T.FS.Path
 }
 
 type PopupProps = Props & {
@@ -18,8 +18,8 @@ type PopupProps = Props & {
   visible: boolean
 }
 
-const useOpenInFilesTab = (path: Types.Path) => {
-  return React.useCallback(() => Constants.makeActionForOpenPathInFilesTab(path), [path])
+const useOpenInFilesTab = (path: T.FS.Path) => {
+  return React.useCallback(() => C.makeActionForOpenPathInFilesTab(path), [path])
 }
 
 const KbfsPathPopup = (props: PopupProps) => {

@@ -1,8 +1,8 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import UserCard from '../../login/user-card'
-import {maxUsernameLength} from '../../constants/signup'
 import {SignupScreen, errorBanner} from '../../signup/common'
 
 type Props = {
@@ -84,7 +84,7 @@ const Username = (props: Props) => {
             <Kb.LabeledInput
               autoFocus={true}
               placeholder="Username"
-              maxLength={maxUsernameLength}
+              maxLength={C.maxUsernameLength}
               onEnterKeyDown={onSubmit}
               onChangeText={setUsername}
               value={username}
@@ -144,7 +144,7 @@ const styles = Styles.styleSheetCreate(
       wrapper: {
         width: Styles.globalStyles.mediumWidth,
       },
-    } as const)
+    }) as const
 )
 
 export default Username

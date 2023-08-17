@@ -36,7 +36,7 @@ const TeamAlphabetIndex = (
   let showNumSection = false
   let labels: Array<string> = []
   if (recommendations && recommendations.length > 0) {
-    showNumSection = recommendations[recommendations.length - 1]?.label === numSectionLabel
+    showNumSection = recommendations.at(-1)?.label === numSectionLabel
     labels = recommendations.filter(r => r.shortcut && r.label !== numSectionLabel).map(r => r.label)
   }
 
@@ -254,5 +254,5 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.xlarge,
         paddingTop: Styles.globalMargins.xlarge,
       },
-    } as const)
+    }) as const
 )

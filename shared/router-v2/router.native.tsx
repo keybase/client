@@ -1,7 +1,5 @@
+import * as C from '../constants'
 import * as Constants from '../constants/router2'
-import * as PushConstants from '../constants/push'
-import * as NotifConstants from '../constants/notifications'
-import * as DarkMode from '../constants/darkmode'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
@@ -59,8 +57,8 @@ const makeNavScreens = (rs: any, Screen: any, isModal: any) => {
 
 const TabBarIcon = React.memo(function TabBarIcon(props: {isFocused: boolean; routeName: Tabs.Tab}) {
   const {isFocused, routeName} = props
-  const navBadges = NotifConstants.useState(s => s.navBadges)
-  const hasPermissions = PushConstants.useState(s => s.hasPermissions)
+  const navBadges = C.useNotifState(s => s.navBadges)
+  const hasPermissions = C.usePushState(s => s.hasPermissions)
   const onSettings = routeName === Tabs.settingsTab
   const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
   const badgeNumber = tabsToCount.reduce(
@@ -179,7 +177,7 @@ const AppTabs = React.memo(
               }
             }}
             listeners={{
-              tabLongPress: () => Constants.useState.getState().dispatch.dynamic.tabLongPress?.(tab),
+              tabLongPress: () => C.useRouterState.getState().dispatch.dynamic.tabLongPress?.(tab),
             }}
           />
         )),
@@ -300,8 +298,8 @@ const RootStack = createNativeStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
 
 const useBarStyle = () => {
-  const darkModePreference = DarkMode.useDarkModeState(s => s.darkModePreference)
-  const isDarkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
+  const darkModePreference = C.useDarkModeState(s => s.darkModePreference)
+  const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
 
   if (!darkModePreference || darkModePreference === 'system') {
     return 'default'
@@ -333,7 +331,6 @@ const RNApp = React.memo(function RNApp() {
       onStateChange,
     })
   }
-
   const barStyle = useBarStyle()
 
   return (

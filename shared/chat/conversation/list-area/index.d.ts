@@ -1,10 +1,9 @@
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
+import * as T from '../../../constants/types'
 
-export type ItemType = Types.Ordinal
+export type ItemType = T.Chat.Ordinal
 
 export type Props = {
-  conversationIDKey: Types.ConversationIDKey
   onFocusInput: () => void
   requestScrollToBottomRef: React.MutableRefObject<undefined | (() => void)>
   requestScrollUpRef: React.MutableRefObject<undefined | (() => void)>

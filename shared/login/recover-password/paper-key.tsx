@@ -1,4 +1,4 @@
-import * as Constants from '../../constants/recover-password'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
@@ -6,9 +6,9 @@ import type {ButtonType} from '../../common-adapters/button'
 import {SignupScreen} from '../../signup/common'
 
 const PaperKey = () => {
-  const error = Constants.useState(s => s.paperKeyError)
-  const cancel = Constants.useState(s => s.dispatch.dynamic.cancel)
-  const submitPaperKey = Constants.useState(s => s.dispatch.dynamic.submitPaperKey)
+  const error = C.useRecoverState(s => s.paperKeyError)
+  const cancel = C.useRecoverState(s => s.dispatch.dynamic.cancel)
+  const submitPaperKey = C.useRecoverState(s => s.dispatch.dynamic.submitPaperKey)
   const onBack = () => {
     cancel?.()
   }
@@ -28,7 +28,7 @@ const PaperKey = () => {
           label: 'Continue',
           onClick: onSubmit,
           type: 'Default' as ButtonType,
-          waitingKey: Constants.waitingKey,
+          waitingKey: C.recoverWaitingKey,
         },
       ]}
       onBack={props.onBack}

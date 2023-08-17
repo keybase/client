@@ -1,8 +1,8 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
-import * as Constants from '../../constants/settings'
 import {SignupScreen, errorBanner} from '../common'
 import type {ButtonType} from '../../common-adapters/button'
 
@@ -17,7 +17,7 @@ export type Props = {
 const EnterPhoneNumber = (props: Props) => {
   // trigger a default phone number country rpc if it's not already loaded
   const {defaultCountry} = props
-  const loadDefaultPhoneCountry = Constants.usePhoneState(s => s.dispatch.loadDefaultPhoneCountry)
+  const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
   React.useEffect(() => {
     !defaultCountry && loadDefaultPhoneCountry()
   }, [defaultCountry, loadDefaultPhoneCountry])

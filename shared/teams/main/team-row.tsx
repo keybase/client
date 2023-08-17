@@ -1,10 +1,10 @@
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
-import * as Chat2Gen from '../../actions/chat2-gen'
-import type * as Types from '../../constants/types/teams'
+import type * as T from '../../constants/types'
 import TeamMenu from '../team/menu-container'
 import {pluralize} from '../../util/string'
 import {Activity} from '../common'
@@ -12,23 +12,22 @@ import {Activity} from '../common'
 type Props = {
   firstItem: boolean
   showChat?: boolean // default true
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }
 
 const TeamRow = (props: Props) => {
   const {firstItem, showChat = true, teamID} = props
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
+  const teamMeta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
   // useActivityLevels in ../container ensures these are loaded
-  const activityLevel = Constants.useState(s => s.activityLevels.teams.get(teamID) || 'none')
+  const activityLevel = C.useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
 
   const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
 
   const activity = <Activity level={activityLevel} />
 
-  const onChat = () =>
-    dispatch(Chat2Gen.createPreviewConversation({reason: 'teamRow', teamname: teamMeta.teamname}))
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const onChat = () => previewConversation({reason: 'teamRow', teamname: teamMeta.teamname})
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
@@ -39,11 +38,11 @@ const TeamRow = (props: Props) => {
   )
   const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
-  const teamIDToResetUsers = Constants.useState(s => s.teamIDToResetUsers)
-  const badgeCount = Constants.useState(s =>
+  const teamIDToResetUsers = C.useTeamsState(s => s.teamIDToResetUsers)
+  const badgeCount = C.useTeamsState(s =>
     Constants.getTeamRowBadgeCount(s.newTeamRequests, teamIDToResetUsers, teamID)
   )
-  const isNew = Constants.useState(s => s.newTeams.has(teamID))
+  const isNew = C.useTeamsState(s => s.newTeams.has(teamID))
 
   const crownIconType: Kb.IconType | undefined =
     teamMeta.role === 'owner'

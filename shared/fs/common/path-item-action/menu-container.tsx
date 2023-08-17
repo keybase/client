@@ -1,9 +1,7 @@
-import * as RouterConstants from '../../../constants/router2'
-import * as Types from '../../../constants/types/fs'
+import * as C from '../../../constants'
+import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Constants from '../../../constants/fs'
-import * as ConfigConstants from '../../../constants/config'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
 import {memoize} from '../../../util/memoize'
@@ -14,18 +12,18 @@ import * as Util from '../../../util/kbfs'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
-  path: Types.Path
+  path: T.FS.Path
   mode: 'row' | 'screen'
 }
 
-const needConfirm = (pathItem: Types.PathItem) =>
-  pathItem.type === Types.PathType.File && pathItem.size > 50 * 1024 * 1024
+const needConfirm = (pathItem: T.FS.PathItem) =>
+  pathItem.type === T.FS.PathType.File && pathItem.size > 50 * 1024 * 1024
 
 const getDownloadingState = memoize(
   (
-    downloads: Types.Downloads,
+    downloads: T.FS.Downloads,
     downloadID: string | undefined,
-    pathItemActionMenu: Types.PathItemActionMenu
+    pathItemActionMenu: T.FS.PathItemActionMenu
   ) => {
     if (!downloadID) {
       return {done: true, saving: false, sharing: false}
@@ -38,8 +36,8 @@ const getDownloadingState = memoize(
     }
     return {
       done,
-      saving: intent === Types.DownloadIntent.CameraRoll,
-      sharing: intent === Types.DownloadIntent.Share,
+      saving: intent === T.FS.DownloadIntent.CameraRoll,
+      sharing: intent === T.FS.DownloadIntent.Share,
     }
   }
 )
@@ -55,57 +53,53 @@ const addCancelIfNeeded = (action: () => void, cancel: (arg0: string) => void, t
 export default (ownProps: OwnProps) => {
   const {path, mode} = ownProps
 
-  const _downloads = Constants.useState(s => s.downloads)
-  const cancelDownload = Constants.useState(s => s.dispatch.cancelDownload)
+  const _downloads = C.useFSState(s => s.downloads)
+  const cancelDownload = C.useFSState(s => s.dispatch.cancelDownload)
 
-  const _fileContext = Constants.useState(s => s.fileContext.get(path) || Constants.emptyFileContext)
+  const _fileContext = C.useFSState(s => s.fileContext.get(path) || Constants.emptyFileContext)
   const _ignoreNeedsToWait = Container.useAnyWaiting([
     Constants.folderListWaitingKey,
     Constants.statWaitingKey,
   ])
-  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
-  const _pathItemActionMenu = Constants.useState(s => s.pathItemActionMenu)
+  const _pathItem = C.useFSState(s => Constants.getPathItem(s.pathItems, path))
+  const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
   const _downloadID = _pathItemActionMenu.downloadID
-  const _sfmiEnabled = Constants.useState(s => s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled)
-  const _username = ConfigConstants.useCurrentUserState(s => s.username)
+  const _sfmiEnabled = C.useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
+  const _username = C.useCurrentUserState(s => s.username)
   const _view = _pathItemActionMenu.view
-
-  const dispatch = Container.useDispatch()
-
   const _cancel = cancelDownload
 
-  const setPathItemActionMenuView = Constants.useState(s => s.dispatch.setPathItemActionMenuView)
+  const setPathItemActionMenuView = C.useFSState(s => s.dispatch.setPathItemActionMenuView)
 
   const _confirmSaveMedia = React.useCallback(() => {
-    setPathItemActionMenuView(Types.PathItemActionMenuView.ConfirmSaveMedia)
+    setPathItemActionMenuView(T.FS.PathItemActionMenuView.ConfirmSaveMedia)
   }, [setPathItemActionMenuView])
   const _confirmSendToOtherApp = React.useCallback(() => {
-    setPathItemActionMenuView(Types.PathItemActionMenuView.ConfirmSendToOtherApp)
+    setPathItemActionMenuView(T.FS.PathItemActionMenuView.ConfirmSendToOtherApp)
   }, [setPathItemActionMenuView])
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _delete = () => {
     navigateAppend({props: {mode, path}, selected: 'confirmDelete'})
   }
-  const favoriteIgnore = Constants.useState(s => s.dispatch.favoriteIgnore)
+  const favoriteIgnore = C.useFSState(s => s.dispatch.favoriteIgnore)
   const _ignoreTlf = React.useCallback(() => {
     favoriteIgnore(path)
   }, [favoriteIgnore, path])
-  const newFolderRow = Constants.useState(s => s.dispatch.newFolderRow)
+  const newFolderRow = C.useFSState(s => s.dispatch.newFolderRow)
   const _newFolder = React.useCallback(() => {
     newFolderRow(path)
   }, [newFolderRow, path])
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const _openChat = () => {
-    dispatch(
-      Chat2Gen.createPreviewConversation({
-        reason: 'files',
-        // tlfToParticipantsOrTeamname will route both public and private
-        // folders to a private chat, which is exactly what we want.
-        ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
-      })
-    )
+    previewConversation({
+      reason: 'files',
+      // tlfToParticipantsOrTeamname will route both public and private
+      // folders to a private chat, which is exactly what we want.
+      ...Util.tlfToParticipantsOrTeamname(T.FS.pathToString(path)),
+    })
   }
-  const startRename = Constants.useState(s => s.dispatch.startRename)
-  const download = Constants.useState(s => s.dispatch.download)
+  const startRename = C.useFSState(s => s.dispatch.startRename)
+  const download = C.useFSState(s => s.dispatch.download)
   const _download = React.useCallback(() => {
     download(path, 'download')
   }, [download, path])
@@ -116,15 +110,15 @@ export default (ownProps: OwnProps) => {
     download(path, 'saveMedia')
   }, [download, path])
   const _sendAttachmentToChat = () => {
-    path && navigateAppend({props: {sendPaths: [path]}, selected: 'sendToChat'})
+    path && navigateAppend({props: {sendPaths: [path]}, selected: 'chatSendToChat'})
   }
   const _sendToOtherApp = React.useCallback(() => {
     download(path, 'share')
   }, [download, path])
   const _share = React.useCallback(() => {
-    setPathItemActionMenuView(Types.PathItemActionMenuView.Share)
+    setPathItemActionMenuView(T.FS.PathItemActionMenuView.Share)
   }, [setPathItemActionMenuView])
-  const openPathInSystemFileManagerDesktop = Constants.useState(
+  const openPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
   )
   const _showInSystemFileManager = React.useCallback(() => {

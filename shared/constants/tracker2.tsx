@@ -1,15 +1,12 @@
-import * as RouterConstants from './router2'
-import * as ConfigConstants from '../constants/config'
+import * as C from '../constants'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as UsersConstants from './users'
-import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
 import logger from '../logger'
-import type * as Types from './types/tracker2'
+import * as T from './types'
 import {RPCError} from '../util/errors'
 import {mapGetEnsureValue} from '../util/map'
 
-export const noDetails: Types.Details = {
+export const noDetails: T.Tracker.Details = {
   assertions: new Map(),
   blocked: false,
   followers: undefined,
@@ -27,7 +24,7 @@ export const noDetails: Types.Details = {
   webOfTrustEntries: [],
 }
 
-export const noNonUserDetails: Types.NonUserDetails = {
+export const noNonUserDetails: T.Tracker.NonUserDetails = {
   assertionKey: '',
   assertionValue: '',
   description: '',
@@ -40,7 +37,7 @@ export const noNonUserDetails: Types.NonUserDetails = {
 
 export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
 
-export const noAssertion = Object.freeze<Types.Assertion>({
+export const noAssertion = Object.freeze<T.Tracker.Assertion>({
   assertionKey: '',
   belowFold: false,
   color: 'gray',
@@ -62,41 +59,41 @@ export const noAssertion = Object.freeze<Types.Assertion>({
   value: '',
 })
 
-const rpcRowColorToColor = (color: RPCTypes.Identify3RowColor): Types.AssertionColor => {
+const rpcRowColorToColor = (color: T.RPCGen.Identify3RowColor): T.Tracker.AssertionColor => {
   switch (color) {
-    case RPCTypes.Identify3RowColor.blue:
+    case T.RPCGen.Identify3RowColor.blue:
       return 'blue'
-    case RPCTypes.Identify3RowColor.red:
+    case T.RPCGen.Identify3RowColor.red:
       return 'red'
-    case RPCTypes.Identify3RowColor.black:
+    case T.RPCGen.Identify3RowColor.black:
       return 'black'
-    case RPCTypes.Identify3RowColor.green:
+    case T.RPCGen.Identify3RowColor.green:
       return 'green'
-    case RPCTypes.Identify3RowColor.gray:
+    case T.RPCGen.Identify3RowColor.gray:
       return 'gray'
-    case RPCTypes.Identify3RowColor.yellow:
+    case T.RPCGen.Identify3RowColor.yellow:
       return 'yellow'
-    case RPCTypes.Identify3RowColor.orange:
+    case T.RPCGen.Identify3RowColor.orange:
       return 'orange'
   }
 }
 
-const rpcRowStateToAssertionState = (state: RPCTypes.Identify3RowState): Types.AssertionState => {
+const rpcRowStateToAssertionState = (state: T.RPCGen.Identify3RowState): T.Tracker.AssertionState => {
   switch (state) {
-    case RPCTypes.Identify3RowState.checking:
+    case T.RPCGen.Identify3RowState.checking:
       return 'checking'
-    case RPCTypes.Identify3RowState.valid:
+    case T.RPCGen.Identify3RowState.valid:
       return 'valid'
-    case RPCTypes.Identify3RowState.error:
+    case T.RPCGen.Identify3RowState.error:
       return 'error'
-    case RPCTypes.Identify3RowState.warning:
+    case T.RPCGen.Identify3RowState.warning:
       return 'warning'
-    case RPCTypes.Identify3RowState.revoked:
+    case T.RPCGen.Identify3RowState.revoked:
       return 'revoked'
   }
 }
 
-export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Assertion => ({
+export const rpcAssertionToAssertion = (row: T.RPCGen.Identify3Row): T.Tracker.Assertion => ({
   ...noAssertion,
   assertionKey: `${row.key}:${row.value}`,
   color: rpcRowColorToColor(row.color),
@@ -117,7 +114,7 @@ export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Asser
   wotProof: row.wotProof ?? undefined,
 })
 
-export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Assertion => {
+export const rpcSuggestionToAssertion = (s: T.RPCGen.ProofSuggestion): T.Tracker.Assertion => {
   const ourKey = s.key === 'web' ? 'dnsOrGenericWebSite' : s.key
   return {
     ...noAssertion,
@@ -203,14 +200,14 @@ export const guiIDToUsername = (state: State, guiID: string) => {
 }
 
 // when suggestions are implemented, we'll probably want to show rejected entries if they have a suggestion
-export const showableWotEntry = (entry: Types.WebOfTrustEntry): boolean =>
-  entry.status === RPCTypes.WotStatusType.accepted || entry.status === RPCTypes.WotStatusType.proposed
+export const showableWotEntry = (entry: T.Tracker.WebOfTrustEntry): boolean =>
+  entry.status === T.RPCGen.WotStatusType.accepted || entry.status === T.RPCGen.WotStatusType.proposed
 
 export type Store = {
   showTrackerSet: Set<string>
-  usernameToDetails: Map<string, Types.Details>
-  proofSuggestions: Array<Types.Assertion>
-  usernameToNonUserDetails: Map<string, Types.NonUserDetails>
+  usernameToDetails: Map<string, T.Tracker.Details>
+  proofSuggestions: Array<T.Tracker.Assertion>
+  usernameToNonUserDetails: Map<string, T.Tracker.NonUserDetails>
 }
 
 const initialStore: Store = {
@@ -236,49 +233,38 @@ export type State = Store & {
       inTracker: boolean
     }) => void
     loadNonUserProfile: (assertion: string) => void
-    notifyCard: (guiID: string, card: RPCTypes.UserCard) => void
+    notifyCard: (guiID: string, card: T.RPCGen.UserCard) => void
     notifyReset: (guiID: string) => void
-    notifyRow: (row: RPCTypes.Identify3Row) => void
-    notifySummary: (summary: RPCTypes.Identify3Summary) => void
-    notifyUserBlocked: (b: RPCTypes.UserBlockedSummary) => void
+    notifyRow: (row: T.RPCGen.Identify3Row) => void
+    notifySummary: (summary: T.RPCGen.Identify3Summary) => void
+    notifyUserBlocked: (b: T.RPCGen.UserBlockedSummary) => void
     onEngineConnected: () => void
-    onEngineIncoming: (
-      action:
-        | EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
-        | EngineGen.Keybase1Identify3UiIdentify3ResultPayload
-        | EngineGen.Keybase1Identify3UiIdentify3ShowTrackerPayload
-        | EngineGen.Keybase1NotifyUsersUserChangedPayload
-        | EngineGen.Keybase1NotifyTrackingNotifyUserBlockedPayload
-        | EngineGen.Keybase1Identify3UiIdentify3UpdateRowPayload
-        | EngineGen.Keybase1Identify3UiIdentify3UserResetPayload
-        | EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload
-        | EngineGen.Keybase1Identify3UiIdentify3SummaryPayload
-    ) => void
-    replace: (usernameToDetails: Map<string, Types.Details>) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
+    replace: (usernameToDetails: Map<string, T.Tracker.Details>) => void
     resetState: 'default'
     showUser: (username: string, asTracker: boolean, skipNav?: boolean) => void
-    updateResult: (guiID: string, result: Types.DetailsState, reason?: string) => void
+    updateResult: (guiID: string, result: T.Tracker.DetailsState, reason?: string) => void
   }
 }
 
-const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
+const rpcResultToStatus = (result: T.RPCGen.Identify3ResultType) => {
   switch (result) {
-    case RPCTypes.Identify3ResultType.ok:
+    case T.RPCGen.Identify3ResultType.ok:
       return 'valid'
-    case RPCTypes.Identify3ResultType.broken:
+    case T.RPCGen.Identify3ResultType.broken:
       return 'broken'
-    case RPCTypes.Identify3ResultType.needsUpgrade:
+    case T.RPCGen.Identify3ResultType.needsUpgrade:
       return 'needsUpgrade'
-    case RPCTypes.Identify3ResultType.canceled:
+    case T.RPCGen.Identify3ResultType.canceled:
       return 'error'
   }
 }
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     changeFollow: (guiID, follow) => {
       const f = async () => {
         try {
-          await RPCTypes.identify3Identify3FollowUserRpcPromise({follow, guiID}, waitingKey)
+          await T.RPCGen.identify3Identify3FollowUserRpcPromise({follow, guiID}, waitingKey)
           get().dispatch.updateResult(guiID, 'valid', `Successfully ${follow ? 'followed' : 'unfollowed'}!`)
         } catch (_) {
           get().dispatch.updateResult(guiID, 'error', `Failed to ${follow ? 'follow' : 'unfollow'}`)
@@ -299,7 +285,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     getProofSuggestions: () => {
       const f = async () => {
         try {
-          const {suggestions} = await RPCTypes.userProofSuggestionsRpcPromise(
+          const {suggestions} = await T.RPCGen.userProofSuggestionsRpcPromise(
             undefined,
             profileLoadWaitingKey
           )
@@ -317,7 +303,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     ignore: guiID => {
       const f = async () => {
         try {
-          await RPCTypes.identify3Identify3IgnoreUserRpcPromise({guiID}, waitingKey)
+          await T.RPCGen.identify3Identify3IgnoreUserRpcPromise({guiID}, waitingKey)
           get().dispatch.updateResult(guiID, 'valid', `Successfully ignored`)
         } catch (_) {
           get().dispatch.updateResult(guiID, 'error', `Failed to ignore`)
@@ -347,32 +333,25 @@ export const useState = Z.createZustand<State>((set, get) => {
           throw new Error('No guid on profile 2 load? ' + assertion || '')
         }
         try {
-          await RPCTypes.identify3Identify3RpcListener(
-            {
-              incomingCallMap: {},
-              params: {assertion, guiID, ignoreCache},
-              waitingKey: profileLoadWaitingKey,
-            },
-            Z.dummyListenerApi
-          )
+          await T.RPCGen.identify3Identify3RpcListener({
+            incomingCallMap: {},
+            params: {assertion, guiID, ignoreCache},
+            waitingKey: profileLoadWaitingKey,
+          })
         } catch (error) {
           if (error instanceof RPCError) {
-            if (error.code === RPCTypes.StatusCode.scresolutionfailed) {
+            if (error.code === T.RPCGen.StatusCode.scresolutionfailed) {
               get().dispatch.updateResult(guiID, 'notAUserYet')
-            } else if (error.code === RPCTypes.StatusCode.scnotfound) {
-              const f = async () => {
-                // we're on the profile page for a user that does not exist. Currently the only way
-                // to get here is with an invalid link or deeplink.
-                const LinksConstants = await import('./deeplinks')
-                LinksConstants.useState
-                  .getState()
-                  .dispatch.setLinkError(
-                    `You followed a profile link for a user (${assertion}) that does not exist.`
-                  )
-                RouterConstants.useState.getState().dispatch.navigateUp()
-                RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
-              }
-              Z.ignorePromise(f())
+            } else if (error.code === T.RPCGen.StatusCode.scnotfound) {
+              // we're on the profile page for a user that does not exist. Currently the only way
+              // to get here is with an invalid link or deeplink.
+              C.useDeepLinksState
+                .getState()
+                .dispatch.setLinkError(
+                  `You followed a profile link for a user (${assertion}) that does not exist.`
+                )
+              C.useRouterState.getState().dispatch.navigateUp()
+              C.useRouterState.getState().dispatch.navigateAppend('keybaseLinkError')
             }
             // hooked into reloadable
             logger.error(`Error loading profile: ${error.message}`)
@@ -384,14 +363,14 @@ export const useState = Z.createZustand<State>((set, get) => {
       const loadFollowers = async () => {
         if (inTracker) return
         try {
-          const fs = await RPCTypes.userListTrackersUnverifiedRpcPromise({assertion}, profileLoadWaitingKey)
+          const fs = await T.RPCGen.userListTrackersUnverifiedRpcPromise({assertion}, profileLoadWaitingKey)
           set(s => {
             const d = getDetails(s, assertion)
             d.followers = new Set(fs.users?.map(f => f.username))
             d.followersCount = d.followers.size
           })
           if (fs.users) {
-            UsersConstants.useState
+            C.useUsersState
               .getState()
               .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
           }
@@ -406,14 +385,14 @@ export const useState = Z.createZustand<State>((set, get) => {
       const loadFollowing = async () => {
         if (inTracker) return
         try {
-          const fs = await RPCTypes.userListTrackingRpcPromise({assertion, filter: ''}, profileLoadWaitingKey)
+          const fs = await T.RPCGen.userListTrackingRpcPromise({assertion, filter: ''}, profileLoadWaitingKey)
           set(s => {
             const d = getDetails(s, assertion)
             d.following = new Set(fs.users?.map(f => f.username))
             d.followingCount = d.following.size
           })
           if (fs.users) {
-            UsersConstants.useState
+            C.useUsersState
               .getState()
               .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
           }
@@ -428,7 +407,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     loadNonUserProfile: assertion => {
       const f = async () => {
         try {
-          const res = await RPCTypes.userSearchGetNonUserDetailsRpcPromise(
+          const res = await T.RPCGen.userSearchGetNonUserDetailsRpcPromise(
             {assertion},
             nonUserProfileLoadWaitingKey
           )
@@ -507,9 +486,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         d.hidFromFollowers = hidFromFollowers
       })
       username &&
-        UsersConstants.useState
-          .getState()
-          .dispatch.updates([{info: {fullname: card.fullName}, name: username}])
+        C.useUsersState.getState().dispatch.updates([{info: {fullname: card.fullName}, name: username}])
     },
     notifyReset: guiID => {
       set(s => {
@@ -550,9 +527,9 @@ export const useState = Z.createZustand<State>((set, get) => {
         )
         toProcess.forEach(([username, det, userBlocks]) => {
           userBlocks.forEach(blockState => {
-            if (blockState.blockType === RPCTypes.UserBlockType.chat) {
+            if (blockState.blockType === T.RPCGen.UserBlockType.chat) {
               det.blocked = blockState.blocked
-            } else if (blockState.blockType === RPCTypes.UserBlockType.follow) {
+            } else if (blockState.blockType === T.RPCGen.UserBlockType.follow) {
               det.hidFromFollowers = blockState.blocked
               blockState.blocked && d.followers && d.followers.delete(username)
             }
@@ -564,7 +541,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     onEngineConnected: () => {
       const f = async () => {
         try {
-          await RPCTypes.delegateUiCtlRegisterIdentify3UIRpcPromise()
+          await T.RPCGen.delegateUiCtlRegisterIdentify3UIRpcPromise()
           logger.info('Registered identify ui')
         } catch (error) {
           logger.warn('error in registering identify ui: ', error)
@@ -609,11 +586,11 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
         // if we mutated somehow reload ourselves and reget the suggestions
         case EngineGen.keybase1NotifyUsersUserChanged: {
-          if (ConfigConstants.useCurrentUserState.getState().uid !== action.payload.params.uid) {
+          if (C.useCurrentUserState.getState().uid !== action.payload.params.uid) {
             return
           }
           get().dispatch.load({
-            assertion: ConfigConstants.useCurrentUserState.getState().username,
+            assertion: C.useCurrentUserState.getState().username,
             forceDisplay: false,
             fromDaemon: false,
             guiID: generateGUIID(),
@@ -651,6 +628,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           get().dispatch.notifySummary(summary)
           break
         }
+        default:
       }
     },
     replace: usernameToDetails => {
@@ -672,11 +650,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
       if (!skipNav) {
         // go to profile page
-        const f = async () => {
-          const ProfileConstants = await import('./profile')
-          ProfileConstants.useState.getState().dispatch.showUserProfile(username)
-        }
-        Z.ignorePromise(f())
+        C.useProfileState.getState().dispatch.showUserProfile(username)
       }
     },
     updateResult: (guiID, result, reason) => {

@@ -1,13 +1,10 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as React from 'react'
 import * as TabConstants from '../constants/tabs'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/settings'
-import * as NotifConstants from '../constants/notifications'
-import * as PushConstants from '../constants/push'
-import * as ConfigConstants from '../constants/config'
 import * as Styles from '../styles'
-import {logPerfLogPointRpcPromise} from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 import {keybaseFM} from '../constants/whats-new'
 import {isAndroid} from '../constants/platform'
 import SettingsItem from './sub-nav/settings-item'
@@ -32,7 +29,7 @@ const PerfRow = () => {
         small={true}
         label="PerfLog"
         onClick={() => {
-          logPerfLogPointRpcPromise({msg: toSubmit})
+          T.RPCGen.logPerfLogPointRpcPromise({msg: toSubmit})
             .then(() => {})
             .catch(() => {})
           ref.current?.transformText(
@@ -62,17 +59,17 @@ const renderItem = ({item}: any) => {
 }
 
 function SettingsNav() {
-  const badgeNumbers = NotifConstants.useState(s => s.navBadges)
-  const badgeNotifications = PushConstants.useState(s => !s.hasPermissions)
-  const statsShown = ConfigConstants.useConfigState(s => !!s.runtimeStats)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const badgeNumbers = C.useNotifState(s => s.navBadges)
+  const badgeNotifications = C.usePushState(s => !s.hasPermissions)
+  const statsShown = C.useConfigState(s => !!s.runtimeStats)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onTabChange = React.useCallback(
     (s: any) => {
       navigateAppend(s)
     },
     [navigateAppend]
   )
-  const contactsLabel = Constants.useContactsState(s =>
+  const contactsLabel = C.useSettingsContactsState(s =>
     s.importEnabled ? 'Phone contacts' : 'Import phone contacts'
   )
 

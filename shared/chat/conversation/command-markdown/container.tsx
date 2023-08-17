@@ -1,11 +1,8 @@
-import type * as Types from '../../../constants/types/chat2'
-import * as Container from '../../../util/container'
+import * as C from '../../../constants'
 import CommandMarkdown from '.'
 
-type OwnProps = {conversationIDKey: Types.ConversationIDKey}
-
-export default (ownProps: OwnProps) => {
-  const md = Container.useSelector(state => state.chat2.commandMarkdownMap.get(ownProps.conversationIDKey))
+export default () => {
+  const md = C.useChatContext(s => s.commandMarkdown)
   const body = md?.body ?? ''
   const title = md?.title ?? undefined
   const props = {body, title}

@@ -1,18 +1,17 @@
+import * as C from '../constants'
+import * as R from '../constants/remote'
 import * as React from 'react'
-import * as Container from '../util/container'
 import * as RemoteGen from '../actions/remote-gen'
-import * as Constants from '../constants/unlock-folders'
 import UnlockFolders from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
 
 const RemoteContainer = () => {
-  const state = Container.useRemoteStore<DeserializeProps>()
+  const state = C.useRemoteStore<DeserializeProps>()
   const {darkMode, devices, waiting, paperKeyError: _error} = state
-  const dispatch = Container.useDispatch()
-  Constants.useState(s => s.dispatch.replace)(state.devices)
-  const phase = Constants.useState(s => s.phase)
-  const toPaperKeyInput = Constants.useState(s => s.dispatch.toPaperKeyInput)
-  const onBackFromPaperKey = Constants.useState(s => s.dispatch.onBackFromPaperKey)
+  C.useUFState(s => s.dispatch.replace)(state.devices)
+  const phase = C.useUFState(s => s.phase)
+  const toPaperKeyInput = C.useUFState(s => s.dispatch.toPaperKeyInput)
+  const onBackFromPaperKey = C.useUFState(s => s.dispatch.onBackFromPaperKey)
 
   const [paperKeyError, setPaperKeyError] = React.useState(_error)
   const lastError = React.useRef(_error)
@@ -27,11 +26,11 @@ const RemoteContainer = () => {
   }
 
   const onClose = () => {
-    dispatch(RemoteGen.createCloseUnlockFolders())
+    R.remoteDispatch(RemoteGen.createCloseUnlockFolders())
   }
 
   const onContinueFromPaperKey = (paperKey: string) => {
-    dispatch(RemoteGen.createUnlockFoldersSubmitPaperKey({paperKey}))
+    R.remoteDispatch(RemoteGen.createUnlockFoldersSubmitPaperKey({paperKey}))
   }
 
   return (

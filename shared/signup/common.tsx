@@ -1,6 +1,5 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as React from 'react'
-import * as ConfigConstants from '../constants/config'
 import * as Kb from '../common-adapters'
 import {type Props as ButtonProps} from '../common-adapters/button'
 import openURL from '../util/open-url'
@@ -12,8 +11,8 @@ type InfoIconProps = {
 }
 
 export const InfoIcon = (props: InfoIconProps) => {
-  const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const loggedIn = C.useConfigState(s => s.loggedIn)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p

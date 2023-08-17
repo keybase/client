@@ -1,9 +1,8 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as ConfigConstants from '../../../constants/config'
-import * as Constants from '../../../constants/teams'
-import type * as Types from '../../../constants/types/teams'
+import type * as T from '../../../constants/types'
 
 export const InviteItem = ({
   alignSelf,
@@ -14,15 +13,15 @@ export const InviteItem = ({
   teamID,
 }: {
   alignSelf?: 'flex-start'
-  inviteLink: Types.InviteLink
+  inviteLink: T.Teams.InviteLink
   showDetails: boolean
   showExpireAction: boolean
   style?: Styles.StylesCrossPlatform
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
 }) => {
-  const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
+  const yourUsername = C.useCurrentUserState(s => s.username)
   const [waitingForExpire, setWaitingForExpire] = React.useState(false)
-  const removePendingInvite = Constants.useState(s => s.dispatch.removePendingInvite)
+  const removePendingInvite = C.useTeamsState(s => s.dispatch.removePendingInvite)
   const onExpire = () => {
     removePendingInvite(teamID, inviteLink.id)
 

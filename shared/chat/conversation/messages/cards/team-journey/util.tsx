@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
+import type * as T from '../../../../../constants/types'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
@@ -15,14 +15,11 @@ function computeWelcomeMessageTextHelper(set: boolean, text: string, cannotWrite
   return defaultWelcomeMessageWriter
 }
 
-function computeWelcomeMessageTextRaw(message: RPCChatTypes.WelcomeMessage, cannotWrite: boolean): string {
+function computeWelcomeMessageTextRaw(message: T.RPCChat.WelcomeMessage, cannotWrite: boolean): string {
   return computeWelcomeMessageTextHelper(message.set, message.raw, cannotWrite)
 }
 
-function computeWelcomeMessageText(
-  message: RPCChatTypes.WelcomeMessageDisplay,
-  cannotWrite: boolean
-): string {
+function computeWelcomeMessageText(message: T.RPCChat.WelcomeMessageDisplay, cannotWrite: boolean): string {
   return computeWelcomeMessageTextHelper(message.set, message.display, cannotWrite)
 }
 
@@ -34,7 +31,7 @@ function removeWhitespaceOnlyLines(x: string): string {
 }
 
 function renderWelcomeMessage(
-  message: RPCChatTypes.WelcomeMessageDisplay,
+  message: T.RPCChat.WelcomeMessageDisplay,
   cannotWrite: boolean
 ): React.ReactNode {
   return (
@@ -56,7 +53,7 @@ const styles = Styles.styleSheetCreate(
       welcomeStyle: {
         paddingTop: Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )
 
 export {computeWelcomeMessageText, computeWelcomeMessageTextRaw, renderWelcomeMessage}

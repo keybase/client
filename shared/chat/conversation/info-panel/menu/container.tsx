@@ -1,17 +1,10 @@
+import * as C from '../../../../constants'
 import * as ChatConstants from '../../../../constants/chat2'
-import * as RouterConstants from '../../../../constants/router2'
-import * as UsersConstants from '../../../../constants/users'
-import * as ConfigConstants from '../../../../constants/config'
-import * as ChatGen from '../../../../actions/chat2-gen'
-import * as Container from '../../../../util/container'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as TeamConstants from '../../../../constants/teams'
-import * as TeamTypes from '../../../../constants/types/teams'
-import shallowEqual from 'shallowequal'
+import * as T from '../../../../constants/types'
 import {InfoPanelMenu} from '.'
-import {ConvoIDContext} from '../../messages/ids-context'
 
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -19,7 +12,7 @@ export type OwnProps = {
   floatingMenuContainerStyle?: Styles.StylesCrossPlatform
   hasHeader: boolean
   isSmallTeam: boolean
-  teamID?: TeamTypes.TeamID
+  teamID?: T.Teams.TeamID
   visible: boolean
 }
 
@@ -29,15 +22,16 @@ const InfoPanelMenuConnectorVisible = React.memo(function InfoPanelMenuConnector
 })
 
 const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: OwnProps) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const {attachTo, onHidden, floatingMenuContainerStyle, hasHeader} = p
   const {isSmallTeam, teamID: pteamID} = p
   const visible = true
 
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const username = C.useCurrentUserState(s => s.username)
 
-  const infoMap = UsersConstants.useState(s => s.infoMap)
-  const data = Container.useSelector(state => {
+  const infoMap = C.useUsersState(s => s.infoMap)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const meta = C.useChatContext(s => s.meta)
+  const data = (() => {
     const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
     const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
 
@@ -51,28 +45,23 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       manageChannelsSubtitle,
       manageChannelsTitle,
       participants: [],
-      teamID: TeamTypes.noTeamID,
+      teamID: T.Teams.noTeamID,
       teamType: undefined,
       teamname: '',
     }
 
-    if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
-      const meta = ChatConstants.getMeta(state, conversationIDKey)
-      const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
+    if (meta.conversationIDKey !== C.noConversationIDKey) {
       const participants = ChatConstants.getRowParticipants(participantInfo, username)
       // If it's a one-on-one chat, we need the user's fullname.
       const fullname =
         (participants.length === 1 && (infoMap.get(participants[0]!) || {fullname: ''}).fullname) || ''
       const {teamID, teamname, channelname, membershipType, status, isMuted, teamType} = meta
       // TODO getCanPerformByID not reactive here
-      const yourOperations = TeamConstants.getCanPerformByID(TeamConstants.useState.getState(), teamID)
-      const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(
-        TeamConstants.useState.getState(),
-        teamname
-      )
+      const yourOperations = TeamConstants.getCanPerformByID(C.useTeamsState.getState(), teamID)
+      const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(C.useTeamsState.getState(), teamname)
       const canAddPeople = yourOperations.manageMembers
       const isInChannel = membershipType !== 'youArePreviewing'
-      const ignored = status === RPCChatTypes.ConversationStatus.ignored
+      const ignored = status === T.RPCChat.ConversationStatus.ignored
       return {
         ...common,
         badgeSubscribe,
@@ -90,96 +79,81 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     } else if (pteamID) {
       const teamID = pteamID
       //TODO not reactive
-      const teamMeta = TeamConstants.getTeamMeta(TeamConstants.useState.getState(), teamID)
+      const teamMeta = TeamConstants.getTeamMeta(C.useTeamsState.getState(), teamID)
       //TODO not reactive
-      const yourOperations = TeamConstants.getCanPerformByID(TeamConstants.useState.getState(), teamID)
+      const yourOperations = TeamConstants.getCanPerformByID(C.useTeamsState.getState(), teamID)
       const canAddPeople = yourOperations.manageMembers
       const {teamname} = teamMeta
-      const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(
-        TeamConstants.useState.getState(),
-        teamname
-      )
+      const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(C.useTeamsState.getState(), teamname)
       return {...common, badgeSubscribe, canAddPeople, teamID, teamname, yourOperations}
     }
     return {...common}
-  }, shallowEqual)
+  })()
 
   const {teamname, teamID, badgeSubscribe, canAddPeople, channelname, isInChannel, ignored} = data
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
-
-  const dispatch = Container.useDispatch()
-
-  const startAddMembersWizard = TeamConstants.useState(s => s.dispatch.startAddMembersWizard)
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onAddPeople = React.useCallback(() => {
     teamID && startAddMembersWizard(teamID)
   }, [startAddMembersWizard, teamID])
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const onBlockConv = React.useCallback(() => {
-    navigateAppend({
+    navigateAppend(convID => ({
       props: {
         blockUserByDefault: participants.length === 1,
-        convID: conversationIDKey,
+        convID,
         others: participants,
         team: teamname,
       },
       selected: 'chatBlockingModal',
-    })
-  }, [navigateAppend, teamname, participants, conversationIDKey])
+    }))
+  }, [navigateAppend, teamname, participants])
   const onInvite = React.useCallback(() => {
     const selected = Styles.isMobile ? 'teamInviteByContact' : 'teamInviteByEmail'
-    teamID && navigateAppend({props: {teamID}, selected})
+    teamID && navigateAppend(() => ({props: {teamID}, selected}))
   }, [navigateAppend, teamID])
 
-  const onJoinChannel = React.useCallback(
-    () => dispatch(ChatGen.createJoinConversation({conversationIDKey})),
-    [dispatch, conversationIDKey]
-  )
-  const onLeaveChannel = React.useCallback(
-    () => dispatch(ChatGen.createLeaveConversation({conversationIDKey})),
-    [dispatch, conversationIDKey]
-  )
+  const onJoinChannel = C.useChatContext(s => s.dispatch.joinConversation)
+  const onLeaveChannel = C.useChatContext(s => s.dispatch.leaveConversation)
   const onLeaveTeam = React.useCallback(
-    () => teamID && navigateAppend({props: {teamID}, selected: 'teamReallyLeaveTeam'}),
+    () => teamID && navigateAppend(() => ({props: {teamID}, selected: 'teamReallyLeaveTeam'})),
     [navigateAppend, teamID]
   )
-  const addTeamWithChosenChannels = TeamConstants.useState(s => s.dispatch.addTeamWithChosenChannels)
-  const manageChatChannels = TeamConstants.useState(s => s.dispatch.manageChatChannels)
+  const addTeamWithChosenChannels = C.useTeamsState(s => s.dispatch.addTeamWithChosenChannels)
+  const manageChatChannels = C.useTeamsState(s => s.dispatch.manageChatChannels)
   const onManageChannels = React.useCallback(() => {
     manageChatChannels(teamID)
     addTeamWithChosenChannels(teamID)
   }, [manageChatChannels, addTeamWithChosenChannels, teamID])
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const markTeamAsRead = C.useChatContext(s => s.dispatch.markTeamAsRead)
   const onMarkAsRead = React.useCallback(() => {
     clearModals()
-    dispatch(ChatGen.createMarkTeamAsRead({teamID}))
-  }, [clearModals, dispatch, teamID])
+    markTeamAsRead(teamID)
+  }, [clearModals, markTeamAsRead, teamID])
+  const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
   const onMarkAsUnread = React.useCallback(() => {
     clearModals()
-    dispatch(ChatGen.createMarkAsUnread({conversationIDKey}))
-  }, [clearModals, dispatch, conversationIDKey])
+    setMarkAsUnread()
+  }, [clearModals, setMarkAsUnread])
   const onViewTeam = React.useCallback(() => {
     clearModals()
-    navigateAppend({props: {teamID}, selected: 'team'})
+    navigateAppend(() => ({props: {teamID}, selected: 'team'}))
   }, [clearModals, navigateAppend, teamID])
+  const hideConversation = C.useChatContext(s => s.dispatch.hideConversation)
   const onHideConv = React.useCallback(() => {
-    dispatch(ChatGen.createHideConversation({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
-  const onMuteConv = React.useCallback(
-    (muted: boolean) => {
-      dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
-    },
-    [conversationIDKey, dispatch]
-  )
+    hideConversation(true)
+  }, [hideConversation])
+  const onMuteConv = C.useChatContext(s => s.dispatch.mute)
   const onUnhideConv = React.useCallback(() => {
-    dispatch(ChatGen.createUnhideConversation({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
+    hideConversation(false)
+  }, [hideConversation])
 
   const props = {
     attachTo,
     badgeSubscribe,
     canAddPeople,
     channelname,
-    conversationIDKey,
     floatingMenuContainerStyle,
     hasHeader,
     ignored,

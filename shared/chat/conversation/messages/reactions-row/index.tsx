@@ -1,16 +1,15 @@
-import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
+import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import EmojiRow from '../emoji-row/container'
 import ReactButton from '../react-button/container'
 import ReactionTooltip from '../reaction-tooltip'
-import type * as Types from '../../../../constants/types/chat2'
-import {ConvoIDContext, OrdinalContext} from '../ids-context'
+import type * as T from '../../../../constants/types'
+import {OrdinalContext} from '../ids-context'
 
 // Get array of emoji names in the order of their earliest reaction
-const getOrderedReactions = (reactions?: Types.Reactions) => {
+const getOrderedReactions = (reactions?: T.Chat.Reactions) => {
   if (!reactions) {
     return []
   }
@@ -30,10 +29,9 @@ const getOrderedReactions = (reactions?: Types.Reactions) => {
 }
 
 const ReactionsRowContainer = React.memo(function ReactonsRowContainer() {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const reactions = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const reactions = C.useChatContext(s => {
+    const message = s.messageMap.get(ordinal)
     const reactions = message?.reactions
     return reactions
   })
@@ -58,9 +56,8 @@ const ReactionsRowContainer = React.memo(function ReactonsRowContainer() {
 
 export type Props = {
   activeEmoji: string
-  conversationIDKey: Types.ConversationIDKey
   emojis: Array<string>
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
   setActiveEmoji: (s: string) => void
   setHideMobileTooltip: () => void
   setShowMobileTooltip: () => void
@@ -74,7 +71,6 @@ type IProps = {
   emoji: string
 }
 const RowItem = React.memo(function RowItem(p: IProps) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
   const {emoji} = p
 
@@ -91,7 +87,6 @@ const RowItem = React.memo(function RowItem(p: IProps) {
   const popup = showingPopup ? (
     <ReactionTooltip
       attachmentRef={() => popupAnchor.current}
-      conversationIDKey={conversationIDKey}
       emoji={emoji}
       onHidden={hidePopup}
       ordinal={ordinal}
@@ -132,7 +127,7 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.xtiny,
       },
       visibilityHidden: Styles.platformStyles({isElectron: {visibility: 'hidden'}}),
-    } as const)
+    }) as const
 )
 
 export default ReactionsRowContainer

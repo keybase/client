@@ -1,15 +1,11 @@
-import * as RouterConstants from '../../../../../constants/router2'
+import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/teams'
-import * as BotsConstants from '../../../../../constants/bots'
-import * as TrackerConstants from '../../../../../constants/tracker2'
-import * as ProfileConstants from '../../../../../constants/profile'
 import * as Container from '../../../../../util/container'
-import type * as RPCTypes from '../../../../../constants/types/rpc-gen'
-import type * as Types from '../../../../../constants/types/teams'
+import type * as T from '../../../../../constants/types'
 import {TeamBotRow} from './'
 
 type OwnProps = {
-  teamID: Types.TeamID
+  teamID: T.Teams.TeamID
   username: string
 }
 
@@ -17,11 +13,11 @@ const blankInfo = Constants.initialMemberInfo
 
 export default (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
-  const canManageBots = Constants.useState(s => Constants.getCanPerformByID(s, teamID).manageBots)
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
+  const canManageBots = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID).manageBots)
   const map = teamDetails?.members
-  const info: Types.MemberInfo = map?.get(ownProps.username) || blankInfo
-  const bot: RPCTypes.FeaturedBot = BotsConstants.useState(
+  const info: T.Teams.MemberInfo = map?.get(ownProps.username) || blankInfo
+  const bot: T.RPCGen.FeaturedBot = C.useBotsState(
     s =>
       s.featuredBotsMap.get(ownProps.username) ?? {
         botAlias: info.fullName,
@@ -41,8 +37,8 @@ export default (ownProps: OwnProps) => {
   const roleType = info.type
   const status = info.status
   const username = info.username
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const _onShowTracker = (username: string) => {
     if (Container.isMobile) {
       showUserProfile(username)
@@ -50,7 +46,7 @@ export default (ownProps: OwnProps) => {
       showUser(username, true)
     }
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = () => {
     navigateAppend({props: ownProps, selected: 'teamMember'})
   }

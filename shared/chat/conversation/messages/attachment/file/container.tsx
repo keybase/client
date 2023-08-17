@@ -1,14 +1,11 @@
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/chat2'
-import * as RouterConstants from '../../../../../constants/router2'
-import * as FSConstants from '../../../../../constants/fs'
-import * as CryptoConstants from '../../../../../constants/crypto'
 import * as Container from '../../../../../util/container'
 import * as React from 'react'
 import * as Tabs from '../../../../../constants/tabs'
 import File from '.'
-import type * as CryptoTypes from '../../../../../constants/types/crypto'
-import {ConvoIDContext, OrdinalContext} from '../../ids-context'
+import type * as T from '../../../../../constants/types'
+import {OrdinalContext} from '../../ids-context'
 import {globalColors} from '../../../../../styles'
 import {isPathSaltpack} from '../../../../../constants/crypto'
 import shallowEqual from 'shallowequal'
@@ -20,46 +17,43 @@ type OwnProps = {
 const missingMessage = Constants.makeMessageAttachment({})
 
 const FileContainer = React.memo(function FileContainer(p: OwnProps) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const isEditing = Container.useSelector(state => {
-    const editInfo = Constants.getEditInfo(state, conversationIDKey)
-    return editInfo?.ordinal === ordinal
-  })
+  const isEditing = C.useChatContext(s => !!s.editing)
 
-  const {fileType, downloadPath, transferState, transferErrMsg, fileName} = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
+  const {fileType, downloadPath, transferState, transferErrMsg, fileName} = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal) ?? missingMessage
     const {downloadPath, fileName, fileType, transferErrMsg, transferState} = m
     return {downloadPath, fileName, fileType, transferErrMsg, transferState}
   }, shallowEqual)
 
   // TODO not message
-  const message = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+  const message = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m : missingMessage
   })
 
-  const dispatch = Container.useDispatch()
-  const saltpackOpenFile = CryptoConstants.useState(s => s.dispatch.onSaltpackOpenFile)
-  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
+  const saltpackOpenFile = C.useCryptoState(s => s.dispatch.onSaltpackOpenFile)
+  const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onSaltpackFileOpen = React.useCallback(
-    (path: string, operation: CryptoTypes.Operations) => {
+    (path: string, operation: T.Crypto.Operations) => {
       switchTab(Tabs.cryptoTab)
       saltpackOpenFile(operation, path)
     },
     [switchTab, saltpackOpenFile]
   )
-  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = React.useCallback(() => {
     downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)
   }, [openLocalPathInSystemFileManagerDesktop, downloadPath])
 
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
+  const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
   const onDownload = React.useCallback(() => {
     if (Container.isMobile) {
-      message && dispatch(Chat2Gen.createMessageAttachmentNativeShare({message}))
+      message && messageAttachmentNativeShare(message)
     } else {
       if (!downloadPath) {
         if (fileType === 'application/pdf') {
@@ -72,17 +66,19 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
               return
             default:
           }
-          message &&
-            dispatch(
-              Chat2Gen.createAttachmentDownload({
-                conversationIDKey: message.conversationIDKey,
-                ordinal: message.ordinal,
-              })
-            )
+          message && attachmentDownload(message.ordinal)
         }
       }
     }
-  }, [navigateAppend, dispatch, downloadPath, transferState, fileType, message])
+  }, [
+    navigateAppend,
+    attachmentDownload,
+    messageAttachmentNativeShare,
+    downloadPath,
+    transferState,
+    fileType,
+    message,
+  ])
 
   const arrowColor = Container.isMobile
     ? ''

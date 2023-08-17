@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
@@ -30,7 +31,7 @@ export const Success = (props: {teamname: string}) => (
 const JoinTeam = (props: Props) => {
   const [name, _setName] = React.useState(props.initialTeamname ?? '')
   const setName = (n: string) => _setName(n.toLowerCase())
-  const resetTeamJoin = Constants.useState(s => s.dispatch.resetTeamJoin)
+  const resetTeamJoin = C.useTeamsState(s => s.dispatch.resetTeamJoin)
   React.useEffect(() => {
     resetTeamJoin()
   }, [resetTeamJoin])
@@ -124,7 +125,7 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       roundedBox: {marginBottom: Styles.globalMargins.tiny},
-    } as const)
+    }) as const
 )
 
 export default JoinTeam

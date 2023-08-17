@@ -1,13 +1,12 @@
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import * as Kb from '../../../../common-adapters'
-import type * as TeamTypes from '../../../../constants/types/teams'
 import UserNotice from '../user-notice'
 import {typeToLabel} from '../../../../constants/teams'
 
 type Props = {
-  message: Types.MessageSystemInviteAccepted
+  message: T.Chat.MessageSystemInviteAccepted
   onViewTeam: () => void
-  role: TeamTypes.MaybeTeamRoleType
+  role: T.Teams.MaybeTeamRoleType
   teamname: string
   you: string
 }

@@ -1,12 +1,11 @@
 import * as React from 'react'
-import type * as Types from '../../../constants/types/teams'
+import type * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {globalColors, globalMargins, styleSheetCreate, platformStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {FloatingRolePicker} from '../../role-picker'
 import {pluralize} from '../../../util/string'
-import type * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import RetentionPicker from './retention/container'
 import * as Styles from '../../../styles'
 import DefaultChannels from './default-channels'
@@ -22,13 +21,13 @@ type Props = {
   publicityTeam: boolean
   onEditWelcomeMessage: () => void
   openTeam: boolean
-  openTeamRole: Types.TeamRoleType
-  savePublicity: (settings: Types.PublicitySettings) => void
+  openTeamRole: T.Teams.TeamRoleType
+  savePublicity: (settings: T.Teams.PublicitySettings) => void
   showOpenTeamWarning: (isOpenTeam: boolean, teamname: string) => void
-  teamID: Types.TeamID
-  yourOperations: Types.TeamOperations
+  teamID: T.Teams.TeamID
+  yourOperations: T.Teams.TeamOperations
   waitingForWelcomeMessage: boolean
-  welcomeMessage?: RPCChatTypes.WelcomeMessageDisplay
+  welcomeMessage?: T.RPCChat.WelcomeMessageDisplay
   loadWelcomeMessage: () => void
   teamname: string
 }
@@ -36,10 +35,10 @@ type Props = {
 type RolePickerProps = {
   isRolePickerOpen: boolean
   onCancelRolePicker: () => void
-  onConfirmRolePicker: (role: Types.TeamRoleType) => void
+  onConfirmRolePicker: (role: T.Teams.TeamRoleType) => void
   onOpenRolePicker: () => void
-  newOpenTeamRole: Types.TeamRoleType
-  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string}
+  newOpenTeamRole: T.Teams.TeamRoleType
+  disabledReasonsForRolePicker: {[K in T.Teams.TeamRoleType]?: string}
 }
 
 type NewSettings = {
@@ -48,7 +47,7 @@ type NewSettings = {
   newPublicityMember: boolean
   newPublicityTeam: boolean
   newOpenTeam: boolean
-  newOpenTeamRole: Types.TeamRoleType
+  newOpenTeamRole: T.Teams.TeamRoleType
 }
 
 type State = {

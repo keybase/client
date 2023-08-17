@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import type * as Container from '../../util/container'
 import {headerNavigationOptions} from './header-area/container'
@@ -11,9 +12,9 @@ const getOptions = ({route}: OwnProps) => ({
 })
 
 const Screen = (p: OwnProps) => (
-  <React.Suspense>
+  <C.ProviderScreen rp={p} canBeNull={true}>
     <Convo {...p.route.params} />
-  </React.Suspense>
+  </C.ProviderScreen>
 )
 
 export default {getOptions, getScreen: () => Screen}

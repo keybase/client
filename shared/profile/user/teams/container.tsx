@@ -1,32 +1,29 @@
-import * as ConfigConstants from '../../../constants/config'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/tracker2'
-import * as TeamsConstants from '../../../constants/teams'
-import type * as Types from '../../../constants/types/tracker2'
-import {noTeamID} from '../../../constants/types/teams'
+import * as T from '../../../constants/types'
 import Teams, {type Props} from '.'
 
 type OwnProps = {
   username: string
 }
 
-const noTeams = new Array<Types.TeamShowcase>()
+const noTeams = new Array<T.Tracker.TeamShowcase>()
 
 export default (ownProps: OwnProps) => {
-  const d = Constants.useState(s => Constants.getDetails(s, ownProps.username))
-  const _isYou = ConfigConstants.useCurrentUserState(s => s.username === ownProps.username)
-  const _roles = TeamsConstants.useState(s => s.teamRoleMap.roles)
-  const _teamNameToID = TeamsConstants.useState(s => s.teamNameToID)
-  const _youAreInTeams = TeamsConstants.useState(s => s.teamnames.size > 0)
+  const d = C.useTrackerState(s => Constants.getDetails(s, ownProps.username))
+  const _isYou = C.useCurrentUserState(s => s.username === ownProps.username)
+  const _roles = C.useTeamsState(s => s.teamRoleMap.roles)
+  const _teamNameToID = C.useTeamsState(s => s.teamNameToID)
+  const _youAreInTeams = C.useTeamsState(s => s.teamnames.size > 0)
   const teamShowcase = d.teamShowcase || noTeams
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onEdit = () => {
     navigateAppend('profileShowcaseTeamOffer')
   }
-  const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
-  const showTeamByName = TeamsConstants.useState(s => s.dispatch.showTeamByName)
+  const joinTeam = C.useTeamsState(s => s.dispatch.joinTeam)
+  const showTeamByName = C.useTeamsState(s => s.dispatch.showTeamByName)
   const onJoinTeam = joinTeam
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onViewTeam = (teamname: string) => {
     clearModals()
     showTeamByName(teamname)
@@ -36,7 +33,7 @@ export default (ownProps: OwnProps) => {
     onJoinTeam: onJoinTeam,
     onViewTeam: onViewTeam,
     teamMeta: teamShowcase.reduce<Props['teamMeta']>((map, t) => {
-      const teamID = _teamNameToID.get(t.name) || noTeamID
+      const teamID = _teamNameToID.get(t.name) || T.Teams.noTeamID
       map[t.name] = {
         inTeam: !!((_roles.get(teamID)?.role || 'none') !== 'none'),
         teamID,

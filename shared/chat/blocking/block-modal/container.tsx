@@ -1,8 +1,6 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/users'
-import * as TeamsConstants from '../../../constants/teams'
 import * as Container from '../../../util/container'
-import * as RouterConstants from '../../../constants/router2'
 import * as React from 'react'
 import BlockModal, {type BlockModalContext, type BlockType, type NewBlocksMap, type ReportSettings} from '.'
 import {leaveTeamWaitingKey} from '../../../constants/teams'
@@ -36,7 +34,7 @@ export default (ownProps: OwnProps) => {
     others = undefined
   }
 
-  const _allKnownBlocks = Constants.useState(s => s.blockMap)
+  const _allKnownBlocks = C.useUsersState(s => s.blockMap)
   const loadingWaiting = Container.useAnyWaiting(Constants.getUserBlocksWaitingKey)
   const stateProps = {
     _allKnownBlocks,
@@ -53,19 +51,17 @@ export default (ownProps: OwnProps) => {
     teamname,
   }
 
-  const dispatch = Container.useDispatch()
-
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onClose = navigateUp
-  const leaveTeam = TeamsConstants.useState(s => s.dispatch.leaveTeam)
+  const leaveTeam = C.useTeamsState(s => s.dispatch.leaveTeam)
   const leaveTeamAndBlock = React.useCallback(
     (teamname: string) => {
       leaveTeam(teamname, true, 'chat')
     },
     [leaveTeam]
   )
-  const getBlockState = Constants.useState(s => s.dispatch.getBlockState)
-  const _reportUser = Constants.useState(s => s.dispatch.reportUser)
+  const getBlockState = C.useUsersState(s => s.dispatch.getBlockState)
+  const _reportUser = C.useUsersState(s => s.dispatch.reportUser)
   const refreshBlocksFor = getBlockState
   const reportUser = React.useCallback(
     (username: string, convID: string | undefined, report: ReportSettings) => {
@@ -79,18 +75,8 @@ export default (ownProps: OwnProps) => {
     },
     [_reportUser]
   )
-  const setConversationStatus = React.useCallback(
-    (conversationIDKey: string, reportUser: boolean) => {
-      dispatch(
-        Chat2Gen.createBlockConversation({
-          conversationIDKey,
-          reportUser,
-        })
-      )
-    },
-    [dispatch]
-  )
-  const _setUserBlocks = Constants.useState(s => s.dispatch.setUserBlocks)
+  const setConversationStatus = C.useChatContext(s => s.dispatch.blockConversation)
+  const _setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
   const setUserBlocks = React.useCallback(
     (newBlocks: NewBlocksMap) => {
       // Convert our state block array to action payload.
@@ -127,7 +113,7 @@ export default (ownProps: OwnProps) => {
         } else if (stateProps.convID) {
           takingAction = true
           const anyReported = [...newBlocks.values()].some(v => v?.report !== undefined)
-          setConversationStatus(stateProps.convID, anyReported)
+          setConversationStatus(anyReported)
         }
       }
       if (newBlocks.size) {

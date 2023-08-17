@@ -1,39 +1,35 @@
-import * as Constants from '../constants/devices'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as T from '../constants/types'
 
 const PaperKey = () => {
   const [paperkey, setPaperkey] = React.useState('')
   const [wroteItDown, setWroteItDown] = React.useState(false)
 
   Container.useOnMountOnce(() => {
-    RPCTypes.loginPaperKeyRpcListener(
-      {
-        customResponseIncomingCallMap: {
-          'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
-            response.result(false)
-            return false
-          },
+    T.RPCGen.loginPaperKeyRpcListener({
+      customResponseIncomingCallMap: {
+        'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
+          response.result(false)
+          return false
         },
-        incomingCallMap: {
-          'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) => {
-            setPaperkey(phrase)
-          },
-        },
-        params: undefined,
-        waitingKey: Constants.waitingKey,
       },
-      Container.dummyListenerApi
-    )
+      incomingCallMap: {
+        'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) => {
+          setPaperkey(phrase)
+        },
+      },
+      params: undefined,
+      waitingKey: C.devicesWaitingKey,
+    })
       .then(() => {})
       .catch(() => {})
   })
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -75,7 +71,7 @@ const PaperKey = () => {
           label="Done"
           onClick={clearModals}
           disabled={!wroteItDown}
-          waitingKey={Constants.waitingKey}
+          waitingKey={C.devicesWaitingKey}
         />
       </Kb.Box2>
     </Kb.Box2>

@@ -1,6 +1,6 @@
 import * as Z from '../util/zustand'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
 import logger from '../logger'
 import * as ConfigConstants from './config'
 
@@ -8,9 +8,9 @@ export type Store = {
   cancelLabel?: string
   prompt: string
   retryLabel?: string
-  showTyping?: RPCTypes.Feature
+  showTyping?: T.RPCGen.Feature
   submitLabel?: string
-  type: RPCTypes.PassphraseType
+  type: T.RPCGen.PassphraseType
   windowTitle: string
 }
 const initialStore: Store = {
@@ -19,7 +19,7 @@ const initialStore: Store = {
   retryLabel: undefined,
   showTyping: undefined,
   submitLabel: undefined,
-  type: RPCTypes.PassphraseType.none,
+  type: T.RPCGen.PassphraseType.none,
   windowTitle: '',
 }
 
@@ -30,19 +30,19 @@ type State = Store & {
       onSubmit?: (password: string) => void
     }
     secretUIWantsPassphrase: (
-      pinentry: RPCTypes.GUIEntryArg,
+      pinentry: T.RPCGen.GUIEntryArg,
       response: {
-        error: RPCTypes.IncomingErrorCallback
-        result: (param: RPCTypes.GetPassphraseRes) => void
+        error: T.RPCGen.IncomingErrorCallback
+        result: (param: T.RPCGen.GetPassphraseRes) => void
       }
     ) => void
-    onEngineIncoming: (action: EngineGen.Keybase1SecretUiGetPassphrasePayload) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     onEngineConnected: () => void
     resetState: () => void
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     dynamic: {
       onCancel: undefined,
@@ -51,7 +51,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     onEngineConnected: () => {
       const f = async () => {
         try {
-          await RPCTypes.delegateUiCtlRegisterSecretUIRpcPromise()
+          await T.RPCGen.delegateUiCtlRegisterSecretUIRpcPromise()
           logger.info('Registered secret ui')
         } catch (error) {
           logger.warn('error in registering secret ui: ', error)
@@ -67,6 +67,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           get().dispatch.secretUIWantsPassphrase(pinentry, response)
           break
         }
+        default:
       }
     },
     resetState: () => {
@@ -99,7 +100,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.dispatch.dynamic.onCancel = undefined
           })
-          response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
+          response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
           get().dispatch.resetState()
         }
       })

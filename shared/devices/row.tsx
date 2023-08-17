@@ -1,14 +1,13 @@
-import * as Constants from '../constants/devices'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
 import DeviceIcon from './device-icon'
-import type * as Types from '../constants/types/devices'
+import type * as T from '../constants/types'
 import {formatTimeRelativeToNow} from '../util/timestamp'
 
 type OwnProps = {
-  deviceID: Types.DeviceID
+  deviceID: T.Devices.DeviceID
   firstItem: boolean
 }
 
@@ -16,13 +15,13 @@ export const NewContext = React.createContext(new Set())
 
 export default (ownProps: OwnProps) => {
   const {deviceID, firstItem} = ownProps
-  const device = Constants.useDevicesState(s => s.deviceMap.get(deviceID))
+  const device = C.useDevicesState(s => s.deviceMap.get(deviceID))
   if (!device) return null
 
   const isNew = React.useContext(NewContext).has(deviceID)
   const {currentDevice, name, revokedAt, lastUsed} = device
   const isRevoked = !!device.revokedByName
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const showExistingDevicePage = React.useCallback(() => {
     navigateAppend({props: {deviceID}, selected: 'devicePage'})
   }, [navigateAppend, deviceID])

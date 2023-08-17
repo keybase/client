@@ -1,20 +1,11 @@
 import * as React from 'react'
-import {type Draft as _Draft} from 'immer'
-import type {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
-import type {ActionHandler as _ActionHandler} from './make-reducer'
-import type {TypedState as _TypedState} from '../constants/reducer'
-import {useDispatch as RRuseDispatch, shallowEqual, type TypedUseSelectorHook} from 'react-redux'
-import type {Dispatch as RRDispatch} from 'redux'
-import flowRight from 'lodash/flowRight'
 import type {NavigationContainerRef} from '@react-navigation/core'
 import type {createListenerMiddleware} from '@reduxjs/toolkit'
 import {useNavigation} from '@react-navigation/core'
 import {type RouteKeys} from '../router-v2/route-params'
 export type ListenerMiddleware = ReturnType<typeof createListenerMiddleware>
 export {getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params'
-export {listenAction, type ListenerApi, spawn, type ListenActionReturn} from './redux-toolkit'
 export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
-import USH from './use-selector'
 export {useAnyWaiting, useAnyErrors, useDispatchClearWaiting} from '../constants/waiting'
 export {networkErrorCodes, isNetworkErr} from '../util/errors'
 
@@ -57,13 +48,9 @@ export type PagesToParams<T> = {
 
 // get the views params and wrap them as the page would see it
 export type ViewPropsToPageProps<T> = T extends (p: infer P) => any ? {route: {params: P}} : never
-
-const useSelector = USH.useSelector as TypedUseSelectorHook<RootState>
-
-export type RemoteWindowSerializeProps<P> = {[K in keyof P]-?: (val: P[K], old?: P[K]) => any}
-
-export type TypedDispatch = (action: _TypedActions) => void
-export type Dispatch = TypedDispatch
+export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
+  ? {route: {params: P | undefined}}
+  : never
 
 // Deprecated: use usePrevious2
 export function usePrevious<T>(value: T) {
@@ -81,11 +68,6 @@ export function usePrevious2<T>(value: T) {
   return ref.current
 }
 
-/** like useSelector but for remote stores **/
-export function useRemoteStore<S>(): S {
-  // TODO this will warn you not to do this, could just pass in a selector later
-  return useSelector(s => s, shallowEqual) as unknown as S
-}
 /**
       like useEffect but doesn't call on initial mount, only when deps change
 TODO deprecate
@@ -163,19 +145,10 @@ export const timeoutPromise = async (timeMs: number) =>
 export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
 export {useSafeSubmit} from './safe-submit'
 export {useSafeNavigation} from './safe-navigation'
-export type TypedActions = _TypedActions
-export type TypedState = _TypedState
-export const compose = flowRight
-export {produce, castDraft, castImmutable, current} from 'immer'
-export type Draft<T> = _Draft<T>
+export {produce} from 'immer'
 export {default as HiddenString} from './hidden-string'
-export {default as makeReducer} from './make-reducer'
-export type ActionHandler<S, A> = _ActionHandler<S, A>
 export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
-export type RootState = _TypedState
-export const useDispatch = () => RRuseDispatch<RRDispatch<_TypedActions>>()
-export {useSelector}
 
 type Fn<ARGS extends any[], R> = (...args: ARGS) => R
 
@@ -193,54 +166,3 @@ export const useEvent = <Arr extends any[], R>(fn: Fn<Arr, R>): Fn<Arr, R> => {
     []
   )
 }
-
-export const dummyListenerApi = {
-  delay: async () => Promise.resolve(),
-  dispatch: () => {},
-  fork: () => {
-    throw new Error('dummy')
-  },
-  getState: () => {
-    throw new Error('dummy')
-  },
-  take: () => {
-    throw new Error('dummy')
-  },
-}
-
-// BEGIN debugging connect
-// import isEqual from 'lodash/isEqual'
-// const debugMergeProps = __DEV__
-//   ? () => {
-//       let oldsp = {}
-//       let oldop = {}
-//       return (sp, op, mp) => {
-//         Object.keys(oldsp).forEach(key => {
-//           if (oldsp[key] !== sp[key] && isEqual(oldsp[key], sp[key])) {
-//             console.log('DEBUGMERGEPROPS sp: ', key, oldsp[key], sp[key], 'orig: ', mp)
-//           }
-//         })
-//         Object.keys(oldop).forEach(key => {
-//           if (oldop[key] !== op[key] && isEqual(oldop[key], op[key])) {
-//             console.log('DEBUGMERGEPROPS op: ', key, oldop[key], op[key], 'orig: ', mp)
-//           }
-//         })
-//         oldsp = sp || {}
-//         oldop = op || {}
-//       }
-//     }
-//   : () => () => {}
-//
-// const debugConnect: any = (msp, mdp, mp) => {
-//   console.log('DEBUG: using debugMergeProps connect')
-//   const dmp = debugMergeProps()
-//   return typedConnect(msp, mdp, (sp, dp, op) => {
-//     dmp(sp, op, mp)
-//     return mp(sp, dp, op)
-//   })
-// }
-// const connect: typeof typedConnect = __DEV__ ? debugConnect : typedConnect
-// if (__DEV__) {
-//   console.log('\n\n\nDEBUG: debugConnect enabled')
-// }
-//

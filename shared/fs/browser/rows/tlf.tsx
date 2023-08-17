@@ -1,6 +1,6 @@
+import * as C from '../../../constants'
 import * as Styles from '../../../styles'
-import * as Constants from '../../../constants/fs'
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
 import {useFsPathMetadata, TlfInfoLine, Filename} from '../../common'
@@ -25,7 +25,7 @@ const Content = (props: TlfProps) => (
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.minWidth}>
         <Filename
-          type={Constants.pathTypeToTextType(Types.PathType.Folder)}
+          type={C.pathTypeToTextType(T.FS.PathType.Folder)}
           style={Styles.collapseStyles([rowStyles.rowText, styles.kerning])}
           path={props.path}
         />
@@ -36,7 +36,7 @@ const Content = (props: TlfProps) => (
 )
 const Avatars = (props: TlfProps) => (
   <Kb.Box style={styles.avatarBox}>
-    {Constants.isTeamPath(props.path) ? (
+    {C.isTeamPath(props.path) ? (
       <Kb.Avatar size={32} isTeam={true} teamname={props.usernames[0]} />
     ) : (
       <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={props.usernames} />
@@ -44,7 +44,7 @@ const Avatars = (props: TlfProps) => (
   </Kb.Box>
 )
 
-const FsPathMetadataLoader = ({path}: {path: Types.Path}) => {
+const FsPathMetadataLoader = ({path}: {path: T.FS.Path}) => {
   useFsPathMetadata(path)
   return null
 }
@@ -84,7 +84,7 @@ const styles = Styles.styleSheetCreate(
       kerning: {letterSpacing: 0.2},
       leftBox: {flex: 1, justifyContent: 'center', minWidth: 0},
       minWidth: {minWidth: 0},
-    } as const)
+    }) as const
 )
 
 export default Tlf

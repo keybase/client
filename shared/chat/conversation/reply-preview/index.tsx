@@ -1,18 +1,14 @@
+import * as C from '../../../constants'
 import * as React from 'react'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 
-type Props = {conversationIDKey: Types.ConversationIDKey}
-
-const ReplyPreview = (props: Props) => {
-  const {conversationIDKey} = props
-  const message = Container.useSelector(state => {
-    const ordinal = Constants.getReplyToOrdinal(state, conversationIDKey)
-    return ordinal ? Constants.getMessage(state, conversationIDKey, ordinal) : null
+const ReplyPreview = () => {
+  const rordinal = C.useChatContext(s => s.replyTo)
+  const message = C.useChatContext(s => {
+    return rordinal ? s.messageMap.get(rordinal) : null
   })
   let text = ''
   if (message) {
@@ -26,7 +22,7 @@ const ReplyPreview = (props: Props) => {
       default:
     }
   }
-  let attachment: Types.MessageAttachment | undefined
+  let attachment: T.Chat.MessageAttachment | undefined
   if (message && message.type === 'attachment') {
     if (message.attachmentType === 'image') {
       attachment = message
@@ -36,13 +32,11 @@ const ReplyPreview = (props: Props) => {
   const imageURL = attachment?.previewURL
   const imageWidth = attachment?.previewWidth
   const username = message?.author ?? ''
-
   const sizing = imageWidth && imageHeight ? Constants.zoomImage(imageWidth, imageHeight, 80) : null
-
-  const dispatch = Container.useDispatch()
+  const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
   const onCancel = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
+    setReplyTo(0)
+  }, [setReplyTo])
 
   return (
     <Kb.Box style={styles.outerContainer}>
@@ -127,7 +121,7 @@ const styles = Styles.styleSheetCreate(
         paddingTop: Styles.globalMargins.tiny,
       },
       username: {alignSelf: 'center'},
-    } as const)
+    }) as const
 )
 
 export default ReplyPreview

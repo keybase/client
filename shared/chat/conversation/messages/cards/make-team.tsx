@@ -1,16 +1,11 @@
-import * as RouterConstants from '../../../../constants/router2'
+import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import type * as Chat2Types from '../../../../constants/types/chat2'
 
-type Props = {
-  conversationIDKey: Chat2Types.ConversationIDKey
-}
-
-const MakeTeam = ({conversationIDKey}: Props) => {
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+const MakeTeam = () => {
+  const navigateAppend = C.useChatNavigateAppend()
   const onShowNewTeamDialog = () =>
-    navigateAppend({props: {conversationIDKey}, selected: 'chatShowNewTeamDialog'})
+    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatShowNewTeamDialog'}))
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
       <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>

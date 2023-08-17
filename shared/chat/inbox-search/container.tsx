@@ -1,11 +1,8 @@
-import * as RouterConstants from '../../constants/router2'
-import * as Chat2Gen from '../../actions/chat2-gen'
+import * as C from '../../constants'
+import type * as T from '../../constants/types'
 import * as Constants from '../../constants/chat2'
-import * as Container from '../../util/container'
-import HiddenString from '../../util/hidden-string'
 import InboxSearch from '.'
 import * as React from 'react'
-import type * as Types from '../../constants/types/chat2'
 
 type OwnProps = {
   header?: React.ReactElement | null
@@ -14,27 +11,22 @@ type OwnProps = {
 const emptySearch = Constants.makeInboxSearchInfo()
 
 export default (ownProps: OwnProps) => {
-  const _inboxSearch = Container.useSelector(state => state.chat2.inboxSearch ?? emptySearch)
-  const dispatch = Container.useDispatch()
+  const _inboxSearch = C.useChatState(s => s.inboxSearch ?? emptySearch)
+  const toggleInboxSearch = C.useChatState(s => s.dispatch.toggleInboxSearch)
+  const inboxSearchSelect = C.useChatState(s => s.dispatch.inboxSearchSelect)
   const onCancel = () => {
-    dispatch(Chat2Gen.createToggleInboxSearch({enabled: false}))
+    toggleInboxSearch(false)
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onInstallBot = (username: string) => {
     navigateAppend({props: {botUsername: username}, selected: 'chatInstallBotPick'})
   }
   const onSelectConversation = (
-    conversationIDKey: Types.ConversationIDKey,
+    conversationIDKey: T.Chat.ConversationIDKey,
     selectedIndex: number,
     query: string
   ) => {
-    dispatch(
-      Chat2Gen.createInboxSearchSelect({
-        conversationIDKey,
-        query: query.length > 0 ? new HiddenString(query) : undefined,
-        selectedIndex,
-      })
-    )
+    inboxSearchSelect(conversationIDKey, query.length > 0 ? query : undefined, selectedIndex)
   }
   const {header} = ownProps
   const {indexPercent, nameResults, nameResultsUnread, nameStatus, textStatus} = _inboxSearch
@@ -60,7 +52,7 @@ export default (ownProps: OwnProps) => {
     openTeamsResults,
     openTeamsResultsSuggested,
     openTeamsStatus,
-    query: query.stringValue(),
+    query,
     selectedIndex,
     textResults: textResults.map(r => ({
       conversationIDKey: r.conversationIDKey,

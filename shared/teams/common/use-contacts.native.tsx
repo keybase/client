@@ -1,7 +1,6 @@
+import * as C from '../../constants'
 import * as Contacts from 'expo-contacts'
-import * as Container from '../../util/container'
 import * as React from 'react'
-import * as SettingsConstants from '../../constants/settings'
 import {e164ToDisplay} from '../../util/phone-numbers'
 import logger from '../../logger'
 import {getDefaultCountryCode} from 'react-native-kb'
@@ -63,7 +62,7 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
     }
     phoneNumbers.forEach(pn => {
       if (pn.number) {
-        const value = SettingsConstants.getE164(pn.number, pn.countryCode || region)
+        const value = C.getE164(pn.number, pn.countryCode || region)
         if (value) {
           const valueFormatted = e164ToDisplay(value)
           ret.push({id: pn.id, name, pictureUri, type: 'phone', value, valueFormatted})
@@ -82,15 +81,14 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
 }
 
 const useContacts = () => {
-  const dispatch = Container.useDispatch()
   const [contacts, setContacts] = React.useState<Array<Contact>>([])
   const [region, setRegion] = React.useState('')
   const [errorMessage, setErrorMessage] = React.useState<string | undefined>()
   const [noAccessPermanent, setNoAccessPermanent] = React.useState(false)
   const [loading, setLoading] = React.useState(true)
 
-  const permStatus = SettingsConstants.useContactsState(s => s.permissionStatus)
-  const savedRegion = SettingsConstants.useContactsState(s => s.userCountryCode)
+  const permStatus = C.useSettingsContactsState(s => s.permissionStatus)
+  const savedRegion = C.useSettingsContactsState(s => s.userCountryCode)
 
   React.useEffect(() => {
     if (permStatus === 'granted') {
@@ -113,9 +111,9 @@ const useContacts = () => {
       setNoAccessPermanent(true)
       setLoading(false)
     }
-  }, [dispatch, setErrorMessage, setContacts, permStatus, savedRegion])
+  }, [setErrorMessage, setContacts, permStatus, savedRegion])
 
-  const requestPermissions = SettingsConstants.useContactsState(s => s.dispatch.requestPermissions)
+  const requestPermissions = C.useSettingsContactsState(s => s.dispatch.requestPermissions)
   React.useEffect(() => {
     // Use a separate effect with limited amount of dependencies when deciding
     // whether to dispatch `createRequestContactPermissions` so we never

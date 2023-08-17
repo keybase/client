@@ -1,8 +1,5 @@
-import * as Chat2Gen from '../actions/chat2-gen'
-import * as RouterConstants from '../constants/router2'
-import * as ConfigConstants from '../constants/config'
+import * as C from '../constants'
 import * as Constants from '../constants/crypto'
-import * as FSConstants from '../constants/fs'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Path from '../util/path'
@@ -11,29 +8,17 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import capitalize from 'lodash/capitalize'
 import shallowEqual from 'shallowequal'
-import type * as Types from '../constants/types/crypto'
+import type * as T from '../constants/types'
 import {getStyle} from '../common-adapters/text'
 import {humanizeBytes} from '../constants/fs'
 import {pickFiles} from '../util/pick-files'
 
-type OutputProps = {
-  operation: Types.Operations
-}
-
-type OutputActionsBarProps = {
-  operation: Types.Operations
-}
-
-type SignedSenderProps = {
-  operation: Types.Operations
-}
-
-type OutputProgressProps = {
-  operation: Types.Operations
-}
-
+type OutputProps = {operation: T.Crypto.Operations}
+type OutputActionsBarProps = {operation: T.Crypto.Operations}
+type SignedSenderProps = {operation: T.Crypto.Operations}
+type OutputProgressProps = {operation: T.Crypto.Operations}
 type OutputInfoProps = {
-  operation: Types.Operations
+  operation: T.Crypto.Operations
   children:
     | string
     | React.ReactElement<typeof Kb.BannerParagraph>
@@ -51,7 +36,7 @@ export const SignedSender = (props: SignedSenderProps) => {
     outputSenderUsername: signedByUsername,
     outputSenderFullname: signedByFullname,
     outputStatus,
-  } = Constants.useState(s => {
+  } = C.useCryptoState(s => {
     const o = s[operation]
     const {outputSigned, outputSenderUsername, outputSenderFullname, outputStatus} = o
     return {outputSenderFullname, outputSenderUsername, outputSigned, outputStatus}
@@ -142,7 +127,7 @@ export const SignedSender = (props: SignedSenderProps) => {
 export const OutputProgress = (props: OutputProgressProps) => {
   const {operation} = props
 
-  const {bytesComplete, bytesTotal, inProgress} = Constants.useState(s => {
+  const {bytesComplete, bytesTotal, inProgress} = C.useCryptoState(s => {
     const o = s[operation]
     const {bytesComplete, bytesTotal, inProgress} = o
     return {bytesComplete, bytesTotal, inProgress}
@@ -161,7 +146,7 @@ export const OutputProgress = (props: OutputProgressProps) => {
 export const OutputInfoBanner = (props: OutputInfoProps) => {
   const {operation} = props
 
-  const outputStatus = Constants.useState(s => s[operation].outputStatus)
+  const outputStatus = C.useCryptoState(s => s[operation].outputStatus)
   return outputStatus === 'success' ? (
     <Kb.Banner
       color="grey"
@@ -176,7 +161,6 @@ export const OutputInfoBanner = (props: OutputInfoProps) => {
 
 export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const {operation} = props
-  const dispatch = Container.useDispatch()
   const canSaveAsText = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
   const canReplyInChat =
     operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
@@ -190,7 +174,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     outputType,
     outputSigned: signed,
     outputSenderUsername: signedByUsername,
-  } = Constants.useState(s => {
+  } = C.useCryptoState(s => {
     const o = s[operation]
     const {output, outputValid, outputStatus, outputType, outputSigned, outputSenderUsername} = o
     return {output, outputSenderUsername, outputSigned, outputStatus, outputType, outputValid}
@@ -198,26 +182,27 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
 
   const actionsDisabled = waiting || !outputValid
 
-  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {
     openLocalPathInSystemFileManagerDesktop?.(output.stringValue())
   }
 
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const onReplyInChat = (username: Container.HiddenString) => {
     navigateUp()
-    dispatch(Chat2Gen.createPreviewConversation({participants: [username.stringValue()], reason: 'search'}))
+    previewConversation({participants: [username.stringValue()], reason: 'search'})
   }
 
-  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopyOutput = () => {
     copyToClipboard(output.stringValue())
   }
 
-  const downloadSignedText = Constants.useState(s => s.dispatch.downloadSignedText)
-  const downloadEncryptedText = Constants.useState(s => s.dispatch.downloadEncryptedText)
+  const downloadSignedText = C.useCryptoState(s => s.dispatch.downloadSignedText)
+  const downloadEncryptedText = C.useCryptoState(s => s.dispatch.downloadEncryptedText)
 
   const onSaveAsText = () => {
     if (operation === Constants.Operations.Sign) {
@@ -317,12 +302,12 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   )
 }
 
-const OutputFileDestination = (props: {operation: Types.Operations}) => {
+const OutputFileDestination = (props: {operation: T.Crypto.Operations}) => {
   const {operation} = props
   const operationTitle = capitalize(operation)
 
-  const input = Constants.useState(s => s[operation].input.stringValue())
-  const runFileOperation = Constants.useState(s => s.dispatch.runFileOperation)
+  const input = C.useCryptoState(s => s[operation].input.stringValue())
+  const runFileOperation = C.useCryptoState(s => s.dispatch.runFileOperation)
 
   const onOpenFile = () => {
     const f = async () => {
@@ -376,14 +361,14 @@ export const OperationOutput = (props: OutputProps) => {
     outputValid,
     outputStatus,
     outputType,
-  } = Constants.useState(s => {
+  } = C.useCryptoState(s => {
     const o = s[operation]
     const {inProgress, inputType, output, outputValid, outputStatus, outputType} = o
     return {inProgress, inputType, output, outputStatus, outputType, outputValid}
   }, shallowEqual)
   const output = _output.stringValue()
 
-  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {

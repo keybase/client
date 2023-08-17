@@ -1,22 +1,17 @@
+import * as C from '../constants'
 import * as Container from '../util/container'
-import * as Followers from '../constants/followers'
 import * as Kb from '../common-adapters'
-import * as ConfigConstants from '../constants/config'
-import * as Constants from '../constants/team-building'
-import * as SettingsConstants from '../constants/settings'
 import * as Shared from './shared'
 import * as Styles from '../styles'
 import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
 import throttle from 'lodash/throttle'
 import trim from 'lodash/trim'
-import type * as TeamBuildingTypes from '../constants/types/team-building'
-import type * as TeamTypes from '../constants/types/teams'
+import type * as T from '../constants/types'
 import type * as Types from './types'
 import type {RootRouteProps} from '../router-v2/route-params'
 import {RecsAndRecos, numSectionLabel} from './recs-and-recos'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
-import * as TeamsConstants from '../constants/teams'
 import {memoize} from '../util/memoize'
 import {useRoute} from '@react-navigation/native'
 // import {useAnimatedScrollHandler} from '../common-adapters/reanimated'
@@ -73,7 +68,7 @@ function followStateHelperWithId(
   me: string,
   followingState: Set<string>,
   userId: string = ''
-): TeamBuildingTypes.FollowingState {
+): T.TB.FollowingState {
   if (isKeybaseUserId(userId)) {
     if (userId === me) {
       return 'You'
@@ -85,11 +80,11 @@ function followStateHelperWithId(
 }
 
 const expensiveDeriveResults = (
-  searchResults: Array<TeamBuildingTypes.User> | undefined,
-  teamSoFar: Set<TeamBuildingTypes.User>,
+  searchResults: Array<T.TB.User> | undefined,
+  teamSoFar: Set<T.TB.User>,
   myUsername: string,
   followingState: Set<string>,
-  preExistingTeamMembers: Map<string, TeamTypes.MemberInfo>
+  preExistingTeamMembers: Map<string, T.Teams.MemberInfo>
 ) =>
   searchResults &&
   searchResults.map(info => {
@@ -239,17 +234,17 @@ export const ListBody = (
   const {onAdd, onRemove, teamSoFar, onSearchForMore, onChangeText} = props
   const {namespace, highlightedIndex, /*offset, */ enterInputCounter, onFinishTeamBuilding} = props
 
-  const contactsImported = SettingsConstants.useContactsState(s => s.importEnabled)
-  const contactsPermissionStatus = SettingsConstants.useContactsState(s => s.permissionStatus)
+  const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
+  const contactsPermissionStatus = C.useSettingsContactsState(s => s.permissionStatus)
 
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const following = Followers.useFollowerState(s => s.following)
+  const username = C.useCurrentUserState(s => s.username)
+  const following = C.useFollowerState(s => s.following)
 
-  const maybeTeamDetails = TeamsConstants.useState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
-  const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
-  const userRecs = Constants.useContext(s => s.userRecs)
-  const _teamSoFar = Constants.useContext(s => s.teamSoFar)
-  const _searchResults = Constants.useContext(s => s.searchResults)
+  const maybeTeamDetails = C.useTeamsState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
+  const preExistingTeamMembers: T.Teams.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
+  const userRecs = C.useTBContext(s => s.userRecs)
+  const _teamSoFar = C.useTBContext(s => s.teamSoFar)
+  const _searchResults = C.useTBContext(s => s.searchResults)
   const _recommendations = deriveRecommendation(
     userRecs,
     _teamSoFar,
@@ -258,7 +253,7 @@ export const ListBody = (
     preExistingTeamMembers
   )
 
-  const userResults: Array<TeamBuildingTypes.User> | undefined = _searchResults
+  const userResults: Array<T.TB.User> | undefined = _searchResults
     .get(trim(searchString))
     ?.get(selectedService)
 
@@ -440,5 +435,5 @@ const styles = Styles.styleSheetCreate(
         textAlign: 'center',
         ...Styles.padding(Styles.globalMargins.small),
       },
-    } as const)
+    }) as const
 )

@@ -1,13 +1,11 @@
+import * as C from './../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import type {LayoutEvent} from './../../common-adapters/box'
 import * as Constants from './../../constants/chat2'
-import * as RouterConstants from './../../constants/router2'
-import * as Types from './../../constants/types/chat2'
-import * as TeamsTypes from './../../constants/types/teams'
+import * as T from './../../constants/types'
 import * as Teams from './../../constants/teams'
-import * as Chat2Gen from './../../actions/chat2-gen'
 import * as Styles from './../../styles'
 import * as Data from './../../util/emoji'
 import startCase from 'lodash/startCase'
@@ -21,48 +19,41 @@ import {
   type RenderableEmoji,
 } from './../../util/emoji'
 import useRPC from './../../util/use-rpc'
-import * as RPCChatGen from './../../constants/types/rpc-chat-gen'
 import {usePickerState, type PickKey} from './use-picker'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   disableCustomEmoji?: boolean
   hideFrequentEmoji?: boolean
   small?: boolean
   onlyTeamCustomEmoji?: boolean
   onDidPick?: () => void
-  onPickAddToMessageOrdinal?: Types.Ordinal
+  onPickAddToMessageOrdinal?: T.Chat.Ordinal
   onPickAction?: (emoji: string, renderableEmoji: RenderableEmoji) => void
 }
 
 type RoutableProps = {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   small?: boolean
   hideFrequentEmoji?: boolean
   onlyTeamCustomEmoji?: boolean
   pickKey: PickKey
-  onPickAddToMessageOrdinal?: Types.Ordinal
+  onPickAddToMessageOrdinal?: T.Chat.Ordinal
 }
 
-const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
-  const topReacjis = Container.useSelector(state => state.chat2.userReacjis.topReacjis)
+const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
+  const topReacjis = C.useChatState(s => s.userReacjis.topReacjis)
   const [filter, setFilter] = React.useState('')
-  const dispatch = Container.useDispatch()
+  const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
+  const conversationIDKey = C.useChatContext(s => s.id)
   const onChoose = React.useCallback(
     (emoji: string, renderableEmoji: RenderableEmoji) => {
-      if (conversationIDKey !== Constants.noConversationIDKey && onPickAddToMessageOrdinal) {
-        dispatch(
-          Chat2Gen.createToggleMessageReaction({
-            conversationIDKey: conversationIDKey,
-            emoji,
-            ordinal: onPickAddToMessageOrdinal,
-          })
-        )
+      if (conversationIDKey !== C.noConversationIDKey && onPickAddToMessageOrdinal) {
+        toggleMessageReaction(onPickAddToMessageOrdinal, emoji)
       }
       onPickAction?.(emoji, renderableEmoji)
       onDidPick?.()
     },
-    [dispatch, conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal]
+    [toggleMessageReaction, conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal]
   )
   return {
     filter,
@@ -73,19 +64,17 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
 }
 
 const useSkinTone = () => {
-  const currentSkinTone = Types.EmojiSkinToneFromRPC(
-    Container.useSelector(state => state.chat2.userReacjis.skinTone)
-  )
-  const dispatch = Container.useDispatch()
-  const rpc = useRPC(RPCChatGen.localPutReacjiSkinToneRpcPromise)
-  const setSkinTone = (emojiSkinTone: undefined | Types.EmojiSkinTone) => {
+  const currentSkinTone = T.Chat.EmojiSkinToneFromRPC(C.useChatState(s => s.userReacjis.skinTone))
+  const rpc = useRPC(T.RPCChat.localPutReacjiSkinToneRpcPromise)
+  const updateUserReacjis = C.useChatState(s => s.dispatch.updateUserReacjis)
+  const setSkinTone = (emojiSkinTone: undefined | T.Chat.EmojiSkinTone) => {
     rpc(
       [
         {
-          skinTone: Types.EmojiSkinToneToRPC(emojiSkinTone),
+          skinTone: T.Chat.EmojiSkinToneToRPC(emojiSkinTone),
         },
       ],
-      res => dispatch(Chat2Gen.createUpdateUserReacjis({userReacjis: res})),
+      res => updateUserReacjis(res),
       err => {
         throw err
       }
@@ -94,50 +83,40 @@ const useSkinTone = () => {
   return {currentSkinTone, setSkinTone}
 }
 
-const useCustomReacji = (
-  conversationIDKey: Types.ConversationIDKey,
-  onlyInTeam: boolean | undefined,
-  disabled?: boolean
-) => {
-  const customEmojiGroups = Container.useSelector(s => s.chat2.userEmojis)
+const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) => {
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const customEmojiGroups = C.useChatState(s => s.userEmojis)
   const waiting = Container.useAnyWaiting(Constants.waitingKeyLoadingEmoji)
-  const dispatch = Container.useDispatch()
-
-  const [lastCID, setLastCID] = React.useState('')
+  const cidChanged = C.useCIDChanged(conversationIDKey, undefined, true)
   const [lastOnlyInTeam, setLastOnlyInTeam] = React.useState(onlyInTeam)
   const [lastDisabled, setLastDisabled] = React.useState(disabled)
+  const fetchUserEmoji = C.useChatState(s => s.dispatch.fetchUserEmoji)
 
-  if (lastCID !== conversationIDKey || lastOnlyInTeam !== onlyInTeam || lastDisabled !== disabled) {
-    setLastCID(conversationIDKey)
+  if (cidChanged || lastOnlyInTeam !== onlyInTeam || lastDisabled !== disabled) {
     setLastOnlyInTeam(onlyInTeam)
     setLastDisabled(disabled)
     if (!disabled) {
-      dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey, onlyInTeam}))
+      fetchUserEmoji(conversationIDKey, onlyInTeam)
     }
   }
 
   return disabled ? {customEmojiGroups: undefined, waiting: false} : {customEmojiGroups, waiting}
 }
 
-const useCanManageEmoji = (conversationIDKey: Types.ConversationIDKey) => {
-  const canManageEmoji = Container.useSelector(s => {
-    const meta = Constants.getMeta(s, conversationIDKey)
+const useCanManageEmoji = () => {
+  const canManageEmoji = C.useChatContext(s => {
+    const meta = s.meta
     // TODO not reactive
-    return !meta.teamname || Teams.getCanPerformByID(Teams.useState.getState(), meta.teamID).manageEmojis
+    return !meta.teamname || Teams.getCanPerformByID(C.useTeamsState.getState(), meta.teamID).manageEmojis
   })
   return canManageEmoji
 }
 
 const WrapperMobile = (props: Props) => {
-  const {conversationIDKey} = props
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
 
   const setFilterTextChangedThrottled = Container.useThrottledCallback(setFilter, 200)
-  const {waiting, customEmojiGroups} = useCustomReacji(
-    props.conversationIDKey,
-    props.onlyTeamCustomEmoji,
-    props.disableCustomEmoji
-  )
+  const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const [width, setWidth] = React.useState(0)
   const onLayout = React.useCallback(
     (evt: LayoutEvent) => evt.nativeEvent && setWidth(evt.nativeEvent.layout.width),
@@ -145,18 +124,18 @@ const WrapperMobile = (props: Props) => {
   )
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useChatNavigateAppend()
   const addEmoji = React.useCallback(
     () =>
-      navigateAppend({
-        props: {conversationIDKey, teamID: TeamsTypes.noTeamID},
+      navigateAppend(conversationIDKey => ({
+        props: {conversationIDKey, teamID: T.Teams.noTeamID},
         selected: 'teamAddEmoji',
-      }),
-    [navigateAppend, conversationIDKey]
+      })),
+    [navigateAppend]
   )
-  const canManageEmoji = useCanManageEmoji(conversationIDKey)
+  const canManageEmoji = useCanManageEmoji()
 
   return (
     <Kb.Box2
@@ -212,23 +191,18 @@ const WrapperMobile = (props: Props) => {
 }
 
 export const EmojiPickerDesktop = (props: Props) => {
-  const {conversationIDKey} = props
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji as any)
-  const {waiting, customEmojiGroups} = useCustomReacji(
-    conversationIDKey,
-    props.onlyTeamCustomEmoji,
-    props.disableCustomEmoji
-  )
-  const canManageEmoji = useCanManageEmoji(conversationIDKey)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
+  const canManageEmoji = useCanManageEmoji()
+  const navigateAppend = C.useChatNavigateAppend()
   const addEmoji = () => {
     props.onDidPick?.()
-    navigateAppend({
-      props: {conversationIDKey, teamID: TeamsTypes.noTeamID},
+    navigateAppend(conversationIDKey => ({
+      props: {conversationIDKey, teamID: T.Teams.noTeamID},
       selected: 'teamAddEmoji',
-    })
+    }))
   }
 
   return (
@@ -391,8 +365,7 @@ const Routable = (props: RoutableProps) => {
     },
     [updatePickerMap, pickKey]
   )
-  const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onDidPick = () => navigateUp()
 
   Container.useOnMountOnce(() => {
@@ -401,7 +374,6 @@ const Routable = (props: RoutableProps) => {
 
   return (
     <WrapperMobile
-      conversationIDKey={conversationIDKey}
       small={small}
       onPickAction={onPickAction}
       onPickAddToMessageOrdinal={onPickAddToMessageOrdinal}

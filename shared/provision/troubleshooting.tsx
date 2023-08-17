@@ -1,14 +1,13 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import * as Constants from '../constants/provision'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as DevicesConstants from '../constants/devices'
-import type * as Types from '../constants/types/devices'
+import type * as T from '../constants/types'
 type Props = {
   mode: 'QR' | 'text'
   onCancel: () => void
-  otherDeviceType: Types.DeviceType
+  otherDeviceType: T.Devices.DeviceType
 }
 
 type BigButtonProps = {
@@ -52,12 +51,12 @@ const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) 
 
 const Troubleshooting = (props: Props) => {
   const onBack = props.onCancel
-  const navUpToScreen = RouterConstants.useState(s => s.dispatch.navUpToScreen)
+  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   const onWayBack = React.useCallback(() => {
     navUpToScreen('login')
   }, [navUpToScreen])
 
-  const device = Constants.useState(s => s.codePageOtherDevice)
+  const device = C.useProvisionState(s => s.codePageOtherDevice)
   const deviceIconNo = (device.deviceNumberOfType % DevicesConstants.numBackgrounds) + 1
 
   // If we can't load the device icon, show the wrong one instead of erroring the whole page.

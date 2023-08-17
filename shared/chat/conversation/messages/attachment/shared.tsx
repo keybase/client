@@ -1,16 +1,16 @@
-import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import shallowEqual from 'shallowequal'
-import type * as Types from '../../../../constants/types/chat2'
-import {ConvoIDContext, OrdinalContext, GetIdsContext} from '../ids-context'
+import type * as T from '../../../../constants/types'
+import {OrdinalContext} from '../ids-context'
 import {sharedStyles} from '../shared-styles'
 
 type Props = {
-  transferState: Types.MessageAttachmentTransferState
+  transferState: T.Chat.MessageAttachmentTransferState
 }
 
 // this is a function of how much space is taken up by the rest of the elements
@@ -48,7 +48,7 @@ export const ShowToastAfterSaving = Container.isMobile
     }
   : () => null
 
-export const Transferring = (p: {ratio: number; transferState: Types.MessageAttachmentTransferState}) => {
+export const Transferring = (p: {ratio: number; transferState: T.Chat.MessageAttachmentTransferState}) => {
   const {ratio, transferState} = p
   const isTransferring =
     transferState === 'uploading' || transferState === 'downloading' || transferState === 'mobileSaving'
@@ -77,10 +77,9 @@ export const getEditStyle = (isEditing: boolean) => {
 }
 
 export const Title = () => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const title = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+  const title = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m.decoratedText?.stringValue() ?? m.title ?? '' : ''
   })
 
@@ -107,10 +106,9 @@ export const Title = () => {
 }
 
 const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const isCollapsed = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+  const isCollapsed = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
     const message = m?.type === 'attachment' ? m : missingMessage
     const {isCollapsed} = message
     return isCollapsed
@@ -143,15 +141,14 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 const useCollapseAction = () => {
-  const getIds = React.useContext(GetIdsContext)
-  const dispatch = Container.useDispatch()
+  const ordinal = React.useContext(OrdinalContext)
+  const toggleMessageCollapse = C.useChatContext(s => s.dispatch.toggleMessageCollapse)
   const onCollapse = React.useCallback(
     (e: React.BaseSyntheticEvent) => {
       e.stopPropagation()
-      const {conversationIDKey, ordinal} = getIds()
-      dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID: ordinal, ordinal}))
+      toggleMessageCollapse(ordinal, ordinal)
     },
-    [dispatch, getIds]
+    [toggleMessageCollapse, ordinal]
   )
   return onCollapse
 }
@@ -176,22 +173,19 @@ const useCollapseIconMobile = (_isWhite: boolean) => null
 export const useCollapseIcon = Container.isMobile ? useCollapseIconMobile : useCollapseIconDesktop
 
 export const useAttachmentRedux = () => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const dispatch = Container.useDispatch()
-  const getIds = React.useContext(GetIdsContext)
+  const attachmentPreviewSelect = C.useChatContext(s => s.dispatch.attachmentPreviewSelect)
   const openFullscreen = React.useCallback(() => {
-    const {conversationIDKey, ordinal} = getIds()
-    dispatch(Chat2Gen.createAttachmentPreviewSelect({conversationIDKey, ordinal}))
-  }, [dispatch, getIds])
+    attachmentPreviewSelect(ordinal)
+  }, [attachmentPreviewSelect, ordinal])
 
+  const editInfo = C.useChatContext(s => s.getEditInfo())
   const {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState} =
-    Container.useSelector(state => {
-      const m = Constants.getMessage(state, conversationIDKey, ordinal)
+    C.useChatContext(s => {
+      const m = s.messageMap.get(ordinal)
       const message = m?.type === 'attachment' ? m : missingMessage
       const {isCollapsed, title, fileName: fileNameRaw, transferProgress} = message
       const {deviceType, inlineVideoPlayable, transferState, submitState} = message
-      const editInfo = Constants.getEditInfo(state, conversationIDKey)
       const isEditing = !!(editInfo && editInfo.ordinal === ordinal)
       const showTitle = !!title
       const fileName =

@@ -1,8 +1,8 @@
+import * as C from '../../../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../../../constants/chat2'
-import * as Container from '../../../../../util/container'
 import ExplodingHeightRetainer from '.'
-import {ConvoIDContext, OrdinalContext} from '../../ids-context'
+import {OrdinalContext} from '../../ids-context'
 import shallowEqual from 'shallowequal'
 
 type OwnProps = {
@@ -10,11 +10,10 @@ type OwnProps = {
 }
 
 const ExplodingHeightRetainerContainer = React.memo(function ExplodingHeightRetainerContainer(p: OwnProps) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
   const {children} = p
-  const {forceAsh, exploding, exploded, explodedBy, messageKey} = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+  const {forceAsh, exploding, exploded, explodedBy, messageKey} = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
     const forceAsh = !!m?.explodingUnreadable
     const exploding = !!m?.exploding
     const exploded = !!m?.exploded

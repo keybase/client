@@ -1,5 +1,6 @@
-import * as Constants from '../../constants/fs'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as C from '..'
+import * as Constants from '../fs'
+import * as T from '../types'
 import * as Z from '../../util/zustand'
 import logger from '../../logger'
 import nativeInit from './common.native'
@@ -10,10 +11,10 @@ const finishedRegularDownloadIDs = new Set<string>()
 export default function initPlatformSpecific() {
   nativeInit()
 
-  Constants.useState.setState(s => {
+  C.useFSState.setState(s => {
     s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = () => {
       const f = async () => {
-        await RPCTypes.SimpleFSSimpleFSConfigureDownloadRpcPromise({
+        await T.RPCGen.SimpleFSSimpleFSConfigureDownloadRpcPromise({
           // Android's cache dir is (when I tried) [app]/cache but Go side uses
           // [app]/.cache by default, which can't be used for sharing to other apps.
           cacheDirOverride: fsCacheDir,
@@ -33,7 +34,7 @@ export default function initPlatformSpecific() {
         }
         finishedRegularDownloadIDs.add(downloadID)
 
-        const {downloads} = Constants.useState.getState()
+        const {downloads} = C.useFSState.getState()
 
         const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
         const downloadInfo = downloads.info.get(downloadID) || Constants.emptyDownloadInfo

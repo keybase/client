@@ -45,10 +45,9 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
     cmd === 'right' && onNextAttachment()
   }
   const isDownloadError = !!message.transferErrMsg
-  const {conversationIDKey, id} = message
+  const {id} = message
 
   const {toggleShowingPopup, popup, popupAnchor} = useMessagePopup({
-    conversationIDKey,
     ordinal: id,
   })
 
@@ -225,7 +224,7 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
       }),
-    } as const)
+    }) as const
 )
 
 const showPlayButton = `

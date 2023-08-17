@@ -24,7 +24,7 @@ import chatRootSplit from './inbox-and-conversation-2.page'
 import chatSearchBots from './conversation/bot/search.page'
 import chatShowNewTeamDialog from './new-team-dialog-container.page'
 import chatUnfurlMapPopup from './conversation/messages/text/unfurl/unfurl-list/map-popup.page'
-import sendToChat from './send-to-chat/page'
+import chatSendToChat from './send-to-chat/page'
 
 export const newRoutes = {
   chatConversation,
@@ -51,9 +51,9 @@ export const newModalRoutes = {
   chatNewChat,
   chatPDF,
   chatSearchBots,
+  chatSendToChat,
   chatShowNewTeamDialog,
   chatUnfurlMapPopup,
-  sendToChat,
 }
 
 export type RootParamListChat = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>

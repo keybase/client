@@ -1,13 +1,11 @@
+import * as C from '../constants'
 import * as React from 'react'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as FsConstants from '../constants/fs'
-import * as ConfigConstants from '../constants/config'
-import * as FsTypes from '../constants/types/fs'
+import * as T from '../constants/types'
 import Teams, {type OwnProps as MainOwnProps} from './main'
 import openURL from '../util/open-url'
 import * as Constants from '../constants/teams'
-import type * as Types from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
@@ -15,7 +13,7 @@ import {useActivityLevels} from './common'
 // share some between headerRightActions on desktop and component on mobile
 const useHeaderActions = () => {
   const nav = Container.useSafeNavigation()
-  const launchNewTeamWizardOrModal = Constants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
+  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
     onCreateTeam: () => launchNewTeamWizardOrModal(),
     onJoinTeam: () => nav.safeNavigateAppend({props: {}, selected: 'teamJoinTeamDialog'}),
@@ -23,14 +21,14 @@ const useHeaderActions = () => {
 }
 
 const orderTeamsImpl = (
-  teams: Map<string, Types.TeamMeta>,
+  teams: Map<string, T.Teams.TeamMeta>,
   newRequests: Constants.State['newTeamRequests'],
   teamIDToResetUsers: Constants.State['teamIDToResetUsers'],
   newTeams: Constants.State['newTeams'],
-  sortOrder: Types.TeamListSort,
-  activityLevels: Types.ActivityLevels,
+  sortOrder: T.Teams.TeamListSort,
+  activityLevels: T.Teams.ActivityLevels,
   filter: string
-): Array<Types.TeamMeta> => {
+): Array<T.Teams.TeamMeta> => {
   const filterLC = filter.toLowerCase().trim()
   const teamsFiltered = filter
     ? [...teams.values()].filter(meta => meta.teamname.toLowerCase().includes(filterLC))
@@ -62,7 +60,7 @@ const orderTeams = memoize(orderTeamsImpl)
 type ReloadableProps = Omit<MainOwnProps, 'onManageChat' | 'onViewTeam'>
 
 const Reloadable = (props: ReloadableProps) => {
-  const getTeams = Constants.useState(s => s.dispatch.getTeams)
+  const getTeams = C.useTeamsState(s => s.dispatch.getTeams)
   const loadTeams = getTeams
 
   // subscribe to teams changes
@@ -73,10 +71,10 @@ const Reloadable = (props: ReloadableProps) => {
   const headerActions = useHeaderActions()
 
   const nav = Container.useSafeNavigation()
-  const manageChatChannels = Constants.useState(s => s.dispatch.manageChatChannels)
+  const manageChatChannels = C.useTeamsState(s => s.dispatch.manageChatChannels)
   const otherActions = {
-    onManageChat: (teamID: Types.TeamID) => manageChatChannels(teamID),
-    onViewTeam: (teamID: Types.TeamID) => nav.safeNavigateAppend({props: {teamID}, selected: 'team'}),
+    onManageChat: (teamID: T.Teams.TeamID) => manageChatChannels(teamID),
+    onViewTeam: (teamID: T.Teams.TeamID) => nav.safeNavigateAppend({props: {teamID}, selected: 'team'}),
   }
 
   return (
@@ -87,23 +85,23 @@ const Reloadable = (props: ReloadableProps) => {
 }
 
 const Connected = () => {
-  const _teams = Constants.useState(s => s.teamMeta)
-  const activityLevels = Constants.useState(s => s.activityLevels)
-  const deletedTeams = Constants.useState(s => s.deletedTeams)
-  const filter = Constants.useState(s => s.teamListFilter)
+  const _teams = C.useTeamsState(s => s.teamMeta)
+  const activityLevels = C.useTeamsState(s => s.activityLevels)
+  const deletedTeams = C.useTeamsState(s => s.deletedTeams)
+  const filter = C.useTeamsState(s => s.teamListFilter)
   const loaded = !Container.useAnyWaiting(Constants.teamsLoadedWaitingKey)
-  const newTeamRequests = Constants.useState(s => s.newTeamRequests)
-  const newTeams = Constants.useState(s => s.newTeams)
-  const sawChatBanner = Constants.useState(s => s.sawChatBanner)
-  const sortOrder = Constants.useState(s => s.teamListSort)
-  const teamIDToResetUsers = Constants.useState(s => s.teamIDToResetUsers)
+  const newTeamRequests = C.useTeamsState(s => s.newTeamRequests)
+  const newTeams = C.useTeamsState(s => s.newTeams)
+  const sawChatBanner = C.useTeamsState(s => s.sawChatBanner)
+  const sortOrder = C.useTeamsState(s => s.teamListSort)
+  const teamIDToResetUsers = C.useTeamsState(s => s.teamIDToResetUsers)
 
-  const updateGregorCategory = ConfigConstants.useConfigState(s => s.dispatch.updateGregorCategory)
+  const updateGregorCategory = C.useConfigState(s => s.dispatch.updateGregorCategory)
   const onHideChatBanner = () => {
     updateGregorCategory('sawChatBanner', 'true')
   }
-  const onOpenFolder = (teamname: Types.Teamname) => {
-    FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
+  const onOpenFolder = (teamname: T.Teams.Teamname) => {
+    C.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
   }
   const onReadMore = () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')

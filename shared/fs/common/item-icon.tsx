@@ -1,6 +1,7 @@
-import * as Styles from '../../styles'
-import * as Types from '../../constants/types/fs'
+import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
+import * as Styles from '../../styles'
+import * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
 import type {IconType} from '../../common-adapters/icon'
 
@@ -59,22 +60,22 @@ export type TlfTypeIconProps = {
   badgeOverride?: any // TS freaking out IconType
   size: Size
   style: Styles.StylesCrossPlatform
-  tlfType: Types.TlfType
+  tlfType: T.FS.TlfType
 }
 
-const getTlfTypeIcon = (size: Size, tlfType: Types.TlfType) => {
+const getTlfTypeIcon = (size: Size, tlfType: T.FS.TlfType) => {
   switch (tlfType) {
-    case Types.TlfType.Private:
+    case T.FS.TlfType.Private:
       return <Kb.Icon fixOverdraw={true} type={icons.tlfList.private[getIconSizeString(size)]} />
-    case Types.TlfType.Public:
+    case T.FS.TlfType.Public:
       return <Kb.Icon fixOverdraw={true} type={icons.tlfList.public[getIconSizeString(size)]} />
-    case Types.TlfType.Team:
+    case T.FS.TlfType.Team:
       return <Kb.Icon fixOverdraw={true} type={icons.tlfList.team[getIconSizeString(size)]} />
   }
 }
 
 export const TlfTypeIcon = (props: TlfTypeIconProps) => {
-  const tlfList = Constants.useState(s => Constants.getTlfListFromType(s.tlfs, props.tlfType))
+  const tlfList = C.useFSState(s => Constants.getTlfListFromType(s.tlfs, props.tlfType))
   const badgeCount = Constants.computeBadgeNumberForTlfList(tlfList)
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
   return (
@@ -100,7 +101,7 @@ type TlfIconProps = {
   badgeOverride?: any // TS freaking out IconType
   size: Size
   style?: Styles.StylesCrossPlatform
-  tlfTypeForFolderIconOverride?: Types.TlfType
+  tlfTypeForFolderIconOverride?: T.FS.TlfType
 }
 
 const TlfIcon = (props: TlfIconProps) => (
@@ -125,22 +126,22 @@ const TlfIcon = (props: TlfIconProps) => (
 
 type InTlfItemIconProps = {
   badgeOverride?: any // TS freaking out IconType
-  path: Types.Path
+  path: T.FS.Path
   size: Size
   style?: Styles.StylesCrossPlatform
-  tlfTypeForFolderIconOverride?: Types.TlfType
+  tlfTypeForFolderIconOverride?: T.FS.TlfType
 }
 
 const InTlfIcon = (props: InTlfItemIconProps) => {
-  const downloads = Constants.useState(s => s.downloads)
-  const pathItemActionMenu = Constants.useState(s => s.pathItemActionMenu)
+  const downloads = C.useFSState(s => s.downloads)
+  const pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
   const downloadIntent = Constants.getDownloadIntent(props.path, downloads, pathItemActionMenu)
-  const pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, props.path))
+  const pathItem = C.useFSState(s => Constants.getPathItem(s.pathItems, props.path))
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
   const badgeIcon = props.badgeOverride || (downloadIntent && 'icon-addon-file-downloading')
   return (
     <Kb.Box style={props.style}>
-      {pathItem.type === Types.PathType.Folder ? (
+      {pathItem.type === T.FS.PathType.Folder ? (
         props.tlfTypeForFolderIconOverride ? (
           getTlfTypeIcon(props.size, props.tlfTypeForFolderIconOverride)
         ) : (
@@ -165,7 +166,7 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
 export type ItemIconProps = {
   badgeOverride?: IconType
   mixedMode?: boolean
-  path: Types.Path
+  path: T.FS.Path
   size: Size
   style?: Styles.StylesCrossPlatform
 }
@@ -173,9 +174,9 @@ export type ItemIconProps = {
 const ItemIcon = (props: ItemIconProps) => {
   const parsedPath = Constants.parsePath(props.path)
   switch (parsedPath.kind) {
-    case Types.PathKind.Root:
+    case T.FS.PathKind.Root:
       return <Kb.Icon fixOverdraw={true} type={icons['folder'][getIconSizeString(props.size)]} />
-    case Types.PathKind.TlfList:
+    case T.FS.PathKind.TlfList:
       return (
         <TlfTypeIcon
           badgeOverride={props.badgeOverride}
@@ -184,20 +185,20 @@ const ItemIcon = (props: ItemIconProps) => {
           tlfType={parsedPath.tlfType}
         />
       )
-    case Types.PathKind.GroupTlf:
-    case Types.PathKind.TeamTlf:
+    case T.FS.PathKind.GroupTlf:
+    case T.FS.PathKind.TeamTlf:
       return (
         <TlfIcon
           badgeOverride={props.badgeOverride}
           size={props.size}
           style={props.style}
           tlfTypeForFolderIconOverride={
-            props.mixedMode || parsedPath.tlfType === Types.TlfType.Public ? parsedPath.tlfType : undefined
+            props.mixedMode || parsedPath.tlfType === T.FS.TlfType.Public ? parsedPath.tlfType : undefined
           }
         />
       )
-    case Types.PathKind.InGroupTlf:
-    case Types.PathKind.InTeamTlf:
+    case T.FS.PathKind.InGroupTlf:
+    case T.FS.PathKind.InTeamTlf:
       return (
         <InTlfIcon
           badgeOverride={props.badgeOverride}
@@ -205,7 +206,7 @@ const ItemIcon = (props: ItemIconProps) => {
           size={props.size}
           style={props.style}
           tlfTypeForFolderIconOverride={
-            parsedPath.tlfType === Types.TlfType.Public ? Types.TlfType.Public : undefined
+            parsedPath.tlfType === T.FS.TlfType.Public ? T.FS.TlfType.Public : undefined
           }
         />
       )
@@ -226,7 +227,7 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
         width: 0,
       },
-    } as const)
+    }) as const
 )
 
 const badgeStyles = {
@@ -255,7 +256,7 @@ const badgeStyles = {
             width: Styles.globalMargins.xsmall,
           },
         }),
-      } as const)
+      }) as const
   ),
   '32': Styles.styleSheetCreate(
     () =>
@@ -282,7 +283,7 @@ const badgeStyles = {
             width: Styles.globalMargins.small,
           },
         }),
-      } as const)
+      }) as const
   ),
   '48': Styles.styleSheetCreate(
     () =>
@@ -299,7 +300,7 @@ const badgeStyles = {
           top: -Styles.globalMargins.small - Styles.globalMargins.xtiny,
           width: Styles.globalMargins.small,
         },
-      } as const)
+      }) as const
   ),
   '96': Styles.styleSheetCreate(
     () =>
@@ -318,6 +319,6 @@ const badgeStyles = {
           top: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny),
           width: Styles.globalMargins.medium,
         },
-      } as const)
+      }) as const
   ),
 }

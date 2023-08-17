@@ -1,4 +1,4 @@
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as C from '../../../../../constants'
 import * as Container from '../../../../../util/container'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
@@ -8,7 +8,6 @@ import * as Styles from '../../../../../styles'
 import type {Props} from '.'
 import {RectButton} from 'react-native-gesture-handler'
 import {Swipeable} from '../../../../../common-adapters/swipeable.native'
-import {ConversationIDKeyContext} from '../contexts'
 import {View} from 'react-native'
 
 const actionWidth = 64
@@ -42,29 +41,31 @@ const Action = (p: {
 
 const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   const {swipeCloseRef, children, onClick} = p
-  const conversationIDKey = React.useContext(ConversationIDKeyContext)
+  const conversationIDKey = C.useChatContext(s => s.id)
   const [extraData, setExtraData] = React.useState(0)
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  if (lastCID !== conversationIDKey) {
-    setLastCID(conversationIDKey)
+  C.useCIDChanged(conversationIDKey, () => {
     // only if open
     if (swipeCloseRef?.current) {
       setExtraData(d => d + 1)
     }
-  }
+  })
 
-  const dispatch = Container.useDispatch()
+  const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
   const onMarkConversationAsUnread = Container.useEvent(() => {
-    dispatch(Chat2Gen.createMarkAsUnread({conversationIDKey}))
-  })
-  const onMuteConversation = Container.useEvent(() => {
-    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted}))
-  })
-  const onHideConversation = Container.useEvent(() => {
-    dispatch(Chat2Gen.createHideConversation({conversationIDKey}))
+    setMarkAsUnread()
   })
 
-  const isMuted = Container.useSelector(state => state.chat2.mutedMap.get(conversationIDKey) ?? false)
+  const mute = C.useChatContext(s => s.dispatch.mute)
+  const onMuteConversation = Container.useEvent(() => {
+    mute(!isMuted)
+  })
+
+  const hideConversation = C.useChatContext(s => s.dispatch.hideConversation)
+  const onHideConversation = Container.useEvent(() => {
+    hideConversation(true)
+  })
+
+  const isMuted = C.useChatContext(s => s.muted)
 
   const onMarkAsUnread = Container.useEvent(() => {
     onMarkConversationAsUnread()
@@ -179,7 +180,7 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
         height: RowSizes.smallRowHeight,
       },
-    } as const)
+    }) as const
 )
 
 export default SwipeConvActions

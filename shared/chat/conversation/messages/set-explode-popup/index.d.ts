@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {MessageExplodeDescription} from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 
 export type Props = {
   attachTo?: () => React.Component<any> | null
@@ -7,7 +7,7 @@ export type Props = {
   onHidden: () => void
   selected: number
   onSelect: (arg0: number) => void
-  items: MessageExplodeDescription[]
+  items: T.Chat.MessageExplodeDescription[]
 }
 export declare class SetExplodingPopup extends React.Component<Props> {}
 export default SetExplodingPopup

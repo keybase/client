@@ -1,11 +1,9 @@
+import * as C from '../../constants'
 import EditAvatar from '.'
-import * as RouterConstants from '../../constants/router2'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Constants from '../../constants/profile'
 import * as TeamsConstants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/teams'
+import * as T from '../../constants/types'
 import type * as ImagePicker from 'expo-image-picker'
 
 type OwnProps = {
@@ -21,43 +19,43 @@ export default (ownProps: OwnProps) => {
   const teamID = ownProps.teamID
   const createdTeam = ownProps.createdTeam ?? false
   const image = ownProps.image
-  const sperror = Container.useAnyErrors(Constants.uploadAvatarWaitingKey)
+  const sperror = Container.useAnyErrors(C.uploadAvatarWaitingKey)
   const sendChatNotification = ownProps.sendChatNotification ?? false
-  const submitting = Container.useAnyWaiting(Constants.uploadAvatarWaitingKey)
-  const teamname = TeamsConstants.useState(
+  const submitting = Container.useAnyWaiting(C.uploadAvatarWaitingKey)
+  const teamname = C.useTeamsState(
     s => (teamID ? TeamsConstants.getTeamNameFromID(s, teamID) : undefined) ?? ''
   )
 
   const dispatchClearWaiting = Container.useDispatchClearWaiting()
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatchClearWaiting(Constants.uploadAvatarWaitingKey)
+    dispatchClearWaiting(C.uploadAvatarWaitingKey)
     navigateUp()
   }
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onClose = () => {
-    dispatchClearWaiting(Constants.uploadAvatarWaitingKey)
+    dispatchClearWaiting(C.uploadAvatarWaitingKey)
     clearModals()
   }
-  const uploadTeamAvatar = TeamsConstants.useState(s => s.dispatch.uploadTeamAvatar)
+  const uploadTeamAvatar = C.useTeamsState(s => s.dispatch.uploadTeamAvatar)
   const onSaveTeamAvatar = (
     _filename: string,
     teamname: string,
     sendChatNotification: boolean,
-    crop?: RPCTypes.ImageCropRect
+    crop?: T.RPCGen.ImageCropRect
   ) => {
     const filename = Styles.unnormalizePath(_filename)
     uploadTeamAvatar(teamname, filename, sendChatNotification, crop)
   }
 
-  const uploadAvatar = Constants.useState(s => s.dispatch.uploadAvatar)
+  const uploadAvatar = C.useProfileState(s => s.dispatch.uploadAvatar)
 
-  const onSaveUserAvatar = (_filename: string, crop?: RPCTypes.ImageCropRect) => {
+  const onSaveUserAvatar = (_filename: string, crop?: T.RPCGen.ImageCropRect) => {
     const filename = Styles.unnormalizePath(_filename)
     uploadAvatar(filename, crop)
   }
-  const setTeamWizardAvatar = TeamsConstants.useState(s => s.dispatch.setTeamWizardAvatar)
-  const onSaveWizardAvatar = (_filename: string, crop?: Types.AvatarCrop) => {
+  const setTeamWizardAvatar = C.useTeamsState(s => s.dispatch.setTeamWizardAvatar)
+  const onSaveWizardAvatar = (_filename: string, crop?: T.Teams.AvatarCrop) => {
     const filename = Styles.unnormalizePath(_filename)
     setTeamWizardAvatar(crop, filename)
   }
@@ -68,7 +66,7 @@ export default (ownProps: OwnProps) => {
   let error = ''
   if (sperror) {
     error =
-      sperror.code === RPCTypes.StatusCode.scgeneric
+      sperror.code === T.RPCGen.StatusCode.scgeneric
         ? sperror.desc
         : Container.isNetworkErr(sperror.code)
         ? 'Connection lost. Please check your network and try again.'
@@ -82,7 +80,7 @@ export default (ownProps: OwnProps) => {
     onClose,
     sendChatNotification,
     submitting,
-    waitingKey: Constants.uploadAvatarWaitingKey,
+    waitingKey: C.uploadAvatarWaitingKey,
   }
   const props = teamID
     ? {
@@ -90,7 +88,7 @@ export default (ownProps: OwnProps) => {
         createdTeam,
         onSave: (
           filename: string,
-          crop?: RPCTypes.ImageCropRect,
+          crop?: T.RPCGen.ImageCropRect,
           scaledWidth?: number,
           offsetLeft?: number,
           offsetTop?: number

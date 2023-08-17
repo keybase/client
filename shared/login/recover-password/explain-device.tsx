@@ -1,24 +1,23 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Constants from '../../constants/recover-password'
+import * as T from '../../constants/types'
 import type {ButtonType} from '../../common-adapters/button'
 import {SignupScreen} from '../../signup/common'
 import {globalColors} from '../../styles'
 
 const ConnectedExplainDevice = () => {
-  const ed = Constants.useState(s => s.explainedDevice)
+  const ed = C.useRecoverState(s => s.explainedDevice)
   const deviceName = ed ? ed.name : ''
   const deviceType = ed ? ed.type : undefined
-  const username = Constants.useState(s => s.username)
-  const startRecoverPassword = Constants.useState(s => s.dispatch.startRecoverPassword)
+  const username = C.useRecoverState(s => s.username)
+  const startRecoverPassword = C.useRecoverState(s => s.dispatch.startRecoverPassword)
   const onBack = () => {
     startRecoverPassword({
       replaceRoute: true,
       username,
     })
   }
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onComplete = () => {
     navigateUp()
   }
@@ -36,13 +35,13 @@ export default ConnectedExplainDevice
 
 export type Props = {
   deviceName: string
-  deviceType?: RPCTypes.DeviceType
+  deviceType?: T.RPCGen.DeviceType
   onBack: () => void
   onComplete: () => void
 }
 
 const ExplainDevice = (props: Props) => {
-  const explainingMobile = props.deviceType === RPCTypes.DeviceType.mobile
+  const explainingMobile = props.deviceType === T.RPCGen.DeviceType.mobile
 
   return (
     <SignupScreen

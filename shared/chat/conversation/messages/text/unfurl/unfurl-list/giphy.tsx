@@ -1,26 +1,20 @@
-import * as Container from '../../../../../../util/container'
+import * as C from '../../../../../../constants'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as React from 'react'
 import * as Styles from '../../../../../../styles'
 import UnfurlImage from './image'
 import shallowEqual from 'shallowequal'
-import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
-import {ConvoIDContext, OrdinalContext} from '../../../ids-context'
+import * as T from '../../../../../../constants/types'
+import {OrdinalContext} from '../../../ids-context'
 import {getUnfurlInfo, useActions} from './use-redux'
 
 const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
   const {idx} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
 
-  const data = Container.useSelector(state => {
-    const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(
-      state,
-      conversationIDKey,
-      ordinal,
-      idx
-    )
-    if (unfurl?.unfurlType !== RPCChatTypes.UnfurlType.giphy) {
+  const data = C.useChatContext(s => {
+    const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(s, ordinal, idx)
+    if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.giphy) {
       return null
     }
     const {giphy} = unfurl
@@ -39,7 +33,6 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
   }, shallowEqual)
 
   const {onClose, onToggleCollapse} = useActions(
-    conversationIDKey,
     data?.youAreAuthor ?? false,
     data?.unfurlMessageID ?? 0,
     ordinal
@@ -152,7 +145,7 @@ const styles = Styles.styleSheetCreate(
           paddingTop: Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default UnfurlGiphy

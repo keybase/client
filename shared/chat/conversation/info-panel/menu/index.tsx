@@ -1,8 +1,8 @@
+import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import type * as ChatTypes from '../../../../constants/types/chat2'
-import type * as TeamTypes from '../../../../constants/types/teams'
+import type * as T from '../../../../constants/types'
 import * as InfoPanelCommon from '../common'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import {TeamsSubscriberMountOnly} from '../../../../teams/subscriber'
@@ -13,10 +13,9 @@ export type Props = {
   canAddPeople: boolean
   channelname?: string
   fullname?: string
-  teamType?: ChatTypes.TeamType
+  teamType?: T.Chat.TeamType
   ignored: boolean
   isMuted: boolean
-  conversationIDKey?: ChatTypes.ConversationIDKey
   floatingMenuContainerStyle?: Styles.StylesCrossPlatform
   hasHeader: boolean
   isInChannel: boolean
@@ -24,7 +23,7 @@ export type Props = {
   manageChannelsSubtitle: string
   manageChannelsTitle: string
   teamname?: string
-  teamID?: TeamTypes.TeamID
+  teamID?: T.Teams.TeamID
   visible: boolean
   onAddPeople: () => void
   onBlockConv: () => void
@@ -45,11 +44,12 @@ export type Props = {
 type AdhocHeaderProps = {
   fullname: string
   isMuted: boolean
-  conversationIDKey: ChatTypes.ConversationIDKey
 }
 
 const AdhocHeader = (props: AdhocHeaderProps) => {
-  const {channelHumans} = InfoPanelCommon.useHumans(props.conversationIDKey)
+  const meta = C.useChatContext(s => s.meta)
+  const participants = C.useChatContext(s => s.participants)
+  const {channelHumans} = InfoPanelCommon.useHumans(participants, meta)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
       <Avatars
@@ -80,7 +80,7 @@ const AdhocHeader = (props: AdhocHeaderProps) => {
 type TeamHeaderProps = {
   isMuted: boolean
   teamname: string
-  teamID: TeamTypes.TeamID
+  teamID: T.Teams.TeamID
   onViewTeam: () => void
 }
 const TeamHeader = (props: TeamHeaderProps) => {
@@ -116,7 +116,7 @@ const TeamHeader = (props: TeamHeaderProps) => {
 }
 
 const InfoPanelMenu = (p: Props) => {
-  const {conversationIDKey, teamType, ignored, onUnhideConv, onHideConv, isInChannel} = p
+  const {teamType, ignored, onUnhideConv, onHideConv, isInChannel} = p
   const {channelname, hasHeader, isSmallTeam, onManageChannels, onAddPeople, manageChannelsSubtitle} = p
   const {manageChannelsTitle, badgeSubscribe, teamname, isMuted, onMuteConv, onBlockConv, onJoinChannel} = p
   const {visible, fullname, onViewTeam, onHidden, attachTo, floatingMenuContainerStyle, teamID} = p
@@ -183,6 +183,7 @@ const InfoPanelMenu = (p: Props) => {
     ),
   }
 
+  const conversationIDKey = C.useChatContext(s => s.id)
   const hideItem = (() => {
     if (!conversationIDKey) {
       return null
@@ -313,7 +314,7 @@ const InfoPanelMenu = (p: Props) => {
 
   const header = hasHeader ? (
     isAdhoc && conversationIDKey ? (
-      <AdhocHeader isMuted={!!isMuted} fullname={fullname ?? ''} conversationIDKey={conversationIDKey} />
+      <AdhocHeader isMuted={!!isMuted} fullname={fullname ?? ''} />
     ) : teamname && teamID ? (
       <TeamHeader isMuted={!!isMuted} teamname={teamname} teamID={teamID} onViewTeam={onViewTeam} />
     ) : null
@@ -411,7 +412,7 @@ const styles = Styles.styleSheetCreate(
           color: Styles.globalColors.blueDark,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export {InfoPanelMenu}

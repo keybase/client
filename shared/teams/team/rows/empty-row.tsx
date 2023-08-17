@@ -1,16 +1,14 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as ConfigConstants from '../../../constants/config'
+import type * as T from '../../../constants/types'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import type * as ChatTypes from '../../../constants/types/chat2'
-import type * as Types from '../../../constants/types/teams'
 
 type Props = {
   type: 'channelsEmpty' | 'channelsFew' | 'members' | 'subteams'
-  teamID: Types.TeamID
-  conversationIDKey?: ChatTypes.ConversationIDKey
+  teamID: T.Teams.TeamID
+  conversationIDKey?: T.Chat.ConversationIDKey
   notChannelMember?: boolean
 }
 const icon: {[K in Props['type']]: Kb.IconType} = {
@@ -30,8 +28,8 @@ const buttonLabel = {
 const useSecondaryAction = (props: Props) => {
   const {teamID, conversationIDKey} = props
   const nav = Container.useSafeNavigation()
-  const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
-  const launchNewTeamWizardOrModal = Constants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
+  const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onSecondaryAction = () => {
     switch (props.type) {
       case 'members':
@@ -81,17 +79,18 @@ Make it a big team by creating chat channels.`
 
 const EmptyRow = (props: Props) => {
   const {conversationIDKey, teamID} = props
-  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
+  const teamMeta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
   const notIn = teamMeta.role === 'none' || props.notChannelMember
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
-
-  const dispatch = Container.useDispatch()
+  const you = C.useCurrentUserState(s => s.username)
   const onSecondaryAction = useSecondaryAction(props)
-
-  const addToTeam = Constants.useState(s => s.dispatch.addToTeam)
+  const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
+  const joinConversation = C.useConvoState(
+    conversationIDKey ?? C.noConversationIDKey,
+    s => s.dispatch.joinConversation
+  )
   const onAddSelf = () => {
     if (conversationIDKey) {
-      dispatch(Chat2Gen.createJoinConversation({conversationIDKey}))
+      joinConversation()
     } else {
       addToTeam(teamID, [{assertion: you, role: 'admin'}], false)
     }

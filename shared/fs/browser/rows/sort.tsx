@@ -1,4 +1,4 @@
-import * as Types from '../../../constants/types/fs'
+import * as T from '../../../constants/types'
 import * as RowTypes from './types'
 import {memoize} from '../../../util/memoize'
 import logger from '../../../logger'
@@ -7,10 +7,10 @@ export type SortableRowItem = RowTypes.StillRowItem | RowTypes.NewFolderRowItem 
 
 type PathItemComparer = (a: SortableRowItem, b: SortableRowItem) => number
 
-const getSortBy = (sortSetting: Types.SortSetting) =>
-  sortSetting === Types.SortSetting.NameAsc || sortSetting === Types.SortSetting.NameDesc ? 'name' : 'time'
-const getOrder = (sortSetting: Types.SortSetting) =>
-  sortSetting === Types.SortSetting.NameAsc || sortSetting === Types.SortSetting.TimeAsc ? 'asc' : 'desc'
+const getSortBy = (sortSetting: T.FS.SortSetting) =>
+  sortSetting === T.FS.SortSetting.NameAsc || sortSetting === T.FS.SortSetting.NameDesc ? 'name' : 'time'
+const getOrder = (sortSetting: T.FS.SortSetting) =>
+  sortSetting === T.FS.SortSetting.NameAsc || sortSetting === T.FS.SortSetting.TimeAsc ? 'asc' : 'desc'
 
 const getLastModifiedTimeStamp = (a: SortableRowItem) =>
   a.rowType === RowTypes.RowType.Still
@@ -68,10 +68,10 @@ const getComparerBySortBy = (sortBy: 'name' | 'time'): PathItemComparer => {
     case 'name':
       return (a: SortableRowItem, b: SortableRowItem): number => {
         // If different type, folder goes first.
-        if (a.type === Types.PathType.Folder && b.type !== Types.PathType.Folder) {
+        if (a.type === T.FS.PathType.Folder && b.type !== T.FS.PathType.Folder) {
           return -1
         }
-        if (a.type !== Types.PathType.Folder && b.type === Types.PathType.Folder) {
+        if (a.type !== T.FS.PathType.Folder && b.type === T.FS.PathType.Folder) {
           return 1
         }
 
@@ -87,7 +87,7 @@ const getComparerBySortBy = (sortBy: 'name' | 'time'): PathItemComparer => {
 }
 
 const getComparer =
-  (sortSetting: Types.SortSetting, meUsername: string) =>
+  (sortSetting: T.FS.SortSetting, meUsername: string) =>
   (a: SortableRowItem, b: SortableRowItem): number => {
     const commonCompare = getCommonComparer(meUsername)(a, b)
     if (commonCompare !== 0) {
@@ -102,7 +102,7 @@ const getComparer =
 
 export const sortRowItems: (
   items: Array<SortableRowItem>,
-  sortSetting: Types.SortSetting,
+  sortSetting: T.FS.SortSetting,
   username: string
 ) => Array<SortableRowItem> = memoize((items, sortSetting, username) => {
   logger.debug('sortRowItems')

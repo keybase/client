@@ -1,26 +1,24 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import type * as Types from '../../../../constants/types/chat2'
-import type * as RPCTypes from '../../../../constants/types/rpc-gen'
+import type * as T from '../../../../constants/types'
 import {EmojiPickerDesktop} from '../../../emoji-picker/container'
 import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '../../../../util/emoji'
 
 type Props = {
   className?: string
-  conversationIDKey: Types.ConversationIDKey
-  emojis: Array<RPCTypes.UserReacji>
+  emojis: Array<T.RPCGen.UserReacji>
   onForward?: () => void
   onReact: (arg0: string) => void
   onReply?: () => void
   onShowingEmojiPicker?: (arg0: boolean) => void
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
   style?: Styles.StylesCrossPlatform
   tooltipPosition?: Styles.Position
 }
 
 class HoverEmoji extends React.Component<
-  {emoji: RPCTypes.UserReacji; onClick: () => void},
+  {emoji: T.RPCGen.UserReacji; onClick: () => void},
   {hovering: boolean}
 > {
   state = {hovering: false}
@@ -101,11 +99,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
             onHidden={this._hidePicker}
             propagateOutsideClicks={false}
           >
-            <EmojiPickerDesktop
-              conversationIDKey={this.props.conversationIDKey}
-              onPickAddToMessageOrdinal={this.props.ordinal}
-              onDidPick={this._hidePicker}
-            />
+            <EmojiPickerDesktop onPickAddToMessageOrdinal={this.props.ordinal} onDidPick={this._hidePicker} />
           </Kb.FloatingBox>
         )}
       </Kb.Box2>
@@ -159,7 +153,7 @@ const styles = Styles.styleSheetCreate(
           margin: Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default EmojiRow

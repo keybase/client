@@ -1,11 +1,11 @@
 import * as React from 'react'
-import type * as Types from '../../../../constants/types/chat2'
+import type * as T from '../../../../constants/types'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
 
 type Props = {
-  message: Types.MessageSystemSimpleToComplex
+  message: T.Chat.MessageSystemSimpleToComplex
   onManageChannels: () => void
   onViewTeam: () => void
   you: string

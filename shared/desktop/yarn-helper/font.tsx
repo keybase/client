@@ -507,7 +507,7 @@ const setFontMetrics = () => {
     .filter(({size}) => size === '24')
     .map(({filePath}) => `'${filePath.replace('.svg', '')}'`)
   const icon24First = icon24[0]
-  const icon24Last = icon24[icon24.length - 1]
+  const icon24Last = icon24.at(-1)
   let script = `
   Open('${kbTtf}');
   SetOS2Value('WinAscent', ${fontHeight - descent + 2});

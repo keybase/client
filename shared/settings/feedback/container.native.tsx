@@ -1,5 +1,4 @@
-import * as ConfigConstants from '../../constants/config'
-import * as PushConstants from '../../constants/push'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import Feedback from '.'
@@ -106,13 +105,13 @@ class FeedbackContainer extends React.Component<Props, State> {
 const Connected = (ownProps: OwnProps) => {
   const feedback = ownProps.feedback ?? ''
   const chat = getExtraChatLogsForLogSend()
-  const loggedOut = ConfigConstants.useConfigState(s => !s.loggedIn)
-  const _push = PushConstants.useState(s => s.token)
+  const loggedOut = C.useConfigState(s => !s.loggedIn)
+  const _push = C.usePushState(s => s.token)
   const push = {pushToken: _push}
 
-  const deviceID = ConfigConstants.useCurrentUserState(s => s.deviceID)
-  const uid = ConfigConstants.useCurrentUserState(s => s.uid)
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const deviceID = C.useCurrentUserState(s => s.deviceID)
+  const uid = C.useCurrentUserState(s => s.uid)
+  const username = C.useCurrentUserState(s => s.username)
   const status = {
     appVersionCode,
     appVersionName,

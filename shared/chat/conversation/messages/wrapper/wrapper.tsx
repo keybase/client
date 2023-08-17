@@ -1,13 +1,11 @@
+import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as ConfigConstants from '../../../../constants/config'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import shallowEqual from 'shallowequal'
-import {ConvoIDContext, OrdinalContext, GetIdsContext, HighlightedContext} from '../ids-context'
+import {OrdinalContext, HighlightedContext} from '../ids-context'
 import EmojiRow from '../emoji-row/container'
 import ExplodingHeightRetainer from './exploding-height-retainer/container'
 import ExplodingMeta from './exploding-meta/container'
@@ -16,17 +14,17 @@ import {useMessagePopup} from '../message-popup'
 import PendingPaymentBackground from '../account-payment/pending-background'
 import ReactionsRow from '../reactions-row'
 import SendIndicator from './send-indicator'
-import type * as Types from '../../../../constants/types/chat2'
+import * as T from '../../../../constants/types'
 import capitalize from 'lodash/capitalize'
 import {useEdited} from './edited'
 import {Sent} from './sent'
 // import {useDebugLayout} from '../../../../util/debug'
 
 export type Props = {
-  ordinal: Types.Ordinal
+  ordinal: T.Chat.Ordinal
 }
 
-const messageShowsPopup = (type?: Types.Message['type']) =>
+const messageShowsPopup = (type?: T.Chat.Message['type']) =>
   !!type &&
   [
     'text',
@@ -51,14 +49,14 @@ const messageShowsPopup = (type?: Types.Message['type']) =>
 // If there is no matching message treat it like a deleted
 const missingMessage = Constants.makeMessageDeleted({})
 
-export const useCommon = (ordinal: Types.Ordinal) => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const showCenteredHighlight = useHighlightMode(conversationIDKey, ordinal)
+export const useCommon = (ordinal: T.Chat.Ordinal) => {
+  const showCenteredHighlight = useHighlightMode(ordinal)
 
-  const {type, shouldShowPopup} = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+  const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
+  const {type, shouldShowPopup} = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
     const type = m?.type
-    const shouldShowPopup = Constants.shouldShowPopup(state, m ?? undefined)
+    const shouldShowPopup = Constants.shouldShowPopup(accountsInfoMap, m ?? undefined)
     return {shouldShowPopup, type}
   }, shallowEqual)
 
@@ -66,7 +64,6 @@ export const useCommon = (ordinal: Types.Ordinal) => {
     return messageShowsPopup(type) && shouldShowPopup
   }, [shouldShowPopup, type])
   const {toggleShowingPopup, showingPopup, popup, popupAnchor} = useMessagePopup({
-    conversationIDKey,
     ordinal,
     shouldShow,
     style: styles.messagePopupContainer,
@@ -84,11 +81,28 @@ type WMProps = {
   popupAnchor: React.MutableRefObject<React.Component | null>
 } & Props
 
-const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
+const successfulInlinePaymentStatuses = ['completed', 'claimable']
+const hasSuccessfulInlinePayments = (
+  paymentStatusMap: Constants.State['paymentStatusMap'],
+  message: T.Chat.Message
+): boolean => {
+  if (message.type !== 'text' || !message.inlinePaymentIDs) {
+    return false
+  }
+  return (
+    message.inlinePaymentSuccessful ||
+    message.inlinePaymentIDs.some(id => {
+      const s = paymentStatusMap.get(id)
+      return !!s && successfulInlinePaymentStatuses.includes(s.status)
+    })
+  )
+}
+
+const useRedux = (ordinal: T.Chat.Ordinal) => {
   const getReactionsPopupPosition = (
+    ordinals: Array<T.Chat.Ordinal>,
     hasReactions: boolean,
-    message: Types.Message,
-    state: Container.TypedState
+    message: T.Chat.Message
   ) => {
     if (Container.isMobile) return 'none' as const
     if (hasReactions) {
@@ -97,11 +111,10 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     const validMessage = message && Constants.isMessageWithReactions(message)
     if (!validMessage) return 'none' as const
 
-    const ordinals = Constants.getMessageOrdinals(state, message.conversationIDKey)
-    return ordinals[ordinals.length - 1] === ordinal ? ('last' as const) : ('middle' as const)
+    return ordinals.at(-1) === ordinal ? ('last' as const) : ('middle' as const)
   }
 
-  const getEcrType = (message: Types.Message, you: string) => {
+  const getEcrType = (message: T.Chat.Message, you: string) => {
     if (!message || !you) {
       return EditCancelRetryType.NONE
     }
@@ -116,39 +129,42 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     }
 
     const {outboxID, errorTyp} = message
-    if (!!outboxID && errorTyp === RPCChatTypes.OutboxErrorType.toolong) {
+    if (!!outboxID && errorTyp === T.RPCChat.OutboxErrorType.toolong) {
       return EditCancelRetryType.EDIT_CANCEL
     }
     if (outboxID) {
       switch (errorTyp) {
-        case RPCChatTypes.OutboxErrorType.minwriter:
-        case RPCChatTypes.OutboxErrorType.restrictedbot:
+        case T.RPCChat.OutboxErrorType.minwriter:
+        case T.RPCChat.OutboxErrorType.restrictedbot:
           return EditCancelRetryType.CANCEL
       }
     }
     return EditCancelRetryType.RETRY_CANCEL
   }
 
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
-  return Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
+  const you = C.useCurrentUserState(s => s.username)
+  const paymentStatusMap = C.useChatState(s => s.paymentStatusMap)
+  const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
+  const ordinals = C.useChatContext(s => s.messageOrdinals)
+  const isEditing = C.useChatContext(s => s.editing === ordinal)
+  const d = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal) ?? missingMessage
     const {exploded, submitState, author, id, botUsername} = m
     const youSent = m.author === you && m.ordinal !== m.id
     const exploding = !!m.exploding
-    const isPendingPayment = Constants.isPendingPaymentMessage(state, m)
+    const isPendingPayment = Constants.isPendingPaymentMessage(accountsInfoMap, m)
     const decorate = !exploded && !m.errorReason
     const type = m.type
-    const isEditing = state.chat2.editingMap.get(conversationIDKey) === ordinal
     const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable
     const showSendIndicator =
       !!submitState && !exploded && you === author && id !== ordinal && !isShowingUploadProgressBar
     const showRevoked = !!m?.deviceRevokedAt
     const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
-    const showCoinsIcon = Constants.hasSuccessfulInlinePayments(state, m)
+    const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
     const hasReactions = (m.reactions?.size ?? 0) > 0
     // hide if the bot is writing to itself
     const botname = botUsername === author ? '' : botUsername ?? ''
-    const reactionsPopupPosition = getReactionsPopupPosition(hasReactions, m, state)
+    const reactionsPopupPosition = getReactionsPopupPosition(ordinals ?? [], hasReactions, m)
     const ecrType = getEcrType(m, you)
     return {
       botname,
@@ -156,7 +172,6 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
       ecrType,
       exploding,
       hasReactions,
-      isEditing,
       isPendingPayment,
       reactionsPopupPosition,
       showCoinsIcon,
@@ -168,6 +183,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
       youSent,
     }
   }, shallowEqual)
+  return {...d, isEditing}
 }
 
 type TSProps = {
@@ -190,7 +206,7 @@ type TSProps = {
   showingPicker: boolean
   showingPopup: boolean
   toggleShowingPopup: () => void
-  type: Types.MessageType
+  type: T.Chat.MessageType
   you: string
 }
 
@@ -278,9 +294,9 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   )
 })
 
-const useHighlightMode = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
-  const centeredOrdinalType = Container.useSelector(state => {
-    const i = state.chat2.messageCenterOrdinals.get(conversationIDKey)
+const useHighlightMode = (ordinal: T.Chat.Ordinal) => {
+  const centeredOrdinalType = C.useChatContext(s => {
+    const i = s.messageCenterOrdinal
     return i?.ordinal === ordinal ? i.highlightMode : undefined
   })
 
@@ -296,25 +312,26 @@ enum EditCancelRetryType {
 }
 const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
   const {ecrType} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const {failureDescription, outboxID} = Container.useSelector(state => {
-    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  const {failureDescription, outboxID} = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
     const outboxID = m?.outboxID
     const reason = m?.errorReason ?? ''
     const failureDescription = `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`
     return {failureDescription, outboxID}
   }, shallowEqual)
-  const dispatch = Container.useDispatch()
+  const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
   const onCancel = React.useCallback(() => {
-    dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal}))
-  }, [dispatch, conversationIDKey, ordinal])
+    messageDelete(ordinal)
+  }, [messageDelete, ordinal])
+  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const onEdit = React.useCallback(() => {
-    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal}))
-  }, [dispatch, conversationIDKey, ordinal])
+    setEditing(ordinal)
+  }, [setEditing, ordinal])
+  const messageRetry = C.useChatContext(s => s.dispatch.messageRetry)
   const onRetry = React.useCallback(() => {
-    outboxID && dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID}))
-  }, [dispatch, conversationIDKey, outboxID])
+    outboxID && messageRetry(outboxID)
+  }, [messageRetry, outboxID])
 
   const cancel = (
     <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel}>
@@ -468,23 +485,16 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 })
 
 export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const {ordinal, bottomChildren, children} = p
 
   // passed in context so stable
-  const conversationIDKeyRef = React.useRef(conversationIDKey)
-  conversationIDKeyRef.current = conversationIDKey
   const ordinalRef = React.useRef(ordinal)
   ordinalRef.current = ordinal
-
-  const getIds = React.useCallback(() => {
-    return {conversationIDKey: conversationIDKeyRef.current, ordinal: ordinalRef.current}
-  }, [])
 
   const {showCenteredHighlight, toggleShowingPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
 
-  const mdata = useRedux(conversationIDKey, ordinal)
+  const mdata = useRedux(ordinal)
 
   const {isPendingPayment, decorate, type, hasReactions, isEditing} = mdata
   const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
@@ -519,16 +529,14 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   }
 
   return (
-    <GetIdsContext.Provider value={getIds}>
-      <OrdinalContext.Provider value={ordinal}>
-        <HighlightedContext.Provider value={showCenteredHighlight}>
-          <Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
-            <TextAndSiblings {...tsprops} />
-            {popup}
-          </Styles.CanFixOverdrawContext.Provider>
-        </HighlightedContext.Provider>
-      </OrdinalContext.Provider>
-    </GetIdsContext.Provider>
+    <OrdinalContext.Provider value={ordinal}>
+      <HighlightedContext.Provider value={showCenteredHighlight}>
+        <Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
+          <TextAndSiblings {...tsprops} />
+          {popup}
+        </Styles.CanFixOverdrawContext.Provider>
+      </HighlightedContext.Provider>
+    </OrdinalContext.Provider>
   )
 })
 
@@ -635,5 +643,5 @@ const styles = Styles.styleSheetCreate(
           lineHeight: 19,
         },
       }),
-    } as const)
+    }) as const
 )

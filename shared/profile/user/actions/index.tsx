@@ -1,9 +1,9 @@
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/tracker2'
-import * as BotsConstants from '../../../constants/bots'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/tracker2'
+import type * as T from '../../../constants/types'
 import FollowButton from './follow-button'
 import ChatButton from '../../../chat/chat-button'
 
@@ -24,7 +24,7 @@ type Props = {
   onReload: () => void
   onUnfollow: () => void
   onManageBlocking: () => void
-  state: Types.DetailsState
+  state: T.Tracker.DetailsState
   username: string
 }
 
@@ -42,7 +42,7 @@ type DropdownProps = Pick<
 }
 
 const Actions = (p: Props) => {
-  const getFeaturedBots = BotsConstants.useState(s => s.dispatch.getFeaturedBots)
+  const getFeaturedBots = C.useBotsState(s => s.dispatch.getFeaturedBots)
   // load featured bots on first render
   React.useEffect(() => {
     // TODO likely don't do this all the time, just once

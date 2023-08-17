@@ -107,8 +107,8 @@ export const transitionColor = () => ({
 export const backgroundURL = (...to: Array<string>) => {
   const goodPath = [...to]
 
-  if (goodPath && goodPath.length) {
-    const last = goodPath[goodPath.length - 1] ?? ''
+  if (goodPath.length) {
+    const last = goodPath.at(-1) ?? ''
     const ext = Path.extname(last)
     goodPath[goodPath.length - 1] = Path.basename(last, ext) ?? ''
     const guiModePath = `${isDarkMode() ? 'dark-' : ''}${goodPath}`
@@ -256,13 +256,7 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
   return Object.keys(s).length ? s : undefined
 }
 export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '../constants/platform'
-export {
-  globalMargins,
-  backgroundModeToColor,
-  backgroundModeToTextColor,
-  platformStyles,
-  padding,
-} from './shared'
+export * from './shared'
 
 export {themed as globalColors} from './colors'
 export const borderRadius = 4

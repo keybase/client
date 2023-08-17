@@ -1,9 +1,5 @@
+import * as C from '../constants'
 import * as React from 'react'
-import * as ConfigConstants from '../constants/config'
-import * as ProfileConstants from '../constants/profile'
-import * as TrackerConstants from '../constants/tracker2'
-import * as UsersConstants from '../constants/users'
-import * as Followers from '../constants/followers'
 import * as Styles from '../styles'
 import Text, {
   type TextType,
@@ -88,10 +84,10 @@ const Username = React.memo(function Username(p: UsernameProps) {
   const {onUsernameClicked, joinerStyle, showComma, showSpace, virtualText, withProfileCardPopup} = p
   const you = p.you === username
 
-  const following = Followers.useFollowerState(s => colorFollowing && s.following.has(username))
-  const broken = UsersConstants.useState(s => (colorBroken && s.infoMap.get(username)?.broken) ?? false)
+  const following = C.useFollowerState(s => colorFollowing && s.following.has(username))
+  const broken = C.useUsersState(s => (colorBroken && s.infoMap.get(username)?.broken) ?? false)
 
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = React.useCallback(
     (evt: any) => {
       evt?.stopPropagation()
@@ -99,7 +95,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
     },
     [showUserProfile, username]
   )
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onOpenTracker = React.useCallback(
     (evt: any) => {
       evt?.stopPropagation()
@@ -258,7 +254,7 @@ const Usernames = React.memo(
     const colorBroken = p.colorBroken ?? true
     const underline = p.underline ?? true
     const withProfileCardPopup = p.withProfileCardPopup ?? true
-    const you = ConfigConstants.useCurrentUserState(s => s.username)
+    const you = C.useCurrentUserState(s => s.username)
 
     const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
     const containerStyle2: Styles.StylesCrossPlatform = inline

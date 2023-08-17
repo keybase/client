@@ -1,29 +1,18 @@
-import * as Chat2Gen from '../chat2-gen'
-import * as RemoteGen from '../remote-gen'
+import * as C from '..'
+import * as T from '../types'
 import * as Clipboard from 'expo-clipboard'
-import * as ConfigConstants from '../../constants/config'
-import * as ProfileConstants from '../../constants/profile'
-import * as ChatConstants from '../../constants/chat2'
-import * as EngineConstants from '../../constants/engine'
 import * as Container from '../../util/container'
-import * as DarkMode from '../../constants/darkmode'
-import * as EngineGen from '../engine-gen-gen'
+import * as EngineGen from '../../actions/engine-gen-gen'
 import * as ExpoLocation from 'expo-location'
 import * as ExpoTaskManager from 'expo-task-manager'
 import * as MediaLibrary from 'expo-media-library'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RouterConstants from '../../constants/router2'
-import * as SettingsConstants from '../../constants/settings'
-import * as Tabs from '../../constants/tabs'
-import * as Types from '../../constants/types/chat2'
+import * as Tabs from '../tabs'
 import NetInfo from '@react-native-community/netinfo'
 import NotifyPopup from '../../util/notify-popup'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../../logger'
 import {Alert, Linking, ActionSheetIOS} from 'react-native'
-import {getEngine} from '../../engine/require'
-import {isIOS, isAndroid} from '../../constants/platform'
+import {isIOS, isAndroid} from '../platform'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
 import {setupAudioMode} from '../../util/audio.native'
 import {
@@ -50,10 +39,10 @@ export const requestPermissionsToWrite = async () => {
   return Promise.resolve()
 }
 
-export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
+export const requestLocationPermission = async (mode: T.RPCChat.UIWatchPositionPerm) => {
   if (isIOS) {
     switch (mode) {
-      case RPCChatTypes.UIWatchPositionPerm.base:
+      case T.RPCChat.UIWatchPositionPerm.base:
         {
           const iosFGPerms = await ExpoLocation.requestForegroundPermissionsAsync()
           if (iosFGPerms.ios?.scope === 'none') {
@@ -61,7 +50,7 @@ export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositi
           }
         }
         break
-      case RPCChatTypes.UIWatchPositionPerm.always: {
+      case T.RPCChat.UIWatchPositionPerm.always: {
         const iosBGPerms = await ExpoLocation.requestBackgroundPermissionsAsync()
         if (iosBGPerms.status !== ExpoLocation.PermissionStatus.GRANTED) {
           throw new Error(
@@ -149,7 +138,7 @@ export const showShareActionSheet = async (options: {
 const loadStartupDetails = async () => {
   const [routeState, initialUrl, push, share] = await Promise.all([
     Container.neverThrowPromiseFunc(async () =>
-      RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'}).then(v => v.s || '')
+      T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.routeState2'}).then(v => v.s || '')
     ),
     Container.neverThrowPromiseFunc(async () => Linking.getInitialURL()),
     Container.neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
@@ -159,14 +148,14 @@ const loadStartupDetails = async () => {
 
   // Clear last value to be extra safe bad things don't hose us forever
   try {
-    await RPCTypes.configGuiSetValueRpcPromise({
+    await T.RPCGen.configGuiSetValueRpcPromise({
       path: 'ui.routeState2',
       value: {isNull: false, s: ''},
     })
   } catch (_) {}
 
   let wasFromPush = false
-  let conversation: Types.ConversationIDKey | undefined = undefined
+  let conversation: T.Chat.ConversationIDKey | undefined = undefined
   let pushPayload = ''
   let followUser = ''
   let link = ''
@@ -218,37 +207,35 @@ const loadStartupDetails = async () => {
     tab = ''
   }
 
-  const {setAndroidShare} = ConfigConstants.useConfigState.getState().dispatch
+  const {setAndroidShare} = C.useConfigState.getState().dispatch
 
   if (sharePath) {
-    setAndroidShare({type: RPCTypes.IncomingShareType.file, url: sharePath})
+    setAndroidShare({type: T.RPCGen.IncomingShareType.file, url: sharePath})
   } else if (shareText) {
-    setAndroidShare({text: shareText, type: RPCTypes.IncomingShareType.text})
+    setAndroidShare({text: shareText, type: T.RPCGen.IncomingShareType.text})
   }
 
-  ConfigConstants.useConfigState.getState().dispatch.setStartupDetails({
-    conversation: conversation ?? ChatConstants.noConversationIDKey,
+  C.useConfigState.getState().dispatch.setStartupDetails({
+    conversation: conversation ?? C.noConversationIDKey,
     followUser,
     link,
     pushPayload,
     tab: tab as Tabs.Tab,
     wasFromPush,
   })
-  afterStartupDetails(true)
+
+  afterStartupDetails(false)
 }
 
-const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
-  Chat2Gen.createSetCommandStatusInfo({
-    conversationIDKey,
-    info: {
-      actions: [RPCChatTypes.UICommandStatusActionTyp.appsettings],
-      displayText: text,
-      displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
-    },
+const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
+  C.getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
+    actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
+    displayText: text,
+    displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
   })
+}
 
 const onChatWatchPosition = async (action: EngineGen.Chat1ChatUiChatWatchPositionPayload) => {
-  const reduxDispatch = Z.getReduxDispatch()
   const response = action.payload.response
   response.result(0)
   try {
@@ -256,11 +243,9 @@ const onChatWatchPosition = async (action: EngineGen.Chat1ChatUiChatWatchPositio
   } catch (_error) {
     const error = _error as any
     logger.info('failed to get location perms: ' + error.message)
-    reduxDispatch(
-      setPermissionDeniedCommandStatus(
-        Types.conversationIDToKey(action.payload.params.convID),
-        `Failed to access location. ${error.message}`
-      )
+    setPermissionDeniedCommandStatus(
+      T.Chat.conversationIDToKey(action.payload.params.convID),
+      `Failed to access location. ${error.message}`
     )
   }
 
@@ -309,34 +294,22 @@ ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
   if (!locations.length) {
     return
   }
-  const pos = locations[locations.length - 1]
-
-  // a hack to get a naked dispatch instead of storing it multiple times, just reach in here
-  // @ts-ignore
-  getEngine()._dispatch(
-    Chat2Gen.createUpdateLastCoord({
-      coord: {
-        accuracy: Math.floor(pos?.coords.accuracy ?? 0),
-        lat: pos?.coords.latitude ?? 0,
-        lon: pos?.coords.longitude ?? 0,
-      },
-    })
-  )
+  const pos = locations.at(-1)
+  C.useChatState.getState().dispatch.updateLastCoord({
+    accuracy: Math.floor(pos?.coords.accuracy ?? 0),
+    lat: pos?.coords.latitude ?? 0,
+    lon: pos?.coords.longitude ?? 0,
+  })
 })
 
-export const watchPositionForMap = async (
-  dispatch: Container.TypedDispatch,
-  conversationIDKey: Types.ConversationIDKey
-) => {
+export const watchPositionForMap = async (conversationIDKey: T.Chat.ConversationIDKey) => {
   try {
     logger.info('location perms check')
-    await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
+    await requestLocationPermission(T.RPCChat.UIWatchPositionPerm.base)
   } catch (_error) {
     const error = _error as any
     logger.info('failed to get location perms: ' + error.message)
-    dispatch(
-      setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
-    )
+    setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
     return () => {}
   }
 
@@ -349,24 +322,16 @@ export const watchPositionForMap = async (
           lat: location.coords.latitude,
           lon: location.coords.longitude,
         }
-        dispatch(Chat2Gen.createUpdateLastCoord({coord}))
+        C.useChatState.getState().dispatch.updateLastCoord(coord)
       }
     )
     return () => sub.remove()
   } catch (_error) {
     const error = _error as any
     logger.info('failed to get location: ' + error.message)
-    dispatch(
-      setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
-    )
+    setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
     return () => {}
   }
-}
-
-const initAudioModes = () => {
-  setupAudioMode(false)
-    .then(() => {})
-    .catch(() => {})
 }
 
 // if we are making the daemon wait then run this to cleanup
@@ -374,22 +339,24 @@ let afterStartupDetails = (_done: boolean) => {}
 
 export const initPlatformListener = () => {
   let _lastPersist = ''
-  ConfigConstants.useConfigState.setState(s => {
+  C.useConfigState.setState(s => {
     s.dispatch.dynamic.persistRoute = (path?: Array<any>) => {
       const f = async () => {
         let param = {}
         let routeName = Tabs.peopleTab
         if (path) {
-          const cur = RouterConstants.getTab()
+          const cur = C.getTab()
           if (cur) {
             routeName = cur
           }
-          const ap = RouterConstants.getVisiblePath()
+          const ap = C.getVisiblePath()
           ap.some(r => {
             if (r.name == 'chatConversation') {
               param = {
                 // @ts-ignore TODO better param typing
-                selectedConversationIDKey: r.params?.conversationIDKey as Types.ConversationIDKey | undefined,
+                selectedConversationIDKey: r.params?.conversationIDKey as
+                  | T.Chat.ConversationIDKey
+                  | undefined,
               }
               return true
             }
@@ -401,7 +368,7 @@ export const initPlatformListener = () => {
         if (_lastPersist === s) {
           return
         }
-        await RPCTypes.configGuiSetValueRpcPromise({
+        await T.RPCGen.configGuiSetValueRpcPromise({
           path: 'ui.routeState2',
           value: {isNull: false, s},
         })
@@ -412,37 +379,38 @@ export const initPlatformListener = () => {
 
     s.dispatch.dynamic.onEngineIncomingNative = action => {
       switch (action.type) {
+        default:
       }
     }
   })
 
-  ConfigConstants.useConfigState.subscribe((s, old) => {
+  C.useConfigState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     let appFocused: boolean
-    let logState: RPCTypes.MobileAppState
+    let logState: T.RPCGen.MobileAppState
     switch (s.mobileAppState) {
       case 'active':
         appFocused = true
-        logState = RPCTypes.MobileAppState.foreground
+        logState = T.RPCGen.MobileAppState.foreground
         break
       case 'background':
         appFocused = false
-        logState = RPCTypes.MobileAppState.background
+        logState = T.RPCGen.MobileAppState.background
         break
       case 'inactive':
         appFocused = false
-        logState = RPCTypes.MobileAppState.inactive
+        logState = T.RPCGen.MobileAppState.inactive
         break
       default:
         appFocused = false
-        logState = RPCTypes.MobileAppState.foreground
+        logState = T.RPCGen.MobileAppState.foreground
     }
 
     logger.info(`setting app state on service to: ${logState}`)
-    ConfigConstants.useConfigState.getState().dispatch.changedFocus(appFocused)
+    C.useConfigState.getState().dispatch.changedFocus(appFocused)
   })
 
-  ConfigConstants.useConfigState.setState(s => {
+  C.useConfigState.setState(s => {
     s.dispatch.dynamic.copyToClipboard = s => {
       Clipboard.setStringAsync(s)
         .then(() => {})
@@ -450,26 +418,26 @@ export const initPlatformListener = () => {
     }
   })
 
-  ConfigConstants.useDaemonState.subscribe((s, old) => {
+  C.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return
 
     // loadStartupDetails finished already
-    if (ConfigConstants.useConfigState.getState().startup.loaded) {
-      afterStartupDetails = (_done: boolean) => {}
+    if (C.useConfigState.getState().startup.loaded) {
+      afterStartupDetails = (_inc: boolean) => {}
     } else {
       // Else we have to wait for the loadStartupDetails to finish
-      const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+      const {wait} = C.useDaemonState.getState().dispatch
       const version = s.handshakeVersion
       const startupDetailsWaiting = 'platform.native-waitStartupDetails'
-      afterStartupDetails = (done: boolean) => {
-        wait(startupDetailsWaiting, version, done ? false : true)
+      afterStartupDetails = (inc: boolean) => {
+        wait(startupDetailsWaiting, version, inc)
       }
-      afterStartupDetails(false)
+      afterStartupDetails(true)
     }
 
     if (isAndroid) {
       Container.ignorePromise(
-        RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
+        T.RPCChat.localConfigureFileAttachmentDownloadLocalRpcPromise({
           // Android's cache dir is (when I tried) [app]/cache but Go side uses
           // [app]/.cache by default, which can't be used for sharing to other apps.
           cacheDirOverride: fsCacheDir,
@@ -479,7 +447,7 @@ export const initPlatformListener = () => {
     }
   })
 
-  ConfigConstants.useConfigState.setState(s => {
+  C.useConfigState.setState(s => {
     s.dispatch.dynamic.onFilePickerError = error => {
       Alert.alert('Error', String(error))
     }
@@ -492,40 +460,40 @@ export const initPlatformListener = () => {
     }
   })
 
-  ProfileConstants.useState.setState(s => {
+  C.useProfileState.setState(s => {
     s.dispatch.editAvatar = () => {
       const f = async () => {
         try {
           const result = await launchImageLibraryAsync('photo')
           if (!result.canceled) {
-            RouterConstants.useState
+            C.useRouterState
               .getState()
               .dispatch.navigateAppend({props: {image: result.assets[0]}, selected: 'profileEditAvatar'})
           }
         } catch (error) {
-          ConfigConstants.useConfigState.getState().dispatch.filePickerError(new Error(String(error)))
+          C.useConfigState.getState().dispatch.filePickerError(new Error(String(error)))
         }
       }
       Z.ignorePromise(f())
     }
   })
 
-  ConfigConstants.useConfigState.subscribe((s, old) => {
+  C.useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
     const f = async () => {
       const {type} = await NetInfo.fetch()
-      ConfigConstants.useConfigState.getState().dispatch.osNetworkStatusChanged(type !== 'none', type, true)
+      C.useConfigState.getState().dispatch.osNetworkStatusChanged(type !== 'none', type, true)
     }
     Z.ignorePromise(f())
   })
 
-  ConfigConstants.useConfigState.subscribe((s, old) => {
+  C.useConfigState.subscribe((s, old) => {
     if (s.networkStatus === old.networkStatus) return
     const type = s.networkStatus?.type
     if (!type) return
     const f = async () => {
       try {
-        await RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: type})
+        await T.RPCGen.appStateUpdateMobileNetStateRpcPromise({state: type})
       } catch (err) {
         console.warn('Error sending mobileNetStateUpdate', err)
       }
@@ -533,7 +501,7 @@ export const initPlatformListener = () => {
     Z.ignorePromise(f())
   })
 
-  ConfigConstants.useConfigState.setState(s => {
+  C.useConfigState.setState(s => {
     s.dispatch.dynamic.showShareActionSheet = (filePath: string, message: string, mimeType: string) => {
       const f = async () => {
         await showShareActionSheet({filePath, message, mimeType})
@@ -542,55 +510,49 @@ export const initPlatformListener = () => {
     }
   })
 
-  ConfigConstants.useConfigState.subscribe((s, old) => {
+  C.useConfigState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     if (s.mobileAppState === 'active') {
       // only reload on foreground
-      SettingsConstants.useContactsState.getState().dispatch.loadContactPermissions()
+      C.useSettingsContactsState.getState().dispatch.loadContactPermissions()
     }
   })
 
   // Location
   if (isAndroid) {
-    DarkMode.useDarkModeState.subscribe((s, old) => {
+    C.useDarkModeState.subscribe((s, old) => {
       if (s.darkModePreference === old.darkModePreference) return
-      const {darkModePreference} = DarkMode.useDarkModeState.getState()
+      const {darkModePreference} = C.useDarkModeState.getState()
       androidAppColorSchemeChanged?.(darkModePreference)
     })
   }
 
-  RouterConstants.useState.subscribe((s, old) => {
+  C.useRouterState.subscribe((s, old) => {
     const next = s.navState
     const prev = old.navState
     if (next === prev) return
     const f = async () => {
       await Container.timeoutPromise(1000)
-      const path = RouterConstants.getVisiblePath()
-      ConfigConstants.useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
+      const path = C.getVisiblePath()
+      C.useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
     }
     Z.ignorePromise(f())
   })
 
-  // mobile version of the remote connection
-  Container.listenAction(RemoteGen.engineConnection, (_, a) => {
-    if (a.payload.connected) {
-      EngineConstants.useState.getState().dispatch.connected()
-      ConfigConstants.useConfigState.getState().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
-    } else {
-      EngineConstants.useState.getState().dispatch.connected()
-    }
-  })
-
   // Start this immediately instead of waiting so we can do more things in parallel
-  Container.spawn(loadStartupDetails, 'loadStartupDetails')
+  Z.ignorePromise(loadStartupDetails())
   initPushListener()
 
   NetInfo.addEventListener(({type}) => {
-    ConfigConstants.useConfigState.getState().dispatch.osNetworkStatusChanged(type !== 'none', type)
+    C.useConfigState.getState().dispatch.osNetworkStatusChanged(type !== 'none', type)
   })
-  Container.spawn(initAudioModes, 'initAudioModes')
 
-  ConfigConstants.useConfigState.setState(s => {
+  const initAudioModes = () => {
+    Z.ignorePromise(setupAudioMode(false))
+  }
+  initAudioModes()
+
+  C.useConfigState.setState(s => {
     s.dispatch.dynamic.openAppSettings = () => {
       const f = async () => {
         if (isAndroid) {
@@ -611,13 +573,13 @@ export const initPlatformListener = () => {
     s.dispatch.dynamic.onEngineIncomingNative = action => {
       switch (action.type) {
         case EngineGen.chat1ChatUiTriggerContactSync:
-          SettingsConstants.useContactsState.getState().dispatch.manageContactsCache()
+          C.useSettingsContactsState.getState().dispatch.manageContactsCache()
           break
         case EngineGen.keybase1LogUiLog: {
           const {params} = action.payload
           const {level, text} = params
           logger.info('keybase.1.logUi.log:', params.text.data)
-          if (level >= RPCTypes.LogLevel.error) {
+          if (level >= T.RPCGen.LogLevel.error) {
             NotifyPopup(text.data, {})
           }
           break
@@ -628,19 +590,20 @@ export const initPlatformListener = () => {
         case EngineGen.chat1ChatUiChatClearWatch:
           Z.ignorePromise(onChatClearWatch())
           break
+        default:
       }
     }
   })
 
-  RouterConstants.useState.setState(s => {
+  C.useRouterState.setState(s => {
     s.dispatch.dynamic.tabLongPress = tab => {
       if (tab !== Tabs.peopleTab) return
-      const accountRows = ConfigConstants.useConfigState.getState().configuredAccounts
-      const current = ConfigConstants.useCurrentUserState.getState().username
+      const accountRows = C.useConfigState.getState().configuredAccounts
+      const current = C.useCurrentUserState.getState().username
       const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
       if (row) {
-        ConfigConstants.useConfigState.getState().dispatch.setUserSwitching(true)
-        ConfigConstants.useConfigState.getState().dispatch.login(row.username, '')
+        C.useConfigState.getState().dispatch.setUserSwitching(true)
+        C.useConfigState.getState().dispatch.login(row.username, '')
       }
     }
   })

@@ -1,7 +1,7 @@
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
-import type * as TeamTypes from '../../../../constants/types/teams'
+import type * as T from '../../../../constants/types'
 import {typeToLabel} from '../../../../constants/teams'
 import {getAddedUsernames} from '../system-users-added-to-conv'
 import {indefiniteArticle} from '../../../../util/string'
@@ -10,7 +10,7 @@ type Props = {
   addee: string
   adder: string
   bulkAdds: Array<string>
-  role: TeamTypes.MaybeTeamRoleType
+  role: T.Teams.MaybeTeamRoleType
   onManageNotifications: () => void
   onViewBot: () => void
   onViewTeam: () => void
@@ -21,7 +21,7 @@ type Props = {
   isAdmin: boolean
 }
 
-const isBot = (role: TeamTypes.MaybeTeamRoleType) => {
+const isBot = (role: T.Teams.MaybeTeamRoleType) => {
   return role === 'bot' || role === 'restrictedbot'
 }
 

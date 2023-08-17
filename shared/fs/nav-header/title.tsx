@@ -1,6 +1,7 @@
-import * as React from 'react'
-import * as Types from '../../constants/types/fs'
+import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
+import * as React from 'react'
+import * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as Styles from '../../styles'
@@ -8,30 +9,27 @@ import {memoize} from '../../util/memoize'
 import * as Container from '../../util/container'
 
 type Props = {
-  path: Types.Path
+  path: T.FS.Path
   inDestinationPicker?: boolean
 }
 
 // /keybase/b/c => [/keybase, /keybase/b, /keybase/b/c]
 const getAncestors = memoize(path =>
-  path === Constants.defaultPath
+  path === C.defaultPath
     ? []
-    : Types.getPathElements(path)
+    : T.FS.getPathElements(path)
         .slice(1, -1)
-        .reduce(
-          (list, current) => [...list, Types.pathConcat(list[list.length - 1], current)],
-          [Constants.defaultPath]
-        )
+        .reduce((list, current) => [...list, T.FS.pathConcat(list.at(-1), current)], [C.defaultPath])
 )
 
 const Breadcrumb = (props: Props) => {
-  const ancestors = getAncestors(props.path || Constants.defaultPath)
+  const ancestors = getAncestors(props.path || C.defaultPath)
   const {inDestinationPicker} = props
   const nav = Container.useSafeNavigation()
   const onOpenPath = React.useCallback(
-    (path: Types.Path) => {
+    (path: T.FS.Path) => {
       inDestinationPicker
-        ? Constants.makeActionsForDestinationPickerOpen(0, path)
+        ? C.makeActionsForDestinationPickerOpen(0, path)
         : nav.safeNavigateAppend({props: {path}, selected: 'fsRoot'})
     },
     [nav, inDestinationPicker]
@@ -51,12 +49,12 @@ const Breadcrumb = (props: Props) => {
             .reverse()
             .map(path => ({
               onClick: () => onOpenPath(path),
-              title: Types.getPathName(path),
+              title: T.FS.getPathName(path),
               view: (
                 <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
                   <Kbfs.ItemIcon path={path} size={16} />
                   <Kb.Text type="Body" lineClamp={1}>
-                    {Types.getPathName(path)}
+                    {T.FS.getPathName(path)}
                   </Kb.Text>
                 </Kb.Box2>
               ),
@@ -83,15 +81,15 @@ const Breadcrumb = (props: Props) => {
       )}
       {ancestors.slice(-2).map(path => (
         <React.Fragment key={`text-${path}`}>
-          <Kb.Text key={`slash-${Types.pathToString(path)}`} type="BodyTiny" style={styles.slash}>
+          <Kb.Text key={`slash-${T.FS.pathToString(path)}`} type="BodyTiny" style={styles.slash}>
             /
           </Kb.Text>
           <Kb.Text
-            key={`name-${Types.pathToString(path)}`}
+            key={`name-${T.FS.pathToString(path)}`}
             type="BodyTinyLink"
             onClick={() => onOpenPath(path)}
           >
-            {Types.getPathName(path)}
+            {T.FS.getPathName(path)}
           </Kb.Text>
         </React.Fragment>
       ))}
@@ -102,7 +100,7 @@ const Breadcrumb = (props: Props) => {
   )
 }
 
-const MaybePublicTag = ({path}: {path: Types.Path}) =>
+const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
   Constants.hasPublicTag(path) ? (
     <Kb.Box2 direction="horizontal">
       <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} />
@@ -118,7 +116,7 @@ const MainTitle = (props: Props) => (
 )
 
 const FsNavHeaderTitle = (props: Props) =>
-  props.path === Constants.defaultPath ? (
+  props.path === C.defaultPath ? (
     <Kb.Text type="Header" style={styles.rootTitle}>
       Files
     </Kb.Text>

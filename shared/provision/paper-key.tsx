@@ -1,5 +1,4 @@
-import * as Constants from '../constants/provision'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -8,14 +7,14 @@ import {SignupScreen, errorBanner} from '../signup/common'
 import {isMobile} from '../constants/platform'
 
 export default () => {
-  const error = Constants.useState(s => s.error)
-  const hint = Constants.useState(s => `${s.codePageOtherDevice.name || ''}...`)
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const error = C.useProvisionState(s => s.error)
+  const hint = C.useProvisionState(s => `${s.codePageOtherDevice.name || ''}...`)
+  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }
-  const onSubmit = Constants.useState(s => s.dispatch.dynamic.setPassphrase)
+  const onSubmit = C.useProvisionState(s => s.dispatch.dynamic.setPassphrase)
   const props = {
     error: error,
     hint: hint,

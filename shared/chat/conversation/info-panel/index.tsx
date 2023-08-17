@@ -1,13 +1,13 @@
 import * as React from 'react'
-import type * as Types from '../../../constants/types/chat2'
 import * as Styles from '../../../styles'
+import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
+import type * as T from '../../../constants/types'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
 import MembersList from './members'
 import BotsList from './bot'
 import AttachmentsList from './attachments'
-import type {MaybeTeamRoleType} from 'constants/types/teams'
 import * as TeamConstants from '../../../constants/teams'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
 import type {Tab as TabType} from '../../../common-adapters/tabs'
@@ -18,14 +18,20 @@ type InfoPanelProps = {
   isPreview: boolean
   onCancel?: () => void
   onSelectTab: (p: Panel) => void
-  selectedConversationIDKey: Types.ConversationIDKey
   selectedTab: Panel
   smallTeam: boolean
   teamname?: string
-  yourRole: MaybeTeamRoleType
+  yourRole: T.Teams.MaybeTeamRoleType
 }
 
-export class InfoPanel extends React.PureComponent<InfoPanelProps> {
+export const InfoPanel = (p: InfoPanelProps) => {
+  const conversationIDKey = C.useChatContext(s => s.id)
+  return <_InfoPanel {...p} conversationIDKey={conversationIDKey} />
+}
+
+export class _InfoPanel extends React.PureComponent<
+  InfoPanelProps & {conversationIDKey: T.Chat.ConversationIDKey}
+> {
   private getTabs = (): Array<TabType<Panel>> => {
     const showSettings =
       !this.props.isPreview ||
@@ -62,18 +68,14 @@ export class InfoPanel extends React.PureComponent<InfoPanelProps> {
       key: 'header-section',
       renderItem: () => (
         <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
-          {this.props.teamname && this.props.channelname ? (
-            <TeamHeader conversationIDKey={this.props.selectedConversationIDKey} />
-          ) : (
-            <AdhocHeader conversationIDKey={this.props.selectedConversationIDKey} />
-          )}
+          {this.props.teamname && this.props.channelname ? <TeamHeader /> : <AdhocHeader />}
         </Kb.Box2>
       ),
     },
   ]
 
   render() {
-    if (!this.props.selectedConversationIDKey) {
+    if (!this.props.conversationIDKey) {
       // if we dont have a valid conversation ID, just render a spinner
       return (
         <Kb.Box2
@@ -92,7 +94,6 @@ export class InfoPanel extends React.PureComponent<InfoPanelProps> {
       case 'settings':
         sectionList = (
           <SettingsList
-            conversationIDKey={this.props.selectedConversationIDKey}
             isPreview={this.props.isPreview}
             renderTabs={this.renderTabs}
             commonSections={this.commonSections}
@@ -100,31 +101,13 @@ export class InfoPanel extends React.PureComponent<InfoPanelProps> {
         )
         break
       case 'members':
-        sectionList = (
-          <MembersList
-            conversationIDKey={this.props.selectedConversationIDKey}
-            renderTabs={this.renderTabs}
-            commonSections={this.commonSections}
-          />
-        )
+        sectionList = <MembersList renderTabs={this.renderTabs} commonSections={this.commonSections} />
         break
       case 'attachments':
-        sectionList = (
-          <AttachmentsList
-            conversationIDKey={this.props.selectedConversationIDKey}
-            renderTabs={this.renderTabs}
-            commonSections={this.commonSections}
-          />
-        )
+        sectionList = <AttachmentsList renderTabs={this.renderTabs} commonSections={this.commonSections} />
         break
       case 'bots':
-        sectionList = (
-          <BotsList
-            conversationIDKey={this.props.selectedConversationIDKey}
-            renderTabs={this.renderTabs}
-            commonSections={this.commonSections}
-          />
-        )
+        sectionList = <BotsList renderTabs={this.renderTabs} commonSections={this.commonSections} />
         break
       default:
         sectionList = null
@@ -203,5 +186,5 @@ const styles = Styles.styleSheetCreate(
           marginTop: 0,
         },
       }),
-    } as const)
+    }) as const
 )

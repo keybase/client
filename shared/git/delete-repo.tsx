@@ -1,5 +1,4 @@
-import * as Constants from '../constants/git'
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -7,18 +6,18 @@ import * as Styles from '../styles'
 type OwnProps = {id: string}
 
 const NullWrapper = (props: Props) => (props.name ? <DeleteRepo {...props} /> : null)
-const emptyGit = Constants.makeGitInfo()
+const emptyGit = C.makeGitInfo()
 export default (ownProps: OwnProps) => {
   const {id} = ownProps
-  const git = Constants.useGitState(s => s.idToInfo.get(id) || emptyGit)
-  const error = Constants.useGitState(s => s.error)
+  const git = C.useGitState(s => s.idToInfo.get(id) || emptyGit)
+  const error = C.useGitState(s => s.error)
   const name = git.name || ''
   const teamname = git.teamname || ''
-  const waitingKey = Constants.loadingWaitingKey
+  const waitingKey = C.gitWaitingKey
 
-  const deletePersonalRepo = Constants.useGitState(s => s.dispatch.deletePersonalRepo)
-  const deleteTeamRepo = Constants.useGitState(s => s.dispatch.deleteTeamRepo)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const deletePersonalRepo = C.useGitState(s => s.dispatch.deletePersonalRepo)
+  const deleteTeamRepo = C.useGitState(s => s.dispatch.deleteTeamRepo)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
 
   const _onDelete = (teamname: string | undefined, name: string, notifyTeam: boolean) => {
     if (teamname) {

@@ -1,17 +1,17 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../../signup/common'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/autoreset'
 
 const KnowPassword = () => {
-  const error = Constants.useState(s => s.error)
-  const waiting = Container.useAnyWaiting(Constants.enterPipelineWaitingKey)
+  const error = C.useAutoResetState(s => s.error)
+  const waiting = Container.useAnyWaiting(C.enterPipelineWaitingKey)
   const nav = Container.useSafeNavigation()
   const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
   const onYes = React.useCallback(() => nav.safeNavigateAppend('resetEnterPassword'), [nav])
-  const resetAccount = Constants.useState(s => s.dispatch.resetAccount)
+  const resetAccount = C.useAutoResetState(s => s.dispatch.resetAccount)
   const onNo = React.useCallback(() => resetAccount(), [resetAccount])
   return (
     <SignupScreen

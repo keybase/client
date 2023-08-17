@@ -1,13 +1,13 @@
 import * as Kb from '../../../common-adapters'
-import * as RouterConstants from '../../../constants/router2'
+import * as C from '../../../constants'
 import Modal from '../../modal'
 
 export default function Choice() {
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => {
     clearModals()
   }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowGetNew = () => {
     navigateAppend('profileProvideInfo')
   }

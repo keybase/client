@@ -1,14 +1,12 @@
+import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import * as RouterConstants from '../constants/router2'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as FsTypes from '../constants/types/fs'
+import * as T from '../constants/types'
 import * as FsConstants from '../constants/fs'
 import * as FsCommon from '../fs/common'
 import * as Platform from '../constants/platform'
 import * as SettingsConstants from '../constants/settings'
-import * as ConfigConstants from '../constants/config'
 import {MobileSendToChat} from '../chat/send-to-chat'
 import useRPC from '../util/use-rpc'
 
@@ -19,13 +17,13 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
     0
   )
   const originalOnly = originalTotalSize <= scaledTotalSize
-  const setUseOriginalInStore = ConfigConstants.useConfigState.getState().dispatch.setIncomingShareUseOriginal
+  const setUseOriginalInStore = C.useConfigState.getState().dispatch.setIncomingShareUseOriginal
 
   const setUseOriginalInService = React.useCallback((useOriginal: boolean) => {
-    RPCTypes.incomingShareSetPreferenceRpcPromise({
+    T.RPCGen.incomingShareSetPreferenceRpcPromise({
       preference: useOriginal
-        ? {compressPreference: RPCTypes.IncomingShareCompressPreference.original}
-        : {compressPreference: RPCTypes.IncomingShareCompressPreference.compressed},
+        ? {compressPreference: T.RPCGen.IncomingShareCompressPreference.original}
+        : {compressPreference: T.RPCGen.IncomingShareCompressPreference.compressed},
     })
       .then(() => {})
       .catch(() => {})
@@ -37,12 +35,12 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
   }, [originalOnly, setUseOriginalInStore])
 
   // From service to store, but only if this is not original only.
-  const getRPC = useRPC(RPCTypes.incomingShareGetPreferenceRpcPromise)
+  const getRPC = useRPC(T.RPCGen.incomingShareGetPreferenceRpcPromise)
   const syncCompressPreferenceFromServiceToStore = React.useCallback(() => {
     getRPC(
       [undefined],
       pref =>
-        setUseOriginalInStore(pref.compressPreference === RPCTypes.IncomingShareCompressPreference.original),
+        setUseOriginalInStore(pref.compressPreference === T.RPCGen.IncomingShareCompressPreference.original),
       err => {
         throw err
       }
@@ -52,7 +50,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
     !originalOnly && syncCompressPreferenceFromServiceToStore()
   }, [originalOnly, syncCompressPreferenceFromServiceToStore])
 
-  const useOriginalValue = ConfigConstants.useConfigState(s => s.incomingShareUseOriginal)
+  const useOriginalValue = C.useConfigState(s => s.incomingShareUseOriginal)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {toggleShowingPopup} = p
@@ -108,7 +106,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
   )
 }
 
-const getContentDescription = (items: Array<RPCTypes.IncomingShareItem>) => {
+const getContentDescription = (items: Array<T.RPCGen.IncomingShareItem>) => {
   if (items.length === 0) {
     return undefined
   }
@@ -130,7 +128,7 @@ const getContentDescription = (items: Array<RPCTypes.IncomingShareItem>) => {
   }
 
   // If it's a URL, originalPath is not populated.
-  const name = items[0]!.originalPath && FsTypes.getLocalPathName(items[0]!.originalPath)
+  const name = items[0]!.originalPath && T.FS.getLocalPathName(items[0]!.originalPath)
   return name ? (
     <FsCommon.Filename type="BodyTiny" filename={name} />
   ) : (
@@ -138,8 +136,8 @@ const getContentDescription = (items: Array<RPCTypes.IncomingShareItem>) => {
   )
 }
 
-const useHeader = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+const useHeader = (incomingShareItems: Array<T.RPCGen.IncomingShareItem>) => {
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const onCancel = () => clearModals()
   return {
     leftButton: (
@@ -157,9 +155,9 @@ const useHeader = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
   }
 }
 
-const useFooter = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
-  const setIncomingShareSource = FsConstants.useState(s => s.dispatch.setIncomingShareSource)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+const useFooter = (incomingShareItems: Array<T.RPCGen.IncomingShareItem>) => {
+  const setIncomingShareSource = C.useFSState(s => s.dispatch.setIncomingShareSource)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const saveInFiles = () => {
     setIncomingShareSource(incomingShareItems)
     navigateAppend({
@@ -183,11 +181,11 @@ const useFooter = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
 }
 
 type IncomingShareProps = {
-  incomingShareItems: Array<RPCTypes.IncomingShareItem>
+  incomingShareItems: Array<T.RPCGen.IncomingShareItem>
 }
 
 const IncomingShare = (props: IncomingShareProps) => {
-  const useOriginalValue = ConfigConstants.useConfigState(s => s.incomingShareUseOriginal)
+  const useOriginalValue = C.useConfigState(s => s.incomingShareUseOriginal)
   const {sendPaths, text} = props.incomingShareItems.reduce(
     ({sendPaths, text}, item) => {
       if (item.content) {
@@ -219,8 +217,8 @@ const IncomingShare = (props: IncomingShareProps) => {
 }
 
 const IncomingShareError = () => {
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const erroredSendFeedback = () => {
     clearModals()
     navigateAppend({
@@ -249,11 +247,11 @@ const IncomingShareError = () => {
 }
 
 const useIncomingShareItems = () => {
-  const [incomingShareItems, setIncomingShareItems] = React.useState<Array<RPCTypes.IncomingShareItem>>([])
+  const [incomingShareItems, setIncomingShareItems] = React.useState<Array<T.RPCGen.IncomingShareItem>>([])
   const [incomingShareError, setIncomingShareError] = React.useState<any>(undefined)
 
   // iOS
-  const rpc = useRPC(RPCTypes.incomingShareGetIncomingShareItemsRpcPromise)
+  const rpc = useRPC(T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise)
   const getIncomingShareItemsIOS = React.useCallback(() => {
     if (!Platform.isIOS) {
       return
@@ -268,21 +266,21 @@ const useIncomingShareItems = () => {
   React.useEffect(getIncomingShareItemsIOS, [getIncomingShareItemsIOS])
 
   // Android
-  const androidShare = ConfigConstants.useConfigState(s => s.androidShare)
+  const androidShare = C.useConfigState(s => s.androidShare)
   const getIncomingShareItemsAndroid = React.useCallback(() => {
     if (!Platform.isAndroid || !androidShare) {
       return
     }
 
     const item =
-      androidShare.type === RPCTypes.IncomingShareType.file
+      androidShare.type === T.RPCGen.IncomingShareType.file
         ? {
             originalPath: androidShare.url,
-            type: RPCTypes.IncomingShareType.file,
+            type: T.RPCGen.IncomingShareType.file,
           }
         : {
             content: androidShare.text,
-            type: RPCTypes.IncomingShareType.text,
+            type: T.RPCGen.IncomingShareType.text,
           }
     setIncomingShareItems([item])
   }, [androidShare, setIncomingShareItems])
@@ -320,25 +318,25 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 const incomingShareTypeToString = (
-  type: RPCTypes.IncomingShareType,
+  type: T.RPCGen.IncomingShareType,
   capitalize: boolean,
   plural: boolean
 ): string => {
   switch (type) {
-    case RPCTypes.IncomingShareType.file:
+    case T.RPCGen.IncomingShareType.file:
       return (capitalize ? 'File' : 'file') + (plural ? 's' : '')
-    case RPCTypes.IncomingShareType.text:
+    case T.RPCGen.IncomingShareType.text:
       return (capitalize ? 'Text snippet' : 'text snippet') + (plural ? 's' : '')
-    case RPCTypes.IncomingShareType.image:
+    case T.RPCGen.IncomingShareType.image:
       return (capitalize ? 'Image' : 'image') + (plural ? 's' : '')
-    case RPCTypes.IncomingShareType.video:
+    case T.RPCGen.IncomingShareType.video:
       return (capitalize ? 'Video' : 'video') + (plural ? 's' : '')
   }
 }
 
-const isChatOnly = (items?: Array<RPCTypes.IncomingShareItem>): boolean =>
+const isChatOnly = (items?: Array<T.RPCGen.IncomingShareItem>): boolean =>
   items?.length === 1 &&
-  items[0]!.type === RPCTypes.IncomingShareType.text &&
+  items[0]!.type === T.RPCGen.IncomingShareType.text &&
   !!items[0]!.content &&
   !items[0]!.originalPath
 

@@ -1,6 +1,6 @@
-import * as RPCTypes from './types/rpc-gen'
+import * as T from './types'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as Z from '../util/zustand'
-import type * as EngineGen from '../actions/engine-gen-gen'
 import logger from '../logger'
 import {RPCError, isNetworkErr} from '../util/errors'
 
@@ -8,10 +8,10 @@ export const waitingKeyBotSearchFeatured = 'bots:search:featured'
 export const waitingKeyBotSearchUsers = 'bots:search:users'
 
 export const getFeaturedSorted = (
-  featuredBotsMap: Map<string, RPCTypes.FeaturedBot>
-): Array<RPCTypes.FeaturedBot> => {
+  featuredBotsMap: Map<string, T.RPCGen.FeaturedBot>
+): Array<T.RPCGen.FeaturedBot> => {
   const featured = [...featuredBotsMap.values()]
-  featured.sort((a: RPCTypes.FeaturedBot, b: RPCTypes.FeaturedBot) => {
+  featured.sort((a: T.RPCGen.FeaturedBot, b: T.RPCGen.FeaturedBot) => {
     if (a.rank < b.rank) {
       return 1
     } else if (a.rank > b.rank) {
@@ -23,14 +23,14 @@ export const getFeaturedSorted = (
 }
 
 type BotSearchResults = {
-  bots: Array<RPCTypes.FeaturedBot>
+  bots: Array<T.RPCGen.FeaturedBot>
   users: Array<string>
 }
 
 type Store = {
   featuredBotsPage: number
   featuredBotsLoaded: boolean
-  featuredBotsMap: Map<string, RPCTypes.FeaturedBot>
+  featuredBotsMap: Map<string, T.RPCGen.FeaturedBot>
   botSearchResults: Map<string, BotSearchResults | undefined> // Keyed so that we never show results that don't match the user's input (e.g. outdated results)
 }
 
@@ -43,33 +43,26 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
-    botsUpdate: (action: EngineGen.Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload) => void
     getFeaturedBots: (limit?: number, page?: number) => void
     loadNextBotPage: (pageSize?: number) => void
+    onEngineIncoming: (action: EngineGen.Actions) => void
     resetState: 'default'
     searchFeaturedAndUsers: (query: string) => void
     searchFeaturedBots: (query: string, limit?: number, offset?: number) => void
     setLoadedAllBots: (loaded: boolean) => void
     setLoadedBotPage: (page: number) => void
     setSearchFeaturedAndUsersResults: (query: string, results?: BotSearchResults) => void
-    updateFeaturedBots: (bots: Array<RPCTypes.FeaturedBot>, page?: number) => void
+    updateFeaturedBots: (bots: Array<T.RPCGen.FeaturedBot>, page?: number) => void
   }
 }
 
 const pageSize = 100
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
-    botsUpdate: action => {
-      const {bots, limit, offset} = action.payload.params
-      const loadedAllBots = !bots || bots.length < pageSize
-      const page = offset / (limit ?? pageSize)
-      get().dispatch.updateFeaturedBots(bots ?? [], page)
-      get().dispatch.setLoadedAllBots(loadedAllBots)
-    },
     getFeaturedBots: (limit, page) => {
       const f = async () => {
         try {
-          const {bots} = await RPCTypes.featuredBotFeaturedBotsRpcPromise({
+          const {bots} = await T.RPCGen.featuredBotFeaturedBotsRpcPromise({
             limit: limit ?? pageSize,
             offset: (page ?? 0) * (limit ?? pageSize),
             skipCache: false,
@@ -93,15 +86,29 @@ export const useState = Z.createZustand<State>((set, get) => {
     loadNextBotPage: ps => {
       get().dispatch.getFeaturedBots(ps ?? pageSize, get().featuredBotsPage + 1)
     },
+    onEngineIncoming: (action: EngineGen.Actions) => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
+          {
+            const {bots, limit, offset} = action.payload.params
+            const loadedAllBots = !bots || bots.length < pageSize
+            const page = offset / (limit ?? pageSize)
+            get().dispatch.updateFeaturedBots(bots ?? [], page)
+            get().dispatch.setLoadedAllBots(loadedAllBots)
+          }
+          break
+        default:
+      }
+    },
     resetState: 'default',
     searchFeaturedAndUsers: query => {
       const f = async () => {
-        let botRes: RPCTypes.SearchRes | undefined
-        let userRes: Array<RPCTypes.APIUserSearchResult> | undefined
+        let botRes: T.RPCGen.SearchRes | undefined
+        let userRes: Array<T.RPCGen.APIUserSearchResult> | undefined
         try {
           const temp = await Promise.all([
-            RPCTypes.featuredBotSearchRpcPromise({limit: 10, offset: 0, query}, waitingKeyBotSearchFeatured),
-            RPCTypes.userSearchUserSearchRpcPromise(
+            T.RPCGen.featuredBotSearchRpcPromise({limit: 10, offset: 0, query}, waitingKeyBotSearchFeatured),
+            T.RPCGen.userSearchUserSearchRpcPromise(
               {
                 includeContacts: false,
                 includeServicesSummary: false,
@@ -137,7 +144,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     searchFeaturedBots: (query, limit, offset) => {
       const f = async () => {
         try {
-          const {bots} = await RPCTypes.featuredBotSearchRpcPromise({
+          const {bots} = await T.RPCGen.featuredBotSearchRpcPromise({
             limit: limit ?? 10,
             offset: offset ?? 0,
             query,

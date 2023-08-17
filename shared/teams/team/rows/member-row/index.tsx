@@ -1,11 +1,10 @@
+import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/teams'
-import type * as Types from '../../../../constants/types/teams'
+import type * as T from '../../../../constants/types'
 import {typeToLabel} from '../../../../constants/teams'
-import type {BoolTypeMap, MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
 import MenuHeader from '../menu-header.new'
 
 export type Props = {
@@ -19,9 +18,9 @@ export type Props = {
   onReAddToTeam: () => void
   onRemoveFromTeam: () => void
   onShowTracker: () => void
-  roleType: TeamRoleType
-  status: MemberStatus
-  teamID: Types.TeamID
+  roleType: T.Teams.TeamRoleType
+  status: T.Teams.MemberStatus
+  teamID: T.Teams.TeamID
   username: string
   waitingForAdd: boolean
   waitingForRemove: boolean
@@ -29,7 +28,7 @@ export type Props = {
   youCanManageMembers: boolean
 }
 
-const showCrown: BoolTypeMap = {
+const showCrown: T.Teams.BoolTypeMap = {
   admin: true,
   bot: false,
   owner: true,
@@ -82,11 +81,11 @@ export const TeamMemberRow = (props: Props) => {
   const teamID = props.teamID
 
   const nav = Container.useSafeNavigation()
-  const teamSelectedMembers = Constants.useState(s => s.teamSelectedMembers.get(teamID))
+  const teamSelectedMembers = C.useTeamsState(s => s.teamSelectedMembers.get(teamID))
   const anySelected = !!teamSelectedMembers?.size
   const selected = !!teamSelectedMembers?.has(props.username)
 
-  const setMemberSelected = Constants.useState(s => s.dispatch.setMemberSelected)
+  const setMemberSelected = C.useTeamsState(s => s.dispatch.setMemberSelected)
 
   const onSelect = React.useCallback(
     (selected: boolean) => {

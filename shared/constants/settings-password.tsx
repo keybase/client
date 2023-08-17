@@ -1,9 +1,8 @@
+import * as C from '.'
 import * as Z from '../util/zustand'
-import * as RouterConstants from './router2'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
-import * as RPCTypes from './types/rpc-gen'
-import {useLogoutState} from './config'
+import * as T from './types'
 
 const settingsWaitingKey = 'settings:generic'
 type Store = {
@@ -42,7 +41,7 @@ export type State = Store & {
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     loadHasRandomPw: () => {
       // Once loaded, do not issue this RPC again. This field can only go true ->
@@ -53,8 +52,8 @@ export const useState = Z.createZustand<State>((set, get) => {
           return
         }
         try {
-          const passphraseState = await RPCTypes.userLoadPassphraseStateRpcPromise()
-          const randomPW = passphraseState === RPCTypes.PassphraseState.random
+          const passphraseState = await T.RPCGen.userLoadPassphraseStateRpcPromise()
+          const randomPW = passphraseState === T.RPCGen.PassphraseState.random
           set(s => {
             s.randomPW = randomPW
           })
@@ -71,7 +70,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     loadPgpSettings: () => {
       const f = async () => {
         try {
-          const {hasServerKeys} = await RPCTypes.accountHasServerKeysRpcPromise()
+          const {hasServerKeys} = await T.RPCGen.accountHasServerKeysRpcPromise()
           set(s => {
             s.hasPGPKeyOnServer = hasServerKeys
           })
@@ -89,7 +88,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     loadRememberPassword: () => {
       const f = async () => {
-        const remember = await RPCTypes.configGetRememberPassphraseRpcPromise()
+        const remember = await T.RPCGen.configGetRememberPassphraseRpcPromise()
         set(s => {
           s.rememberPassword = remember
         })
@@ -116,7 +115,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     setRememberPassword: remember => {
       const f = async () => {
-        await RPCTypes.configSetRememberPassphraseRpcPromise({remember})
+        await T.RPCGen.configSetRememberPassphraseRpcPromise({remember})
       }
       Z.ignorePromise(f())
     },
@@ -130,7 +129,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             })
             return
           }
-          await RPCTypes.accountPassphraseChangeRpcPromise(
+          await T.RPCGen.accountPassphraseChangeRpcPromise(
             {
               force: true,
               oldPassphrase: '',
@@ -140,9 +139,9 @@ export const useState = Z.createZustand<State>((set, get) => {
           )
 
           if (thenLogout) {
-            useLogoutState.getState().dispatch.requestLogout()
+            C.useLogoutState.getState().dispatch.requestLogout()
           }
-          RouterConstants.useState.getState().dispatch.navigateUp()
+          C.useRouterState.getState().dispatch.navigateUp()
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return

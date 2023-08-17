@@ -1,4 +1,4 @@
-import * as Followers from '../../constants/followers'
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Tracker2Constants from '../../constants/tracker2'
 import UnconnectedFollowButton from '../../profile/user/actions/follow-button'
@@ -11,13 +11,13 @@ const getFollowWaitingKey = (username: string) => `settings:followButton:${usern
 
 export const FollowButton = (props: FollowProps) => {
   const {username} = props
-  const userDetails = Tracker2Constants.useState(s => Tracker2Constants.getDetails(s, username))
-  const followThem = Followers.useFollowerState(s => s.following.has(username))
-  const followsYou = Followers.useFollowerState(s => s.followers.has(username))
+  const userDetails = C.useTrackerState(s => Tracker2Constants.getDetails(s, username))
+  const followThem = C.useFollowerState(s => s.following.has(username))
+  const followsYou = C.useFollowerState(s => s.followers.has(username))
   const {guiID} = userDetails
 
-  const showUser = Tracker2Constants.useState(s => s.dispatch.showUser)
-  const changeFollow = Tracker2Constants.useState(s => s.dispatch.changeFollow)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
+  const changeFollow = C.useTrackerState(s => s.dispatch.changeFollow)
 
   React.useEffect(() => {
     if (!guiID) {

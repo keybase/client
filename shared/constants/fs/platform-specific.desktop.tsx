@@ -1,11 +1,9 @@
-import * as RouterConstants from '../../constants/router2'
+import * as C from '..'
 import * as Z from '../../util/zustand'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
-import * as ConfigConstants from '../../constants/config'
-import * as Tabs from '../../constants/tabs'
-import {isWindows, isLinux, pathSep, isDarwin} from '../../constants/platform.desktop'
+import * as T from '../types'
+import * as Constants from '../fs'
+import * as Tabs from '../tabs'
+import {isWindows, isLinux, pathSep, isDarwin} from '../platform.desktop'
 import logger from '../../logger'
 import * as Path from '../../util/path'
 import KB2 from '../../util/electron.desktop'
@@ -28,95 +26,95 @@ const escapeBackslash = isWindows
         .replace(/([<>:"/\\|?*])/g, (_, c) => '‰' + new Buffer(c).toString('hex'))
   : (pathElem: string): string => pathElem
 
-const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
-  Path.join(mountLocation, Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(pathSep))
+const _rebaseKbfsPathToMountLocation = (kbfsPath: T.FS.Path, mountLocation: string) =>
+  Path.join(mountLocation, T.FS.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(pathSep))
 
 const fuseStatusToUninstallExecPath = isWindows
-  ? (status: RPCTypes.FuseStatus) => {
+  ? (status: T.RPCGen.FuseStatus) => {
       const field = status?.status?.fields?.find(({key}) => key === 'uninstallString')
       return field?.value
     }
   : () => undefined
 
 const fuseStatusToActions =
-  (previousStatusType: Types.DriverStatusType) => (status: RPCTypes.FuseStatus | undefined) => {
+  (previousStatusType: T.FS.DriverStatusType) => (status: T.RPCGen.FuseStatus | undefined) => {
     if (!status) {
-      Constants.useState.getState().dispatch.setDriverStatus(Constants.defaultDriverStatus)
+      C.useFSState.getState().dispatch.setDriverStatus(Constants.defaultDriverStatus)
       return
     }
 
     if (status.kextStarted) {
-      Constants.useState.getState().dispatch.setDriverStatus({
+      C.useFSState.getState().dispatch.setDriverStatus({
         ...Constants.emptyDriverStatusEnabled,
-        dokanOutdated: status.installAction === RPCTypes.InstallAction.upgrade,
+        dokanOutdated: status.installAction === T.RPCGen.InstallAction.upgrade,
         dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
       })
     } else {
-      Constants.useState.getState().dispatch.setDriverStatus(Constants.emptyDriverStatusDisabled)
+      C.useFSState.getState().dispatch.setDriverStatus(Constants.emptyDriverStatusDisabled)
     }
 
-    if (status.kextStarted && previousStatusType === Types.DriverStatusType.Disabled) {
-      Constants.useState
+    if (status.kextStarted && previousStatusType === T.FS.DriverStatusType.Disabled) {
+      C.useFSState
         .getState()
-        .dispatch.dynamic.openPathInSystemFileManagerDesktop?.(Types.stringToPath('/keybase'))
+        .dispatch.dynamic.openPathInSystemFileManagerDesktop?.(T.FS.stringToPath('/keybase'))
     }
   }
 
-const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult): boolean =>
+const fuseInstallResultIsKextPermissionError = (result: T.RPCGen.InstallResult): boolean =>
   result?.componentResults?.findIndex(
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
 
 const driverEnableFuse = async (isRetry: boolean) => {
-  const result = await RPCTypes.installInstallFuseRpcPromise()
+  const result = await T.RPCGen.installInstallFuseRpcPromise()
   if (fuseInstallResultIsKextPermissionError(result)) {
-    Constants.useState.getState().dispatch.driverKextPermissionError()
+    C.useFSState.getState().dispatch.driverKextPermissionError()
     if (!isRetry) {
-      RouterConstants.useState.getState().dispatch.navigateAppend('kextPermission')
+      C.useRouterState.getState().dispatch.navigateAppend('kextPermission')
     }
   } else {
-    await RPCTypes.installInstallKBFSRpcPromise() // restarts kbfsfuse
-    await RPCTypes.kbfsMountWaitForMountsRpcPromise()
-    Constants.useState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
+    await T.RPCGen.installInstallKBFSRpcPromise() // restarts kbfsfuse
+    await T.RPCGen.kbfsMountWaitForMountsRpcPromise()
+    C.useFSState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
   }
 }
 
 const uninstallKBFSConfirm = async () => {
   const remove = await (uninstallKBFSDialog?.() ?? Promise.resolve(false))
   if (remove) {
-    Constants.useState.getState().dispatch.driverDisabling()
+    C.useFSState.getState().dispatch.driverDisabling()
   }
 }
 
 const uninstallKBFS = async () =>
-  RPCTypes.installUninstallKBFSRpcPromise().then(() => {
+  T.RPCGen.installUninstallKBFSRpcPromise().then(() => {
     // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
     relaunchApp?.()
     exitApp?.(0)
   })
 
 const uninstallDokanConfirm = async () => {
-  const driverStatus = Constants.useState.getState().sfmi.driverStatus
-  if (driverStatus.type !== Types.DriverStatusType.Enabled) {
+  const driverStatus = C.useFSState.getState().sfmi.driverStatus
+  if (driverStatus.type !== T.FS.DriverStatusType.Enabled) {
     return
   }
   if (!driverStatus.dokanUninstallExecPath) {
     await uninstallDokanDialog?.()
-    Constants.useState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
+    C.useFSState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
     return
   }
-  Constants.useState.getState().dispatch.driverDisabling()
+  C.useFSState.getState().dispatch.driverDisabling()
 }
 
 const onUninstallDokan = async () => {
-  const driverStatus = Constants.useState.getState().sfmi.driverStatus
-  if (driverStatus.type !== Types.DriverStatusType.Enabled) return
+  const driverStatus = C.useFSState.getState().sfmi.driverStatus
+  if (driverStatus.type !== T.FS.DriverStatusType.Enabled) return
   const execPath: string = driverStatus.dokanUninstallExecPath || ''
   logger.info('Invoking dokan uninstaller', execPath)
   try {
     await uninstallDokan?.(execPath)
   } catch {}
-  Constants.useState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
+  C.useFSState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
 }
 
 // Invoking the cached installer package has to happen from the topmost process
@@ -125,24 +123,24 @@ const onUninstallDokan = async () => {
 const onInstallCachedDokan = async () => {
   try {
     await installCachedDokan?.()
-    Constants.useState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
+    C.useFSState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
   } catch (e) {
     Constants.errorToActionOrThrow(e)
   }
 }
 
 const initPlatformSpecific = () => {
-  ConfigConstants.useConfigState.subscribe((s, old) => {
+  C.useConfigState.subscribe((s, old) => {
     if (s.appFocused === old.appFocused) return
-    Constants.useState.getState().dispatch.onChangedFocus(s.appFocused)
+    C.useFSState.getState().dispatch.onChangedFocus(s.appFocused)
   })
 
-  Constants.useState.setState(s => {
+  C.useFSState.setState(s => {
     s.dispatch.dynamic.uploadFromDragAndDropDesktop = (parentPath, localPaths) => {
-      const {upload} = Constants.useState.getState().dispatch
+      const {upload} = C.useFSState.getState().dispatch
       const f = async () => {
         if (isDarwin && darwinCopyToKBFSTempUploadFile) {
-          const dir = await RPCTypes.SimpleFSSimpleFSMakeTempDirForUploadRpcPromise()
+          const dir = await T.RPCGen.SimpleFSSimpleFSMakeTempDirForUploadRpcPromise()
           const lp = await Promise.all(
             localPaths.map(async localPath => darwinCopyToKBFSTempUploadFile(dir, localPath))
           )
@@ -170,16 +168,15 @@ const initPlatformSpecific = () => {
 
     s.dispatch.dynamic.openPathInSystemFileManagerDesktop = path => {
       const f = async () => {
-        const {sfmi, pathItems} = Constants.useState.getState()
-        return sfmi.driverStatus.type === Types.DriverStatusType.Enabled && sfmi.directMountDir
+        const {sfmi, pathItems} = C.useFSState.getState()
+        return sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled && sfmi.directMountDir
           ? _openPathInSystemFileManagerPromise(
               _rebaseKbfsPathToMountLocation(path, sfmi.directMountDir),
-              ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
-                Constants.parsePath(path).kind
-              ) || Constants.getPathItem(pathItems, path).type === Types.PathType.Folder
+              ![T.FS.PathKind.InGroupTlf, T.FS.PathKind.InTeamTlf].includes(Constants.parsePath(path).kind) ||
+                Constants.getPathItem(pathItems, path).type === T.FS.PathType.Folder
             ).catch(e => Constants.errorToActionOrThrow(path, e))
           : new Promise<void>((resolve, reject) => {
-              if (sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
+              if (sfmi.driverStatus.type !== T.FS.DriverStatusType.Enabled) {
                 // This usually indicates a developer error as
                 // openPathInSystemFileManager shouldn't be used when FUSE integration
                 // is not enabled. So just blackbar to encourage a log send.
@@ -195,27 +192,27 @@ const initPlatformSpecific = () => {
 
     s.dispatch.dynamic.refreshDriverStatusDesktop = () => {
       const f = async () => {
-        let status = await RPCTypes.installFuseStatusRpcPromise({
+        let status = await T.RPCGen.installFuseStatusRpcPromise({
           bundleVersion: '',
         })
-        if (isWindows && status.installStatus !== RPCTypes.InstallStatus.installed) {
-          const m = await RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
+        if (isWindows && status.installStatus !== T.RPCGen.InstallStatus.installed) {
+          const m = await T.RPCGen.kbfsMountGetCurrentMountDirRpcPromise()
           status = await (windowsCheckMountFromOtherDokanInstall?.(m, status) ?? Promise.resolve(status))
         }
-        fuseStatusToActions(Constants.useState.getState().sfmi.driverStatus.type)(status)
+        fuseStatusToActions(C.useFSState.getState().sfmi.driverStatus.type)(status)
       }
       Z.ignorePromise(f())
     }
 
     s.dispatch.dynamic.refreshMountDirsDesktop = () => {
       const f = async () => {
-        const {sfmi, dispatch} = Constants.useState.getState()
+        const {sfmi, dispatch} = C.useFSState.getState()
         const driverStatus = sfmi.driverStatus
-        if (driverStatus.type !== Types.DriverStatusType.Enabled) {
+        if (driverStatus.type !== T.FS.DriverStatusType.Enabled) {
           return
         }
-        const directMountDir = await RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
-        const preferredMountDirs = await RPCTypes.kbfsMountGetPreferredMountDirsRpcPromise()
+        const directMountDir = await T.RPCGen.kbfsMountGetCurrentMountDirRpcPromise()
+        const preferredMountDirs = await T.RPCGen.kbfsMountGetPreferredMountDirsRpcPromise()
         dispatch.setDirectMountDir(directMountDir)
         dispatch.setPreferredMountDirs(preferredMountDirs || [])
       }
@@ -224,14 +221,14 @@ const initPlatformSpecific = () => {
 
     s.dispatch.dynamic.setSfmiBannerDismissedDesktop = dismissed => {
       const f = async () => {
-        await RPCTypes.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed})
+        await T.RPCGen.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed})
       }
       Z.ignorePromise(f())
     }
 
     s.dispatch.dynamic.afterDriverEnabled = isRetry => {
       const f = async () => {
-        Constants.useState.getState().dispatch.dynamic.setSfmiBannerDismissedDesktop?.(false)
+        C.useFSState.getState().dispatch.dynamic.setSfmiBannerDismissedDesktop?.(false)
         if (isWindows) {
           await onInstallCachedDokan()
         } else {
@@ -243,7 +240,7 @@ const initPlatformSpecific = () => {
 
     s.dispatch.dynamic.afterDriverDisable = () => {
       const f = async () => {
-        Constants.useState.getState().dispatch.dynamic.setSfmiBannerDismissedDesktop?.(false)
+        C.useFSState.getState().dispatch.dynamic.setSfmiBannerDismissedDesktop?.(false)
         if (isWindows) {
           await uninstallDokanConfirm()
         } else {
@@ -272,11 +269,11 @@ const initPlatformSpecific = () => {
     }
 
     s.dispatch.dynamic.openFilesFromWidgetDesktop = path => {
-      ConfigConstants.useConfigState.getState().dispatch.showMain()
+      C.useConfigState.getState().dispatch.showMain()
       if (path) {
         Constants.makeActionForOpenPathInFilesTab(path)
       } else {
-        RouterConstants.useState.getState().dispatch.navigateAppend(Tabs.fsTab)
+        C.useRouterState.getState().dispatch.navigateAppend(Tabs.fsTab)
       }
     }
 
@@ -284,15 +281,15 @@ const initPlatformSpecific = () => {
       const f = async () => {
         const localPaths = await (selectFilesToUploadDialog?.(type, parentPath ?? undefined) ??
           Promise.resolve([]))
-        localPaths.forEach(localPath => Constants.useState.getState().dispatch.upload(parentPath, localPath))
+        localPaths.forEach(localPath => C.useFSState.getState().dispatch.upload(parentPath, localPath))
       }
       Z.ignorePromise(f())
     }
 
     if (!isLinux) {
       s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = () => {
-        const {kbfsDaemonStatus, dispatch} = Constants.useState.getState()
-        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+        const {kbfsDaemonStatus, dispatch} = C.useFSState.getState()
+        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
           dispatch.dynamic.refreshDriverStatusDesktop?.()
         }
         dispatch.dynamic.refreshMountDirsDesktop?.()

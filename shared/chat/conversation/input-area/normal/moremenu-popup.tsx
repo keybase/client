@@ -1,30 +1,22 @@
+import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
-import * as RouterConstants from '../../../../constants/router2'
-import * as Container from '../../../../util/container'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import type * as Types from '../../../../constants/types/chat2'
-import HiddenString from '../../../../util/hidden-string'
 
 type Props = {
-  conversationIDKey: Types.ConversationIDKey
   onHidden: () => void
   visible: boolean
 }
 
 const MoreMenuPopup = (props: Props) => {
-  const {conversationIDKey, onHidden, visible} = props
-  const dispatch = Container.useDispatch()
-  const onSlashPrefill = (text: string) => {
-    dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString(text)}))
-  }
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const {onHidden, visible} = props
+  const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
+  const navigateAppend = C.useChatNavigateAppend()
   const onLocationShare = () => {
-    navigateAppend({props: {conversationIDKey}, selected: 'chatLocationPreview'})
+    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatLocationPreview'}))
   }
   // merge
-  const onCoinFlip = () => onSlashPrefill('/flip ')
-  const onGiphy = () => onSlashPrefill('/giphy ')
-  const onInsertSlashCommand = () => onSlashPrefill('/')
+  const onCoinFlip = () => injectIntoInput('/flip ')
+  const onGiphy = () => injectIntoInput('/giphy ')
+  const onInsertSlashCommand = () => injectIntoInput('/')
 
   // render
   const items: Kb.MenuItems = [

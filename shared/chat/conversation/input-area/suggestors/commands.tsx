@@ -1,20 +1,18 @@
+import * as C from '../../../../constants'
+import * as T from '../../../../constants/types'
 import * as Common from './common'
-import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
-import {memoize} from '../../../../util/memoize'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import type * as Types from '../../../../constants/types/chat2'
 import shallowEqual from 'shallowequal'
+import {memoize} from '../../../../util/memoize'
 
-const getCommandPrefix = (command: RPCChatTypes.ConversationCommand) => {
+const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {
   return command.username ? '!' : '/'
 }
 
 export const transformer = (
-  command: RPCChatTypes.ConversationCommand,
+  command: T.RPCChat.ConversationCommand,
   _: unknown,
   tData: Common.TransformerData,
   preview: boolean
@@ -23,24 +21,46 @@ export const transformer = (
   return Common.standardTransformer(`${prefix}${command.name}`, tData, preview)
 }
 
-export const keyExtractor = (c: RPCChatTypes.ConversationCommand) => c.name + c.username
+export const keyExtractor = (c: T.RPCChat.ConversationCommand) => c.name + c.username
 
+const getBotRestrictBlockMap = (
+  settings: Map<string, T.RPCChat.Keybase1.TeamBotSettings | undefined>,
+  conversationIDKey: T.Chat.ConversationIDKey,
+  bots: Array<string>
+) => {
+  const blocks = new Map<string, boolean>()
+  bots.forEach(b => {
+    const botSettings = settings.get(b)
+    if (!botSettings) {
+      blocks.set(b, false)
+      return
+    }
+    const convs = botSettings.convs
+    const cmds = botSettings.cmds
+    blocks.set(b, !cmds || (!((convs?.length ?? 0) === 0) && !convs?.find(c => c === conversationIDKey)))
+  })
+  return blocks
+}
+const blankCommands: Array<T.RPCChat.ConversationCommand> = []
 const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
-  const {conversationIDKey, selected, item: command} = p
+  const {selected, item: command} = p
   const prefix = getCommandPrefix(command)
-  const enabled = Container.useSelector(state => {
-    const botSettings = state.chat2.botSettings.get(conversationIDKey)
-    const suggestBotCommands = Constants.getBotCommands(state, conversationIDKey)
-    const botRestrictMap = botSettings
-      ? Constants.getBotRestrictBlockMap(botSettings, conversationIDKey, [
-          ...suggestBotCommands
-            .reduce<Set<string>>((s, c) => {
-              c.username && s.add(c.username)
-              return s
-            }, new Set())
-            .values(),
-        ])
-      : undefined
+  const botSettings = C.useChatContext(s => s.botSettings)
+  const enabled = C.useChatContext(s => {
+    const {botCommands} = s.meta
+    const suggestBotCommands =
+      botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
+        ? botCommands.custom.commands || blankCommands
+        : blankCommands
+
+    const botRestrictMap = getBotRestrictBlockMap(botSettings, s.id, [
+      ...suggestBotCommands
+        .reduce<Set<string>>((s, c) => {
+          c.username && s.add(c.username)
+          return s
+        }, new Set())
+        .values(),
+    ])
     return !botRestrictMap?.get(command.username ?? '') ?? true
   })
   return (
@@ -80,7 +100,6 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
 }
 
 type UseDataSourceProps = {
-  conversationIDKey: Types.ConversationIDKey
   filter: string
   inputRef: React.MutableRefObject<Kb.PlainInput | null>
   lastTextRef: React.MutableRefObject<string>
@@ -88,8 +107,8 @@ type UseDataSourceProps = {
 
 const getMaxCmdLength = memoize(
   (
-    suggestBotCommands: Array<RPCChatTypes.ConversationCommand>,
-    suggestCommands: Array<RPCChatTypes.ConversationCommand>
+    suggestBotCommands: Array<T.RPCChat.ConversationCommand>,
+    suggestCommands: Array<T.RPCChat.ConversationCommand>
   ) =>
     suggestCommands
       .concat(suggestBotCommands || [])
@@ -97,17 +116,27 @@ const getMaxCmdLength = memoize(
 )
 
 export const useDataSource = (p: UseDataSourceProps) => {
-  const {conversationIDKey, filter, inputRef, lastTextRef} = p
-
-  return Container.useSelector(state => {
-    const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
-    const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey) || false
+  const {filter, inputRef, lastTextRef} = p
+  const staticConfig = C.useChatState(s => s.staticConfig)
+  const showGiphySearch = C.useChatContext(s => s.giphyWindow)
+  const showCommandMarkdown = C.useChatContext(s => !!s.commandMarkdown)
+  return C.useChatContext(s => {
     if (showCommandMarkdown || showGiphySearch) {
       return []
     }
 
-    const suggestBotCommands = Constants.getBotCommands(state, conversationIDKey)
-    const suggestCommands = Constants.getCommands(state, conversationIDKey)
+    const {botCommands, commands} = s.meta
+    const suggestBotCommands =
+      botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
+        ? botCommands.custom.commands || blankCommands
+        : blankCommands
+    const suggestCommands =
+      commands.typ === T.RPCChat.ConversationCommandGroupsTyp.builtin
+        ? staticConfig
+          ? staticConfig.builtinCommands[commands.builtin] || blankCommands
+          : blankCommands
+        : blankCommands
+
     const sel = inputRef.current?.getSelection()
     if (sel && lastTextRef.current) {
       const maxCmdLength = getMaxCmdLength(suggestBotCommands, suggestCommands)
@@ -131,12 +160,11 @@ export const useDataSource = (p: UseDataSourceProps) => {
   }, shallowEqual)
 }
 
-type CommandType = RPCChatTypes.ConversationCommand
+type CommandType = T.RPCChat.ConversationCommand
 type ListProps = Pick<
   Common.ListProps<CommandType>,
   'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
-  conversationIDKey: Types.ConversationIDKey
   filter: string
   onSelected: (item: CommandType, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
@@ -147,8 +175,7 @@ type ListProps = Pick<
 }
 export const List = (p: ListProps) => {
   const {filter, inputRef, lastTextRef, ...rest} = p
-  const {conversationIDKey} = p
-  const items = useDataSource({conversationIDKey, filter, inputRef, lastTextRef})
+  const items = useDataSource({filter, inputRef, lastTextRef})
   return (
     <Common.List
       {...rest}

@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as Constants from '../../constants/crypto'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
@@ -12,7 +13,7 @@ import shallowEqual from 'shallowequal'
 const operation = Constants.Operations.Encrypt
 
 const EncryptOptions = React.memo(function EncryptOptions() {
-  const {hasSBS, hasRecipients, hideIncludeSelf, includeSelf, inProgress, sign} = Constants.useState(s => {
+  const {hasSBS, hasRecipients, hideIncludeSelf, includeSelf, inProgress, sign} = C.useCryptoState(s => {
     const o = s[operation]
     const {inProgress} = o
     const {hasRecipients, hideIncludeSelf, hasSBS} = o.meta
@@ -20,7 +21,7 @@ const EncryptOptions = React.memo(function EncryptOptions() {
     return {hasRecipients, hasSBS, hideIncludeSelf, inProgress, includeSelf, sign}
   }, shallowEqual)
 
-  const setEncryptOptions = Constants.useState(s => s.dispatch.setEncryptOptions)
+  const setEncryptOptions = C.useCryptoState(s => s.dispatch.setEncryptOptions)
 
   const onSetOptions = (opts: {newIncludeSelf: boolean; newSign: boolean}) => {
     const {newIncludeSelf, newSign} = opts
@@ -57,7 +58,7 @@ const EncryptOptions = React.memo(function EncryptOptions() {
 })
 
 const EncryptOutputBanner = () => {
-  const {hasRecipients, includeSelf, recipients, outputType} = Constants.useState(s => {
+  const {hasRecipients, includeSelf, recipients, outputType} = C.useCryptoState(s => {
     const o = s[operation]
     const {recipients, outputType} = o
     const {hasRecipients} = o.meta
@@ -120,7 +121,7 @@ const styles = Styles.styleSheetCreate(
           maxWidth: 460,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export const EncryptInput = () => {
@@ -140,7 +141,7 @@ export const EncryptInput = () => {
     </>
   )
 
-  const resetOperation = Constants.useState(s => s.dispatch.resetOperation)
+  const resetOperation = C.useCryptoState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
       if (Container.isMobile) {

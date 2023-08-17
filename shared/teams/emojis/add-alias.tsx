@@ -1,10 +1,8 @@
+import * as T from '../../constants/types'
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as RouterConstants from '../../constants/router2'
-import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
-import * as ChatTypes from '../../constants/types/chat2'
-import * as ChatConstants from '../../constants/chat2'
 import {EmojiPickerDesktop} from '../../chat/emoji-picker/container'
 import {
   type EmojiData,
@@ -19,7 +17,7 @@ import {useEmojiState} from './use-emoji'
 import {usePickerState} from '../../chat/emoji-picker/use-picker'
 
 type Props = {
-  conversationIDKey: ChatTypes.ConversationIDKey
+  conversationIDKey: T.Chat.ConversationIDKey
   defaultSelected?: EmojiData
 }
 
@@ -54,19 +52,19 @@ export const AddAliasModal = (props: Props) => {
     [props.defaultSelected]
   )
 
-  const addAliasRpc = useRPC(RPCChatGen.localAddEmojiAliasRpcPromise)
+  const addAliasRpc = useRPC(T.RPCChat.localAddEmojiAliasRpcPromise)
   const [addAliasWaiting, setAddAliasWaiting] = React.useState(false)
 
   const refreshEmoji = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
 
-  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const doAddAlias = emoji
     ? () => {
         setAddAliasWaiting(true)
         addAliasRpc(
           [
             {
-              convID: ChatTypes.keyToConversationID(props.conversationIDKey),
+              convID: T.Chat.keyToConversationID(props.conversationIDKey),
               existingAlias: emoji.emojiStr,
               newAlias: alias,
             },
@@ -101,7 +99,7 @@ export const AddAliasModal = (props: Props) => {
           <Kb.Text type="BodySemibold">Choose an existing emoji:</Kb.Text>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="small">
             <SelectedEmoji chosen={emoji} />
-            <ChooseEmoji conversationIDKey={props.conversationIDKey} onChoose={onChoose} />
+            <ChooseEmoji onChoose={onChoose} />
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2
@@ -129,7 +127,6 @@ export const AddAliasModal = (props: Props) => {
 }
 
 type ChooseEmojiProps = {
-  conversationIDKey: ChatTypes.ConversationIDKey
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
 }
 const ChooseEmoji = Styles.isMobile
@@ -150,11 +147,12 @@ const ChooseEmoji = Styles.isMobile
         }, 1)
       }
 
-      const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+      const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+      const conversationIDKey = C.useChatContext(s => s.id)
       const openEmojiPicker = () =>
         navigateAppend({
           props: {
-            conversationIDKey: props.conversationIDKey,
+            conversationIDKey,
             hideFrequentEmoji: true,
             onlyTeamCustomEmoji: true,
             pickKey,
@@ -165,7 +163,7 @@ const ChooseEmoji = Styles.isMobile
       return <Kb.Button mode="Secondary" label="Choose emoji" onClick={openEmojiPicker} />
     }
   : (props: ChooseEmojiProps) => {
-      const {onChoose, conversationIDKey} = props
+      const {onChoose} = props
       const makePopup = React.useCallback(
         (p: Kb.Popup2Parms) => {
           const {attachTo, toggleShowingPopup} = p
@@ -178,7 +176,6 @@ const ChooseEmoji = Styles.isMobile
               propagateOutsideClicks={false}
             >
               <EmojiPickerDesktop
-                conversationIDKey={conversationIDKey}
                 hideFrequentEmoji={true}
                 small={false}
                 onPickAction={onChoose}
@@ -188,7 +185,7 @@ const ChooseEmoji = Styles.isMobile
             </Kb.FloatingBox>
           )
         },
-        [onChoose, conversationIDKey]
+        [onChoose]
       )
       const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
       return (
@@ -245,7 +242,7 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 const AddEmojiAliasWrapper = (p: Props) => {
-  const conversationIDKey = p.conversationIDKey ?? ChatConstants.noConversationIDKey
+  const conversationIDKey = p.conversationIDKey ?? C.noConversationIDKey
   const defaultSelected = p.defaultSelected
   return <AddAliasModal conversationIDKey={conversationIDKey} defaultSelected={defaultSelected} />
 }

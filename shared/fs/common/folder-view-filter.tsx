@@ -1,5 +1,5 @@
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
+import * as T from '../../constants/types'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as React from 'react'
@@ -7,13 +7,13 @@ import debounce from 'lodash/debounce'
 
 type Props = {
   onCancel?: () => void
-  path: Types.Path
+  path: T.FS.Path
   style?: Styles.StylesCrossPlatform
 }
 
 const FolderViewFilter = (props: Props) => {
-  const pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, props.path))
-  const setFolderViewFilter = Constants.useState(s => s.dispatch.setFolderViewFilter)
+  const pathItem = C.useFSState(s => C.getPathItem(s.pathItems, props.path))
+  const setFolderViewFilter = C.useFSState(s => s.dispatch.setFolderViewFilter)
   const onUpdate = React.useMemo(
     () =>
       debounce((newFilter: string) => {
@@ -22,7 +22,7 @@ const FolderViewFilter = (props: Props) => {
     [setFolderViewFilter]
   )
 
-  return Constants.isFolder(props.path, pathItem) && Types.getPathLevel(props.path) > 1 ? (
+  return C.isFolder(props.path, pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
     <Kb.SearchFilter
       size="small"
       placeholderCentered={true}

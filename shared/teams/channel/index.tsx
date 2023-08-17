@@ -1,14 +1,11 @@
+import * as T from '../../constants/types'
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as BotsConstants from '../../constants/bots'
 import * as ChatConstants from '../../constants/chat2'
-import * as UsersConstants from '../../constants/users'
-import * as Chat2Gen from '../../actions/chat2-gen'
-import type * as ChatTypes from '../../constants/types/chat2'
 import {useAttachmentSections} from '../../chat/conversation/info-panel/attachments'
 import {SelectionPopup, useChannelParticipants} from '../common'
 import ChannelTabs, {type TabKey} from './tabs'
@@ -22,49 +19,44 @@ import {createAnimatedComponent} from '../../common-adapters/reanimated'
 import type {Props as SectionListProps, Section as SectionType} from '../../common-adapters/section-list'
 
 export type OwnProps = {
-  teamID: Types.TeamID
-  conversationIDKey: ChatTypes.ConversationIDKey
+  teamID: T.Teams.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey
   selectedTab?: TabKey
 }
 
 const useLoadDataForChannelPage = (
-  teamID: Types.TeamID,
-  conversationIDKey: ChatTypes.ConversationIDKey,
+  teamID: T.Teams.TeamID,
+  conversationIDKey: T.Chat.ConversationIDKey,
   selectedTab: TabKey,
-  meta: ChatTypes.ConversationMeta,
+  meta: T.Chat.ConversationMeta,
   participants: string[],
   bots: string[]
 ) => {
-  const dispatch = Container.useDispatch()
   const prevSelectedTab = Container.usePrevious(selectedTab)
-  const featuredBotsMap = BotsConstants.useState(s => s.featuredBotsMap)
-  const getMembers = Constants.useState(s => s.dispatch.getMembers)
-  const getBlockState = UsersConstants.useState(s => s.dispatch.getBlockState)
+  const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)
+  const getMembers = C.useTeamsState(s => s.dispatch.getMembers)
+  const getBlockState = C.useUsersState(s => s.dispatch.getBlockState)
+  const unboxRows = C.useChatState(s => s.dispatch.unboxRows)
   React.useEffect(() => {
     if (selectedTab !== prevSelectedTab && selectedTab === 'members') {
       if (meta.conversationIDKey === 'EMPTY') {
-        dispatch(
-          Chat2Gen.createMetaRequestTrusted({
-            conversationIDKeys: [conversationIDKey],
-            reason: 'ensureChannelMeta',
-          })
-        )
+        unboxRows([conversationIDKey])
       }
       getMembers(teamID)
       getBlockState(participants)
     }
   }, [
+    unboxRows,
     getBlockState,
     getMembers,
     selectedTab,
-    dispatch,
     conversationIDKey,
     prevSelectedTab,
     meta.conversationIDKey,
     participants,
     teamID,
   ])
-  const searchFeaturedBots = BotsConstants.useState(s => s.dispatch.searchFeaturedBots)
+  const searchFeaturedBots = C.useBotsState(s => s.dispatch.searchFeaturedBots)
   React.useEffect(() => {
     if (selectedTab !== prevSelectedTab && selectedTab === 'bots') {
       // Load any bots that aren't in the featured bots map already
@@ -74,7 +66,7 @@ const useLoadDataForChannelPage = (
     }
   }, [selectedTab, searchFeaturedBots, conversationIDKey, prevSelectedTab, bots, featuredBotsMap])
 
-  const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
+  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
   React.useEffect(() => {
     loadTeamChannelList(teamID)
   }, [loadTeamChannelList, teamID])
@@ -85,7 +77,7 @@ const lastSelectedTabs: {[T: string]: TabKey} = {}
 const defaultTab: TabKey = 'members'
 
 const useTabsState = (
-  conversationIDKey: ChatTypes.ConversationIDKey,
+  conversationIDKey: T.Chat.ConversationIDKey,
   providedTab?: TabKey
 ): [TabKey, (t: TabKey) => void] => {
   const defaultSelectedTab = lastSelectedTabs[conversationIDKey] ?? providedTab ?? defaultTab
@@ -114,20 +106,21 @@ const SectionList = createAnimatedComponent<SectionListProps<SectionType<string,
   Kb.SectionList as any
 )
 
-const emptyMapForUseSelector = new Map<string, Types.MemberInfo>()
+const emptyMapForUseSelector = new Map<string, T.Teams.MemberInfo>()
 const Channel = (props: OwnProps) => {
-  const teamID = props.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? T.Teams.noTeamID
   const conversationIDKey = props.conversationIDKey
   const providedTab = props.selectedTab
 
-  const {bots, participants: _participants} = Container.useSelector(
-    state => ChatConstants.getBotsAndParticipants(state, conversationIDKey, true /* sort */),
+  const meta = C.useConvoState(conversationIDKey, s => s.meta)
+  const {bots, participants: _participants} = C.useConvoState(
+    conversationIDKey,
+    s => ChatConstants.getBotsAndParticipants(meta, s.participants, true /* sort */),
     isEqual // do a deep comparison so as to not render thrash
   )
-  const meta = Container.useSelector(state => ChatConstants.getMeta(state, conversationIDKey))
-  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
-  const teamMembers = Constants.useState(s => s.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector)
+  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector)
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
   useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants, bots)
   const participants = useChannelParticipants(teamID, conversationIDKey)
@@ -151,7 +144,7 @@ const Channel = (props: OwnProps) => {
   }
 
   const attachmentSections = useAttachmentSections(
-    {commonSections: [], conversationIDKey, renderTabs: () => null},
+    {commonSections: [], renderTabs: () => null},
     selectedTab === 'attachments', // load data immediately
     true // variable width
   )
@@ -228,12 +221,7 @@ const Channel = (props: OwnProps) => {
     case 'settings':
       sections.push(
         makeSingleRow('settings', () => (
-          <SettingsList
-            conversationIDKey={conversationIDKey}
-            isPreview={isPreview}
-            renderTabs={() => undefined}
-            commonSections={[]}
-          />
+          <SettingsList isPreview={isPreview} renderTabs={() => undefined} commonSections={[]} />
         ))
       )
   }
@@ -250,11 +238,7 @@ const Channel = (props: OwnProps) => {
         contentContainerStyle={styles.listContentContainer}
         style={styles.list}
       />
-      <SelectionPopup
-        selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
-        conversationIDKey={conversationIDKey}
-        teamID={teamID}
-      />
+      <SelectionPopup selectedTab={selectedTab === 'members' ? 'channelMembers' : ''} teamID={teamID} />
     </Kb.Box>
   )
 }

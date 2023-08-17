@@ -1,16 +1,15 @@
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Constants from '../../constants/profile'
 import capitalize from 'lodash/capitalize'
 import {subtitle as platformSubtitle} from '../../util/platforms'
 import {SiteIcon} from '../generic/shared'
-import type {PlatformsExpandedType} from '../../constants/types/more'
-import type {SiteIconSet} from '../../constants/types/tracker2'
+import type * as T from '../../constants/types'
 import Modal from '../modal'
 
 type Props = {
-  icon: SiteIconSet
-  platform: PlatformsExpandedType
+  icon: T.Tracker.SiteIconSet
+  platform: T.More.PlatformsExpandedType
   platformHandle: string
   errorMessage?: string
   onCancel: () => void
@@ -53,13 +52,13 @@ const Revoke = (props: Props) => {
             type="Dim"
             onClick={props.onCancel}
             label="Cancel"
-            waitingKey={Constants.waitingKey}
+            waitingKey={C.profileWaitingKey}
           />
           <Kb.WaitingButton
             type="Danger"
             onClick={props.onRevoke}
             label={props.platform === 'pgp' ? 'Yes, drop it' : 'Yes, revoke it'}
-            waitingKey={Constants.waitingKey}
+            waitingKey={C.profileWaitingKey}
           />
         </Kb.ButtonBar>
       </Kb.Box>
@@ -110,10 +109,10 @@ const styles = Styles.styleSheetCreate(
       reminderText: {marginTop: Styles.globalMargins.tiny},
       revokeIcon: {bottom: -8, position: 'absolute', right: -10},
       siteIcon: Styles.isMobile ? {height: 64, width: 64} : {height: 48, width: 48},
-    } as const)
+    }) as const
 )
 
-function formatMessage(platform: PlatformsExpandedType) {
+function formatMessage(platform: T.More.PlatformsExpandedType) {
   if (platform === 'pgp') {
     return 'Are you sure you want to drop your PGP key'
   }

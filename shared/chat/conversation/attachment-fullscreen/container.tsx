@@ -1,12 +1,7 @@
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
+import * as C from '../../../constants'
+import * as T from '../../../constants/types'
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
-import * as RouterConstants from '../../../constants/router2'
 import * as Constants from '../../../constants/chat2'
-import * as FSConstants from '../../../constants/fs'
-import * as ConfigConstants from '../../../constants/config'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import Fullscreen from '.'
 import * as Container from '../../../util/container'
 import shallowEqual from 'shallowequal'
@@ -15,21 +10,20 @@ import {maxWidth, maxHeight} from '../messages/attachment/shared'
 const blankMessage = Constants.makeMessageAttachment({})
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
-  ordinal: Types.Ordinal
+  conversationIDKey: T.Chat.ConversationIDKey // needed by page
+  ordinal: T.Chat.Ordinal
 }
 
 const Connected = (props: OwnProps) => {
-  const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
+  const conversationIDKey = C.useChatContext(s => s.id)
   const inOrdinal = props.ordinal
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
-  const dispatch = Container.useDispatch()
-  const currentDeviceName = ConfigConstants.useCurrentUserState(s => s.deviceName)
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const data = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
-    const ordinals = state.chat2.messageOrdinals.get(conversationIDKey)
-    const lastOrdinal = ordinals?.[ordinals.length - 1] ?? 0
+  const currentDeviceName = C.useCurrentUserState(s => s.deviceName)
+  const username = C.useCurrentUserState(s => s.username)
+  const ordinals = C.useChatContext(s => s.messageOrdinals)
+  const data = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal)
+    const lastOrdinal = ordinals?.at(-1) ?? 0
     const message = m?.type === 'attachment' ? m : blankMessage
     const {previewHeight, previewWidth, title, fileURL, previewURL, downloadPath, transferProgress} = message
     const {id} = message
@@ -57,17 +51,17 @@ const Connected = (props: OwnProps) => {
     maxHeight
   )
 
-  const submit = Container.useRPC(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise)
+  const submit = Container.useRPC(T.RPCChat.localGetNextAttachmentMessageLocalRpcPromise)
 
   const onSwitchAttachment = (backInTime: boolean) => {
     if (conversationIDKey !== blankMessage.conversationIDKey) {
       submit(
         [
           {
-            assetTypes: [RPCChatTypes.AssetMetadataType.image, RPCChatTypes.AssetMetadataType.video],
+            assetTypes: [T.RPCChat.AssetMetadataType.image, T.RPCChat.AssetMetadataType.video],
             backInTime,
-            convID: Types.keyToConversationID(conversationIDKey),
-            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+            convID: T.Chat.keyToConversationID(conversationIDKey),
+            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
             messageID: id,
           },
         ],
@@ -92,28 +86,23 @@ const Connected = (props: OwnProps) => {
     }
   }
 
-  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
+  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
   return (
     <Fullscreen
       message={message}
       isVideo={Constants.isVideoAttachment(message)}
-      onAllMedia={() =>
-        dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'attachments'}))
-      }
+      onAllMedia={() => showInfoPanel(true, 'attachments')}
       onClose={() => navigateUp()}
       onDownloadAttachment={
         message.downloadPath
           ? undefined
           : () => {
-              dispatch(
-                Chat2Gen.createAttachmentDownload({
-                  conversationIDKey: message.conversationIDKey,
-                  ordinal: message.id,
-                })
-              )
+              attachmentDownload(message.id)
             }
       }
       onNextAttachment={() => {

@@ -1,9 +1,8 @@
-import * as RouterConstants from '../constants/router2'
+import * as C from '../constants'
+import * as R from '../constants/remote'
 import * as Container from '../util/container'
-import * as DarkMode from '../constants/darkmode'
-import * as FsTypes from '../constants/types/fs'
+import * as T from '../constants/types'
 import * as Kb from '../common-adapters'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Styles from '../styles'
@@ -14,7 +13,6 @@ import KB2 from '../util/electron.desktop'
 import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
 import openUrl from '../util/open-url'
-import type * as ConfigTypes from '../constants/types/config'
 import {Loading} from '../fs/simple-screens'
 import {isLinux, isDarwin} from '../constants/platform'
 import {type _InnerMenuItem} from '../common-adapters/floating-menu/menu-layout'
@@ -23,13 +21,13 @@ import {useUploadCountdown} from '../fs/footer/use-upload-countdown'
 const {hideWindow, ctlQuit} = KB2.functions
 
 export type Props = {
-  daemonHandshakeState: ConfigTypes.DaemonHandshakeState
+  daemonHandshakeState: T.Config.DaemonHandshakeState
   darkMode: boolean
-  diskSpaceStatus: FsTypes.DiskSpaceStatus
+  diskSpaceStatus: T.FS.DiskSpaceStatus
   loggedIn: boolean
-  kbfsDaemonStatus: FsTypes.KbfsDaemonStatus
+  kbfsDaemonStatus: T.FS.KbfsDaemonStatus
   kbfsEnabled: boolean
-  outOfDate: ConfigTypes.OutOfDate
+  outOfDate: T.Config.OutOfDate
   showingDiskSpaceBanner: boolean
   username: string
   navBadges: Map<string, number>
@@ -70,7 +68,6 @@ const useMenuItems = (
   p: Props & {showBadges?: boolean; openApp: (tab?: Tabs.AppTab) => void}
 ): ReadonlyArray<_InnerMenuItem> => {
   const {showBadges, navBadges, daemonHandshakeState, username, kbfsEnabled, openApp} = p
-  const dispatch = Container.useDispatch()
   const countMap = navBadges
   const startingUp = daemonHandshakeState !== 'done'
 
@@ -99,9 +96,9 @@ const useMenuItems = (
         onClick: () => {
           if (!__DEV__) {
             if (isLinux) {
-              dispatch(RemoteGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
+              R.remoteDispatch(RemoteGen.createStop({exitCode: T.RPCGen.ExitCode.ok}))
             } else {
-              dispatch(RemoteGen.createDumpLogs({reason: 'quitting through menu'}))
+              R.remoteDispatch(RemoteGen.createDumpLogs({reason: 'quitting through menu'}))
             }
           }
           // In case dump log doesn't exit for us
@@ -162,7 +159,7 @@ const useMenuItems = (
           ? ([
               {
                 onClick: () => {
-                  dispatch(RemoteGen.createOpenPathInSystemFileManager({path: '/keybase'}))
+                  R.remoteDispatch(RemoteGen.createOpenPathInSystemFileManager({path: '/keybase'}))
                 },
                 title: `Open folders in ${Styles.fileUIName}`,
               },
@@ -173,20 +170,16 @@ const useMenuItems = (
       ] as const
     }
     return [...openAppItem, ...common] as const
-  }, [dispatch, username, countMap, kbfsEnabled, openApp, showBadges, startingUp])
+  }, [username, countMap, kbfsEnabled, openApp, showBadges, startingUp])
   return ret
 }
 
 const IconBar = (p: Props & {showBadges?: boolean}) => {
   const {navBadges, showBadges} = p
-  const dispatch = Container.useDispatch()
-  const openApp = React.useCallback(
-    (tab?: Tabs.AppTab) => {
-      dispatch(RemoteGen.createShowMain())
-      tab && dispatch(RemoteGen.createSwitchTab({tab}))
-    },
-    [dispatch]
-  )
+  const openApp = React.useCallback((tab?: Tabs.AppTab) => {
+    R.remoteDispatch(RemoteGen.createShowMain())
+    tab && R.remoteDispatch(RemoteGen.createSwitchTab({tab}))
+  }, [])
 
   const menuItems = useMenuItems({...p, openApp})
 
@@ -249,9 +242,8 @@ const LoggedIn = (p: Props) => {
   const {endEstimate, files, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
   const {outOfDate, windowShownCount} = p
 
-  const dispatch = Container.useDispatch()
   const refreshUserFileEdits = Container.useThrottledCallback(() => {
-    dispatch(RemoteGen.createUserFileEditsLoad())
+    R.remoteDispatch(RemoteGen.createUserFileEditsLoad())
   }, 5000)
 
   React.useEffect(() => {
@@ -263,7 +255,7 @@ const LoggedIn = (p: Props) => {
       <OutOfDate outOfDate={outOfDate} />
       <Kb.ScrollView style={styles.flexOne}>
         <ChatContainer convLimit={5} />
-        {kbfsDaemonStatus.rpcStatus === FsTypes.KbfsDaemonRpcStatus.Connected ? (
+        {kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected ? (
           <FilesPreview />
         ) : (
           <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>
@@ -274,7 +266,7 @@ const LoggedIn = (p: Props) => {
       <Kb.Box style={styles.footer}>
         <UploadWithCountdown
           endEstimate={endEstimate}
-          isOnline={kbfsDaemonStatus.onlineStatus !== FsTypes.KbfsDaemonOnlineStatus.Offline}
+          isOnline={kbfsDaemonStatus.onlineStatus !== T.FS.KbfsDaemonOnlineStatus.Offline}
           files={files}
           fileName={fileName}
           totalSyncingBytes={totalSyncingBytes}
@@ -285,7 +277,7 @@ const LoggedIn = (p: Props) => {
   )
 }
 
-const LoggedOut = (p: {daemonHandshakeState: ConfigTypes.DaemonHandshakeState; loggedIn: boolean}) => {
+const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; loggedIn: boolean}) => {
   const {daemonHandshakeState, loggedIn} = p
 
   const fullyLoggedOut = daemonHandshakeState === 'done' && !loggedIn
@@ -296,10 +288,9 @@ const LoggedOut = (p: {daemonHandshakeState: ConfigTypes.DaemonHandshakeState; l
     ? 'Connecting interface to crypto engine... This may take a few seconds.'
     : 'Starting up Keybase...'
 
-  const dispatch = Container.useDispatch()
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const logIn = () => {
-    dispatch(RemoteGen.createShowMain())
+    R.remoteDispatch(RemoteGen.createShowMain())
     navigateAppend(Tabs.loginTab)
   }
   return (
@@ -338,12 +329,10 @@ const MenubarRender = (p: Props) => {
   const [lastDM, setLastDM] = React.useState(p.darkMode)
   if (p.darkMode !== lastDM) {
     setLastDM(p.darkMode)
-    DarkMode.useDarkModeState
-      .getState()
-      .dispatch.setDarkModePreference(p.darkMode ? 'alwaysDark' : 'alwaysLight')
+    C.useDarkModeState.getState().dispatch.setDarkModePreference(p.darkMode ? 'alwaysDark' : 'alwaysLight')
   }
 
-  const darkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
+  const darkMode = C.useDarkModeState(s => s.isDarkMode())
 
   let content: React.ReactNode = null
   if (daemonHandshakeState === 'done' && loggedIn) {

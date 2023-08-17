@@ -1,15 +1,12 @@
+import * as C from '../../../constants'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import * as ConfigConstants from '../../../constants/config'
-import * as ProfileConstants from '../../../constants/profile'
 import * as Constants from '../../../constants/chat2'
-import * as TrackerConstants from '../../../constants/tracker2'
-import * as TeamsConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import type * as Types from '../../../constants/types/chat2'
+import type * as T from '../../../constants/types'
 import {formatTimeForChat} from '../../../util/timestamp'
-import {ConvoIDContext, SeparatorMapContext} from './ids-context'
+import {SeparatorMapContext} from './ids-context'
 import {usingFlashList} from '../list-area/flashlist-config'
 import shallowEqual from 'shallowequal'
 
@@ -17,10 +14,10 @@ const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): bo
   !!ptimestamp && !!mtimestamp && mtimestamp - ptimestamp > 1000 * 60 * 15
 
 // Used to decide whether to show the author for sequential messages
-const authorIsCollapsible = (type?: Types.MessageType) =>
+const authorIsCollapsible = (type?: T.Chat.MessageType) =>
   type === 'text' || type === 'deleted' || type === 'attachment'
 
-const getUsernameToShow = (message: Types.Message, pMessage: Types.Message | undefined, you: string) => {
+const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | undefined, you: string) => {
   switch (message.type) {
     case 'journeycard': // fallthrough
     case 'systemJoined':
@@ -69,8 +66,8 @@ type LProps = {
 }
 const LeftSide = React.memo(function LeftSide(p: LProps) {
   const {username} = p
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onAuthorClick = React.useCallback(() => {
     if (!username) return
     if (Container.isMobile) {
@@ -97,12 +94,12 @@ type TProps = {
   authorIsBot: boolean
   botAlias: string
   timestamp: number
-  teamType: Types.TeamType
+  teamType: T.Chat.TeamType
 }
 const TopSide = React.memo(function TopSide(p: TProps) {
   const {timestamp, botAlias, showUsername, authorIsBot, authorRoleInTeam, teamType} = p
-  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
-  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
+  const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onAuthorClick = React.useCallback(() => {
     if (Container.isMobile) {
       showUsername && showUserProfile(showUsername)
@@ -185,11 +182,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
 
 const missingMessage = Constants.makeMessageDeleted({})
 
-const useReduxFast = (
-  conversationIDKey: Types.ConversationIDKey,
-  trailingItem: Types.Ordinal,
-  leadingItem: Types.Ordinal
-) => {
+const useReduxFast = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordinal) => {
   const sm = React.useContext(SeparatorMapContext)
   // in flat list we get the leadingItem but its the opposite of what we want
   // we derive the previous by using SeparatorMapContext
@@ -197,32 +190,33 @@ const useReduxFast = (
     trailingItem = leadingItem
     leadingItem = sm.get(trailingItem) ?? 0
   }
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
-  return Container.useSelector(state => {
+  const you = C.useCurrentUserState(s => s.username)
+  const orangeOrdinal = C.useChatContext(s => s.orangeLine)
+  return C.useChatContext(s => {
     let ordinal = trailingItem
     let previous = leadingItem
 
-    const pmessage = (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
-    const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
+    const pmessage = s.messageMap.get(previous)
+    const m = s.messageMap.get(ordinal) ?? missingMessage
     const showUsername = m && getUsernameToShow(m, pmessage, you)
-    const orangeLineAbove = state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
+    const orangeLineAbove = orangeOrdinal == ordinal
     return {orangeLineAbove, ordinal, showUsername}
   }, shallowEqual)
 }
 
-const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
-  return Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
+const useRedux = (ordinal: T.Chat.Ordinal) => {
+  const participantInfoNames = C.useChatContext(s => s.participants.name)
+  const meta = C.useChatContext(s => s.meta)
+  const d = C.useChatContext(s => {
+    const m = s.messageMap.get(ordinal) ?? missingMessage
     const {author, timestamp} = m
-    const meta = Constants.getMeta(state, conversationIDKey)
     const {teamID, botAliases, teamType} = meta
     // TODO not reactive
-    const authorRoleInTeam = TeamsConstants.useState
+    const authorRoleInTeam = C.useTeamsState
       .getState()
       .teamIDToMembers.get(teamID ?? '')
       ?.get(author)?.type
     const botAlias = botAliases[author] ?? ''
-    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
     const authorIsBot = meta.teamname
       ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
       : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
@@ -236,17 +230,17 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
       timestamp,
     }
   }, shallowEqual)
+  return {...d, participantInfoNames}
 }
 
 type SProps = {
-  ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
+  ordinal: T.Chat.Ordinal
   showUsername: string
   orangeLineAbove: boolean
 }
 const Separator = React.memo(function Separator(p: SProps) {
-  const {conversationIDKey, ordinal, orangeLineAbove, showUsername} = p
-  const mdata = useRedux(conversationIDKey, ordinal)
+  const {ordinal, orangeLineAbove, showUsername} = p
+  const mdata = useRedux(ordinal)
   const {botAlias, authorRoleInTeam, authorIsBot, timestamp, teamType} = mdata
 
   return (
@@ -274,27 +268,15 @@ const Separator = React.memo(function Separator(p: SProps) {
 })
 
 type Props = {
-  leadingItem?: Types.Ordinal
-  trailingItem: Types.Ordinal
+  leadingItem?: T.Chat.Ordinal
+  trailingItem: T.Chat.Ordinal
 }
 
 const SeparatorConnector = (p: Props) => {
   const {leadingItem, trailingItem} = p
-
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const {ordinal, showUsername, orangeLineAbove} = useReduxFast(
-    conversationIDKey,
-    trailingItem ?? 0,
-    leadingItem ?? 0
-  )
-
+  const {ordinal, showUsername, orangeLineAbove} = useReduxFast(trailingItem ?? 0, leadingItem ?? 0)
   return ordinal && (showUsername || orangeLineAbove) ? (
-    <Separator
-      conversationIDKey={conversationIDKey}
-      ordinal={ordinal}
-      showUsername={showUsername}
-      orangeLineAbove={orangeLineAbove}
-    />
+    <Separator ordinal={ordinal} showUsername={showUsername} orangeLineAbove={orangeLineAbove} />
   ) : null
 }
 
@@ -373,7 +355,7 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {alignItems: 'center'},
       }),
-    } as const)
+    }) as const
 )
 
 export default SeparatorConnector

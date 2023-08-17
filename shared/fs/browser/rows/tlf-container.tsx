@@ -1,6 +1,6 @@
-import * as Types from '../../../constants/types/fs'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
-import * as ConfigConstants from '../../../constants/config'
+import * as T from '../../../constants/types'
 import {useOpen} from '../../common/use-open'
 import Tlf from './tlf'
 
@@ -9,13 +9,13 @@ export type OwnProps = {
   disabled: boolean
   mixedMode?: boolean
   name: string
-  tlfType: Types.TlfType
+  tlfType: T.FS.TlfType
 }
 
 const TLFContainer = (p: OwnProps) => {
   const {tlfType, name, mixedMode, destinationPickerIndex, disabled} = p
-  const tlf = Constants.useState(s => Constants.getTlfFromTlfs(s.tlfs, tlfType, name))
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const tlf = C.useFSState(s => Constants.getTlfFromTlfs(s.tlfs, tlfType, name))
+  const username = C.useCurrentUserState(s => s.username)
   const path = Constants.tlfTypeAndNameToPath(tlfType, name)
   const usernames = Constants.getUsernamesFromTlfName(name).filter(name => name !== username)
   const onOpen = useOpen({destinationPickerIndex, path})
@@ -23,7 +23,7 @@ const TLFContainer = (p: OwnProps) => {
     destinationPickerIndex,
     disabled,
     isIgnored: tlf.isIgnored,
-    loadPathMetadata: tlf.syncConfig && tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled,
+    loadPathMetadata: tlf.syncConfig && tlf.syncConfig.mode !== T.FS.TlfSyncMode.Disabled,
     mixedMode,
     name,
     onOpen,

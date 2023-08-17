@@ -1,8 +1,5 @@
+import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
-import * as RouterConstants from '../../constants/router2'
-import * as UsersConstants from '../../constants/users'
-import * as ProfileConstants from '../../constants/profile'
-import * as ProvisionConstants from '../../constants/provision'
 import * as Container from '../../util/container'
 import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
@@ -14,26 +11,26 @@ const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolea
 ): Array<T> => accountRows.filter(account => account.username !== myUsername)
 
 export default () => {
-  const _fullnames = UsersConstants.useState(s => s.infoMap)
-  const _accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const fullname = TrackerConstants.useState(s => TrackerConstants.getDetails(s, you).fullname || '')
+  const _fullnames = C.useUsersState(s => s.infoMap)
+  const _accountRows = C.useConfigState(s => s.configuredAccounts)
+  const you = C.useCurrentUserState(s => s.username)
+  const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, you).fullname || '')
   const waiting = Container.useAnyWaiting(ConfigConstants.loginWaitingKey)
-  const _onProfileClick = ProfileConstants.useState(s => s.dispatch.showUserProfile)
-  const onAddAccount = ProvisionConstants.useState(s => s.dispatch.startProvision)
-  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const _onProfileClick = C.useProfileState(s => s.dispatch.showUserProfile)
+  const onAddAccount = C.useProvisionState(s => s.dispatch.startProvision)
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
   }
 
-  const setUserSwitching = ConfigConstants.useConfigState(s => s.dispatch.setUserSwitching)
-  const login = ConfigConstants.useConfigState(s => s.dispatch.login)
+  const setUserSwitching = C.useConfigState(s => s.dispatch.setUserSwitching)
+  const login = C.useConfigState(s => s.dispatch.login)
   const onSelectAccountLoggedIn = (username: string) => {
     setUserSwitching(true)
     login(username, '')
   }
-  const onSelectAccountLoggedOut = ConfigConstants.useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
-  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const onSelectAccountLoggedOut = C.useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSignOut = () => {
     navigateAppend(SettingsConstants.logOutTab)
   }

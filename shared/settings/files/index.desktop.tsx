@@ -1,4 +1,5 @@
-import * as Types from '../../constants/types/fs'
+import * as C from '../../constants'
+import * as T from '../../constants/types'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
@@ -48,15 +49,15 @@ const SyncNotificationSetting = (props: Props) => (
 )
 
 const isPending = (props: Props) =>
-  props.driverStatus.type === Types.DriverStatusType.Unknown ||
-  (props.driverStatus.type === Types.DriverStatusType.Enabled && props.driverStatus.isDisabling) ||
-  (props.driverStatus.type === Types.DriverStatusType.Disabled && props.driverStatus.isEnabling)
+  props.driverStatus.type === T.FS.DriverStatusType.Unknown ||
+  (props.driverStatus.type === T.FS.DriverStatusType.Enabled && props.driverStatus.isDisabling) ||
+  (props.driverStatus.type === T.FS.DriverStatusType.Disabled && props.driverStatus.isEnabling)
 
 const FinderIntegration = (props: Props) => {
-  const preferredMountDirs = Constants.useState(s => s.sfmi.preferredMountDirs)
-  const driverDisable = Constants.useState(s => s.dispatch.driverDisable)
+  const preferredMountDirs = C.useFSState(s => s.sfmi.preferredMountDirs)
+  const driverDisable = C.useFSState(s => s.dispatch.driverDisable)
   const displayingMountDir = preferredMountDirs[0] || ''
-  const openLocalPathInSystemFileManagerDesktop = Constants.useState(
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const openMount = displayingMountDir
@@ -70,7 +71,7 @@ const FinderIntegration = (props: Props) => {
           <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
             <Kb.Text type="Header">{Platform.fileUIName} integration</Kb.Text>
             {isPending(props) && <Kb.ProgressIndicator style={styles.spinner} />}
-            {props.driverStatus.type === Types.DriverStatusType.Disabled &&
+            {props.driverStatus.type === T.FS.DriverStatusType.Disabled &&
               props.driverStatus.kextPermissionError && (
                 <Kb.ClickableBox style={styles.actionNeededBox} onClick={props.onShowKextPermissionPopup}>
                   <Kb.Text style={styles.actionNeededText} type="BodySmallSemibold">
@@ -79,7 +80,7 @@ const FinderIntegration = (props: Props) => {
                 </Kb.ClickableBox>
               )}
           </Kb.Box2>
-          {props.driverStatus.type === Types.DriverStatusType.Enabled ? (
+          {props.driverStatus.type === T.FS.DriverStatusType.Enabled ? (
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <Kb.Text type="Body">Keybase is enabled in {Platform.fileUIName}.</Kb.Text>
               <Kb.Text type="Body">

@@ -1,68 +1,54 @@
+import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
-import * as UsersConstants from '../constants/users'
 import * as TeamConstants from '../constants/teams'
-import * as ConfigConstants from '../constants/config'
 import * as Platforms from '../constants/platform'
-import * as Chat2Gen from '../actions/chat2-gen'
 import * as Styles from '../styles'
-import * as Container from '../util/container'
-import type * as Types from '../constants/types/chat2'
+import type * as T from '../constants/types'
 import ChatInboxHeader from './inbox/header/container'
-import shallowEqual from 'shallowequal'
 
 type Props = {
-  conversationIDKey?: Types.ConversationIDKey
+  conversationIDKey?: T.Chat.ConversationIDKey
+}
+const Header = (props: Props) => {
+  return (
+    <C.ChatProvider canBeNull={true} id={props.conversationIDKey ?? C.noConversationIDKey}>
+      <Header2 {...props} />
+    </C.ChatProvider>
+  )
 }
 
-const Header = (props: Props) => {
+const Header2 = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
-  const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const data = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
-    const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
-    const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-    const infoPanelShowing = state.chat2.infoPanelShowing
-    // TODO not reactive
-    const canEditDesc = TeamConstants.getCanPerform(
-      TeamConstants.useState.getState(),
-      teamname
-    ).editChannelDescription
-    return {
-      canEditDesc,
-      channelname,
-      descriptionDecorated,
-      infoPanelShowing,
-      isMuted,
-      participantInfo,
-      teamType,
-      teamname,
-    }
-  }, shallowEqual)
-
-  const {canEditDesc, channelname, descriptionDecorated, infoPanelShowing, isMuted} = data
-  const {participantInfo, teamType, teamname} = data
+  const username = C.useCurrentUserState(s => s.username)
+  const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
+  const participantInfo = C.useChatContext(s => s.participants)
+  const meta = C.useChatContext(s => s.meta)
+  const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
+  // TODO not reactive
+  const canEditDesc = TeamConstants.getCanPerform(C.useTeamsState.getState(), teamname).editChannelDescription
   const otherParticipants = Constants.getRowParticipants(participantInfo, username)
   const first: string = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
-  const otherInfo = UsersConstants.useState(s => s.infoMap.get(first))
+  const otherInfo = C.useUsersState(s => s.infoMap.get(first))
   // If it's a one-on-one chat, use the user's fullname as the description
   const desc = (otherInfo?.bio && otherInfo.bio.replace(/(\r\n|\n|\r)/gm, ' ')) || descriptionDecorated
   const fullName = otherInfo?.fullname
 
-  const dispatch = Container.useDispatch()
-  const onOpenFolder = React.useCallback(() => {
-    dispatch(Chat2Gen.createOpenFolder({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
+  const onOpenFolder = C.useChatContext(s => s.dispatch.openFolder)
+  const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
+    toggleThreadSearch()
+  }, [toggleThreadSearch])
+  const mute = C.useChatContext(s => s.dispatch.mute)
   const unMuteConversation = React.useCallback(() => {
-    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false}))
-  }, [dispatch, conversationIDKey])
+    mute(false)
+  }, [mute])
+
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const onToggleInfoPanel = React.useCallback(() => {
-    dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: !infoPanelShowing}))
-  }, [dispatch, conversationIDKey, infoPanelShowing])
+    showInfoPanel(!infoPanelShowing, undefined)
+  }, [showInfoPanel, infoPanelShowing])
 
   const channel = teamType === 'big' ? `${teamname}#${channelname}` : teamType === 'small' ? teamname : null
   const isTeam = ['small', 'big'].includes(teamType)
@@ -314,7 +300,7 @@ const styles = Styles.styleSheetCreate(
       shhIconStyle: {
         marginLeft: Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )
 
 export default Header

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Types from '../../constants/types/team-building'
+import * as T from '../../constants/types'
 import capitalize from 'lodash/capitalize'
 import {
   serviceIdToIconFont,
@@ -13,21 +13,21 @@ import {
 export type ResultProps = {
   bottomRow?: React.ReactNode
   displayLabel: string
-  followingState: Types.FollowingState
+  followingState: T.TB.FollowingState
   highlight: boolean
   inTeam: boolean
   // They are already a member in the actual team, not this temporary set.
   isPreExistingTeamMember: boolean
   isYou: boolean
-  namespace: Types.AllowedNamespace
+  namespace: T.TB.AllowedNamespace
   userId: string
   onAdd: (id: string) => void
   onRemove: (id: string) => void
   prettyName: string
   pictureUrl?: string
-  resultForService: Types.ServiceIdWithContact
+  resultForService: T.TB.ServiceIdWithContact
   rightButtons?: React.ReactNode
-  services: {[K in Types.ServiceIdWithContact]?: string}
+  services: {[K in T.TB.ServiceIdWithContact]?: string}
   username: string
 }
 
@@ -145,14 +145,14 @@ const Avatar = ({
   pictureUrl,
 }: {
   keybaseUsername?: string
-  resultForService: Types.ServiceIdWithContact
+  resultForService: T.TB.ServiceIdWithContact
   pictureUrl?: string
 }) => {
   if (keybaseUsername) {
     return <Kb.Avatar size={avatarSize} username={keybaseUsername} />
   } else if (pictureUrl) {
     return <Kb.Avatar size={avatarSize} imageOverrideUrl={pictureUrl} />
-  } else if (resultForService === 'keybase' || Types.isContactServiceId(resultForService)) {
+  } else if (resultForService === 'keybase' || T.TB.isContactServiceId(resultForService)) {
     return <Kb.Avatar size={avatarSize} username="invalid username for placeholder avatar" />
   }
 
@@ -167,7 +167,7 @@ const Avatar = ({
 
 // If service icons are the only item present in the bottom row, then don't apply margin-left to the first icon
 const ServicesIcons = (props: {
-  services: {[K in Types.ServiceIdWithContact]?: string}
+  services: {[K in T.TB.ServiceIdWithContact]?: string}
   prettyName: string
   displayLabel: string
   isKeybaseResult: boolean
@@ -217,7 +217,7 @@ const FormatPrettyName = (props: {
   displayLabel: string
   prettyName: string
   username: string
-  services: Array<Types.ServiceIdWithContact>
+  services: Array<T.TB.ServiceIdWithContact>
   keybaseUsername?: string
   showServicesIcons: boolean
 }) =>
@@ -257,10 +257,10 @@ const BottomRow = (props: {
   username: string
   isPreExistingTeamMember: boolean
   keybaseUsername?: string
-  followingState: Types.FollowingState
+  followingState: T.TB.FollowingState
   displayLabel: string
   prettyName: string
-  services: {[K in Types.ServiceIdWithContact]?: string}
+  services: {[K in T.TB.ServiceIdWithContact]?: string}
 }) => {
   const serviceUserIsAlsoKeybaseUser = !props.isKeybaseResult && props.keybaseUsername
   const showServicesIcons = props.isKeybaseResult || !!props.keybaseUsername
@@ -317,7 +317,7 @@ const BottomRow = (props: {
 }
 
 const Username = (props: {
-  followingState: Types.FollowingState
+  followingState: T.TB.FollowingState
   isKeybaseResult: boolean
   keybaseUsername?: string
   username: string
@@ -381,7 +381,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-const followingStateToStyle = (followingState: Types.FollowingState) => {
+const followingStateToStyle = (followingState: T.TB.FollowingState) => {
   return {
     Following: {
       color: Styles.globalColors.greenDark,

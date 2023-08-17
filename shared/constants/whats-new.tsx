@@ -1,4 +1,4 @@
-import type * as RPCTypes from './types/rpc-gen'
+import type * as T from './types'
 import * as Z from '../util/zustand'
 
 /*
@@ -97,12 +97,12 @@ const initialStore: Store = {
 type State = Store & {
   dispatch: {
     resetState: 'default'
-    updateLastSeen: (lastSeenItem?: {md: RPCTypes.Gregor1.Metadata; item: RPCTypes.Gregor1.Item}) => void
+    updateLastSeen: (lastSeenItem?: {md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}) => void
   }
   anyVersionsUnseen: () => boolean
   getSeenVersions: () => SeenVersionsMap
 }
-export const useState = Z.createZustand<State>((set, get) => {
+export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     resetState: 'default',
     updateLastSeen: lastSeenItem => {

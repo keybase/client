@@ -9,7 +9,7 @@ export const joinAddSep = (...args: Array<string>) => join(...args) + pathSep
 
 export const extname = (path: string) => {
   const parts = path.split(pathSep)
-  const last = parts[parts.length - 1]
+  const last = parts.at(-1)
   const idx = last?.lastIndexOf('.') ?? -1
   if (idx === -1) {
     return ''
@@ -20,8 +20,7 @@ export const extname = (path: string) => {
 
 export const basename = (path: string, extname: string) => {
   const parts = path.split(pathSep)
-  const last = parts[parts.length - 1]
-
+  const last = parts.at(-1)
   if (last?.endsWith(extname)) {
     return last.substring(0, last.length - extname.length)
   } else {

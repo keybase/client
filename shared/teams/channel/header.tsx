@@ -1,22 +1,20 @@
+import * as T from '../../constants/types'
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as Chat2Gen from '../../actions/chat2-gen'
-import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
-import {type ConversationIDKey, keyToConversationID} from '../../constants/types/chat2'
-import type {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import {Activity, useChannelParticipants} from '../common'
 
-const useRecentJoins = (conversationIDKey: ConversationIDKey) => {
+const useRecentJoins = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const [recentJoins, setRecentJoins] = React.useState<number | undefined>(undefined)
-  const getRecentJoinsRPC = Container.useRPC(RPCChatGen.localGetRecentJoinsLocalRpcPromise)
+  const getRecentJoinsRPC = Container.useRPC(T.RPCChat.localGetRecentJoinsLocalRpcPromise)
   React.useEffect(() => {
     setRecentJoins(undefined)
     getRecentJoinsRPC(
-      [{convID: keyToConversationID(conversationIDKey)}],
+      [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
       r => setRecentJoins(r),
       () => {}
     )
@@ -25,17 +23,17 @@ const useRecentJoins = (conversationIDKey: ConversationIDKey) => {
 }
 
 type HeaderTitleProps = {
-  teamID: TeamID
-  conversationIDKey: ConversationIDKey
+  teamID: T.Teams.TeamID
+  conversationIDKey: T.Chat.ConversationIDKey
 }
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
-  const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
-  const channelInfo = Constants.useState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const teamname = C.useTeamsState(s => Constants.getTeamMeta(s, teamID).teamname)
+  const channelInfo = C.useTeamsState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname, description} = channelInfo
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
-  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
   const canDelete = yourOperations.deleteChannel && channelname !== 'general'
 
   const editChannelProps = {
@@ -44,17 +42,16 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     description: description,
     teamID,
   }
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onEditChannel = () => nav.safeNavigateAppend({props: editChannelProps, selected: 'teamEditChannel'})
   const onAddMembers = () =>
     nav.safeNavigateAppend({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'})
   const onNavToTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
-  const activityLevel = Constants.useState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
+  const activityLevel = C.useTeamsState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
   const newMemberCount = useRecentJoins(conversationIDKey)
 
-  const onChat = () =>
-    dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'channelHeader'}))
+  const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
+  const onChat = () => previewConversation({conversationIDKey, reason: 'channelHeader'})
 
   const topDescriptors = (
     <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" style={styles.flexShrink}>
@@ -70,7 +67,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
-  const deleteChannelConfirmed = Constants.useState(s => s.dispatch.deleteChannelConfirmed)
+  const deleteChannelConfirmed = C.useTeamsState(s => s.dispatch.deleteChannelConfirmed)
 
   const menuItems: Array<Kb.MenuItem> = React.useMemo(
     () => [
