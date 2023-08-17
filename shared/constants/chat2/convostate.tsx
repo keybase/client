@@ -1310,57 +1310,53 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     messageEdit: (ordinal, text) => {
       const {id, dispatch, messageMap, meta} = get()
       const message = messageMap.get(ordinal)
-      if (message?.type === 'text' || message?.type === 'attachment') {
-        dispatch.updateMessage(ordinal, {
-          submitState: 'editing',
-        })
-      }
+      dispatch.updateMessage(ordinal, {
+        submitState: 'editing',
+      })
       dispatch.setEditing(false)
-      if (!message) {
+      if (!message || !(message.type === 'text' || message.type === 'attachment')) {
         logger.warn("Can't find message to edit", ordinal)
         return
       }
 
       const conversationIDKey = id
       const f = async () => {
-        if (message.type === 'text' || message.type === 'attachment') {
-          // Skip if the content is the same
-          if (message.type === 'text' && message.text.stringValue() === text) {
-            dispatch.setEditing(false)
-            return
-          } else if (message.type === 'attachment' && message.title === text) {
-            dispatch.setEditing(false)
-            return
-          }
-          const tlfName = meta.tlfname
-          const clientPrev = getClientPrev()
-          const outboxID = Common.generateOutboxID()
-          const target = {
-            messageID: message.id,
-            outboxID: message.outboxID ? T.Chat.outboxIDToRpcOutboxID(message.outboxID) : undefined,
-          }
-          await T.RPCChat.localPostEditNonblockRpcPromise(
-            {
-              body: text,
-              clientPrev,
-              conversationID: T.Chat.keyToConversationID(conversationIDKey),
-              identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-              outboxID,
-              target,
-              tlfName,
-              tlfPublic: false,
-            },
-            Common.waitingKeyEditPost
-          )
+        // Skip if the content is the same
+        if (message.type === 'text' && message.text.stringValue() === text) {
+          dispatch.setEditing(false)
+          return
+        } else if (message.type === 'attachment' && message.title === text) {
+          dispatch.setEditing(false)
+          return
+        }
+        const tlfName = meta.tlfname
+        const clientPrev = getClientPrev()
+        const outboxID = Common.generateOutboxID()
+        const target = {
+          messageID: message.id,
+          outboxID: message.outboxID ? T.Chat.outboxIDToRpcOutboxID(message.outboxID) : undefined,
+        }
+        await T.RPCChat.localPostEditNonblockRpcPromise(
+          {
+            body: text,
+            clientPrev,
+            conversationID: T.Chat.keyToConversationID(conversationIDKey),
+            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+            outboxID,
+            target,
+            tlfName,
+            tlfPublic: false,
+          },
+          Common.waitingKeyEditPost
+        )
 
-          if (!message.id) {
-            const m = messageMap.get(ordinal)
-            if (m) {
-              dispatch.updateMessage(ordinal, {
-                ...(m.type === 'text' ? {text} : {}),
-                ...(m.type === 'attachment' ? {title: text} : {}),
-              })
-            }
+        if (!message.id) {
+          const m = messageMap.get(ordinal)
+          if (m) {
+            dispatch.updateMessage(ordinal, {
+              ...(m.type === 'text' ? {text} : {}),
+              ...(m.type === 'attachment' ? {title: text} : {}),
+            })
           }
         }
       }
@@ -1498,6 +1494,40 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       get().dispatch.setCommandMarkdown()
     },
     messagesAdd: (_messages, _forceContainsLatestCalc) => {
+      // TEMP
+      window.NOJIMA = get
+      // TEMP
+      const impl = () => {
+        const messages = _messages
+        console.log('aaaa ', messages)
+
+        set(s => {
+          for (const m of messages) {
+            // TODO deal with sent messages
+            if (m.type === 'deleted') {
+              s.messageMap.delete(m.ordinal)
+              s.messageTypeMap.delete(m.ordinal)
+            } else {
+              // we sent it so lets keep our temp ordinal
+              if (m.outboxID && m.id !== m.ordinal) {
+                s.pendingOutboxToOrdinal.set(m.outboxID, m.ordinal)
+              }
+              const mapOrdinal = (m.outboxID && s.pendingOutboxToOrdinal.get(m.outboxID)) || m.ordinal
+              // TODO upgrade messages
+              s.messageMap.set(mapOrdinal, m)
+              if (m.type === 'text') {
+                s.messageTypeMap.delete(mapOrdinal)
+              } else {
+                s.messageTypeMap.set(mapOrdinal, Message.getMessageRenderType(m))
+              }
+            }
+          }
+          s.messageOrdinals = [...s.messageMap.keys()].sort((a, b) => a - b)
+        })
+      }
+      impl()
+      return
+
       const p = {forceContainsLatestCalc: _forceContainsLatestCalc, messages: _messages}
       /**
        * currnt impl:
