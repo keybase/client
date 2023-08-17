@@ -3030,17 +3030,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       // is our meta good?
       if (meta.conversationIDKey !== get().id) return
 
-      const ordinals = messageOrdinals ?? []
-      let maxMsgID = 0
-      // find a valid ordinal
-      for (let i = ordinals.length - 1; i >= 0; i--) {
-        const ordinal = ordinals[i]!
-        const message = messageMap.get(ordinal)
-        if (message && message.id > 0) {
-          maxMsgID = message.id
-          break
-        }
-      }
+      const lastOrdinalWithID = findLast(messageOrdinals ?? [], o => (messageMap.get(o)?.id ?? 0) > 0)
+      const maxMsgID = lastOrdinalWithID ? messageMap.get(lastOrdinalWithID)?.id ?? 0 : 0
       dispatch.setContainsLatestMessage(maxMsgID >= meta.maxVisibleMsgID)
     },
     updateDraft: throttle(text => {
