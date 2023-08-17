@@ -48,7 +48,8 @@ if (isMobile && !skipAnimations) {
   }
   Animated = {View: ({children}: any) => children} as any
   createAnimatedComponent = (f: any) => f
-  useSharedValue = (a: any) => ({value: a})
+  // @ts-ignore
+  useSharedValue = (a: any, _oneWayReadsOnly?: boolean) => ({value: a})
   withRepeat = (a: any) => a
   useAnimatedStyle = (f: () => Object): any => f()
   withTiming = (a: any) => a

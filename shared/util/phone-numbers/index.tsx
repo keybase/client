@@ -42,7 +42,7 @@ const load = () => {
       (curr.status === 'assigned' || curr.status === 'user assigned') &&
       supportedCodes[curr.alpha2] &&
       curr.countryCallingCodes.length &&
-      supported.includes(curr.alpha2)
+      supported.includes(curr.alpha2 as any)
     ) {
       const emojiText: string = emojiIndexByChar[curr.emoji || -1] || ''
       // see here for why we check status is 'assigned'
