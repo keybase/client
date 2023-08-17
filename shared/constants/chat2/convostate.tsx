@@ -1501,9 +1501,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       get().dispatch.setCommandMarkdown()
     },
     messagesAdd: messages => {
-      // TEMP
-      window.NOJIMA = get()
-      // TEMP
       set(s => {
         for (const m of messages) {
           if (m.type === 'deleted') {
@@ -1514,7 +1511,18 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             if (m.outboxID && m.id !== m.ordinal) {
               s.pendingOutboxToOrdinal.set(m.outboxID, m.ordinal)
             }
+            // we want to keep ordinals we've seen before so if a message comes in with a 'real'
+            // ordinal and it maps to one we created while sending retain it
             const mapOrdinal = (m.outboxID && s.pendingOutboxToOrdinal.get(m.outboxID)) || m.ordinal
+            // never set a placeholder on top of any other data
+            if (m.type === 'placeholder') {
+              const old = s.messageMap.get(mapOrdinal)
+              if (old && old.type !== 'placeholder') {
+                // ignore it
+                return
+              }
+            }
+
             s.messageMap.set(mapOrdinal, {...m, ordinal: mapOrdinal})
             if (m.type === 'text') {
               s.messageTypeMap.delete(mapOrdinal)
