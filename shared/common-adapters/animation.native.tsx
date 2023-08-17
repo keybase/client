@@ -35,7 +35,13 @@ const Animation = React.memo(function Animation(props: Props) {
 
   return (
     <Box style={props.containerStyle}>
-      <LottieView autoPlay={true} loop={allowLoop} source={source.current} style={props.style} />
+      <LottieView
+        renderMode="SOFTWARE"
+        autoPlay={true}
+        loop={allowLoop}
+        source={source.current}
+        style={props.style}
+      />
     </Box>
   )
 })

@@ -22,7 +22,8 @@ import {findLast} from '../../util/arrays'
 import {isMobile, isIOS} from '../platform'
 import {mapGetEnsureValue} from '../../util/map'
 import {noConversationIDKey} from '../types/chat2/common'
-import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
+import {type StoreApi, type UseBoundStore} from 'zustand'
+import {useStoreWithEqualityFn} from 'zustand/traditional'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../../constants/platform-specific'
 import * as Platform from '../platform'
 import KB2 from '../../util/electron'
@@ -3198,7 +3199,7 @@ export function _useContext<T>(
 ): T {
   const store = React.useContext(Context)
   if (!store) throw new Error('Missing ConvoContext.Provider in the tree')
-  return useStore(store, selector, equalityFn)
+  return useStoreWithEqualityFn(store, selector, equalityFn)
 }
 
 // unusual, usually you useContext, but maybe in teams
@@ -3208,7 +3209,7 @@ export function _useConvoState<T>(
   equalityFn?: (left: T, right: T) => boolean
 ): T {
   const store = createConvoStore(id)
-  return useStore(store, selector, equalityFn)
+  return useStoreWithEqualityFn(store, selector, equalityFn)
 }
 
 type RouteParams = {

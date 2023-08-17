@@ -1,5 +1,6 @@
 // React-native tooling assumes this file is here, so we just require our real entry point
 import 'react-native-gesture-handler' // MUST BE FIRST https://github.com/software-mansion/react-native-gesture-handler/issues/320
+import 'react-native-reanimated' // MUST BE HERE due to another bug https://github.com/software-mansion/react-native-reanimated/issues/4836
 import ViewReactNativeStyleAttributes from 'react-native/Libraries/Components/View/ReactNativeStyleAttributes'
 import './why-did-you-render'
 import './app/globals.native'
