@@ -6,6 +6,7 @@
 /* eslint-disable */
 
 const {getDefaultConfig} = require('@expo/metro-config')
+const {mergeConfig} = require('@react-native/metro-config')
 const {resolve} = require('metro-resolver')
 const path = require('path')
 const fs = require('fs')
@@ -33,7 +34,7 @@ const modules = []
   .sort()
 
 const defaultConfig = getDefaultConfig(__dirname)
-module.exports = {
+module.exports = mergeConfig({
   // watch our rnmodules
   watchFolders: [root, path.resolve(__dirname, '../rnmodules')],
   resolver: {
@@ -72,4 +73,4 @@ module.exports = {
       },
     },
   },
-}
+})
