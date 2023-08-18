@@ -1,4 +1,4 @@
-import {capitalize} from 'lodash'
+import capitalize from 'lodash/capitalize'
 import KB2 from '../util/electron.desktop'
 import * as Path from '../util/path'
 const {env, platform} = KB2.constants
