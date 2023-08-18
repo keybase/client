@@ -34,11 +34,9 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.turbomodule.core.CallInvokerHolderImpl;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -380,14 +378,13 @@ public class KbModule extends KbSpec {
                 @Override
                 public void onComplete(@NonNull Task<String> task) {
                     if (!task.isSuccessful()) {
-                        Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                        NativeLogger.info("Fetching FCM registration token failed " + task.getException());
                         promise.reject(task.getException());
                         return;
                     }
 
                     // Get new FCM registration token
-                    String res = task.getResult();
-                    String token = getString(R.string.msg_token_fmt, res);
+                    String token = task.getResult();
                     NativeLogger.info("Got token: " + token);
                     promise.resolve(token);
                 }
