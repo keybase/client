@@ -3,7 +3,7 @@ import path from 'path'
 import emojiData from 'emoji-datasource-apple'
 // MUST be lodash for node to work simply
 
-import {escapeRegExp} from 'lodash'
+import escapeRegExp from 'lodash/escapeRegExp'
 // @ts-ignore
 import prettier from 'prettier'
 
