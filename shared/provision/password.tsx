@@ -139,10 +139,10 @@ const styles = Styles.styleSheetCreate(() => ({
   forgotPassword: {
     alignSelf: 'flex-end',
   },
-  outerCard: {
-    flex: 1,
-    height: Styles.isMobile ? undefined : 'unset',
-  },
+  outerCard: Styles.platformStyles({
+    common: {flex: 1},
+    isElectron: {height: 'unset'},
+  }),
   outerCardAvatar: {
     backgroundColor: Styles.globalColors.transparent,
   },

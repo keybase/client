@@ -1,6 +1,8 @@
 import type {CSSProperties} from 'react'
 import type {ViewStyle, TextStyle, ImageStyle} from 'react-native'
 
+export type DimensionValue = number | 'auto' | `${number}%`
+
 export type Color = undefined | string
 type _StylesDesktopOverride = {
   backgroundImage?: string

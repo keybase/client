@@ -7,8 +7,8 @@ import * as T from './types'
 import {RPCError} from '../util/errors'
 
 export const saltpackDocumentation = 'https://saltpack.org'
-export const inputDesktopMaxHeight = {maxHeight: '30%'}
-export const outputDesktopMaxHeight = {maxHeight: '70%'}
+export const inputDesktopMaxHeight = {maxHeight: '30%'} as const
+export const outputDesktopMaxHeight = {maxHeight: '70%'} as const
 export const waitingKey = 'cryptoWaiting'
 
 export const encryptTab = 'encryptTab'

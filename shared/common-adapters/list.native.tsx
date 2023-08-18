@@ -15,7 +15,7 @@ class List<Item> extends React.PureComponent<Props<Item>> {
     return this.props.renderItem(index, item)
   }
 
-  _getItemLayout = (_: Array<Item> | null | undefined, index: number) => ({
+  _getItemLayout = (_: unknown, index: number) => ({
     index,
     length: this.props.fixedHeight || 0,
     offset: (this.props.fixedHeight || 0) * index,

@@ -21,7 +21,7 @@ const getProgress = (dlState: T.FS.DownloadState) => (
         style={Styles.collapseStyles([
           styles.tube,
           styles.tubeStuffing,
-          {width: `${Math.round(100 * dlState.progress).toString()}%`},
+          {width: `${Math.round(100 * dlState.progress)}%`},
         ])}
       />
     </Kb.Box>

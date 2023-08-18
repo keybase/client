@@ -61,7 +61,7 @@ const ClickableBox = React.forwardRef<HTMLDivElement, Props>(function ClickableB
   if (mouseIn && props.onClick && (props.feedback || props.feedback === undefined)) {
     let borderRadius = 0
     if (style && typeof style === 'object') {
-      borderRadius = (style as _StylesCrossPlatform).borderRadius || 0
+      borderRadius = ((style as _StylesCrossPlatform).borderRadius as number) || 0
     }
     // Down or hover
     const backgroundColor = mouseDown
