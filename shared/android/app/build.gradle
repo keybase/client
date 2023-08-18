@@ -212,7 +212,7 @@ dependencies {
 
     implementation 'androidx.work:work-runtime:2.7.1'
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation "com.google.firebase:firebase-messaging:17.3.0"
+    implementation "com.google.firebase:firebase-messaging:23.2.1"
     implementation "com.facebook.fresco:animated-gif:2.6.0"
     implementation "com.facebook.fresco:fresco:2.6.0"
     implementation 'org.msgpack:msgpack-core:0.9.0'
