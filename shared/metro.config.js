@@ -34,7 +34,8 @@ const modules = []
   .sort()
 
 const defaultConfig = getDefaultConfig(__dirname)
-module.exports = mergeConfig({
+
+module.exports = mergeConfig(defaultConfig, {
   // watch our rnmodules
   watchFolders: [root, path.resolve(__dirname, '../rnmodules')],
   resolver: {
