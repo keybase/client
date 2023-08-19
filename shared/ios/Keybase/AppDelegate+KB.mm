@@ -79,6 +79,11 @@
 }
 
 - (void)didLaunchSetupAfter: (UIView*) rootView {
+  if (@available(iOS 13.0, *)) {
+      rootView.backgroundColor = [UIColor systemBackgroundColor];
+    } else {
+      rootView.backgroundColor = [UIColor whiteColor];
+    }
   // To simplify the cover animation raciness
   // With iPads, we had a bug with this resignImageView where if
   // you backgrounded the app in portrait and then rotated to
