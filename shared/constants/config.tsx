@@ -985,7 +985,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       if (r === T.RPCGen.Reachable.yes) {
         // not in waiting state
         if (C.useDaemonState.getState().handshakeWaiters.size === 0) {
-          Z.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(true))
+          Z.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
         }
       }
 
@@ -1017,15 +1017,11 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
 
       if (!changed) return
 
-      // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
-      if (!causedByStartup || !loggedIn) {
-        Z.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
-        C.useDaemonState.getState().dispatch.loadDaemonAccounts()
-      }
-
       const {loadOnStart} = get().dispatch
       if (loggedIn) {
         if (!causedByStartup) {
+          Z.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
+          C.useDaemonState.getState().dispatch.loadDaemonAccounts()
           loadOnStart('reloggedIn')
           const f = async () => {
             await Z.timeoutPromise(1000)

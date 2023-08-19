@@ -81,6 +81,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   const _onSelectConversation = React.useCallback(() => {
     navigateToThread('inboxSmall')
   }, [navigateToThread])
+
   const onSelectConversation = isSelected ? undefined : p.onSelectConversation ?? _onSelectConversation
 
   const backgroundColor = isInWidget

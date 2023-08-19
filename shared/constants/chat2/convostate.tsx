@@ -3167,6 +3167,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 type MadeStore = UseBoundStore<StoreApi<ConvoState>>
 export const _stores = new Map<T.Chat.ConversationIDKey, MadeStore>()
 
+export const clearChatStores = () => {
+  _stores.clear()
+}
+
 const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   const existing = _stores.get(id)
   if (existing) return existing
@@ -3188,7 +3192,11 @@ const Context = React.createContext<MadeStore | null>(null)
 type ConvoProviderProps = React.PropsWithChildren<{id: T.Chat.ConversationIDKey; canBeNull?: boolean}>
 export function _Provider({canBeNull, children, ...props}: ConvoProviderProps) {
   if (!canBeNull && (!props.id || props.id === noConversationIDKey)) {
-    throw new Error('No convo id in provider')
+    // let it not crash out but likely you'll get wrong answers in prod
+    if (__DEV__) {
+      console.log('Bad chat provider with id', props.id)
+      throw new Error('No convo id in provider')
+    }
   }
   return <Context.Provider value={createConvoStore(props.id)}>{children}</Context.Provider>
 }

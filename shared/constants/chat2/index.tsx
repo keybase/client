@@ -1682,6 +1682,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
         dispatch: s.dispatch,
         staticConfig: s.staticConfig,
       }))
+      // also blow away convoState
+      C.clearChatStores()
     },
     setInboxNumSmallRows: (rows, ignoreWrite) => {
       set(s => {

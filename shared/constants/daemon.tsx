@@ -31,7 +31,7 @@ const initialStore: Store = {
 type State = Store & {
   dispatch: {
     loadDaemonAccounts: () => void
-    loadDaemonBootstrapStatus: (force?: boolean) => Promise<void>
+    loadDaemonBootstrapStatus: () => Promise<void>
     resetState: () => void
     setError: (e?: Error) => void
     setFailed: (r: string) => void
@@ -90,6 +90,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
   }
 
   let loadDaemonBootstrapStatusDoneVersion = -1
+  let loadDaemonAccountsVersion = -1
   // When there are no more waiters, we can show the actual app
 
   let _emitStartupOnLoadDaemonConnectedOnce = false
@@ -144,6 +145,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
     loadDaemonAccounts: () => {
       const f = async () => {
         const version = get().handshakeVersion
+
+        if (loadDaemonAccountsVersion === version) {
+          return
+        }
+        loadDaemonAccountsVersion = version
 
         let handshakeWait = false
         let handshakeVersion = 0
@@ -212,10 +218,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     // set to true so we reget status when we're reachable again
-    loadDaemonBootstrapStatus: async force => {
+    loadDaemonBootstrapStatus: async () => {
       const version = get().handshakeVersion
       const {wait} = get().dispatch
-      if (loadDaemonBootstrapStatusDoneVersion === version && !force) {
+      if (loadDaemonBootstrapStatusDoneVersion === version) {
         return
       }
       loadDaemonBootstrapStatusDoneVersion = version
@@ -258,6 +264,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     onRestartHandshakeNative: _onRestartHandshakeNative,
     resetState: () => {
+      // let us reget bootstrap on logout
+      loadDaemonBootstrapStatusDoneVersion = -1
       set(s => ({
         ...s,
         ...initialStore,
