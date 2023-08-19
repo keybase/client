@@ -177,7 +177,9 @@ const AppTabs = React.memo(
               }
             }}
             listeners={{
-              tabLongPress: () => C.useRouterState.getState().dispatch.dynamic.tabLongPress?.(tab),
+              tabLongPress: () => {
+                C.useRouterState.getState().dispatch.dynamic.tabLongPress?.(tab)
+              },
             }}
           />
         )),
