@@ -28,12 +28,6 @@ let markedInitiallyLoaded = false
 
 export const DEBUGDump = () => {}
 
-// not highly documented. keeps new content from shifting around the list if you're scrolled up
-const maintainVisibleContentPosition = {
-  autoscrollToTopThreshold: 1,
-  minIndexForVisible: 0,
-}
-
 const useScrolling = (p: {
   centeredOrdinal: T.Chat.Ordinal
   messageOrdinals: Array<T.Chat.Ordinal>
@@ -274,7 +268,6 @@ const ConversationList = React.memo(function ConversationList(p: {
                 getItemType={getItemType}
                 inverted={true}
                 renderItem={renderItem}
-                maintainVisibleContentPosition={maintainVisibleContentPosition}
                 onEndReached={onEndReached}
                 keyboardDismissMode="on-drag"
                 keyboardShouldPersistTaps="handled"
