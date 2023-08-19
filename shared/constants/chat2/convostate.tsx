@@ -1534,6 +1534,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
         s.messageOrdinals = [...s.messageMap.keys()].sort((a, b) => a - b)
       })
+      get().dispatch.markThreadAsRead()
     },
     messagesClear: () => {
       set(s => {
