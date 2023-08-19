@@ -246,6 +246,7 @@
   NSLog(@"applicationWillResignActive: cancelling outstanding animations...");
   [self.resignImageView.layer removeAllAnimations];
   // Try a nice animation out
+  [self.resignImageView.superview bringSubviewToFront:self.resignImageView];
   NSLog(@"applicationWillResignActive: rendering keyz screen...");
   [UIView animateWithDuration:0.3
       delay:0.1
