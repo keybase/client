@@ -1,3 +1,4 @@
+import * as C from '.'
 import * as Z from '../util/zustand'
 
 type Store = {
@@ -19,6 +20,8 @@ export const _useState = Z.createZustand<State>(set => {
       set(s => {
         s.active = a
       })
+      const {dispatch} = C.getConvoState(C.getSelectedConversation())
+      dispatch.markThreadAsRead()
     },
   }
   return {
