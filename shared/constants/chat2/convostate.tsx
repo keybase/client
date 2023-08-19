@@ -3192,8 +3192,11 @@ const Context = React.createContext<MadeStore | null>(null)
 type ConvoProviderProps = React.PropsWithChildren<{id: T.Chat.ConversationIDKey; canBeNull?: boolean}>
 export function _Provider({canBeNull, children, ...props}: ConvoProviderProps) {
   if (!canBeNull && (!props.id || props.id === noConversationIDKey)) {
-    console.log('aaaa no id?', props.id, children)
-    throw new Error('No convo id in provider')
+    // let it not crash out but likely you'll get wrong answers in prod
+    if (__DEV__) {
+      console.log('Bad chat provider with id', props.id)
+      throw new Error('No convo id in provider')
+    }
   }
   return <Context.Provider value={createConvoStore(props.id)}>{children}</Context.Provider>
 }
@@ -3205,7 +3208,6 @@ export function _useContext<T>(
 ): T {
   const store = React.useContext(Context)
   if (!store) throw new Error('Missing ConvoContext.Provider in the tree')
-  // console.log('aaaa usecontext', store.getState().id)
   return useStoreWithEqualityFn(store, selector, equalityFn)
 }
 

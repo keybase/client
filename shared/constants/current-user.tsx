@@ -40,7 +40,6 @@ export const _useState = Z.createZustand<State>(set => {
     },
     resetState: 'default',
     setBootstrap: b => {
-      console.log('aaaaaaaaaa setbootstrap', b)
       set(s => {
         const {deviceID, deviceName, uid, username} = b
         s.deviceID = deviceID
