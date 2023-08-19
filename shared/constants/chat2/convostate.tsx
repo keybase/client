@@ -3180,10 +3180,6 @@ const createConvoStore = (id: T.Chat.ConversationIDKey) => {
 // non reactive call, used in actions/dispatches
 export function _getConvoState(id: T.Chat.ConversationIDKey) {
   const store = createConvoStore(id)
-  // TEMP
-  if (id === '0000b386ba31eebeea5d8ba781aa8ccb4e0c31b6d9a210e74964b42d2d5726c1') {
-    window.NOJIMA = store.getState
-  }
   return store.getState()
 }
 
