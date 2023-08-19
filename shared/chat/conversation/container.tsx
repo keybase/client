@@ -11,10 +11,9 @@ import Rekey from './rekey/container'
 type SwitchProps = {conversationIDKey?: T.Chat.ConversationIDKey} // needed by page
 
 const Conversation = React.memo(function Conversation(_: SwitchProps) {
-  const conversationIDKey = C.useChatContext(s => s.id)
   const type = C.useChatContext(s => {
     const meta = s.meta
-    switch (conversationIDKey) {
+    switch (s.id) {
       case C.noConversationIDKey:
         return 'noConvo'
       default:
