@@ -14,11 +14,14 @@ const Image2 = (p: Props) => {
     [onLoad]
   )
 
-  const _onError = (e: unknown) => {
-    setLoading(false)
-    console.log('Image2 load error', e)
-    onError?.()
-  }
+  const _onError = React.useCallback(
+    (e: unknown) => {
+      setLoading(false)
+      console.log('Image2 load error', e)
+      onError?.()
+    },
+    [setLoading, onError]
+  )
 
   return (
     <>

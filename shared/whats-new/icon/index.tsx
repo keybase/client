@@ -90,6 +90,9 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
   const baseColor = Styles.globalColors.black_50
   const iconColor = color ? color : baseColor
   const popupVisibleColor = color || Styles.globalColors.black
+  const onClick = React.useCallback(() => {
+    popupVisible ? setPopupVisible(false) : !!attachToRef && setPopupVisible(true)
+  }, [popupVisible, setPopupVisible, attachToRef])
   return (
     <>
       <Kb.Box style={styles.iconContainerMargins}>
@@ -101,9 +104,7 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
                 ? ['background_color_black_10']
                 : ['hover_container', 'hover_background_color_black_10']
             )}
-            onClick={() => {
-              popupVisible ? setPopupVisible(false) : !!attachToRef && setPopupVisible(true)
-            }}
+            onClick={onClick}
           >
             <Icon
               badgeColor={badgeColor}

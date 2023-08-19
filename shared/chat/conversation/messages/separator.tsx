@@ -272,13 +272,13 @@ type Props = {
   trailingItem: T.Chat.Ordinal
 }
 
-const SeparatorConnector = (p: Props) => {
+const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
   const {leadingItem, trailingItem} = p
   const {ordinal, showUsername, orangeLineAbove} = useReduxFast(trailingItem ?? 0, leadingItem ?? 0)
   return ordinal && (showUsername || orangeLineAbove) ? (
     <Separator ordinal={ordinal} showUsername={showUsername} orangeLineAbove={orangeLineAbove} />
   ) : null
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

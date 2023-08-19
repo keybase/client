@@ -1,7 +1,7 @@
 // Cache in the module. This can get called from multiple places and env vars can get lost
 const skipAnimation = require('./common-adapters/skip-animations')
 // why did you render
-const enableWDYR = false
+const enableWDYR = true
 
 let isElectron = null
 let isReactNative = null

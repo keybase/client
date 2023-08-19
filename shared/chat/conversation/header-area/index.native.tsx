@@ -8,7 +8,7 @@ import {assertionToDisplay} from '../../../common-adapters/usernames'
 const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
 
-const ShhIcon = () => {
+const ShhIcon = React.memo(function ShhIcon() {
   const isMuted = C.useChatContext(s => s.meta.isMuted)
   const mute = C.useChatContext(s => s.dispatch.mute)
   const unMuteConversation = React.useCallback(() => {
@@ -23,7 +23,7 @@ const ShhIcon = () => {
       onClick={unMuteConversation}
     />
   ) : null
-}
+})
 
 const ChannelHeader = () => {
   const {channelname, smallTeam, teamname, teamID} = C.useChatContext(s => {
