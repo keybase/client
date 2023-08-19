@@ -152,8 +152,7 @@ const styles = Styles.styleSheetCreate(() => ({
 export const theme: Theme = {
   colors: {
     get background() {
-      // return themed.fastBlank as string
-      return (C.useDarkModeState.getState().isDarkMode() ? darkColors.white : colors.white) as string
+      return themed.white
     },
     get border() {
       return themed.black_10 as string
