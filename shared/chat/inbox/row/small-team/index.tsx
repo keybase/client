@@ -33,6 +33,7 @@ export type Props = {
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
   const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime} = p
   const {conversationIDKey, isInWidget, swipeCloseRef} = p
+  console.log('aaaa small team render', conversationIDKey)
 
   const typingSnippet = C.useChatContext(s => {
     const typers = !isInWidget ? s.typing : undefined
@@ -81,6 +82,11 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   const _onSelectConversation = React.useCallback(() => {
     navigateToThread('inboxSmall')
   }, [navigateToThread])
+
+  console.log(
+    'aaaaa smallteam in row',
+    C.useChatContext(s => s.id)
+  )
   const onSelectConversation = isSelected ? undefined : p.onSelectConversation ?? _onSelectConversation
 
   const backgroundColor = isInWidget

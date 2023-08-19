@@ -213,6 +213,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     // set to true so we reget status when we're reachable again
     loadDaemonBootstrapStatus: async force => {
+      console.log('aaaakloadDaemonBootstrapStatus', force)
       const version = get().handshakeVersion
       const {wait} = get().dispatch
       if (loadDaemonBootstrapStatusDoneVersion === version && !force) {
@@ -258,6 +259,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     onRestartHandshakeNative: _onRestartHandshakeNative,
     resetState: () => {
+      console.log('aaa config resetstate old', get().handshakeState)
       set(s => ({
         ...s,
         ...initialStore,
@@ -283,6 +285,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       })
     },
     setState: ds => {
+      console.log('aaaa daemon state', ds)
       if (ds === get().handshakeState) return
       set(s => {
         s.handshakeState = ds
@@ -296,6 +299,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
     },
     startHandshake: () => {
+      console.log('aaaaa startHandshake')
       get().dispatch.setError()
       get().dispatch.setState('starting')
       get().dispatch.setFailed('')
@@ -305,6 +309,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       get().dispatch.daemonHandshake(get().handshakeVersion + 1)
     },
     wait: (name, version, increment, failedReason, failedFatal) => {
+      console.log('aaaaa handshake wait', {name, version, increment, failedReason, failedFatal})
       const {handshakeState, handshakeFailedReason, handshakeVersion} = get()
       if (handshakeState !== 'waitingForWaiters') {
         throw new Error("Should only get a wait while we're waiting")

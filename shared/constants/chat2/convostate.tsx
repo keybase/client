@@ -3167,6 +3167,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 type MadeStore = UseBoundStore<StoreApi<ConvoState>>
 export const _stores = new Map<T.Chat.ConversationIDKey, MadeStore>()
 
+export const clearChatStores = () => {
+  _stores.clear()
+}
+
 const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   const existing = _stores.get(id)
   if (existing) return existing
@@ -3188,6 +3192,7 @@ const Context = React.createContext<MadeStore | null>(null)
 type ConvoProviderProps = React.PropsWithChildren<{id: T.Chat.ConversationIDKey; canBeNull?: boolean}>
 export function _Provider({canBeNull, children, ...props}: ConvoProviderProps) {
   if (!canBeNull && (!props.id || props.id === noConversationIDKey)) {
+    console.log('aaaa no id?', props.id, children)
     throw new Error('No convo id in provider')
   }
   return <Context.Provider value={createConvoStore(props.id)}>{children}</Context.Provider>
@@ -3200,6 +3205,7 @@ export function _useContext<T>(
 ): T {
   const store = React.useContext(Context)
   if (!store) throw new Error('Missing ConvoContext.Provider in the tree')
+  // console.log('aaaa usecontext', store.getState().id)
   return useStoreWithEqualityFn(store, selector, equalityFn)
 }
 

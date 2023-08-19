@@ -104,6 +104,7 @@ const BadgeHeaderLeftArray = ({...rest}: any) => {
 export const headerNavigationOptions = (route: unknown) => {
   const conversationIDKey =
     getRouteParamsFromRoute<'chatConversation'>(route)?.conversationIDKey ?? C.noConversationIDKey
+  console.log('aaaaheaderNavigationOptions ', route)
   return {
     headerLeft: (props: any) => {
       const {onLabelLayout, labelStyle, ...rest} = props

@@ -552,10 +552,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     inboxRefresh: reason => {
+      console.log('aaa inboxrefresh', reason)
       const f = async () => {
         const {username} = C.useCurrentUserState.getState()
         const {loggedIn} = C.useConfigState.getState()
         if (!loggedIn || !username) {
+          console.log('aaa inboxrefresh FAIL', {username, loggedIn})
           return
         }
         const clearExistingMetas = reason === 'inboxSyncedClear'
@@ -566,7 +568,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
           get().inboxHasLoaded || isPhone
             ? T.RPCChat.InboxLayoutReselectMode.default
             : T.RPCChat.InboxLayoutReselectMode.force
+        console.log('aaaa loading inbox')
         await T.RPCChat.localRequestInboxLayoutRpcPromise({reselectMode})
+        console.log('aaaa after loading inbox')
         if (clearExistingMetas) {
           get().dispatch.clearMetas()
         }
@@ -1682,6 +1686,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
         dispatch: s.dispatch,
         staticConfig: s.staticConfig,
       }))
+      // also blow away convoState
+      C.clearChatStores()
     },
     setInboxNumSmallRows: (rows, ignoreWrite) => {
       set(s => {
