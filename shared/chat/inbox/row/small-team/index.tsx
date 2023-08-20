@@ -167,7 +167,6 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
       participantTwo = participants[1] ?? ''
     }
   }
-
   return teamname ? (
     <TeamAvatar teamname={teamname} isMuted={isMuted} isSelected={isSelected} isHovered={false} />
   ) : (
