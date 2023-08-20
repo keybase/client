@@ -10,7 +10,7 @@ import HtmlWebpackPlugin from 'html-webpack-plugin'
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin')
 
 // why did you render
-const enableWDYR = true
+const enableWDYR = false
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
 const config = (_, {mode}) => {
