@@ -55,33 +55,36 @@ const makeNavScreens = (rs: any, Screen: any, isModal: any) => {
   })
 }
 
-const TabBarIcon = React.memo(function TabBarIcon(props: {isFocused: boolean; routeName: Tabs.Tab}) {
-  const {isFocused, routeName} = props
-  const navBadges = C.useNotifState(s => s.navBadges)
-  const hasPermissions = C.usePushState(s => s.hasPermissions)
-  const onSettings = routeName === Tabs.settingsTab
-  const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
-  const badgeNumber = tabsToCount.reduce(
-    (res, tab) => res + (navBadges.get(tab) || 0),
-    // notifications gets badged on native if there's no push, special case
-    onSettings && !hasPermissions ? 1 : 0
-  )
+const TabBarIcon = React.memo(
+  function TabBarIcon(props: {isFocused: boolean; routeName: Tabs.Tab}) {
+    const {isFocused, routeName} = props
+    const navBadges = C.useNotifState(s => s.navBadges)
+    const hasPermissions = C.usePushState(s => s.hasPermissions)
+    const onSettings = routeName === Tabs.settingsTab
+    const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
+    const badgeNumber = tabsToCount.reduce(
+      (res, tab) => res + (navBadges.get(tab) || 0),
+      // notifications gets badged on native if there's no push, special case
+      onSettings && !hasPermissions ? 1 : 0
+    )
 
-  // @ts-ignore
-  return tabToData[routeName] ? (
-    <View style={styles.container}>
-      <Kb.Icon
-        // @ts-ignore
-        type={tabToData[routeName].icon}
-        fontSize={32}
-        style={styles.tab}
-        color={isFocused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
-      />
-      {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={styles.badge} />}
-      {routeName === Tabs.fsTab && <Shared.FilesTabBadge />}
-    </View>
-  ) : null
-})
+    // @ts-ignore
+    return tabToData[routeName] ? (
+      <View style={styles.container}>
+        <Kb.Icon
+          // @ts-ignore
+          type={tabToData[routeName].icon}
+          fontSize={32}
+          style={styles.tab}
+          color={isFocused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
+        />
+        {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={styles.badge} />}
+        {routeName === Tabs.fsTab && <Shared.FilesTabBadge />}
+      </View>
+    ) : null
+  },
+  (a, b) => a.routeName === b.routeName && a.isFocused === b.isFocused
+)
 
 const styles = Styles.styleSheetCreate(
   () =>

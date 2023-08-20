@@ -6,7 +6,6 @@
 //   const whyDidYouRender = require('@welldone-software/why-did-you-render')
 //   console.log('\n\n\nDEBUG: WHY DID YOU RENDER enabled')
 //   if (whyDidYouRender && typeof whyDidYouRender === 'function') {
-//     const ush = require('./util/use-selector').default
 //     whyDidYouRender(React, {
 //       // TODO reduce these
 //       exclude: [
@@ -19,15 +18,15 @@
 //         /^AnimatedComponentWrapper$/,
 //         /CardContainer/,
 //         /StaticContainer/,
+//         /PressabilityDebugView/,
 //       ],
 //       include: [
-//         /^ConnectFunction/,
 //         // uncomment to watch everything, realllllly slows things down
-//         // /.*/,
+//         /.*/,
 //       ],
-//       // logOnDifferentValues: true,
+//       logOnDifferentValues: false,
 //       trackAllPureComponents: true,
-//       trackExtraHooks: [[ush, 'useSelector']],
+//       // trackExtraHooks: [['useSelector']],
 //     })
 //   }
 // }

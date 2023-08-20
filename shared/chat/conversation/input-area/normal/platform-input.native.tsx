@@ -498,7 +498,7 @@ const AnimatedInput = (() => {
           setLastExpanded(expanded)
           offset.value = expanded ? 1 : 0
         }
-        return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style, as]} />
+        return <AnimatedPlainInput {...rest} ref={ref} style={[p.style, as]} />
       })
     )
   }
