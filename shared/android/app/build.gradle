@@ -2,8 +2,6 @@ apply plugin: "com.android.application"
 apply plugin: "com.facebook.react"
 apply plugin: 'com.github.triplet.play'
 
-import com.android.build.OutputFile
-
 // KB: app version
 def VERSION_NAME = "6.3.0"
 
@@ -35,8 +33,8 @@ react {
     // root = file("../../")
     //   The folder where the react-native NPM package is. Default is ../node_modules/react-native
     // reactNativeDir = file("../node_modules/react-native")
-    //   The folder where the react-native Codegen package is. Default is ../node_modules/react-native-codegen
-    // codegenDir = file("../node_modules/react-native-codegen")
+    //   The folder where the react-native Codegen package is. Default is ../node_modules/@react-native/codegen
+    // codegenDir = file("../node_modules/@react-native/codegen")
     //   The cli.js file which is the React Native CLI entrypoint. Default is ../node_modules/react-native/cli.js
     // cliFile = file("../node_modules/react-native/cli.js")
 
@@ -76,14 +74,6 @@ react {
 }
 
 /**
- * Set this to true to create four separate APKs instead of one,
- * one for each native architecture. This is useful if you don't
- * use App Bundles (https://developer.android.com/guide/app-bundle/)
- * and want to have separate APKs to upload to the Play Store.
- */
-def enableSeparateBuildPerCPUArchitecture = false
-
-/**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
 def enableProguardInReleaseBuilds = false
@@ -101,16 +91,6 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'org.webkit:android-jsc:+'
 
-/**
- * Private function to get the list of Native Architectures you want to build.
- * This reads the value from reactNativeArchitectures in your gradle.properties
- * file and works together with the --active-arch-only flag of react-native run-android.
- */
-def reactNativeArchitectures() {
-    def value = project.getProperties().get("reactNativeArchitectures")
-    return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
-}
-
 android {
     ndkVersion rootProject.ext.ndkVersion
 
@@ -125,15 +105,6 @@ android {
         versionName VERSION_NAME
         // KB added
         multiDexEnabled true
-    }
-
-    splits {
-        abi {
-            reset()
-            enable enableSeparateBuildPerCPUArchitecture
-            universalApk false  // If true, also generate a universal APK
-            include (*reactNativeArchitectures())
-        }
     }
 
     signingConfigs {
@@ -173,7 +144,6 @@ android {
             output.versionCodeOverride = getVersionCode()
         }
     }
-
     bundle {
         language {
             enableSplit = true
@@ -196,8 +166,6 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
-    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
-
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.squareup.okhttp3', module:'okhttp'
@@ -210,9 +178,10 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation 'androidx.work:work-runtime:2.7.1'
+    implementation 'androidx.work:work-runtime:2.8.1'
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation "com.google.firebase:firebase-messaging:23.2.1"
+    // implementation "com.google.firebase:firebase-messaging:23.2.1"
+    implementation "com.google.firebase:firebase-messaging:22.0.0"
     implementation "com.facebook.fresco:animated-gif:2.6.0"
     implementation "com.facebook.fresco:fresco:2.6.0"
     implementation 'org.msgpack:msgpack-core:0.9.0'

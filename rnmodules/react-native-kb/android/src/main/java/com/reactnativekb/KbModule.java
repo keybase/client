@@ -34,7 +34,9 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.turbomodule.core.CallInvokerHolderImpl;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
+// import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import java.io.BufferedReader;
@@ -347,19 +349,19 @@ public class KbModule extends KbSpec {
     @ReactMethod
     public void androidRequestPushPermissions(Promise promise) {
         this.ensureFirebase();
-        androidCheckPushPermissions(promise);
-        // FirebaseInstanceId.getInstance().getInstanceId()
-        //         .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-        //             @Override
-        //             public void onComplete(@NonNull Task<InstanceIdResult> task) {
-        //                 androidCheckPushPermissions(promise);
-        //             }
-        //         });
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        androidCheckPushPermissions(promise);
+                    }
+                });
     }
 
     private void ensureFirebase() {
         boolean firebaseInitialized = FirebaseApp.getApps(this.reactContext).size() == 1;
         if (!firebaseInitialized) {
+                        // NativeLogger.rawLog("AAAAAA","AAAAa !firebaseInitialized  ");
             FirebaseApp.initializeApp(this.reactContext,
                     new FirebaseOptions.Builder()
                             .setApplicationId(String.valueOf(getBuildConfigValue("LIBRARY_PACKAGE_NAME")))
@@ -373,22 +375,42 @@ public class KbModule extends KbSpec {
     @ReactMethod
     public void androidGetRegistrationToken(Promise promise) {
         this.ensureFirebase();
-        FirebaseMessaging.getInstance().getToken()
-            .addOnCompleteListener(new OnCompleteListener<String>() {
-                @Override
-                public void onComplete(@NonNull Task<String> task) {
-                    if (!task.isSuccessful()) {
-                        NativeLogger.info("Fetching FCM registration token failed " + task.getException());
-                        promise.reject(task.getException());
-                        return;
-                    }
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if (!task.isSuccessful()) {
+                            NativeLogger.warn("getInstanceId failed", task.getException());
+                            promise.reject(task.getException());
+                            return;
+                        }
 
-                    // Get new FCM registration token
-                    String token = task.getResult();
-                    NativeLogger.info("Got token: " + token);
-                    promise.resolve(token);
-                }
-            });
+                        // Get new Instance ID token
+                        String token = task.getResult().getToken();
+                        NativeLogger.info("Got token: " + token);
+                        promise.resolve(token);
+                    }
+                });
+        //                 NativeLogger.rawLog("AAAAAA","AAAAAAAAAAAAAAAAAAFetchingandroidGetRegistrationToken ");
+        // this.ensureFirebase();
+        // FirebaseMessaging.getInstance().getToken()
+        //     .addOnCompleteListener(new OnCompleteListener<String>() {
+        //         @Override
+        //         public void onComplete(@NonNull Task<String> task) {
+        //             if (!task.isSuccessful()) {
+        //                 NativeLogger.rawLog("AAAAAA", "AAAAAAAAAAAAAAAAAAFetchingandroidGetRegistrationToken failed" + task.getException());
+        //                 NativeLogger.info("Fetching FCM registration token failed " + task.getException());
+        //                 promise.reject(task.getException());
+        //                 return;
+        //             }
+
+        //             // Get new FCM registration token
+        //             String token = task.getResult();
+        //                 NativeLogger.rawLog("AAAAAA", "AAAAAAAAAAAAAAAAAAFetchingandroidGetRegistrationToken worked!" + token);
+        //             NativeLogger.info("Got token: " + token);
+        //             promise.resolve(token);
+        //         }
+        //     });
     }
 
     // Unlink
