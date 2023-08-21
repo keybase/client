@@ -89,8 +89,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
     return
   }
 
-  let loadDaemonBootstrapStatusDoneVersion = -1
-  let loadDaemonAccountsVersion = -1
   // When there are no more waiters, we can show the actual app
 
   let _emitStartupOnLoadDaemonConnectedOnce = false
@@ -145,11 +143,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
     loadDaemonAccounts: () => {
       const f = async () => {
         const version = get().handshakeVersion
-
-        if (loadDaemonAccountsVersion === version) {
+        if (C.useConfigState.getState().configuredAccounts.length) {
+          // bail on already loaded
           return
         }
-        loadDaemonAccountsVersion = version
 
         let handshakeWait = false
         let handshakeVersion = 0
@@ -221,10 +218,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
     loadDaemonBootstrapStatus: async () => {
       const version = get().handshakeVersion
       const {wait} = get().dispatch
-      if (loadDaemonBootstrapStatusDoneVersion === version) {
+
+      if (C.useCurrentUserState.getState().username) {
+        // ready loaded, can bail
         return
       }
-      loadDaemonBootstrapStatusDoneVersion = version
 
       const f = async () => {
         const {setBootstrap} = C.useCurrentUserState.getState().dispatch
@@ -264,8 +262,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     onRestartHandshakeNative: _onRestartHandshakeNative,
     resetState: () => {
-      // let us reget bootstrap on logout
-      loadDaemonBootstrapStatusDoneVersion = -1
       set(s => ({
         ...s,
         ...initialStore,

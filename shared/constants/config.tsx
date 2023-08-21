@@ -1017,11 +1017,14 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
 
       if (!changed) return
 
+      if (loggedIn) {
+        Z.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
+        C.useDaemonState.getState().dispatch.loadDaemonAccounts()
+      }
+
       const {loadOnStart} = get().dispatch
       if (loggedIn) {
         if (!causedByStartup) {
-          Z.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
-          C.useDaemonState.getState().dispatch.loadDaemonAccounts()
           loadOnStart('reloggedIn')
           const f = async () => {
             await Z.timeoutPromise(1000)
