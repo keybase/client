@@ -9,7 +9,7 @@ module.exports.transform = function (p) {
     return upstreamTransformer.transform({
       filename: p.filename,
       options: p.options,
-      src: 'module.export = ""',
+      src: 'module.exports = ""',
     })
   }
   return upstreamTransformer.transform(p)
