@@ -77,8 +77,10 @@
         -->
         </activity>
         <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
-
         <receiver android:name="io.keybase.ossifrage.ChatBroadcastReceiver" />
+        <meta-data android:name="firebase_analytics_collection_deactivated" android:value="true" />
+        <meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />
+        <meta-data android:name="google_analytics_ssaid_collection_enabled" android:value="false" />
         <service android:name=".KeybasePushNotificationListenerService" android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
