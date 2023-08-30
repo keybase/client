@@ -166,7 +166,6 @@ const normalizePush = (_n?: Object): T.Push.PushNotification | undefined => {
 // `getInitialPushAndroid`.
 const listenForNativeAndroidIntentNotifications = async () => {
   const pushToken = await androidGetRegistrationToken()
-  console.log('aaaaaaaaaaaalistenForNativeAndroidIntentNotifications token', pushToken)
   logger.debug('[PushToken] received new token: ', pushToken)
 
   C.usePushState.getState().dispatch.setPushToken(pushToken)
@@ -301,17 +300,11 @@ export const initPushListener = () => {
 
   C.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return
-    console.log('aaaa >>>>>>>>>>>handshake change, sub notifs')
-
     const f = async () => {
       if (isAndroid) {
         try {
-          console.log('aaaa >>>>>>>>>>>handshake change, sub notifs before')
           await listenForNativeAndroidIntentNotifications()
-          console.log('aaaa >>>>>>>>>>>handshake change, sub notifs after')
-        } catch (e) {
-          console.log('aaaa >>>>>>>>>>>handshake change, sub notifs fail', e)
-        }
+        } catch (e) {}
       } else {
         iosListenForPushNotificationsFromJS()
       }

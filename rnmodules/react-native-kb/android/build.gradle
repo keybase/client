@@ -133,7 +133,6 @@ dependencies {
   //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"
     implementation "com.google.firebase:firebase-messaging:22.0.0"
-    // implementation "com.google.firebase:firebase-messaging:23.2.1"
     implementation "me.leolin:ShortcutBadger:1.1.22@aar"
     implementation project(':keybaselib')
 }

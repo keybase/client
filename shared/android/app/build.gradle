@@ -180,7 +180,6 @@ dependencies {
 
     implementation 'androidx.work:work-runtime:2.8.1'
     implementation 'androidx.multidex:multidex:2.0.1'
-    // implementation "com.google.firebase:firebase-messaging:23.2.1"
     implementation "com.google.firebase:firebase-messaging:22.0.0"
     implementation "com.facebook.fresco:animated-gif:2.6.0"
     implementation "com.facebook.fresco:fresco:2.6.0"
