@@ -52,6 +52,8 @@ export const isValidLink = (link: string) => {
       return true
     case 'team-invite-link':
       return argArrayGood(parts, 1)
+    case 'settingsPushPrompt':
+      return true
   }
 
   return false
@@ -126,10 +128,12 @@ const makeLinking = (options: OptionsType) => {
           url = `keybase://${startupTab ?? ''}`
         }
       }
+
       // allow deep links sagas access to the first link
       if (isValidLink(url)) {
         setTimeout(() => url && C.useDeepLinksState.getState().dispatch.handleAppLink(url), 1)
       }
+
       return url
     },
     getStateFromPath: (path: string, options: Parameters<typeof getStateFromPath>[1]) => {

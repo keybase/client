@@ -83,9 +83,7 @@ export type Store = {
   runtimeStats?: T.RPCGen.RuntimeStats
   startup: {
     loaded: boolean
-    wasFromPush: boolean
     conversation: T.Chat.ConversationIDKey
-    pushPayload: string
     followUser: string
     link: string
     tab?: Tab
@@ -151,8 +149,6 @@ const initialStore: Store = {
     followUser: '',
     link: '',
     loaded: false,
-    pushPayload: '',
-    wasFromPush: false,
   },
   unlockFoldersDevices: [],
   unlockFoldersError: '',

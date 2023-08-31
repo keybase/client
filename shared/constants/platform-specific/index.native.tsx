@@ -23,6 +23,7 @@ import {
   fsCacheDir,
   fsDownloadDir,
   androidAppColorSchemeChanged,
+  guiConfig,
 } from 'react-native-kb'
 import {
   initPushListener,
@@ -137,14 +138,17 @@ export const showShareActionSheet = async (options: {
 // TODO rewrite this, v slow
 const loadStartupDetails = async () => {
   const [routeState, initialUrl, push, share] = await Promise.all([
-    Container.neverThrowPromiseFunc(async () =>
-      T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.routeState2'}).then(v => v.s || '')
-    ),
+    Container.neverThrowPromiseFunc(async () => {
+      try {
+        return Promise.resolve(JSON.parse(guiConfig).ui.routeState2 as string)
+      } catch {
+        return Promise.resolve('')
+      }
+    }),
     Container.neverThrowPromiseFunc(async () => Linking.getInitialURL()),
     Container.neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
     Container.neverThrowPromiseFunc(getStartupDetailsFromInitialShare),
   ] as const)
-  logger.info('routeState load', routeState)
 
   // Clear last value to be extra safe bad things don't hose us forever
   try {
@@ -154,9 +158,7 @@ const loadStartupDetails = async () => {
     })
   } catch (_) {}
 
-  let wasFromPush = false
   let conversation: T.Chat.ConversationIDKey | undefined = undefined
-  let pushPayload = ''
   let followUser = ''
   let link = ''
   let tab = ''
@@ -166,10 +168,8 @@ const loadStartupDetails = async () => {
   // Top priority, push
   if (push) {
     logger.info('initialState: push', push.startupConversation, push.startupFollowUser)
-    wasFromPush = true
     conversation = push.startupConversation
     followUser = push.startupFollowUser ?? ''
-    pushPayload = push.startupPushPayload ?? ''
   } else if (initialUrl) {
     logger.info('initialState: link', link)
     // Second priority, deep link
@@ -219,9 +219,7 @@ const loadStartupDetails = async () => {
     conversation: conversation ?? C.noConversationIDKey,
     followUser,
     link,
-    pushPayload,
     tab: tab as Tabs.Tab,
-    wasFromPush,
   })
 
   afterStartupDetails(false)

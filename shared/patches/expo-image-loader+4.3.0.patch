@@ -1,0 +1,13 @@
+diff --git a/node_modules/expo-image-loader/android/build.gradle b/node_modules/expo-image-loader/android/build.gradle
+index 0959aa2..ee486cc 100644
+--- a/node_modules/expo-image-loader/android/build.gradle
++++ b/node_modules/expo-image-loader/android/build.gradle
+@@ -83,7 +83,7 @@ repositories {
+   mavenCentral()
+ }
+ 
+-def glideVersion = safeExtGet('glideVersion', '4.13.2')
++def glideVersion = safeExtGet('glideVersion', '4.16.0')
+ 
+ dependencies {
+   implementation project(':expo-modules-core')
