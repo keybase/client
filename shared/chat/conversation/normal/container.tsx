@@ -24,7 +24,7 @@ const useOrangeLine = (conversationIDKey: T.Chat.ConversationIDKey) => {
   }
   const [orangeLine, setOrangeLine] = React.useState(initOrangeLine())
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  const [lastReadMsgID, setLastReadMsgID] = React.useState(initOrangeLine())
+  const [lastReadMsgID, setLastReadMsgID] = React.useState(readMsgID)
   const [metaGood, setMetaGood] = React.useState(readMsgID > 0)
 
   // meta not ready yet
