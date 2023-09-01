@@ -1,1 +1,2 @@
-android
+ios:
+    image zoom wonky
