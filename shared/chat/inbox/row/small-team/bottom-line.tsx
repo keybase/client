@@ -4,6 +4,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as T from '../../../../constants/types'
 import {SnippetContext, SnippetDecorationContext} from './contexts'
+import shallowEqual from 'shallowequal'
 
 type Props = {
   isDecryptingSnippet: boolean
@@ -116,11 +117,14 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
   const you = C.useCurrentUserState(s => s.username)
   const hasUnread = C.useChatContext(s => s.unread > 0)
   const _draft = C.useChatContext(s => s.draft)
-  const meta = C.useChatContext(s => s.meta)
-  const youAreReset = meta.membershipType === 'youAreReset'
-  const participantNeedToRekey = (meta.rekeyers.size ?? 0) > 0
-  const youNeedToRekey = meta.rekeyers.has(you) ?? false
-  const hasResetUsers = (meta.resetParticipants.size ?? 0) > 0
+  const {hasResetUsers, participantNeedToRekey, youAreReset, youNeedToRekey} = C.useChatContext(s => {
+    const {membershipType, rekeyers, resetParticipants} = s.meta
+    const youAreReset = membershipType === 'youAreReset'
+    const participantNeedToRekey = rekeyers.size > 0
+    const youNeedToRekey = rekeyers.has(you)
+    const hasResetUsers = resetParticipants.size > 0
+    return {hasResetUsers, participantNeedToRekey, youAreReset, youNeedToRekey}
+  }, shallowEqual)
   const draft = (!isSelected && !hasUnread && _draft) || ''
 
   const props = {
