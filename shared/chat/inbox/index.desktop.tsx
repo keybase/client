@@ -119,13 +119,24 @@ class Inbox extends React.Component<TInbox.Props, State> {
     ev.dataTransfer.setData(dragKey, dragKey)
   }
 
+  // private heightStyleCache = new Map()
   private itemRenderer = (index: number, style: Object) => {
     const row = this.props.rows[index]
     if (!row) {
       // likely small teams were just collapsed
       return null
     }
+
+    // const s = style as any
+    // let cached = this.heightStyleCache.get(s.top)
+    // if (!cached || !shallowEqual(cached, s)) {
+    //   this.heightStyleCache.set(s.top, s)
+    //   cached = s
+    // }
+
+    // const divStyle = cached
     const divStyle = style
+
     if (row.type === 'divider') {
       const newSmallRows = this.deltaNewSmallRows()
       let expandingRows: Array<string> = []

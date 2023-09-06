@@ -315,7 +315,7 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
               ref={this.listRef}
               removeClippedSubviews={Styles.isAndroid}
               renderItem={this.renderItem}
-              windowSize={1}
+              windowSize={5}
               getItemLayout={this.getItemLayout}
             />
           )}

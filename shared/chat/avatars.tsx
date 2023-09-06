@@ -4,7 +4,12 @@ import type {AvatarSize} from '../common-adapters/avatar'
 import * as Styles from '../styles'
 import './chat.css'
 
-const OverlayIcon = (p: {isHovered: boolean; isMuted: boolean; isSelected: boolean; isLocked: boolean}) => {
+const OverlayIcon = React.memo(function OverlayIcon(p: {
+  isHovered: boolean
+  isMuted: boolean
+  isSelected: boolean
+  isLocked: boolean
+}) {
   const {isHovered, isMuted, isSelected, isLocked} = p
 
   if (Styles.isMobile) {
@@ -47,7 +52,7 @@ const OverlayIcon = (p: {isHovered: boolean; isMuted: boolean; isSelected: boole
       />
     </Kb.Box>
   )
-}
+})
 
 type Props = {
   participantOne?: string
