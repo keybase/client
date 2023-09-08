@@ -7,7 +7,7 @@ import {SnippetContext, SnippetDecorationContext} from './contexts'
 import shallowEqual from 'shallowequal'
 
 type Props = {
-  layoutSnippet: string
+  layoutSnippet?: string
   backgroundColor?: string
   isSelected?: boolean
   isInWidget?: boolean

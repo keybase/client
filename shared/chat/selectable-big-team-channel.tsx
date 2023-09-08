@@ -84,7 +84,7 @@ class SelectableBigTeamChannel extends React.PureComponent<Props, State> {
           </Kb.Box2>
           {!this.props.numSearchHits && (
             <SnippetContext.Provider value={this.props.snippet ?? ''}>
-              <BottomLine isDecryptingSnippet={false} isSelected={this.props.isSelected} />
+              <BottomLine isSelected={this.props.isSelected} />
             </SnippetContext.Provider>
           )}
           {!!this.props.numSearchHits && (
