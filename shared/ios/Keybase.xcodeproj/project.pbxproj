@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -583,7 +583,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
+			shellScript = "set -e\nexport SOURCEMAP_FILE=\"$(pwd)/build/main.jsbundle.map\";\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
 			showEnvVarsInLog = 0;
 		};
 		DB3A5F8F29A5686A002BF5A5 /* Strip hermes */ = {
@@ -602,7 +602,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "BITCODE_STRIP=\"$(xcrun -sdk iphoneos --find bitcode_strip)\"\nFRAMEWORK=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework/hermes\"\nif [ -f \"$FRAMEWORK\" ]; then\n    echo \"stripping hermes\"\n    ls -la \"${FRAMEWORK}\"\n    \"${BITCODE_STRIP}\" -r \"${FRAMEWORK}\" -o \"${FRAMEWORK}\"\n    echo \"done stripping hermes\"\n    ls -la \"${FRAMEWORK}\"\nelse \n    echo \"hermes not found, skipping strip\"\n    ls -la \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\nfi\n";
+			shellScript = "#BITCODE_STRIP=\"$(xcrun -sdk iphoneos --find bitcode_strip)\"\n#FRAMEWORK=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework/hermes\"\n#\n#if [ -f \"$FRAMEWORK\" ]; then\n#    echo \"stripping hermes\"\n#    ls -la \"${FRAMEWORK}\"\n#    \"${BITCODE_STRIP}\" -keep_cs -r \"${FRAMEWORK}\" -o \"${FRAMEWORK}\"\n#    echo \"done stripping hermes\"\n#    ls -la \"${FRAMEWORK}\"\n#else \n#    echo \"hermes not found, skipping strip\"\n#    ls -la \"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\n#fi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -684,7 +684,7 @@
 					"$(SRCROOT)/KeybaseGo",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -738,7 +738,7 @@
 					"$(SRCROOT)/KeybaseGo",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

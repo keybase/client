@@ -264,6 +264,8 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
     return {index, length, offset}
   }
 
+  private HeadComponent = (<ChatInboxHeader headerContext="inbox-header" />)
+
   render() {
     if (!usingFlashList) {
       this.dividerShowButton = false
@@ -289,21 +291,19 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
 
-    const HeadComponent = <ChatInboxHeader headerContext="inbox-header" />
-
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
           <LoadingLine />
           {this.props.isSearching ? (
             <Kb.Box2 direction="vertical" fullWidth={true}>
-              <InboxSearch header={HeadComponent} />
+              <InboxSearch header={this.HeadComponent} />
             </Kb.Box2>
           ) : (
             <List
               // @ts-ignore
               disableAutoLayout={true}
-              ListHeaderComponent={HeadComponent}
+              ListHeaderComponent={this.HeadComponent}
               data={this.props.rows}
               estimatedItemSize={64}
               getItemType={this.getItemType}
@@ -313,9 +313,9 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
               overScrollMode="never"
               overrideItemLayout={this.overrideItemLayout}
               ref={this.listRef}
-              removeClippedSubviews={Styles.isAndroid}
+              removeClippedSubviews={true /*Styles.isAndroid*/}
               renderItem={this.renderItem}
-              windowSize={5}
+              windowSize={5 /* 21*/}
               getItemLayout={this.getItemLayout}
             />
           )}

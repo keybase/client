@@ -73,21 +73,6 @@ const useSyncClosing = (
   return {closeSelf, closeOthersAndRegisterClose, hasSwiped}
 }
 
-const makeSetIsOpenReaction = (
-  tx: Reanimated.SharedValue<number>,
-  lastIsOpen: Reanimated.SharedValue<boolean>,
-  setIsOpen: (p: boolean) => void
-) => {
-  return function setIsOpenReaction() {
-    'worklet'
-    const nextIsOpen = tx.value < 0
-    if (lastIsOpen.value !== nextIsOpen) {
-      lastIsOpen.value = nextIsOpen
-      Reanimated.runOnJS(setIsOpen)(nextIsOpen)
-    }
-  }
-}
-
 const makePanOnStart = (
   tx: Reanimated.SharedValue<number>,
   startx: Reanimated.SharedValue<number>,
@@ -160,6 +145,21 @@ const makeTapOnEnd = (isOpen: boolean, onClick?: () => void) => {
   }
 }
 
+const useMakeSetIsOpenReaction = (tx: Reanimated.SharedValue<number>, setIsOpen: (p: boolean) => void) => {
+  Reanimated.useAnimatedReaction(
+    () => {
+      'worklet'
+      return tx.value < 0
+    },
+    (cur, prev) => {
+      'worklet'
+      if (cur !== prev) {
+        Reanimated.runOnJS(setIsOpen)(cur)
+      }
+    }
+  )
+}
+
 const useGesture = (
   actionWidth: number,
   tx: Reanimated.SharedValue<number>,
@@ -169,7 +169,6 @@ const useGesture = (
   onClick?: () => void
 ) => {
   const started = Reanimated.useSharedValue(false)
-  const lastIsOpen = Reanimated.useSharedValue(false)
   const [isOpen, setIsOpen] = React.useState(false)
   const startx = Reanimated.useSharedValue(0)
   const dx = Reanimated.useSharedValue(0)
@@ -184,8 +183,7 @@ const useGesture = (
     tx.value = 0
   }
 
-  // TEMP
-  Reanimated.useDerivedValue(makeSetIsOpenReaction(tx, lastIsOpen, setIsOpen), [tx])
+  useMakeSetIsOpenReaction(tx, setIsOpen)
 
   const panGesture = Gesture.Pan()
     .activeOffsetX([-10, 10])

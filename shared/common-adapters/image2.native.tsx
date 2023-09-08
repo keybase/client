@@ -5,7 +5,8 @@ import {Image} from 'expo-image'
 
 const Image2 = (p: Props) => {
   const {showLoadingStateUntilLoaded, src, onLoad, onError, style} = p
-  const [loading, setLoading] = React.useState(true)
+  // if we don't have showLoadingStateUntilLoaded then just mark as loaded and ignore this state
+  const [loading, setLoading] = React.useState(showLoadingStateUntilLoaded ? false : true)
   const _onLoad = React.useCallback(
     (e: any) => {
       setLoading(false)

@@ -7,7 +7,7 @@ import {SnippetContext, SnippetDecorationContext} from './contexts'
 import shallowEqual from 'shallowequal'
 
 type Props = {
-  isDecryptingSnippet: boolean
+  layoutSnippet: string
   backgroundColor?: string
   isSelected?: boolean
   isInWidget?: boolean
@@ -107,7 +107,7 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Sty
 })
 
 const BottomLine = React.memo(function BottomLine(p: Props) {
-  const {isSelected, backgroundColor, isInWidget, isDecryptingSnippet} = p
+  const {isSelected, backgroundColor, isInWidget, layoutSnippet} = p
 
   const isTypingSnippet = C.useChatContext(s => {
     const typers = !isInWidget ? s.typing : undefined
@@ -117,14 +117,29 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
   const you = C.useCurrentUserState(s => s.username)
   const hasUnread = C.useChatContext(s => s.unread > 0)
   const _draft = C.useChatContext(s => s.draft)
-  const {hasResetUsers, participantNeedToRekey, youAreReset, youNeedToRekey} = C.useChatContext(s => {
-    const {membershipType, rekeyers, resetParticipants} = s.meta
-    const youAreReset = membershipType === 'youAreReset'
-    const participantNeedToRekey = rekeyers.size > 0
-    const youNeedToRekey = rekeyers.has(you)
-    const hasResetUsers = resetParticipants.size > 0
-    return {hasResetUsers, participantNeedToRekey, youAreReset, youNeedToRekey}
-  }, shallowEqual)
+  const {hasResetUsers, isDecryptingSnippet, participantNeedToRekey, youAreReset, youNeedToRekey} =
+    C.useChatContext(s => {
+      const {membershipType, rekeyers, resetParticipants, trustedState, conversationIDKey, snippetDecorated} =
+        s.meta
+      const youAreReset = membershipType === 'youAreReset'
+      const participantNeedToRekey = rekeyers.size > 0
+      const youNeedToRekey = rekeyers.has(you)
+      const hasResetUsers = resetParticipants.size > 0
+
+      // only use layout if we don't have the meta at all
+      //
+      const typers = !isInWidget ? s.typing : undefined
+      const typingSnippet = (typers?.size ?? 0) > 0 ? 't' : undefined
+      const maybeLayoutSnippet = conversationIDKey === C.noConversationIDKey ? layoutSnippet : undefined
+
+      const snippet = typingSnippet ?? snippetDecorated ?? maybeLayoutSnippet ?? ''
+      const isDecryptingSnippet =
+        s.id && !snippet
+          ? !trustedState || trustedState === 'requesting' || trustedState === 'untrusted'
+          : false
+
+      return {hasResetUsers, isDecryptingSnippet, participantNeedToRekey, youAreReset, youNeedToRekey}
+    }, shallowEqual)
   const draft = (!isSelected && !hasUnread && _draft) || ''
 
   const props = {

@@ -1,4 +1,3 @@
 ios:
     image zoom wonky
     react native  changes in node_modules not patched
-    hermes on

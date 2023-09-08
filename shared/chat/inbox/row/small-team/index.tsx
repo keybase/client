@@ -32,7 +32,7 @@ export type Props = {
 
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
   const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime} = p
-  const {conversationIDKey, isInWidget, swipeCloseRef} = p
+  const {isInWidget, swipeCloseRef} = p
 
   const typingSnippet = C.useChatContext(s => {
     const typers = !isInWidget ? s.typing : undefined
@@ -42,18 +42,13 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       : 'Multiple people typing...'
   })
 
-  const {isDecryptingSnippet, snippet, snippetDecoration} = C.useChatContext(s => {
+  const {snippet, snippetDecoration} = C.useChatContext(s => {
     const {meta} = s
     // only use layout if we don't have the meta at all
     const maybeLayoutSnippet = meta.conversationIDKey === C.noConversationIDKey ? layoutSnippet : undefined
     const snippet = typingSnippet ?? meta.snippetDecorated ?? maybeLayoutSnippet ?? ''
-    const trustedState = meta.trustedState
-    const isDecryptingSnippet =
-      conversationIDKey && !snippet
-        ? !trustedState || trustedState === 'requesting' || trustedState === 'untrusted'
-        : false
     const snippetDecoration = meta?.snippetDecoration ?? T.RPCChat.SnippetDecoration.none
-    return {isDecryptingSnippet, snippet, snippetDecoration}
+    return {snippet, snippetDecoration}
   }, shallowEqual)
 
   const you = C.useCurrentUserState(s => s.username)
@@ -110,7 +105,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
                 <SimpleTopLine isSelected={isSelected} isInWidget={isInWidget} />
               </Kb.Box2>
               <BottomLine
-                isDecryptingSnippet={isDecryptingSnippet}
+                layoutSnippet={layoutSnippet}
                 isInWidget={isInWidget}
                 backgroundColor={backgroundColor}
                 isSelected={isSelected}
@@ -120,7 +115,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
         </Kb.ClickableBox>
       </SwipeConvActions>
     )
-  }, [backgroundColor, isDecryptingSnippet, isInWidget, isSelected, onSelectConversation, swipeCloseRef])
+  }, [backgroundColor, isInWidget, isSelected, onSelectConversation, swipeCloseRef])
 
   return (
     <IsTeamContext.Provider value={!!layoutIsTeam}>
