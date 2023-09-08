@@ -148,13 +148,7 @@ const Connected = (ownProps: OwnProps) => {
     smallTeams = smallTeams.slice(0, inboxNumSmallRows)
   }
   const smallRows = makeSmallRows(smallTeams, _selectedConversationIDKey)
-  // if (smallRows.length) {
-  //   smallRows = [smallRows[0]]
-  // }
   const bigRows = makeBigRows(bigTeams, _selectedConversationIDKey)
-  // if (bigRows.length) {
-  //   bigRows = [bigRows[0]]
-  // }
   const teamBuilder: T.Chat.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
 
   const hasAllSmallTeamConvs =
