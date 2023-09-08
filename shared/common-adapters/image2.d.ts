@@ -2,6 +2,7 @@ import * as React from 'react'
 import {StylesCrossPlatform} from '../styles'
 
 export type Props = {
+  contentFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down'
   src: string | Array<{uri: string; width: number; height: number}> /*this form mobile only for now*/
   style?: StylesCrossPlatform
   showLoadingStateUntilLoaded?: boolean
