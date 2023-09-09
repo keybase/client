@@ -1,6 +1,6 @@
 import * as C from '../constants'
 import * as Constants from '../constants/crypto'
-import * as Container from '../util/container'
+import type * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Path from '../util/path'
 import * as Platforms from '../constants/platform'
@@ -322,7 +322,7 @@ const OutputFileDestination = (props: {operation: T.Crypto.Operations}) => {
       const path = filePaths[0]!
       runFileOperation(operation, path)
     }
-    Container.ignorePromise(f())
+    C.ignorePromise(f())
   }
 
   return (

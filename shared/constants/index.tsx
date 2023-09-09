@@ -95,3 +95,17 @@ export type ViewPropsToPageProps<T> = T extends (p: infer P) => any ? {route: {p
 export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
   ? {route: {params: P | undefined}}
   : never
+
+export const ignorePromise = (f: Promise<void>) => {
+  f.then(() => {}).catch(() => {})
+}
+
+export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
+  try {
+    return await f()
+  } catch {
+    return undefined
+  }
+}
+
+export const assertNever = (_: never) => undefined

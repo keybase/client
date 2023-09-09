@@ -61,7 +61,7 @@ export default () => {
         await Container.timeoutPromise(3_600_000) // 1 hr
       }
     }
-    Container.ignorePromise(f())
+    C.ignorePromise(f())
   })
 
   const onOpenAppStore = C.useConfigState(s => s.dispatch.dynamic.openAppStore)

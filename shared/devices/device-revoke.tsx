@@ -112,7 +112,7 @@ const useRevoke = (deviceID = '') => {
         } catch {}
       }
     }
-    Container.ignorePromise(f())
+    C.ignorePromise(f())
   }, [navUpToScreen, deviceID, deviceName, load, username, wasCurrentDevice])
 }
 
@@ -135,7 +135,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
       const tlfs = await loadEndangeredTLF(actingDevice, selectedDeviceID)
       setEndangeredTLFs(tlfs)
     }
-    Container.ignorePromise(f())
+    C.ignorePromise(f())
   })
 
   const props = {

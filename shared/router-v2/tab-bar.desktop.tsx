@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import './tab-bar.css'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
 import * as Platforms from '../constants/platform'
@@ -53,7 +52,7 @@ const Header = () => {
       if (isLinux) {
         stop(T.RPCGen.ExitCode.ok)
       } else {
-        Container.ignorePromise(dumpLogs?.('quitting through menu') ?? Promise.resolve())
+        C.ignorePromise(dumpLogs?.('quitting through menu') ?? Promise.resolve())
       }
     }
     // In case dump log doesn't exit for us

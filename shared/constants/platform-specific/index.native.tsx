@@ -138,16 +138,16 @@ export const showShareActionSheet = async (options: {
 // TODO rewrite this, v slow
 const loadStartupDetails = async () => {
   const [routeState, initialUrl, push, share] = await Promise.all([
-    Container.neverThrowPromiseFunc(async () => {
+    C.neverThrowPromiseFunc(async () => {
       try {
         return Promise.resolve(JSON.parse(guiConfig).ui.routeState2 as string)
       } catch {
         return Promise.resolve('')
       }
     }),
-    Container.neverThrowPromiseFunc(async () => Linking.getInitialURL()),
-    Container.neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
-    Container.neverThrowPromiseFunc(getStartupDetailsFromInitialShare),
+    C.neverThrowPromiseFunc(async () => Linking.getInitialURL()),
+    C.neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
+    C.neverThrowPromiseFunc(getStartupDetailsFromInitialShare),
   ] as const)
 
   // Clear last value to be extra safe bad things don't hose us forever
@@ -434,7 +434,7 @@ export const initPlatformListener = () => {
     }
 
     if (isAndroid) {
-      Container.ignorePromise(
+      Z.ignorePromise(
         T.RPCChat.localConfigureFileAttachmentDownloadLocalRpcPromise({
           // Android's cache dir is (when I tried) [app]/cache but Go side uses
           // [app]/.cache by default, which can't be used for sharing to other apps.
@@ -565,7 +565,7 @@ export const initPlatformListener = () => {
           }
         }
       }
-      Container.ignorePromise(f())
+      Z.ignorePromise(f())
     }
 
     s.dispatch.dynamic.onEngineIncomingNative = action => {

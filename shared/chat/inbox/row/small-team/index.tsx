@@ -115,7 +115,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
         </Kb.ClickableBox>
       </SwipeConvActions>
     )
-  }, [backgroundColor, isInWidget, isSelected, onSelectConversation, swipeCloseRef])
+  }, [backgroundColor, isInWidget, isSelected, onSelectConversation, swipeCloseRef, layoutSnippet])
 
   return (
     <IsTeamContext.Provider value={!!layoutIsTeam}>

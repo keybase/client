@@ -16,11 +16,6 @@ export type Unpacked<T> = T extends (infer U)[]
   ? U
   : T
 
-// just then and catch and ignore async functions
-export const ignorePromise = (f: Promise<void>) => {
-  f.then(() => {}).catch(() => {})
-}
-
 export const useNav = () => {
   const n = useNavigation()
   const na: {pop?: () => void; navigate: (n: RouteKeys) => void} = n as any
@@ -108,16 +103,6 @@ export type RouteDef = {
   screen?: React.ComponentType
 }
 export type RouteMap = {[K in string]?: RouteDef}
-
-export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
-  try {
-    return await f()
-  } catch {
-    return undefined
-  }
-}
-
-export const assertNever = (_: never) => undefined
 
 export const timeoutPromise = async (timeMs: number) =>
   new Promise<void>(resolve => {
