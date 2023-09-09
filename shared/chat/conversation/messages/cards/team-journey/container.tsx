@@ -1,7 +1,6 @@
 import * as C from '../../../../../constants'
 import * as T from '../../../../../constants/types'
 import * as Constants from '../../../../../constants/chat2'
-import * as Container from '../../../../../util/container'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
 import * as TeamConstants from '../../../../../constants/teams'
@@ -75,7 +74,7 @@ const TeamJourneyContainer = (props: Props) => {
       {
         const otherChannelsForPopular = otherChannelsBase
           .filter(({membershipType}) => joinableStatuses.has(membershipType))
-          .slice(0, Container.isMobile ? 2 : 3)
+          .slice(0, C.isMobile ? 2 : 3)
           .map(info => info.channelname)
         actions = otherChannelsForPopular.map(chan => ({
           label: `#${chan}`,

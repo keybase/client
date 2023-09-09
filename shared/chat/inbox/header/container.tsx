@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as C from '../../../constants'
-import * as Container from '../../../util/container'
 import ChatInboxHeader from '.'
 
 type OwnProps = {
@@ -16,7 +15,7 @@ export default React.memo(function ChatHeaderContainer(ownProps: OwnProps) {
       (s.inboxLayout.bigTeams || []).length === 0
   )
   const showEmptyInbox = C.useChatState(s => !s.inboxSearch && hasLoadedEmptyInbox)
-  const showStartNewChat = !Container.isMobile && showEmptyInbox
+  const showStartNewChat = !C.isMobile && showEmptyInbox
   const isSearching = C.useChatState(s => !!s.inboxSearch)
   const showFilter = !showEmptyInbox
 
@@ -53,7 +52,7 @@ export default React.memo(function ChatHeaderContainer(ownProps: OwnProps) {
     onSelectUp: onSelectUp,
     showFilter: showFilter,
     showNewChat: ownProps.headerContext == 'chat-header',
-    showSearch: ownProps.headerContext == 'chat-header' ? !Container.isTablet : Container.isMobile,
+    showSearch: ownProps.headerContext == 'chat-header' ? !C.isTablet : C.isMobile,
     showStartNewChat: showStartNewChat,
   }
   return <ChatInboxHeader {...props} />

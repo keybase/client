@@ -1,6 +1,6 @@
+import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import {isMobile} from '../../../constants/platform'
 
 /*
  * This banner is used as part of a List2 in fs/folder/rows/rows.js, so it's
@@ -9,10 +9,10 @@ import {isMobile} from '../../../constants/platform'
  * layout changes.
  *
  */
-const addedHeightPerResetUser = isMobile
+const addedHeightPerResetUser = C.isMobile
   ? 2 * Styles.globalMargins.large + Styles.globalMargins.tiny + Styles.globalMargins.small
   : Styles.globalMargins.large + Styles.globalMargins.tiny
-const baseHeight = isMobile ? 440 : 378 // Change this when layout changes
+const baseHeight = C.isMobile ? 440 : 378 // Change this when layout changes
 export const getHeight = (numResetUsers: number) => baseHeight + numResetUsers * addedHeightPerResetUser
 
 type Props = {
@@ -30,7 +30,7 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
     style={Styles.collapseStyles([styles.banner, fixedHeight(getHeight(resetParticipants.length))])}
   >
     <Kb.Icon
-      type={isMobile ? 'icon-skull-64' : 'icon-skull-48'}
+      type={C.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
       style={{height: Styles.globalMargins.xlarge, margin: Styles.globalMargins.medium}}
     />
     <Kb.Box2 direction="vertical" centerChildren={true} style={styles.textIntro}>
@@ -75,7 +75,7 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
     </Kb.Box2>
     <Kb.Box2 direction="vertical" gap="small">
       {resetParticipants.map(p => (
-        <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} key={p} gap="tiny">
+        <Kb.Box2 direction={C.isMobile ? 'vertical' : 'horizontal'} key={p} gap="tiny">
           <Kb.Button
             mode="Secondary"
             backgroundColor="red"
@@ -126,9 +126,9 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       listTextContainer: {
-        ...fixedHeight(isMobile ? Styles.globalMargins.large * 3 : Styles.globalMargins.large * 2),
+        ...fixedHeight(C.isMobile ? Styles.globalMargins.large * 3 : Styles.globalMargins.large * 2),
         justifyContent: 'center',
-        maxWidth: isMobile ? 280 : 400,
+        maxWidth: C.isMobile ? 280 : 400,
       },
       listTextContent: {
         marginTop: Styles.globalMargins.tiny,
@@ -141,7 +141,7 @@ const styles = Styles.styleSheetCreate(
       textOrUntil: {
         marginTop: Styles.globalMargins.small,
       },
-    } as const)
+    }) as const
 )
 
 export default Banner

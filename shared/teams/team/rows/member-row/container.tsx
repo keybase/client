@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/teams'
 import type * as T from '../../../../constants/types'
 import {TeamMemberRow} from '.'
-import * as Container from '../../../../util/container'
 
 type OwnProps = {
   teamID: T.Teams.TeamID
@@ -52,7 +51,7 @@ export default (ownProps: OwnProps) => {
   }
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onShowTracker = () => {
-    if (Container.isMobile) {
+    if (C.isMobile) {
       showUserProfile(username)
     } else {
       showUser(username, true)

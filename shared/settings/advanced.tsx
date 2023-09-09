@@ -6,7 +6,6 @@ import * as T from '../constants/types'
 import * as React from 'react'
 import * as Styles from '../styles'
 import {ProxySettings} from './proxy/container'
-import {isMobile, isLinux} from '../constants/platform'
 import {toggleRenderDebug} from '../router-v2/shim.shared'
 
 let initialUseNativeFrame: boolean | undefined
@@ -17,7 +16,7 @@ const UseNativeFrame = () => {
   if (initialUseNativeFrame === undefined) {
     initialUseNativeFrame = useNativeFrame
   }
-  return isMobile ? null : (
+  return C.isMobile ? null : (
     <>
       <Kb.Checkbox
         checked={!useNativeFrame}
@@ -153,11 +152,11 @@ const Advanced = () => {
               onCheck={onChangeRememberPassword}
             />
           )}
-          {isLinux ? <UseNativeFrame /> : null}
-          {!Styles.isMobile && (
+          {C.isLinux ? <UseNativeFrame /> : null}
+          {!C.isMobile && (
             <Kb.Checkbox label="Open Keybase on startup" checked={openAtLogin} onCheck={onSetOpenAtLogin} />
           )}
-          {!Styles.isMobile && (
+          {!C.isMobile && (
             <Kb.Checkbox
               label={
                 'Disable spellchecking' +

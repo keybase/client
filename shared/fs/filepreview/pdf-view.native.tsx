@@ -1,6 +1,6 @@
+import * as C from '../../constants'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as Platform from '../../constants/platform'
 import type {Props} from './pdf-view'
 
 const PdfView = (props: Props) => (
@@ -23,4 +23,4 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 // Only supported on iOS for now.
-export default Platform.isIOS ? PdfView : () => null
+export default C.isIOS ? PdfView : () => null

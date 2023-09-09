@@ -8,7 +8,7 @@ import {getStateFromPath} from '@react-navigation/native'
 import {tabRoots} from './routes'
 import {Linking} from 'react-native'
 
-const tabs: ReadonlyArray<Tabs.Tab> = Container.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
+const tabs: ReadonlyArray<Tabs.Tab> = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 
 const argArrayGood = (arr: Array<string>, len: number) => {
   return arr.length === len && arr.every(p => !!p.length)

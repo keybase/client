@@ -3,7 +3,6 @@ import Announcement from '.'
 import * as T from '../../constants/types'
 import * as Tabs from '../../constants/tabs'
 import openURL from '../../util/open-url'
-import * as Container from '../../util/container'
 
 type OwnProps = {
   appLink?: T.RPCGen.AppLinkType
@@ -35,26 +34,26 @@ export default (ownProps: OwnProps) => {
         navigateToInbox()
         break
       case T.RPCGen.AppLinkType.files:
-        switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.fsTab)
-        if (Container.isMobile) {
+        switchTab(C.isMobile ? Tabs.settingsTab : Tabs.fsTab)
+        if (C.isMobile) {
           navigateAppend(C.settingsFsTab)
         }
         break
       case T.RPCGen.AppLinkType.wallet:
-        switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.walletsTab)
-        if (Container.isMobile) {
+        switchTab(C.isMobile ? Tabs.settingsTab : Tabs.walletsTab)
+        if (C.isMobile) {
           navigateAppend(C.settingsWalletsTab)
         }
         break
       case T.RPCGen.AppLinkType.git:
-        switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.gitTab)
-        if (Container.isMobile) {
+        switchTab(C.isMobile ? Tabs.settingsTab : Tabs.gitTab)
+        if (C.isMobile) {
           navigateAppend({props: {}, selected: C.settingsGitTab})
         }
         break
       case T.RPCGen.AppLinkType.devices:
-        switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.devicesTab)
-        if (Container.isMobile) {
+        switchTab(C.isMobile ? Tabs.settingsTab : Tabs.devicesTab)
+        if (C.isMobile) {
           navigateAppend(C.settingsDevicesTab)
         }
         break

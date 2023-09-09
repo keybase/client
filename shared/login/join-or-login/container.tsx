@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Container from '../../util/container'
 import Intro from '.'
 
 export default () => {
@@ -31,7 +30,7 @@ export default () => {
     bannerMessage,
     checkIsOnline,
     isOnline,
-    onFeedback: Container.isMobile ? _onFeedback : undefined,
+    onFeedback: C.isMobile ? _onFeedback : undefined,
     onLogin,
     onSignup,
     showProxySettings,

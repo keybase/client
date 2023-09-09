@@ -10,7 +10,6 @@ import type * as T from '../../../../../constants/types'
 import type {MenuItems} from '../../../../../common-adapters'
 import type {Position} from '../../../../../styles'
 import type {StylesCrossPlatform} from '../../../../../styles/css'
-import {isIOS} from '../../../../../constants/platform'
 import {makeMessageText} from '../../../../../constants/chat2/message'
 
 export type OwnProps = {
@@ -149,7 +148,7 @@ export default (ownProps: OwnProps) => {
 
   const authorInTeam = _teamMembers?.has(message.author) ?? true
   const items: MenuItems = []
-  if (Container.isMobile) {
+  if (C.isMobile) {
     // 'Add a reaction' is an option on mobile
     items.push({
       title: 'Reactions',
@@ -159,7 +158,7 @@ export default (ownProps: OwnProps) => {
     items.push('Divider')
   }
   if (message.type === 'attachment') {
-    if (Container.isMobile) {
+    if (C.isMobile) {
       if (message.attachmentType === 'image') {
         items.push({
           icon: 'iconfont-download-2',
@@ -167,7 +166,7 @@ export default (ownProps: OwnProps) => {
           title: 'Save',
         })
       }
-      if (isIOS) {
+      if (C.isIOS) {
         items.push({
           icon: 'iconfont-share',
           onClick: () => _onShareAttachment(message),

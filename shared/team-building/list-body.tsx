@@ -277,8 +277,7 @@ export const ListBody = (
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult
   const showLoading = !!searchString && !searchResults
 
-  const showingContactsButton =
-    Container.isMobile && contactsPermissionStatus !== 'denied' && !contactsImported
+  const showingContactsButton = C.isMobile && contactsPermissionStatus !== 'denied' && !contactsImported
   const recommendations = showRecs
     ? sortAndSplitRecommendations(_recommendations, showingContactsButton)
     : undefined

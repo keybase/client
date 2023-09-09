@@ -1,6 +1,5 @@
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {isMobile} from '../../../../constants/platform'
 
 type Props = {
   allowChatWithoutThem: boolean
@@ -12,7 +11,7 @@ type Props = {
 
 const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chatWithoutThem}: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container}>
-    <Kb.Icon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} style={styles.skullIcon} />
+    <Kb.Icon type={Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'} style={styles.skullIcon} />
     <Kb.Box2 direction="vertical" style={styles.textContainer}>
       <Kb.Text center={true} type="BodySemibold" negative={true}>
         <Kb.Text type="BodySemiboldLink" negative={true} onClick={viewProfile}>
@@ -103,7 +102,7 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.large,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default ResetUser

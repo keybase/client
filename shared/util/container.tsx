@@ -141,7 +141,6 @@ export const timeoutPromise = async (timeMs: number) =>
     setTimeout(() => resolve(), timeMs)
   })
 
-export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
 export {useSafeSubmit} from './safe-submit'
 export {useSafeNavigation} from './safe-navigation'
 export {produce} from 'immer'

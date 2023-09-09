@@ -290,8 +290,8 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
   const addingMembers = C.useTeamsState(s => s.addMembersWizard.addingMembers)
   const [expanded, setExpanded] = React.useState(false)
   const showDivider = Styles.isMobile && addingMembers.length > 4
-  const aboveDivider = Container.isMobile ? addingMembers.slice(0, 4) : addingMembers
-  const belowDivider = Container.isMobile && expanded ? addingMembers.slice(4) : []
+  const aboveDivider = C.isMobile ? addingMembers.slice(0, 4) : addingMembers
+  const belowDivider = C.isMobile && expanded ? addingMembers.slice(4) : []
   const toggleExpanded = () => {
     if (Styles.isMobile) {
       Kb.LayoutAnimation.configureNext(Kb.LayoutAnimation.Presets.easeInEaseOut)

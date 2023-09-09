@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Constants from '../constants/devices'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {isLargeScreen} from '../constants/platform'
 import {useSafeCallback} from '../util/container'
 
 type OwnProps = {
@@ -91,7 +90,7 @@ type DeviceOptionProps = {
   onClick: () => void
   type: 'computer' | 'paper key' | 'phone'
 }
-const bigIcon = isLargeScreen && Styles.isMobile
+const bigIcon = C.isLargeScreen && Styles.isMobile
 const getIconType = (deviceType: DeviceOptionProps['type'], iconNumber?: number) => {
   let iconType: string
   const size = bigIcon ? 96 : 64

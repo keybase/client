@@ -12,7 +12,6 @@ import PublicReminder from '../banner/public-reminder'
 import Root from './root'
 import Rows from './rows/rows-container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
-import {isMobile} from '../../constants/platform'
 
 type OwnProps = {path: T.FS.Path}
 
@@ -52,7 +51,7 @@ const SelfReset = (_: Props) => (
       />
     </Kb.Banner>
     <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} centerChildren={true}>
-      <Kb.Icon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
+      <Kb.Icon type={C.isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
     </Kb.Box2>
   </Kb.Box2>
 )

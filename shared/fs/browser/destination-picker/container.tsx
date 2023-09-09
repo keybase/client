@@ -4,7 +4,6 @@ import * as Container from '../../../util/container'
 import * as T from '../../../constants/types'
 import DestinationPicker from '.'
 import {OriginalOrCompressedButton} from '../../../incoming-share'
-import {isMobile} from '../../../constants/platform'
 import {memoize} from '../../../util/memoize'
 
 type OwnProps = {index: number}
@@ -43,7 +42,7 @@ const canMove = memoize(
     Constants.pathsInSameTlf(dp.source.path, getDestinationParentPath(dp, ownProps))
 )
 
-const canBackUp = isMobile
+const canBackUp = C.isMobile
   ? memoize(
       (dp: T.FS.DestinationPicker, ownProps: OwnProps) =>
         T.FS.getPathLevel(getDestinationParentPath(dp, ownProps)) > 1

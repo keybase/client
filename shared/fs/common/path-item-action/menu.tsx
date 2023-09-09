@@ -1,10 +1,9 @@
+import * as C from '../../../constants'
 import * as React from 'react'
 import * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
-import * as C from '../../../constants'
 import * as Kbfs from '../../common/hooks'
 import type {FloatingMenuProps} from './types'
-import {fileUIName} from '../../../constants/platform'
 import Header from './header'
 
 type ActionOrInProgress = (() => void) | 'in-progress'
@@ -70,7 +69,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
           {
             icon: 'iconfont-finder',
             onClick: hideMenuOnClick(props.showInSystemFileManager, hideMenu),
-            title: 'Show in ' + fileUIName,
+            title: 'Show in ' + C.fileUIName,
           },
         ]
       : []),

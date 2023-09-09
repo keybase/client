@@ -140,7 +140,7 @@ export const getTab = (navState?: NavState) => {
   return undefined
 }
 
-const isSplit = !Container.isMobile || Container.isTablet // Whether the inbox and conversation panels are visible side-by-side.
+const isSplit = !C.isMobile || C.isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
 export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const rs = getRootState()

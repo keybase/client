@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
@@ -294,7 +293,7 @@ const PlatformInput = (p: Props) => {
     const text = lastText.current
     if (text) {
       submitQueued.current = true
-      if (Container.isIOS) {
+      if (C.isIOS) {
         silentInput.current?.focus()
         inputRef.current?.focus()
       } else {
@@ -305,7 +304,7 @@ const PlatformInput = (p: Props) => {
 
   const onFocusAndMaybeSubmit = React.useCallback(() => {
     // need to submit?
-    if (Container.isIOS && submitQueued.current) {
+    if (C.isIOS && submitQueued.current) {
       submitQueued.current = false
       reallySend()
     }

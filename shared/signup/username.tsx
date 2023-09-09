@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
-import * as Platform from '../constants/platform'
 import * as React from 'react'
 import * as Styles from '../styles'
 import {SignupScreen, errorBanner} from './common'
@@ -99,7 +98,7 @@ const EnterUsername = (props: Props) => {
           style={styles.body}
           fullWidth={true}
         >
-          <Kb.Avatar size={Platform.isLargeScreen ? 96 : 64} />
+          <Kb.Avatar size={C.isLargeScreen ? 96 : 64} />
           <Kb.Box2 direction="vertical" fullWidth={Styles.isPhone} gap="tiny">
             <Kb.LabeledInput
               autoFocus={true}

@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -74,7 +73,7 @@ const ReloadableDevices = () => {
 
   return (
     <Kb.Reloadable
-      onBack={Container.isMobile ? onBack : undefined}
+      onBack={C.isMobile ? onBack : undefined}
       waitingKeys={C.devicesWaitingKey}
       onReload={load}
       reloadOnMount={true}

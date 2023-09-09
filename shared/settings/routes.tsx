@@ -1,5 +1,6 @@
+import * as C from '../constants'
 import * as Constants from '../constants/settings'
-import * as Container from '../util/container'
+import type * as Container from '../util/container'
 import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
@@ -68,14 +69,10 @@ export const sharedNewModalRoutes = {
 }
 
 export const newRoutes = {
-  settingsRoot: Container.isMobile
-    ? Container.isPhone
-      ? settingsRootPhone
-      : settingsRootDesktop
-    : settingsRootDesktop,
+  settingsRoot: C.isMobile ? (C.isPhone ? settingsRootPhone : settingsRootDesktop) : settingsRootDesktop,
   ...sharedNewRoutes,
-  ...(Container.isMobile
-    ? Container.isTablet
+  ...(C.isMobile
+    ? C.isTablet
       ? {}
       : {
           [Constants.settingsWalletsTab]: {

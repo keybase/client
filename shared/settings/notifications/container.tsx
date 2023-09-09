@@ -1,6 +1,5 @@
-import * as Constants from '../../constants/settings'
-import * as Container from '../../util/container'
 import * as C from '../../constants'
+import * as Constants from '../../constants/settings'
 import Notifications, {type Props} from '.'
 import {Reloadable} from '../../common-adapters'
 
@@ -15,7 +14,7 @@ const ReloadableNotifications = (props: Props) => {
 
   return (
     <Reloadable
-      onBack={Container.isMobile ? props.onBack : undefined}
+      onBack={C.isMobile ? props.onBack : undefined}
       waitingKeys={[C.refreshNotificationsWaitingKey, Constants.loadSettingsWaitingKey]}
       onReload={onRefresh}
       reloadOnMount={true}

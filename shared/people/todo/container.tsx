@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
 import * as Tabs from '../../constants/tabs'
 import openURL from '../../util/open-url'
 import type * as T from '../../constants/types'
@@ -163,7 +162,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (isTeam: boolean) => {
-    if (Container.isMobile) {
+    if (C.isMobile) {
       navigateAppend({props: {}, selected: C.settingsGitTab})
     } else {
       switchTab(Tabs.gitTab)

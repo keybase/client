@@ -5,7 +5,6 @@ import * as Styles from '../styles'
 import * as T from '../constants/types'
 import * as FsConstants from '../constants/fs'
 import * as FsCommon from '../fs/common'
-import * as Platform from '../constants/platform'
 import {MobileSendToChat} from '../chat/send-to-chat'
 import useRPC from '../util/use-rpc'
 
@@ -252,7 +251,7 @@ const useIncomingShareItems = () => {
   // iOS
   const rpc = useRPC(T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise)
   const getIncomingShareItemsIOS = React.useCallback(() => {
-    if (!Platform.isIOS) {
+    if (!C.isIOS) {
       return
     }
 
@@ -267,7 +266,7 @@ const useIncomingShareItems = () => {
   // Android
   const androidShare = C.useConfigState(s => s.androidShare)
   const getIncomingShareItemsAndroid = React.useCallback(() => {
-    if (!Platform.isAndroid || !androidShare) {
+    if (!C.isAndroid || !androidShare) {
       return
     }
 

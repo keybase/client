@@ -1,7 +1,7 @@
+import * as C from '../../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import {isLargeScreen} from '../../../../../constants/platform'
 import type * as T from '../../../../../constants/types'
 import BotMenu from '../bot-menu'
 
@@ -82,7 +82,7 @@ export const TeamBotRow = (props: Props) => {
           </Kb.Box>
         </Kb.Box>
         <Kb.Box style={styles.menuIconContainer} ref={menuRef}>
-          {(active || isLargeScreen) && (
+          {(active || C.isLargeScreen) && (
             // Desktop & mobile large screen - display on the far right of the first row
             // Also when user is active
             <Kb.Icon

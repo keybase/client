@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as Constants from '../constants/provision'
 import * as Kb from '../common-adapters'
-import * as Platform from '../constants/platform'
 import * as React from 'react'
 import * as Styles from '../styles'
 import debounce from 'lodash/debounce'
@@ -70,7 +69,7 @@ const EnterDevicename = (props: Props) => {
         <Kb.Icon
           type={
             Styles.isMobile
-              ? Platform.isLargeScreen
+              ? C.isLargeScreen
                 ? 'icon-phone-background-1-96'
                 : 'icon-phone-background-1-64'
               : 'icon-computer-background-1-96'

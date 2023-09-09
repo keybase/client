@@ -1,13 +1,12 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as T from '../../constants/types'
-import * as C from '../../constants'
 import DefaultView from './default-view-container'
 import TextView from './text-view'
 import AVView from './av-view'
 import PdfView from './pdf-view'
 import * as Kb from '../../common-adapters'
-import * as Platform from '../../constants/platform'
 
 type Props = {
   path: T.FS.Path
@@ -96,7 +95,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
         </>
       )
     case T.RPCGen.GUIViewType.pdf:
-      return !Platform.isAndroid ? (
+      return !C.isAndroid ? (
         <>
           {reloadBanner}
           <PdfView url={url} onUrlError={onUrlError} />

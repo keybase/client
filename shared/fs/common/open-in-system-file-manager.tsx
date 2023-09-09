@@ -2,7 +2,6 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as T from '../../constants/types'
 import * as C from '../../constants'
-import {fileUIName} from '../../constants/platform'
 import SystemFileManagerIntegrationPopup from './sfmi-popup'
 
 type Props = {path: T.FS.Path}
@@ -13,7 +12,7 @@ const OpenInSystemFileManager = ({path}: Props) => {
   )
   const openInSystemFileManager = () => openPathInSystemFileManagerDesktop?.(path)
   return (
-    <Kb.WithTooltip tooltip={`Show in ${fileUIName}`}>
+    <Kb.WithTooltip tooltip={`Show in ${C.fileUIName}`}>
       <Kb.Icon
         type="iconfont-finder"
         padding="tiny"

@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
@@ -19,7 +18,7 @@ export const maxHeight = 320
 
 export const missingMessage = Constants.makeMessageAttachment()
 
-export const ShowToastAfterSaving = Container.isMobile
+export const ShowToastAfterSaving = C.isMobile
   ? ({transferState}: Props) => {
       const [showingToast, setShowingToast] = React.useState(false)
       const [wasSaving, setWasSaving] = React.useState(false)
@@ -170,7 +169,7 @@ const useCollapseIconDesktop = (isWhite: boolean) => {
 }
 const useCollapseIconMobile = (_isWhite: boolean) => null
 
-export const useCollapseIcon = Container.isMobile ? useCollapseIconMobile : useCollapseIconDesktop
+export const useCollapseIcon = C.isMobile ? useCollapseIconMobile : useCollapseIconDesktop
 
 export const useAttachmentRedux = () => {
   const ordinal = React.useContext(OrdinalContext)

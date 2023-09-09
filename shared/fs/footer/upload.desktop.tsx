@@ -1,7 +1,7 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import {isDarwin} from '../../constants/platform'
 import type {UploadProps} from './upload'
 import capitalize from 'lodash/capitalize'
 import './upload.css'
@@ -29,7 +29,7 @@ const Upload = React.memo(function Upload(props: UploadProps) {
   }, [showing])
 
   // this is due to the fact that the parent container has a marginTop of -13 on darwin
-  const offset = smallMode && isDarwin ? 13 : 0
+  const offset = smallMode && C.isDarwin ? 13 : 0
 
   return (
     <>
@@ -110,7 +110,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       toggleButton: {position: 'absolute'},
-    } as const)
+    }) as const
 )
 
 export default Upload

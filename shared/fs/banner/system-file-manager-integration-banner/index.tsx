@@ -3,7 +3,6 @@ import * as Constants from '../../../constants/fs'
 import * as React from 'react'
 import * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
-import {fileUIName} from '../../../constants/platform'
 import * as Styles from '../../../styles'
 import * as Kbfs from '../../common'
 
@@ -179,14 +178,14 @@ const JustEnabled = ({onDismiss}: JustEnabledProps) => {
     <Banner
       background={Background.Green}
       okIcon={true}
-      title={`Keybase is enabled in your ${fileUIName}.`}
+      title={`Keybase is enabled in your ${C.fileUIName}.`}
       body={displayingMountDir ? `Your files are accessible at ${displayingMountDir}.` : undefined}
       onDismiss={onDismiss}
       button={
         open
           ? {
               action: open,
-              buttonText: `Open in ${fileUIName}`,
+              buttonText: `Open in ${C.fileUIName}`,
               inProgress: false,
             }
           : undefined
@@ -207,7 +206,11 @@ const Enabled = (props: Props) => {
     // the rare case where user disables finder integration, and goes to Files
     // tab before it's done. Just show a simple banner in this case.
     return (
-      <Banner background={Background.Blue} okIcon={false} title={`Disabling Keybase in ${fileUIName} ...`} />
+      <Banner
+        background={Background.Blue}
+        okIcon={false}
+        title={`Disabling Keybase in ${C.fileUIName} ...`}
+      />
     )
   }
   if (props.alwaysShow || !props.settings.sfmiBannerDismissed) {
@@ -230,7 +233,7 @@ const Disabled = (props: Props) => {
     <Banner
       background={Background.Blue}
       okIcon={false}
-      title={`Enable Keybase in ${fileUIName}?`}
+      title={`Enable Keybase in ${C.fileUIName}?`}
       body="Get access to your files and folders just like you normally do with your local files. It's encrypted and secure."
       bodyExtraComponent={component}
       button={{
@@ -251,7 +254,7 @@ const SFMIBanner = (props: Props) => {
         background={Background.Blue}
         okIcon={false}
         title="Loading"
-        body={`Trying to find out if Keybase is enabled in ${fileUIName} ...`}
+        body={`Trying to find out if Keybase is enabled in ${C.fileUIName} ...`}
       />
     ) : null
   }

@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
 import * as T from '../../../constants/types'
 import * as RowTypes from './types'
-import {isMobile} from '../../../constants/platform'
 import {sortRowItems, type SortableRowItem} from './sort'
 import Rows, {type Props} from './rows'
 import {asRows as topBarAsRow} from '../../top-bar'
@@ -211,7 +210,7 @@ export default (o: OwnProps) => {
       // TODO: add `footerRows` and inject these from destination-picker, so that
       // Rows componenet don't need to worry about whether it's in
       // destinationPicker mode or not.
-      (!isMobile && typeof o.destinationPickerIndex === 'number'
+      (!C.isMobile && typeof o.destinationPickerIndex === 'number'
         ? [
             {key: 'empty:0', rowType: RowTypes.RowType.Empty} as RowTypes.EmptyRowItem,
             {key: 'empty:1', rowType: RowTypes.RowType.Empty} as RowTypes.EmptyRowItem,

@@ -38,7 +38,7 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props?: Pr
   return (
     <Kb.KeyboardAvoidingView2>
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.container}>
-        {!Container.isTablet && inboxSearch ? (
+        {!C.isTablet && inboxSearch ? (
           <InboxSearch />
         ) : (
           <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />

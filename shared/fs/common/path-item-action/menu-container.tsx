@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Constants from '../../../constants/fs'
-import {isMobile} from '../../../constants/platform'
 import {memoize} from '../../../util/memoize'
 import Menu from './menu'
 import type {FloatingMenuProps} from './types'
@@ -123,7 +122,7 @@ export default (ownProps: OwnProps) => {
 
   const getLayout = _view === 'share' ? getShareLayout : getRootLayout
   const layout = getLayout(mode, ownProps.path, _pathItem, _fileContext, _username)
-  const c = (action: any) => (isMobile ? addCancelIfNeeded(action, _cancel, _downloadID) : action)
+  const c = (action: any) => (C.isMobile ? addCancelIfNeeded(action, _cancel, _downloadID) : action)
 
   const getSendToOtherApp = () => {
     const {sharing} = getDownloadingState(_downloads, _downloadID, _pathItemActionMenu)

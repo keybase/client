@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -102,7 +101,7 @@ export default (ownProps: OwnProps) => {
   return (
     <Kb.Reloadable
       waitingKeys={C.gitWaitingKey}
-      onBack={Container.isMobile ? onBack : undefined}
+      onBack={C.isMobile ? onBack : undefined}
       onReload={load}
       reloadOnMount={true}
     >

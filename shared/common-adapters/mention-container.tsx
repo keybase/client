@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import Mention, {type OwnProps} from './mention'
 import {isSpecialMention} from '../constants/chat2'
-import * as Container from '../util/container'
 
 export default (ownProps: OwnProps) => {
   let {username} = ownProps
@@ -24,7 +23,7 @@ export default (ownProps: OwnProps) => {
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const _onClick = () => {
-    if (Container.isMobile) {
+    if (C.isMobile) {
       showUserProfile(username)
     } else {
       showUser(username, true)
