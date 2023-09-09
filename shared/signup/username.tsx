@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Platform from '../constants/platform'
 import * as React from 'react'
@@ -11,7 +10,7 @@ const ConnectedEnterUsername = () => {
   const initialUsername = C.useSignupState(s => s.username)
   const usernameTaken = C.useSignupState(s => s.usernameTaken)
   const checkUsername = C.useSignupState(s => s.dispatch.checkUsername)
-  const waiting = Container.useAnyWaiting(C.signupWaitingKey)
+  const waiting = C.useAnyWaiting(C.signupWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const restartSignup = C.useSignupState(s => s.dispatch.restartSignup)
   const onBack = () => {

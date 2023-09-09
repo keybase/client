@@ -1,10 +1,10 @@
-import * as Container from '../../util/container'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import {teamsLoadedWaitingKey} from '../../constants/teams'
 import * as Styles from '../../styles'
 
 const TeamsFooter = (props: {empty: boolean}) => {
-  const isLoadingTeams = Container.useAnyWaiting(teamsLoadedWaitingKey)
+  const isLoadingTeams = C.useAnyWaiting(teamsLoadedWaitingKey)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.container}>
       {isLoadingTeams ? (

@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Constants from '../constants/provision'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Platform from '../constants/platform'
 import * as React from 'react'
@@ -11,7 +10,7 @@ import {SignupScreen, errorBanner} from './common'
 const ConnectedEnterDevicename = () => {
   const error = C.useSignupState(s => s.devicenameError)
   const initialDevicename = C.useSignupState(s => s.devicename)
-  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
   const goBackAndClearErrors = C.useSignupState(s => s.dispatch.goBackAndClearErrors)
   const checkDeviceName = C.useSignupState(s => s.dispatch.checkDeviceName)
   const onBack = goBackAndClearErrors

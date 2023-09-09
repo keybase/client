@@ -11,7 +11,7 @@ type OwnProps = {accountID: string}
 
 const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const {accountID} = props
-  const waiting = Container.useAnyWaiting(Constants.loadAccountsWaitingKey)
+  const waiting = C.useAnyWaiting(Constants.loadAccountsWaitingKey)
   const name = C.useWalletsState(s => s.accountMap.get(accountID)?.name) ?? ''
   const [showingToast, setShowToast] = React.useState(false)
   const attachmentRef = React.useRef<Kb.ClickableBox>(null)

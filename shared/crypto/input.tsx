@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Constants from '../constants/crypto'
 import * as FsConstants from '../constants/fs'
 import type * as T from '../constants/types'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Platform from '../constants/platform'
@@ -172,7 +171,7 @@ const inputFileIcon = new Map([
 export const FileInput = (props: FileProps) => {
   const {path, size, operation} = props
   const fileIcon = inputFileIcon.get(operation) as IconType
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.useAnyWaiting(Constants.waitingKey)
 
   return (
     <Kb.Box2

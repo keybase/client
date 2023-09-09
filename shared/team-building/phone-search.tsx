@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import * as Constants from '../constants/team-building'
-import * as Container from '../util/container'
 import type * as T from 'constants/types'
 import ContinueButton from './continue-button'
 
@@ -19,7 +18,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   const [isPhoneValid, setPhoneValidity] = React.useState(false)
   const [phoneNumber, setPhoneNumber] = React.useState('')
   const [phoneInputKey, setPhoneInputKey] = React.useState(0)
-  const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
+  const waiting = C.useAnyWaiting(Constants.searchWaitingKey)
   const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
   // trigger a default phone number country rpc if it's not already loaded
   const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)

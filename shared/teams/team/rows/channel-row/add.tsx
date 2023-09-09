@@ -1,3 +1,4 @@
+import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
@@ -10,7 +11,7 @@ const ButtonRow = (props: {teamID: T.Teams.TeamID}) => {
     nav.safeNavigateAppend({props: {...props, navToChatOnSuccess: false}, selected: 'chatCreateChannel'})
 
   const waitingKey = Constants.getChannelsWaitingKey(props.teamID)
-  const waitingForGet = Container.useAnyWaiting(waitingKey)
+  const waitingForGet = C.useAnyWaiting(waitingKey)
 
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true} gap="small">

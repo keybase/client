@@ -18,7 +18,7 @@ const AddEmail = (props: Props) => {
   const nav = Container.useSafeNavigation()
   const onBack = () => nav.safeNavigateUp()
   const disabled = invitees.length < 1
-  const waiting = Container.useAnyWaiting(waitingKey)
+  const waiting = C.useAnyWaiting(waitingKey)
   const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
   const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
 

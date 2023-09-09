@@ -43,7 +43,7 @@ const EditChannel = (props: Props) => {
       updateTopic(teamID, conversationIDKey, description)
     }
   }
-  const waiting = Container.useAnyWaiting(Constants.updateChannelNameWaitingKey(teamID))
+  const waiting = C.useAnyWaiting(Constants.updateChannelNameWaitingKey(teamID))
   const wasWaiting = Container.usePrevious(waiting)
 
   const triggerEditUpdated = useEditState(s => s.dispatch.triggerEditUpdated)

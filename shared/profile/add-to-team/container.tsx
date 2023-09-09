@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/teams'
-import * as Container from '../../util/container'
 import * as React from 'react'
 import AddToTeam, {type AddToTeamProps} from '.'
 import type * as T from '../../constants/types'
@@ -113,7 +112,7 @@ export default (ownProps: OwnProps) => {
   const clearAddUserToTeamsResults = C.useTeamsState(s => s.dispatch.clearAddUserToTeamsResults)
   const addUserToTeams = C.useTeamsState(s => s.dispatch.addUserToTeams)
   const teamProfileAddList = C.useTeamsState(s => s.teamProfileAddList)
-  const waiting = Container.useAnyWaiting(Constants.teamProfileAddListWaitingKey)
+  const waiting = C.useAnyWaiting(Constants.teamProfileAddListWaitingKey)
   const _onAddToTeams = addUserToTeams
   const getTeamProfileAddList = C.useTeamsState(s => s.dispatch.getTeamProfileAddList)
   const resetTeamProfileAddList = C.useTeamsState(s => s.dispatch.resetTeamProfileAddList)

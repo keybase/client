@@ -6,12 +6,11 @@ import DragHeader from '../desktop/remote/drag-header.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
 import Success from './success.desktop'
 import type * as Constants from '../constants/unlock-folders'
-import type * as ConfigConstants from '../constants/config'
 
 export type Props = {
   darkMode: boolean
   phase: Constants.State['phase']
-  devices: ConfigConstants.Store['unlockFoldersDevices']
+  devices: C.ConfigStore['unlockFoldersDevices']
   onClose: () => void
   toPaperKeyInput: () => void
   onBackFromPaperKey: () => void

@@ -54,7 +54,7 @@ const AddMembersConfirm = () => {
   const [_error, setError] = React.useState('')
   const newTeamWizErr = C.useTeamsState(s => (fromNewTeamWizard ? s.newTeamWizard.error : undefined))
   const error = _error || newTeamWizErr
-  const newTeamWaiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
+  const newTeamWaiting = C.useAnyWaiting(Constants.teamCreationWaitingKey)
   const waiting = _waiting || newTeamWaiting
 
   const addMembers = Container.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)

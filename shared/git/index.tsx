@@ -30,7 +30,7 @@ const getRepos = memoize((git: Map<string, T.Git.GitInfo>) =>
 
 export default (ownProps: OwnProps) => {
   const initialExpandedSet = ownProps.expanded ? new Set([ownProps.expanded]) : undefined
-  const loading = Container.useAnyWaiting(C.gitWaitingKey)
+  const loading = C.useAnyWaiting(C.gitWaitingKey)
   const {clearBadges, load, setError, error, idToInfo, isNew} = C.useGitState(s => {
     const {dispatch, error, idToInfo, isNew} = s
     const {clearBadges, load, setError} = dispatch

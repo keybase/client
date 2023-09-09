@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Constants from '../../../constants/fs'
-import * as Container from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
 import {memoize} from '../../../util/memoize'
 import Menu from './menu'
@@ -57,10 +56,7 @@ export default (ownProps: OwnProps) => {
   const cancelDownload = C.useFSState(s => s.dispatch.cancelDownload)
 
   const _fileContext = C.useFSState(s => s.fileContext.get(path) || Constants.emptyFileContext)
-  const _ignoreNeedsToWait = Container.useAnyWaiting([
-    Constants.folderListWaitingKey,
-    Constants.statWaitingKey,
-  ])
+  const _ignoreNeedsToWait = C.useAnyWaiting([Constants.folderListWaitingKey, Constants.statWaitingKey])
   const _pathItem = C.useFSState(s => Constants.getPathItem(s.pathItems, path))
   const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
   const _downloadID = _pathItemActionMenu.downloadID

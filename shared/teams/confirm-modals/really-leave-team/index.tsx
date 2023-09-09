@@ -1,8 +1,8 @@
 import * as React from 'react'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as Container from '../../../util/container'
 import {useTeamsSubscribe} from '../../subscriber'
 
 export type Props = {
@@ -39,7 +39,7 @@ const Header = (props: Props) => (
 
 const _ReallyLeaveTeam = (props: Props) => {
   const {name} = props
-  const dispatchClearWaiting = Container.useDispatchClearWaiting()
+  const dispatchClearWaiting = C.useDispatchClearWaiting()
   React.useEffect(
     () => () => {
       dispatchClearWaiting(Constants.leaveTeamWaitingKey(name))

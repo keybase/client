@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
 import EnterPhoneNumber, {type Props} from '.'
 
 type WatcherProps = Props & {
@@ -39,7 +38,7 @@ const ConnectedEnterPhoneNumber = () => {
   const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
   const error = C.useSettingsPhoneState(s => s.error)
   const pendingVerification = C.useSettingsPhoneState(s => s.pendingVerification)
-  const waiting = Container.useAnyWaiting(C.addPhoneNumberWaitingKey)
+  const waiting = C.useAnyWaiting(C.addPhoneNumberWaitingKey)
   const clearPhoneNumberErrors = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberErrors)
   const clearPhoneNumberAdd = C.useSettingsPhoneState(s => s.dispatch.clearPhoneNumberAdd)
   const onClear = clearPhoneNumberErrors

@@ -43,7 +43,7 @@ const JoinFromInvite = () => {
     onNavUp()
   }
 
-  const rpcWaiting = Container.useAnyWaiting(Constants.joinTeamWaitingKey)
+  const rpcWaiting = C.useAnyWaiting(Constants.joinTeamWaitingKey)
   const waiting = rpcWaiting && clickedJoin
   const wasWaiting = Container.usePrevious(waiting)
   const showSuccess = wasWaiting && !waiting && !error

@@ -30,7 +30,7 @@ const ConfirmKickOut = (props: Props) => {
     members.map(member => Constants.removeMemberWaitingKey(teamID, member)),
     members.map(member => subteamIDs.map(subteamID => Constants.removeMemberWaitingKey(subteamID, member)))
   )
-  const waiting = Container.useAnyWaiting(...waitingKeys)
+  const waiting = C.useAnyWaiting(...waitingKeys)
   const nav = Container.useSafeNavigation()
   const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
 

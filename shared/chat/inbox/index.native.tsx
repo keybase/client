@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/chat2'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as RowSizes from './row/sizes'
@@ -338,10 +337,7 @@ const NoRowsBuildTeam = () => {
 }
 
 const LoadingLine = () => {
-  const isLoading = Container.useAnyWaiting([
-    Constants.waitingKeyInboxRefresh,
-    Constants.waitingKeyInboxSyncStarted,
-  ])
+  const isLoading = C.useAnyWaiting([Constants.waitingKeyInboxRefresh, Constants.waitingKeyInboxSyncStarted])
   return isLoading ? (
     <Kb.Box style={styles.loadingContainer}>
       <Kb.LoadingLine />

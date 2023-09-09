@@ -23,8 +23,8 @@ export default (ownProps: OwnProps) => {
   const needsPUK = info.needsPUK
   const roleType = info.type
   const status = info.status
-  const waitingForAdd = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
-  const waitingForRemove = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, username))
+  const waitingForAdd = C.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
+  const waitingForRemove = C.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, username))
   const youCanManageMembers = C.useTeamsState(s => Constants.getCanPerform(s, teamname).manageMembers)
   const setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
   const onBlock = () => {

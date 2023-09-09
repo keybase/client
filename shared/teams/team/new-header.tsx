@@ -34,7 +34,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
   }, [setJustFinishedAddMembersWizard])
   // Automatically dismisses this when the user navigates away
   React.useEffect(() => onNoThanks, [onNoThanks])
-  const waiting = Container.useAnyWaiting(Constants.setMemberPublicityWaitingKey(teamID))
+  const waiting = C.useAnyWaiting(Constants.setMemberPublicityWaitingKey(teamID))
   return (
     <Kb.Box2
       direction="vertical"

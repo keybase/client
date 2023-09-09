@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import type * as T from '../../constants/types'
 import * as ChatConstants from '../../constants/chat2'
 import * as Constants from '../../constants/teams'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
@@ -253,8 +252,8 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
 
   const [showingPicker, setShowingPicker] = React.useState(false)
 
-  const waiting = Container.useAnyWaiting(Constants.editMembershipWaitingKey(teamID, ...members))
-  const teamWaiting = Container.useAnyWaiting(Constants.teamWaitingKey(teamID))
+  const waiting = C.useAnyWaiting(Constants.editMembershipWaitingKey(teamID, ...members))
+  const teamWaiting = C.useAnyWaiting(Constants.teamWaitingKey(teamID))
 
   // We wait for the teamLoaded
   React.useEffect(() => {

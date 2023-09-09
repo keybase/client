@@ -12,7 +12,7 @@ import {SignupScreen, errorBanner} from '../signup/common'
 const PublicNameContainer = () => {
   const devices = C.useProvisionState(s => s.devices)
   const error = C.useProvisionState(s => s.error)
-  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, !!error)

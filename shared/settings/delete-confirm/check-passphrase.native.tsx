@@ -23,7 +23,7 @@ const CheckPassphraseMobile = () => {
     deleteAccountForever(password)
   }
 
-  const waitingKey = Container.useAnyWaiting(C.settingsWaitingKey)
+  const waitingKey = C.useAnyWaiting(C.settingsWaitingKey)
   const inputType = showTyping ? 'text' : 'password'
   const keyboardType = showTyping && Styles.isAndroid ? 'visible-password' : 'default'
 

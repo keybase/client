@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import type * as T from '../../constants/types'
@@ -18,7 +17,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
   const teamBuildingSearchResults = C.useTBContext(s => s.searchResults)
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
-  const waiting = Container.useAnyWaiting(C.tbSearchWaitingKey)
+  const waiting = C.useAnyWaiting(C.tbSearchWaitingKey)
   const user: T.TB.User | undefined = teamBuildingSearchResults.get(emailString)?.get('email')?.[0]
   const canSubmit = !!user && !waiting && isEmailValid
 

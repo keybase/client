@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/settings'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
@@ -16,7 +15,7 @@ export default () => {
   const editPhone = C.useSettingsPhoneState(s => s.dispatch.editPhone)
   const clearAddedPhone = C.useSettingsPhoneState(s => s.dispatch.clearAddedPhone)
   const hasPassword = C.useSettingsPasswordState(s => !s.randomPW)
-  const waiting = Container.useAnyWaiting(Constants.loadSettingsWaitingKey)
+  const waiting = C.useAnyWaiting(Constants.loadSettingsWaitingKey)
   const _onClearSupersededPhoneNumber = (phone: string) => {
     editPhone(phone, true)
   }

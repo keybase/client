@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as Container from '../util/container'
 import * as Tabs from '../constants/tabs'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
@@ -12,7 +11,7 @@ const disabledDescription = 'Import your phone contacts and start encrypted chat
 const ManageContacts = () => {
   const status = C.useSettingsContactsState(s => s.permissionStatus)
   const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
-  const waiting = Container.useAnyWaiting(C.importContactsWaitingKey)
+  const waiting = C.useAnyWaiting(C.importContactsWaitingKey)
 
   const loadContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.loadContactImportEnabled)
 

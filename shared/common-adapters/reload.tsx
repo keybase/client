@@ -152,7 +152,7 @@ export type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  let error = Container.useAnyErrors(ownProps.waitingKeys)
+  let error = C.useAnyErrors(ownProps.waitingKeys)
 
   // make sure reloadable only responds to network-related errors
   error = error && Container.isNetworkErr(error.code) ? error : undefined

@@ -6,7 +6,6 @@ import * as TeamsConstants from '../../../../constants/teams'
 import * as Common from './common'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as Container from '../../../../util/container'
 import isEqual from 'lodash/isEqual'
 
 export const transformer = (
@@ -92,7 +91,7 @@ export const useDataSource = (filter: string) => {
   const meta = C.useChatContext(s => s.meta)
   const {teamID} = meta
 
-  const suggestChannelsLoading = Container.useAnyWaiting([
+  const suggestChannelsLoading = C.useAnyWaiting([
     TeamsConstants.getChannelsWaitingKey(teamID),
     Constants.waitingKeyMutualTeams(conversationIDKey),
   ])

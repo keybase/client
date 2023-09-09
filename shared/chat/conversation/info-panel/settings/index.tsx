@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as T from '../../../../constants/types'
 import * as React from 'react'
@@ -24,7 +23,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const ignored = status === T.RPCChat.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'
 
-  const spinnerForLeave = Container.useAnyWaiting(Constants.waitingKeyLeaveConversation)
+  const spinnerForLeave = C.useAnyWaiting(Constants.waitingKeyLeaveConversation)
 
   const canDeleteHistory =
     teamname && yourOperations ? yourOperations.deleteChatHistory && !meta.cannotWrite : true
