@@ -173,7 +173,7 @@ const TeamBuilding = (p: OwnProps) => {
 
   const offset = useSharedValue(0)
 
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     fetchUserRecs()
   })
 

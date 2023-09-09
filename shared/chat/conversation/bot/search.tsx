@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
@@ -51,7 +50,7 @@ const SearchBotPopup = (props: Props) => {
     })
   }
 
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     setSearchFeaturedAndUsersResults('', undefined)
     getFeaturedBots()
   })

@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -9,7 +8,7 @@ const PaperKey = () => {
   const [paperkey, setPaperkey] = React.useState('')
   const [wroteItDown, setWroteItDown] = React.useState(false)
 
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     T.RPCGen.loginPaperKeyRpcListener({
       customResponseIncomingCallMap: {
         'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {

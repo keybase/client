@@ -167,7 +167,7 @@ const useScrolling = (
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
   const listEdgeSlopTop = 1000
-  const isMounted = Container.useIsMounted()
+  const isMounted = C.useIsMounted()
   const isScrollingRef = React.useRef(false)
   const ignoreOnScrollRef = React.useRef(false)
   const lockedToBottomRef = React.useRef(true)

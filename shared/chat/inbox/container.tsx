@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
 import * as Constants from '../../constants/chat2'
 import * as T from '../../constants/types'
 import Inbox, {type Props} from '.'
@@ -102,7 +101,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
 
   const inboxRefresh = C.useChatState(s => s.dispatch.inboxRefresh)
 
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     if (!C.isMobile) {
       // On mobile this is taken care of by NavigationEvents.
       C.getConvoState(C.getSelectedConversation()).dispatch.tabSelected()

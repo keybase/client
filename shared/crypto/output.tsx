@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Constants from '../constants/crypto'
-import type * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Path from '../util/path'
 import * as Platforms from '../constants/platform'
@@ -12,6 +11,7 @@ import type * as T from '../constants/types'
 import {getStyle} from '../common-adapters/text'
 import {humanizeBytes} from '../constants/fs'
 import {pickFiles} from '../util/pick-files'
+import type HiddenString from '../util/hidden-string'
 
 type OutputProps = {operation: T.Crypto.Operations}
 type OutputActionsBarProps = {operation: T.Crypto.Operations}
@@ -191,7 +191,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
-  const onReplyInChat = (username: Container.HiddenString) => {
+  const onReplyInChat = (username: HiddenString) => {
     navigateUp()
     previewConversation({participants: [username.stringValue()], reason: 'search'})
   }

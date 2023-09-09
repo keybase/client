@@ -1,4 +1,5 @@
 // Used to avoid circular dependencies, keep orders
+import * as React from 'react'
 export * from './platform'
 export {_useState as useDarkModeState} from './darkmode'
 export {_useState as useRouterState, getModalStack, getTab} from './router2'
@@ -109,3 +110,51 @@ export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
 }
 
 export const assertNever = (_: never) => undefined
+
+import {useNavigation} from '@react-navigation/core'
+import {type RouteKeys} from '../router-v2/route-params'
+export const useNav = () => {
+  const n = useNavigation()
+  const na: {pop?: () => void; navigate: (n: RouteKeys) => void} = n as any
+  const {canGoBack} = n
+  const pop: undefined | (() => void) = canGoBack() ? na.pop : undefined
+  const navigate: (n: RouteKeys) => void = na.navigate
+  return {
+    canGoBack,
+    navigate,
+    pop,
+  }
+}
+
+// Get the mounted state of a component
+export const useIsMounted = () => {
+  const mounted = React.useRef(true)
+  React.useEffect(() => {
+    return () => {
+      mounted.current = false
+    }
+  }, [])
+  const isMounted = React.useCallback(() => mounted.current, [])
+  return isMounted
+}
+
+// Run a function on mount once
+export const useOnMountOnce = (f: () => void) => {
+  const onceRef = React.useRef(true)
+  if (onceRef.current) {
+    onceRef.current = false
+    // defer a frame so you don't get react issues
+    setTimeout(f, 1)
+  }
+}
+
+// Run a function on unmount, doesn't rerun if the function changes
+export const useOnUnMountOnce = (f: () => void) => {
+  const ref = React.useRef(f)
+  ref.current = f
+  React.useEffect(() => {
+    return () => {
+      ref.current()
+    }
+  }, [])
+}

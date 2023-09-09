@@ -118,7 +118,7 @@ type ModalProps = {
 }
 export const MessagePopupModal = (p: ModalProps) => {
   const {ordinal} = p
-  const {pop} = Container.useNav()
+  const {pop} = C.useNav()
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo} = p

@@ -1,5 +1,5 @@
+import * as C from '../constants'
 import * as React from 'react'
-import * as Container from '../util/container'
 import {Portal} from './portal.native'
 import {useTimeout} from './use-timers'
 import Box from './box'
@@ -55,7 +55,7 @@ const WithTooltip = (props: Props) => {
   const setVisibleFalseLater = useTimeout(() => {
     setVisible(false)
   }, 3000)
-  const isMounted = Container.useIsMounted()
+  const isMounted = C.useIsMounted()
   const _onClick = () => {
     if (!clickableRef.current || !tooltipRef.current || visible) {
       return

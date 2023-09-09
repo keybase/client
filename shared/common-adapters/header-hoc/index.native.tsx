@@ -1,4 +1,4 @@
-import * as Container from '../../util/container'
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import BackButton from '../back-button'
@@ -373,7 +373,7 @@ export const HeaderLeftCancel2 = React.memo(function HeaderLeftCancel(hp: {
   badgeNumber?: number
   tintColor: string
 }) {
-  const {pop} = Container.useNav()
+  const {pop} = C.useNav()
   const onBack = React.useCallback(() => {
     pop?.()
   }, [pop])

@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Constants from '../constants/devices'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -130,7 +129,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const onCancel = navigateUp
 
   const actingDevice = C.useCurrentUserState(s => s.deviceID)
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     const f = async () => {
       const tlfs = await loadEndangeredTLF(actingDevice, selectedDeviceID)
       setEndangeredTLFs(tlfs)

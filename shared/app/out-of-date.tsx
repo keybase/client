@@ -26,7 +26,7 @@ export default () => {
   const [message, setMessage] = React.useState('')
   const [status, setStatus] = React.useState<Status>('ok')
 
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     const f = async () => {
       await Container.timeoutPromise(60_000) // don't bother checking during startup
       // check every hour

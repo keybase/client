@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as T from '../../../constants/types'
 import * as React from 'react'
@@ -403,7 +402,7 @@ export const useAttachmentSections = (
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
   const loadAttachmentView = C.useChatContext(s => s.dispatch.loadAttachmentView)
 
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     loadAttachmentView(selectedAttachmentView)
   })
   if (cidChanged || lastSAV !== selectedAttachmentView) {
@@ -547,7 +546,7 @@ export const useAttachmentSections = (
             return {
               data,
               key: month.key,
-              renderItem: ({item}: {item: Container.Unpacked<typeof data>; index: number}) => (
+              renderItem: ({item}: {item: T.Unpacked<typeof data>; index: number}) => (
                 <Kb.Box2
                   direction="horizontal"
                   fullWidth={true}

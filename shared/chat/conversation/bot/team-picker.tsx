@@ -52,7 +52,7 @@ const BotTeamPicker = (props: Props) => {
   }
 
   const getFeaturedBots = C.useBotsState(s => s.dispatch.getFeaturedBots)
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     getFeaturedBots()
   })
 

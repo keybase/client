@@ -137,7 +137,7 @@ const deriveRecommendation = memoize(expensiveDeriveResults)
 // 27 - 0-9 section
 const sortAndSplitRecommendations = memoize(
   (
-    results: Container.Unpacked<typeof deriveSearchResults>,
+    results: T.Unpacked<typeof deriveSearchResults>,
     showingContactsButton: boolean
   ): Array<Types.SearchRecSection> | undefined => {
     if (!results) return undefined

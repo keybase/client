@@ -1,6 +1,6 @@
+import * as C from '../constants'
 import * as React from 'react'
 import * as Styles from '../styles'
-import * as Container from '../util/container'
 import LoadingStateView from './loading-state-view'
 import memoize from 'lodash/memoize'
 import openURL from '../util/open-url'
@@ -34,7 +34,7 @@ const KBWebViewBase = (props: WebViewProps) => {
   const {showLoadingStateUntilLoaded} = props
   const [loading, _setLoading] = React.useState(true)
   const [progress, setProgress] = React.useState(0)
-  const isMounted = Container.useIsMounted()
+  const isMounted = C.useIsMounted()
   const isLoaded = showLoadingStateUntilLoaded ? !loading : true
   const [opacity, api] = useSpring(() => ({
     from: {opacity: isLoaded ? 1 : 0},
