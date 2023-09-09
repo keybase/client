@@ -125,7 +125,9 @@ class Inbox extends React.Component<TInbox.Props, State> {
       // likely small teams were just collapsed
       return null
     }
+
     const divStyle = style
+
     if (row.type === 'divider') {
       const newSmallRows = this.deltaNewSmallRows()
       let expandingRows: Array<string> = []

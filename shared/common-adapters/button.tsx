@@ -121,14 +121,15 @@ const Button = React.forwardRef<ClickableBox, Props>(function ButtonInner(
   }
 
   containerStyle = Styles.collapseStyles([containerStyle, props.style])
-
-  const onClick =
-    !unclickable && props.onClick
-      ? (e: React.BaseSyntheticEvent) => {
-          e.stopPropagation()
-          props.onClick && props.onClick(e)
-        }
-      : undefined
+  const {onClick: ponClick} = props
+  const _onClick = React.useCallback(
+    (e: React.BaseSyntheticEvent) => {
+      e.stopPropagation()
+      ponClick?.(e)
+    },
+    [ponClick]
+  )
+  const onClick = !unclickable && props.onClick ? _onClick : undefined
   const whiteSpinner =
     (mode === 'Primary' && !(props.backgroundColor || type === 'Dim')) ||
     (mode === 'Secondary' && !!props.backgroundColor)

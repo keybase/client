@@ -4,8 +4,9 @@ import type {Props} from './image2'
 import {Image} from 'expo-image'
 
 const Image2 = (p: Props) => {
-  const {showLoadingStateUntilLoaded, src, onLoad, onError, style} = p
-  const [loading, setLoading] = React.useState(true)
+  const {showLoadingStateUntilLoaded, src, onLoad, onError, style, contentFit = 'contain'} = p
+  // if we don't have showLoadingStateUntilLoaded then just mark as loaded and ignore this state
+  const [loading, setLoading] = React.useState(showLoadingStateUntilLoaded ? false : true)
   const _onLoad = React.useCallback(
     (e: any) => {
       setLoading(false)
@@ -32,7 +33,7 @@ const Image2 = (p: Props) => {
           style as any
         }
         onLoad={_onLoad}
-        contentFit="contain"
+        contentFit={contentFit}
         onError={_onError}
       />
       {showLoadingStateUntilLoaded && loading ? <LoadingStateView loading={loading} /> : null}

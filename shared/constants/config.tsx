@@ -833,6 +833,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         configuredAccounts: s.configuredAccounts,
         defaultUsername: s.defaultUsername,
         dispatch: s.dispatch,
+        mobileAppState: s.mobileAppState,
         startup: {loaded: s.startup.loaded},
         useNativeFrame: s.useNativeFrame,
         userSwitching: s.userSwitching,

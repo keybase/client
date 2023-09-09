@@ -81,6 +81,10 @@ class Text extends React.Component<Props> {
     })
   }
 
+  private setRef = (r: any) => {
+    this._nativeText = r
+  }
+
   render() {
     const baseStyle = styles[`${this.props.type}:${this.props.negative ? 'negative' : 'positive'}`]
     const dynamicStyle = this.props.negative
@@ -120,9 +124,7 @@ class Text extends React.Component<Props> {
 
     return (
       <NativeText
-        ref={ref => {
-          this._nativeText = ref
-        }}
+        ref={this.setRef}
         selectable={this.props.selectable}
         textBreakStrategy={this.props.textBreakStrategy ?? 'simple'}
         style={style}

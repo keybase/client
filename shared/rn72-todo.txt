@@ -1,1 +1,3 @@
-android
+• loggedout feedback back broken
+• input hint broken still
+• team role modal broken

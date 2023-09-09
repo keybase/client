@@ -9,16 +9,18 @@
 //     whyDidYouRender(React, {
 //       // TODO reduce these
 //       exclude: [
-//         /Pressable/,
-//         /Portal/,
-//         /RNSScreen/,
+//         /^Pressable$/,
+//         /^Portal$/,
+//         /^RNSScreen$/,
 //         /^Screen$/,
 //         /^Group$/,
 //         /^View$/,
 //         /^AnimatedComponentWrapper$/,
-//         /CardContainer/,
-//         /StaticContainer/,
-//         /PressabilityDebugView/,
+//         /^CardContainer$/,
+//         /^StaticContainer$/,
+//         /^PressabilityDebugView$/,
+//         /^PreventRemoveProvider$/,
+//         /^NativeStackViewInner$/,
 //       ],
 //       include: [
 //         // uncomment to watch everything, realllllly slows things down

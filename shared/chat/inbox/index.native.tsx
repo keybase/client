@@ -233,8 +233,51 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
         break
     }
   }
+  // Help us calculate row heights and offsets quickly
+  private dividerIndex: number = -1
+  private dividerShowButton: boolean = false
+  private getItemLayout = (data: ArrayLike<RowItem> | undefined | null, index: number) => {
+    // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
+    // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
+    const smallHeight = RowSizes.smallRowHeight
+    if (index < this.dividerIndex || this.dividerIndex === -1) {
+      const offset = index ? smallHeight * index : 0
+      const length = smallHeight
+      return {index, length, offset}
+    }
+
+    const dividerHeight = RowSizes.dividerHeight(this.dividerShowButton)
+    if (index === this.dividerIndex) {
+      const offset = smallHeight * index
+      const length = dividerHeight
+      return {index, length, offset}
+    }
+
+    let offset = smallHeight * this.dividerIndex + dividerHeight
+    let i = this.dividerIndex + 1
+
+    for (; i < index; ++i) {
+      const h = data?.[i]?.type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
+      offset += h
+    }
+    const length = data?.[i]?.type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
+    return {index, length, offset}
+  }
+
+  private HeadComponent = (<ChatInboxHeader headerContext="inbox-header" />)
 
   render() {
+    if (!usingFlashList) {
+      this.dividerShowButton = false
+      this.dividerIndex = this.props.rows.findIndex(r => {
+        if (r.type === 'divider') {
+          this.dividerShowButton = r.showButton
+          return true
+        }
+        return false
+      })
+    }
+
     const debugWhichList = __DEV__ ? (
       <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
         {usingFlashList ? 'FLASH' : 'old'}
@@ -248,21 +291,19 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
 
-    const HeadComponent = <ChatInboxHeader headerContext="inbox-header" />
-
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
           <LoadingLine />
           {this.props.isSearching ? (
             <Kb.Box2 direction="vertical" fullWidth={true}>
-              <InboxSearch header={HeadComponent} />
+              <InboxSearch header={this.HeadComponent} />
             </Kb.Box2>
           ) : (
             <List
               // @ts-ignore
               disableAutoLayout={true}
-              ListHeaderComponent={HeadComponent}
+              ListHeaderComponent={this.HeadComponent}
               data={this.props.rows}
               estimatedItemSize={64}
               getItemType={this.getItemType}
@@ -272,8 +313,10 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
               overScrollMode="never"
               overrideItemLayout={this.overrideItemLayout}
               ref={this.listRef}
-              removeClippedSubviews={Styles.isAndroid}
+              removeClippedSubviews={true /*Styles.isAndroid*/}
               renderItem={this.renderItem}
+              windowSize={5 /* 21*/}
+              getItemLayout={this.getItemLayout}
             />
           )}
           {noChats}

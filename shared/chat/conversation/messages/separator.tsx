@@ -9,6 +9,7 @@ import {formatTimeForChat} from '../../../util/timestamp'
 import {SeparatorMapContext} from './ids-context'
 import {usingFlashList} from '../list-area/flashlist-config'
 import shallowEqual from 'shallowequal'
+import {OrangeLineContext} from '../orange-line-context'
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
   !!ptimestamp && !!mtimestamp && mtimestamp - ptimestamp > 1000 * 60 * 15
@@ -191,15 +192,14 @@ const useReduxFast = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordinal)
     leadingItem = sm.get(trailingItem) ?? 0
   }
   const you = C.useCurrentUserState(s => s.username)
-  const orangeOrdinal = C.useChatContext(s => s.orangeLine)
+  const orangeOrdinal = React.useContext(OrangeLineContext)
   return C.useChatContext(s => {
-    let ordinal = trailingItem
-    let previous = leadingItem
-
+    const ordinal = trailingItem
+    const previous = leadingItem
     const pmessage = s.messageMap.get(previous)
     const m = s.messageMap.get(ordinal) ?? missingMessage
     const showUsername = m && getUsernameToShow(m, pmessage, you)
-    const orangeLineAbove = orangeOrdinal == ordinal
+    const orangeLineAbove = orangeOrdinal == previous && previous > 0
     return {orangeLineAbove, ordinal, showUsername}
   }, shallowEqual)
 }

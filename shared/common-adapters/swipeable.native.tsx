@@ -27,32 +27,137 @@ const useActionsEnabled = (tx: Reanimated.SharedValue<number>) => {
   return {actionsEnabled}
 }
 
-const useSyncClosing = (
-  tx: Reanimated.SharedValue<number>,
-  swipeCloseRef?: React.MutableRefObject<(() => void) | null>
-) => {
-  const [hasSwiped, setHasSwiped] = React.useState(false)
-  const closeSelf = React.useCallback(() => {
+const useMakeCloseSelf = (swipeCloseRef?: React.MutableRefObject<(() => void) | null>) => {
+  return React.useCallback(() => {
     swipeCloseRef?.current?.()
     if (swipeCloseRef) {
       swipeCloseRef.current = null
     }
   }, [swipeCloseRef])
-  const closeOthersAndRegisterClose = React.useCallback(() => {
+}
+
+const makeSwipeClose = (
+  tx: Reanimated.SharedValue<number>,
+  swipeCloseRef: undefined | React.MutableRefObject<(() => void) | null>
+) => {
+  return function swipeClose() {
+    tx.value = Reanimated.withSpring(0, {
+      stiffness: 300,
+      damping: 30,
+    })
+    if (swipeCloseRef) swipeCloseRef.current = null
+  }
+}
+
+const useMakeCloseOthersAndRegisterClose = (
+  swipeCloseRef: undefined | React.MutableRefObject<(() => void) | null>,
+  setHasSwiped: (s: boolean) => void,
+  tx: Reanimated.SharedValue<number>
+) => {
+  return React.useCallback(() => {
     setHasSwiped(true)
     swipeCloseRef?.current?.()
     if (swipeCloseRef) {
-      swipeCloseRef.current = () => {
-        tx.value = Reanimated.withSpring(0, {
-          stiffness: 300,
-          damping: 30,
-        })
-        swipeCloseRef.current = null
-      }
+      swipeCloseRef.current = makeSwipeClose(tx, swipeCloseRef)
     }
   }, [swipeCloseRef])
+}
 
+const useSyncClosing = (
+  tx: Reanimated.SharedValue<number>,
+  swipeCloseRef?: React.MutableRefObject<(() => void) | null>
+) => {
+  const [hasSwiped, setHasSwiped] = React.useState(false)
+  const closeSelf = useMakeCloseSelf(swipeCloseRef)
+  const closeOthersAndRegisterClose = useMakeCloseOthersAndRegisterClose(swipeCloseRef, setHasSwiped, tx)
   return {closeSelf, closeOthersAndRegisterClose, hasSwiped}
+}
+
+const makePanOnStart = (
+  tx: Reanimated.SharedValue<number>,
+  startx: Reanimated.SharedValue<number>,
+  dx: Reanimated.SharedValue<number>,
+  started: Reanimated.SharedValue<boolean>,
+  closeOthersAndRegisterClose: () => void
+) => {
+  return function onStart() {
+    closeOthersAndRegisterClose()
+    Reanimated.runOnUI(() => {
+      'worklet'
+      Reanimated.cancelAnimation(tx)
+      startx.value = tx.value
+      dx.value = 0
+      started.value = true
+    })()
+  }
+}
+
+const makePanOnFinalize = (
+  tx: Reanimated.SharedValue<number>,
+  startx: Reanimated.SharedValue<number>,
+  dx: Reanimated.SharedValue<number>,
+  started: Reanimated.SharedValue<boolean>,
+  closeSelf: () => void,
+  actionWidth: number
+) => {
+  return function onFinalize(_e: unknown, success: boolean) {
+    if (!started.value) {
+      return
+    }
+    const closing = dx.value >= 0
+    if (!success || closing) {
+      startx.value = 0
+      Reanimated.cancelAnimation(tx)
+      tx.value = 0
+      closeSelf()
+    } else {
+      tx.value = Reanimated.withSpring(-actionWidth, {
+        stiffness: 100,
+        damping: 30,
+      })
+      startx.value = -actionWidth
+    }
+
+    dx.value = 0
+    started.value = false
+  }
+}
+
+const makePanOnUpdate = (
+  tx: Reanimated.SharedValue<number>,
+  startx: Reanimated.SharedValue<number>,
+  dx: Reanimated.SharedValue<number>,
+  actionWidth: number
+) => {
+  return function onUpdate(e: GestureUpdateEvent<PanGestureHandlerEventPayload>) {
+    dx.value = e.velocityX
+    tx.value = Math.min(0, Math.max(-actionWidth, e.translationX + startx.value))
+  }
+}
+
+const makeTapOnStart = () => () => {}
+const makeTapOnEnd = (isOpen: boolean, onClick?: () => void) => {
+  return function tapOnEnd() {
+    if (isOpen) {
+      return
+    }
+    onClick && Reanimated.runOnJS(onClick)()
+  }
+}
+
+const useMakeSetIsOpenReaction = (tx: Reanimated.SharedValue<number>, setIsOpen: (p: boolean) => void) => {
+  Reanimated.useAnimatedReaction(
+    () => {
+      'worklet'
+      return tx.value < 0
+    },
+    (cur, prev) => {
+      'worklet'
+      if (cur !== prev) {
+        Reanimated.runOnJS(setIsOpen)(cur)
+      }
+    }
+  )
 }
 
 const useGesture = (
@@ -64,7 +169,6 @@ const useGesture = (
   onClick?: () => void
 ) => {
   const started = Reanimated.useSharedValue(false)
-  const lastIsOpen = Reanimated.useSharedValue(false)
   const [isOpen, setIsOpen] = React.useState(false)
   const startx = Reanimated.useSharedValue(0)
   const dx = Reanimated.useSharedValue(0)
@@ -79,62 +183,32 @@ const useGesture = (
     tx.value = 0
   }
 
-  Reanimated.useDerivedValue(() => {
-    const nextIsOpen = tx.value < 0
-    if (lastIsOpen.value !== nextIsOpen) {
-      lastIsOpen.value = nextIsOpen
-      Reanimated.runOnJS(setIsOpen)(nextIsOpen)
-    }
-  })
+  useMakeSetIsOpenReaction(tx, setIsOpen)
 
   const panGesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
     .minPointers(1)
     .maxPointers(1)
-    .onStart(() => {
-      Reanimated.cancelAnimation(tx)
-      startx.value = tx.value
-      dx.value = 0
-      started.value = true
-      Reanimated.runOnJS(closeOthersAndRegisterClose)()
-    })
-    .onFinalize((_e, success) => {
-      if (!started.value) {
-        return
-      }
-      const closing = dx.value >= 0
-      if (!success || closing) {
-        startx.value = 0
-        Reanimated.cancelAnimation(tx)
-        tx.value = 0
-        Reanimated.runOnJS(closeSelf)()
-      } else {
-        tx.value = Reanimated.withSpring(-actionWidth, {
-          stiffness: 100,
-          damping: 30,
-        })
-        startx.value = -actionWidth
-      }
-
-      dx.value = 0
-      started.value = false
-    })
-    .onUpdate((e: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
-      dx.value = e.velocityX
-      tx.value = Math.min(0, Math.max(-actionWidth, e.translationX + startx.value))
-    })
+    .onStart(makePanOnStart(tx, startx, dx, started, closeOthersAndRegisterClose))
+    .onFinalize(makePanOnFinalize(tx, startx, dx, started, closeSelf, actionWidth))
+    .onUpdate(makePanOnUpdate(tx, startx, dx, actionWidth))
 
   const tapGesture = Gesture.Tap()
-    .onStart(() => {})
-    .onEnd(() => {
-      if (isOpen) {
-        return
-      }
-      onClick && Reanimated.runOnJS(onClick)()
-    })
+    .onStart(makeTapOnStart())
+    .onEnd(makeTapOnEnd(isOpen, onClick))
     .enabled(!isOpen)
 
   return Gesture.Race(panGesture, tapGesture)
+}
+
+const makeRowStyle = (tx: Reanimated.SharedValue<number>, solidColor?: string, clearColor?: string) => {
+  return function rowStyleFunc() {
+    'worklet'
+    return {
+      backgroundColor: tx.value < 0 ? solidColor : clearColor,
+      transform: [{translateX: tx.value}],
+    }
+  }
 }
 
 // A row swipe container. Shows actions below
@@ -153,10 +227,7 @@ export const Swipeable = React.memo(function Swipeable2(p: {
   const isDarkMode = React.useContext(Styles.DarkModeContext)
   const solidColor = isDarkMode ? darkColors.white : colors.white
   const clearColor = isDarkMode ? darkColors.fastBlank : colors.fastBlank
-  const rowStyle = Reanimated.useAnimatedStyle(() => ({
-    backgroundColor: tx.value < 0 ? solidColor : clearColor,
-    transform: [{translateX: tx.value}],
-  }))
+  const rowStyle = Reanimated.useAnimatedStyle(makeRowStyle(tx, solidColor, clearColor))
   const actionStyle = Reanimated.useAnimatedStyle(() => ({
     width: Math.min(actionWidth, Math.max(0, -tx.value)),
   }))

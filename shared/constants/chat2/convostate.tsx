@@ -100,7 +100,6 @@ type ConvoStore = {
   moreToLoad: boolean
   muted: boolean
   mutualTeams: Array<T.Teams.TeamID>
-  orangeLine: T.Chat.Ordinal // last message we've seen,
   participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
   replyTo: T.Chat.Ordinal
@@ -140,7 +139,6 @@ const initialConvoStore: ConvoStore = {
   moreToLoad: false,
   muted: false,
   mutualTeams: [],
-  orangeLine: 0,
   participants: noParticipantInfo,
   pendingOutboxToOrdinal: new Map(),
   replyTo: 0,
@@ -197,7 +195,6 @@ export type ConvoState = ConvoStore & {
       messageID: T.Chat.MessageID,
       highlightMode: T.Chat.CenterOrdinalHighlightMode
     ) => void
-    loadOrangeLine: () => void
     loadOlderMessagesDueToScroll: () => void
     loadNewerMessagesDueToScroll: () => void
     loadMoreMessages: (p: {
@@ -278,7 +275,6 @@ export type ConvoState = ConvoStore & {
     setMinWriterRole: (role: T.Teams.TeamRoleType) => void
     setMoreToLoad: (m: boolean) => void
     setMuted: (m: boolean) => void
-    setOrangeLine: (o: T.Chat.Ordinal) => void
     setParticipants: (p: ConvoState['participants']) => void
     setPendingOutboxToOrdinal: (p: ConvoState['pendingOutboxToOrdinal']) => void
     setReplyTo: (o: T.Chat.Ordinal) => void
@@ -311,7 +307,6 @@ export type ConvoState = ConvoStore & {
     unreadUpdated: (unread: number) => void
     updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
     updateAttachmentViewTransfered: (msgId: number, path: string) => void
-    updateUnreadline: (messageID: T.Chat.MessageID) => void
     updateMessage: (ordinal: T.Chat.Ordinal, m: Partial<T.Chat.Message>) => void
     updateMeta: (m: Partial<T.Chat.ConversationMeta>) => void
     updateNotificationSettings: (
@@ -1079,45 +1074,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         scrollDirection: 'back',
       })
     },
-    loadOrangeLine: () => {
-      const f = async () => {
-        const conversationIDKey = get().id
-        if (!T.Chat.isValidConversationIDKey(conversationIDKey)) {
-          logger.info('Load unreadline bail: no conversationIDKey')
-          return
-        }
-        const convID = T.Chat.keyToConversationID(conversationIDKey)
-        if (!convID) {
-          logger.info('Load unreadline bail: invalid conversationIDKey')
-          return
-        }
-        const {readMsgID} = get().meta
-        try {
-          const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
-            convID,
-            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-            readMsgID: readMsgID < 0 ? 0 : readMsgID,
-          })
-          const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
-          logger.info(`marking unreadline ${conversationIDKey} ${unreadlineID}`)
-          get().dispatch.updateUnreadline(T.Chat.numberToMessageID(unreadlineID))
-          if (get().markedAsUnread) {
-            // Remove the force unread bit for the next time we view the thread.
-            get().dispatch.setMarkAsUnread(false)
-          }
-        } catch (error) {
-          if (error instanceof RPCError) {
-            if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
-              const {inboxRefresh, navigateToInbox} = C.useChatState.getState().dispatch
-              inboxRefresh('maybeKickedFromTeam')
-              navigateToInbox()
-            }
-          }
-          // ignore this error in general
-        }
-      }
-      Z.ignorePromise(f())
-    },
     markTeamAsRead: teamID => {
       const f = async () => {
         if (!C.useConfigState.getState().loggedIn) {
@@ -1129,7 +1085,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
-    markThreadAsRead: unreadLineMessageID => {
+    markThreadAsRead: () => {
       const f = async () => {
         if (!C.useConfigState.getState().loggedIn) {
           logger.info('bail on not logged in')
@@ -1161,11 +1117,17 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (meta.conversationIDKey === conversationIDKey) {
           readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
         }
-        if (unreadLineMessageID !== undefined && readMsgID && readMsgID >= unreadLineMessageID) {
-          // If we are marking as unread, don't send the local RPC.
+
+        //  invalid?
+        if (!readMsgID) {
+          logger.info(`marking read messages is invalid bail: ${conversationIDKey} ${readMsgID}`)
           return
         }
-
+        // noop?
+        if (readMsgID === meta.readMsgID) {
+          logger.info(`marking read messages is noop bail: ${conversationIDKey} ${readMsgID}`)
+          return
+        }
         logger.info(`marking read messages ${conversationIDKey} ${readMsgID}`)
         await T.RPCChat.localMarkAsReadLocalRpcPromise({
           conversationID: T.Chat.keyToConversationID(conversationIDKey),
@@ -2271,37 +2233,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
 
-      const updateOrangeAfterSelected = () => {
-        get().dispatch.setContainsLatestMessage(true)
-        const {readMsgID, maxVisibleMsgID} = get().meta
-        logger.info(
-          `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
-        )
-        if (maxVisibleMsgID > readMsgID) {
-          // Store the message ID that will display the orange line above it,
-          // which is the first message after the last read message. We can't
-          // just increment `readMsgID` since that msgID might be a
-          // non-visible (edit, delete, reaction...) message so we scan the
-          // ordinals for the appropriate value.
-          const messageMap = get().messageMap
-          const ordinals = get().messageOrdinals
-          const ord = ordinals?.find(o => {
-            const message = messageMap.get(o)
-            return !!(message && message.id >= readMsgID + 1)
-          })
-          const message = ord ? messageMap.get(ord) : null
-          if (message?.id) {
-            get().dispatch.setOrangeLine(message.id)
-          } else {
-            get().dispatch.setOrangeLine(0)
-          }
-        } else {
-          // If there aren't any new messages, we don't want to display an
-          // orange line so remove its entry from orangeLineMap
-          get().dispatch.setOrangeLine(0)
-        }
-      }
-
       const ensureSelectedTeamLoaded = () => {
         const selectedConversation = Common.getSelectedConversation()
         const meta = _getConvoState(selectedConversation).meta
@@ -2313,14 +2244,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
       ensureSelectedTeamLoaded()
-      get().dispatch.loadOrangeLine()
       const meta = get().meta
       const participantInfo = get().participants
       const force = meta.conversationIDKey !== conversationIDKey || participantInfo.all.length === 0
       C.useChatState.getState().dispatch.unboxRows([conversationIDKey], force)
       get().dispatch.setThreadLoadStatus(T.RPCChat.UIChatThreadStatusTyp.none)
       get().dispatch.setMessageCenterOrdinal()
-      updateOrangeAfterSelected()
+      get().dispatch.setContainsLatestMessage(true)
       fetchConversationBio()
       C.useChatState.getState().dispatch.resetConversationErrored()
     },
@@ -2616,7 +2546,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
           .then(() => {})
           .catch(() => {})
-        get().dispatch.setOrangeLine(unreadLineID)
       }
       Z.ignorePromise(f())
     },
@@ -2670,11 +2599,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.muted = m
       })
     },
-    setOrangeLine: o => {
-      set(s => {
-        s.orangeLine = o
-      })
-    },
     setParticipants: p => {
       set(s => {
         if (!isEqual(s.participants, p)) {
@@ -2708,7 +2632,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           s.typing = t
         }
       })
-    }, 2000),
+    }, 1000),
     setupSubscriptions: () => {
       // TODO
     },
@@ -3128,9 +3052,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
       get().dispatch.markThreadAsRead()
-    },
-    updateUnreadline: messageID => {
-      get().dispatch.markThreadAsRead(messageID)
     },
   }
   return {

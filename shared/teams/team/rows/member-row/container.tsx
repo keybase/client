@@ -19,7 +19,7 @@ export default (ownProps: OwnProps) => {
   const info = members.get(username) || blankInfo
 
   const you = C.useCurrentUserState(s => s.username)
-  const fullName = you ? 'You' : info.fullName
+  const fullName = you === username ? 'You' : info.fullName
   const needsPUK = info.needsPUK
   const roleType = info.type
   const status = info.status

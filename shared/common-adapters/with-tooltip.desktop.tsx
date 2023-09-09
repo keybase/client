@@ -5,6 +5,8 @@ import Toast from './toast'
 import Text from './text'
 import type {Props} from './with-tooltip'
 
+const IGNORE_FOR_PROFILING = false
+
 const Kb = {
   Box2,
   Text,
@@ -37,8 +39,8 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
         alignItems="center"
         style={containerStyle}
         ref={setAttachmentRef}
-        onMouseOver={onMouseEnter}
-        onMouseLeave={onMouseLeave}
+        onMouseOver={IGNORE_FOR_PROFILING ? undefined : onMouseEnter}
+        onMouseLeave={IGNORE_FOR_PROFILING ? undefined : onMouseLeave}
         className={className}
       >
         {children}
