@@ -10,7 +10,6 @@ import MakeTeamCard from './cards/make-team'
 import NewChatCard from './cards/new-chat'
 import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
-import shallowEqual from 'shallowequal'
 import {usingFlashList} from '../list-area/flashlist-config'
 
 const ErrorMessage = () => {
@@ -123,7 +122,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       teamType,
       username,
     }
-  }, shallowEqual)
+  }, C.shallowEqual)
   const {hasLoadedEver, ordinal, retentionPolicy} = data
   const {supersedes, teamType, teamRetentionPolicy} = data
   // we defer showing this so it doesn't flash so much

@@ -14,7 +14,6 @@ import * as ConfigConstants from '../config'
 import HiddenString from '../../util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '../../logger'
-import shallowEqual from 'shallowequal'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import throttle from 'lodash/throttle'
 import {RPCError} from '../../util/errors'
@@ -2555,7 +2554,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     setMessageOrdinals: os => {
       set(s => {
-        if (!shallowEqual(s.messageOrdinals, os)) {
+        if (!C.shallowEqual(s.messageOrdinals, os)) {
           s.messageOrdinals = os
         }
       })

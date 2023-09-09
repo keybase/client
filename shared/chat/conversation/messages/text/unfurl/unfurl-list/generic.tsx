@@ -4,7 +4,6 @@ import * as T from '../../../../../../constants/types'
 import * as React from 'react'
 import * as Styles from '../../../../../../styles'
 import UnfurlImage from './image'
-import shallowEqual from 'shallowequal'
 import {OrdinalContext} from '../../../ids-context'
 import {formatTimeForMessages} from '../../../../../../util/timestamp'
 import {getUnfurlInfo, useActions} from './use-redux'
@@ -47,7 +46,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
       width,
       youAreAuthor,
     }
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const {onClose, onToggleCollapse} = useActions(
     data?.youAreAuthor ?? false,

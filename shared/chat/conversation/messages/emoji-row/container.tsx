@@ -3,7 +3,6 @@ import * as React from 'react'
 import EmojiRow from '.'
 import type {Position, StylesCrossPlatform} from '../../../../styles'
 import {OrdinalContext} from '../ids-context'
-import shallowEqual from 'shallowequal'
 
 type OwnProps = {
   className?: string
@@ -21,9 +20,9 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
     const hasUnfurls = (m?.unfurls?.size ?? 0) > 0
     const type = m?.type
     return {hasUnfurls, type}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
-  const emojis = C.useChatState(s => s.userReacjis.topReacjis.slice(0, 5), shallowEqual)
+  const emojis = C.useChatState(s => s.userReacjis.topReacjis.slice(0, 5), C.shallowEqual)
   const navigateAppend = C.useChatNavigateAppend()
   const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const onForward = React.useCallback(() => {

@@ -3,7 +3,6 @@ import type * as T from '../../../constants/types'
 import * as React from 'react'
 import Normal from '.'
 import {indefiniteArticle} from '../../../util/string'
-import shallowEqual from 'shallowequal'
 import {OrangeLineContext} from '../orange-line-context'
 
 // Orange line logic:
@@ -90,7 +89,7 @@ const NormalWrapper = React.memo(function NormalWrapper() {
       minWriterRole
     )} ${minWriterRole} to post.`
     return {cannotWrite, minWriterReason, threadLoadedOffline}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const dragAndDropRejectReason = cannotWrite ? minWriterReason : undefined
 

@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import openURL from '../../../util/open-url'
 import EnterUsername from '.'
-import shallowEqual from 'shallowequal'
 
 const ConnectedEnterUsername = () => {
   const {platformGenericChecking, platformGenericParams, platformGenericURL, username} = C.useProfileState(
@@ -9,7 +8,7 @@ const ConnectedEnterUsername = () => {
       const {platformGenericChecking, platformGenericParams, platformGenericURL, username} = s
       return {platformGenericChecking, platformGenericParams, platformGenericURL, username}
     },
-    shallowEqual
+    C.shallowEqual
   )
   const errorText = C.useProfileState(s => s.errorText)
   const _platformURL = platformGenericURL

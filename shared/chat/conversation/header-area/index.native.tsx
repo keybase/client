@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import shallowEqual from 'shallowequal'
 import {assertionToDisplay} from '../../../common-adapters/usernames'
 
 const shhIconColor = Styles.globalColors.black_20
@@ -31,7 +30,7 @@ const ChannelHeader = () => {
     const {channelname, teamname, teamType, teamID} = meta
     const smallTeam = teamType !== 'big'
     return {channelname, smallTeam, teamID, teamname}
-  }, shallowEqual)
+  }, C.shallowEqual)
   const textType = smallTeam ? 'BodyBig' : Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = React.useCallback(() => {
@@ -82,7 +81,7 @@ const UsernameHeader = () => {
         : undefined
 
     return {participants, theirFullname}
-  }, shallowEqual)
+  }, C.shallowEqual)
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onShowProfile = React.useCallback(
     (username: string) => {

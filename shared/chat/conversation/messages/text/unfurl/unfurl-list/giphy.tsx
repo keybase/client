@@ -3,7 +3,6 @@ import * as Kb from '../../../../../../common-adapters/index'
 import * as React from 'react'
 import * as Styles from '../../../../../../styles'
 import UnfurlImage from './image'
-import shallowEqual from 'shallowequal'
 import * as T from '../../../../../../constants/types'
 import {OrdinalContext} from '../../../ids-context'
 import {getUnfurlInfo, useActions} from './use-redux'
@@ -30,7 +29,7 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
       width,
       youAreAuthor,
     }
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const {onClose, onToggleCollapse} = useActions(
     data?.youAreAuthor ?? false,

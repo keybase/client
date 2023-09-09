@@ -7,7 +7,6 @@ import type * as T from '../../../constants/types'
 import {formatTimeForChat} from '../../../util/timestamp'
 import {SeparatorMapContext} from './ids-context'
 import {usingFlashList} from '../list-area/flashlist-config'
-import shallowEqual from 'shallowequal'
 import {OrangeLineContext} from '../orange-line-context'
 
 const enoughTimeBetweenMessages = (mtimestamp?: number, ptimestamp?: number): boolean =>
@@ -200,7 +199,7 @@ const useReduxFast = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordinal)
     const showUsername = m && getUsernameToShow(m, pmessage, you)
     const orangeLineAbove = orangeOrdinal == previous && previous > 0
     return {orangeLineAbove, ordinal, showUsername}
-  }, shallowEqual)
+  }, C.shallowEqual)
 }
 
 const useRedux = (ordinal: T.Chat.Ordinal) => {
@@ -228,7 +227,7 @@ const useRedux = (ordinal: T.Chat.Ordinal) => {
       teamType,
       timestamp,
     }
-  }, shallowEqual)
+  }, C.shallowEqual)
   return {...d, participantInfoNames}
 }
 

@@ -3,7 +3,6 @@ import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import shallowEqual from 'shallowequal'
 import type * as T from '../../../../constants/types'
 import {OrdinalContext} from '../ids-context'
 import {sharedStyles} from '../shared-styles'
@@ -191,7 +190,7 @@ export const useAttachmentRedux = () => {
         deviceType === 'desktop' ? fileNameRaw : `${inlineVideoPlayable ? 'Video' : 'Image'} from mobile`
 
       return {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState}
-    }, shallowEqual)
+    }, C.shallowEqual)
 
   return {
     fileName,

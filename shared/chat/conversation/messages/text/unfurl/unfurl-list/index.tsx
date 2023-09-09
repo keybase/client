@@ -7,7 +7,6 @@ import UnfurlGiphy from './giphy'
 import UnfurlMap from './map'
 import * as Kb from '../../../../../../common-adapters'
 import {OrdinalContext} from '../../../ids-context'
-import shallowEqual from 'shallowequal'
 
 export type UnfurlListItem = {
   unfurl: T.RPCChat.UnfurlDisplay
@@ -71,7 +70,7 @@ const UnfurlListContainer = React.memo(function UnfurlListContainer() {
             return 'none'
         }
       }),
-    shallowEqual
+    C.shallowEqual
   )
   return (
     <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>

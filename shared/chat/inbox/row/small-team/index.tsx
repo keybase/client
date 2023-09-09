@@ -8,7 +8,6 @@ import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
 import * as T from '../../../../constants/types'
 import SwipeConvActions from './swipe-conv-actions'
-import shallowEqual from 'shallowequal'
 import './small-team.css'
 import {
   IsTeamContext,
@@ -49,7 +48,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
     const snippet = typingSnippet ?? meta.snippetDecorated ?? maybeLayoutSnippet ?? ''
     const snippetDecoration = meta?.snippetDecoration ?? T.RPCChat.SnippetDecoration.none
     return {snippet, snippetDecoration}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const you = C.useCurrentUserState(s => s.username)
   const participantInfo = C.useChatContext(s => s.participants)
@@ -71,7 +70,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       return [layoutName]
     }
     return layoutName?.split(',') ?? []
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const _onSelectConversation = React.useCallback(() => {
     navigateToThread('inboxSmall')

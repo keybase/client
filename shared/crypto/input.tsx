@@ -8,7 +8,6 @@ import * as Styles from '../styles'
 import type {IconType} from '../common-adapters/icon.constants-gen'
 import capitalize from 'lodash/capitalize'
 import {pickFiles} from '../util/pick-files'
-import shallowEqual from 'shallowequal'
 
 type CommonProps = {
   operation: T.Crypto.Operations
@@ -213,7 +212,7 @@ export const Input = (props: CommonProps) => {
     const o = s[operation]
     const {input, inputType} = o
     return {input, inputType}
-  }, shallowEqual)
+  }, C.shallowEqual)
   const input = _input.stringValue()
 
   const [inputValue, setInputValue] = React.useState(input)
@@ -294,7 +293,7 @@ export const OperationBanner = (props: CommonProps) => {
   const {errorMessage: _errorMessage, warningMessage: _warningMessage} = C.useCryptoState(s => {
     const {errorMessage, warningMessage} = s[operation]
     return {errorMessage, warningMessage}
-  }, shallowEqual)
+  }, C.shallowEqual)
   const errorMessage = _errorMessage.stringValue()
   const warningMessage = _warningMessage.stringValue()
 

@@ -4,7 +4,6 @@ import * as T from '../../constants/types'
 import * as React from 'react'
 import * as SignupConstants from '../../constants/signup'
 import Username from '.'
-import shallowEqual from 'shallowequal'
 import type {RPCError} from '../../util/errors'
 
 type OwnProps = {fromReset?: boolean}
@@ -35,7 +34,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const _error = C.useProvisionState(s => s.error)
   const {inlineError, inlineSignUpLink} = C.useProvisionState(
     s => decodeInlineError(s.inlineError),
-    shallowEqual
+    C.shallowEqual
   )
   const error = _error ? _error : inlineError && !inlineSignUpLink ? inlineError : ''
   // So we can clear the error if the name is changed

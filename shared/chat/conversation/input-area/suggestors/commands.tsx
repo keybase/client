@@ -4,7 +4,6 @@ import * as Common from './common'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import shallowEqual from 'shallowequal'
 import {memoize} from '../../../../util/memoize'
 
 const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {
@@ -157,7 +156,7 @@ export const useDataSource = (p: UseDataSourceProps) => {
       c.name.includes(fil)
     )
     return data
-  }, shallowEqual)
+  }, C.shallowEqual)
 }
 
 type CommandType = T.RPCChat.ConversationCommand

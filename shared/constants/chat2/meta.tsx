@@ -7,7 +7,6 @@ import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isPhone} from '../platform'
 import type {AllowedColors} from '../../common-adapters/text'
-import shallowEqual from 'shallowequal'
 
 const conversationMemberStatusToMembershipType = (m: T.RPCChat.ConversationMemberStatus) => {
   switch (m) {
@@ -124,16 +123,16 @@ export const getEffectiveRetentionPolicy = (meta: T.Chat.ConversationMeta) => {
 
 const copyOverOldValuesIfEqual = (oldMeta: T.Chat.ConversationMeta, newMeta: T.Chat.ConversationMeta) => {
   const merged = {...newMeta}
-  if (shallowEqual([...merged.rekeyers], [...oldMeta.rekeyers])) {
+  if (C.shallowEqual([...merged.rekeyers], [...oldMeta.rekeyers])) {
     merged.rekeyers = oldMeta.rekeyers
   }
-  if (shallowEqual([...merged.resetParticipants], [...oldMeta.resetParticipants])) {
+  if (C.shallowEqual([...merged.resetParticipants], [...oldMeta.resetParticipants])) {
     merged.resetParticipants = oldMeta.resetParticipants
   }
-  if (shallowEqual(merged.retentionPolicy, oldMeta.retentionPolicy)) {
+  if (C.shallowEqual(merged.retentionPolicy, oldMeta.retentionPolicy)) {
     merged.retentionPolicy = oldMeta.retentionPolicy
   }
-  if (shallowEqual(merged.teamRetentionPolicy, oldMeta.teamRetentionPolicy)) {
+  if (C.shallowEqual(merged.teamRetentionPolicy, oldMeta.teamRetentionPolicy)) {
     merged.teamRetentionPolicy = oldMeta.teamRetentionPolicy
   }
   return merged

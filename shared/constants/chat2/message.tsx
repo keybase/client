@@ -7,7 +7,6 @@ import type * as ConvoConstants from './convostate'
 import HiddenString from '../../util/hidden-string'
 import invert from 'lodash/invert'
 import logger from '../../logger'
-import shallowEqual from 'shallowequal'
 import type * as MessageTypes from '../types/chat2/message'
 import type {ServiceId} from 'util/platforms'
 import {isMobile} from '../platform'
@@ -1335,7 +1334,7 @@ export const mergeMessage = (old: T.Chat.Message | undefined, m: T.Chat.Message)
       case 'mentionsAt':
       case 'audioAmps':
         // @ts-ignore
-        if (shallowEqual([...old[key]], [...m[key]])) {
+        if (C.shallowEqual([...old[key]], [...m[key]])) {
           // @ts-ignore
           toRet[key] = old[key]
         } else {
