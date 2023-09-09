@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as Tabs from '../constants/tabs'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {SettingsSection} from './account'
@@ -67,7 +66,7 @@ const ManageContactsBanner = () => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
   const onStartChat = React.useCallback(() => {
-    switchTab(Tabs.chatTab)
+    switchTab(C.chatTab)
     appendNewChatBuilder()
   }, [appendNewChatBuilder, switchTab])
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

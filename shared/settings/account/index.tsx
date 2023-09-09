@@ -3,7 +3,6 @@ import * as Constants from '../../constants/settings'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
-import * as Tabs from '../../constants/tabs'
 import EmailPhoneRow from './email-phone-row'
 import {isMobile} from '../../styles'
 
@@ -53,7 +52,7 @@ export default () => {
   }
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onStartPhoneConversation = () => {
-    switchTab(Tabs.chatTab)
+    switchTab(C.chatTab)
     navigateAppend({props: {namespace: 'chat2'}, selected: 'chatNewChat'})
     clearAddedPhone()
   }

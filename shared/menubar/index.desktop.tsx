@@ -6,7 +6,6 @@ import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Styles from '../styles'
-import * as Tabs from '../constants/tabs'
 import ChatContainer from './chat-container.desktop'
 import FilesPreview from './files-container.desktop'
 import KB2 from '../util/electron.desktop'
@@ -65,7 +64,7 @@ const UploadWithCountdown = (p: UWCDProps) => {
 }
 
 const useMenuItems = (
-  p: Props & {showBadges?: boolean; openApp: (tab?: Tabs.AppTab) => void}
+  p: Props & {showBadges?: boolean; openApp: (tab?: C.AppTab) => void}
 ): ReadonlyArray<_InnerMenuItem> => {
   const {showBadges, navBadges, daemonHandshakeState, username, kbfsEnabled, openApp} = p
   const countMap = navBadges
@@ -120,36 +119,32 @@ const useMenuItems = (
     if (showBadges) {
       return [
         {
-          onClick: () => openApp(Tabs.walletsTab),
+          onClick: () => openApp(C.walletsTab),
           title: 'Wallet',
           view: (
-            <TabView title="Wallet" iconType="iconfont-nav-2-wallets" count={countMap.get(Tabs.walletsTab)} />
+            <TabView title="Wallet" iconType="iconfont-nav-2-wallets" count={countMap.get(C.walletsTab)} />
           ),
         },
         {
-          onClick: () => openApp(Tabs.gitTab),
+          onClick: () => openApp(C.gitTab),
           title: 'Git',
-          view: <TabView title="Git" iconType="iconfont-nav-2-git" count={countMap.get(Tabs.gitTab)} />,
+          view: <TabView title="Git" iconType="iconfont-nav-2-git" count={countMap.get(C.gitTab)} />,
         },
         {
-          onClick: () => openApp(Tabs.devicesTab),
+          onClick: () => openApp(C.devicesTab),
           title: 'Devices',
           view: (
-            <TabView
-              title="Devices"
-              iconType="iconfont-nav-2-devices"
-              count={countMap.get(Tabs.devicesTab)}
-            />
+            <TabView title="Devices" iconType="iconfont-nav-2-devices" count={countMap.get(C.devicesTab)} />
           ),
         },
         {
-          onClick: () => openApp(Tabs.settingsTab),
+          onClick: () => openApp(C.settingsTab),
           title: 'Settings',
           view: (
             <TabView
               title="Settings"
               iconType="iconfont-nav-2-settings"
-              count={countMap.get(Tabs.settingsTab)}
+              count={countMap.get(C.settingsTab)}
             />
           ),
         },
@@ -176,7 +171,7 @@ const useMenuItems = (
 
 const IconBar = (p: Props & {showBadges?: boolean}) => {
   const {navBadges, showBadges} = p
-  const openApp = React.useCallback((tab?: Tabs.AppTab) => {
+  const openApp = React.useCallback((tab?: C.AppTab) => {
     R.remoteDispatch(RemoteGen.createShowMain())
     tab && R.remoteDispatch(RemoteGen.createSwitchTab({tab}))
   }, [])
@@ -236,8 +231,8 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
   )
 }
 
-const badgeTypesInHeader = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab]
-const badgesInMenu = [Tabs.walletsTab, Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
+const badgeTypesInHeader = [C.peopleTab, C.chatTab, C.fsTab, C.teamsTab]
+const badgesInMenu = [C.walletsTab, C.gitTab, C.devicesTab, C.settingsTab]
 const LoggedIn = (p: Props) => {
   const {endEstimate, files, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
   const {outOfDate, windowShownCount} = p
@@ -291,7 +286,7 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const logIn = () => {
     R.remoteDispatch(RemoteGen.createShowMain())
-    navigateAppend(Tabs.loginTab)
+    navigateAppend(C.loginTab)
   }
   return (
     <>
@@ -381,18 +376,18 @@ body {
 `
 
 const iconMap = {
-  [Tabs.peopleTab]: 'iconfont-nav-2-people',
-  [Tabs.chatTab]: 'iconfont-nav-2-chat',
-  [Tabs.devicesTab]: 'iconfont-nav-2-devices',
-  [Tabs.fsTab]: 'iconfont-nav-2-files',
-  [Tabs.teamsTab]: 'iconfont-nav-2-teams',
+  [C.peopleTab]: 'iconfont-nav-2-people',
+  [C.chatTab]: 'iconfont-nav-2-chat',
+  [C.devicesTab]: 'iconfont-nav-2-devices',
+  [C.fsTab]: 'iconfont-nav-2-files',
+  [C.teamsTab]: 'iconfont-nav-2-teams',
 } as const
 const BadgeIcon = ({tab, countMap, openApp}: any) => {
   const count = countMap.get(tab)
   // @ts-ignore
   const iconType = iconMap[tab]
 
-  if ((tab === Tabs.devicesTab && !count) || !iconType) {
+  if ((tab === C.devicesTab && !count) || !iconType) {
     return null
   }
 

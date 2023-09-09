@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import Announcement from '.'
 import * as T from '../../constants/types'
-import * as Tabs from '../../constants/tabs'
 import openURL from '../../util/open-url'
 
 type OwnProps = {
@@ -34,34 +33,34 @@ export default (ownProps: OwnProps) => {
         navigateToInbox()
         break
       case T.RPCGen.AppLinkType.files:
-        switchTab(C.isMobile ? Tabs.settingsTab : Tabs.fsTab)
+        switchTab(C.isMobile ? C.settingsTab : C.fsTab)
         if (C.isMobile) {
           navigateAppend(C.settingsFsTab)
         }
         break
       case T.RPCGen.AppLinkType.wallet:
-        switchTab(C.isMobile ? Tabs.settingsTab : Tabs.walletsTab)
+        switchTab(C.isMobile ? C.settingsTab : C.walletsTab)
         if (C.isMobile) {
           navigateAppend(C.settingsWalletsTab)
         }
         break
       case T.RPCGen.AppLinkType.git:
-        switchTab(C.isMobile ? Tabs.settingsTab : Tabs.gitTab)
+        switchTab(C.isMobile ? C.settingsTab : C.gitTab)
         if (C.isMobile) {
           navigateAppend({props: {}, selected: C.settingsGitTab})
         }
         break
       case T.RPCGen.AppLinkType.devices:
-        switchTab(C.isMobile ? Tabs.settingsTab : Tabs.devicesTab)
+        switchTab(C.isMobile ? C.settingsTab : C.devicesTab)
         if (C.isMobile) {
           navigateAppend(C.settingsDevicesTab)
         }
         break
       case T.RPCGen.AppLinkType.settings:
-        switchTab(Tabs.settingsTab)
+        switchTab(C.settingsTab)
         break
       case T.RPCGen.AppLinkType.teams:
-        switchTab(Tabs.teamsTab)
+        switchTab(C.teamsTab)
         break
     }
     dismissAnnouncement(id)

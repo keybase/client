@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as TeamsConstants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
 import * as T from '../../constants/types'
@@ -22,9 +21,7 @@ export default (ownProps: OwnProps) => {
   const sperror = C.useAnyErrors(C.uploadAvatarWaitingKey)
   const sendChatNotification = ownProps.sendChatNotification ?? false
   const submitting = C.useAnyWaiting(C.uploadAvatarWaitingKey)
-  const teamname = C.useTeamsState(
-    s => (teamID ? TeamsConstants.getTeamNameFromID(s, teamID) : undefined) ?? ''
-  )
+  const teamname = C.useTeamsState(s => (teamID ? C.getTeamNameFromID(s, teamID) : undefined) ?? '')
 
   const dispatchClearWaiting = C.useDispatchClearWaiting()
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Platform from '../constants/platform'
-import * as Tabs from '../constants/tabs'
 import {encryptTab} from '../constants/crypto'
 import {keybaseFM} from '../constants/whats-new'
 import NewFeatureRow from './new-feature-row'
@@ -12,7 +11,7 @@ export type VersionProps = {
   seen: boolean
   onNavigate: (props: C.PathParam) => void
   onNavigateExternal: (url: string) => void
-  onSwitchTab: (tab: Tabs.AppTab) => void
+  onSwitchTab: (tab: C.AppTab) => void
 }
 
 export const Version = ({children}: {children: React.ReactNode}) => {
@@ -40,7 +39,7 @@ export const Current = ({onSwitchTab, seen}: VersionProps) => {
         seen={seen}
         primaryButtonText="Go to Teams"
         onPrimaryButtonClick={() => {
-          onSwitchTab(Tabs.teamsTab)
+          onSwitchTab(C.teamsTab)
         }}
       >
         Administering groups is easier than ever with the redesigned Teams tab.

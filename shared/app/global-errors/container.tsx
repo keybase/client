@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import GlobalError from '.'
-import {settingsTab} from '../../constants/tabs'
 
 const Connected = () => {
   const loggedIn = C.useConfigState(s => s.loggedIn)
@@ -16,7 +15,7 @@ const Connected = () => {
     if (loggedIn) {
       clearModals()
       if (C.isMobile) {
-        navigateAppend(settingsTab)
+        navigateAppend(C.settingsTab)
         navigateAppend({
           props: {},
           selected: C.settingsFeedbackTab,

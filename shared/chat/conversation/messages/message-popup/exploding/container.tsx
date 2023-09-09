@@ -1,8 +1,7 @@
 import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/chat2'
-import * as Container from '../../../../../util/container'
+import type * as Container from '../../../../../util/container'
 import * as React from 'react'
-import * as TeamConstants from '../../../../../constants/teams'
 import Exploding from '.'
 import ReactionItem from '../reactionitem'
 import openURL from '../../../../../util/open-url'
@@ -33,7 +32,7 @@ export default (ownProps: OwnProps) => {
   const meta = C.useChatContext(s => s.meta)
   const participantInfo = C.useChatContext(s => s.participants)
   const _canDeleteHistory = C.useTeamsState(
-    s => meta.teamType === 'adhoc' || TeamConstants.getCanPerformByID(s, meta.teamID).deleteChatHistory
+    s => meta.teamType === 'adhoc' || C.getCanPerformByID(s, meta.teamID).deleteChatHistory
   )
   const _canExplodeNow = (yourMessage || _canDeleteHistory) && message.isDeleteable
   const _canEdit = yourMessage && message.isEditable

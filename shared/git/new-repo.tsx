@@ -3,7 +3,6 @@ import * as TeamsConstants from '../constants/teams'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
-import {teamsTab} from '../constants/tabs'
 
 type OwnProps = {isTeam: boolean}
 
@@ -35,7 +34,7 @@ export default (ownProps: OwnProps) => {
   const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onNewTeam = () => {
-    switchTab(teamsTab)
+    switchTab(C.teamsTab)
     launchNewTeamWizardOrModal()
   }
   const props = {

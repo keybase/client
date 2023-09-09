@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as TabConstants from '../constants/tabs'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as T from '../constants/types'
@@ -99,19 +98,19 @@ function SettingsNav() {
                 text: 'Crypto',
               },
               {
-                badgeNumber: badgeNumbers.get(TabConstants.gitTab),
+                badgeNumber: badgeNumbers.get(C.gitTab),
                 icon: 'iconfont-nav-2-git',
                 onClick: () => onTabChange(C.settingsGitTab),
                 text: 'Git',
               },
               {
-                badgeNumber: badgeNumbers.get(TabConstants.devicesTab),
+                badgeNumber: badgeNumbers.get(C.devicesTab),
                 icon: 'iconfont-nav-2-devices',
                 onClick: () => onTabChange(C.settingsDevicesTab),
                 text: 'Devices',
               },
               {
-                badgeNumber: badgeNumbers.get(TabConstants.walletsTab),
+                badgeNumber: badgeNumbers.get(C.walletsTab),
                 icon: 'iconfont-nav-2-wallets',
                 onClick: () => onTabChange(C.settingsWalletsTab),
                 text: 'Wallet',
@@ -128,7 +127,7 @@ function SettingsNav() {
           {
             data: [
               {
-                badgeNumber: badgeNumbers.get(TabConstants.settingsTab),
+                badgeNumber: badgeNumbers.get(C.settingsTab),
                 onClick: () => onTabChange(C.settingsAccountTab),
                 text: 'Your account',
               },

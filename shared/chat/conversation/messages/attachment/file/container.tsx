@@ -1,7 +1,6 @@
 import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/chat2'
 import * as React from 'react'
-import * as Tabs from '../../../../../constants/tabs'
 import File from '.'
 import type * as T from '../../../../../constants/types'
 import {OrdinalContext} from '../../ids-context'
@@ -35,7 +34,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onSaltpackFileOpen = React.useCallback(
     (path: string, operation: T.Crypto.Operations) => {
-      switchTab(Tabs.cryptoTab)
+      switchTab(C.cryptoTab)
       saltpackOpenFile(operation, path)
     },
     [switchTab, saltpackOpenFile]

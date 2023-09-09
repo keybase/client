@@ -3,14 +3,13 @@ import * as Kb from '../common-adapters'
 import type * as C from '../constants'
 import * as Styles from '../styles'
 import {currentVersion, lastVersion, lastLastVersion} from '../constants/whats-new'
-import type * as Tabs from '../constants/tabs'
 import type {VersionProps} from './versions'
 
 type Props = {
   onBack: () => void
   onNavigate: (props: C.PathParam) => void
   onNavigateExternal: (url: string) => void
-  onSwitchTab: (tab: Tabs.AppTab) => void
+  onSwitchTab: (tab: C.AppTab) => void
   seenVersions: {[key: string]: boolean}
   Current?: React.ComponentType<VersionProps>
   Last?: React.ComponentType<VersionProps>

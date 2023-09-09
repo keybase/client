@@ -3,7 +3,6 @@ import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import * as TeamConstants from '../../../constants/teams'
 import ChannelPicker from './channel-picker'
 import openURL from '../../../util/open-url'
 import * as T from '../../../constants/types'
@@ -87,7 +86,7 @@ const InstallBotPopup = (props: Props) => {
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
 
   const readOnly = C.useTeamsState(s =>
-    meta?.teamname ? !TeamConstants.getCanPerformByID(s, meta.teamID).manageBots : false
+    meta?.teamname ? !C.getCanPerformByID(s, meta.teamID).manageBots : false
   )
   const settings = C.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
   let teamname: string | undefined

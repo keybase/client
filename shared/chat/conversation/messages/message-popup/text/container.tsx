@@ -6,7 +6,6 @@ import openURL from '../../../../../util/open-url'
 import * as React from 'react'
 import type * as T from '../../../../../constants/types'
 import type {Position, StylesCrossPlatform} from '../../../../../styles'
-import {getCanPerformByID} from '../../../../../constants/teams'
 import {makeMessageText} from '../../../../../constants/chat2/message'
 
 type OwnProps = {
@@ -26,7 +25,7 @@ export default (ownProps: OwnProps) => {
   const message = m ? m : emptyMessage
   const meta = C.useChatContext(s => s.meta)
   const participantInfo = C.useChatContext(s => s.participants)
-  const yourOperations = C.useTeamsState(s => getCanPerformByID(s, meta.teamID))
+  const yourOperations = C.useTeamsState(s => C.getCanPerformByID(s, meta.teamID))
   const _canDeleteHistory = yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations.deleteOtherMessages
   const _label = Constants.getConversationLabel(participantInfo, meta, true)

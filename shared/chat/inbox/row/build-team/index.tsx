@@ -3,14 +3,13 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
-import {teamsTab} from '../../../../constants/tabs'
 
 const BuildTeam = React.memo(function BuildTeam() {
   const nav = Container.useSafeNavigation()
   const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onCreateTeam = () => {
-    switchTab(teamsTab)
+    switchTab(C.teamsTab)
     launchNewTeamWizardOrModal()
   }
   const onJoinTeam = () => {

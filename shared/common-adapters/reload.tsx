@@ -9,7 +9,6 @@ import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
 import Icon from './icon'
-import {settingsTab} from '../constants/tabs'
 import {useFocusEffect} from '@react-navigation/core'
 import type {RPCError} from '../util/errors'
 
@@ -172,7 +171,7 @@ export default (ownProps: OwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onFeedback = (loggedIn: boolean) => {
     if (loggedIn) {
-      navigateAppend(settingsTab)
+      navigateAppend(C.settingsTab)
       navigateAppend({props: {}, selected: C.settingsFeedbackTab})
     } else {
       navigateAppend({props: {}, selected: 'feedback'})

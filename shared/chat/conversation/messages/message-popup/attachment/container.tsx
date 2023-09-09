@@ -5,7 +5,6 @@ import Attachment from '.'
 import * as React from 'react'
 import type * as T from '../../../../../constants/types'
 import type {Position, StylesCrossPlatform} from '../../../../../styles'
-import {getCanPerformByID} from '../../../../../constants/teams'
 import {makeMessageAttachment} from '../../../../../constants/chat2/message'
 
 type OwnProps = {
@@ -26,7 +25,7 @@ export default (ownProps: OwnProps) => {
   const meta = C.useChatContext(s => s.meta)
   const isTeam = !!meta.teamname
   const participantInfo = C.useChatContext(s => s.participants)
-  const yourOperations = C.useTeamsState(s => getCanPerformByID(s, meta.teamID))
+  const yourOperations = C.useTeamsState(s => C.getCanPerformByID(s, meta.teamID))
   const _canAdminDelete = yourOperations.deleteOtherMessages
   const _canPinMessage = !isTeam || yourOperations.pinMessage
   const _authorIsBot = C.useTeamsState(s => Constants.messageAuthorIsBot(s, meta, message, participantInfo))

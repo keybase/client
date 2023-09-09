@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as React from 'react'
-import * as TeamConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import InfoPanelMenu from './menu/container'
@@ -17,9 +16,7 @@ const TeamHeader = () => {
   const onJoinChannel = C.useChatContext(s => s.dispatch.joinConversation)
   const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(participants, meta)
 
-  const yourOperations = C.useTeamsState(s =>
-    teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined
-  )
+  const yourOperations = C.useTeamsState(s => (teamname ? C.getCanPerformByID(s, teamID) : undefined))
   const admin = yourOperations?.manageMembers ?? false
   const isPreview = membershipType === 'youArePreviewing'
   const isSmallTeam = !!teamname && !!channelname && teamType !== 'big'

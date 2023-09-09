@@ -1,6 +1,5 @@
-import type * as Tabs from '../constants/tabs'
+import type * as C from '../constants'
 import * as T from '../constants/types'
-import type {Tab} from '../constants/tabs'
 import {produce} from 'immer'
 
 const emptySet = new Set<any>()
@@ -52,7 +51,7 @@ export type ProxyProps = {
   httpSrvAddress: string
   httpSrvToken: string
   windowShownCountNum: number
-  navBadges: Map<Tabs.Tab, number>
+  navBadges: Map<C.Tab, number>
   infoMap: Map<string, T.Users.UserInfo>
 }
 
@@ -64,7 +63,7 @@ type SerializeProps = Omit<
   followersArr: Array<string>
   followingArr: Array<string>
   infoMapArr: Array<[string, T.Users.UserInfo]>
-  navBadgesArr: Array<[Tab, number]>
+  navBadgesArr: Array<[C.Tab, number]>
   windowShownCountNum: number
 }
 

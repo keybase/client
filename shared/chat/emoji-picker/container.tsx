@@ -5,7 +5,6 @@ import * as Kb from '../../common-adapters'
 import type {LayoutEvent} from './../../common-adapters/box'
 import * as Constants from './../../constants/chat2'
 import * as T from './../../constants/types'
-import * as Teams from './../../constants/teams'
 import * as Styles from './../../styles'
 import * as Data from './../../util/emoji'
 import startCase from 'lodash/startCase'
@@ -107,7 +106,7 @@ const useCanManageEmoji = () => {
   const canManageEmoji = C.useChatContext(s => {
     const meta = s.meta
     // TODO not reactive
-    return !meta.teamname || Teams.getCanPerformByID(C.useTeamsState.getState(), meta.teamID).manageEmojis
+    return !meta.teamname || C.getCanPerformByID(C.useTeamsState.getState(), meta.teamID).manageEmojis
   })
   return canManageEmoji
 }
