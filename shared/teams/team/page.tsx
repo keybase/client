@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
+import type * as C from '../../constants'
 
 const Team = React.lazy(async () => import('.'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Team>
+type OwnProps = C.ViewPropsToPageProps<typeof Team>
 
 const getOptions = () => ({
   headerHideBorder: true,

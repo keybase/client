@@ -78,3 +78,20 @@ export function useRemoteStore<S>(): S {
   // TODO this will warn you not to do this, could just pass in a selector later
   return useSelector(s => s, shallowEqual) as any
 }
+
+// extracts the payload from pages used in routing
+export type PagesToParams<T> = {
+  [K in keyof T]: T[K] extends {getScreen: infer U}
+    ? U extends () => (args: infer V) => any
+      ? V extends {route: {params: infer W}}
+        ? W
+        : undefined
+      : undefined
+    : undefined
+}
+
+// get the views params and wrap them as the page would see it
+export type ViewPropsToPageProps<T> = T extends (p: infer P) => any ? {route: {params: P}} : never
+export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
+  ? {route: {params: P | undefined}}
+  : never

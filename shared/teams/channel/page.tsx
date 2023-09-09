@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
+import type * as C from '../../constants'
 
 const Channel = React.lazy(async () => import('.'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Channel>
+type OwnProps = C.ViewPropsToPageProps<typeof Channel>
 
 const getOptions = () => ({
   headerHideBorder: true,

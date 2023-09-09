@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../../../../../util/container'
+import type * as C from '../../../../../../constants'
 
 const Popup = React.lazy(async () => import('./map-popup'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Popup>
+type OwnProps = C.ViewPropsToPageProps<typeof Popup>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

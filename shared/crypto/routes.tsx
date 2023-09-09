@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Constants from '../constants/crypto'
-import type * as Container from '../util/container'
 import cryptoRoot from './sub-nav/page'
 import cryptoTeamBuilder from '../team-building/page'
 import decryptIn from './operations/decrypt.in.page'
@@ -32,4 +31,4 @@ export const newModalRoutes = C.isMobile
       cryptoTeamBuilder,
     }
 
-export type RootParamListCrypto = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>
+export type RootParamListCrypto = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

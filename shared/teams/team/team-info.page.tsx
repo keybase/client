@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
+import type * as C from '../../constants'
 
 const TeamInfo = React.lazy(async () => import('./team-info'))
-type OwnProps = Container.ViewPropsToPageProps<typeof TeamInfo>
+type OwnProps = C.ViewPropsToPageProps<typeof TeamInfo>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

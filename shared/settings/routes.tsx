@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Constants from '../constants/settings'
-import type * as Container from '../util/container'
 import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
@@ -95,4 +94,4 @@ export const newModalRoutes = {
   settingsPushPrompt,
 }
 
-export type RootParamListSettings = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>
+export type RootParamListSettings = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

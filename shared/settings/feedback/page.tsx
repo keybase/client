@@ -1,9 +1,8 @@
 import * as React from 'react'
 import * as C from '../../constants'
-import type * as Container from '../../util/container'
 
 const Feedback = React.lazy(async () => import('./container'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Feedback>
+type OwnProps = C.ViewPropsToPageProps<typeof Feedback>
 
 const getOptions = () =>
   C.isMobile

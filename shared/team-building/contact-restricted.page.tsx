@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../util/container'
+import type * as C from '../constants'
 
 const Contact = React.lazy(async () => import('./contact-restricted'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Contact>
+type OwnProps = C.ViewPropsToPageProps<typeof Contact>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

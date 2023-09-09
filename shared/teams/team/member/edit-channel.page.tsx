@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../../util/container'
+import type * as C from '../../../constants'
 
 const EditChannel = React.lazy(async () => import('./edit-channel'))
-type OwnProps = Container.ViewPropsToPageProps<typeof EditChannel>
+type OwnProps = C.ViewPropsToPageProps<typeof EditChannel>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>
