@@ -1,35 +1,12 @@
 import * as React from 'react'
 import type {NavigationContainerRef} from '@react-navigation/core'
 import type {createListenerMiddleware} from '@reduxjs/toolkit'
-import {useNavigation} from '@react-navigation/core'
-import {type RouteKeys} from '../router-v2/route-params'
 export type ListenerMiddleware = ReturnType<typeof createListenerMiddleware>
 export {getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params'
 export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 export {networkErrorCodes, isNetworkErr} from '../util/errors'
 
-export type Unpacked<T> = T extends (infer U)[]
-  ? U
-  : T extends (...args: any[]) => infer U
-  ? U
-  : T extends Promise<infer U>
-  ? U
-  : T
-
-export const useNav = () => {
-  const n = useNavigation()
-  const na: {pop?: () => void; navigate: (n: RouteKeys) => void} = n as any
-  const {canGoBack} = n
-  const pop: undefined | (() => void) = canGoBack() ? na.pop : undefined
-  const navigate: (n: RouteKeys) => void = na.navigate
-  return {
-    canGoBack,
-    navigate,
-    pop,
-  }
-}
-
-// Deprecated: use usePrevious2
+// Deprecated: avoid useEffect
 export function usePrevious<T>(value: T) {
   const ref = React.useRef<T>()
   React.useEffect(() => {
@@ -37,6 +14,7 @@ export function usePrevious<T>(value: T) {
   })
   return ref.current
 }
+// Deprecated: avoid useEffect
 export function usePrevious2<T>(value: T) {
   const ref = React.useRef<T>()
   React.useEffect(() => {
@@ -62,39 +40,6 @@ export function useDepChangeEffect(f: () => void, deps: Array<unknown>) {
   }, deps)
 }
 
-// Get the mounted state of a component
-export const useIsMounted = () => {
-  const mounted = React.useRef(true)
-  React.useEffect(() => {
-    return () => {
-      mounted.current = false
-    }
-  }, [])
-  const isMounted = React.useCallback(() => mounted.current, [])
-  return isMounted
-}
-
-// Run a function on mount once
-export const useOnMountOnce = (f: () => void) => {
-  const onceRef = React.useRef(true)
-  if (onceRef.current) {
-    onceRef.current = false
-    // defer a frame so you don't get react issues
-    setTimeout(f, 1)
-  }
-}
-
-// Run a function on unmount, doesn't rerun if the function changes
-export const useOnUnMountOnce = (f: () => void) => {
-  const ref = React.useRef(f)
-  ref.current = f
-  React.useEffect(() => {
-    return () => {
-      ref.current()
-    }
-  }, [])
-}
-
 import type {NavigationState} from '@react-navigation/core'
 type Route = NavigationState['routes'][0]
 export type RouteDef = {
@@ -112,7 +57,6 @@ export const timeoutPromise = async (timeMs: number) =>
 export {useSafeSubmit} from './safe-submit'
 export {useSafeNavigation} from './safe-navigation'
 export {produce} from 'immer'
-export {default as HiddenString} from './hidden-string'
 export {default as useRPC} from './use-rpc'
 export {default as useSafeCallback} from './use-safe-callback'
 

@@ -1,11 +1,11 @@
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/crypto'
-import * as Container from '../../util/container'
 import NavRow from './nav-row'
 
 const CryptoSubNav = () => {
-  const {navigate} = Container.useNav()
+  const {navigate} = C.useNav()
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="tiny" style={styles.container}>
       {Constants.Tabs.map(t => (
@@ -31,7 +31,7 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.xsmall,
       },
-    } as const)
+    }) as const
 )
 
 export default CryptoSubNav

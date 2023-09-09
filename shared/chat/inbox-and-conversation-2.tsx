@@ -1,6 +1,5 @@
 // Just for desktop and tablet, we show inbox and conversation side by side
 import * as C from '../constants'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as React from 'react'
@@ -26,7 +25,7 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props?: Pr
     return first?.convID
   })
 
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     if (needSelectConvoID) {
       // hack to select the convo after we render
       setTimeout(() => {

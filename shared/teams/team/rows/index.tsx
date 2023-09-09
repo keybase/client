@@ -248,7 +248,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
     doGetUserEmoji()
   }
 
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     doGetUserEmoji()
   })
 

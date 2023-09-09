@@ -8,7 +8,6 @@ import {OrdinalContext} from '../ids-context'
 import {SetRecycleTypeContext} from '../../recycle-type-context'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import {sharedStyles} from '../shared-styles'
-import shallowEqual from 'shallowequal'
 
 // Encoding all 4 states as static objects so we don't re-render
 const getStyle = (
@@ -72,7 +71,7 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
       : ('pending' as const)
     const hasReactions = (m?.reactions?.size ?? 0) > 0
     return {hasReactions, isEditing, textType}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const setRecycleType = React.useContext(SetRecycleTypeContext)
   let subType = ''

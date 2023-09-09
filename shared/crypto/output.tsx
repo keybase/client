@@ -1,17 +1,16 @@
 import * as C from '../constants'
 import * as Constants from '../constants/crypto'
-import type * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Path from '../util/path'
 import * as Platforms from '../constants/platform'
 import * as React from 'react'
 import * as Styles from '../styles'
 import capitalize from 'lodash/capitalize'
-import shallowEqual from 'shallowequal'
 import type * as T from '../constants/types'
 import {getStyle} from '../common-adapters/text'
 import {humanizeBytes} from '../constants/fs'
 import {pickFiles} from '../util/pick-files'
+import type HiddenString from '../util/hidden-string'
 
 type OutputProps = {operation: T.Crypto.Operations}
 type OutputActionsBarProps = {operation: T.Crypto.Operations}
@@ -40,7 +39,7 @@ export const SignedSender = (props: SignedSenderProps) => {
     const o = s[operation]
     const {outputSigned, outputSenderUsername, outputSenderFullname, outputStatus} = o
     return {outputSenderFullname, outputSenderUsername, outputSigned, outputStatus}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const isSelfSigned = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
   const avatarSize = isSelfSigned ? 16 : Styles.isMobile ? 32 : 48
@@ -131,7 +130,7 @@ export const OutputProgress = (props: OutputProgressProps) => {
     const o = s[operation]
     const {bytesComplete, bytesTotal, inProgress} = o
     return {bytesComplete, bytesTotal, inProgress}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const ratio = bytesComplete === 0 ? 0 : bytesComplete / bytesTotal
 
@@ -178,7 +177,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     const o = s[operation]
     const {output, outputValid, outputStatus, outputType, outputSigned, outputSenderUsername} = o
     return {output, outputSenderUsername, outputSigned, outputStatus, outputType, outputValid}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const actionsDisabled = waiting || !outputValid
 
@@ -191,7 +190,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
-  const onReplyInChat = (username: Container.HiddenString) => {
+  const onReplyInChat = (username: HiddenString) => {
     navigateUp()
     previewConversation({participants: [username.stringValue()], reason: 'search'})
   }
@@ -365,7 +364,7 @@ export const OperationOutput = (props: OutputProps) => {
     const o = s[operation]
     const {inProgress, inputType, output, outputValid, outputStatus, outputType} = o
     return {inProgress, inputType, output, outputStatus, outputType, outputValid}
-  }, shallowEqual)
+  }, C.shallowEqual)
   const output = _output.stringValue()
 
   const openLocalPathInSystemFileManagerDesktop = C.useFSState(

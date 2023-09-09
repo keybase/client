@@ -4,7 +4,6 @@ import * as T from '../../../../../../constants/types'
 import * as React from 'react'
 import * as Styles from '../../../../../../styles'
 import UnfurlImage from './image'
-import shallowEqual from 'shallowequal'
 import {OrdinalContext} from '../../../ids-context'
 import {formatDurationForLocation} from '../../../../../../util/timestamp'
 import {getUnfurlInfo} from './use-redux'
@@ -42,7 +41,7 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
       width,
       youAreAuthor,
     }
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   if (!data) {
     return null

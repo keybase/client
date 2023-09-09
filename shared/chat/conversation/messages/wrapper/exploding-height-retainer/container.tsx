@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Constants from '../../../../../constants/chat2'
 import ExplodingHeightRetainer from '.'
 import {OrdinalContext} from '../../ids-context'
-import shallowEqual from 'shallowequal'
 
 type OwnProps = {
   children: React.ReactNode
@@ -20,7 +19,7 @@ const ExplodingHeightRetainerContainer = React.memo(function ExplodingHeightReta
     const explodedBy = m?.explodedBy
     const messageKey = m ? Constants.getMessageKey(m) : ''
     return {exploded, explodedBy, exploding, forceAsh, messageKey}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const retainHeight = forceAsh || exploded
 

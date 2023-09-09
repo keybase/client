@@ -6,7 +6,6 @@ import * as Container from '../util/container'
 import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
-import shallowEqual from 'shallowequal'
 import type {NavigationState} from '@react-navigation/core'
 import type {NavigateAppendType} from '../router-v2/route-params'
 export type PathParam = NavigateAppendType
@@ -310,7 +309,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const vp = getVisiblePath(ns)
       const visible = vp.at(-1)
       if (visible) {
-        if (routeName === visible.name && shallowEqual(visible.params, params)) {
+        if (routeName === visible.name && C.shallowEqual(visible.params, params)) {
           console.log('Skipping append dupe')
           return
         }

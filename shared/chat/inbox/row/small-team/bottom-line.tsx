@@ -4,7 +4,6 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as T from '../../../../constants/types'
 import {SnippetContext, SnippetDecorationContext} from './contexts'
-import shallowEqual from 'shallowequal'
 
 type Props = {
   layoutSnippet?: string
@@ -139,7 +138,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
           : false
 
       return {hasResetUsers, isDecryptingSnippet, participantNeedToRekey, youAreReset, youNeedToRekey}
-    }, shallowEqual)
+    }, C.shallowEqual)
   const draft = (!isSelected && !hasUnread && _draft) || ''
 
   const props = {

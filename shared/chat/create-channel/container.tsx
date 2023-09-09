@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Container from '../../util/container'
 import * as React from 'react'
 import * as T from '../../constants/types'
 import CreateChannel from '.'
@@ -27,7 +26,7 @@ const Wrapped = (p: OwnProps) => {
   }, [createChannel, navToChatOnSuccess, channelname, description, teamID])
 
   const setChannelCreationError = C.useTeamsState(s => s.dispatch.setChannelCreationError)
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     setChannelCreationError('')
   })
 

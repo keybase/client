@@ -1,4 +1,4 @@
-import * as Container from '../../util/container'
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import BackButton from '../back-button'
@@ -185,7 +185,7 @@ export const HeaderLeftCancel = (hp: {canGoBack?: boolean; tintColor: string; on
   ) : null
 
 export const HeaderLeftCancel2 = (hp: {canGoBack?: boolean; tintColor: string}) => {
-  const {pop} = Container.useNav()
+  const {pop} = C.useNav()
   return hp.canGoBack ?? true ? (
     <LeftAction badgeNumber={0} leftAction="cancel" customIconColor={hp.tintColor} onLeftAction={pop} />
   ) : null

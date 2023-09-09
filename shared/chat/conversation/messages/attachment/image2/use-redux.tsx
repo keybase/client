@@ -1,5 +1,4 @@
 import * as C from '../../../../../constants'
-import shallowEqual from 'shallowequal'
 import * as Constants from '../../../../../constants/chat2'
 import * as React from 'react'
 import {OrdinalContext} from '../../ids-context'
@@ -15,5 +14,5 @@ export const useRedux = () => {
     const {previewURL, previewHeight, previewWidth} = message
     const {height, width} = Constants.clampImageSize(previewWidth, previewHeight, maxWidth, maxHeight)
     return {height, previewURL, width}
-  }, shallowEqual)
+  }, C.shallowEqual)
 }

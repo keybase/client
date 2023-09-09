@@ -6,7 +6,6 @@ import type * as T from '../../../../../constants/types'
 import {OrdinalContext} from '../../ids-context'
 import {globalColors} from '../../../../../styles'
 import {isPathSaltpack} from '../../../../../constants/crypto'
-import shallowEqual from 'shallowequal'
 
 type OwnProps = {
   toggleMessageMenu: () => void
@@ -22,7 +21,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     const m = s.messageMap.get(ordinal) ?? missingMessage
     const {downloadPath, fileName, fileType, transferErrMsg, transferState} = m
     return {downloadPath, fileName, fileType, transferErrMsg, transferState}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   // TODO not message
   const message = C.useChatContext(s => {

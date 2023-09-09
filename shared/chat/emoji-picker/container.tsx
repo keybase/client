@@ -367,7 +367,7 @@ const Routable = (props: RoutableProps) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onDidPick = () => navigateUp()
 
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     Kb.keyboardDismiss()
   })
 

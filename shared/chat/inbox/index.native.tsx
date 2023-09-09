@@ -11,7 +11,6 @@ import InboxSearch from '../inbox-search/container'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import debounce from 'lodash/debounce'
-import shallowEqual from 'shallowequal'
 import type * as TInbox from './index.d'
 import type * as T from '../../constants/types'
 import {type ViewToken, FlatList} from 'react-native'
@@ -72,7 +71,7 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
 
   componentDidUpdate(prevProps: TInbox.Props) {
     if (
-      !shallowEqual(prevProps.unreadIndices, this.props.unreadIndices) ||
+      !C.shallowEqual(prevProps.unreadIndices, this.props.unreadIndices) ||
       prevProps.unreadTotal !== this.props.unreadTotal
     ) {
       this.updateShowUnread()

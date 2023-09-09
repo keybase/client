@@ -7,7 +7,6 @@ import Recipients from '../recipients'
 import openURL from '../../util/open-url'
 import {DragAndDrop, Input, InputActionsBar, OperationBanner} from '../input'
 import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from '../output'
-import shallowEqual from 'shallowequal'
 
 const operation = Constants.Operations.Encrypt
 
@@ -18,7 +17,7 @@ const EncryptOptions = React.memo(function EncryptOptions() {
     const {hasRecipients, hideIncludeSelf, hasSBS} = o.meta
     const {includeSelf, sign} = o.options
     return {hasRecipients, hasSBS, hideIncludeSelf, inProgress, includeSelf, sign}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const setEncryptOptions = C.useCryptoState(s => s.dispatch.setEncryptOptions)
 
@@ -63,7 +62,7 @@ const EncryptOutputBanner = () => {
     const {hasRecipients} = o.meta
     const {includeSelf} = o.options
     return {hasRecipients, includeSelf, outputType, recipients}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const youAnd = (who: string) => (includeSelf ? `you and ${who}` : who)
   const whoCanRead = hasRecipients

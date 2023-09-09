@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
@@ -9,7 +10,6 @@ import Friend from './friend/container'
 import Measure from './measure'
 import Teams from './teams/container'
 import chunk from 'lodash/chunk'
-import shallowEqual from 'shallowequal'
 import * as T from '../../constants/types'
 import type {RPCError} from '../../util/errors'
 import upperFirst from 'lodash/upperFirst'
@@ -212,7 +212,8 @@ type FriendRowProps = {
 class FriendRow extends React.Component<FriendRowProps> {
   shouldComponentUpdate(nextProps: FriendRowProps) {
     return (
-      this.props.itemWidth !== nextProps.itemWidth || !shallowEqual(this.props.usernames, nextProps.usernames)
+      this.props.itemWidth !== nextProps.itemWidth ||
+      !C.shallowEqual(this.props.usernames, nextProps.usernames)
     )
   }
 

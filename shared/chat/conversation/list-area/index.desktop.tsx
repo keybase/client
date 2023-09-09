@@ -8,7 +8,6 @@ import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import chunk from 'lodash/chunk'
-import shallowEqual from 'shallowequal'
 import type {Props} from '.'
 import {ErrorBoundary} from '../../../common-adapters'
 import {findLast} from '../../../util/arrays'
@@ -167,7 +166,7 @@ const useScrolling = (
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
   const listEdgeSlopTop = 1000
-  const isMounted = Container.useIsMounted()
+  const isMounted = C.useIsMounted()
   const isScrollingRef = React.useRef(false)
   const ignoreOnScrollRef = React.useRef(false)
   const lockedToBottomRef = React.useRef(true)
@@ -769,7 +768,7 @@ const OrdinalWaypoint = React.memo<OrdinalWaypointProps>(
   (prevProps, nextProps) =>
     prevProps.rowRenderer === nextProps.rowRenderer &&
     prevProps.id === nextProps.id &&
-    shallowEqual(prevProps.ordinals, nextProps.ordinals)
+    C.shallowEqual(prevProps.ordinals, nextProps.ordinals)
 )
 
 const styles = Styles.styleSheetCreate(

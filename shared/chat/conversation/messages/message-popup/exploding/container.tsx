@@ -1,6 +1,5 @@
 import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/chat2'
-import type * as Container from '../../../../../util/container'
 import * as React from 'react'
 import Exploding from '.'
 import ReactionItem from '../reactionitem'
@@ -10,6 +9,7 @@ import type {MenuItems} from '../../../../../common-adapters'
 import type {Position} from '../../../../../styles'
 import type {StylesCrossPlatform} from '../../../../../styles/css'
 import {makeMessageText} from '../../../../../constants/chat2/message'
+import type HiddenString from '../../../../../util/hidden-string'
 
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -73,7 +73,7 @@ export default (ownProps: OwnProps) => {
     showInfoPanel(true, 'attachments')
   }
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-  const _onCopy = (h: Container.HiddenString) => {
+  const _onCopy = (h: HiddenString) => {
     copyToClipboard(h.stringValue())
   }
   const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)

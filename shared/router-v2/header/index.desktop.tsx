@@ -8,7 +8,6 @@ import {IconWithPopup as WhatsNewIconWithPopup} from '../../whats-new/icon/conta
 // @ts-ignore
 import * as ReactIs from 'react-is'
 import KB2 from '../../util/electron.desktop'
-import shallowEqual from 'shallowequal'
 
 const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
 
@@ -219,9 +218,9 @@ const DesktopHeader = React.memo(
     )
   },
   (p, n) => {
-    return shallowEqual(p, n, (obj, oth, key) => {
+    return C.shallowEqual(p, n, (obj, oth, key) => {
       if (key === 'options') {
-        return shallowEqual(obj, oth)
+        return C.shallowEqual(obj, oth)
       }
       return undefined
     })

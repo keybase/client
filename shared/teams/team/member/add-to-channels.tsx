@@ -115,7 +115,7 @@ const AddToChannels = (props: Props) => {
   const numSelected = selected.size
 
   const getItemLayout = React.useCallback(
-    (index: number, item?: Container.Unpacked<typeof items>) =>
+    (index: number, item?: T.Unpacked<typeof items>) =>
       item && item.type === 'header'
         ? {
             index,
@@ -129,7 +129,7 @@ const AddToChannels = (props: Props) => {
           },
     [mode]
   )
-  const renderItem = (_: unknown, item: Container.Unpacked<typeof items>) => {
+  const renderItem = (_: unknown, item: T.Unpacked<typeof items>) => {
     switch (item.type) {
       case 'header': {
         const allSelected = selected.size === convIDKeysAvailable.length

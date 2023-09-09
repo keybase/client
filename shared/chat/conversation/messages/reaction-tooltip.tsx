@@ -4,7 +4,6 @@ import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import ReactButton from './react-button/container'
-import shallowEqual from 'shallowequal'
 import type * as T from '../../../constants/types'
 import {OrdinalContext} from './ids-context'
 
@@ -51,7 +50,7 @@ const ReactionTooltip = (p: OwnProps) => {
       return {_reactions, good: true}
     }
     return {...emptyStateProps, good: false}
-  }, shallowEqual)
+  }, C.shallowEqual)
   const _usersInfo = good ? infoMap : emptyStateProps._usersInfo
 
   const navigateAppend = C.useChatNavigateAppend()

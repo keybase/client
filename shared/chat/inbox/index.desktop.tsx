@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import type * as TInbox from './index.d'
@@ -13,7 +14,6 @@ import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
 import {inboxWidth, getRowHeight, smallRowHeight, dividerHeight} from './row/sizes'
 import {makeRow} from './row'
-import shallowEqual from 'shallowequal'
 import './inbox.css'
 
 type State = {
@@ -82,7 +82,7 @@ class Inbox extends React.Component<TInbox.Props, State> {
       // ^ this will force an update so just do it once instead of twice
       return false
     }
-    return !shallowEqual(this.props, nextProps) || !shallowEqual(this.state, nextState)
+    return !C.shallowEqual(this.props, nextProps) || !C.shallowEqual(this.state, nextState)
   }
 
   componentDidUpdate(prevProps: TInbox.Props) {
@@ -91,7 +91,7 @@ class Inbox extends React.Component<TInbox.Props, State> {
       this.calculateShowFloating()
     }
     if (
-      !shallowEqual(prevProps.unreadIndices, this.props.unreadIndices) ||
+      !C.shallowEqual(prevProps.unreadIndices, this.props.unreadIndices) ||
       prevProps.unreadTotal !== this.props.unreadTotal
     ) {
       this.calculateShowUnreadShortcut()

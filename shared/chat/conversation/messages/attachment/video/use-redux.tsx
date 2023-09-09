@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Constants from '../../../../../constants/chat2'
 import {OrdinalContext} from '../../ids-context'
 import {missingMessage, maxWidth, maxHeight} from '../shared'
-import shallowEqual from 'shallowequal'
 
 export const useRedux = () => {
   const ordinal = React.useContext(OrdinalContext)
@@ -14,5 +13,5 @@ export const useRedux = () => {
     const {fileURL, downloadPath, transferState, videoDuration} = message
     const {height, width} = Constants.clampImageSize(previewWidth, previewHeight, maxWidth, maxHeight)
     return {downloadPath, height, previewURL, transferState, url: fileURL, videoDuration, width}
-  }, shallowEqual)
+  }, C.shallowEqual)
 }

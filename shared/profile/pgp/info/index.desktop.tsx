@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import Modal from '../../modal'
-import shallowEqual from 'shallowequal'
 
 const Info = () => {
   const updatePgpInfo = C.useProfileState(s => s.dispatch.updatePgpInfo)
@@ -20,7 +19,7 @@ const Info = () => {
       pgpErrorText,
       pgpFullName,
     }
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => navigateUp()

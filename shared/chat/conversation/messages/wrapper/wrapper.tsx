@@ -3,7 +3,6 @@ import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import shallowEqual from 'shallowequal'
 import {OrdinalContext, HighlightedContext} from '../ids-context'
 import EmojiRow from '../emoji-row/container'
 import ExplodingHeightRetainer from './exploding-height-retainer/container'
@@ -57,7 +56,7 @@ export const useCommon = (ordinal: T.Chat.Ordinal) => {
     const type = m?.type
     const shouldShowPopup = Constants.shouldShowPopup(accountsInfoMap, m ?? undefined)
     return {shouldShowPopup, type}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const shouldShow = React.useCallback(() => {
     return messageShowsPopup(type) && shouldShowPopup
@@ -181,7 +180,7 @@ const useRedux = (ordinal: T.Chat.Ordinal) => {
       you,
       youSent,
     }
-  }, shallowEqual)
+  }, C.shallowEqual)
   return {...d, isEditing}
 }
 
@@ -318,7 +317,7 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
     const reason = m?.errorReason ?? ''
     const failureDescription = `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`
     return {failureDescription, outboxID}
-  }, shallowEqual)
+  }, C.shallowEqual)
   const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
   const onCancel = React.useCallback(() => {
     messageDelete(ordinal)

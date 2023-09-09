@@ -9,7 +9,6 @@ import {memoize} from '../util/memoize'
 import {union} from '../util/set'
 import {useFocusEffect} from '@react-navigation/core'
 import {useLocalBadging} from '../util/use-local-badging'
-import shallowEqual from 'shallowequal'
 
 type OwnProps = {expanded?: string}
 
@@ -34,7 +33,7 @@ export default (ownProps: OwnProps) => {
     const {dispatch, error, idToInfo, isNew} = s
     const {clearBadges, load, setError} = dispatch
     return {clearBadges, error, idToInfo, isNew, load, setError}
-  }, shallowEqual)
+  }, C.shallowEqual)
   const {badged} = useLocalBadging(isNew, clearBadges)
   const {personals, teams} = getRepos(idToInfo)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
