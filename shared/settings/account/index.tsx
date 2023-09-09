@@ -50,7 +50,7 @@ export default () => {
     loadHasRandomPw()
   }
   const onSetPassword = () => {
-    navigateAppend(Constants.passwordTab)
+    navigateAppend(C.settingsPasswordTab)
   }
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onStartPhoneConversation = () => {

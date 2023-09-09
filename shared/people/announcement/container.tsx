@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import Announcement from '.'
 import * as T from '../../constants/types'
 import * as Tabs from '../../constants/tabs'
-import * as SettingsTabs from '../../constants/settings'
 import openURL from '../../util/open-url'
 import * as Container from '../../util/container'
 
@@ -38,25 +37,25 @@ export default (ownProps: OwnProps) => {
       case T.RPCGen.AppLinkType.files:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.fsTab)
         if (Container.isMobile) {
-          navigateAppend(SettingsTabs.fsTab)
+          navigateAppend(C.settingsFsTab)
         }
         break
       case T.RPCGen.AppLinkType.wallet:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.walletsTab)
         if (Container.isMobile) {
-          navigateAppend(SettingsTabs.walletsTab)
+          navigateAppend(C.settingsWalletsTab)
         }
         break
       case T.RPCGen.AppLinkType.git:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.gitTab)
         if (Container.isMobile) {
-          navigateAppend({props: {}, selected: SettingsTabs.gitTab})
+          navigateAppend({props: {}, selected: C.settingsGitTab})
         }
         break
       case T.RPCGen.AppLinkType.devices:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.devicesTab)
         if (Container.isMobile) {
-          navigateAppend(SettingsTabs.devicesTab)
+          navigateAppend(C.settingsDevicesTab)
         }
         break
       case T.RPCGen.AppLinkType.settings:

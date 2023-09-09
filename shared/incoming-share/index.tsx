@@ -6,7 +6,6 @@ import * as T from '../constants/types'
 import * as FsConstants from '../constants/fs'
 import * as FsCommon from '../fs/common'
 import * as Platform from '../constants/platform'
-import * as SettingsConstants from '../constants/settings'
 import {MobileSendToChat} from '../chat/send-to-chat'
 import useRPC from '../util/use-rpc'
 
@@ -223,7 +222,7 @@ const IncomingShareError = () => {
     clearModals()
     navigateAppend({
       props: {feedback: `iOS share failure`},
-      selected: SettingsConstants.feedbackTab,
+      selected: C.settingsFeedbackTab,
     })
   }
   const onCancel = () => clearModals()

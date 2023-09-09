@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Container from '../util/container'
-import * as Constants from '../constants/settings'
 import * as Tabs from '../constants/tabs'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
@@ -76,7 +75,7 @@ const ManageContactsBanner = () => {
   const onSendFeedback = React.useCallback(() => {
     navigateAppend({
       props: {feedback: `Contact import failed\n${error}\n\n`},
-      selected: Constants.feedbackTab,
+      selected: C.settingsFeedbackTab,
     })
   }, [navigateAppend, error])
 

@@ -35,19 +35,19 @@ import settingsContactsJoined from './contacts-joined/page'
 import settingsPushPrompt from './notifications/push-prompt.page'
 
 export const sharedNewRoutes = {
-  [Constants.aboutTab]: about,
-  [Constants.accountTab]: account,
-  [Constants.advancedTab]: advanced,
-  [Constants.chatTab]: chat,
-  [Constants.cryptoTab]: crypto,
-  [Constants.devicesTab]: devicesRoutes.devicesRoot,
-  [Constants.displayTab]: display,
-  [Constants.feedbackTab]: feedback,
-  [Constants.fsTab]: fs,
-  [Constants.gitTab]: gitRoutes.gitRoot,
-  [Constants.invitationsTab]: invitations,
-  [Constants.notificationsTab]: notifications,
-  [Constants.whatsNewTab]: whatsNew,
+  [Constants.settingsAboutTab]: about,
+  [Constants.settingsAccountTab]: account,
+  [Constants.settingsAdvancedTab]: advanced,
+  [Constants.settingsChatTab]: chat,
+  [Constants.settingsCryptoTab]: crypto,
+  [Constants.settingsDevicesTab]: devicesRoutes.devicesRoot,
+  [Constants.settingsDisplayTab]: display,
+  [Constants.settingsFeedbackTab]: feedback,
+  [Constants.settingsFsTab]: fs,
+  [Constants.settingsGitTab]: gitRoutes.gitRoot,
+  [Constants.settingsInvitationsTab]: invitations,
+  [Constants.settingsNotificationsTab]: notifications,
+  [Constants.settingsWhatsNewTab]: whatsNew,
   addEmail,
   addPhone,
   dbNukeConfirm,
@@ -57,8 +57,8 @@ export const sharedNewRoutes = {
 }
 
 export const sharedNewModalRoutes = {
-  [Constants.logOutTab]: logOut,
-  [Constants.passwordTab]: password,
+  [Constants.settingsLogOutTab]: logOut,
+  [Constants.settingsPasswordTab]: password,
   deleteConfirm,
   disableCertPinningModal,
   settingsAddEmail: addEmail,
@@ -78,20 +78,20 @@ export const newRoutes = {
     ? Container.isTablet
       ? {}
       : {
-          [Constants.walletsTab]: {
+          [Constants.settingsWalletsTab]: {
             ...walletsRoutes.walletsRoot,
           },
         }
     : undefined),
-  [Constants.screenprotectorTab]: screenprotectorTab,
-  [Constants.contactsTab]: contactsTab,
+  [Constants.settingsScreenprotectorTab]: screenprotectorTab,
+  [Constants.settingsContactsTab]: contactsTab,
   webLinks,
 }
 
 export const newModalRoutes = {
   ...sharedNewModalRoutes,
-  [Constants.logOutTab]: logOut,
-  [Constants.passwordTab]: password,
+  [Constants.settingsLogOutTab]: logOut,
+  [Constants.settingsPasswordTab]: password,
   checkPassphraseBeforeDeleteAccount: deleteConfirm,
   modalFeedback: feedback,
   settingsContactsJoined,

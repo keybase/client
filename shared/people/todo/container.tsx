@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
-import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
 import openURL from '../../util/open-url'
 import type * as T from '../../constants/types'
@@ -53,7 +52,7 @@ const AddEmailConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = () => {
     switchTab(Tabs.settingsTab)
-    navigateAppend(SettingsConstants.accountTab)
+    navigateAppend(C.settingsAccountTab)
     navigateAppend('settingsAddEmail')
   }
   const onDismiss = useOnSkipTodo('addEmail')
@@ -66,7 +65,7 @@ const AddPhoneNumberConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = () => {
     switchTab(Tabs.settingsTab)
-    navigateAppend(SettingsConstants.accountTab)
+    navigateAppend(C.settingsAccountTab)
     navigateAppend('settingsAddPhone')
   }
   const onDismiss = useOnSkipTodo('addPhoneNumber')
@@ -165,7 +164,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (isTeam: boolean) => {
     if (Container.isMobile) {
-      navigateAppend({props: {}, selected: SettingsConstants.gitTab})
+      navigateAppend({props: {}, selected: C.settingsGitTab})
     } else {
       switchTab(Tabs.gitTab)
     }
@@ -210,7 +209,7 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onManage = () => {
     switchTab(Tabs.settingsTab)
-    navigateAppend(SettingsConstants.accountTab)
+    navigateAppend(C.settingsAccountTab)
   }
 
   const meta = props.metadata && props.metadata.type === 'email' ? props.metadata : undefined
@@ -249,7 +248,7 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onManage = () => {
     switchTab(Tabs.settingsTab)
-    navigateAppend(SettingsConstants.accountTab)
+    navigateAppend(C.settingsAccountTab)
   }
   const buttons: Array<TaskButton> = [
     ...(props.metadata
@@ -279,7 +278,7 @@ const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (email: string) => {
     switchTab(Tabs.settingsTab)
-    navigateAppend(SettingsConstants.accountTab)
+    navigateAppend(C.settingsAccountTab)
     editEmail({email, makeSearchable: true})
   }
   const onDismiss = useOnSkipTodo('legacyEmailVisibility')

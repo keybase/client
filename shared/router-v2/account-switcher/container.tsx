@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
-import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
 import AccountSwitcher from './index'
 
@@ -32,7 +31,7 @@ export default () => {
   const onSelectAccountLoggedOut = C.useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSignOut = () => {
-    navigateAppend(SettingsConstants.logOutTab)
+    navigateAppend(C.settingsLogOutTab)
   }
   const accountRows = prepareAccountRows(_accountRows, you)
   const props = {

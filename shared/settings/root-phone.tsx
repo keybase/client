@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as React from 'react'
 import * as TabConstants from '../constants/tabs'
 import * as Kb from '../common-adapters'
-import * as Constants from '../constants/settings'
 import * as Styles from '../styles'
 import * as T from '../constants/types'
 import {keybaseFM} from '../constants/whats-new'
@@ -96,30 +95,30 @@ function SettingsNav() {
               ...(statsShown ? [{text: 'perf'}] : []),
               {
                 icon: 'iconfont-nav-2-crypto',
-                onClick: () => onTabChange(Constants.cryptoTab),
+                onClick: () => onTabChange(C.settingsCryptoTab),
                 text: 'Crypto',
               },
               {
                 badgeNumber: badgeNumbers.get(TabConstants.gitTab),
                 icon: 'iconfont-nav-2-git',
-                onClick: () => onTabChange(Constants.gitTab),
+                onClick: () => onTabChange(C.settingsGitTab),
                 text: 'Git',
               },
               {
                 badgeNumber: badgeNumbers.get(TabConstants.devicesTab),
                 icon: 'iconfont-nav-2-devices',
-                onClick: () => onTabChange(Constants.devicesTab),
+                onClick: () => onTabChange(C.settingsDevicesTab),
                 text: 'Devices',
               },
               {
                 badgeNumber: badgeNumbers.get(TabConstants.walletsTab),
                 icon: 'iconfont-nav-2-wallets',
-                onClick: () => onTabChange(Constants.walletsTab),
+                onClick: () => onTabChange(C.settingsWalletsTab),
                 text: 'Wallet',
               },
               {
                 iconComponent: WhatsNewIcon,
-                onClick: () => onTabChange(Constants.whatsNewTab),
+                onClick: () => onTabChange(C.settingsWhatsNewTab),
                 subText: `What's new?`,
                 text: keybaseFM,
               },
@@ -130,34 +129,34 @@ function SettingsNav() {
             data: [
               {
                 badgeNumber: badgeNumbers.get(TabConstants.settingsTab),
-                onClick: () => onTabChange(Constants.accountTab),
+                onClick: () => onTabChange(C.settingsAccountTab),
                 text: 'Your account',
               },
               {
-                onClick: () => onTabChange(Constants.chatTab),
+                onClick: () => onTabChange(C.settingsChatTab),
                 text: 'Chat',
               },
               {
-                onClick: () => onTabChange(Constants.contactsTab),
+                onClick: () => onTabChange(C.settingsContactsTab),
                 text: contactsLabel,
               },
               {
-                onClick: () => onTabChange(Constants.fsTab),
+                onClick: () => onTabChange(C.settingsFsTab),
                 text: 'Files',
               },
               {
                 badgeNumber: badgeNotifications ? 1 : 0,
-                onClick: () => onTabChange(Constants.notificationsTab),
+                onClick: () => onTabChange(C.settingsNotificationsTab),
                 text: 'Notifications',
               },
               {
-                onClick: () => onTabChange(Constants.displayTab),
+                onClick: () => onTabChange(C.settingsDisplayTab),
                 text: 'Display',
               },
               ...(isAndroid
                 ? [
                     {
-                      onClick: () => onTabChange(Constants.screenprotectorTab),
+                      onClick: () => onTabChange(C.settingsScreenprotectorTab),
                       text: 'Screen protector',
                     },
                   ]
@@ -167,11 +166,11 @@ function SettingsNav() {
           },
           {
             data: [
-              {onClick: () => onTabChange(Constants.aboutTab), text: 'About'},
-              {onClick: () => onTabChange(Constants.feedbackTab), text: 'Feedback'},
-              {onClick: () => onTabChange(Constants.advancedTab), text: 'Advanced'},
+              {onClick: () => onTabChange(C.settingsAboutTab), text: 'About'},
+              {onClick: () => onTabChange(C.settingsFeedbackTab), text: 'Feedback'},
+              {onClick: () => onTabChange(C.settingsAdvancedTab), text: 'Advanced'},
               {
-                onClick: () => onTabChange(Constants.logOutTab),
+                onClick: () => onTabChange(C.settingsLogOutTab),
                 text: 'Sign out',
                 textColor: Styles.globalColors.red,
               },

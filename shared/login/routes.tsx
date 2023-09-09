@@ -1,4 +1,4 @@
-import * as SettingsConstants from '../constants/settings'
+import * as C from '../constants'
 import login from './page'
 import proxySettingsModal from '../settings/proxy/page'
 import recoverPasswordDeviceSelector from './recover-password/device-selector/page'
@@ -19,7 +19,7 @@ import {sharedNewRoutes as settingsRoutes} from '../settings/routes'
 import {newRoutes as signupRoutes} from './signup/routes'
 
 export const newRoutes = {
-  feedback: settingsRoutes[SettingsConstants.feedbackTab],
+  feedback: settingsRoutes[C.settingsFeedbackTab],
   login,
   recoverPasswordDeviceSelector,
   recoverPasswordError,

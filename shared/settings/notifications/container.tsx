@@ -37,7 +37,7 @@ export default () => {
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClickYourAccount = () => {
-    navigateAppend(Constants.accountTab)
+    navigateAppend(C.settingsAccountTab)
   }
   const onToggle = toggle
   const onToggleUnsubscribeAll = toggle

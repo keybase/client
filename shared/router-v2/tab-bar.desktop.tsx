@@ -6,7 +6,6 @@ import * as Kbfs from '../fs/common'
 import * as Platforms from '../constants/platform'
 import * as T from '../constants/types'
 import * as React from 'react'
-import * as SettingsConstants from '../constants/settings'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as Common from './common.desktop'
@@ -66,7 +65,7 @@ const Header = () => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onSettings = () => switchTab(Tabs.settingsTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onSignOut = () => navigateAppend(SettingsConstants.logOutTab)
+  const onSignOut = () => navigateAppend(C.settingsLogOutTab)
 
   const menuHeader = () => (
     <Kb.Box2 direction="vertical" fullWidth={true}>

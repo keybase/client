@@ -29,19 +29,17 @@ export {_useState as useLogoutState} from './logout'
 export {_useState as useNotifState} from './notifications'
 export {_useState as usePeopleState, getPeopleDataWaitingKey, todoTypes} from './people'
 export {_useState as usePinentryState} from './pinentry'
-export {
-  _useState as useProfileState,
-  uploadAvatarWaitingKey,
-  waitingKey as profileWaitingKey,
-} from './profile'
+export {_useState as useProfileState} from './profile'
+export {uploadAvatarWaitingKey, waitingKey as profileWaitingKey} from './profile'
 export {_useState as usePushState, permissionsRequestingWaitingKey} from './push'
 export {_useState as useRecoverState, waitingKey as recoverWaitingKey} from './recover-password'
-export {
-  _useState as useSettingsState,
-  settingsCryptoTab,
-  settingsDevicesTab,
-  settingsFeedbackTab,
-} from './settings'
+export {settingsAccountTab, settingsWhatsNewTab, settingsFsTab} from './settings'
+export {settingsChatTab, settingsNotificationsTab, settingsAboutTab, settingsLogOutTab} from './settings'
+export {settingsScreenprotectorTab, settingsContactsTab, settingsInvitationsTab} from './settings'
+export {settingsCryptoTab, settingsDevicesTab, settingsFeedbackTab, settingsDisplayTab} from './settings'
+export {settingsPasswordTab, settingsWalletsTab, settingsGitTab, settingsAdvancedTab} from './settings'
+export {_useState as useSettingsState} from './settings'
+export {settingsTab} from './tabs'
 export {settingsWaitingKey, checkPasswordWaitingKey} from './settings'
 export {_useState as useSettingsChatState, contactSettingsSaveWaitingKey} from './settings-chat'
 export {chatUnfurlWaitingKey, contactSettingsLoadWaitingKey} from './settings-chat'
