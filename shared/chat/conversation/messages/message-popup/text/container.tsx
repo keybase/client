@@ -1,15 +1,12 @@
 import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/chat2'
-import * as Container from '../../../../../util/container'
 import {linkFromConvAndMessage} from '../../../../../constants'
 import Text from '.'
 import openURL from '../../../../../util/open-url'
 import * as React from 'react'
 import type * as T from '../../../../../constants/types'
 import type {Position, StylesCrossPlatform} from '../../../../../styles'
-import {getCanPerformByID} from '../../../../../constants/teams'
 import {makeMessageText} from '../../../../../constants/chat2/message'
-import {isIOS} from '../../../../../constants/platform'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -28,7 +25,7 @@ export default (ownProps: OwnProps) => {
   const message = m ? m : emptyMessage
   const meta = C.useChatContext(s => s.meta)
   const participantInfo = C.useChatContext(s => s.participants)
-  const yourOperations = C.useTeamsState(s => getCanPerformByID(s, meta.teamID))
+  const yourOperations = C.useTeamsState(s => C.getCanPerformByID(s, meta.teamID))
   const _canDeleteHistory = yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations.deleteOtherMessages
   const _label = Constants.getConversationLabel(participantInfo, meta, true)
@@ -190,7 +187,7 @@ export default (ownProps: OwnProps) => {
     isKickable: isDeleteable && !!_teamID && !yourMessage && authorInTeam,
     isLocation,
     isTeam: !!_teamname,
-    onAddReaction: Container.isMobile ? () => _onAddReaction(message) : undefined,
+    onAddReaction: C.isMobile ? () => _onAddReaction(message) : undefined,
     onCopy: message.type === 'text' ? () => _onCopy(message) : undefined,
     onCopyLink: () => _onCopyLink(_label, message),
     onDelete: isDeleteable ? () => _onDelete(message) : undefined,
@@ -210,11 +207,11 @@ export default (ownProps: OwnProps) => {
     onReplyPrivately: !yourMessage && canReplyPrivately ? () => _onReplyPrivately(message) : undefined,
     onUserBlock: message.author && !yourMessage ? () => _onUserBlock(message, blockModalSingle) : undefined,
     onUserFilter:
-      isIOS && message.author && !yourMessage ? () => _onUserFilter(message, blockModalSingle) : undefined,
+      C.isIOS && message.author && !yourMessage ? () => _onUserFilter(message, blockModalSingle) : undefined,
     onUserFlag:
-      isIOS && message.author && !yourMessage ? () => _onUserFlag(message, blockModalSingle) : undefined,
+      C.isIOS && message.author && !yourMessage ? () => _onUserFlag(message, blockModalSingle) : undefined,
     onUserReport:
-      isIOS && message.author && !yourMessage ? () => _onUserReport(message, blockModalSingle) : undefined,
+      C.isIOS && message.author && !yourMessage ? () => _onUserReport(message, blockModalSingle) : undefined,
     onViewMap,
     onViewProfile: message.author && !yourMessage ? () => _onViewProfile(message.author) : undefined,
     position: ownProps.position,

@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as Styles from '../../../styles'
-import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -71,7 +70,7 @@ const LeftSide = React.memo(function LeftSide(p: LProps) {
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onAuthorClick = React.useCallback(() => {
     if (!username) return
-    if (Container.isMobile) {
+    if (C.isMobile) {
       showUserProfile(username)
     } else {
       showUser(username, true)
@@ -102,7 +101,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onAuthorClick = React.useCallback(() => {
-    if (Container.isMobile) {
+    if (C.isMobile) {
       showUsername && showUserProfile(showUsername)
     } else {
       showUsername && showUser(showUsername, true)

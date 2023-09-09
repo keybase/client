@@ -1,7 +1,7 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/teams'
-import * as Container from '../../util/container'
 import openUrl from '../../util/open-url'
 import * as Styles from '../../styles'
 
@@ -18,7 +18,7 @@ type Props = {
 const CreateNewTeam = (props: Props) => {
   const [name, setName] = React.useState('')
   const [joinSubteam, setJoinSubteam] = React.useState(true)
-  const waiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
+  const waiting = C.useAnyWaiting(Constants.teamCreationWaitingKey)
 
   const {baseTeam, onSubmit} = props
   const isSubteam = !!baseTeam

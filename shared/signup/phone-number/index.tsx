@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Platform from '../../constants/platform'
 import {SignupScreen, errorBanner} from '../common'
 import type {ButtonType} from '../../common-adapters/button'
 
@@ -55,7 +54,7 @@ const EnterPhoneNumber = (props: Props) => {
         onChangeNumber={onChangeNumberCb}
         onContinue={onContinue}
         searchable={true}
-        iconType={Platform.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
+        iconType={C.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
       />
     </SignupScreen>
   )

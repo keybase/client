@@ -19,7 +19,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   const onFeedback = React.useCallback(() => {
     navigateAppend({
       props: {feedback: `Conflict Resolution failed in \`${path}\`.\n`},
-      selected: SettingsConstants.feedbackTab,
+      selected: SettingsConstants.settingsFeedbackTab,
     })
   }, [navigateAppend, path])
   const onFinishResolving = React.useCallback(() => {

@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../../../../util/container'
+import type * as C from '../../../../../constants'
 
 const Warning = React.lazy(async () => import('./container'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Warning>
+type OwnProps = C.ViewPropsToPageProps<typeof Warning>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

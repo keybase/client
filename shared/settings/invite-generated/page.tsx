@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
+import type * as C from '../../constants'
 
 const InviteGen = React.lazy(async () => import('./container'))
-type OwnProps = Container.ViewPropsToPageProps<typeof InviteGen>
+type OwnProps = C.ViewPropsToPageProps<typeof InviteGen>
 const Screen = (p: OwnProps) => (
   <React.Suspense>
     <InviteGen {...p.route.params} />

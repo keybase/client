@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../../util/container'
+import type * as C from '../../../constants'
 
 const DeleteChan = React.lazy(async () => import('.'))
-type OwnProps = Container.ViewPropsToPageProps<typeof DeleteChan>
+type OwnProps = C.ViewPropsToPageProps<typeof DeleteChan>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

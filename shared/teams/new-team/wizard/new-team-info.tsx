@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
-import * as Constants from '../../../constants/teams'
 import * as Styles from '../../../styles'
 import {ModalTitle} from '../../common'
 import * as T from '../../../constants/types'
@@ -31,7 +30,7 @@ const NewTeamInfo = () => {
   const nav = Container.useSafeNavigation()
   const teamWizardState = C.useTeamsState(s => s.newTeamWizard)
   const parentName = C.useTeamsState(s =>
-    teamWizardState.parentTeamID ? Constants.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined
+    teamWizardState.parentTeamID ? C.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined
   )
 
   const minLength = parentName ? 2 : 3

@@ -1,6 +1,5 @@
 import * as C from '..'
 import * as ConfigConstants from '../config'
-import * as Container from '../../util/container'
 import * as EngineGen from '../../actions/engine-gen-gen'
 import * as T from '../types'
 import * as Z from '../../util/zustand'
@@ -226,7 +225,7 @@ export const initPlatformListener = () => {
         await setOpenAtLogin?.(openAtLogin)
       }
     }
-    Container.ignorePromise(f())
+    C.ignorePromise(f())
   })
 
   C.useDaemonState.subscribe((s, old) => {

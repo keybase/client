@@ -1,8 +1,8 @@
 import * as T from '../../constants/types'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import {isMobile} from '../../constants/platform'
 
 type OwnProps = {
   path: T.FS.Path
@@ -52,7 +52,7 @@ const NoAccess = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
     <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
       <Kb.Icon
-        type={isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
+        type={C.isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
       />
       <Kb.Text type="Header" style={styles.textYouDontHave}>
         You don't have access to this folder or file.
@@ -74,7 +74,7 @@ const NonExistent = (props: Props) => (
     <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
       <Kb.Icon
         type={
-          isMobile
+          C.isMobile
             ? 'icon-fancy-folder-file-inexistant-mobile-188-120'
             : 'icon-fancy-folder-file-inexistant-desktop-153-94'
         }
@@ -117,43 +117,27 @@ export default Oops
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      button: {
-        marginTop: Styles.globalMargins.small,
-      },
+      button: {marginTop: Styles.globalMargins.small},
       container: Styles.platformStyles({
-        common: {
-          backgroundColor: Styles.globalColors.white,
-        },
-        isMobile: {
-          padding: Styles.globalMargins.large,
-        },
+        common: {backgroundColor: Styles.globalColors.white},
+        isMobile: {padding: Styles.globalMargins.large},
       }),
       explainBox: Styles.platformStyles({
-        isElectron: {
-          marginTop: Styles.globalMargins.small,
-        },
-        isMobile: {
-          marginTop: Styles.globalMargins.medium,
-        },
+        isElectron: {marginTop: Styles.globalMargins.small},
+        isMobile: {marginTop: Styles.globalMargins.medium},
       }),
       explainTextTeam: {
         marginLeft: Styles.globalMargins.xtiny,
         marginRight: Styles.globalMargins.xtiny,
       },
-      footer: {
-        paddingBottom: Styles.globalMargins.large,
-      },
+      footer: {paddingBottom: Styles.globalMargins.large},
       header: {
         backgroundColor: Styles.globalColors.red,
         height: 40,
       },
-      main: {
-        ...Styles.globalStyles.flexGrow,
-      },
+      main: {...Styles.globalStyles.flexGrow},
       textYouDontHave: Styles.platformStyles({
-        isElectron: {
-          marginTop: Styles.globalMargins.medium,
-        },
+        isElectron: {marginTop: Styles.globalMargins.medium},
         isMobile: {
           marginTop: Styles.globalMargins.xlarge,
           textAlign: 'center',

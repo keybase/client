@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
 import * as TeamConstants from '../constants/teams'
-import * as Platforms from '../constants/platform'
 import * as Styles from '../styles'
 import type * as T from '../constants/types'
 import ChatInboxHeader from './inbox/header/container'
@@ -207,7 +206,7 @@ const Header2 = (props: Props) => {
             alignSelf="flex-end"
             style={styles.actionIcons}
           >
-            <Kb.WithTooltip tooltip={`Search in this chat (${Platforms.shortcutSymbol}F)`}>
+            <Kb.WithTooltip tooltip={`Search in this chat (${C.shortcutSymbol}F)`}>
               <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={onToggleThreadSearch} />
             </Kb.WithTooltip>
             <Kb.WithTooltip tooltip="Open folder">

@@ -4,7 +4,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
-import {isAndroid} from '../../constants/platform'
 import Troubleshooting from '../troubleshooting'
 import type * as T from '../../constants/types'
 
@@ -584,7 +583,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           // MUST be white, else darkmode messes up the qr code
           backgroundColor: Styles.globalColors.whiteOrWhite,
-          borderRadius: isAndroid ? 0 : 8, // If this is set to ANYTHING other than 0 android DOESN"T WORK!!!!!! The qr scanner totally breaks
+          borderRadius: C.isAndroid ? 0 : 8, // If this is set to ANYTHING other than 0 android DOESN"T WORK!!!!!! The qr scanner totally breaks
           flexDirection: 'column',
           padding: 4,
         },

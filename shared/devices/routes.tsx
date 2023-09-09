@@ -1,4 +1,4 @@
-import type * as Container from '../util/container'
+import type * as C from '../constants'
 import {newRoutes as provisionNewRoutes} from '../provision/routes-sub'
 
 import devicePage from './device-page.page'
@@ -19,4 +19,4 @@ export const newModalRoutes = {
   devicePaperKey,
 }
 
-export type RootParamListDevices = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>
+export type RootParamListDevices = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

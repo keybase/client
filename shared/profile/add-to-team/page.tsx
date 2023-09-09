@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
-import type * as Container from '../../util/container'
+import type * as C from '../../constants'
 
 const AddToTeam = React.lazy(async () => import('./container'))
-type OwnProps = Container.ViewPropsToPageProps<typeof AddToTeam>
+type OwnProps = C.ViewPropsToPageProps<typeof AddToTeam>
 
 const getOptions = () => ({
   modal2: true,
@@ -16,7 +16,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       modal2: {width: Styles.isMobile ? undefined : 500},
-    } as const)
+    }) as const
 )
 
 const Screen = (p: OwnProps) => (

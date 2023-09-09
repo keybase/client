@@ -6,7 +6,6 @@ import {type RouteKeys} from '../router-v2/route-params'
 export type ListenerMiddleware = ReturnType<typeof createListenerMiddleware>
 export {getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params'
 export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
-export {useAnyWaiting, useAnyErrors, useDispatchClearWaiting} from '../constants/waiting'
 export {networkErrorCodes, isNetworkErr} from '../util/errors'
 
 export type Unpacked<T> = T extends (infer U)[]
@@ -16,11 +15,6 @@ export type Unpacked<T> = T extends (infer U)[]
   : T extends Promise<infer U>
   ? U
   : T
-
-// just then and catch and ignore async functions
-export const ignorePromise = (f: Promise<void>) => {
-  f.then(() => {}).catch(() => {})
-}
 
 export const useNav = () => {
   const n = useNavigation()
@@ -34,23 +28,6 @@ export const useNav = () => {
     pop,
   }
 }
-
-// extracts the payload from pages used in routing
-export type PagesToParams<T> = {
-  [K in keyof T]: T[K] extends {getScreen: infer U}
-    ? U extends () => (args: infer V) => any
-      ? V extends {route: {params: infer W}}
-        ? W
-        : undefined
-      : undefined
-    : undefined
-}
-
-// get the views params and wrap them as the page would see it
-export type ViewPropsToPageProps<T> = T extends (p: infer P) => any ? {route: {params: P}} : never
-export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
-  ? {route: {params: P | undefined}}
-  : never
 
 // Deprecated: use usePrevious2
 export function usePrevious<T>(value: T) {
@@ -127,22 +104,11 @@ export type RouteDef = {
 }
 export type RouteMap = {[K in string]?: RouteDef}
 
-export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
-  try {
-    return await f()
-  } catch {
-    return undefined
-  }
-}
-
-export const assertNever = (_: never) => undefined
-
 export const timeoutPromise = async (timeMs: number) =>
   new Promise<void>(resolve => {
     setTimeout(() => resolve(), timeMs)
   })
 
-export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
 export {useSafeSubmit} from './safe-submit'
 export {useSafeNavigation} from './safe-navigation'
 export {produce} from 'immer'

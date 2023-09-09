@@ -1,8 +1,6 @@
 import * as C from '../constants'
 import * as Constants from '../constants/provision'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as Platform from '../constants/platform'
 import * as React from 'react'
 import * as Styles from '../styles'
 import debounce from 'lodash/debounce'
@@ -11,7 +9,7 @@ import {SignupScreen, errorBanner} from './common'
 const ConnectedEnterDevicename = () => {
   const error = C.useSignupState(s => s.devicenameError)
   const initialDevicename = C.useSignupState(s => s.devicename)
-  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
   const goBackAndClearErrors = C.useSignupState(s => s.dispatch.goBackAndClearErrors)
   const checkDeviceName = C.useSignupState(s => s.dispatch.checkDeviceName)
   const onBack = goBackAndClearErrors
@@ -71,7 +69,7 @@ const EnterDevicename = (props: Props) => {
         <Kb.Icon
           type={
             Styles.isMobile
-              ? Platform.isLargeScreen
+              ? C.isLargeScreen
                 ? 'icon-phone-background-1-96'
                 : 'icon-phone-background-1-64'
               : 'icon-computer-background-1-96'

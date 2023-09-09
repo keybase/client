@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as KbMobile from '../../../common-adapters/mobile.native'
 import * as React from 'react'
@@ -26,7 +25,7 @@ const Offline = () => (
 
 const LoadingLine = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const showLoader = Container.useAnyWaiting([
+  const showLoader = C.useAnyWaiting([
     Constants.waitingKeyThreadLoad(conversationIDKey),
     Constants.waitingKeyInboxSyncStarted,
   ])

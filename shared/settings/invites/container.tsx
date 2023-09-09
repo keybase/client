@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as Constants from '../../constants/settings'
 import type {PendingInvite} from '../../constants/settings-invites'
 import Invites from '.'
-import * as Container from '../../util/container'
 
 export default () => {
   const acceptedInvites = C.useSettingsInvitesState(s => s.acceptedInvites)
@@ -11,7 +10,7 @@ export default () => {
   const inviteMessage = ''
   const pendingInvites = C.useSettingsInvitesState(s => s.pendingInvites)
   const showMessageField = false
-  const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
+  const waitingForResponse = C.useAnyWaiting(Constants.settingsWaitingKey)
 
   const resetError = C.useSettingsInvitesState(s => s.dispatch.resetError)
   const sendInvite = C.useSettingsInvitesState(s => s.dispatch.sendInvite)

@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/settings'
 import UpdatePassword from '.'
-import * as Container from '../../util/container'
 
 export default () => {
   const error = C.useSettingsPasswordState(s => s.error)
@@ -10,7 +9,7 @@ export default () => {
   const newPasswordConfirmError = C.useSettingsPasswordState(s => s.newPasswordConfirmError)
   const newPasswordError = C.useSettingsPasswordState(s => s.newPasswordError)
   const saveLabel = C.useSettingsPasswordState(s => (s.randomPW ? 'Create password' : 'Save'))
-  const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
+  const waitingForResponse = C.useAnyWaiting(Constants.settingsWaitingKey)
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {

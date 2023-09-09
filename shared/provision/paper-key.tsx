@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -9,7 +8,7 @@ import {isMobile} from '../constants/platform'
 export default () => {
   const error = C.useProvisionState(s => s.error)
   const hint = C.useProvisionState(s => `${s.codePageOtherDevice.name || ''}...`)
-  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()

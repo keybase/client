@@ -9,8 +9,6 @@ import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
 import Icon from './icon'
-import {settingsTab} from '../constants/tabs'
-import {feedbackTab} from '../constants/settings'
 import {useFocusEffect} from '@react-navigation/core'
 import type {RPCError} from '../util/errors'
 
@@ -153,7 +151,7 @@ export type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  let error = Container.useAnyErrors(ownProps.waitingKeys)
+  let error = C.useAnyErrors(ownProps.waitingKeys)
 
   // make sure reloadable only responds to network-related errors
   error = error && Container.isNetworkErr(error.code) ? error : undefined
@@ -173,8 +171,8 @@ export default (ownProps: OwnProps) => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const _onFeedback = (loggedIn: boolean) => {
     if (loggedIn) {
-      navigateAppend(settingsTab)
-      navigateAppend({props: {}, selected: feedbackTab})
+      navigateAppend(C.settingsTab)
+      navigateAppend({props: {}, selected: C.settingsFeedbackTab})
     } else {
       navigateAppend({props: {}, selected: 'feedback'})
     }

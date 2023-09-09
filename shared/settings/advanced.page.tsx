@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as Container from '../util/container'
+import * as C from '../constants'
 
 const Advanced = React.lazy(async () => import('./advanced'))
 
 const getOptions = () =>
-  Container.isMobile
+  C.isMobile
     ? {
         header: undefined,
         title: 'Advanced',

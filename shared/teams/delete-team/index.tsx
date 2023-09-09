@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
@@ -62,7 +63,7 @@ const ReallyDeleteTeam = (props: Props) => {
   const onCheck = (which: keyof typeof checks) => (enable: boolean) => setChecks({...checks, [which]: enable})
   const disabled = !checkChats || !checkFolder || !checkNotify
   const {deleteWaiting, onBack, teamID} = props
-  const error = Container.useAnyErrors(Constants.deleteTeamWaitingKey(props.teamID))
+  const error = C.useAnyErrors(Constants.deleteTeamWaitingKey(props.teamID))
   const prevDeleteWaiting = Container.usePrevious(deleteWaiting)
   React.useEffect(() => {
     if (prevDeleteWaiting !== undefined && !deleteWaiting && prevDeleteWaiting && !error) {
@@ -71,7 +72,7 @@ const ReallyDeleteTeam = (props: Props) => {
     }
   }, [deleteWaiting, prevDeleteWaiting, onBack, error])
 
-  const dispatchClearWaiting = Container.useDispatchClearWaiting()
+  const dispatchClearWaiting = C.useDispatchClearWaiting()
   React.useEffect(() => {
     return () => {
       dispatchClearWaiting(Constants.deleteTeamWaitingKey(teamID))

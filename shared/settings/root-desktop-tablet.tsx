@@ -1,7 +1,7 @@
+import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Common from '../router-v2/common'
-import * as Constants from '../constants/settings'
 import * as Shim from '../router-v2/shim'
 import LeftNav from './sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
@@ -57,7 +57,7 @@ const shimmed = Shim.shim(settingsSubRoutes, false, false)
 // a push from the parent stack. If we care just make a generic left nav / right stack
 // that the global app / etc could use and put it here also. not worth it now
 const SettingsSubNavigator = () => (
-  <TabNavigator.Navigator initialRouteName={Constants.accountTab} backBehavior="none">
+  <TabNavigator.Navigator initialRouteName={C.settingsAccountTab} backBehavior="none">
     {Object.keys(shimmed).map(name => (
       <TabNavigator.Screen
         key={name}

@@ -6,7 +6,6 @@ import * as T from '../constants/types'
 import * as React from 'react'
 import * as Styles from '../styles'
 import {ProxySettings} from './proxy/container'
-import {isMobile, isLinux} from '../constants/platform'
 import {toggleRenderDebug} from '../router-v2/shim.shared'
 
 let initialUseNativeFrame: boolean | undefined
@@ -17,7 +16,7 @@ const UseNativeFrame = () => {
   if (initialUseNativeFrame === undefined) {
     initialUseNativeFrame = useNativeFrame
   }
-  return isMobile ? null : (
+  return C.isMobile ? null : (
     <>
       <Kb.Checkbox
         checked={!useNativeFrame}
@@ -70,11 +69,11 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
 }
 
 const Advanced = () => {
-  const settingLockdownMode = Container.useAnyWaiting(Constants.setLockdownModeWaitingKey)
+  const settingLockdownMode = C.useAnyWaiting(Constants.setLockdownModeWaitingKey)
   const hasRandomPW = C.useSettingsPasswordState(s => !!s.randomPW)
   const openAtLogin = C.useConfigState(s => s.openAtLogin)
   const rememberPassword = C.useSettingsPasswordState(s => s.rememberPassword)
-  const setLockdownModeError = Container.useAnyErrors(Constants.setLockdownModeWaitingKey)?.message || ''
+  const setLockdownModeError = C.useAnyErrors(Constants.setLockdownModeWaitingKey)?.message || ''
   const setRememberPassword = C.useSettingsPasswordState(s => s.dispatch.setRememberPassword)
   const onChangeRememberPassword = setRememberPassword
   const onSetOpenAtLogin = C.useConfigState(s => s.dispatch.setOpenAtLogin)
@@ -153,11 +152,11 @@ const Advanced = () => {
               onCheck={onChangeRememberPassword}
             />
           )}
-          {isLinux ? <UseNativeFrame /> : null}
-          {!Styles.isMobile && (
+          {C.isLinux ? <UseNativeFrame /> : null}
+          {!C.isMobile && (
             <Kb.Checkbox label="Open Keybase on startup" checked={openAtLogin} onCheck={onSetOpenAtLogin} />
           )}
-          {!Styles.isMobile && (
+          {!C.isMobile && (
             <Kb.Checkbox
               label={
                 'Disable spellchecking' +
@@ -205,12 +204,12 @@ const Developer = () => {
     })
 
   const showPprofControls = clickCount >= clickThreshold
-  const traceInProgress = Container.useAnyWaiting(Constants.traceInProgressKey)
+  const traceInProgress = C.useAnyWaiting(Constants.traceInProgressKey)
 
   const trace = C.useSettingsState(s => s.dispatch.trace)
   const processorProfile = C.useSettingsState(s => s.dispatch.processorProfile)
   const onTrace = trace
-  const processorProfileInProgress = Container.useAnyWaiting(Constants.processorProfileInProgressKey)
+  const processorProfileInProgress = C.useAnyWaiting(Constants.processorProfileInProgressKey)
   const onProcessorProfile = processorProfile
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDBNuke = () => navigateAppend('dbNukeConfirm')

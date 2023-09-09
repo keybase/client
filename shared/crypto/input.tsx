@@ -3,10 +3,8 @@ import * as React from 'react'
 import * as Constants from '../constants/crypto'
 import * as FsConstants from '../constants/fs'
 import type * as T from '../constants/types'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import * as Platform from '../constants/platform'
 import type {IconType} from '../common-adapters/icon.constants-gen'
 import capitalize from 'lodash/capitalize'
 import {pickFiles} from '../util/pick-files'
@@ -56,13 +54,13 @@ const inputTextType = new Map([
 const inputPlaceholder = new Map([
   [
     'decrypt',
-    Platform.isMobile ? 'Enter text to decrypt' : 'Enter ciphertext, drop an encrypted file or folder, or',
+    C.isMobile ? 'Enter text to decrypt' : 'Enter ciphertext, drop an encrypted file or folder, or',
   ],
-  ['encrypt', Platform.isMobile ? 'Enter text to encrypt' : 'Enter text, drop a file or folder, or'],
-  ['sign', Platform.isMobile ? 'Enter text to sign' : 'Enter text, drop a file or folder, or'],
+  ['encrypt', C.isMobile ? 'Enter text to encrypt' : 'Enter text, drop a file or folder, or'],
+  ['sign', C.isMobile ? 'Enter text to sign' : 'Enter text, drop a file or folder, or'],
   [
     'verify',
-    Platform.isMobile ? 'Enter text to verify' : 'Enter a signed message, drop a signed file or folder, or',
+    C.isMobile ? 'Enter text to verify' : 'Enter a signed message, drop a signed file or folder, or',
   ],
 ] as const)
 
@@ -94,7 +92,7 @@ export const TextInput = (props: TextProps) => {
     // On Windows and Linux only files will be able to be selected. Their native pickers don't allow for selecting both directories and files at once.
     // To set a directory as input, a user will need to drag the directory into Keybase.
     const filePaths = await pickFiles({
-      allowDirectories: Platform.isDarwin,
+      allowDirectories: C.isDarwin,
       buttonLabel: 'Select',
     })
     if (!filePaths.length) return
@@ -172,7 +170,7 @@ const inputFileIcon = new Map([
 export const FileInput = (props: FileProps) => {
   const {path, size, operation} = props
   const fileIcon = inputFileIcon.get(operation) as IconType
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.useAnyWaiting(Constants.waitingKey)
 
   return (
     <Kb.Box2

@@ -3,7 +3,6 @@ import * as Constants from '../../../constants/teams'
 import * as ChatConstants from '../../../constants/chat2'
 import type * as T from '../../../constants/types'
 import Tabs from '.'
-import * as Container from '../../../util/container'
 
 type OwnProps = {
   teamID: T.Teams.TeamID
@@ -20,7 +19,7 @@ export default (ownProps: OwnProps) => {
   const admin = yourOperations.manageMembers
   const error = C.useTeamsState(s => s.errorInAddToTeam)
   const isBig = C.useChatState(s => ChatConstants.isBigTeam(s, teamID))
-  const loading = Container.useAnyWaiting([
+  const loading = C.useAnyWaiting([
     Constants.teamWaitingKey(teamID),
     Constants.teamTarsWaitingKey(teamMeta.teamname),
   ])

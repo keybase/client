@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
+import type * as C from '../../constants'
 
 const Rename = React.lazy(async () => import('./container'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Rename>
+type OwnProps = C.ViewPropsToPageProps<typeof Rename>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

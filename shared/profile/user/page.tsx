@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
-import type * as Container from '../../util/container'
+import type * as C from '../../constants'
 import {HeaderLeftArrow} from '../../common-adapters/header-hoc'
 
 const Title = React.lazy(async () => import('../search/bar'))
 const Profile = React.lazy(async () => import('./container'))
 
-type OwnProps = Container.ViewPropsToPageProps<typeof Profile>
+type OwnProps = C.ViewPropsToPageProps<typeof Profile>
 
 const getOptions = () => ({
   headerLeft: (p: {canGoBack: boolean; onPress: () => void; tintColor: string}) => (

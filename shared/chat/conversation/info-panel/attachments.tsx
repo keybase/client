@@ -576,7 +576,7 @@ export const useAttachmentSections = (
             message: m,
             name: m.title || m.fileName,
             onDownload: () => onDocDownload(m),
-            onShowInFinder: !Container.isMobile && m.downloadPath ? () => onShowInFinder(m) : undefined,
+            onShowInFinder: !C.isMobile && m.downloadPath ? () => onShowInFinder(m) : undefined,
             progress: m.transferProgress,
           }))
 

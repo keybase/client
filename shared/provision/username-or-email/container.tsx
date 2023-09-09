@@ -40,7 +40,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const error = _error ? _error : inlineError && !inlineSignUpLink ? inlineError : ''
   // So we can clear the error if the name is changed
   const username = C.useProvisionState(s => s.username)
-  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
   const hasError = !!error || !!inlineError || inlineSignUpLink
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

@@ -11,8 +11,6 @@ import ReplyPreview from '../../reply-preview'
 import type * as T from '../../../../constants/types'
 import {indefiniteArticle} from '../../../../util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
-import {isLargeScreen} from '../../../../constants/platform'
-import * as Platform from '../../../../constants/platform'
 import {assertionToDisplay} from '../../../../common-adapters/usernames'
 
 type Props = {
@@ -34,7 +32,7 @@ const useHintText = (p: {
   const {teamType, teamname, channelname} = C.useChatContext(s => s.meta)
   const participantInfoName = C.useChatContext(s => s.participants.name)
   if (Styles.isMobile && isExploding) {
-    return isLargeScreen ? `Write an exploding message` : 'Exploding message'
+    return C.isLargeScreen ? `Write an exploding message` : 'Exploding message'
   } else if (cannotWrite) {
     return `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
   } else if (isEditing) {
@@ -45,7 +43,7 @@ const useHintText = (p: {
     switch (teamType) {
       case 'big':
         if (channelname) {
-          return `Write in ${Platform.isMobile ? '' : `@${teamname}`}#${channelname}`
+          return `Write in ${C.isMobile ? '' : `@${teamname}`}#${channelname}`
         }
         break
       case 'small':

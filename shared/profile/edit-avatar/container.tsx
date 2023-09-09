@@ -1,10 +1,9 @@
 import * as C from '../../constants'
-import EditAvatar from '.'
-import * as TeamsConstants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
 import * as T from '../../constants/types'
 import type * as ImagePicker from 'expo-image-picker'
+import EditAvatar from '.'
 
 type OwnProps = {
   image?: ImagePicker.ImageInfo
@@ -19,14 +18,12 @@ export default (ownProps: OwnProps) => {
   const teamID = ownProps.teamID
   const createdTeam = ownProps.createdTeam ?? false
   const image = ownProps.image
-  const sperror = Container.useAnyErrors(C.uploadAvatarWaitingKey)
+  const sperror = C.useAnyErrors(C.uploadAvatarWaitingKey)
   const sendChatNotification = ownProps.sendChatNotification ?? false
-  const submitting = Container.useAnyWaiting(C.uploadAvatarWaitingKey)
-  const teamname = C.useTeamsState(
-    s => (teamID ? TeamsConstants.getTeamNameFromID(s, teamID) : undefined) ?? ''
-  )
+  const submitting = C.useAnyWaiting(C.uploadAvatarWaitingKey)
+  const teamname = C.useTeamsState(s => (teamID ? C.getTeamNameFromID(s, teamID) : undefined) ?? '')
 
-  const dispatchClearWaiting = Container.useDispatchClearWaiting()
+  const dispatchClearWaiting = C.useDispatchClearWaiting()
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     dispatchClearWaiting(C.uploadAvatarWaitingKey)

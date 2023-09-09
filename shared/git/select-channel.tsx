@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as TConstants from '../constants/teams'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -16,7 +15,7 @@ type OwnProps = {
 const SelectChannel = (ownProps: OwnProps) => {
   const {teamID, repoID} = ownProps
   const _selected = ownProps.selected
-  const teamname = C.useTeamsState(s => TConstants.getTeamNameFromID(s, teamID) ?? '')
+  const teamname = C.useTeamsState(s => C.getTeamNameFromID(s, teamID) ?? '')
   const {channelMetas} = useAllChannelMetas(teamID)
   const waiting = channelMetas === null
   const channelNames = channelMetas ? [...channelMetas.values()].map(info => info.channelname) : []

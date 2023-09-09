@@ -10,7 +10,7 @@ const SelectOtherDeviceContainer = () => {
   const devices = C.useProvisionState(s => s.devices)
   const submitDeviceSelect = C.useProvisionState(s => s.dispatch.dynamic.submitDeviceSelect)
   const username = C.useProvisionState(s => s.username)
-  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, false)

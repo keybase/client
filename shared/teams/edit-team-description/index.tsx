@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
 import * as T from '../../constants/types'
 import {ModalTitle} from '../common'
 
@@ -12,9 +11,9 @@ type Props = {teamID: T.Teams.TeamID}
 const EditTeamDescription = (props: Props) => {
   const teamID = props.teamID ?? T.Teams.noTeamID
 
-  const teamname = C.useTeamsState(s => Constants.getTeamNameFromID(s, teamID))
-  const waitingKey = Constants.teamWaitingKey(teamID)
-  const waiting = Container.useAnyWaiting(waitingKey)
+  const teamname = C.useTeamsState(s => C.getTeamNameFromID(s, teamID))
+  const waitingKey = C.teamWaitingKey(teamID)
+  const waiting = C.useAnyWaiting(waitingKey)
   const error = C.useTeamsState(s => s.errorInEditDescription)
   const origDescription = C.useTeamsState(s => s.teamDetails.get(teamID))?.description ?? ''
 

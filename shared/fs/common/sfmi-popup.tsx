@@ -1,10 +1,9 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as T from '../../constants/types'
 import {useFuseClosedSourceConsent} from './hooks'
-import * as C from '../../constants'
-import {fileUIName} from '../../constants/platform'
 
 type Props = {
   mode: 'Icon' | 'Button'
@@ -44,7 +43,7 @@ const SFMIPopup = (props: Props) => {
               <Kb.Icon type="icon-fancy-finder-132-96" />
             </Kb.Box2>
             <Kb.Text type="BodyBig" style={styles.text}>
-              Enable Keybase in {fileUIName}?
+              Enable Keybase in {C.fileUIName}?
             </Kb.Text>
             <Kb.Text type="BodySmall" style={styles.text} center={true}>
               Get access to your files and folders just like you normally do with your local files. It's
@@ -75,7 +74,7 @@ const SFMIPopup = (props: Props) => {
   return (
     <>
       {props.mode === 'Icon' ? (
-        <Kb.WithTooltip tooltip={`Show in ${fileUIName}`}>
+        <Kb.WithTooltip tooltip={`Show in ${C.fileUIName}`}>
           <Kb.Icon
             type="iconfont-finder"
             padding="tiny"
@@ -90,7 +89,7 @@ const SFMIPopup = (props: Props) => {
         <Kb.Button
           mode="Secondary"
           small={true}
-          label={`Enable ${fileUIName} integration`}
+          label={`Enable ${C.fileUIName} integration`}
           onClick={toggleShowingPopup}
           ref={popupAnchor}
         />

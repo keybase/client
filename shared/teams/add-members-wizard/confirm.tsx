@@ -54,7 +54,7 @@ const AddMembersConfirm = () => {
   const [_error, setError] = React.useState('')
   const newTeamWizErr = C.useTeamsState(s => (fromNewTeamWizard ? s.newTeamWizard.error : undefined))
   const error = _error || newTeamWizErr
-  const newTeamWaiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
+  const newTeamWaiting = C.useAnyWaiting(Constants.teamCreationWaitingKey)
   const waiting = _waiting || newTeamWaiting
 
   const addMembers = Container.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
@@ -290,8 +290,8 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
   const addingMembers = C.useTeamsState(s => s.addMembersWizard.addingMembers)
   const [expanded, setExpanded] = React.useState(false)
   const showDivider = Styles.isMobile && addingMembers.length > 4
-  const aboveDivider = Container.isMobile ? addingMembers.slice(0, 4) : addingMembers
-  const belowDivider = Container.isMobile && expanded ? addingMembers.slice(4) : []
+  const aboveDivider = C.isMobile ? addingMembers.slice(0, 4) : addingMembers
+  const belowDivider = C.isMobile && expanded ? addingMembers.slice(4) : []
   const toggleExpanded = () => {
     if (Styles.isMobile) {
       Kb.LayoutAnimation.configureNext(Kb.LayoutAnimation.Presets.easeInEaseOut)

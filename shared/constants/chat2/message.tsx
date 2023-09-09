@@ -1,5 +1,6 @@
 // Message related constants
 import * as T from '../types'
+import * as C from '..'
 import * as TeamConstants from '../teams'
 import * as WalletConstants from '../wallets'
 import type * as ConvoConstants from './convostate'
@@ -9,7 +10,6 @@ import logger from '../../logger'
 import shallowEqual from 'shallowequal'
 import type * as MessageTypes from '../types/chat2/message'
 import type {ServiceId} from 'util/platforms'
-import {assertNever} from '../../util/container'
 import {isMobile} from '../platform'
 import {noConversationIDKey} from '../types/chat2/common'
 import isEqual from 'lodash/isEqual'
@@ -1214,7 +1214,7 @@ export const uiMessageToMessage = (
     case T.RPCChat.MessageUnboxedState.journeycard:
       return journeycardUIMessageToMessage(conversationIDKey, uiMessage.journeycard)
     default: // A type error here means there is an unhandled message state
-      assertNever(uiMessage)
+      C.assertNever(uiMessage)
       return
   }
 }

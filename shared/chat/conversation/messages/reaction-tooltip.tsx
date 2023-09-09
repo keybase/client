@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
@@ -88,7 +87,7 @@ const ReactionTooltip = (p: OwnProps) => {
         username: u.username,
       })),
     }))
-  if (!Container.isMobile && emoji) {
+  if (!C.isMobile && emoji) {
     // Filter down to selected emoji
     reactions = reactions.filter(r => r.emoji === emoji)
   }

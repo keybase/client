@@ -1,8 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as Container from '../util/container'
-import * as Constants from '../constants/settings'
-import * as Tabs from '../constants/tabs'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {SettingsSection} from './account'
@@ -13,7 +10,7 @@ const disabledDescription = 'Import your phone contacts and start encrypted chat
 const ManageContacts = () => {
   const status = C.useSettingsContactsState(s => s.permissionStatus)
   const contactsImported = C.useSettingsContactsState(s => s.importEnabled)
-  const waiting = Container.useAnyWaiting(C.importContactsWaitingKey)
+  const waiting = C.useAnyWaiting(C.importContactsWaitingKey)
 
   const loadContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.loadContactImportEnabled)
 
@@ -69,14 +66,14 @@ const ManageContactsBanner = () => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
   const onStartChat = React.useCallback(() => {
-    switchTab(Tabs.chatTab)
+    switchTab(C.chatTab)
     appendNewChatBuilder()
   }, [appendNewChatBuilder, switchTab])
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onSendFeedback = React.useCallback(() => {
     navigateAppend({
       props: {feedback: `Contact import failed\n${error}\n\n`},
-      selected: Constants.feedbackTab,
+      selected: C.settingsFeedbackTab,
     })
   }, [navigateAppend, error])
 

@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
-import {version} from '../constants/platform'
 
 const About = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -21,7 +20,7 @@ const About = () => {
           You are running version{' '}
         </Kb.Text>
         <Kb.Text type="BodySemibold" selectable={true}>
-          {version}
+          {C.version}
         </Kb.Text>
       </Kb.Box2>
       <Kb.Text style={styles.terms} type="BodyPrimaryLink" onClick={onShowTerms}>

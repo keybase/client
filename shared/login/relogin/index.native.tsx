@@ -1,3 +1,4 @@
+import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as KbMobile from '../../common-adapters/mobile.native'
@@ -7,7 +8,6 @@ import Dropdown from './dropdown.native'
 import UserCard from '../user-card'
 import type {Props as InputProps} from '../../common-adapters/labeled-input'
 import type {Props} from '.'
-import {isDeviceSecureAndroid, isAndroidNewerThanM, isAndroid} from '../../constants/platform.native'
 
 type State = {
   scrollViewHeight?: number
@@ -24,7 +24,7 @@ class LoginRender extends React.Component<Props, State> {
     const inputProps: InputProps = {
       autoFocus: true,
       error: !!this.props.error,
-      keyboardType: this.props.showTyping && Styles.isAndroid ? 'visible-password' : 'default',
+      keyboardType: this.props.showTyping && C.isAndroid ? 'visible-password' : 'default',
       onChangeText: password => this.props.passwordChange(password),
       onEnterKeyDown: () => this.props.onSubmit(),
       placeholder: 'Password',
@@ -42,7 +42,7 @@ class LoginRender extends React.Component<Props, State> {
           contentContainerStyle={{minHeight: this.state.scrollViewHeight}}
         >
           <Kb.Box style={styles.container}>
-            {isAndroid && !isDeviceSecureAndroid && !isAndroidNewerThanM && (
+            {C.isAndroid && !C.isDeviceSecureAndroid && !C.isAndroidNewerThanM && (
               <Kb.Box style={styles.deviceNotSecureContainer}>
                 <Kb.Text center={true} type="Body" negative={true} style={styles.deviceNotSecureText}>
                   Since you don't have a lock screen, you'll have to type your password everytime.
@@ -141,7 +141,7 @@ const styles = Styles.styleSheetCreate(
       scrollView: {
         backgroundColor: Styles.globalColors.blueGrey,
       },
-    } as const)
+    }) as const
 )
 
 export default LoginRender

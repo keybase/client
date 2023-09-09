@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -11,7 +10,7 @@ export default () => {
   const error = C.useProvisionState(s => s.error)
   const resetEmailSent = C.useRecoverState(s => s.resetEmailSent)
   const username = C.useProvisionState(s => s.username)
-  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const startRecoverPassword = C.useRecoverState(s => s.dispatch.startRecoverPassword)
   const _onForgotPassword = (username: string) => {

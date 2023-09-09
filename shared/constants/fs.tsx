@@ -1,6 +1,5 @@
 import * as C from '.'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
 import * as T from './types'
 import * as Z from '../util/zustand'
@@ -884,7 +883,7 @@ export const makeActionsForDestinationPickerOpen = (index: number, path: T.FS.Pa
   C.useRouterState.getState().dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
 }
 
-export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
+export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, C.settingsFsTab] : [Tabs.fsTab]
 
 export const makeActionForOpenPathInFilesTab = (
   // TODO: remove the second arg when we are done with migrating to nav2

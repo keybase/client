@@ -3,9 +3,7 @@ import * as Constants from '../../constants/fs'
 import * as React from 'react'
 import * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
-import {isMobile} from '../../constants/platform'
 import logger from '../../logger'
-import * as Platform from '../../constants/platform'
 import type * as Styles from '../../styles'
 import type {StylesTextCrossPlatform} from '../../common-adapters/text'
 
@@ -156,7 +154,7 @@ export const useFsFileContext = (path: T.FS.Path) => {
   return setUrlError
 }
 
-export const useFsWatchDownloadForMobile = isMobile
+export const useFsWatchDownloadForMobile = C.isMobile
   ? (downloadID: string, downloadIntent?: T.FS.DownloadIntent): boolean => {
       const dlState = C.useFSState(s => s.downloads.state.get(downloadID) || Constants.emptyDownloadState)
       const finished = dlState !== Constants.emptyDownloadState && !Constants.downloadIsOngoing(dlState)
@@ -208,7 +206,7 @@ export const useFuseClosedSourceConsent = (
   const [agreed, setAgreed] = React.useState<boolean>(false)
 
   const component = React.useMemo(() => {
-    return Platform.isDarwin ? (
+    return C.isDarwin ? (
       <Kb.Checkbox
         disabled={disabled}
         checked={agreed}
@@ -224,7 +222,7 @@ export const useFuseClosedSourceConsent = (
   }, [disabled, agreed, backgroundColor, textStyle])
 
   return {
-    canContinue: !Platform.isDarwin || agreed,
+    canContinue: !C.isDarwin || agreed,
     component,
   }
 }

@@ -309,7 +309,7 @@ export const initPushListener = () => {
         iosListenForPushNotificationsFromJS()
       }
     }
-    Container.ignorePromise(f())
+    C.ignorePromise(f())
   })
 }
 

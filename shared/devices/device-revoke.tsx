@@ -3,9 +3,7 @@ import * as Constants from '../constants/devices'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as SettingsConstants from '../constants/settings'
 import * as Styles from '../styles'
-import * as Tabs from '../constants/tabs'
 import * as T from '../constants/types'
 
 type OwnProps = {deviceID: string}
@@ -110,17 +108,11 @@ const useRevoke = (deviceID = '') => {
           )
           load()
           C.useConfigState.getState().dispatch.revoke(deviceName)
-          navUpToScreen(
-            Container.isMobile
-              ? Container.isTablet
-                ? Tabs.settingsTab
-                : SettingsConstants.devicesTab
-              : Tabs.devicesTab
-          )
+          navUpToScreen(C.isMobile ? (C.isTablet ? C.settingsTab : C.settingsDevicesTab) : C.devicesTab)
         } catch {}
       }
     }
-    Container.ignorePromise(f())
+    C.ignorePromise(f())
   }, [navUpToScreen, deviceID, deviceName, load, username, wasCurrentDevice])
 }
 
@@ -132,7 +124,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const deviceName = device?.name ?? ''
   const type = device?.type ?? 'desktop'
   const iconNumber = Constants.useDeviceIconNumber(selectedDeviceID)
-  const waiting = Container.useAnyWaiting(C.devicesWaitingKey)
+  const waiting = C.useAnyWaiting(C.devicesWaitingKey)
   const onSubmit = useRevoke(deviceID)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp
@@ -143,7 +135,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
       const tlfs = await loadEndangeredTLF(actingDevice, selectedDeviceID)
       setEndangeredTLFs(tlfs)
     }
-    Container.ignorePromise(f())
+    C.ignorePromise(f())
   })
 
   const props = {

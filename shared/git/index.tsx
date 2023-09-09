@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -30,7 +29,7 @@ const getRepos = memoize((git: Map<string, T.Git.GitInfo>) =>
 
 export default (ownProps: OwnProps) => {
   const initialExpandedSet = ownProps.expanded ? new Set([ownProps.expanded]) : undefined
-  const loading = Container.useAnyWaiting(C.gitWaitingKey)
+  const loading = C.useAnyWaiting(C.gitWaitingKey)
   const {clearBadges, load, setError, error, idToInfo, isNew} = C.useGitState(s => {
     const {dispatch, error, idToInfo, isNew} = s
     const {clearBadges, load, setError} = dispatch
@@ -102,7 +101,7 @@ export default (ownProps: OwnProps) => {
   return (
     <Kb.Reloadable
       waitingKeys={C.gitWaitingKey}
-      onBack={Container.isMobile ? onBack : undefined}
+      onBack={C.isMobile ? onBack : undefined}
       onReload={load}
       reloadOnMount={true}
     >

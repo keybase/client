@@ -1,9 +1,8 @@
 import * as React from 'react'
+import * as C from '../../../constants'
 import type * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
-import {globalColors, globalMargins, styleSheetCreate, platformStyles} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
 import {FloatingRolePicker} from '../../role-picker'
 import {pluralize} from '../../../util/string'
 import RetentionPicker from './retention/container'
@@ -143,8 +142,8 @@ const OpenTeam = (props: SettingProps & RolePickerProps & {showWarning: () => vo
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.openTeam}>
             <Kb.Text type="Body">Make this an open team</Kb.Text>
             <Kb.Box2
-              direction={isMobile ? 'vertical' : 'horizontal'}
-              alignItems={isMobile ? 'flex-start' : 'center'}
+              direction={C.isMobile ? 'vertical' : 'horizontal'}
+              alignItems={C.isMobile ? 'flex-start' : 'center'}
               alignSelf="flex-start"
             >
               <Kb.Text style={styles.joinAs} type="BodySmall">
@@ -317,7 +316,7 @@ export class Settings extends React.Component<Props, State> {
           )}
           {this.props.yourOperations.chat && (
             <RetentionPicker
-              containerStyle={{marginTop: globalMargins.small}}
+              containerStyle={{marginTop: Styles.globalMargins.small}}
               showSaveIndicator={false}
               teamID={this.props.teamID}
               entityType={this.props.isBigTeam ? 'big team' : 'small team'}
@@ -336,25 +335,25 @@ export class Settings extends React.Component<Props, State> {
   }
 }
 
-const styles = styleSheetCreate(() => ({
+const styles = Styles.styleSheetCreate(() => ({
   button: {
     justifyContent: 'center',
-    paddingBottom: isMobile ? globalMargins.tiny : globalMargins.small,
-    paddingTop: isMobile ? globalMargins.tiny : globalMargins.small,
+    paddingBottom: C.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.small,
+    paddingTop: C.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.small,
   },
-  floatingRolePicker: platformStyles({
+  floatingRolePicker: Styles.platformStyles({
     isElectron: {
       position: 'relative',
       top: -20,
     },
   }),
-  grey: {color: globalColors.black_50},
+  grey: {color: Styles.globalColors.black_50},
   header: {
     ...Styles.globalStyles.flexBoxRow,
     marginBottom: Styles.globalMargins.tiny,
   },
-  joinAs: platformStyles({
-    isElectron: {paddingRight: globalMargins.xtiny},
+  joinAs: Styles.platformStyles({
+    isElectron: {paddingRight: Styles.globalMargins.xtiny},
   }),
   main: {
     alignSelf: 'flex-start',
@@ -363,24 +362,24 @@ const styles = styleSheetCreate(() => ({
     flexGrow: 1,
     justifyContent: 'flex-start',
     maxWidth: 600,
-    padding: globalMargins.small,
+    padding: Styles.globalMargins.small,
   },
-  memberShowcase: {alignItems: 'flex-start', paddingRight: globalMargins.small},
+  memberShowcase: {alignItems: 'flex-start', paddingRight: Styles.globalMargins.small},
   openDropdown: {width: 70},
   openTeam: {
     flexShrink: 1,
-    paddingRight: globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
   },
   outerBox: {backgroundColor: Styles.globalColors.white},
-  paddingRight: {paddingRight: globalMargins.xtiny},
+  paddingRight: {paddingRight: Styles.globalMargins.xtiny},
   publicitySettings: {
-    paddingRight: globalMargins.small,
-    paddingTop: globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.small,
   },
   shrink: {flex: 1},
   spinner: {paddingLeft: Styles.globalMargins.xtiny},
-  teamPadding: {paddingTop: globalMargins.small},
-  welcomeMessage: {paddingRight: globalMargins.small},
+  teamPadding: {paddingTop: Styles.globalMargins.small},
+  welcomeMessage: {paddingRight: Styles.globalMargins.small},
   welcomeMessageBorder: {
     alignSelf: 'stretch',
     backgroundColor: Styles.globalColors.grey,

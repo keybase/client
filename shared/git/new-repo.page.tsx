@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../util/container'
+import type * as C from '../constants'
 
 const New = React.lazy(async () => import('./new-repo'))
-type OwnProps = Container.ViewPropsToPageProps<typeof New>
+type OwnProps = C.ViewPropsToPageProps<typeof New>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

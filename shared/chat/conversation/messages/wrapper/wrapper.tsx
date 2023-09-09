@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
@@ -104,7 +103,7 @@ const useRedux = (ordinal: T.Chat.Ordinal) => {
     hasReactions: boolean,
     message: T.Chat.Message
   ) => {
-    if (Container.isMobile) return 'none' as const
+    if (C.isMobile) return 'none' as const
     if (hasReactions) {
       return 'none' as const
     }
@@ -384,7 +383,7 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
   const reactionsRow = hasReactions ? <ReactionsRow /> : null
 
   const reactionsPopup =
-    !Container.isMobile && reactionsPopupPosition !== 'none' && !showingPopup ? (
+    !C.isMobile && reactionsPopupPosition !== 'none' && !showingPopup ? (
       <EmojiRow
         className={Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
         onShowingEmojiPicker={setShowingPicker}
@@ -444,7 +443,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   // left, then on hover we invert the list so its on the right. Theres usually only 1 non menu item so this
   // is fine
 
-  const menu = Container.isMobile ? null : (
+  const menu = C.isMobile ? null : (
     <Kb.WithTooltip
       tooltip="More actions..."
       toastStyle={styles.moreActionsTooltip}
@@ -502,7 +501,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight && !isEditing
 
-  const maybeSentChildren = Container.isMobile && youSent ? <Sent>{children}</Sent> : children
+  const maybeSentChildren = C.isMobile && youSent ? <Sent>{children}</Sent> : children
 
   const tsprops = {
     botname,

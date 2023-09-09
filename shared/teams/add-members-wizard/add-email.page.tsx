@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
+import type * as C from '../../constants'
 
 const AddEmail = React.lazy(async () => import('./add-email'))
-type OwnProps = Container.ViewPropsToPageProps<typeof AddEmail>
+type OwnProps = C.ViewPropsToPageProps<typeof AddEmail>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

@@ -55,13 +55,13 @@ export default () => {
           logger.warn("Can't call critical check", e)
         }
         // We just need this once on mobile. Long timers don't work there.
-        if (Container.isMobile) {
+        if (C.isMobile) {
           break
         }
         await Container.timeoutPromise(3_600_000) // 1 hr
       }
     }
-    Container.ignorePromise(f())
+    C.ignorePromise(f())
   })
 
   const onOpenAppStore = C.useConfigState(s => s.dispatch.dynamic.openAppStore)

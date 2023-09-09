@@ -1,4 +1,4 @@
-import type * as Container from '../util/container'
+import type * as C from '../constants'
 import profile from './user/page'
 import profileAddToTeam from './add-to-team/page'
 import profileConfirmOrPending from './confirm-or-pending/page'
@@ -42,4 +42,4 @@ export const newModalRoutes = {
   profileShowcaseTeamOffer,
 }
 
-export type RootParamListProfile = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>
+export type RootParamListProfile = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

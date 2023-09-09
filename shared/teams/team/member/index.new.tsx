@@ -122,7 +122,7 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
 const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => {
   const nav = Container.useSafeNavigation()
   const waitingKey = Constants.removeMemberWaitingKey(teamID, username)
-  const waiting = Container.useAnyWaiting(waitingKey)
+  const waiting = C.useAnyWaiting(waitingKey)
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
     if (wasWaiting && !waiting) {
@@ -428,10 +428,8 @@ const NodeInRow = (props: NodeInRowProps) => {
   )
   const amLastOwner = C.useTeamsState(s => Constants.isLastOwner(s, props.node.teamID))
   const isMe = props.username == C.useCurrentUserState(s => s.username)
-  const changingRole = Container.useAnyWaiting(
-    Constants.editMembershipWaitingKey(props.node.teamID, props.username)
-  )
-  const loadingActivity = Container.useAnyWaiting(
+  const changingRole = C.useAnyWaiting(Constants.editMembershipWaitingKey(props.node.teamID, props.username))
+  const loadingActivity = C.useAnyWaiting(
     Constants.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
   )
 

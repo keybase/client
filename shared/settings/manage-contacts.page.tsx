@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Container from '../util/container'
+import * as C from '../constants'
 
 const Root = React.lazy(async () => import('./manage-contacts'))
 
@@ -9,7 +9,7 @@ const getOptions = () => ({
 })
 
 const Screen = () =>
-  Container.isMobile ? (
+  C.isMobile ? (
     <React.Suspense>
       <Root />
     </React.Suspense>

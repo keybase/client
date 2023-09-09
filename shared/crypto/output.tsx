@@ -1,6 +1,6 @@
 import * as C from '../constants'
 import * as Constants from '../constants/crypto'
-import * as Container from '../util/container'
+import type * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Path from '../util/path'
 import * as Platforms from '../constants/platform'
@@ -29,7 +29,7 @@ const largeOutputLimit = 120
 
 export const SignedSender = (props: SignedSenderProps) => {
   const {operation} = props
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.useAnyWaiting(Constants.waitingKey)
 
   const {
     outputSigned: signed,
@@ -165,7 +165,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const canReplyInChat =
     operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
 
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.useAnyWaiting(Constants.waitingKey)
 
   const {
     output,
@@ -322,7 +322,7 @@ const OutputFileDestination = (props: {operation: T.Crypto.Operations}) => {
       const path = filePaths[0]!
       runFileOperation(operation, path)
     }
-    Container.ignorePromise(f())
+    C.ignorePromise(f())
   }
 
   return (
@@ -376,7 +376,7 @@ export const OperationOutput = (props: OutputProps) => {
     openLocalPathInSystemFileManagerDesktop?.(output)
   }
 
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.useAnyWaiting(Constants.waitingKey)
 
   // Output text can be 24 px when output is less that 120 characters
   const outputTextIsLarge =

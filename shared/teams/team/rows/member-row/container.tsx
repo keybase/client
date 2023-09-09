@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/teams'
 import type * as T from '../../../../constants/types'
 import {TeamMemberRow} from '.'
-import * as Container from '../../../../util/container'
 
 type OwnProps = {
   teamID: T.Teams.TeamID
@@ -23,8 +22,8 @@ export default (ownProps: OwnProps) => {
   const needsPUK = info.needsPUK
   const roleType = info.type
   const status = info.status
-  const waitingForAdd = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
-  const waitingForRemove = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, username))
+  const waitingForAdd = C.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
+  const waitingForRemove = C.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, username))
   const youCanManageMembers = C.useTeamsState(s => Constants.getCanPerform(s, teamname).manageMembers)
   const setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
   const onBlock = () => {
@@ -52,7 +51,7 @@ export default (ownProps: OwnProps) => {
   }
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onShowTracker = () => {
-    if (Container.isMobile) {
+    if (C.isMobile) {
       showUserProfile(username)
     } else {
       showUser(username, true)

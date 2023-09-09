@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
+import type * as C from '../../constants'
 
 const AddAlias = React.lazy(async () => import('./add-alias'))
-type OwnProps = Container.ViewPropsToPageProps<typeof AddAlias>
+type OwnProps = C.ViewPropsToPageProps<typeof AddAlias>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

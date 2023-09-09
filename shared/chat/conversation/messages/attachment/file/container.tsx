@@ -1,8 +1,6 @@
 import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/chat2'
-import * as Container from '../../../../../util/container'
 import * as React from 'react'
-import * as Tabs from '../../../../../constants/tabs'
 import File from '.'
 import type * as T from '../../../../../constants/types'
 import {OrdinalContext} from '../../ids-context'
@@ -36,7 +34,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onSaltpackFileOpen = React.useCallback(
     (path: string, operation: T.Crypto.Operations) => {
-      switchTab(Tabs.cryptoTab)
+      switchTab(C.cryptoTab)
       saltpackOpenFile(operation, path)
     },
     [switchTab, saltpackOpenFile]
@@ -52,7 +50,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
   const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
   const onDownload = React.useCallback(() => {
-    if (Container.isMobile) {
+    if (C.isMobile) {
       message && messageAttachmentNativeShare(message)
     } else {
       if (!downloadPath) {
@@ -80,7 +78,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     message,
   ])
 
-  const arrowColor = Container.isMobile
+  const arrowColor = C.isMobile
     ? ''
     : downloadPath
     ? globalColors.green
@@ -100,7 +98,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     message,
     onDownload,
     onSaltpackFileOpen,
-    onShowInFinder: !Container.isMobile && downloadPath ? onShowInFinder : undefined,
+    onShowInFinder: !C.isMobile && downloadPath ? onShowInFinder : undefined,
     progress: message.transferProgress,
     title: message.decoratedText?.stringValue() || message.title || message.fileName,
     toggleMessageMenu: p.toggleMessageMenu,

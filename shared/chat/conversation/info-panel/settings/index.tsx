@@ -1,11 +1,9 @@
 import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as T from '../../../../constants/types'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import * as TeamConstants from '../../../../constants/teams'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
 import RetentionPicker from '../../../../teams/team/settings-tab/retention/container'
@@ -18,13 +16,11 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const username = C.useCurrentUserState(s => s.username)
   const meta = C.useChatContext(s => s.meta)
   const {status, teamname, teamType, channelname, teamID} = meta
-  const yourOperations = C.useTeamsState(s =>
-    teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined
-  )
+  const yourOperations = C.useTeamsState(s => (teamname ? C.getCanPerformByID(s, teamID) : undefined))
   const ignored = status === T.RPCChat.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'
 
-  const spinnerForLeave = Container.useAnyWaiting(Constants.waitingKeyLeaveConversation)
+  const spinnerForLeave = C.useAnyWaiting(Constants.waitingKeyLeaveConversation)
 
   const canDeleteHistory =
     teamname && yourOperations ? yourOperations.deleteChatHistory && !meta.cannotWrite : true

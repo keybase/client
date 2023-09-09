@@ -1,12 +1,12 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
+import type * as C from '../../constants'
 
 const Disable = React.lazy(async () => {
   const {DeleteModal} = await import('./confirm-delete')
   return {default: DeleteModal}
 })
 
-type OwnProps = Container.ViewPropsToPageProps<typeof Disable>
+type OwnProps = C.ViewPropsToPageProps<typeof Disable>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import * as React from 'react'
 import * as T from '../../../constants/types'
-import * as Container from '../../../util/container'
 import {folderNameWithoutUsers} from '../../../util/kbfs'
 import Banner, {getHeight} from '.'
 import * as RowTypes from '../../browser/rows/types'
@@ -35,7 +34,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onViewProfile = React.useCallback(
     (username: string) => () => {
-      Container.isMobile ? showUserProfile(username) : showUser(username, true)
+      C.isMobile ? showUserProfile(username) : showUser(username, true)
     },
     [showUser, showUserProfile]
   )

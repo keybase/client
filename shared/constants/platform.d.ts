@@ -17,6 +17,8 @@ export const isLinux: boolean
 export const isMac: boolean
 export const isDebuggingInChrome: boolean // only useful in RN
 
+export const isDeviceSecureAndroid: boolean
+export const isAndroidNewerThanM: boolean
 export const isAndroidNewerThanN: boolean
 export const defaultUseNativeFrame: boolean
 export const androidIsTestDevice: boolean

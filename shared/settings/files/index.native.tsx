@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Container from '../../util/container'
 import * as Constants from '../../constants/fs'
 import * as T from '../../constants/types'
 import type {Props} from '.'
@@ -68,7 +67,7 @@ const Files = (props: Props) => {
       .then(() => {})
       .catch(() => {})
   }
-  const waitingToggleSyncOnCellular = Container.useAnyWaiting(Constants.setSyncOnCellularWaitingKey)
+  const waitingToggleSyncOnCellular = C.useAnyWaiting(Constants.setSyncOnCellularWaitingKey)
   return (
     <Kb.Box2
       direction="vertical"

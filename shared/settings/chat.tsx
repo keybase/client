@@ -1,7 +1,5 @@
 import * as C from '../constants'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as Platform from '../constants/platform'
 import * as T from '../constants/types'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -36,7 +34,7 @@ export default () => {
   const notifToggle = C.useSettingsNotifState(s => s.dispatch.toggle)
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = Container.isMobile
+  const onBack = C.isMobile
     ? () => {
         navigateUp()
       }
@@ -227,7 +225,7 @@ class Chat extends React.Component<Props, State> {
   }
 
   render() {
-    const showDesktopSound = !Platform.isMobile && !Platform.isLinux
+    const showDesktopSound = !C.isMobile && !C.isLinux
     const showMobileSound = !!this.props.groups.get('sound')?.settings.length
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>

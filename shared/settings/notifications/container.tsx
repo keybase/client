@@ -1,6 +1,5 @@
-import * as Constants from '../../constants/settings'
-import * as Container from '../../util/container'
 import * as C from '../../constants'
+import * as Constants from '../../constants/settings'
 import Notifications, {type Props} from '.'
 import {Reloadable} from '../../common-adapters'
 
@@ -15,7 +14,7 @@ const ReloadableNotifications = (props: Props) => {
 
   return (
     <Reloadable
-      onBack={Container.isMobile ? props.onBack : undefined}
+      onBack={C.isMobile ? props.onBack : undefined}
       waitingKeys={[C.refreshNotificationsWaitingKey, Constants.loadSettingsWaitingKey]}
       onReload={onRefresh}
       reloadOnMount={true}
@@ -30,14 +29,14 @@ export default () => {
   const allowEdit = C.useSettingsNotifState(s => s.allowEdit)
   const toggle = C.useSettingsNotifState(s => s.dispatch.toggle)
   const showEmailSection = C.useSettingsEmailState(s => s.emails.size > 0)
-  const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
+  const waitingForResponse = C.useAnyWaiting(Constants.settingsWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClickYourAccount = () => {
-    navigateAppend(Constants.accountTab)
+    navigateAppend(C.settingsAccountTab)
   }
   const onToggle = toggle
   const onToggleUnsubscribeAll = toggle

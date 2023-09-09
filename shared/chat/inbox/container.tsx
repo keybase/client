@@ -93,7 +93,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
 
   if (lastIsFocused !== isFocused) {
     setLastIsFocused(isFocused)
-    if (Container.isMobile) {
+    if (C.isMobile) {
       if (isFocused && Constants.isSplit) {
         C.getConvoState(C.getSelectedConversation()).dispatch.tabSelected()
       }
@@ -103,7 +103,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   const inboxRefresh = C.useChatState(s => s.dispatch.inboxRefresh)
 
   Container.useOnMountOnce(() => {
-    if (!Container.isMobile) {
+    if (!C.isMobile) {
       // On mobile this is taken care of by NavigationEvents.
       C.getConvoState(C.getSelectedConversation()).dispatch.tabSelected()
     }

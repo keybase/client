@@ -24,8 +24,8 @@ if (module.hot) {
 
 const settingsTabChildrenPhone = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab, Tabs.settingsTab] as const
 const settingsTabChildrenTablet = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
-const settingsTabChildren = Container.isPhone ? settingsTabChildrenPhone : settingsTabChildrenTablet
-const tabs = Container.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
+const settingsTabChildren = C.isPhone ? settingsTabChildrenPhone : settingsTabChildrenTablet
+const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 const tabToData = {
   [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
   [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},

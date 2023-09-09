@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Constants from '../constants/settings'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import FeedbackForm from '../settings/feedback/index'
@@ -11,7 +10,7 @@ export default () => {
   const {error, sendFeedback} = useSendFeedback()
   const loggedOut = C.useConfigState(s => !s.loggedIn)
   const sendError = error
-  const sending = Container.useAnyWaiting(Constants.sendFeedbackWaitingKey)
+  const sending = C.useAnyWaiting(Constants.sendFeedbackWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()

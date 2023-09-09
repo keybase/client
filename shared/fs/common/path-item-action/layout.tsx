@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
 import * as T from '../../../constants/types'
-import {isMobile, isIOS} from '../../../constants/platform'
 
 export type Layout = {
   delete: boolean
@@ -59,7 +58,7 @@ const getRawLayout = (
     case T.FS.PathKind.TlfList:
       return {
         ...empty,
-        showInSystemFileManager: !isMobile,
+        showInSystemFileManager: !C.isMobile,
       }
     case T.FS.PathKind.GroupTlf:
     case T.FS.PathKind.TeamTlf:
@@ -73,7 +72,7 @@ const getRawLayout = (
             }
           : {}),
         ignoreTlf: parsedPath.kind === T.FS.PathKind.TeamTlf || !isMyOwn(parsedPath, me),
-        showInSystemFileManager: !isMobile,
+        showInSystemFileManager: !C.isMobile,
       }
     case T.FS.PathKind.InGroupTlf:
     case T.FS.PathKind.InTeamTlf:
@@ -88,16 +87,16 @@ const getRawLayout = (
             }
           : {}),
         delete: pathItem.writable,
-        download: pathItem.type === T.FS.PathType.File && !isIOS,
+        download: pathItem.type === T.FS.PathType.File && !C.isIOS,
         moveOrCopy: true,
         rename: pathItem.writable && mode === 'row',
         saveMedia:
-          isMobile && pathItem.type === T.FS.PathType.File && Constants.canSaveMedia(pathItem, fileContext),
-        showInSystemFileManager: !isMobile,
+          C.isMobile && pathItem.type === T.FS.PathType.File && Constants.canSaveMedia(pathItem, fileContext),
+        showInSystemFileManager: !C.isMobile,
         // share menu items
         // eslint-disable-next-line sort-keys
         sendAttachmentToChat: pathItem.type === T.FS.PathType.File,
-        sendToOtherApp: pathItem.type === T.FS.PathType.File && isMobile,
+        sendToOtherApp: pathItem.type === T.FS.PathType.File && C.isMobile,
       }
     default:
       return empty
@@ -107,7 +106,7 @@ const getRawLayout = (
 const totalShare = (layout: Layout) => (layout.sendAttachmentToChat ? 1 : 0) + (layout.sendToOtherApp ? 1 : 0)
 
 const consolidateShares = (layout: Layout): Layout =>
-  isMobile && totalShare(layout) > 1
+  C.isMobile && totalShare(layout) > 1
     ? {
         ...layout,
         sendAttachmentToChat: false,

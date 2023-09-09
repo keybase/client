@@ -1,9 +1,9 @@
 import * as React from 'react'
+import * as C from '../../../../../constants'
 import type * as T from '../../../../../constants/types'
 import * as Kb from '../../../../../common-adapters'
 import {FloatingRolePicker} from '../../../../role-picker'
 import * as Styles from '../../../../../styles'
-import {isLargeScreen} from '../../../../../constants/platform'
 import {formatTimeRelativeToNow} from '../../../../../util/timestamp'
 import MenuHeader from '../../menu-header.new'
 
@@ -92,7 +92,7 @@ export const TeamRequestRow = (props: Props) => {
                 backgroundColor={reset ? Styles.globalColors.red : Styles.globalColors.orange}
               />
               {Styles.isMobile ? (
-                isLargeScreen && (
+                C.isLargeScreen && (
                   <Kb.Text type="BodySmall" ellipsizeMode="tail" lineClamp={1} style={styles.newFullName}>
                     {fullName !== '' && `${fullName}`}
                   </Kb.Text>

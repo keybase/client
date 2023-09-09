@@ -16,7 +16,7 @@ const AddPhone = () => {
 
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
-  const waiting = Container.useAnyWaiting(waitingKey)
+  const waiting = C.useAnyWaiting(waitingKey)
 
   const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
   const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)

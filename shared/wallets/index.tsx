@@ -5,7 +5,6 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as T from '../constants/types'
 import * as Constants from '../constants/wallets'
-import * as WaitingConstants from '../constants/waiting'
 import {useFocusEffect} from '@react-navigation/native'
 
 const Row = (p: {account: Constants.Account}) => {
@@ -134,7 +133,7 @@ export default () => {
     })
   }, [accountMap])
 
-  const loading = WaitingConstants.useAnyWaiting(Constants.loadAccountsWaitingKey)
+  const loading = C.useAnyWaiting(Constants.loadAccountsWaitingKey)
 
   const rows = accounts.map((a, idx) => <Row account={a} key={String(idx)} />)
 

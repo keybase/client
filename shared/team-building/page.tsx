@@ -1,10 +1,9 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Styles from '../styles'
-import type * as Container from '../util/container'
 
 const Building = React.lazy(async () => import('./container'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Building>
+type OwnProps = C.ViewPropsToPageProps<typeof Building>
 
 const getOptions = ({route}: OwnProps) => {
   const namespace: unknown = route.params.namespace

@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
 import NameWithIcon, {type NameWithIconProps} from '.'
 
 export type ConnectedNameWithIconProps = {
@@ -33,7 +32,7 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
   let clickType: NameWithIconProps['clickType'] = 'onClick'
   switch (onClick) {
     case 'tracker': {
-      if (!Container.isMobile) {
+      if (!C.isMobile) {
         if (username) {
           functionOnClick = onOpenTracker
         }

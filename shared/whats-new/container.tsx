@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import type * as Tabs from '../constants/tabs'
 import openURL from '../util/open-url'
 import {currentVersion} from '../constants/whats-new'
 import {Current, Last, LastLast} from './versions'
@@ -16,7 +15,7 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
     openURL(url)
   }
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const _onSwitchTab = (tab: Tabs.AppTab) => {
+  const _onSwitchTab = (tab: C.AppTab) => {
     switchTab(tab)
   }
 

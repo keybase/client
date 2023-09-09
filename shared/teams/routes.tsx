@@ -1,3 +1,4 @@
+import type * as C from '../constants'
 import contactRestricted from '../team-building/contact-restricted.page'
 import openTeamWarning from './team/settings-tab/open-team-warning/page'
 import retentionWarning from './team/settings-tab/retention/warning/page'
@@ -39,7 +40,6 @@ import teamWizard6Subteams from './new-team/wizard/create-subteams.page'
 import teamWizardSubteamMembers from './new-team/wizard/add-subteam-members.page'
 import teamsRoot from './page'
 import teamsTeamBuilder from '../team-building/page'
-import type * as Container from '../util/container'
 
 export const newRoutes = {
   team,
@@ -88,4 +88,4 @@ export const newModalRoutes = {
   teamsTeamBuilder,
 }
 
-export type RootParamListTeams = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>
+export type RootParamListTeams = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

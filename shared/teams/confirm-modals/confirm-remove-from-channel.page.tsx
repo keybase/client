@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
+import type * as C from '../../constants'
 
 const Remove = React.lazy(async () => import('./confirm-remove-from-channel'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Remove>
+type OwnProps = C.ViewPropsToPageProps<typeof Remove>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

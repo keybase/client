@@ -1,7 +1,7 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {isIOS, isTablet} from '../../constants/platform'
 import {type Props} from '.'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
 import {ModalTitle} from '../../teams/common'
@@ -63,7 +63,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
   private avatar_size = (): number => {
     const margin = this.props.type === 'team' ? Styles.globalMargins.large : Styles.globalMargins.medium
     const big = Styles.dimensionWidth - margin * 2
-    if (isTablet) {
+    if (C.isTablet) {
       return Math.min(500, big)
     } else {
       return big
@@ -180,7 +180,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
               <ModalTitle
                 teamID={this.props.teamID}
                 title={
-                  this.props.image && isIOS
+                  this.props.image && C.isIOS
                     ? 'Zoom and pan'
                     : this.props.wizard
                     ? 'Upload avatar'
@@ -214,7 +214,10 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
     }
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.HeaderHocHeader onCancel={this.props.onClose} title={isIOS ? 'Zoom and pan' : 'Upload avatar'} />
+        <Kb.HeaderHocHeader
+          onCancel={this.props.onClose}
+          title={C.isIOS ? 'Zoom and pan' : 'Upload avatar'}
+        />
         {this.props.error ? (
           <Kb.Banner color="red">
             <Kb.Text type="Body">{this.props.error}</Kb.Text>
@@ -223,7 +226,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
         <Kb.Box style={styles.container}>
           <Kb.Box
             style={
-              isIOS
+              C.isIOS
                 ? null
                 : Styles.collapseStyles([
                     styles.zoomContainer,

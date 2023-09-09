@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Constants from '../constants/fs'
-import * as Container from '../util/container'
 import * as T from '../constants/types'
 import Browser from './browser'
 import {NormalPreview} from './filepreview'
@@ -19,7 +18,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   const {emitBarePreview} = props
 
   const fileContext = C.useFSState(s => s.fileContext.get(props.path) || Constants.emptyFileContext)
-  const bare = Container.isMobile && fileContext.viewType === T.RPCGen.GUIViewType.image
+  const bare = C.isMobile && fileContext.viewType === T.RPCGen.GUIViewType.image
   React.useEffect(() => {
     bare && emitBarePreview()
   }, [bare, emitBarePreview])

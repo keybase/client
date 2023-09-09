@@ -19,7 +19,6 @@ import sortedIndexOf from 'lodash/sortedIndexOf'
 import throttle from 'lodash/throttle'
 import {RPCError} from '../../util/errors'
 import {findLast} from '../../util/arrays'
-import {isMobile, isIOS} from '../platform'
 import {mapGetEnsureValue} from '../../util/map'
 import {noConversationIDKey} from '../types/chat2/common'
 import {type StoreApi, type UseBoundStore} from 'zustand'
@@ -361,8 +360,8 @@ const messageIDToOrdinal = (
 }
 
 type ScrollDirection = 'none' | 'back' | 'forward'
-export const numMessagesOnInitialLoad = isMobile ? 20 : 100
-export const numMessagesOnScrollback = isMobile ? 100 : 100
+export const numMessagesOnInitialLoad = C.isMobile ? 20 : 100
+export const numMessagesOnScrollback = C.isMobile ? 100 : 100
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const closeBotModal = () => {
@@ -635,7 +634,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     desktopNotification: (author, body) => {
-      if (isMobile) return
+      if (C.isMobile) return
 
       // Show a desktop notification
       const meta = get().meta
@@ -1138,7 +1137,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       Z.ignorePromise(f())
     },
     messageAttachmentNativeSave: message => {
-      if (!isMobile) return
+      if (!C.isMobile) return
       if (!message || message.type !== 'attachment') {
         throw new Error('Invalid share message')
       }
@@ -1187,7 +1186,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
 
-        if (isIOS && message.fileName.endsWith('.pdf')) {
+        if (C.isIOS && message.fileName.endsWith('.pdf')) {
           C.useRouterState.getState().dispatch.navigateAppend({
             props: {
               message,
@@ -2007,7 +2006,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
       if (
-        !isMobile &&
+        !C.isMobile &&
         displayDesktopNotification &&
         desktopNotificationSnippet &&
         cMsg.state === T.RPCChat.MessageUnboxedState.valid

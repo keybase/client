@@ -6,7 +6,6 @@ import Text from './text'
 import Button from './button'
 import Emoji from './emoji'
 import * as Styles from '../styles'
-import * as Container from '../util/container'
 import type * as T from '../constants/types'
 import logger from '../logger'
 
@@ -37,7 +36,7 @@ const getWaveWaitingKey = (recipient: string) => {
 export const WaveButton = (props: Props) => {
   const [waved, setWaved] = React.useState(false)
   const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
-  const waving = Container.useAnyWaiting(waitingKey)
+  const waving = C.useAnyWaiting(waitingKey)
   const messageSend = C.useChatContext(s => s.dispatch.messageSend)
   const messageSendByUsername = C.useChatState(s => s.dispatch.messageSendByUsername)
   const onWave = () => {

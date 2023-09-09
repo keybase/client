@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/crypto'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
@@ -125,7 +124,7 @@ const styles = Styles.styleSheetCreate(
 )
 
 export const EncryptInput = () => {
-  const options = Container.isMobile ? (
+  const options = C.isMobile ? (
     <InputActionsBar operation={operation}>
       <EncryptOptions />
     </InputActionsBar>
@@ -144,12 +143,12 @@ export const EncryptInput = () => {
   const resetOperation = C.useCryptoState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
-      if (Container.isMobile) {
+      if (C.isMobile) {
         resetOperation(operation)
       }
     }
   }, [resetOperation])
-  return Container.isMobile ? (
+  return C.isMobile ? (
     <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Constants.inputDesktopMaxHeight}>
@@ -162,11 +161,11 @@ export const EncryptOutput = () => (
   <Kb.Box2
     direction="vertical"
     fullHeight={true}
-    style={Container.isMobile ? undefined : Constants.outputDesktopMaxHeight}
+    style={C.isMobile ? undefined : Constants.outputDesktopMaxHeight}
   >
     <EncryptOutputBanner />
     <SignedSender operation={operation} />
-    {Container.isMobile ? <Kb.Divider /> : null}
+    {C.isMobile ? <Kb.Divider /> : null}
     <OperationOutput operation={operation} />
     <OutputActionsBar operation={operation} />
   </Kb.Box2>

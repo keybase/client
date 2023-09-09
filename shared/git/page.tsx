@@ -1,12 +1,12 @@
 import * as React from 'react'
-import * as Container from '../util/container'
+import * as C from '../constants'
 import {HeaderTitle, HeaderRightActions} from './nav-header'
 
 const Index = React.lazy(async () => import('.'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Index>
+type OwnProps = C.ViewPropsToPageProps<typeof Index>
 
 const getOptions = () => {
-  return Container.isMobile
+  return C.isMobile
     ? {title: 'Git'}
     : {
         headerRightActions: HeaderRightActions,

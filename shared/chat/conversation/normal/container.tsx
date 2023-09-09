@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import type * as T from '../../../constants/types'
 import * as React from 'react'
-import * as Container from '../../../util/container'
 import Normal from '.'
 import {indefiniteArticle} from '../../../util/string'
 import shallowEqual from 'shallowequal'
@@ -96,7 +95,7 @@ const NormalWrapper = React.memo(function NormalWrapper() {
   const dragAndDropRejectReason = cannotWrite ? minWriterReason : undefined
 
   C.useCIDChanged(conversationIDKey, () => {
-    if (!Container.isMobile) {
+    if (!C.isMobile) {
       setFocusInputCounter(c => c + 1)
     }
   })
