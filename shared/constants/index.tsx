@@ -36,7 +36,12 @@ export {
 } from './profile'
 export {_useState as usePushState, permissionsRequestingWaitingKey} from './push'
 export {_useState as useRecoverState, waitingKey as recoverWaitingKey} from './recover-password'
-export {_useState as useSettingsState, feedbackTab} from './settings'
+export {
+  _useState as useSettingsState,
+  settingsCryptoTab,
+  settingsDevicesTab,
+  settingsFeedbackTab,
+} from './settings'
 export {settingsWaitingKey, checkPasswordWaitingKey} from './settings'
 export {_useState as useSettingsChatState, contactSettingsSaveWaitingKey} from './settings-chat'
 export {chatUnfurlWaitingKey, contactSettingsLoadWaitingKey} from './settings-chat'

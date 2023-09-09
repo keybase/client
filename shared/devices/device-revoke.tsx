@@ -3,7 +3,6 @@ import * as Constants from '../constants/devices'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as SettingsConstants from '../constants/settings'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as T from '../constants/types'
@@ -114,7 +113,7 @@ const useRevoke = (deviceID = '') => {
             Container.isMobile
               ? Container.isTablet
                 ? Tabs.settingsTab
-                : SettingsConstants.devicesTab
+                : C.settingsDevicesTab
               : Tabs.devicesTab
           )
         } catch {}
