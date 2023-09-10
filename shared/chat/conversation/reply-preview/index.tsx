@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import type * as T from '../../../constants/types'
 
 const ReplyPreview = () => {
@@ -72,36 +71,36 @@ const ReplyPreview = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       close: {alignSelf: 'flex-start'},
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.desktopStyles.boxShadow,
-          borderRadius: Styles.borderRadius,
+          ...Kb.Styles.desktopStyles.boxShadow,
+          borderRadius: Kb.Styles.borderRadius,
         },
       }),
-      contentContainer: Styles.platformStyles({
+      contentContainer: Kb.Styles.platformStyles({
         isMobile: {flex: 1},
       }),
-      outerContainer: Styles.platformStyles({
+      outerContainer: Kb.Styles.platformStyles({
         isElectron: {
-          marginBottom: Styles.globalMargins.xtiny,
-          marginLeft: Styles.globalMargins.small,
-          marginRight: Styles.globalMargins.small,
+          marginBottom: Kb.Styles.globalMargins.xtiny,
+          marginLeft: Kb.Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.small,
           position: 'relative',
         },
       }),
       replyContainer: {
         justifyContent: 'space-between',
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
       },
       replyImageContainer: {
         overflow: 'hidden',
         position: 'relative',
       },
-      text: Styles.platformStyles({
+      text: Kb.Styles.platformStyles({
         isElectron: {
           contain: 'strict',
           display: 'inline',
@@ -114,11 +113,11 @@ const styles = Styles.styleSheetCreate(
         isMobile: {flex: 1},
       }),
       title: {
-        backgroundColor: Styles.globalColors.blueGrey,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.xsmall,
-        paddingTop: Styles.globalMargins.tiny,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
+        paddingRight: Kb.Styles.globalMargins.xsmall,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       username: {alignSelf: 'center'},
     }) as const

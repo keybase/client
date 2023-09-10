@@ -1,6 +1,5 @@
 import * as Kb from '../../../../common-adapters'
 import * as T from '../../../../constants/types'
-import * as Styles from '../../../../styles'
 import noop from 'lodash/noop'
 import type {Props} from './suggestion-list'
 import {BotCommandUpdateStatus} from '../normal/shared'
@@ -10,7 +9,7 @@ const SuggestionList = (props: Props) => (
   <Kb.Box2
     direction="vertical"
     fullWidth={true}
-    style={Styles.collapseStyles([styles.listContainer, props.style])}
+    style={Kb.Styles.collapseStyles([styles.listContainer, props.style])}
   >
     <FlatList
       alwaysBounceVertical={false}
@@ -31,13 +30,13 @@ const SuggestionList = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       commandStatusContainer: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         justifyContent: 'center',
-        ...Styles.padding(Styles.globalMargins.xtiny, 0),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, 0),
       },
       listContainer: {flexGrow: 0, marginTop: 'auto'},
       noGrow: {flexGrow: 0},

@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as T from '../../constants/types'
 import {ModalTitle} from '../common'
@@ -78,16 +77,16 @@ const EditTeamDescription = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonBar: {alignItems: 'center'},
   container: {
-    ...Styles.padding(Styles.globalMargins.small),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     width: '100%',
   },
-  headerIcon: Styles.padding(Styles.globalMargins.tiny, 0, 0),
+  headerIcon: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, 0, 0),
   title: {
-    paddingBottom: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Kb.Styles.globalMargins.medium,
+    paddingTop: Kb.Styles.globalMargins.xtiny,
   },
 }))
 

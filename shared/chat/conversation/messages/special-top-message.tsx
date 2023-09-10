@@ -3,7 +3,6 @@ import * as Constants from '../../../constants/chat2'
 import * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import Separator from './separator'
 import HelloBotCard from './cards/hello-bot'
 import MakeTeamCard from './cards/make-team'
@@ -23,7 +22,7 @@ const ErrorMessage = () => {
     [createConversation]
   )
 
-  const onBack = C.useChatState(s => (Styles.isMobile ? s.dispatch.navigateToInbox : null))
+  const onBack = C.useChatState(s => (Kb.Styles.isMobile ? s.dispatch.navigateToInbox : null))
 
   let createConversationDisallowedUsers: Array<string> = []
   let createConversationErrorDescription = ''
@@ -61,7 +60,7 @@ const ErrorMessage = () => {
       gapStart={true}
       centerChildren={true}
     >
-      <Kb.Icon color={Styles.globalColors.black_20} sizeType="Huge" type="iconfont-warning" />
+      <Kb.Icon color={Kb.Styles.globalColors.black_20} sizeType="Huge" type="iconfont-warning" />
       <Kb.Text center={true} style={styles.errorText} type="Header">
         {createConversationErrorHeader}
       </Kb.Text>
@@ -70,8 +69,8 @@ const ErrorMessage = () => {
           {createConversationDisallowedUsers.map((username, idx) => (
             <Kb.ListItem2
               key={username}
-              type={Styles.isMobile ? 'Large' : 'Small'}
-              icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={username} />}
+              type={Kb.Styles.isMobile ? 'Large' : 'Small'}
+              icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={username} />}
               firstItem={idx === 0}
               body={
                 <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -85,7 +84,11 @@ const ErrorMessage = () => {
       <Kb.Text center={true} type="BodyBig" style={styles.errorText} selectable={true}>
         {createConversationErrorDescription}
       </Kb.Text>
-      <Kb.ButtonBar direction={Styles.isMobile ? 'column' : 'row'} fullWidth={true} style={styles.buttonBar}>
+      <Kb.ButtonBar
+        direction={Kb.Styles.isMobile ? 'column' : 'row'}
+        fullWidth={true}
+        style={styles.buttonBar}
+      >
         {onCreateWithoutThem && (
           <Kb.WaitingButton type="Default" label="Create without them" onClick={onCreateWithoutThem} />
         )}
@@ -208,7 +211,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
           <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
         </Kb.Box>
       )}
-      {!Styles.isMobile || usingFlashList ? (
+      {!Kb.Styles.isMobile || usingFlashList ? (
         <Separator trailingItem={ordinal} leadingItem={undefined} />
       ) : (
         // special case here with the sep. The flatlist and flashlist invert the leading-trailing, see useReduxFast
@@ -218,18 +221,18 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      buttonBar: {padding: Styles.globalMargins.small},
-      errorText: {padding: Styles.globalMargins.small},
+      buttonBar: {padding: Kb.Styles.globalMargins.small},
+      errorText: {padding: Kb.Styles.globalMargins.small},
       more: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
-        paddingBottom: Styles.globalMargins.medium,
+        paddingBottom: Kb.Styles.globalMargins.medium,
         width: '100%',
       },
-      spacer: {height: Styles.globalMargins.small},
+      spacer: {height: Kb.Styles.globalMargins.small},
     }) as const
 )
 

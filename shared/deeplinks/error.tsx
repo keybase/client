@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 
 type KeybaseLinkErrorBodyProps = {
   message: string
@@ -30,10 +29,10 @@ const KeybaseLinkError = () => {
   return <KeybaseLinkErrorBody onCancel={onClose} isError={isError} message={message} />
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.white,
+      backgroundColor: Kb.Styles.globalColors.white,
     },
     isElectron: {
       height: 560,

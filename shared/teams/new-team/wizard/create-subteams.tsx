@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as T from '../../../constants/types'
-import * as Styles from '../../../styles'
 import {pluralize} from '../../../util/string'
 import {ModalTitle} from '../../common'
 
@@ -54,7 +53,7 @@ const CreateSubteams = () => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Styles.isMobile ? 'xsmall' : 'tiny'}
+        gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
       >
         <Kb.Text type="BodySmall">
           Subteams are cryptographically distinct, and can welcome people who aren’t elsewhere in your team
@@ -78,25 +77,25 @@ const CreateSubteams = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  addButton: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  addButton: Kb.Styles.platformStyles({
     isElectron: {width: 42},
     isMobile: {width: 47},
     isTablet: {alignSelf: 'flex-start'},
   }),
-  banner: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.blue, height: 96},
+  banner: Kb.Styles.platformStyles({
+    common: {backgroundColor: Kb.Styles.globalColors.blue, height: 96},
     isElectron: {overflowX: 'hidden'},
   }),
-  bg: {backgroundColor: Styles.globalColors.blueGrey},
-  body: Styles.platformStyles({
+  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     },
     isElectron: {minHeight: 326},
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
-  input: {...Styles.padding(Styles.globalMargins.xsmall)},
+  input: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
 }))
 
 export default CreateSubteams

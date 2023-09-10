@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 
 const CheckPassphraseMobile = () => {
@@ -25,7 +24,7 @@ const CheckPassphraseMobile = () => {
 
   const waitingKey = C.useAnyWaiting(C.settingsWaitingKey)
   const inputType = showTyping ? 'text' : 'password'
-  const keyboardType = showTyping && Styles.isAndroid ? 'visible-password' : 'default'
+  const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
 
   return (
     <Kb.Modal
@@ -57,7 +56,7 @@ const CheckPassphraseMobile = () => {
         ),
       }}
       header={{
-        leftButton: Styles.isMobile ? (
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onCancel}>
             Cancel
           </Kb.Text>
@@ -66,7 +65,7 @@ const CheckPassphraseMobile = () => {
       onClose={onCancel}
     >
       <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
-        {Styles.isMobile && (
+        {Kb.Styles.isMobile && (
           <Kb.Text style={styles.headerText} type="Header">
             Do you know your password?
           </Kb.Text>
@@ -104,34 +103,34 @@ const CheckPassphraseMobile = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bodyText: {
-        paddingBottom: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
         textAlign: 'center',
       },
       buttonBar: {
         minHeight: undefined,
       },
       checkbox: {
-        paddingTop: Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       container: {
-        ...Styles.padding(
-          Styles.globalMargins.medium,
-          Styles.globalMargins.small,
-          Styles.globalMargins.medium,
-          Styles.globalMargins.small
+        ...Kb.Styles.padding(
+          Kb.Styles.globalMargins.medium,
+          Kb.Styles.globalMargins.small,
+          Kb.Styles.globalMargins.medium,
+          Kb.Styles.globalMargins.small
         ),
-        backgroundColor: Styles.globalColors.blueGrey,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
         flexGrow: 1,
       },
       deleteButton: {
-        marginTop: Styles.globalMargins.large,
+        marginTop: Kb.Styles.globalMargins.large,
       },
       headerText: {
-        marginBottom: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.small,
         textAlign: 'center',
       },
     }) as const

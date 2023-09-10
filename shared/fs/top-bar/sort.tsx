@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as T from '../../constants/types'
 
@@ -58,7 +57,7 @@ const Sort = (props: SortBarProps) => {
   return sortSetting ? (
     <>
       <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xxtiny" centerChildren={Styles.isMobile}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xxtiny" centerChildren={Kb.Styles.isMobile}>
           <Kb.Icon type="iconfont-arrow-full-down" padding="xtiny" sizeType="Small" />
           <Kb.Text type="BodySmallSemibold">{getTextFromSortSetting(sortSetting)}</Kb.Text>
         </Kb.Box2>

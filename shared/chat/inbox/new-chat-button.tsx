@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 
 const HeaderNewChatButton = () => {
   const hide = C.useChatState(
@@ -37,53 +36,53 @@ const HeaderNewChatButton = () => {
   return hide ? null : content
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       button: {
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
+        marginLeft: Kb.Styles.globalMargins.small,
+        marginRight: Kb.Styles.globalMargins.small,
       },
       gradientContainer: {flex: 1, height: 36, left: 0, position: 'absolute', top: 0, width: '100%'},
-      gradientGreen: Styles.platformStyles({
+      gradientGreen: Kb.Styles.platformStyles({
         common: {
           backgroundColor: '#3AFFAC',
-          borderBottomLeftRadius: Styles.borderRadius,
-          borderBottomRightRadius: Styles.borderRadius,
+          borderBottomLeftRadius: Kb.Styles.borderRadius,
+          borderBottomRightRadius: Kb.Styles.borderRadius,
           flex: 1,
         },
       }),
       gradientOrange: {backgroundColor: '#FFAC3D', flex: 1},
-      gradientRed: Styles.platformStyles({
+      gradientRed: Kb.Styles.platformStyles({
         common: {
           backgroundColor: '#FF5D5D',
-          borderTopLeftRadius: Styles.borderRadius,
-          borderTopRightRadius: Styles.borderRadius,
+          borderTopLeftRadius: Kb.Styles.borderRadius,
+          borderTopRightRadius: Kb.Styles.borderRadius,
           flex: 1,
         },
       }),
       gradientYellow: {backgroundColor: '#FFF75A', flex: 1},
       newMeta: {
         alignSelf: 'center',
-        marginRight: Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
       },
-      rainbowButton: Styles.platformStyles({
+      rainbowButton: Kb.Styles.platformStyles({
         common: {
           left: 0,
           margin: 2,
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
+          paddingRight: Kb.Styles.globalMargins.tiny,
           position: 'absolute',
           top: 0,
           width: 96,
         },
       }),
-      rainbowButtonContainer: Styles.platformStyles({
+      rainbowButtonContainer: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
           height: 36,
-          marginLeft: Styles.globalMargins.small,
-          marginRight: Styles.globalMargins.small,
+          marginLeft: Kb.Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.small,
           position: 'relative',
           width: 100,
         },

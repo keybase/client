@@ -1,7 +1,6 @@
 // Just for desktop and tablet, we show inbox and conversation side by side
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import * as React from 'react'
 import type * as T from '../constants/types'
 import Conversation from './conversation/container'
@@ -59,13 +58,13 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props?: Pr
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {position: 'relative'},
       conversation: {flexGrow: 1},
       infoPanel: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         bottom: 0,
         position: 'absolute',
         right: 0,

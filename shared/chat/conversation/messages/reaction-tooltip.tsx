@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import ReactButton from './react-button/container'
 import type * as T from '../../../constants/types'
 import {OrdinalContext} from './ids-context'
@@ -134,9 +133,9 @@ const ReactionTooltipImpl = (props: Props) => {
             onMouseOver={props.onMouseOver}
             direction="vertical"
             gap="tiny"
-            style={Styles.collapseStyles([styles.listContainer, {paddingBottom: insets.bottom}])}
+            style={Kb.Styles.collapseStyles([styles.listContainer, {paddingBottom: insets.bottom}])}
           >
-            {Styles.isMobile && (
+            {Kb.Styles.isMobile && (
               <Kb.Box2 direction="horizontal">
                 <Kb.Text type="BodySemiboldLink" onClick={props.onHidden} style={styles.closeButton}>
                   Close
@@ -154,7 +153,7 @@ const ReactionTooltipImpl = (props: Props) => {
               renderItem={renderItem}
               renderSectionHeader={renderSectionHeader}
             />
-            {Styles.isMobile && (
+            {Kb.Styles.isMobile && (
               <Kb.ButtonBar style={styles.addReactionButtonBar}>
                 <Kb.Button
                   mode="Secondary"
@@ -164,7 +163,7 @@ const ReactionTooltipImpl = (props: Props) => {
                 >
                   <Kb.Icon
                     type="iconfont-reacji"
-                    color={Styles.globalColors.blue}
+                    color={Kb.Styles.globalColors.blue}
                     style={styles.addReactionButtonIcon}
                   />
                 </Kb.Button>
@@ -221,46 +220,46 @@ const renderSectionHeader = ({
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       addReactionButtonBar: {
-        paddingBottom: Styles.globalMargins.medium,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.small,
+        paddingBottom: Kb.Styles.globalMargins.medium,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.small,
       },
       addReactionButtonIcon: {
-        marginRight: Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
       },
       addReactionButtonText: {
-        color: Styles.globalColors.black_50,
+        color: Kb.Styles.globalColors.black_50,
       },
       buttonContainer: {
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         borderTopLeftRadius: 3,
         borderTopRightRadius: 3,
         flexShrink: 0,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       closeButton: {
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
       emojiText: {
-        color: Styles.globalColors.black_50,
+        color: Kb.Styles.globalColors.black_50,
         flex: -1,
       },
-      list: Styles.platformStyles({
+      list: Kb.Styles.platformStyles({
         isElectron: {
           flex: 1,
-          paddingBottom: Styles.globalMargins.small,
+          paddingBottom: Kb.Styles.globalMargins.small,
         },
       }),
-      listContainer: Styles.platformStyles({
+      listContainer: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.white,
         },
         isElectron: {
           maxHeight: 320,
@@ -271,18 +270,18 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
       }),
-      overlay: Styles.platformStyles({
+      overlay: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.white,
-          margin: Styles.globalMargins.tiny,
+          backgroundColor: Kb.Styles.globalColors.white,
+          margin: Kb.Styles.globalMargins.tiny,
         },
       }),
       userContainer: {
-        backgroundColor: Styles.globalColors.white,
-        paddingBottom: Styles.globalMargins.xtiny,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.xtiny,
+        backgroundColor: Kb.Styles.globalColors.white,
+        paddingBottom: Kb.Styles.globalMargins.xtiny,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.xtiny,
       },
     }) as const
 )

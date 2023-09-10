@@ -1,6 +1,5 @@
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 
 export const useTeamLinkPopup = (teamname: string) => {
   const makePopup = React.useCallback(
@@ -19,12 +18,12 @@ export const useTeamLinkPopup = (teamname: string) => {
             <Kb.Text type="Body">On the web:</Kb.Text>
             <Kb.CopyText text={shareURLWeb} shareSheet={true} />
           </Kb.Box2>
-          {Styles.isMobile && (
+          {Kb.Styles.isMobile && (
             <Kb.Button type="Dim" label="Close" fullWidth={true} onClick={toggleShowingPopup} />
           )}
         </Kb.Box2>
       )
-      if (Styles.isMobile) {
+      if (Kb.Styles.isMobile) {
         return <Kb.MobilePopup>{content}</Kb.MobilePopup>
       }
       return (
@@ -44,14 +43,14 @@ export const useTeamLinkPopup = (teamname: string) => {
   return Kb.usePopup2(makePopup)
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  linkPopupContainer: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  linkPopupContainer: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     },
     isElectron: {maxWidth: 300},
   }),
-  overlay: {backgroundColor: Styles.globalColors.white, marginTop: Styles.globalMargins.tiny},
+  overlay: {backgroundColor: Kb.Styles.globalColors.white, marginTop: Kb.Styles.globalMargins.tiny},
 }))
 
 export default useTeamLinkPopup

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Constants from '../../constants/crypto'
 import NavRow from './nav-row'
 
@@ -59,12 +58,12 @@ class SubNav extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   list: {
-    ...Styles.globalStyles.fullHeight,
+    ...Kb.Styles.globalStyles.fullHeight,
   },
   listContainer: {
-    backgroundColor: Styles.globalColors.blueGrey,
+    backgroundColor: Kb.Styles.globalColors.blueGrey,
     borderStyle: 'solid',
     flexGrow: 0,
     flexShrink: 0,

@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import * as Container from '../util/container'
 import type * as T from '../constants/types'
 
@@ -143,43 +142,43 @@ export const ContactsImportButton = () => {
         style={styles.importContactsContainer}
       >
         <Kb.Box2 direction="vertical" style={styles.iconContactBookContainer}>
-          <Kb.Icon type="iconfont-contact-book" color={Styles.globalColors.black} />
+          <Kb.Icon type="iconfont-contact-book" color={Kb.Styles.globalColors.black} />
         </Kb.Box2>
         <Kb.Text type="BodyBig" lineClamp={1}>
           Import phone contacts
         </Kb.Text>
-        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Styles.globalColors.black} />
+        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Kb.Styles.globalColors.black} />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      banner: Styles.platformStyles({
+      banner: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blue,
-          paddingBottom: Styles.globalMargins.xtiny,
-          paddingRight: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.xtiny,
+          backgroundColor: Kb.Styles.globalColors.blue,
+          paddingBottom: Kb.Styles.globalMargins.xtiny,
+          paddingRight: Kb.Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.xtiny,
         },
         isMobile: {zIndex: -1}, // behind ServiceTabBar
       }),
       bannerButtonContainer: {
         alignSelf: 'flex-start',
         flexWrap: 'wrap',
-        marginBottom: Styles.globalMargins.tiny,
-        marginTop: Styles.globalMargins.tiny,
+        marginBottom: Kb.Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       bannerIcon: {
-        marginLeft: Styles.globalMargins.xtiny,
-        marginRight: Styles.globalMargins.xsmall,
+        marginLeft: Kb.Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xsmall,
         maxHeight: 112,
       },
       bannerText: {
         flexWrap: 'wrap',
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       bannerTextContainer: {
         flex: 1,
@@ -187,11 +186,11 @@ const styles = Styles.styleSheetCreate(
       },
       iconContactBookContainer: {
         alignItems: 'center',
-        marginLeft: Styles.globalMargins.xsmall,
+        marginLeft: Kb.Styles.globalMargins.xsmall,
         width: 48,
       },
       importContactsButton: {
-        marginBottom: Styles.globalMargins.tiny,
+        marginBottom: Kb.Styles.globalMargins.tiny,
       },
       importContactsContainer: {
         height: 64,

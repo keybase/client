@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Platform from '../../constants/platform'
-import * as Styles from '../../styles'
 import {EnterEmailBody} from '../../signup/email'
 import {EnterPhoneNumberBody} from '../../signup/phone-number'
 import {VerifyBody} from '../../signup/phone-number/verify'
@@ -61,17 +60,17 @@ export const Email = () => {
     <Kb.Modal
       onClose={onClose}
       header={{
-        leftButton: Styles.isMobile ? (
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodySemiboldLink" onClick={onClose}>
             Close
           </Kb.Text>
         ) : null,
-        title: Styles.isMobile ? 'Add email address' : 'Add an email address',
+        title: Kb.Styles.isMobile ? 'Add email address' : 'Add an email address',
       }}
       footer={{
         content: (
           <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-            {!Styles.isMobile && (
+            {!Kb.Styles.isMobile && (
               <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
             )}
             <Kb.Button
@@ -102,7 +101,7 @@ export const Email = () => {
           onChangeSearchable={onChangeSearchable}
           onContinue={onContinue}
           iconType={
-            Styles.isMobile
+            Kb.Styles.isMobile
               ? Platform.isLargeScreen
                 ? 'icon-email-add-96'
                 : 'icon-email-add-64'
@@ -172,17 +171,17 @@ export const Phone = () => {
     <Kb.Modal
       onClose={onClose}
       header={{
-        leftButton: Styles.isMobile ? (
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodySemiboldLink" onClick={onClose}>
             Close
           </Kb.Text>
         ) : null,
-        title: Styles.isMobile ? 'Add phone number' : 'Add a phone number',
+        title: Kb.Styles.isMobile ? 'Add phone number' : 'Add a phone number',
       }}
       footer={{
         content: (
           <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-            {!Styles.isMobile && (
+            {!Kb.Styles.isMobile && (
               <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
             )}
             <Kb.Button
@@ -212,7 +211,7 @@ export const Phone = () => {
           searchable={searchable}
           onChangeSearchable={onChangeSearchable}
           iconType={
-            Styles.isMobile
+            Kb.Styles.isMobile
               ? Platform.isLargeScreen
                 ? 'icon-phone-number-add-96'
                 : 'icon-phone-number-add-64'
@@ -275,8 +274,8 @@ export const VerifyPhone = () => {
       onClose={onClose}
       header={{
         hideBorder: true,
-        leftButton: Styles.isMobile ? (
-          <Kb.BackButton onClick={onClose} iconColor={Styles.globalColors.white} />
+        leftButton: Kb.Styles.isMobile ? (
+          <Kb.BackButton onClick={onClose} iconColor={Kb.Styles.globalColors.white} />
         ) : null,
         style: styles.blueBackground,
         title: (
@@ -305,10 +304,10 @@ export const VerifyPhone = () => {
     >
       <Kb.Box2
         direction="vertical"
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.blueBackground,
           styles.verifyContainer,
-          Styles.globalStyles.flexOne,
+          Kb.Styles.globalStyles.flexOne,
         ])}
         fullWidth={true}
         fullHeight={true}
@@ -330,7 +329,7 @@ export const VerifyPhone = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       banner: {
@@ -340,15 +339,15 @@ const styles = Styles.styleSheetCreate(
         top: 0,
       },
       blueBackground: {
-        backgroundColor: Styles.globalColors.blue,
+        backgroundColor: Kb.Styles.globalColors.blue,
       },
       body: {
-        ...Styles.padding(
-          Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xlarge,
-          Styles.globalMargins.small,
+        ...Kb.Styles.padding(
+          Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.xlarge,
+          Kb.Styles.globalMargins.small,
           0
         ),
-        backgroundColor: Styles.globalColors.blueGrey,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
         flexGrow: 1,
         position: 'relative',
       },
@@ -356,10 +355,10 @@ const styles = Styles.styleSheetCreate(
         minHeight: undefined,
       },
       footer: {
-        ...Styles.padding(Styles.globalMargins.small),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       },
       verifyContainer: {
-        ...Styles.padding(0, Styles.globalMargins.small),
+        ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
       },
     }) as const
 )

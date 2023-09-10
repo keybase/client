@@ -2,7 +2,6 @@ import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import {EmojiPickerDesktop} from '../../chat/emoji-picker/container'
 import {
   type EmojiData,
@@ -106,7 +105,7 @@ export const AddAliasModal = (props: Props) => {
           direction="vertical"
           fullWidth={true}
           gap="tiny"
-          style={Styles.collapseStyles([!emoji && styles.opacity40])}
+          style={Kb.Styles.collapseStyles([!emoji && styles.opacity40])}
         >
           <Kb.Text type="BodySemibold">Enter an alias:</Kb.Text>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -129,7 +128,7 @@ export const AddAliasModal = (props: Props) => {
 type ChooseEmojiProps = {
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
 }
-const ChooseEmoji = Styles.isMobile
+const ChooseEmoji = Kb.Styles.isMobile
   ? (props: ChooseEmojiProps) => {
       const pickKey = 'addAlias'
       const {emojiStr, renderableEmoji} = usePickerState(s => s.pickerMap.get(pickKey)) ?? {
@@ -170,7 +169,7 @@ const ChooseEmoji = Styles.isMobile
           return (
             <Kb.FloatingBox
               attachTo={attachTo}
-              containerStyle={{paddingTop: Styles.globalMargins.tiny}}
+              containerStyle={{paddingTop: Kb.Styles.globalMargins.tiny}}
               position="bottom left"
               onHidden={toggleShowingPopup}
               propagateOutsideClicks={false}
@@ -206,33 +205,36 @@ const SelectedEmoji = (props: SelectedEmojiProps) => {
       {props.chosen ? (
         renderEmoji({emoji: props.chosen.renderableEmoji, showTooltip: false, size: singleEmojiWidth})
       ) : (
-        <Kb.Icon type="iconfont-emoji" fontSize={Styles.isMobile ? 20 : 16} />
+        <Kb.Icon type="iconfont-emoji" fontSize={Kb.Styles.isMobile ? 20 : 16} />
       )}
     </Kb.Box2>
   )
 }
 
-const emojiWidthWithPadding = Styles.isMobile ? 40 : 32
+const emojiWidthWithPadding = Kb.Styles.isMobile ? 40 : 32
 const emojiPadding = 4
 const singleEmojiWidth = emojiWidthWithPadding - 2 * emojiPadding
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexGrow,
-      backgroundColor: Styles.globalColors.blueGrey,
+      ...Kb.Styles.globalStyles.flexGrow,
+      backgroundColor: Kb.Styles.globalColors.blueGrey,
     },
     isElectron: {
-      padding: Styles.globalMargins.small,
+      padding: Kb.Styles.globalMargins.small,
     },
     isMobile: {
-      ...Styles.globalStyles.flexGrow,
-      ...Styles.padding(Styles.globalMargins.medium + Styles.globalMargins.xtiny, Styles.globalMargins.small),
+      ...Kb.Styles.globalStyles.flexGrow,
+      ...Kb.Styles.padding(
+        Kb.Styles.globalMargins.medium + Kb.Styles.globalMargins.xtiny,
+        Kb.Styles.globalMargins.small
+      ),
     },
   }),
   emoji: {
-    backgroundColor: Styles.globalColors.white,
-    borderRadius: Styles.globalMargins.xtiny,
+    backgroundColor: Kb.Styles.globalColors.white,
+    borderRadius: Kb.Styles.globalMargins.xtiny,
     height: emojiWidthWithPadding,
     width: emojiWidthWithPadding,
   },

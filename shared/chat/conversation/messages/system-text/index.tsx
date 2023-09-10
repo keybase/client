@@ -1,7 +1,6 @@
 import * as React from 'react'
 import type * as T from '../../../../constants/types'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
 
 type Props = {
@@ -21,10 +20,10 @@ class SystemText extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      text: Styles.platformStyles({
+      text: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-word'} as const,
       }),
     }) as const

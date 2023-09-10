@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as Constants from '../../constants/crypto'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import Recipients from '../recipients'
 import openURL from '../../util/open-url'
 import {DragAndDrop, Input, InputActionsBar, OperationBanner} from '../input'
@@ -26,14 +25,14 @@ const EncryptOptions = React.memo(function EncryptOptions() {
     setEncryptOptions({includeSelf: newIncludeSelf, sign: newSign})
   }
 
-  const direction = Styles.isTablet ? 'horizontal' : Styles.isMobile ? 'vertical' : 'horizontal'
-  const gap = Styles.isTablet ? 'medium' : Styles.isMobile ? 'xtiny' : 'medium'
+  const direction = Kb.Styles.isTablet ? 'horizontal' : Kb.Styles.isMobile ? 'vertical' : 'horizontal'
+  const gap = Kb.Styles.isTablet ? 'medium' : Kb.Styles.isMobile ? 'xtiny' : 'medium'
 
   return (
     <Kb.Box2
       direction={direction}
       fullWidth={true}
-      centerChildren={Styles.isTablet}
+      centerChildren={Kb.Styles.isTablet}
       gap={gap}
       style={styles.optionsContainer}
     >
@@ -100,12 +99,12 @@ const EncryptOutputBanner = () => {
   return <OutputInfoBanner operation={operation}>{paragraphs}</OutputInfoBanner>
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      optionsContainer: Styles.platformStyles({
+      optionsContainer: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small),
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small),
           alignItems: 'center',
           height: 40,
         },
@@ -113,7 +112,7 @@ const styles = Styles.styleSheetCreate(
           alignItems: 'flex-start',
         },
         isTablet: {
-          ...Styles.globalStyles.fullWidth,
+          ...Kb.Styles.globalStyles.fullWidth,
           alignSelf: 'center',
           justifyContent: 'space-between',
           maxWidth: 460,

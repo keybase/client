@@ -1,7 +1,6 @@
 import * as React from 'react'
 import type * as T from '../../../constants/types'
 import * as C from '../../../constants'
-import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import ChooseView from './choose-view'
 
@@ -39,8 +38,8 @@ const IconClickable = (props: any) => (
     <Kb.Icon
       fixOverdraw={false}
       type="iconfont-ellipsis"
-      color={props.actionIconWhite ? Styles.globalColors.whiteOrBlueDark : Styles.globalColors.black_50}
-      hoverColor={props.actionIconWhite ? undefined : Styles.globalColors.black}
+      color={props.actionIconWhite ? Kb.Styles.globalColors.whiteOrBlueDark : Kb.Styles.globalColors.black_50}
+      hoverColor={props.actionIconWhite ? undefined : Kb.Styles.globalColors.black}
       padding="tiny"
       sizeType={props.sizeType || 'Default'}
       onClick={props.onClick}
@@ -109,10 +108,10 @@ const PathItemAction = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      floatingContainer: Styles.platformStyles({
+      floatingContainer: Kb.Styles.platformStyles({
         common: {
           overflow: 'visible',
         },

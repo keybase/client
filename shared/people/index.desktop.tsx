@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import {PeoplePageList} from './index.shared'
 import type {WrapProps} from '.'
 
 const People = React.memo(function People(props: WrapProps) {
   const {waiting, ...rest} = props
+  console.log('aaaa', Kb.Styles)
   return (
     <Kb.ScrollView style={styles.container}>
       {waiting && <Kb.ProgressIndicator style={styles.progress} />}
@@ -14,8 +14,8 @@ const People = React.memo(function People(props: WrapProps) {
   )
 })
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {...Styles.globalStyles.fullHeight},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: {...Kb.Styles.globalStyles.fullHeight},
   header: {flexGrow: 1},
   progress: {
     height: 24,
@@ -24,7 +24,7 @@ const styles = Styles.styleSheetCreate(() => ({
     top: -72,
     width: 24,
   },
-  searchContainer: {paddingBottom: Styles.globalMargins.xsmall},
+  searchContainer: {paddingBottom: Kb.Styles.globalMargins.xsmall},
   sectionTitle: {flexGrow: 1},
 }))
 

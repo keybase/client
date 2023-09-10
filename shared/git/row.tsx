@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as T from '../constants/types'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import * as TeamConstants from '../constants/teams'
 import openURL from '../util/open-url'
 
@@ -123,7 +122,7 @@ const Row = (props: Props) => (
           ...styles.rowStyle,
           ...(props.expanded
             ? {
-                backgroundColor: Styles.globalColors.white,
+                backgroundColor: Kb.Styles.globalColors.white,
               }
             : {}),
         }}
@@ -131,8 +130,8 @@ const Row = (props: Props) => (
         <Kb.ClickableBox
           onClick={props.onToggleExpand}
           style={props.expanded ? styles.rowClickExpanded : styles.rowClick}
-          hoverColor={Styles.isMobile ? undefined : Styles.globalColors.transparent}
-          underlayColor={Styles.globalColors.transparent}
+          hoverColor={Kb.Styles.isMobile ? undefined : Kb.Styles.globalColors.transparent}
+          underlayColor={Kb.Styles.globalColors.transparent}
         >
           <Kb.Box style={styles.rowTop}>
             <Kb.Icon
@@ -141,17 +140,17 @@ const Row = (props: Props) => (
               sizeType="Tiny"
             />
             <Kb.Avatar
-              size={Styles.isMobile ? 48 : 32}
+              size={Kb.Styles.isMobile ? 48 : 32}
               isTeam={!!props.teamname}
               teamname={props.teamname}
               username={props.teamname ? undefined : props.you}
-              style={{marginRight: Styles.globalMargins.tiny}}
+              style={{marginRight: Kb.Styles.globalMargins.tiny}}
             />
-            <Kb.Text lineClamp={1} type="BodySemibold" style={{color: Styles.globalColors.black}}>
+            <Kb.Text lineClamp={1} type="BodySemibold" style={{color: Kb.Styles.globalColors.black}}>
               {props.teamname ? `${props.teamname}/${props.name}` : props.name}
             </Kb.Text>
             {props.isNew && (
-              <Kb.Meta title="new" style={styles.meta} backgroundColor={Styles.globalColors.orange} />
+              <Kb.Meta title="new" style={styles.meta} backgroundColor={Kb.Styles.globalColors.orange} />
             )}
           </Kb.Box>
         </Kb.ClickableBox>
@@ -159,7 +158,7 @@ const Row = (props: Props) => (
           <Kb.Box style={styles.rowBottom}>
             <Kb.Box
               style={{
-                ...Styles.globalStyles.flexBoxRow,
+                ...Kb.Styles.globalStyles.flexBoxRow,
                 alignItems: 'center',
                 maxWidth: '100%',
                 position: 'relative',
@@ -172,11 +171,11 @@ const Row = (props: Props) => (
             </Kb.Box>
             <Kb.Box
               style={{
-                ...Styles.globalStyles.flexBoxRow,
+                ...Kb.Styles.globalStyles.flexBoxRow,
                 alignItems: 'center',
                 alignSelf: 'flex-start',
                 flexWrap: 'wrap',
-                marginTop: Styles.globalMargins.tiny,
+                marginTop: Kb.Styles.globalMargins.tiny,
               }}
             >
               <Kb.Text type="BodySmall">
@@ -186,7 +185,7 @@ const Row = (props: Props) => (
                 <Kb.Avatar
                   username={props.lastEditUser}
                   size={16}
-                  style={{marginLeft: Styles.isMobile ? 0 : 4}}
+                  style={{marginLeft: Kb.Styles.isMobile ? 0 : 4}}
                 />
               )}
               {!!props.teamname && !!props.lastEditUser && (
@@ -200,10 +199,10 @@ const Row = (props: Props) => (
                   />
                 </Kb.Box>
               )}
-              {Styles.isMobile && <Kb.Text type="BodySmall">. </Kb.Text>}
+              {Kb.Styles.isMobile && <Kb.Text type="BodySmall">. </Kb.Text>}
               <Kb.Text type="BodySmall">
                 <Kb.Text type="BodySmall">
-                  {Styles.isMobile
+                  {Kb.Styles.isMobile
                     ? 'Signed and encrypted using device'
                     : ', signed and encrypted using device'}
                 </Kb.Text>
@@ -215,7 +214,7 @@ const Row = (props: Props) => (
               </Kb.Text>
             </Kb.Box>
             {!!props.teamname && (
-              <Kb.Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
+              <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
                 {props.canEdit && (
                   <Kb.Checkbox
                     checked={!props.chatDisabled}
@@ -246,7 +245,7 @@ const Row = (props: Props) => (
             <Kb.Box2
               direction="horizontal"
               fullWidth={true}
-              style={{marginTop: Styles.globalMargins.tiny}}
+              style={{marginTop: Kb.Styles.globalMargins.tiny}}
               gap="tiny"
             >
               <Kb.Button
@@ -259,8 +258,8 @@ const Row = (props: Props) => (
                 <Kb.Icon
                   type="iconfont-file"
                   sizeType="Small"
-                  color={Styles.globalColors.black_50}
-                  style={{marginRight: Styles.globalMargins.xtiny}}
+                  color={Kb.Styles.globalColors.black_50}
+                  style={{marginRight: Kb.Styles.globalMargins.xtiny}}
                 />
               </Kb.Button>
               {props.canDelete && (
@@ -281,7 +280,7 @@ const Row = (props: Props) => (
       style={{
         ...(props.expanded
           ? {
-              backgroundColor: Styles.globalColors.blueLighter3,
+              backgroundColor: Kb.Styles.globalColors.blueLighter3,
               height: 6,
             }
           : {}),
@@ -290,39 +289,39 @@ const Row = (props: Props) => (
   </Kb.Box>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
         width: '100%',
       },
-      containerMobile: Styles.platformStyles({
+      containerMobile: Kb.Styles.platformStyles({
         common: {
           width: '100%',
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
         },
       }),
       copyTextContainer: {
         flexShrink: 1,
-        marginLeft: Styles.globalMargins.xtiny,
-        marginRight: Styles.globalMargins.tiny,
+        marginLeft: Kb.Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
         maxWidth: 460,
         width: '100%',
       },
 
       device: {
-        ...Styles.globalStyles.fontSemibold,
-        ...Styles.globalStyles.italic,
-        color: Styles.globalColors.black_50,
+        ...Kb.Styles.globalStyles.fontSemibold,
+        ...Kb.Styles.globalStyles.italic,
+        color: Kb.Styles.globalColors.black_50,
       },
 
-      iconCaret: Styles.platformStyles({
+      iconCaret: Kb.Styles.platformStyles({
         common: {
           marginBottom: 2,
-          marginRight: Styles.globalMargins.tiny,
+          marginRight: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
           display: 'inline-block',
@@ -335,43 +334,43 @@ const styles = Styles.styleSheetCreate(
       },
 
       rowBottom: {
-        ...Styles.globalStyles.flexBoxColumn,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.medium,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.medium,
         width: '100%',
       },
 
       rowClick: {
-        ...Styles.globalStyles.flexBoxColumn,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
         width: '100%',
       },
 
       rowClickExpanded: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         paddingBottom: 0,
-        paddingTop: Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
         width: '100%',
       },
 
       rowStyle: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-start',
         flexShrink: 0,
-        minHeight: Styles.globalMargins.large,
+        minHeight: Kb.Styles.globalMargins.large,
         paddingLeft: 0,
         width: '100%',
       },
-      rowTop: Styles.platformStyles({
+      rowTop: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxRow,
+          ...Kb.Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
-          marginBottom: Styles.globalMargins.xtiny,
+          marginBottom: Kb.Styles.globalMargins.xtiny,
           width: '100%',
         },
         isElectron: {
-          paddingLeft: Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
         },
       }),
     }) as const

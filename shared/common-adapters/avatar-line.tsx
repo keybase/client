@@ -1,11 +1,12 @@
 import Avatar, {avatarSizes, type AvatarSize} from './avatar'
 import {Box2} from './box'
 import Text from './text'
-import * as Styles from '../styles/index'
+import * as Styles from '../styles'
 
 const Kb = {
   Avatar,
   Box2,
+  Styles,
   Text,
 }
 
@@ -39,7 +40,7 @@ const AvatarLine = (props: Props) => {
             size={props.size}
             username={username}
             key={username}
-            borderColor={Styles.globalColors.white}
+            borderColor={Kb.Styles.globalColors.white}
             style={styles.avatar}
           />
         ))
@@ -51,7 +52,7 @@ const AvatarLine = (props: Props) => {
 const getTextSize = (size: AvatarSize) => (size >= 48 ? 'BodySmallBold' : 'BodyTinyBold')
 
 const getSizeStyle = (size: AvatarSize) => ({
-  horizontal: Styles.styleSheetCreate(() => ({
+  horizontal: Kb.Styles.styleSheetCreate(() => ({
     avatar: {
       marginRight: -size / 3,
     },
@@ -60,7 +61,7 @@ const getSizeStyle = (size: AvatarSize) => ({
       marginRight: size / 3 + 2,
     },
     overflowBox: {
-      backgroundColor: Styles.globalColors.grey,
+      backgroundColor: Kb.Styles.globalColors.grey,
       borderBottomRightRadius: size,
       borderTopRightRadius: size,
       height: size,
@@ -68,11 +69,11 @@ const getSizeStyle = (size: AvatarSize) => ({
       paddingLeft: size / 2,
     },
     text: {
-      color: Styles.globalColors.black_50,
+      color: Kb.Styles.globalColors.black_50,
       paddingRight: size / 5,
     },
   })),
-  vertical: Styles.styleSheetCreate(() => ({
+  vertical: Kb.Styles.styleSheetCreate(() => ({
     avatar: {
       marginBottom: -size / 3,
     },
@@ -81,7 +82,7 @@ const getSizeStyle = (size: AvatarSize) => ({
       marginTop: 2,
     },
     overflowBox: {
-      backgroundColor: Styles.globalColors.grey,
+      backgroundColor: Kb.Styles.globalColors.grey,
       borderBottomLeftRadius: size,
       borderBottomRightRadius: size,
       justifyContent: 'flex-end',
@@ -89,7 +90,7 @@ const getSizeStyle = (size: AvatarSize) => ({
       width: size,
     },
     text: {
-      color: Styles.globalColors.black_50,
+      color: Kb.Styles.globalColors.black_50,
       paddingBottom: size / 5,
     },
   })),

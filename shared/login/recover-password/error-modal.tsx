@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 
 type Props = {
   error: string
@@ -33,9 +32,9 @@ const ErrorModal = (props: Props) => (
   </Kb.Modal>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   padding: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
 }))
 

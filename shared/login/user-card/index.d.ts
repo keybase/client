@@ -1,14 +1,14 @@
 import * as React from 'react'
 import {AvatarSize} from '../../common-adapters/avatar'
-import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters'
 
 export type Props = {
   avatarSize: AvatarSize
   avatarBackgroundStyle?: any
   lighterPlaceholders?: boolean
   onAvatarClicked?: () => void
-  outerStyle?: Styles.StylesCrossPlatform
-  style?: Styles.StylesCrossPlatform
+  outerStyle?: Kb.Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
   username?: string
   children?: React.ReactNode
 }

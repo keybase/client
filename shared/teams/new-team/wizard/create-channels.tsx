@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as T from '../../../constants/types'
 import * as Container from '../../../util/container'
-import * as Styles from '../../../styles'
 import {pluralize} from '../../../util/string'
 import {ModalTitle} from '../../common'
 
@@ -77,7 +76,7 @@ const CreateChannel = (props: Props) => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Styles.isMobile ? 'xsmall' : 'tiny'}
+        gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
       >
         <Kb.Text type="BodySmall">Channels can be joined by anyone in the team, unlike subteams.</Kb.Text>
         <ChannelInput isGeneral={true} />
@@ -122,24 +121,24 @@ const ChannelInput = (props: ChannelInputProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  addButton: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  addButton: Kb.Styles.platformStyles({
     isElectron: {width: 42},
     isMobile: {width: 47},
     isTablet: {alignSelf: 'flex-start'},
   }),
-  background: {backgroundColor: Styles.globalColors.blueGrey},
-  banner: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.blue, height: 96},
+  background: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+  banner: Kb.Styles.platformStyles({
+    common: {backgroundColor: Kb.Styles.globalColors.blue, height: 96},
     isElectron: {overflowX: 'hidden'},
   }),
   body: {
-    ...Styles.padding(Styles.globalMargins.small),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     flex: 1,
   },
-  input: {...Styles.padding(Styles.globalMargins.xsmall)},
-  inputGeneral: {...Styles.padding(Styles.globalMargins.xsmall), opacity: 0.4},
-  noChannelsText: {paddingTop: Styles.globalMargins.tiny, width: '100%'},
+  input: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
+  inputGeneral: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall), opacity: 0.4},
+  noChannelsText: {paddingTop: Kb.Styles.globalMargins.tiny, width: '100%'},
 }))
 
 export default CreateChannel

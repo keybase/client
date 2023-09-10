@@ -6,6 +6,7 @@ import type {Props, Props2} from './clickable-box'
 
 const Kb = {
   Box,
+  Styles,
 }
 
 const ClickableBox = React.forwardRef<TouchableWithoutFeedback | TouchableOpacity | Box, Props>(
@@ -13,7 +14,7 @@ const ClickableBox = React.forwardRef<TouchableWithoutFeedback | TouchableOpacit
     const {feedback = true, onClick, onPressIn, onPressOut, onLongPress} = props
     const {style, activeOpacity, children, pointerEvents} = props
     if (onClick) {
-      const clickStyle = Styles.collapseStyles([styles.box, style])
+      const clickStyle = Kb.Styles.collapseStyles([styles.box, style])
       if (feedback) {
         return (
           <TouchableOpacity
@@ -64,7 +65,7 @@ const ClickableBox = React.forwardRef<TouchableWithoutFeedback | TouchableOpacit
   }
 )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   box: {borderRadius: 3},
 }))
 

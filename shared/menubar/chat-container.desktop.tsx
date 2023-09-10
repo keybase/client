@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as R from '../constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import type * as T from '../constants/types'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import {SmallTeam} from '../chat/inbox/row/small-team'
@@ -61,29 +60,29 @@ const ChatPreview = (p: {convLimit?: number}) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonContainer: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.tiny,
   },
   chatContainer: {
-    backgroundColor: Styles.globalColors.white,
-    color: Styles.globalColors.black,
+    backgroundColor: Kb.Styles.globalColors.white,
+    color: Kb.Styles.globalColors.black,
   },
-  toggleButton: Styles.platformStyles({
+  toggleButton: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.black_05,
-      borderRadius: Styles.borderRadius,
-      marginBottom: Styles.globalMargins.xtiny,
-      marginTop: Styles.globalMargins.xtiny,
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.xtiny,
+      backgroundColor: Kb.Styles.globalColors.black_05,
+      borderRadius: Kb.Styles.borderRadius,
+      marginBottom: Kb.Styles.globalMargins.xtiny,
+      marginTop: Kb.Styles.globalMargins.xtiny,
+      paddingBottom: Kb.Styles.globalMargins.xtiny,
+      paddingTop: Kb.Styles.globalMargins.xtiny,
     },
     isElectron: {
-      marginLeft: Styles.globalMargins.tiny,
-      marginRight: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
+      marginLeft: Kb.Styles.globalMargins.tiny,
+      marginRight: Kb.Styles.globalMargins.tiny,
+      paddingLeft: Kb.Styles.globalMargins.tiny,
+      paddingRight: Kb.Styles.globalMargins.tiny,
     },
   }),
 }))

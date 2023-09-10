@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as React from 'react'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import {HeaderRightActions} from './main/header'
 
 const Root = React.lazy(async () => import('./container'))
@@ -34,11 +33,11 @@ const TeamsFilter = () => {
     />
   ) : null
 }
-const filterStyles = Styles.styleSheetCreate(() => ({
+const filterStyles = Kb.Styles.styleSheetCreate(() => ({
   filter: {
     alignSelf: 'flex-end',
-    marginBottom: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.xsmall,
+    marginBottom: Kb.Styles.globalMargins.xtiny,
+    marginRight: Kb.Styles.globalMargins.xsmall,
   },
 }))
 
@@ -48,7 +47,7 @@ const ConnectedHeaderRightActions = (_: {}) => {
 }
 
 const getOptions = () => ({
-  headerRightActions: !Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
+  headerRightActions: !Kb.Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
   title: 'Teams',
 })
 

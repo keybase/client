@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import type * as T from '../../../../constants/types'
 import UserNotice from '../user-notice'
 
@@ -19,9 +18,9 @@ const SystemChangeAvatar = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   text: {
-    marginBottom: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.tiny,
   },
 }))
 

@@ -1,5 +1,4 @@
 import * as T from '../../constants/types'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import PieSlice from './pie-slice'
 import UploadIcon from './upload-icon'
@@ -32,15 +31,15 @@ function getColor(status: T.FS.LocalConflictStatusType | T.FS.NonUploadStaticSyn
   switch (status) {
     case T.FS.NonUploadStaticSyncStatus.AwaitingToSync:
     case T.FS.NonUploadStaticSyncStatus.OnlineOnly:
-      return Styles.globalColors.blue
+      return Kb.Styles.globalColors.blue
     case T.FS.NonUploadStaticSyncStatus.Unknown:
-      return Styles.globalColors.greyDark
+      return Kb.Styles.globalColors.greyDark
     case T.FS.NonUploadStaticSyncStatus.Synced:
-      return Styles.globalColors.green
+      return Kb.Styles.globalColors.green
     case T.FS.NonUploadStaticSyncStatus.SyncError:
-      return Styles.globalColors.red
+      return Kb.Styles.globalColors.red
     case T.FS.LocalConflictStatus:
-      return Styles.globalColors.red
+      return Kb.Styles.globalColors.red
   }
 }
 
@@ -78,7 +77,7 @@ const PathStatusIcon = (props: Props) =>
       showOnPressMobile={props.showTooltipOnPressMobile}
     >
       {typeof props.statusIcon === 'number' ? (
-        <Kb.Box2 direction="horizontal" style={{margin: Styles.globalMargins.xtiny}}>
+        <Kb.Box2 direction="horizontal" style={{margin: Kb.Styles.globalMargins.xtiny}}>
           <PieSlice degrees={360 * props.statusIcon} animated={true} />
         </Kb.Box2>
       ) : props.statusIcon === T.FS.UploadIcon.AwaitingToUpload ||
@@ -101,33 +100,33 @@ const PathStatusIcon = (props: Props) =>
     <Kb.Box style={styles.placeholder} />
   )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   iconFont: {
-    paddingLeft: Styles.globalMargins.xtiny,
-    paddingRight: Styles.globalMargins.xtiny,
+    paddingLeft: Kb.Styles.globalMargins.xtiny,
+    paddingRight: Kb.Styles.globalMargins.xtiny,
   },
-  iconNonFont: Styles.platformStyles({
+  iconNonFont: Kb.Styles.platformStyles({
     common: {
-      marginLeft: Styles.globalMargins.xtiny,
-      marginRight: Styles.globalMargins.xtiny,
+      marginLeft: Kb.Styles.globalMargins.xtiny,
+      marginRight: Kb.Styles.globalMargins.xtiny,
     },
     isElectron: {
-      height: Styles.globalMargins.xsmall,
-      width: Styles.globalMargins.xsmall,
+      height: Kb.Styles.globalMargins.xsmall,
+      width: Kb.Styles.globalMargins.xsmall,
     },
     isMobile: {
-      height: Styles.globalMargins.small,
-      width: Styles.globalMargins.small,
+      height: Kb.Styles.globalMargins.small,
+      width: Kb.Styles.globalMargins.small,
     },
   }),
-  placeholder: Styles.platformStyles({
+  placeholder: Kb.Styles.platformStyles({
     isElectron: {
-      height: Styles.globalMargins.xsmall + Styles.globalMargins.xtiny,
-      width: Styles.globalMargins.xsmall + Styles.globalMargins.xtiny,
+      height: Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xtiny,
+      width: Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xtiny,
     },
     isMobile: {
-      height: Styles.globalMargins.small + Styles.globalMargins.xtiny,
-      width: Styles.globalMargins.small + Styles.globalMargins.xtiny,
+      height: Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny,
+      width: Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny,
     },
   }),
 }))

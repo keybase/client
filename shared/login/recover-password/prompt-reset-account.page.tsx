@@ -1,6 +1,5 @@
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import {InfoIcon} from '../../signup/common'
 
 const ResetAccount = React.lazy(async () => import('./prompt-reset-account'))
@@ -21,8 +20,8 @@ const Screen = () => (
   </React.Suspense>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  questionBox: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0),
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  questionBox: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0),
 }))
 
 export default {getOptions, getScreen: () => Screen}

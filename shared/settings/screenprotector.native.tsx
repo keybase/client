@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 import {isAndroid, getSecureFlagSetting, setSecureFlagSetting} from '../constants/platform.native'
 
@@ -43,9 +42,9 @@ const Screenprotector = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.padding(Styles.globalMargins.small),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
   },
 }))
 

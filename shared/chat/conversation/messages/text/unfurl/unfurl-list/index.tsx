@@ -1,7 +1,6 @@
 import * as C from '../../../../../../constants'
 import * as T from '../../../../../../constants/types'
 import * as React from 'react'
-import * as Styles from '../../../../../../styles'
 import UnfurlGeneric from './generic'
 import UnfurlGiphy from './giphy'
 import UnfurlMap from './map'
@@ -33,15 +32,15 @@ export type UnfurlProps = {
   unfurl: T.RPCChat.UnfurlDisplay
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
           flex: 1,
-          marginBottom: Styles.globalMargins.xtiny,
-          marginTop: Styles.globalMargins.xtiny,
+          marginBottom: Kb.Styles.globalMargins.xtiny,
+          marginTop: Kb.Styles.globalMargins.xtiny,
         },
       }),
     }) as const

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import * as RowTypes from './types'
 import type * as T from '../../../constants/types'
@@ -156,12 +155,12 @@ const RowsWithAutoLoad = (props: Props) => {
   return <Rows {...props} />
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      divider: Styles.platformStyles({
+      divider: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.black_05_on_white,
+          backgroundColor: Kb.Styles.globalColors.black_05_on_white,
         },
         isElectron: {
           marginLeft: 94,
@@ -171,10 +170,10 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       emptyContainer: {
-        ...Styles.globalStyles.flexGrow,
+        ...Kb.Styles.globalStyles.flexGrow,
       },
       rowContainer: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         flexShrink: 0,
         height: normalRowHeight,
       },

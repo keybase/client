@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as T from '../../../../constants/types'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
 
 const branchRefPrefix = 'refs/heads/'
@@ -149,12 +148,12 @@ class GitPush extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      commitHash: Styles.platformStyles({
+      commitHash: Kb.Styles.platformStyles({
         common: {
-          color: Styles.globalColors.blueDarkOrBlueLight,
+          color: Kb.Styles.globalColors.blueDarkOrBlueLight,
           fontSize: 12,
           lineHeight: 16,
         },
@@ -164,25 +163,25 @@ const styles = Styles.styleSheetCreate(
         textAlign: 'left',
       },
       dot: {
-        backgroundColor: Styles.globalColors.blueLighter_20,
+        backgroundColor: Kb.Styles.globalColors.blueLighter_20,
         borderRadius: 3,
         height: '100%',
         marginBottom: 1,
-        marginRight: Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
         padding: 2,
       },
       hashAndMessage: {
         height: 18,
-        marginBottom: Styles.globalMargins.xtiny,
-        marginTop: Styles.globalMargins.xtiny,
+        marginBottom: Kb.Styles.globalMargins.xtiny,
+        marginTop: Kb.Styles.globalMargins.xtiny,
       },
       marker: {
         flexShrink: 0,
-        marginRight: Styles.globalMargins.xtiny,
-        ...(Styles.isMobile ? {marginTop: -3} : null),
+        marginRight: Kb.Styles.globalMargins.xtiny,
+        ...(Kb.Styles.isMobile ? {marginTop: -3} : null),
         minWidth: 0,
       },
-      repoText: {color: Styles.globalColors.black_50},
+      repoText: {color: Kb.Styles.globalColors.black_50},
     }) as const
 )
 

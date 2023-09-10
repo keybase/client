@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 
 function useAutocompleter<U>(
@@ -45,7 +44,7 @@ function useAutocompleter<U>(
               <Kb.Box2
                 direction="horizontal"
                 fullWidth={true}
-                style={Styles.collapseStyles([styles.option, selected === idx && styles.optionSelected])}
+                style={Kb.Styles.collapseStyles([styles.option, selected === idx && styles.optionSelected])}
               >
                 <Kb.Text type="BodySemibold" lineClamp={1}>
                   {item.label}
@@ -94,11 +93,11 @@ function useAutocompleter<U>(
   return {onKeyDown, popup, popupAnchor, setShowingPopup, toggleShowingPopup}
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  option: {...Styles.padding(4, 10, 2), backgroundColor: Styles.globalColors.white},
-  optionOuter: {backgroundColor: Styles.globalColors.white}, // because blueLighter2 is transparent in dark mode
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  option: {...Kb.Styles.padding(4, 10, 2), backgroundColor: Kb.Styles.globalColors.white},
+  optionOuter: {backgroundColor: Kb.Styles.globalColors.white}, // because blueLighter2 is transparent in dark mode
   optionSelected: {
-    backgroundColor: Styles.globalColors.blueLighter2,
+    backgroundColor: Kb.Styles.globalColors.blueLighter2,
   },
 }))
 

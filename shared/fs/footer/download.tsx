@@ -1,4 +1,3 @@
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as C from '../../constants'
@@ -18,7 +17,7 @@ const getProgress = (dlState: T.FS.DownloadState) => (
     <Kb.Box style={styles.tubeBox}>
       <Kb.Box style={styles.tube} />
       <Kb.Box
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.tube,
           styles.tubeStuffing,
           {width: `${Math.round(100 * dlState.progress)}%`},
@@ -50,7 +49,7 @@ const Download = (props: Props) => {
       <Kb.Box2
         direction="horizontal"
         centerChildren={true}
-        style={Styles.collapseStyles([styles.download, !!dlState.error && styles.red])}
+        style={Kb.Styles.collapseStyles([styles.download, !!dlState.error && styles.red])}
         gap="tiny"
         gapStart={true}
         gapEnd={true}
@@ -58,7 +57,7 @@ const Download = (props: Props) => {
         <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
           <Kb.Icon
             type={dlState.done ? 'iconfont-success' : 'iconfont-download'}
-            color={Styles.globalColors.black_20}
+            color={Kb.Styles.globalColors.black_20}
           />
         </Kb.Box2>
         <Kb.Box2 direction="vertical" style={styles.nameAndProgress}>
@@ -75,7 +74,7 @@ const Download = (props: Props) => {
         <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
           <Kb.Icon
             type="iconfont-remove"
-            color={Styles.globalColors.white}
+            color={Kb.Styles.globalColors.white}
             onClick={!Constants.downloadIsOngoing(dlState) ? dismiss : cancel}
           />
         </Kb.Box2>
@@ -84,12 +83,12 @@ const Download = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      download: Styles.platformStyles({
+      download: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.green,
+          backgroundColor: Kb.Styles.globalColors.green,
           borderRadius: 4,
         },
         isElectron: {
@@ -101,9 +100,9 @@ const styles = Styles.styleSheetCreate(
           width: 160,
         },
       }),
-      filename: Styles.platformStyles({
+      filename: Kb.Styles.platformStyles({
         common: {
-          color: Styles.globalColors.white,
+          color: Kb.Styles.globalColors.white,
         },
         isElectron: {
           overflow: 'hidden',
@@ -120,10 +119,10 @@ const styles = Styles.styleSheetCreate(
         marginTop: -2,
       },
       red: {
-        backgroundColor: Styles.globalColors.red,
+        backgroundColor: Kb.Styles.globalColors.red,
       },
       tube: {
-        backgroundColor: Styles.globalColors.black_20,
+        backgroundColor: Kb.Styles.globalColors.black_20,
         borderRadius: 4.5,
         height: 4,
         width: '100%',
@@ -133,7 +132,7 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       tubeStuffing: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         left: 0,
         position: 'absolute',
         top: 0,

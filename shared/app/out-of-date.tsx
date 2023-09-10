@@ -1,23 +1,22 @@
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as React from 'react'
 import * as T from '../constants/types'
 import logger from '../logger'
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.globalStyles.fillAbsolute,
-    backgroundColor: Styles.globalColors.red,
+    ...Kb.Styles.globalStyles.fillAbsolute,
+    backgroundColor: Kb.Styles.globalColors.red,
     bottom: undefined,
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
     zIndex: 9999,
   },
   messageContainer: {
-    backgroundColor: Styles.globalColors.white_90,
-    borderRadius: Styles.borderRadius,
-    padding: Styles.globalMargins.medium,
+    backgroundColor: Kb.Styles.globalColors.white_90,
+    borderRadius: Kb.Styles.borderRadius,
+    padding: Kb.Styles.globalMargins.medium,
   },
 }))
 
@@ -74,7 +73,7 @@ export default () => {
       <Kb.Box2 direction="vertical" style={styles.messageContainer} fullWidth={true}>
         <Kb.Markdown>{message}</Kb.Markdown>
       </Kb.Box2>
-      {Styles.isMobile && <Kb.Button label="Update" onClick={onOpenAppStore} />}
+      {Kb.Styles.isMobile && <Kb.Button label="Update" onClick={onOpenAppStore} />}
     </Kb.Box2>
   )
 }

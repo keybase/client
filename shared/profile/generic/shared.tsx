@@ -1,8 +1,7 @@
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import type * as T from '../../constants/types'
 
-export const ProofSuccessIcon = <Kb.Icon type="icon-proof-success" color={Styles.globalColors.green} />
+export const ProofSuccessIcon = <Kb.Icon type="icon-proof-success" color={Kb.Styles.globalColors.green} />
 export const MastadonIcon = (
   <Kb.Icon type="iconfont-identity-mastodon" colorOverride="#2b90d9" fontSize={64} />
 )
@@ -19,16 +18,19 @@ const siteIconToNativeSrcSet = (siteIcon: T.Tracker.SiteIconSet) =>
 type SiteIconProps = {
   full: boolean
   set: T.Tracker.SiteIconSet
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 export const SiteIcon = (props: SiteIconProps) => {
   const style = props.full ? siteIconStyles.siteIconFull : siteIconStyles.siteIcon
-  return Styles.isMobile ? (
-    <Kb.Image2 src={siteIconToNativeSrcSet(props.set)} style={Styles.collapseStyles([style, props.style])} />
+  return Kb.Styles.isMobile ? (
+    <Kb.Image2
+      src={siteIconToNativeSrcSet(props.set)}
+      style={Kb.Styles.collapseStyles([style, props.style])}
+    />
   ) : (
     <Kb.Box
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         style,
         props.style,
         {backgroundImage: siteIconToSrcSet(props.set)},
@@ -37,8 +39,8 @@ export const SiteIcon = (props: SiteIconProps) => {
   )
 }
 
-const siteIconStyles = Styles.styleSheetCreate(() => ({
-  siteIcon: Styles.platformStyles({
+const siteIconStyles = Kb.Styles.styleSheetCreate(() => ({
+  siteIcon: Kb.Styles.platformStyles({
     common: {
       flexShrink: 0,
     },
@@ -52,7 +54,7 @@ const siteIconStyles = Styles.styleSheetCreate(() => ({
       width: 18,
     },
   }),
-  siteIconFull: Styles.platformStyles({
+  siteIconFull: Kb.Styles.platformStyles({
     common: {
       flexShrink: 0,
     },

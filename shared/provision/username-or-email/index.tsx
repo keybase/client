@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import UserCard from '../../login/user-card'
 import {SignupScreen, errorBanner} from '../../signup/common'
 
@@ -104,13 +103,13 @@ const Username = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      card: Styles.platformStyles({
+      card: Kb.Styles.platformStyles({
         common: {
           alignItems: 'stretch',
-          backgroundColor: Styles.globalColors.transparent,
+          backgroundColor: Kb.Styles.globalColors.transparent,
         },
         isMobile: {
           paddingLeft: 0,
@@ -120,29 +119,29 @@ const styles = Styles.styleSheetCreate(
           alignItems: 'center',
         },
       }),
-      contentContainer: Styles.platformStyles({isMobile: {...Styles.padding(0)}}),
-      fill: Styles.platformStyles({
+      contentContainer: Kb.Styles.platformStyles({isMobile: {...Kb.Styles.padding(0)}}),
+      fill: Kb.Styles.platformStyles({
         isMobile: {height: '100%', width: '100%'},
         isTablet: {width: 410},
       }),
       forgotUsername: {
         alignSelf: 'flex-end',
       },
-      outerCard: Styles.platformStyles({
+      outerCard: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: {height: 'unset'},
       }),
       outerCardAvatar: {
-        backgroundColor: Styles.globalColors.transparent,
+        backgroundColor: Kb.Styles.globalColors.transparent,
       },
-      scrollContentContainer: Styles.platformStyles({
+      scrollContentContainer: Kb.Styles.platformStyles({
         isElectron: {
           margin: 'auto',
         },
-        isMobile: {...Styles.padding(Styles.globalMargins.small)},
+        isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.small)},
       }),
       wrapper: {
-        width: Styles.globalStyles.mediumWidth,
+        width: Kb.Styles.globalStyles.mediumWidth,
       },
     }) as const
 )

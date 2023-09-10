@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import type * as T from '../../constants/types'
@@ -55,7 +54,10 @@ const TeamRow = (props: Props) => {
       <Kb.Icon
         type={crownIconType}
         sizeType="Tiny"
-        style={Styles.collapseStyles([styles.crownIcon, teamMeta.role === 'admin' && styles.darkerAdminIcon])}
+        style={Kb.Styles.collapseStyles([
+          styles.crownIcon,
+          teamMeta.role === 'admin' && styles.darkerAdminIcon,
+        ])}
       />
     </Kb.Box2>
   ) : null
@@ -80,7 +82,7 @@ const TeamRow = (props: Props) => {
         }
         style={styles.white}
         innerStyle={styles.white}
-        height={Styles.isPhone ? 72 : undefined}
+        height={Kb.Styles.isPhone ? 72 : undefined}
         body={
           <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.bodyContainer}>
             <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.bodyLeft}>
@@ -97,7 +99,7 @@ const TeamRow = (props: Props) => {
                   {teamMeta.isOpen && (
                     <Kb.Meta
                       title="open"
-                      backgroundColor={Styles.globalColors.green}
+                      backgroundColor={Kb.Styles.globalColors.green}
                       style={styles.alignSelfCenter}
                     />
                   )}
@@ -106,7 +108,7 @@ const TeamRow = (props: Props) => {
                   {isNew && (
                     <Kb.Meta
                       title="new"
-                      backgroundColor={Styles.globalColors.orange}
+                      backgroundColor={Kb.Styles.globalColors.orange}
                       style={styles.alignSelfCenter}
                     />
                   )}
@@ -114,10 +116,10 @@ const TeamRow = (props: Props) => {
                     {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
                   </Kb.Text>
                 </Kb.Box2>
-                {Styles.isPhone && activity}
+                {Kb.Styles.isPhone && activity}
               </Kb.Box2>
             </Kb.Box2>
-            {!Styles.isPhone && (
+            {!Kb.Styles.isPhone && (
               <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.bodyRight}>
                 {activity}
               </Kb.Box2>
@@ -125,7 +127,7 @@ const TeamRow = (props: Props) => {
           </Kb.Box2>
         }
         action={
-          <Kb.Box2 direction="horizontal" gap={Styles.isPhone ? 'tiny' : 'xtiny'}>
+          <Kb.Box2 direction="horizontal" gap={Kb.Styles.isPhone ? 'tiny' : 'xtiny'}>
             {showChat && (
               <Kb.Button
                 type="Dim"
@@ -154,16 +156,16 @@ const TeamRow = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   alignSelfCenter: {
     alignSelf: 'center',
   },
-  avatarContainer: Styles.platformStyles({
+  avatarContainer: Kb.Styles.platformStyles({
     common: {
-      marginTop: Styles.globalMargins.xxtiny,
+      marginTop: Kb.Styles.globalMargins.xxtiny,
       position: 'relative',
     },
-    isPhone: {marginTop: Styles.globalMargins.small},
+    isPhone: {marginTop: Kb.Styles.globalMargins.small},
   }),
   badge: {
     position: 'absolute',
@@ -171,21 +173,21 @@ const styles = Styles.styleSheetCreate(() => ({
     top: -5,
   },
   bodyContainer: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
+    paddingBottom: Kb.Styles.globalMargins.tiny,
+    paddingTop: Kb.Styles.globalMargins.tiny,
   },
   bodyLeft: {
     flex: 1,
-    paddingRight: Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.tiny,
   },
   bodyLeftText: {justifyContent: 'center'},
   bodyRight: {
     flex: 0.7,
   },
-  crownIcon: Styles.platformStyles({common: {fontSize: 10}, isMobile: {left: 0.5, position: 'relative'}}),
-  crownIconBox: Styles.platformStyles({
+  crownIcon: Kb.Styles.platformStyles({common: {fontSize: 10}, isMobile: {left: 0.5, position: 'relative'}}),
+  crownIconBox: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.white,
+      backgroundColor: Kb.Styles.globalColors.white,
       borderRadius: 100,
       height: 17,
       position: 'absolute',
@@ -194,11 +196,11 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {bottom: -5, right: -5},
     isMobile: {bottom: 4, right: -5},
   }),
-  darkerAdminIcon: {color: Styles.globalColors.greyDark},
+  darkerAdminIcon: {color: Kb.Styles.globalColors.greyDark},
   openMeta: {
     alignSelf: 'center',
   },
-  white: {backgroundColor: Styles.globalColors.white},
+  white: {backgroundColor: Kb.Styles.globalColors.white},
 }))
 
 export default TeamRow

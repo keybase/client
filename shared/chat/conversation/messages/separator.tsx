@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -127,7 +126,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   const ownerAdminTooltipIcon = allowCrown ? (
     <Kb.WithTooltip tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
       <Kb.Icon
-        color={authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
+        color={authorIsOwner ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
         fontSize={10}
         type="iconfont-crown-owner"
       />
@@ -136,7 +135,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
 
   const botIcon = authorIsBot ? (
     <Kb.WithTooltip tooltip="Bot">
-      <Kb.Icon fontSize={13} color={Styles.globalColors.black_35} type="iconfont-bot" />
+      <Kb.Icon fontSize={13} color={Kb.Styles.globalColors.black_35} type="iconfont-bot" />
     </Kb.WithTooltip>
   ) : null
 
@@ -148,7 +147,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
     usernameNode
   )
 
-  const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
+  const canFixOverdraw = React.useContext(Kb.Styles.CanFixOverdrawContext)
   const timestampNode = (
     <Kb.Text type="BodyTiny" fixOverdraw={canFixOverdraw} virtualText={true}>
       {formatTimeForChat(timestamp)}
@@ -185,7 +184,7 @@ const useReduxFast = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordinal)
   const sm = React.useContext(SeparatorMapContext)
   // in flat list we get the leadingItem but its the opposite of what we want
   // we derive the previous by using SeparatorMapContext
-  if (Styles.isMobile && !usingFlashList) {
+  if (Kb.Styles.isMobile && !usingFlashList) {
     trailingItem = leadingItem
     leadingItem = sm.get(trailingItem) ?? 0
   }
@@ -278,14 +277,14 @@ const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
   ) : null
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      authorContainer: Styles.platformStyles({
+      authorContainer: Kb.Styles.platformStyles({
         common: {
           alignItems: 'flex-start',
           alignSelf: 'flex-start',
-          marginLeft: Styles.isMobile ? 48 : 56,
+          marginLeft: Kb.Styles.isMobile ? 48 : 56,
         },
         isElectron: {
           marginBottom: 0,
@@ -293,24 +292,24 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {marginTop: 8},
       }),
-      avatar: Styles.platformStyles({
+      avatar: Kb.Styles.platformStyles({
         common: {position: 'absolute', top: 4},
         isElectron: {
-          left: Styles.globalMargins.small,
+          left: Kb.Styles.globalMargins.small,
           top: 4,
           zIndex: 2,
         },
-        isMobile: {left: Styles.globalMargins.tiny},
+        isMobile: {left: Kb.Styles.globalMargins.tiny},
       }),
-      botAlias: Styles.platformStyles({
-        common: {color: Styles.globalColors.black},
+      botAlias: Kb.Styles.platformStyles({
+        common: {color: Kb.Styles.globalColors.black},
         isElectron: {
           maxWidth: 240,
           wordBreak: 'break-all',
         },
         isMobile: {maxWidth: 120},
       }),
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
           position: 'relative',
         },
@@ -320,7 +319,7 @@ const styles = Styles.styleSheetCreate(
           paddingTop: 5,
         },
       }),
-      containerNoName: Styles.platformStyles({
+      containerNoName: Kb.Styles.platformStyles({
         common: {
           position: 'relative',
         },
@@ -329,9 +328,9 @@ const styles = Styles.styleSheetCreate(
           paddingTop: 5,
         },
       }),
-      orangeLine: Styles.platformStyles({
+      orangeLine: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.orange,
+          backgroundColor: Kb.Styles.globalColors.orange,
           flexShrink: 0,
           height: 1,
           left: 0,
@@ -344,7 +343,7 @@ const styles = Styles.styleSheetCreate(
           right: -16,
         },
       }),
-      usernameCrown: Styles.platformStyles({
+      usernameCrown: Kb.Styles.platformStyles({
         isElectron: {
           alignItems: 'baseline',
           marginRight: 48,

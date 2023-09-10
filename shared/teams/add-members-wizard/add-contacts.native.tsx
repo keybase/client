@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Styles from '../../styles'
 import * as T from '../../constants/types'
 import {pluralize} from '../../util/string'
 import {ModalTitle} from '../common'
@@ -67,19 +66,23 @@ const AddContacts = () => {
         hideBorder: true,
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         rightButton: (
-          <Kb.Box2 direction="horizontal" style={Styles.globalStyles.positionRelative}>
+          <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.positionRelative}>
             <Kb.Text
               type="BodyBigLink"
               onClick={onDone}
-              style={Styles.collapseStyles([
-                noneSelected && Styles.globalStyles.opacity0,
+              style={Kb.Styles.collapseStyles([
+                noneSelected && Kb.Styles.globalStyles.opacity0,
                 waiting && styles.opacity40,
               ])}
             >
               Done
             </Kb.Text>
             {waiting && (
-              <Kb.Box2 direction="horizontal" centerChildren={true} style={Styles.globalStyles.fillAbsolute}>
+              <Kb.Box2
+                direction="horizontal"
+                centerChildren={true}
+                style={Kb.Styles.globalStyles.fillAbsolute}
+              >
                 <Kb.ProgressIndicator />
               </Kb.Box2>
             )}
@@ -107,7 +110,7 @@ const AddContacts = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   opacity40: {opacity: 0.4},
 }))
 

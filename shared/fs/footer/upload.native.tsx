@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import type {UploadProps} from './upload'
 import {NativeAnimated, NativeEasing} from '../../common-adapters/native-wrappers.native'
@@ -135,7 +134,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
             <Kb.Box style={styles.backgroundBox}>
               <NativeAnimated.Image
                 resizeMode="repeat"
-                source={Styles.isDarkMode() ? darkPatternImage : lightPatternImage}
+                source={Kb.Styles.isDarkMode() ? darkPatternImage : lightPatternImage}
                 style={{...styles.backgroundImage, marginTop: this.state.backgroundTop}}
               />
             </Kb.Box>
@@ -158,10 +157,10 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      backgroundBox: Styles.platformStyles({
+      backgroundBox: Kb.Styles.platformStyles({
         common: {
           height: 48,
           overflow: 'hidden',
@@ -173,16 +172,16 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       box: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
         height: 48,
         justifyContent: 'center',
         marginTop: -48,
       },
       text: {
-        color: Styles.globalColors.whiteOrWhite,
+        color: Kb.Styles.globalColors.whiteOrWhite,
       },
-    } as const)
+    }) as const
 )
 
 export default Upload

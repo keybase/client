@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import {InfoIcon} from '../../signup/common'
 import {useFocusEffect} from '@react-navigation/core'
 
@@ -50,7 +49,7 @@ const Intro = (props: Props) => {
             Join Keybase
           </Kb.Text>
         </Kb.Box2>
-        <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
+        <Kb.ButtonBar direction="column" fullWidth={Kb.Styles.isMobile} style={styles.buttonBar}>
           <Kb.Button label="Create an account" onClick={props.onSignup} fullWidth={true} />
           <Kb.Button label="Log in" mode="Secondary" onClick={props.onLogin} fullWidth={true} />
           {props.isOnline === false && (
@@ -67,28 +66,28 @@ const Intro = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       banner: {
-        backgroundColor: Styles.globalColors.blue,
+        backgroundColor: Kb.Styles.globalColors.blue,
         justifyContent: 'center',
         minHeight: 40,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xlarge,
-        paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xlarge,
-        paddingTop: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.xlarge,
+        paddingRight: Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.xlarge,
+        paddingTop: Kb.Styles.globalMargins.tiny,
         position: 'absolute',
         top: 50,
       },
-      bannerMessage: {color: Styles.globalColors.white},
-      buttonBar: Styles.platformStyles({
+      bannerMessage: {color: Kb.Styles.globalColors.white},
+      buttonBar: Kb.Styles.platformStyles({
         isElectron: {
-          paddingBottom: Styles.globalMargins.xlarge - Styles.globalMargins.tiny, // tiny added inside buttonbar
+          paddingBottom: Kb.Styles.globalMargins.xlarge - Kb.Styles.globalMargins.tiny, // tiny added inside buttonbar
           width: 368,
         },
         isMobile: {
-          ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
+          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
         },
         isTablet: {
           alignItems: 'center',
@@ -96,24 +95,20 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       container: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
       },
-      header: Styles.platformStyles({
-        common: {
-          justifyContent: 'flex-end',
-        },
-        isElectron: {
-          padding: Styles.globalMargins.small,
-        },
+      header: Kb.Styles.platformStyles({
+        common: {justifyContent: 'flex-end'},
+        isElectron: {padding: Kb.Styles.globalMargins.small},
         isMobile: {
-          paddingRight: Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
           paddingTop: 10,
         },
       }),
       text: {
-        color: Styles.globalColors.orange,
+        color: Kb.Styles.globalColors.orange,
       },
-    } as const)
+    }) as const
 )
 
 export default Intro

@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as T from '../../constants/types'
 import {useFuseClosedSourceConsent} from './hooks'
@@ -79,8 +78,8 @@ const SFMIPopup = (props: Props) => {
             type="iconfont-finder"
             padding="tiny"
             fontSize={16}
-            color={Styles.globalColors.black_50}
-            hoverColor={Styles.globalColors.black}
+            color={Kb.Styles.globalColors.black_50}
+            hoverColor={Kb.Styles.globalColors.black}
             onClick={toggleShowingPopup}
             ref={popupAnchor as any}
           />
@@ -99,37 +98,37 @@ const SFMIPopup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonBox: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
+    paddingBottom: Kb.Styles.globalMargins.tiny,
+    paddingLeft: Kb.Styles.globalMargins.small,
+    paddingRight: Kb.Styles.globalMargins.small,
+    paddingTop: Kb.Styles.globalMargins.small,
   },
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     width: '100%',
   },
   divider: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.small,
+    marginBottom: Kb.Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.small,
   },
   fancyFinderIcon: {
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.medium,
+    paddingLeft: Kb.Styles.globalMargins.small,
+    paddingRight: Kb.Styles.globalMargins.small,
+    paddingTop: Kb.Styles.globalMargins.medium,
   },
   popup: {
-    backgroundColor: Styles.globalColors.white,
-    marginTop: Styles.globalMargins.tiny,
+    backgroundColor: Kb.Styles.globalColors.white,
+    marginTop: Kb.Styles.globalMargins.tiny,
     overflow: 'visible',
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
     width: 260,
   },
   text: {
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
+    paddingLeft: Kb.Styles.globalMargins.small,
+    paddingRight: Kb.Styles.globalMargins.small,
+    paddingTop: Kb.Styles.globalMargins.tiny,
   },
 }))
 export default SFMIPopup

@@ -1,7 +1,6 @@
 import * as C from '../../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
 
 const Names = (props: {names?: Set<string>}) => {
   const textType = 'BodyTinySemibold'
@@ -61,10 +60,10 @@ const Typing = React.memo(function Typing() {
 })
 
 export const mobileTypingContainerHeight = 18
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      isTypingAnimation: Styles.platformStyles({
+      isTypingAnimation: Kb.Styles.platformStyles({
         isElectron: {
           left: 24,
           position: 'absolute',
@@ -74,23 +73,23 @@ const styles = Styles.styleSheetCreate(
           width: 16,
         },
       }),
-      isTypingContainer: Styles.platformStyles({
+      isTypingContainer: Kb.Styles.platformStyles({
         common: {
           flexGrow: 1,
           opacity: 1,
         },
         isMobile: {
-          ...Styles.globalStyles.flexBoxRow,
+          ...Kb.Styles.globalStyles.flexBoxRow,
           alignItems: 'flex-end',
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.white,
           height: mobileTypingContainerHeight,
-          left: Styles.globalMargins.xtiny,
+          left: Kb.Styles.globalMargins.xtiny,
           position: 'absolute',
           top: -mobileTypingContainerHeight / 2 - 2,
           zIndex: 999,
         },
       }),
-      isTypingText: Styles.platformStyles({
+      isTypingText: Kb.Styles.platformStyles({
         isElectron: {
           flexGrow: 1,
           left: 56,
@@ -99,10 +98,10 @@ const styles = Styles.styleSheetCreate(
           textAlign: 'left',
         },
         isMobile: {
-          marginRight: Styles.globalMargins.tiny,
+          marginRight: Kb.Styles.globalMargins.tiny,
         },
       }),
-      typingIcon: Styles.platformStyles({
+      typingIcon: Kb.Styles.platformStyles({
         common: {
           position: 'absolute',
           width: 24,
@@ -115,11 +114,11 @@ const styles = Styles.styleSheetCreate(
           bottom: 0,
         },
       }),
-      typingIconContainer: Styles.platformStyles({
+      typingIconContainer: Kb.Styles.platformStyles({
         isMobile: {
           alignItems: 'center',
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
+          paddingRight: Kb.Styles.globalMargins.tiny,
         },
       }),
     }) as const

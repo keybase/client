@@ -4,7 +4,6 @@ import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as T from '../../../constants/types'
-import * as Styles from '../../../styles'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import {ModalTitle} from '../../common'
 import {FloatingRolePicker} from '../../role-picker'
@@ -160,7 +159,7 @@ const GenerateLinkModal = (props: Props) => {
           direction="vertical"
           fullWidth={true}
           style={styles.body}
-          gap={Styles.isMobile ? 'xsmall' : 'tiny'}
+          gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
         >
           <Kb.Text type="Body" style={styles.infoText}>
             Here is your link. Share it cautiously as anyone who has it can join the team.
@@ -206,14 +205,14 @@ const GenerateLinkModal = (props: Props) => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Styles.isMobile ? 'xsmall' : 'tiny'}
+        gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
       >
         <Kb.Text type="Body" style={styles.infoText}>
           Invite people to {teamname} by sharing a link:
         </Kb.Text>
 
         <Kb.Box2
-          direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+          direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
           fullWidth={true}
           ref={popupAnchor as any}
         >
@@ -231,7 +230,7 @@ const GenerateLinkModal = (props: Props) => {
           />
         </Kb.Box2>
 
-        <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} fullWidth={true}>
+        <Kb.Box2 direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'} fullWidth={true}>
           <Kb.Text type="BodySmall" style={styles.rowTitle}>
             Invite as
           </Kb.Text>
@@ -242,20 +241,20 @@ const GenerateLinkModal = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  banner: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.blue, height: 96},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  banner: Kb.Styles.platformStyles({
+    common: {backgroundColor: Kb.Styles.globalColors.blue, height: 96},
     isElectron: {overflowX: 'hidden'},
   }),
-  body: Styles.platformStyles({
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     },
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   dropdownButton: {
     alignSelf: 'center',
-    paddingLeft: Styles.globalMargins.xsmall,
+    paddingLeft: Kb.Styles.globalMargins.xsmall,
     width: '100%',
   },
   dropdownStyle: {
@@ -263,17 +262,17 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingRight: 0,
   },
   infoText: {
-    marginBottom: Styles.globalMargins.xsmall,
+    marginBottom: Kb.Styles.globalMargins.xsmall,
   },
   inlineSelectedStyle: {
-    paddingLeft: Styles.globalMargins.xsmall,
+    paddingLeft: Kb.Styles.globalMargins.xsmall,
     paddingRight: 0,
     width: '100%',
   },
-  input: {...Styles.padding(Styles.globalMargins.xsmall)},
+  input: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
   rowTitle: {
-    marginBottom: Styles.globalMargins.xtiny,
-    marginTop: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.xtiny,
+    marginTop: Kb.Styles.globalMargins.tiny,
     width: 62,
   },
 }))

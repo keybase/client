@@ -4,7 +4,6 @@ import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
 import * as React from 'react'
-import * as Styles from '../styles'
 import Loading from '../login/loading'
 import type {Theme} from '@react-navigation/native'
 import {colors, darkColors, themed} from '../styles/colors'
@@ -43,7 +42,7 @@ const useDarkNeedsRedraw = () => {
   const darkModePreference = C.useDarkModeState(s => s.darkModePreference)
   const darkModePreferenceChanged = Container.usePrevious(darkModePreference) !== darkModePreference
 
-  if (Styles.isIOS) {
+  if (Kb.Styles.isIOS) {
     if (darkModePreferenceChanged) {
       return true
     }
@@ -124,7 +123,7 @@ export const SimpleLoading = React.memo(function SimpleLoading() {
       fullHeight={true}
       fullWidth={true}
       style={{
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         // backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
       }}
     >
@@ -138,13 +137,13 @@ export const FilesTabBadge = () => {
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   fsBadgeIconUpload: {
-    bottom: Styles.globalMargins.tiny,
-    height: Styles.globalMargins.small,
+    bottom: Kb.Styles.globalMargins.tiny,
+    height: Kb.Styles.globalMargins.small,
     position: 'absolute',
-    right: Styles.globalMargins.small,
-    width: Styles.globalMargins.small,
+    right: Kb.Styles.globalMargins.small,
+    width: Kb.Styles.globalMargins.small,
   },
 }))
 

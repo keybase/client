@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import * as T from '../../constants/types'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import LastModifiedLine from './last-modified-line-container'
 import TlfInfoLine from './tlf-info-line-container'
@@ -11,7 +10,7 @@ import {pluralize} from '../../util/string'
 import {useFsChildren, useFsPathMetadata, useFsOnlineStatus, useFsSoftError} from './hooks'
 
 type Props = {
-  containerStyle?: Styles.StylesCrossPlatform
+  containerStyle?: Kb.Styles.StylesCrossPlatform
   path: T.FS.Path
 }
 
@@ -109,12 +108,12 @@ const PathItemInfo = (props: Props) => {
 
 export default PathItemInfo
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      nameTextBox: Styles.platformStyles({
+      nameTextBox: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxRow,
+          ...Kb.Styles.globalStyles.flexBoxRow,
           flexWrap: 'wrap',
           justifyContent: 'center',
         },
@@ -123,7 +122,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       pathItemIcon: {
-        marginBottom: Styles.globalMargins.xtiny,
+        marginBottom: Kb.Styles.globalMargins.xtiny,
       },
       stylesNameText: {
         textAlign: 'center',

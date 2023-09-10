@@ -3,7 +3,6 @@ import * as ChatConstants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import * as T from '../constants/types'
 import EmailSearch from './email-search'
 import Input from './input'
@@ -208,10 +207,10 @@ const TeamBuilding = (p: OwnProps) => {
             onEnterKeyDown={onEnterKeyDown}
             placeholder={'Search ' + serviceIdToSearchPlaceholder(selectedService)}
             searchString={searchString}
-            focusOnMount={!Styles.isMobile || selectedService !== 'keybase'}
+            focusOnMount={!Kb.Styles.isMobile || selectedService !== 'keybase'}
             focusCounter={focusInputCounter}
           />
-          {namespace === 'people' && !Styles.isMobile && (
+          {namespace === 'people' && !Kb.Styles.isMobile && (
             <FilteredServiceTabBar
               filterServices={filterServices}
               selectedService={selectedService}
@@ -262,7 +261,7 @@ const TeamBuilding = (p: OwnProps) => {
   const errorBanner = !!error && <Kb.Banner color="red">{error}</Kb.Banner>
 
   // If there are no filterServices or if the filterServices has a phone
-  const showContactsBanner = Styles.isMobile && (!filterServices || filterServices.includes('phone'))
+  const showContactsBanner = Kb.Styles.isMobile && (!filterServices || filterServices.includes('phone'))
 
   return (
     <Kb.Modal2
@@ -276,10 +275,10 @@ const TeamBuilding = (p: OwnProps) => {
         title,
       })}
     >
-      <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} fullWidth={true}>
+      <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true}>
         {teamBox}
         {errorBanner}
-        {(namespace !== 'people' || Styles.isMobile) && (
+        {(namespace !== 'people' || Kb.Styles.isMobile) && (
           <FilteredServiceTabBar
             filterServices={filterServices}
             selectedService={selectedService}
@@ -300,27 +299,27 @@ const TeamBuilding = (p: OwnProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {position: 'relative'},
       }),
-      headerContainer: Styles.platformStyles({
+      headerContainer: Kb.Styles.platformStyles({
         isElectron: {
-          marginBottom: Styles.globalMargins.xtiny,
-          marginTop: Styles.globalMargins.small + 2,
+          marginBottom: Kb.Styles.globalMargins.xtiny,
+          marginTop: Kb.Styles.globalMargins.small + 2,
         },
       }),
-      mobileFlex: Styles.platformStyles({
+      mobileFlex: Kb.Styles.platformStyles({
         isMobile: {flex: 1},
       }),
-      newChatHeader: Styles.platformStyles({
-        isElectron: {margin: Styles.globalMargins.xsmall},
+      newChatHeader: Kb.Styles.platformStyles({
+        isElectron: {margin: Kb.Styles.globalMargins.xsmall},
       }),
-      peoplePopupStyleClose: Styles.platformStyles({isElectron: {display: 'none'}}),
-      shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
-      teamAvatar: Styles.platformStyles({
+      peoplePopupStyleClose: Kb.Styles.platformStyles({isElectron: {display: 'none'}}),
+      shrinkingGap: {flexShrink: 1, height: Kb.Styles.globalMargins.xtiny},
+      teamAvatar: Kb.Styles.platformStyles({
         isElectron: {
           alignSelf: 'center',
           position: 'absolute',
@@ -328,8 +327,8 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       waiting: {
-        ...Styles.globalStyles.fillAbsolute,
-        backgroundColor: Styles.globalColors.black_20,
+        ...Kb.Styles.globalStyles.fillAbsolute,
+        backgroundColor: Kb.Styles.globalColors.black_20,
       },
       waitingProgress: {
         height: 48,

@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as Constants from '../constants/provision'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from './common'
 
@@ -57,32 +56,32 @@ const EnterDevicename = (props: Props) => {
       banners={errorBanner(props.error)}
       buttons={[{disabled, label: 'Continue', onClick: onContinue, type: 'Success', waiting: props.waiting}]}
       onBack={props.onBack}
-      title={Styles.isMobile ? 'Name this device' : 'Name this computer'}
+      title={Kb.Styles.isMobile ? 'Name this device' : 'Name this computer'}
     >
       <Kb.Box2
         alignItems="center"
         direction="vertical"
-        gap={Styles.isMobile ? 'small' : 'medium'}
+        gap={Kb.Styles.isMobile ? 'small' : 'medium'}
         fullWidth={true}
-        style={Styles.globalStyles.flexOne}
+        style={Kb.Styles.globalStyles.flexOne}
       >
         <Kb.Icon
           type={
-            Styles.isMobile
+            Kb.Styles.isMobile
               ? C.isLargeScreen
                 ? 'icon-phone-background-1-96'
                 : 'icon-phone-background-1-64'
               : 'icon-computer-background-1-96'
           }
         />
-        <Kb.Box2 direction="vertical" fullWidth={Styles.isPhone} gap="tiny">
+        <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
           <Kb.LabeledInput
             autoFocus={true}
             containerStyle={styles.input}
             error={showDisabled}
             maxLength={64}
             placeholder="Name"
-            hoverPlaceholder={Styles.isMobile ? 'Phone 1' : 'Computer 1'}
+            hoverPlaceholder={Kb.Styles.isMobile ? 'Phone 1' : 'Computer 1'}
             onChangeText={_setDeviceName}
             onEnterKeyDown={onContinue}
             value={cleanDeviceName}
@@ -101,12 +100,12 @@ const EnterDevicename = (props: Props) => {
     </SignupScreen>
   )
 }
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   deviceNameError: {
-    color: Styles.globalColors.redDark,
+    color: Kb.Styles.globalColors.redDark,
     marginLeft: 2,
   },
-  input: Styles.platformStyles({
+  input: Kb.Styles.platformStyles({
     isElectron: {width: 368},
     isTablet: {width: 368},
   }),

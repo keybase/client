@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 
 type OwnProps = {id: string}
 
@@ -104,17 +103,17 @@ class DeleteRepo extends React.Component<Props, State> {
                   isTeam={true}
                   teamname={this.props.teamname}
                   size={16}
-                  style={{marginRight: Styles.globalMargins.xtiny}}
+                  style={{marginRight: Kb.Styles.globalMargins.xtiny}}
                 />
               )}
               <Kb.Text
                 type="BodySemibold"
-                style={{color: Styles.globalColors.redDark, textDecorationLine: 'line-through'}}
+                style={{color: Kb.Styles.globalColors.redDark, textDecorationLine: 'line-through'}}
               >
                 {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
               </Kb.Text>
             </Kb.Box>
-            <Kb.Text center={true} type="Body" style={{marginBottom: Styles.globalMargins.medium}}>
+            <Kb.Text center={true} type="Body" style={{marginBottom: Kb.Styles.globalMargins.medium}}>
               {this.props.teamname
                 ? 'This will permanently delete your remote files and history, and all members of the team will be notified.  This action cannot be undone.'
                 : 'This will permanently delete your remote files and history. This action cannot be undone.'}
@@ -142,14 +141,14 @@ class DeleteRepo extends React.Component<Props, State> {
                 type="Dim"
                 onClick={this.props.onClose}
                 label="Cancel"
-                style={{marginRight: Styles.globalMargins.tiny}}
+                style={{marginRight: Kb.Styles.globalMargins.tiny}}
                 waitingKey={this.props.waitingKey}
                 onlyDisable={true}
               />
               <Kb.WaitingButton
                 type="Danger"
                 onClick={this._onSubmit}
-                label={Styles.isMobile ? 'Delete' : 'Delete this repository'}
+                label={Kb.Styles.isMobile ? 'Delete' : 'Delete this repository'}
                 disabled={!this._matchesName()}
                 waitingKey={this.props.waitingKey}
               />
@@ -161,43 +160,43 @@ class DeleteRepo extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   avatarBox: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    marginBottom: Styles.globalMargins.medium,
+    marginBottom: Kb.Styles.globalMargins.medium,
   },
   buttonBar: {alignItems: 'center'},
   checkbox: {
     alignSelf: 'flex-start',
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.tiny,
   },
   confirm: {
     alignSelf: 'flex-start',
-    marginBottom: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.tiny,
   },
-  container: Styles.platformStyles({
+  container: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxColumn,
+      ...Kb.Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
       flex: 1,
       height: '100%',
     },
     isElectron: {
       maxHeight: 560,
-      padding: Styles.globalMargins.large,
-      paddingBottom: Styles.globalMargins.small,
+      padding: Kb.Styles.globalMargins.large,
+      paddingBottom: Kb.Styles.globalMargins.small,
       width: 400,
     },
     isMobile: {
-      padding: Styles.globalMargins.small,
+      padding: Kb.Styles.globalMargins.small,
     },
   }),
   error: {
     alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.red,
-    marginBottom: Styles.globalMargins.small,
-    padding: Styles.globalMargins.tiny,
+    backgroundColor: Kb.Styles.globalColors.red,
+    marginBottom: Kb.Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.tiny,
   },
 }))

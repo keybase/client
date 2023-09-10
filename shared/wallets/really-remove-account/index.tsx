@@ -4,7 +4,6 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as T from '../../constants/types'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import WalletPopup from '../wallet-popup'
 
 type OwnProps = {accountID: string}
@@ -53,10 +52,10 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
       onExit={onCancel}
       backButtonType="cancel"
       containerStyle={styles.background}
-      headerStyle={Styles.collapseStyles([styles.background, styles.header])}
+      headerStyle={Kb.Styles.collapseStyles([styles.background, styles.header])}
       bottomButtons={[
         <Kb.Button
-          fullWidth={Styles.isMobile}
+          fullWidth={Kb.Styles.isMobile}
           key={0}
           label="Copy secret key"
           onClick={onCopy}
@@ -66,7 +65,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
           disabled={waiting}
         />,
         <Kb.Button
-          fullWidth={Styles.isMobile}
+          fullWidth={Kb.Styles.isMobile}
           key={1}
           label="Finish"
           onClick={onFinish}
@@ -80,7 +79,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
     >
       <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
         <Kb.Icon
-          type={Styles.isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
+          type={Kb.Styles.isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
           style={styles.icon}
         />
         <Kb.Box2 direction="vertical">
@@ -90,7 +89,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
           <Kb.Text
             center={true}
             type="HeaderItalic"
-            style={Styles.collapseStyles([styles.warningText, styles.mainText] as const)}
+            style={Kb.Styles.collapseStyles([styles.warningText, styles.mainText] as const)}
           >
             {name}.
           </Kb.Text>
@@ -100,7 +99,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
         </Kb.Text>
 
         <Kb.Toast visible={showingToast} attachTo={() => attachmentRef.current} position="top center">
-          {Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color="white" />}
+          {Kb.Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color="white" />}
           <Kb.Text center={true} type="BodySmall" style={styles.toastText}>
             Copied to clipboard
           </Kb.Text>
@@ -111,34 +110,34 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  background: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.yellow},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  background: Kb.Styles.platformStyles({
+    common: {backgroundColor: Kb.Styles.globalColors.yellow},
   }),
   flexOne: {flex: 1},
   header: {borderBottomWidth: 0},
-  icon: Styles.platformStyles({
-    common: {marginBottom: Styles.globalMargins.large},
-    isElectron: {marginTop: Styles.globalMargins.medium},
-    isMobile: {marginTop: Styles.globalMargins.xlarge},
+  icon: Kb.Styles.platformStyles({
+    common: {marginBottom: Kb.Styles.globalMargins.large},
+    isElectron: {marginTop: Kb.Styles.globalMargins.medium},
+    isMobile: {marginTop: Kb.Styles.globalMargins.xlarge},
   }),
-  mainText: Styles.platformStyles({
-    common: {paddingBottom: Styles.globalMargins.small},
+  mainText: Kb.Styles.platformStyles({
+    common: {paddingBottom: Kb.Styles.globalMargins.small},
     isElectron: {wordBreak: 'break-all'},
   }),
-  toastText: Styles.platformStyles({
-    common: {color: Styles.globalColors.white},
+  toastText: Kb.Styles.platformStyles({
+    common: {color: Kb.Styles.globalColors.white},
     isMobile: {
       paddingLeft: 10,
       paddingRight: 10,
       paddingTop: 5,
     },
   }),
-  warningText: Styles.platformStyles({
-    common: {color: Styles.globalColors.brown_75},
+  warningText: Kb.Styles.platformStyles({
+    common: {color: Kb.Styles.globalColors.brown_75},
     isMobile: {
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
+      paddingLeft: Kb.Styles.globalMargins.medium,
+      paddingRight: Kb.Styles.globalMargins.medium,
     },
   }),
 }))

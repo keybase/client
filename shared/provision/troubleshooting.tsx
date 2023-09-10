@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Styles from '../styles'
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as DevicesConstants from '../constants/devices'
@@ -21,21 +20,21 @@ type BigButtonProps = {
 const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) => (
   <Kb.ClickableBox onClick={waiting ? undefined : onClick}>
     <Kb.Box2
-      direction={Styles.isMobile ? 'horizontal' : 'vertical'}
+      direction={Kb.Styles.isMobile ? 'horizontal' : 'vertical'}
       style={styles.bigButton}
       className="hover_background_color_blueLighter2"
     >
       <Kb.Box2
         direction="horizontal"
         centerChildren={true}
-        style={Styles.collapseStyles([styles.buttonIcon, waiting && Styles.globalStyles.opacity0])}
+        style={Kb.Styles.collapseStyles([styles.buttonIcon, waiting && Kb.Styles.globalStyles.opacity0])}
         gap="tiny"
       >
-        <Kb.Icon type={icon} sizeType="Big" color={Styles.globalColors.blue} />
+        <Kb.Icon type={icon} sizeType="Big" color={Kb.Styles.globalColors.blue} />
       </Kb.Box2>
       <Kb.Box2
         direction="vertical"
-        style={Styles.collapseStyles([styles.buttonText, waiting && Styles.globalStyles.opacity0])}
+        style={Kb.Styles.collapseStyles([styles.buttonText, waiting && Kb.Styles.globalStyles.opacity0])}
       >
         <Kb.Text type="Body">{mainText}</Kb.Text>
         <Kb.Text type="BodySmall">{subText}</Kb.Text>
@@ -69,7 +68,7 @@ const Troubleshooting = (props: Props) => {
       onClose={onBack}
       header={{
         hideBorder: false,
-        leftButton: Styles.isMobile ? (
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodySemiboldLink" onClick={onBack}>
             Back
           </Kb.Text>
@@ -77,7 +76,7 @@ const Troubleshooting = (props: Props) => {
         title: 'Troubleshooting',
       }}
       footer={
-        Styles.isMobile
+        Kb.Styles.isMobile
           ? undefined
           : {
               content: <Kb.Button label="Cancel" onClick={onBack} type="Dim" fullWidth={true} />,
@@ -90,7 +89,7 @@ const Troubleshooting = (props: Props) => {
       <Kb.Box2 direction="vertical" gap="small" alignItems="center">
         <Kb.Box2 direction="vertical" style={styles.bodyMargins}>
           <Kb.Text type="Body" center={true}>
-            This appears to be a new {Styles.isMobile ? 'phone' : 'computer'}. Perhaps you restored from a
+            This appears to be a new {Kb.Styles.isMobile ? 'phone' : 'computer'}. Perhaps you restored from a
             backup or uninstalled Keybase. Either way, Keybase keys aren’t backed up, so this is now a totally
             new device.
           </Kb.Text>
@@ -99,7 +98,7 @@ const Troubleshooting = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
         <Kb.Box2
-          direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+          direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
           style={styles.buttonBar}
           gap="xsmall"
         >
@@ -124,11 +123,11 @@ const Troubleshooting = (props: Props) => {
 }
 export default Troubleshooting
 
-const styles = Styles.styleSheetCreate(() => ({
-  bigButton: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  bigButton: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
-      borderColor: Styles.globalColors.black_10,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+      borderColor: Kb.Styles.globalColors.black_10,
       borderRadius: 4,
       borderStyle: 'solid',
       borderWidth: 1,
@@ -143,25 +142,25 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   bigButtonWaiting: {
-    ...Styles.globalStyles.fillAbsolute,
-    backgroundColor: Styles.globalColors.white_40,
+    ...Kb.Styles.globalStyles.fillAbsolute,
+    backgroundColor: Kb.Styles.globalColors.white_40,
   },
-  bodyMargins: Styles.platformStyles({
-    isElectron: Styles.padding(Styles.globalMargins.medium, Styles.globalMargins.xlarge, 0),
+  bodyMargins: Kb.Styles.platformStyles({
+    isElectron: Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.xlarge, 0),
     isMobile: {
-      padding: Styles.globalMargins.medium,
+      padding: Kb.Styles.globalMargins.medium,
     },
   }),
   buttonBar: {
-    marginLeft: Styles.globalMargins.medium,
-    marginRight: Styles.globalMargins.medium,
+    marginLeft: Kb.Styles.globalMargins.medium,
+    marginRight: Kb.Styles.globalMargins.medium,
   },
   buttonIcon: {
     height: 64,
-    paddingRight: Styles.globalMargins.small,
+    paddingRight: Kb.Styles.globalMargins.small,
     width: 64,
   },
-  buttonText: Styles.platformStyles({
+  buttonText: Kb.Styles.platformStyles({
     isElectron: {
       textAlign: 'center',
     },
@@ -170,6 +169,6 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   mobileModal: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
   },
 }))

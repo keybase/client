@@ -1,7 +1,6 @@
 import * as C from '../../../../../constants'
 import * as Kb from '../../../../../common-adapters'
 import * as T from '../../../../../constants/types'
-import * as Styles from '../../../../../styles'
 
 type Props = {
   error: T.RPCChat.UICoinFlipError
@@ -112,17 +111,17 @@ const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bordered: {
-        borderColor: Styles.globalColors.grey,
+        borderColor: Kb.Styles.globalColors.grey,
         borderLeftWidth: 4,
         borderStyle: 'solid',
-        paddingLeft: Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       error: {
-        color: Styles.globalColors.redDark,
+        color: Kb.Styles.globalColors.redDark,
       },
     }) as const
 )

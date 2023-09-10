@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
-import * as Styles from '../styles'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
 import difference from 'lodash/difference'
 import type * as T from '../constants/types'
@@ -8,7 +7,7 @@ import type {Props, IconProps} from './service-tab-bar'
 
 const ServiceIcon = (props: IconProps) => {
   const [hover, setHover] = React.useState(false)
-  const color = props.isActive || hover ? serviceIdToAccentColor(props.service) : Styles.globalColors.black
+  const color = props.isActive || hover ? serviceIdToAccentColor(props.service) : Kb.Styles.globalColors.black
   return (
     <Kb.ClickableBox
       onClick={() => props.onClick(props.service)}
@@ -58,7 +57,7 @@ const ServiceIcon = (props: IconProps) => {
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           props.isActive
             ? styles.activeTabBar
             : {...styles.inactiveTabBar, ...(props.minimalBorder ? {borderBottomWidth: 0} : undefined)},
@@ -178,11 +177,11 @@ export const ServiceTabBar = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       activeTabBar: {
-        backgroundColor: Styles.globalColors.blue,
+        backgroundColor: Kb.Styles.globalColors.blue,
         height: 2,
       },
       badgeContainerStyle: {
@@ -190,19 +189,19 @@ const styles = Styles.styleSheetCreate(
         right: -4,
         top: 10,
       },
-      badgeStyle: {backgroundColor: Styles.globalColors.blue},
+      badgeStyle: {backgroundColor: Kb.Styles.globalColors.blue},
       inactiveTabBar: {height: 2},
       label: {
-        marginTop: Styles.globalMargins.xtiny,
+        marginTop: Kb.Styles.globalMargins.xtiny,
         minWidth: 64,
       },
-      moreNetworkItemIcon: {marginRight: Styles.globalMargins.tiny},
+      moreNetworkItemIcon: {marginRight: Kb.Styles.globalMargins.tiny},
       moreNetworks0: {flex: 1},
       moreNetworks1: {
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.xsmall,
-        paddingTop: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
+        paddingRight: Kb.Styles.globalMargins.xsmall,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       moreNetworks2: {
         alignItems: 'center',
@@ -216,7 +215,7 @@ const styles = Styles.styleSheetCreate(
       },
       moreNetworks3: {
         alignItems: 'center',
-        borderColor: Styles.globalColors.black_20,
+        borderColor: Kb.Styles.globalColors.black_20,
         borderRadius: 4,
         borderStyle: 'solid',
         borderWidth: 1,
@@ -228,14 +227,14 @@ const styles = Styles.styleSheetCreate(
         maxWidth: '100%',
         width: '100%',
       },
-      moreText: {color: Styles.globalColors.black_50},
+      moreText: {color: Kb.Styles.globalColors.black_50},
       pendingAnimation: {height: 10, width: 10},
       serviceIconBox: {marginTop: 14},
       serviceIconContainer: {
         flex: 1,
         height: 70,
-        marginLeft: Styles.globalMargins.xtiny,
-        marginRight: Styles.globalMargins.xtiny,
+        marginLeft: Kb.Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
         maxWidth: 72,
         minWidth: 40,
       },
@@ -245,7 +244,7 @@ const styles = Styles.styleSheetCreate(
         maxWidth: 90,
       },
       tabBarContainer: {
-        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomColor: Kb.Styles.globalColors.black_10,
         borderBottomWidth: 1,
         borderStyle: 'solid',
         flexShrink: 0,

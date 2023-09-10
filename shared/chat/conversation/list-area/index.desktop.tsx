@@ -1,8 +1,8 @@
 import * as C from '../../../constants'
 import * as Container from '../../../util/container'
+import * as Kb from '../../../common-adapters'
 import * as Hooks from './hooks'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import * as T from '../../../constants/types'
 import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
@@ -425,7 +425,7 @@ const useItems = (p: {
       return (
         <div
           key={String(ordinal)}
-          className={Styles.classNames(
+          className={Kb.Styles.classNames(
             'hover-container',
             'WrapperMessage',
             'WrapperMessage-hoverBox',
@@ -771,21 +771,21 @@ const OrdinalWaypoint = React.memo<OrdinalWaypointProps>(
     C.shallowEqual(prevProps.ordinals, nextProps.ordinals)
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
           // containment hints so we can scroll faster
           contain: 'strict',
           flex: 1,
           position: 'relative',
         },
       }),
-      list: Styles.platformStyles({
+      list: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.globalStyles.fillAbsolute,
+          ...Kb.Styles.globalStyles.fillAbsolute,
           outline: 'none',
           overflowX: 'hidden',
           overflowY: 'auto',

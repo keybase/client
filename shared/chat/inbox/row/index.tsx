@@ -1,4 +1,5 @@
 import * as C from '../../../constants'
+import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import logger from '../../../logger'
 import BigTeamHeader from './big-team-header'
@@ -6,7 +7,6 @@ import BigTeamChannel from './big-team-channel'
 import SmallTeam from './small-team/container'
 import {BigTeamsLabel} from './big-teams-label'
 import {Box} from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import type * as T from '../../../constants/types'
 
 const makeRow = (
@@ -56,10 +56,10 @@ const makeRow = (
 }
 
 const _bigTeamLabelStyle = {
-  ...Styles.globalStyles.flexBoxRow,
+  ...Kb.Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
-  height: Styles.isMobile ? 32 : 24,
-  marginLeft: Styles.globalMargins.tiny,
+  height: Kb.Styles.isMobile ? 32 : 24,
+  marginLeft: Kb.Styles.globalMargins.tiny,
 }
 
 export {makeRow}

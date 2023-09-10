@@ -1,8 +1,7 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import type * as T from '../../../../constants/types'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
+import type * as T from '../../../../constants/types'
 
 export type SaveStateType = 'same' | 'saving' | 'justSaved'
 
@@ -46,7 +45,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
         <Kb.Text type="BodySmallSemibold">Desktop notifications</Kb.Text>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
           <Kb.RadioButton
-            style={{marginTop: Styles.globalMargins.xtiny}}
+            style={{marginTop: Kb.Styles.globalMargins.xtiny}}
             onSelect={() => setDesktop('onAnyActivity')}
             selected={desktop === 'onAnyActivity'}
             label="On any activity"
@@ -54,7 +53,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
           <Kb.RadioButton
-            style={{marginTop: Styles.globalMargins.xtiny}}
+            style={{marginTop: Kb.Styles.globalMargins.xtiny}}
             onSelect={() => setDesktop('onWhenAtMentioned')}
             selected={desktop === 'onWhenAtMentioned'}
             label="Only when @mentioned"
@@ -62,7 +61,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
           <Kb.RadioButton
-            style={{marginTop: Styles.globalMargins.xtiny}}
+            style={{marginTop: Kb.Styles.globalMargins.xtiny}}
             onSelect={() => setDesktop('never')}
             selected={desktop === 'never'}
             label="Never"
@@ -74,7 +73,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
         <Kb.Text type="BodySmallSemibold">Mobile notifications</Kb.Text>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
           <Kb.RadioButton
-            style={{marginTop: Styles.globalMargins.xtiny}}
+            style={{marginTop: Kb.Styles.globalMargins.xtiny}}
             onSelect={() => setMobile('onAnyActivity')}
             selected={mobile === 'onAnyActivity'}
             label="On any activity"
@@ -82,7 +81,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
           <Kb.RadioButton
-            style={{marginTop: Styles.globalMargins.xtiny}}
+            style={{marginTop: Kb.Styles.globalMargins.xtiny}}
             onSelect={() => setMobile('onWhenAtMentioned')}
             selected={mobile === 'onWhenAtMentioned'}
             label="Only when @mentioned"
@@ -90,7 +89,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.radioButton}>
           <Kb.RadioButton
-            style={{marginTop: Styles.globalMargins.xtiny}}
+            style={{marginTop: Kb.Styles.globalMargins.xtiny}}
             onSelect={() => setMobile('never')}
             selected={mobile === 'never'}
             label="Never"
@@ -146,7 +145,7 @@ const Notifications = () => {
           }}
           label="Mute all notifications"
         />
-        <Kb.Icon type="iconfont-shh" style={styles.icon} color={Styles.globalColors.black_20} />
+        <Kb.Icon type="iconfont-shh" style={styles.icon} color={Kb.Styles.globalColors.black_20} />
       </Kb.Box2>
       {!muted && (
         <UnmutedNotificationPrefs
@@ -172,13 +171,13 @@ const Notifications = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      icon: {marginLeft: Styles.globalMargins.xtiny},
+      icon: {marginLeft: Kb.Styles.globalMargins.xtiny},
       radioButton: {
-        ...Styles.globalStyles.flexBoxRow,
-        marginLeft: Styles.globalMargins.tiny,
+        ...Kb.Styles.globalStyles.flexBoxRow,
+        marginLeft: Kb.Styles.globalMargins.tiny,
       },
     }) as const
 )

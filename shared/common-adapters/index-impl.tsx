@@ -340,4 +340,7 @@ module.exports = {
   get useTimeout() {
     return require('./use-timers').useTimeout
   },
+  get Styles() {
+    return require('../styles')
+  },
 }

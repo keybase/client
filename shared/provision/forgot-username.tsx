@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import {SignupScreen, errorBanner} from '../signup/common'
 
 const ForgotUsername = () => {
@@ -102,8 +101,8 @@ const ForgotUsername = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  phoneInput: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  phoneInput: Kb.Styles.platformStyles({
     isElectron: {
       height: 38,
       width: '100%',
@@ -113,7 +112,7 @@ const styles = Styles.styleSheetCreate(() => ({
       width: '100%',
     },
   }),
-  wrapper: Styles.platformStyles({
+  wrapper: Kb.Styles.platformStyles({
     isElectron: {
       width: 400,
     },

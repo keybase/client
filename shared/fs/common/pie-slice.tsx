@@ -1,28 +1,27 @@
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles/index'
 import {useSpring, animated} from 'react-spring'
 
 type Props = {
   degrees: number
   animated?: boolean
   negative?: boolean
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 const Slice = (props: Props) => {
   const styleFilled = props.negative ? styles.filledNegative : styles.filledPositive
   const styleUnfilled = props.negative ? styles.unfilledNegative : styles.unfilledPositive
-  const styleRotate = Styles.isMobile
+  const styleRotate = Kb.Styles.isMobile
     ? {transform: [{rotate: props.degrees + 'deg'}]}
     : {transform: 'rotate(' + props.degrees + 'deg)'}
   return (
-    <Kb.Box style={Styles.collapseStyles([styles.container, ...(props.style ? [props.style] : [])])}>
-      <Kb.Box style={Styles.collapseStyles([styles.wholeUnfilled, styleUnfilled])} />
-      <Kb.Box style={Styles.collapseStyles([styles.rotateContainer, styleRotate] as any)}>
-        <Kb.Box style={Styles.collapseStyles([styles.leftFilled, styleFilled])} />
+    <Kb.Box style={Kb.Styles.collapseStyles([styles.container, ...(props.style ? [props.style] : [])])}>
+      <Kb.Box style={Kb.Styles.collapseStyles([styles.wholeUnfilled, styleUnfilled])} />
+      <Kb.Box style={Kb.Styles.collapseStyles([styles.rotateContainer, styleRotate] as any)}>
+        <Kb.Box style={Kb.Styles.collapseStyles([styles.leftFilled, styleFilled])} />
       </Kb.Box>
       <Kb.Box
-        style={Styles.collapseStyles(
+        style={Kb.Styles.collapseStyles(
           props.degrees <= 180 ? [styles.leftUnfilled, styleUnfilled] : [styles.rightFilled, styleFilled]
         )}
       />
@@ -44,8 +43,8 @@ const PieSlice = (props: Props) => {
     <Slice degrees={props.degrees} style={props.style} negative={props.negative} />
   )
 }
-const pieSize = Styles.isMobile ? 16 : 12
-const pieHalfSize = Styles.isMobile ? 8 : 6
+const pieSize = Kb.Styles.isMobile ? 16 : 12
+const pieHalfSize = Kb.Styles.isMobile ? 8 : 6
 const stylePieHalf = {
   height: pieSize,
   position: 'absolute' as const,
@@ -56,7 +55,7 @@ const stylePieWhole = {
   position: 'absolute' as const,
   width: pieSize,
 }
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
@@ -65,10 +64,10 @@ const styles = Styles.styleSheetCreate(
         width: pieSize,
       },
       filledNegative: {
-        backgroundColor: Styles.globalColors.greyLight,
+        backgroundColor: Kb.Styles.globalColors.greyLight,
       },
       filledPositive: {
-        backgroundColor: Styles.globalColors.blue,
+        backgroundColor: Kb.Styles.globalColors.blue,
       },
       leftFilled: {
         ...stylePieHalf,
@@ -96,17 +95,17 @@ const styles = Styles.styleSheetCreate(
         left: 0,
       },
       unfilledNegative: {
-        backgroundColor: Styles.globalColors.blueDark,
+        backgroundColor: Kb.Styles.globalColors.blueDark,
       },
       unfilledPositive: {
-        backgroundColor: Styles.globalColors.greyLight,
+        backgroundColor: Kb.Styles.globalColors.greyLight,
       },
       wholeUnfilled: {
         ...stylePieWhole,
         borderRadius: pieHalfSize,
         overflow: 'hidden',
       },
-    } as const)
+    }) as const
 )
 
 export default PieSlice

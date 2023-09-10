@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
 import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
 import type {Props} from '.'
 import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
@@ -75,7 +74,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
     return (
       <Kb.Box2
         direction="vertical"
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.container,
           this.props.style,
           // paddingRight is to compensate for the message menu
@@ -124,7 +123,10 @@ const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: s
   }
 
   return (
-    <div className={Styles.classNames('ashbox', {'full-width': props.exploded})} style={styles.ashBox as any}>
+    <div
+      className={Kb.Styles.classNames('ashbox', {'full-width': props.exploded})}
+      style={styles.ashBox as any}
+    >
       {props.exploded && explodedTag}
       <FlameFront height={props.height} stop={props.doneExploding} />
     </div>
@@ -141,7 +143,7 @@ const FlameFront = (props: {height: number; stop: boolean}) => {
     children.push(
       <Kb.Box key={String(i)} style={styles.flame}>
         <Kb.Animation
-          animationType={Styles.isDarkMode() ? 'darkExploding' : 'exploding'}
+          animationType={Kb.Styles.isDarkMode() ? 'darkExploding' : 'exploding'}
           width={64}
           height={64}
         />
@@ -156,16 +158,16 @@ const FlameFront = (props: {height: number; stop: boolean}) => {
 }
 
 const explodedIllustrationUrl = (): string =>
-  Styles.isDarkMode()
+  Kb.Styles.isDarkMode()
     ? urlsToImgSet({'68': getAssetPath('images', 'icons', 'dark-pattern-ashes-desktop-400-68.png')}, 68)
     : urlsToImgSet({'68': getAssetPath('images', 'icons', 'pattern-ashes-desktop-400-68.png')}, 68)
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      ashBox: Styles.platformStyles({
+      ashBox: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.white, // exploded messages don't have hover effects and we need to cover the message
+          backgroundColor: Kb.Styles.globalColors.white, // exploded messages don't have hover effects and we need to cover the message
           backgroundImage: explodedIllustrationUrl(),
           backgroundRepeat: 'repeat',
           backgroundSize: '400px 68px',
@@ -175,14 +177,14 @@ const styles = Styles.styleSheetCreate(
           top: 0,
         },
       }),
-      container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
-      exploded: Styles.platformStyles({
+      container: {...Kb.Styles.globalStyles.flexBoxColumn, flex: 1},
+      exploded: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.white,
           bottom: 0,
-          color: Styles.globalColors.black_20_on_white,
+          color: Kb.Styles.globalColors.black_20_on_white,
           padding: 2,
-          paddingLeft: Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
           paddingTop: 0,
           position: 'absolute',
           right: 0,
@@ -198,7 +200,7 @@ const styles = Styles.styleSheetCreate(
         top: -22,
         width: 64,
       },
-    } as const)
+    }) as const
 )
 
 export default ExplodingHeightRetainer

@@ -1,7 +1,6 @@
 import * as C from '../../../../../constants'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../../styles'
 import type {Props} from '.'
 import {OrdinalContext} from '../../ids-context'
 import {SwipeTrigger} from '../../../../../common-adapters/swipeable.native'
@@ -61,22 +60,22 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
   }
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       pressable: {
         flexDirection: 'row',
         paddingBottom: 3,
-        paddingRight: Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.tiny,
         paddingTop: 3,
       },
       reply: {
         alignSelf: 'flex-end',
         justifyContent: 'flex-end',
       },
-      replyIcon: {paddingRight: Styles.globalMargins.small},
+      replyIcon: {paddingRight: Kb.Styles.globalMargins.small},
       view: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         position: 'relative',
       },
     }) as const

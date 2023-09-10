@@ -1,6 +1,6 @@
 import * as C from '../constants'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize, type ProxyProps} from './remote-serializer.desktop'
@@ -29,7 +29,7 @@ const UnlockRemoteProxy = () => {
   if (devices.length) {
     return (
       <UnlockFolders
-        darkMode={Styles.isDarkMode()}
+        darkMode={Kb.Styles.isDarkMode()}
         devices={devices}
         paperKeyError={paperKeyError}
         waiting={waiting}

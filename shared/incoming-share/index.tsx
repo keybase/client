@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import * as T from '../constants/types'
 import * as FsConstants from '../constants/fs'
 import * as FsCommon from '../fs/common'
@@ -171,7 +170,7 @@ const useFooter = (incomingShareItems: Array<T.RPCGen.IncomingShareItem>) => {
     : {
         content: (
           <Kb.ClickableBox style={styles.footer} onClick={saveInFiles}>
-            <Kb.Icon type="iconfont-file" color={Styles.globalColors.blue} style={styles.footerIcon} />
+            <Kb.Icon type="iconfont-file" color={Kb.Styles.globalColors.blue} style={styles.footerIcon} />
             <Kb.Text type="BodyBigLink">Save in Files</Kb.Text>
           </Kb.ClickableBox>
         ),
@@ -206,7 +205,7 @@ const IncomingShare = (props: IncomingShareProps) => {
       footer={useFooter(props.incomingShareItems)}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
           <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
         </Kb.Box2>
       </Kb.Box2>
@@ -303,15 +302,15 @@ const IncomingShareMain = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   footer: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
   },
   footerIcon: {
-    marginRight: Styles.globalMargins.tiny,
+    marginRight: Kb.Styles.globalMargins.tiny,
   },
 }))
 

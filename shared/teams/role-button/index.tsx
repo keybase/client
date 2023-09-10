@@ -1,15 +1,14 @@
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import {InlineDropdown} from '../../common-adapters/dropdown'
 import type * as T from '../../constants/types'
 import {roleIconMap} from '../role-picker'
 import capitalize from 'lodash/capitalize'
 
 export type Props = {
-  containerStyle?: Styles.StylesCrossPlatform
+  containerStyle?: Kb.Styles.StylesCrossPlatform
   selectedRole: T.Teams.TeamRoleType
   onClick: () => void
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
   loading?: boolean
 }
 
@@ -28,14 +27,14 @@ const RoleButton = (props: Props) => {
         </Kb.Box2>
       }
       onPress={props.onClick}
-      style={Styles.collapseStyles([styles.button, props.style])}
+      style={Kb.Styles.collapseStyles([styles.button, props.style])}
       loading={props.loading}
     />
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  button: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  button: Kb.Styles.platformStyles({
     common: {
       marginRight: 0,
     },
@@ -51,10 +50,10 @@ const styles = Styles.styleSheetCreate(() => ({
   icon: {
     alignSelf: 'center',
     marginLeft: 0,
-    marginRight: Styles.globalMargins.xtiny,
+    marginRight: Kb.Styles.globalMargins.xtiny,
   },
   label: {
-    marginLeft: Styles.globalMargins.xtiny,
+    marginLeft: Kb.Styles.globalMargins.xtiny,
   },
 }))
 

@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as T from '../../constants/types'
 import {ModalTitle} from '../common'
@@ -79,7 +78,7 @@ const AddEmail = (props: Props) => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Styles.isMobile ? 'tiny' : 'xsmall'}
+        gap={Kb.Styles.isMobile ? 'tiny' : 'xsmall'}
       >
         <Kb.Text type="Body">Enter one or multiple email addresses:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} alignItems="flex-start">
@@ -107,20 +106,20 @@ const AddEmail = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  body: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
-      backgroundColor: Styles.globalColors.blueGrey,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+      backgroundColor: Kb.Styles.globalColors.blueGrey,
       flex: 1,
     },
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   container: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
-  errorText: {color: Styles.globalColors.redDark},
-  wordBreak: Styles.platformStyles({
+  errorText: {color: Kb.Styles.globalColors.redDark},
+  wordBreak: Kb.Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
     },

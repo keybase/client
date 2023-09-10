@@ -3,7 +3,6 @@ import * as Container from '../../../util/container'
 import * as Hooks from './hooks'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
@@ -255,7 +254,7 @@ const ConversationList = React.memo(function ConversationList(p: {
             <Kb.Box style={styles.container}>
               <List
                 extraData={extraData}
-                removeClippedSubviews={Styles.isAndroid}
+                removeClippedSubviews={Kb.Styles.isAndroid}
                 // @ts-ignore
                 drawDistance={100}
                 estimatedItemSize={100}
@@ -284,7 +283,7 @@ const ConversationList = React.memo(function ConversationList(p: {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {flex: 1, position: 'relative'},

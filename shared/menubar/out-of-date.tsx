@@ -1,7 +1,6 @@
 import * as Kb from '../common-adapters'
 import * as R from '../constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
-import * as Styles from '../styles'
 import {isWindows, isDarwin} from '../constants/platform'
 import type * as T from '../constants/types'
 
@@ -43,14 +42,14 @@ const OutOfDate = ({outOfDate}: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   banner: {flexShrink: 0},
   textContainerStyle: {
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
+    paddingLeft: Kb.Styles.globalMargins.small,
+    paddingRight: Kb.Styles.globalMargins.small,
   },
-  textCritical: {color: Styles.globalColors.white},
-  textNonCritical: {color: Styles.globalColors.brown_75},
+  textCritical: {color: Kb.Styles.globalColors.white},
+  textNonCritical: {color: Kb.Styles.globalColors.brown_75},
 }))
 
 export default OutOfDate

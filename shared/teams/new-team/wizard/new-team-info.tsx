@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
-import * as Styles from '../../../styles'
 import {ModalTitle} from '../../common'
 import * as T from '../../../constants/types'
 import {pluralize} from '../../../util/string'
@@ -13,7 +12,7 @@ import debounce from 'lodash/debounce'
 const getTeamTakenMessage = (status: number): string => {
   switch (status) {
     case T.RPCGen.StatusCode.scteambadnamereserveddb:
-      return Styles.isMobile
+      return Kb.Styles.isMobile
         ? 'This team name is reserved by the Keybase team. Contact reservations@keybase.io to claim it.'
         : 'This team name is reserved by the Keybase team, possibly for your organization. Contact reservations@keybase.io to claim it.'
 
@@ -71,7 +70,7 @@ const NewTeamInfo = () => {
     teamWizardState.name ? teamWizardState.open : teamWizardState.teamType === 'community'
   )
   const setOpenTeam = () => {
-    if (Styles.isMobile) {
+    if (Kb.Styles.isMobile) {
       Kb.LayoutAnimation.configureNext(Kb.LayoutAnimation.Presets.easeInEaseOut)
     }
     _setOpenTeam(!openTeam)
@@ -110,7 +109,7 @@ const NewTeamInfo = () => {
       header={{
         leftButton:
           teamWizardState.teamType === 'subteam' ? (
-            Styles.isMobile ? (
+            Kb.Styles.isMobile ? (
               <Kb.Text type="BodyBigLink" onClick={onClose}>
                 Cancel
               </Kb.Text>
@@ -183,16 +182,16 @@ const NewTeamInfo = () => {
 
         <Kb.Checkbox
           labelComponent={
-            <Kb.Box2 direction="vertical" alignItems="flex-start" style={Styles.globalStyles.flexOne}>
+            <Kb.Box2 direction="vertical" alignItems="flex-start" style={Kb.Styles.globalStyles.flexOne}>
               <Kb.Text type="Body">Make it an open team</Kb.Text>
               <Kb.Text type="BodySmall">Anyone can join without admin approval.</Kb.Text>
-              {(!Styles.isMobile || openTeam) && (
+              {(!Kb.Styles.isMobile || openTeam) && (
                 <Kb.Box2
                   direction="horizontal"
                   gap="xtiny"
                   alignSelf="flex-start"
                   alignItems="center"
-                  className={Styles.classNames('hideableDropdown', {hidden: !openTeam})}
+                  className={Kb.Styles.classNames('hideableDropdown', {hidden: !openTeam})}
                 >
                   <Kb.Text type="BodySmall">People will join as</Kb.Text>
                   <FloatingRolePicker
@@ -236,30 +235,30 @@ const NewTeamInfo = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bg: {backgroundColor: Styles.globalColors.blueGrey},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
   biggerOnTheInside: {height: 100},
-  body: Styles.platformStyles({
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       borderRadius: 4,
     },
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   container: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
   extraLineText: {
     height: 36,
   },
-  floatingRolePicker: Styles.platformStyles({
+  floatingRolePicker: Kb.Styles.platformStyles({
     isElectron: {
       position: 'relative',
       top: -20,
     },
   }),
-  subteamNameInput: Styles.padding(Styles.globalMargins.tiny),
-  wordBreak: Styles.platformStyles({
+  subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
+  wordBreak: Kb.Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
     },

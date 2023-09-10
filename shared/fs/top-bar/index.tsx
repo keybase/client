@@ -1,4 +1,3 @@
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as T from '../../constants/types'
 import * as RowTypes from '../browser/rows/types'
@@ -21,20 +20,20 @@ const TopBar = (props: Props) => (
     gapEnd={true}
     alignItems="center"
   >
-    {!Styles.isMobile && <Sort path={props.path} />}
+    {!Kb.Styles.isMobile && <Sort path={props.path} />}
     <Loading path={props.path} />
     <Kb.Box style={styles.flex} />
     {T.FS.getPathLevel(props.path) === 3 && <SyncToggle tlfPath={props.path} />}
   </Kb.Box2>
 )
 
-export const height = Styles.isMobile ? 40 : 32
+export const height = Kb.Styles.isMobile ? 40 : 32
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        backgroundColor: Styles.globalColors.blueLighter3,
+        backgroundColor: Kb.Styles.globalColors.blueLighter3,
         height,
       },
       flex: {flex: 1},

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import {TeamAvatar} from './avatars'
 import {pluralize} from '../util/string'
 import {BottomLine} from './inbox/row/small-team/bottom-line'
@@ -44,7 +43,7 @@ class SelectableBigTeamChannel extends React.PureComponent<Props, State> {
   }
 
   render() {
-    const boldOverride = this.props.showBold ? Styles.globalStyles.fontBold : null
+    const boldOverride = this.props.showBold ? Kb.Styles.globalStyles.fontBold : null
     const rowLoadedContent = (
       <>
         <TeamAvatar
@@ -57,25 +56,25 @@ class SelectableBigTeamChannel extends React.PureComponent<Props, State> {
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Text
               type="BodySemibold"
-              style={Styles.collapseStyles([
+              style={Kb.Styles.collapseStyles([
                 styles.teamname,
-                {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
+                {color: this.props.isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black},
               ])}
               title={this.props.teamname}
-              lineClamp={Styles.isMobile ? 1 : undefined}
+              lineClamp={Kb.Styles.isMobile ? 1 : undefined}
               ellipsizeMode="tail"
             >
               {this.props.teamname}
             </Kb.Text>
             <Kb.Text
               type="BodySemibold"
-              style={Styles.collapseStyles([
+              style={Kb.Styles.collapseStyles([
                 boldOverride,
                 styles.channelname,
-                {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
+                {color: this.props.isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black},
               ])}
               title={`#${this.props.channelname}`}
-              lineClamp={Styles.isMobile ? 1 : undefined}
+              lineClamp={Kb.Styles.isMobile ? 1 : undefined}
               ellipsizeMode="tail"
             >
               &nbsp;#
@@ -90,7 +89,7 @@ class SelectableBigTeamChannel extends React.PureComponent<Props, State> {
           {!!this.props.numSearchHits && (
             <Kb.Text
               type="BodySmall"
-              style={Styles.collapseStyles([this.props.isSelected && styles.selectedText])}
+              style={Kb.Styles.collapseStyles([this.props.isSelected && styles.selectedText])}
             >
               {this._getSearchHits()} {pluralize('result', this.props.numSearchHits)}
             </Kb.Text>
@@ -106,9 +105,13 @@ class SelectableBigTeamChannel extends React.PureComponent<Props, State> {
           fullWidth={true}
           centerChildren={true}
           className="hover_background_color_blueGreyDark"
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             styles.filteredRow,
-            {backgroundColor: this.props.isSelected ? Styles.globalColors.blue : Styles.globalColors.white},
+            {
+              backgroundColor: this.props.isSelected
+                ? Kb.Styles.globalColors.blue
+                : Kb.Styles.globalColors.white,
+            },
           ])}
           onMouseLeave={this._onMouseLeave}
           onMouseOver={this._onMouseOver}
@@ -120,19 +123,19 @@ class SelectableBigTeamChannel extends React.PureComponent<Props, State> {
   }
 }
 
-export const rowHeight = Styles.isMobile ? 64 : 56
+export const rowHeight = Kb.Styles.isMobile ? 64 : 56
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       badge: {
-        backgroundColor: Styles.globalColors.orange,
+        backgroundColor: Kb.Styles.globalColors.orange,
         borderRadius: 6,
         flexShrink: 0,
-        height: Styles.globalMargins.tiny,
-        width: Styles.globalMargins.tiny,
+        height: Kb.Styles.globalMargins.tiny,
+        width: Kb.Styles.globalMargins.tiny,
       },
-      channelname: Styles.platformStyles({
+      channelname: Kb.Styles.platformStyles({
         // TODO: tweak this so that they take up full space in popup
         common: {
           flexShrink: 0,
@@ -144,25 +147,25 @@ const styles = Styles.styleSheetCreate(
           whiteSpace: 'nowrap',
         },
       }),
-      filteredRow: Styles.platformStyles({
+      filteredRow: Kb.Styles.platformStyles({
         common: {
           height: rowHeight,
         },
         isElectron: {
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
+          paddingLeft: Kb.Styles.globalMargins.xsmall,
+          paddingRight: Kb.Styles.globalMargins.xsmall,
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
         },
       }),
       selectedText: {
-        color: Styles.globalColors.white,
+        color: Kb.Styles.globalColors.white,
       },
-      teamname: Styles.platformStyles({
+      teamname: Kb.Styles.platformStyles({
         common: {
-          color: Styles.globalColors.black,
+          color: Kb.Styles.globalColors.black,
           flexShrink: 1,
         },
         isElectron: {
@@ -174,7 +177,7 @@ const styles = Styles.styleSheetCreate(
       textContainer: {
         flexShrink: 1,
         overflow: 'hidden',
-        paddingRight: Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.tiny,
       },
     }) as const
 )

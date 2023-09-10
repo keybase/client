@@ -1,12 +1,12 @@
 import * as React from 'react'
-import * as Styles from '../../../../../styles'
+import * as Kb from '../../../../../common-adapters'
 
 export type Props = {
   children: React.ReactNode
   // mobile
   onLongPress?: () => void
   onSwipeLeft?: () => void
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 
   // desktop
   className?: string

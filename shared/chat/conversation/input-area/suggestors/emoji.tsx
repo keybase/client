@@ -3,7 +3,6 @@ import * as Common from './common'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import {
   emojiSearch,
   emojiDataToRenderableEmoji,
@@ -29,9 +28,9 @@ const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         Common.styles.suggestionBase,
-        {backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white},
+        {backgroundColor: selected ? Kb.Styles.globalColors.blueLighter2 : Kb.Styles.globalColors.white},
       ])}
       gap="small"
     >

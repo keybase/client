@@ -1,6 +1,5 @@
 import * as T from '../../../constants/types'
 import * as C from '../../../constants'
-import * as Styles from '../../../styles'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
 import {LastModifiedLine, Filename} from '../../common'
@@ -40,8 +39,8 @@ const Still = (props: StillProps) => (
         {props.isEmpty && (
           <Kb.Meta
             title="empty"
-            backgroundColor={Styles.globalColors.greyDark}
-            style={{marginLeft: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.xxtiny}}
+            backgroundColor={Kb.Styles.globalColors.greyDark}
+            style={{marginLeft: Kb.Styles.globalMargins.tiny, marginTop: Kb.Styles.globalMargins.xxtiny}}
           />
         )}
       </>
@@ -64,7 +63,7 @@ const Still = (props: StillProps) => (
       ) : props.intentIfDownloading ? (
         <Kb.Text type="BodySmall">{getDownloadingText(props.intentIfDownloading)}</Kb.Text>
       ) : props.writingToJournal ? (
-        <Kb.Meta title="Encrypting" backgroundColor={Styles.globalColors.blue} />
+        <Kb.Meta title="Encrypting" backgroundColor={Kb.Styles.globalColors.blue} />
       ) : props.uploading ? (
         <Kb.Text type="BodySmall">Uploading ...</Kb.Text>
       ) : (
@@ -76,6 +75,6 @@ const Still = (props: StillProps) => (
 
 export default Still
 
-const styles = Styles.styleSheetCreate(() => ({
-  redDark: {color: Styles.globalColors.redDark},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  redDark: {color: Kb.Styles.globalColors.redDark},
 }))

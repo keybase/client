@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import type {Props} from '.'
 
 const Prompt = () => (
@@ -9,7 +8,7 @@ const Prompt = () => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       promptContainer: {
@@ -23,7 +22,7 @@ const styles = Styles.styleSheetCreate(
 
 class FilePickerPopup extends React.Component<Props> {
   render() {
-    const items = Styles.isIOS
+    const items = Kb.Styles.isIOS
       ? ([
           {
             icon: 'iconfont-camera',

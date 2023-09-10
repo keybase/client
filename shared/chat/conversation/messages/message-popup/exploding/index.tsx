@@ -1,12 +1,11 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
 import type * as T from '../../../../../constants/types'
 
-const headerIconType = Styles.isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'
-const headerIconHeight = Styles.isMobile ? 96 : 72
+const headerIconType = Kb.Styles.isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'
+const headerIconHeight = Kb.Styles.isMobile ? 96 : 72
 
 type Props = {
   attachTo?: () => React.Component<any> | null
@@ -19,8 +18,8 @@ type Props = {
   hideTimer: boolean
   items: Kb.MenuItems
   onHidden: () => void
-  position: Styles.Position
-  style?: Styles.StylesCrossPlatform
+  position: Kb.Styles.Position
+  style?: Kb.Styles.StylesCrossPlatform
   timestamp: number
   visible: boolean
   yourMessage: boolean
@@ -67,7 +66,7 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
         <Kb.Icon style={styles.headerIcon} type={headerIconType} />
         <Kb.Box2 direction="vertical" style={styles.messageInfoContainer}>
           <Kb.Box2 direction="vertical">
-            <Kb.Text type="BodySmall" style={{color: Styles.globalColors.black}}>
+            <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.black}}>
               EXPLODING MESSAGE
             </Kb.Text>
           </Kb.Box2>
@@ -119,8 +118,8 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
         </Kb.Box2>
         {!!deviceRevokedAt && (
           <Kb.PopupHeaderText
-            color={Styles.globalColors.white}
-            backgroundColor={Styles.globalColors.blue}
+            color={Kb.Styles.globalColors.white}
+            backgroundColor={Kb.Styles.globalColors.blue}
             style={styles.revokedAt}
           >
             {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
@@ -132,11 +131,13 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
           fullWidth={true}
           gapEnd={true}
           gapStart={true}
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             styles.timerBox,
             {
               backgroundColor:
-                this.state.secondsLeft < oneMinuteInS ? Styles.globalColors.red : Styles.globalColors.black,
+                this.state.secondsLeft < oneMinuteInS
+                  ? Kb.Styles.globalColors.red
+                  : Kb.Styles.globalColors.black,
             },
           ])}
         >
@@ -146,10 +147,10 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
             <Kb.Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
               <Kb.Icon
                 type="iconfont-timer"
-                fontSize={Styles.isMobile ? 20 : 16}
-                color={Styles.globalColors.white}
+                fontSize={Kb.Styles.isMobile ? 20 : 16}
+                color={Kb.Styles.globalColors.white}
               />
-              <Kb.Text style={{alignSelf: 'center', color: Styles.globalColors.white}} type="BodySemibold">
+              <Kb.Text style={{alignSelf: 'center', color: Kb.Styles.globalColors.white}} type="BodySemibold">
                 {msToDHMS(this.props.explodesAt - Date.now())}
               </Kb.Text>
             </Kb.Box2>
@@ -183,19 +184,19 @@ const safeProviderStyle = {flex: 1} as const
 
 const oneMinuteInS = 60
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       headerIcon: {
         height: headerIconHeight,
-        marginBottom: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
       },
       messageInfoContainer: {
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
-      popupContainer: Styles.platformStyles({
+      popupContainer: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
         },
@@ -207,16 +208,16 @@ const styles = Styles.styleSheetCreate(
       revokedAt: {
         borderBottomLeftRadius: 3,
         borderBottomRightRadius: 3,
-        marginBottom: -Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.small,
+        marginBottom: -Kb.Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
         minHeight: 40,
         width: '100%',
       },
-      timerBox: Styles.platformStyles({
+      timerBox: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
           justifyContent: 'center',
-          marginTop: Styles.globalMargins.tiny,
+          marginTop: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
           height: 46,

@@ -1,6 +1,6 @@
 import * as Common from '../router-v2/common'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import Header from './header'
 import type * as C from '../constants'
 
@@ -8,7 +8,7 @@ const Split = React.lazy(async () => import('./inbox-and-conversation-2'))
 type OwnProps = C.ViewPropsToPagePropsMaybe<typeof Split>
 
 const getOptions = ({route}: OwnProps) => {
-  if (Styles.isTablet) {
+  if (Kb.Styles.isTablet) {
     return {
       headerLeft: null,
       headerLeftContainerStyle: {maxWidth: 0},

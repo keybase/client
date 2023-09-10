@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../../../avatars'
@@ -79,27 +78,27 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   const onSelectConversation = isSelected ? undefined : p.onSelectConversation ?? _onSelectConversation
 
   const backgroundColor = isInWidget
-    ? Styles.globalColors.white
+    ? Kb.Styles.globalColors.white
     : isSelected
-    ? Styles.globalColors.blue
-    : Styles.isPhone && !Styles.isTablet
-    ? Styles.globalColors.fastBlank
-    : Styles.globalColors.blueGrey
+    ? Kb.Styles.globalColors.blue
+    : Kb.Styles.isPhone && !Kb.Styles.isTablet
+    ? Kb.Styles.globalColors.fastBlank
+    : Kb.Styles.globalColors.blueGrey
 
   const children = React.useMemo(() => {
     return (
       <SwipeConvActions swipeCloseRef={swipeCloseRef} onClick={onSelectConversation}>
         <Kb.ClickableBox
-          className={Styles.classNames('small-row', {selected: isSelected})}
+          className={Kb.Styles.classNames('small-row', {selected: isSelected})}
           style={
-            isInWidget || Styles.isTablet
-              ? Styles.collapseStyles([styles.container, {backgroundColor: backgroundColor}])
+            isInWidget || Kb.Styles.isTablet
+              ? Kb.Styles.collapseStyles([styles.container, {backgroundColor: backgroundColor}])
               : styles.container
           }
         >
-          <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank] as const)}>
+          <Kb.Box style={Kb.Styles.collapseStyles([styles.rowContainer, styles.fastBlank] as const)}>
             <RowAvatars backgroundColor={backgroundColor} isSelected={isSelected} />
-            <Kb.Box style={Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
+            <Kb.Box style={Kb.Styles.collapseStyles([styles.conversationRow, styles.fastBlank])}>
               <Kb.Box2 direction="vertical" style={styles.withBottomLine} fullWidth={true}>
                 <SimpleTopLine isSelected={isSelected} isInWidget={isInWidget} />
               </Kb.Box2>
@@ -175,40 +174,40 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   )
 })
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     flexShrink: 0,
     height: RowSizes.smallRowHeight,
   },
   conversationRow: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
     height: '100%',
     justifyContent: 'center',
-    paddingLeft: Styles.globalMargins.tiny,
+    paddingLeft: Kb.Styles.globalMargins.tiny,
   },
-  fastBlank: Styles.platformStyles({
-    isPhone: {backgroundColor: Styles.globalColors.fastBlank},
+  fastBlank: Kb.Styles.platformStyles({
+    isPhone: {backgroundColor: Kb.Styles.globalColors.fastBlank},
     isTablet: {backgroundColor: undefined},
   }),
   flexOne: {flex: 1},
-  rowContainer: Styles.platformStyles({
+  rowContainer: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
+      ...Kb.Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       height: '100%',
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
+      paddingLeft: Kb.Styles.globalMargins.xsmall,
+      paddingRight: Kb.Styles.globalMargins.xsmall,
     },
-    isElectron: Styles.desktopStyles.clickable,
+    isElectron: Kb.Styles.desktopStyles.clickable,
     isMobile: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      paddingLeft: Kb.Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
     },
   }),
   withBottomLine: {
     justifyContent: 'flex-end',
-    paddingBottom: Styles.globalMargins.xxtiny,
+    paddingBottom: Kb.Styles.globalMargins.xxtiny,
   },
   withoutBottomLine: {justifyContent: 'center'},
 }))

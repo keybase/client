@@ -1,6 +1,5 @@
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import type * as T from '../../../constants/types'
 import OpenMeta from './openmeta'
 import TeamInfo from './teaminfo'
@@ -79,21 +78,21 @@ const Teams = (p: Props) =>
     </Kb.Box2>
   ) : null
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      link: {color: Styles.globalColors.black},
-      placeholderTeam: {borderRadius: Styles.borderRadius},
+      link: {color: Kb.Styles.globalColors.black},
+      placeholderTeam: {borderRadius: Kb.Styles.borderRadius},
       showcase: {alignItems: 'center'},
       showcases: {
         alignItems: 'flex-start',
         flexShrink: 0,
-        paddingBottom: Styles.globalMargins.small,
-        paddingLeft: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       youFeatureTeam: {
         alignSelf: 'center',
-        color: Styles.globalColors.black_50,
+        color: Kb.Styles.globalColors.black_50,
       },
     }) as const
 )

@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import capitalize from 'lodash/capitalize'
 import * as T from '../../constants/types'
 import {pluralize} from '../../util/string'
@@ -43,7 +42,7 @@ const TeamMenu = (props: Props) => {
         <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny">
           {(role === 'admin' || role === 'owner') && (
             <Kb.Icon
-              color={role === 'owner' ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
+              color={role === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
               fontSize={10}
               type="iconfont-crown-owner"
             />
@@ -66,13 +65,13 @@ const TeamMenu = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  headerContainer: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  headerContainer: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.xtiny),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny),
     },
     isElectron: {
-      paddingBottom: Styles.globalMargins.tiny,
+      paddingBottom: Kb.Styles.globalMargins.tiny,
       paddingTop: 20,
     },
   }),

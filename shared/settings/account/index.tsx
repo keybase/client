@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as Constants from '../../constants/settings'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import EmailPhoneRow from './email-phone-row'
 import {isMobile} from '../../styles'
 
@@ -151,7 +150,7 @@ const EmailPhone = (props: Props) => (
             type="iconfont-open-browser"
             sizeType="Tiny"
             boxStyle={styles.displayInline}
-            color={Styles.globalColors.blueDark}
+            color={Kb.Styles.globalColors.blueDark}
           />
         </Kb.Text>
       </Kb.Text>
@@ -173,7 +172,7 @@ const EmailPhone = (props: Props) => (
 const Password = (props: Props) => {
   let passwordLabel: string
   if (props.hasPassword) {
-    passwordLabel = Styles.isMobile ? 'Change' : 'Change password'
+    passwordLabel = Kb.Styles.isMobile ? 'Change' : 'Change password'
   } else {
     passwordLabel = 'Set a password'
   }
@@ -243,7 +242,7 @@ const AccountSettings = (props: Props) => (
     reloadOnMount={true}
     waitingKeys={[Constants.loadSettingsWaitingKey]}
   >
-    <Kb.ScrollView style={Styles.globalStyles.fullWidth}>
+    <Kb.ScrollView style={Kb.Styles.globalStyles.fullWidth}>
       {props.addedEmail && (
         <Kb.Banner key="clearAdded" color="yellow" onClose={props.onClearAddedEmail}>
           <Kb.BannerParagraph
@@ -291,45 +290,49 @@ const AccountSettings = (props: Props) => (
   </Kb.Reloadable>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonBar: {
     minHeight: undefined,
     width: undefined,
   },
-  contactRows: Styles.platformStyles({
+  contactRows: Kb.Styles.platformStyles({
     isElectron: {
-      paddingTop: Styles.globalMargins.xtiny,
+      paddingTop: Kb.Styles.globalMargins.xtiny,
     },
   }),
-  displayInline: Styles.platformStyles({isElectron: {display: 'inline'}}),
+  displayInline: Kb.Styles.platformStyles({isElectron: {display: 'inline'}}),
   password: {
-    ...Styles.padding(Styles.globalMargins.xsmall, 0),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, 0),
     flexGrow: 1,
   },
   progress: {
     height: 16,
     width: 16,
   },
-  section: Styles.platformStyles({
+  section: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(
-        Styles.globalMargins.small,
-        Styles.globalMargins.mediumLarge,
-        Styles.globalMargins.medium,
-        Styles.globalMargins.small
+      ...Kb.Styles.padding(
+        Kb.Styles.globalMargins.small,
+        Kb.Styles.globalMargins.mediumLarge,
+        Kb.Styles.globalMargins.medium,
+        Kb.Styles.globalMargins.small
       ),
     },
     isElectron: {
       maxWidth: 600,
     },
     isPhone: {
-      ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.medium),
+      ...Kb.Styles.padding(
+        Kb.Styles.globalMargins.small,
+        Kb.Styles.globalMargins.small,
+        Kb.Styles.globalMargins.medium
+      ),
     },
     isTablet: {
-      maxWidth: Styles.globalStyles.largeWidthPercent,
+      maxWidth: Kb.Styles.globalStyles.largeWidthPercent,
     },
   }),
   topButton: {
-    marginTop: Styles.globalMargins.xtiny,
+    marginTop: Kb.Styles.globalMargins.xtiny,
   },
 }))

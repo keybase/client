@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 
 const PushPrompt = () => {
   const rejectPermissions = C.usePushState(s => s.dispatch.rejectPermissions)
@@ -63,32 +62,32 @@ const PushPrompt = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      background: {backgroundColor: Styles.globalColors.blue},
-      button: Styles.platformStyles({
+      background: {backgroundColor: Kb.Styles.globalColors.blue},
+      button: Kb.Styles.platformStyles({
         common: {
           maxHeight: 40,
         },
         isTablet: {
-          marginBottom: Styles.globalMargins.medium,
+          marginBottom: Kb.Styles.globalMargins.medium,
         },
       }),
       container: {
-        ...Styles.globalStyles.fillAbsolute,
-        backgroundColor: Styles.globalColors.blue,
+        ...Kb.Styles.globalStyles.fillAbsolute,
+        backgroundColor: Kb.Styles.globalColors.blue,
         justifyContent: 'center',
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
       footer: {
-        backgroundColor: Styles.globalColors.blue,
+        backgroundColor: Kb.Styles.globalColors.blue,
       },
       header: {
-        backgroundColor: Styles.globalColors.blue,
-        color: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.blue,
+        color: Kb.Styles.globalColors.white,
       },
-      image: Styles.platformStyles({
+      image: Kb.Styles.platformStyles({
         isTablet: {
           alignSelf: 'center',
         },

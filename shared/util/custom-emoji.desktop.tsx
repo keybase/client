@@ -1,4 +1,3 @@
-import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 import type {Props} from './custom-emoji'
 
@@ -8,7 +7,7 @@ const CustomEmoji = (props: Props) => {
     <Kb.Box2
       direction="horizontal"
       alignItems="center"
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.emoji,
         {
           height: size,
@@ -20,7 +19,7 @@ const CustomEmoji = (props: Props) => {
       <Kb.WithTooltip tooltip={alias ?? null} containerStyle={styles.tooltipContainer}>
         <Kb.Image2
           src={src}
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             {
               maxHeight: size,
               width: size,
@@ -32,22 +31,22 @@ const CustomEmoji = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      emoji: Styles.platformStyles({
+      emoji: Kb.Styles.platformStyles({
         isElectron: {
           display: 'inline-flex',
           justifyContent: 'center',
           verticalAlign: 'middle',
         },
       }),
-      tooltipContainer: Styles.platformStyles({
+      tooltipContainer: Kb.Styles.platformStyles({
         isElectron: {
           justifyContent: 'center',
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default CustomEmoji

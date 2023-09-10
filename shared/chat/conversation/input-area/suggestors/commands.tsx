@@ -3,7 +3,6 @@ import * as T from '../../../../constants/types'
 import * as Common from './common'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import {memoize} from '../../../../util/memoize'
 
 const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {
@@ -67,9 +66,9 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
       direction="horizontal"
       gap="tiny"
       fullWidth={true}
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         Common.styles.suggestionBase,
-        {backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white},
+        {backgroundColor: selected ? Kb.Styles.globalColors.blueLighter2 : Kb.Styles.globalColors.white},
         {alignItems: 'flex-start'},
       ])}
     >
@@ -77,7 +76,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
       <Kb.Box2
         fullWidth={true}
         direction="vertical"
-        style={Styles.collapseStyles([Common.styles.fixSuggestionHeight, {alignItems: 'flex-start'}])}
+        style={Kb.Styles.collapseStyles([Common.styles.fixSuggestionHeight, {alignItems: 'flex-start'}])}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
           <Kb.Text type="BodySemibold">
@@ -89,7 +88,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
         {enabled ? (
           <Kb.Text type="BodySmall">{command.description}</Kb.Text>
         ) : (
-          <Kb.Text type="BodySmall" style={{color: Styles.globalColors.redDark}}>
+          <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.redDark}}>
             Command unavailable due to bot restriction configuration.
           </Kb.Text>
         )}

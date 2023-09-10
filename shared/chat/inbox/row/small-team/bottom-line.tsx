@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import * as T from '../../../../constants/types'
 import {SnippetContext, SnippetDecorationContext} from './contexts'
 
@@ -18,21 +17,21 @@ const SnippetDecoration = (p: {type: Kb.IconType; color: string; tooltip?: strin
     <Kb.Icon
       color={color}
       type={type}
-      fontSize={Styles.isMobile ? 16 : 12}
+      fontSize={Kb.Styles.isMobile ? 16 : 12}
       style={styles.snippetDecoration}
     />
   )
   return tooltip ? <Kb.WithTooltip tooltip={tooltip}>{icon}</Kb.WithTooltip> : icon
 }
 
-const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Styles.StylesCrossPlatform}) {
+const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Kb.Styles.StylesCrossPlatform}) {
   const snippet = React.useContext(SnippetContext)
   const {isSelected, style} = p
 
   const decoration = React.useContext(SnippetDecorationContext)
   let snippetDecoration: React.ReactNode
   let exploded = false
-  const defaultIconColor = isSelected ? Styles.globalColors.white : Styles.globalColors.black_20
+  const defaultIconColor = isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_20
 
   switch (decoration) {
     case T.RPCChat.SnippetDecoration.pendingMessage:
@@ -44,7 +43,7 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Sty
       snippetDecoration = (
         <SnippetDecoration
           type="iconfont-exclamation"
-          color={isSelected ? Styles.globalColors.white : Styles.globalColors.red}
+          color={isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.red}
           tooltip="Failed to send"
         />
       )
@@ -57,7 +56,7 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Sty
         <Kb.Text
           type="BodySmall"
           style={{
-            color: isSelected ? Styles.globalColors.white : Styles.globalColors.black_50,
+            color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50,
           }}
         >
           Message exploded.
@@ -174,20 +173,20 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
   const {isTypingSnippet, hasResetUsers, hasUnread, participantNeedToRekey, backgroundColor} = p
 
   const subColor = isSelected
-    ? Styles.globalColors.white
+    ? Kb.Styles.globalColors.white
     : hasUnread
-    ? Styles.globalColors.black
-    : Styles.globalColors.black_50
+    ? Kb.Styles.globalColors.black
+    : Kb.Styles.globalColors.black_50
   const showBold = !isSelected && hasUnread
 
   let content: React.ReactNode
   const style = React.useMemo(
     () =>
-      Styles.collapseStyles([
+      Kb.Styles.collapseStyles([
         styles.bottomLine,
         {
           color: subColor,
-          ...(showBold ? Styles.globalStyles.fontBold : {}),
+          ...(showBold ? Kb.Styles.globalStyles.fontBold : {}),
         },
         isTypingSnippet ? styles.typingSnippet : null,
       ]),
@@ -199,11 +198,11 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
     content = (
       <Kb.Text
         type="BodySmallSemibold"
-        fixOverdraw={Styles.isPhone}
+        fixOverdraw={Kb.Styles.isPhone}
         negative={true}
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.youAreResetText,
-          {color: isSelected ? Styles.globalColors.white : Styles.globalColors.red},
+          {color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.red},
         ])}
       >
         You are locked out.
@@ -211,16 +210,16 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
     )
   } else if (participantNeedToRekey) {
     content = (
-      <Kb.Meta title="rekey needed" style={styles.alertMeta} backgroundColor={Styles.globalColors.red} />
+      <Kb.Meta title="rekey needed" style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.red} />
     )
   } else if (draft) {
     content = (
       <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
         <Kb.Text
           type="BodySmall"
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             styles.draftLabel,
-            isSelected ? {color: Styles.globalColors.white} : null,
+            isSelected ? {color: Kb.Styles.globalColors.white} : null,
           ])}
         >
           Draft:
@@ -232,7 +231,7 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
     )
   } else if (isDecryptingSnippet) {
     content = (
-      <Kb.Meta title="decrypting..." style={styles.alertMeta} backgroundColor={Styles.globalColors.blue} />
+      <Kb.Meta title="decrypting..." style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.blue} />
     )
   } else {
     content = (
@@ -244,16 +243,20 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
   return (
     <Kb.Box2 direction="vertical" style={styles.bottom} fullWidth={true}>
       <Kb.Box
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.outerBox,
-          {backgroundColor: Styles.isMobile ? backgroundColor : undefined},
+          {backgroundColor: Kb.Styles.isMobile ? backgroundColor : undefined},
         ])}
       >
         {hasResetUsers && (
-          <Kb.Meta title="reset" style={styles.alertMeta} backgroundColor={Styles.globalColors.red} />
+          <Kb.Meta title="reset" style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.red} />
         )}
         {youNeedToRekey && (
-          <Kb.Meta title="rekey needed" style={styles.alertMeta} backgroundColor={Styles.globalColors.red} />
+          <Kb.Meta
+            title="rekey needed"
+            style={styles.alertMeta}
+            backgroundColor={Kb.Styles.globalColors.red}
+          />
         )}
         <Kb.Box style={styles.innerBox}>{content}</Kb.Box>
       </Kb.Box>
@@ -261,10 +264,10 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      alertMeta: Styles.platformStyles({
+      alertMeta: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'center',
           marginRight: 6,
@@ -272,9 +275,9 @@ const styles = Styles.styleSheetCreate(
         isMobile: {marginTop: 2},
       }),
       bottom: {justifyContent: 'flex-start'},
-      bottomLine: Styles.platformStyles({
+      bottomLine: Kb.Styles.platformStyles({
         isElectron: {
-          color: Styles.globalColors.black_50,
+          color: Kb.Styles.globalColors.black_50,
           display: 'block',
           minHeight: 16,
           overflow: 'hidden',
@@ -284,21 +287,21 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
         isMobile: {
-          color: Styles.globalColors.black_50,
+          color: Kb.Styles.globalColors.black_50,
           flex: 1,
           lineHeight: 19,
           paddingRight: 40,
         },
       }),
       contentBox: {
-        ...Styles.globalStyles.fillAbsolute,
+        ...Kb.Styles.globalStyles.fillAbsolute,
         alignItems: 'center',
         width: '100%',
       },
-      draftLabel: {color: Styles.globalColors.orange},
-      innerBox: Styles.platformStyles({
+      draftLabel: {color: Kb.Styles.globalColors.orange},
+      innerBox: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxRow,
+          ...Kb.Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
           flexGrow: 1,
           height: 17,
@@ -307,11 +310,11 @@ const styles = Styles.styleSheetCreate(
         isMobile: {height: 21},
       }),
       outerBox: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
       },
       snippetDecoration: {alignSelf: 'flex-start'},
       typingSnippet: {},
-      youAreResetText: Styles.platformStyles({
+      youAreResetText: Kb.Styles.platformStyles({
         isElectron: {
           fontSize: 12,
           lineHeight: 13,

@@ -4,7 +4,6 @@ import * as Commands from './commands'
 import * as Emoji from './emoji'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import * as Users from './users'
 import type * as Common from './common'
 import type {Props} from '../normal/platform-input'
@@ -360,7 +359,7 @@ const Popup = (p: PopupProps) => {
   const getAttachmentRef = React.useCallback(() => inputRef.current?._input.current, [inputRef])
   const conversationIdKey = C.useChatContext(s => s.id)
 
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <Kb.FloatingBox containerStyle={suggestionOverlayStyle} onHidden={setInactive}>
       <C.ChatProvider id={conversationIdKey}>
         <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2>

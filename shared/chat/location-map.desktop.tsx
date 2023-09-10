@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import openURL from '../util/open-url'
 
 type Props = {
@@ -36,23 +35,23 @@ const LocationMap = (props: Props) => {
 
 export default LocationMap
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       banner: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         borderBottomWidth: 1,
-        borderColor: Styles.globalColors.black_10,
+        borderColor: Kb.Styles.globalColors.black_10,
         left: 0,
         position: 'absolute',
         top: 0,
       },
       container: {
-        ...Styles.globalStyles.fillAbsolute,
+        ...Kb.Styles.globalStyles.fillAbsolute,
         justifyContent: 'center',
       },
       learn: {
-        color: Styles.globalColors.blueDark,
+        color: Kb.Styles.globalColors.blueDark,
       },
       loading: {
         bottom: '50%',
@@ -66,5 +65,5 @@ const styles = Styles.styleSheetCreate(
         top: '50%',
         width: 24,
       },
-    } as const)
+    }) as const
 )

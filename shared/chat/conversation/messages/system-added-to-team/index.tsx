@@ -1,5 +1,4 @@
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
 import type * as T from '../../../../constants/types'
 import {typeToLabel} from '../../../../constants/teams'
@@ -33,7 +32,7 @@ const ManageComponent = (props: Props) => {
   }
   if (props.addee === props.you) {
     return (
-      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn}}>
+      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn}}>
         <Kb.Text onClick={props.onManageNotifications} type={textType}>
           Manage phone and computer notifications
         </Kb.Text>
@@ -96,7 +95,7 @@ const YouAddedToTeam = (props: Props) => {
         {teamname && (
           <Kb.Text
             onClick={onViewTeam}
-            style={{color: Styles.globalColors.black_50}}
+            style={{color: Kb.Styles.globalColors.black_50}}
             type="BodySmallSemiboldSecondaryLink"
           >
             {teamname}

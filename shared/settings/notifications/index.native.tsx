@@ -1,12 +1,11 @@
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import Notifications from './render'
 import type {Props} from '.'
 
 const MobileNotifications = (props: Props) => {
   return (
-    <Kb.ScrollView style={{...Styles.globalStyles.flexBoxColumn, flex: 1}}>
+    <Kb.ScrollView style={{...Kb.Styles.globalStyles.flexBoxColumn, flex: 1}}>
       <TurnOnNotifications />
       <Notifications {...props} />
     </Kb.ScrollView>
@@ -21,8 +20,8 @@ const TurnOnNotifications = () => {
   return (
     <Kb.Box
       style={{
-        ...Styles.globalStyles.flexBoxColumn,
-        backgroundColor: Styles.globalColors.red,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
+        backgroundColor: Kb.Styles.globalColors.red,
         height: 330,
         overflow: 'hidden',
         position: 'relative',
@@ -30,7 +29,13 @@ const TurnOnNotifications = () => {
       }}
     >
       <Kb.Box
-        style={{height: 270, left: Styles.globalMargins.medium, position: 'absolute', top: -20, width: 250}}
+        style={{
+          height: 270,
+          left: Kb.Styles.globalMargins.medium,
+          position: 'absolute',
+          top: -20,
+          width: 250,
+        }}
       >
         <Kb.Icon type="illustration-turn-on-notifications" />
       </Kb.Box>
@@ -39,10 +44,10 @@ const TurnOnNotifications = () => {
         center={true}
         negative={true}
         style={{
-          bottom: Styles.globalMargins.medium,
-          left: Styles.globalMargins.small,
+          bottom: Kb.Styles.globalMargins.medium,
+          left: Kb.Styles.globalMargins.small,
           position: 'absolute',
-          right: Styles.globalMargins.small,
+          right: Kb.Styles.globalMargins.small,
         }}
       >
         You turned off native notifications for Keybase. It’s{' '}

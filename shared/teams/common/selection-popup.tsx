@@ -4,7 +4,6 @@ import * as ChatConstants from '../../constants/chat2'
 import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import {FloatingRolePicker} from '../role-picker'
 import {pluralize} from '../../util/string'
 import {useFocusEffect} from '@react-navigation/core'
@@ -81,43 +80,43 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   // For boosting the list to scroll not behind the popup on mobile
   const [height, setHeight] = React.useState(0)
   const {bottom} = Kb.useSafeAreaInsets()
-  if (!onSelectableTab || (Styles.isMobile && !selectedCount) || !focused) {
+  if (!onSelectableTab || (Kb.Styles.isMobile && !selectedCount) || !focused) {
     return null
   }
   const popup = (
     <Kb.Box2
-      fullWidth={Styles.isMobile}
-      direction={Styles.isPhone ? 'vertical' : 'horizontal'}
+      fullWidth={Kb.Styles.isMobile}
+      direction={Kb.Styles.isPhone ? 'vertical' : 'horizontal'}
       alignItems="center"
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.container,
-        selectedCount && !Styles.isMobile ? styles.containerShowing : null,
+        selectedCount && !Kb.Styles.isMobile ? styles.containerShowing : null,
       ])}
-      gap={Styles.isPhone ? 'tiny' : undefined}
+      gap={Kb.Styles.isPhone ? 'tiny' : undefined}
       className="selectionPopup"
-      onLayout={Styles.isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
+      onLayout={Kb.Styles.isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
     >
-      {Styles.isPhone && (
+      {Kb.Styles.isPhone && (
         <Kb.Text style={styles.topLink} type="BodyBigLink" onClick={onCancel}>
           Cancel
         </Kb.Text>
       )}
       <Kb.Text type="BodySmall">
         {selectedCount} {pluralize(selectableTabName, selectedCount)} selected.{' '}
-        {!Styles.isPhone && (
+        {!Kb.Styles.isPhone && (
           <Kb.Text type="BodySmallPrimaryLink" onClick={onCancel}>
             Unselect
           </Kb.Text>
         )}
       </Kb.Text>
 
-      {!Styles.isPhone && <Kb.BoxGrow />}
+      {!Kb.Styles.isPhone && <Kb.BoxGrow />}
       {children}
       {/* bottom safe area */}
-      {Styles.isPhone && <Kb.Box style={{height: bottom}} />}
+      {Kb.Styles.isPhone && <Kb.Box style={{height: bottom}} />}
     </Kb.Box2>
   )
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <>
       {<Kb.Box style={{height: height > 48 ? height - 48 - bottom : -bottom}} />}
       <Kb.FloatingBox>{popup}</Kb.FloatingBox>
@@ -196,7 +195,7 @@ const SelectionPopup = (props: Props) =>
   ) : null
 
 const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
-  <Kb.Box2 fullWidth={Styles.isPhone} direction={Styles.isPhone ? 'vertical' : 'horizontal'} gap="tiny">
+  <Kb.Box2 fullWidth={Kb.Styles.isPhone} direction={Kb.Styles.isPhone ? 'vertical' : 'horizontal'} gap="tiny">
     {children}
   </Kb.Box2>
 )
@@ -223,7 +222,7 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
           label="Add to channels"
           mode="Secondary"
           onClick={onAddToChannel}
-          fullWidth={Styles.isPhone}
+          fullWidth={Kb.Styles.isPhone}
         />
       )}
       <EditRoleButton teamID={teamID} members={members} />
@@ -231,7 +230,7 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
         label="Remove from team"
         type="Danger"
         onClick={onRemoveFromTeam}
-        fullWidth={Styles.isPhone}
+        fullWidth={Kb.Styles.isPhone}
       />
     </ActionsWrapper>
   )
@@ -283,7 +282,7 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
         mode="Secondary"
         disabled={disableButton}
         onClick={() => setShowingPicker(!showingPicker)}
-        fullWidth={Styles.isPhone}
+        fullWidth={Kb.Styles.isPhone}
         tooltip={disableButton ? disabledReasons.admin : undefined}
       />
     </FloatingRolePicker>
@@ -297,7 +296,7 @@ const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
 
   return (
     <ActionsWrapper>
-      <Kb.Button label="Delete" type="Danger" onClick={onDelete} fullWidth={Styles.isMobile} />
+      <Kb.Button label="Delete" type="Danger" onClick={onDelete} fullWidth={Kb.Styles.isMobile} />
     </ActionsWrapper>
   )
 }
@@ -330,7 +329,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
         label="Add to channels"
         mode="Secondary"
         onClick={onAddToChannel}
-        fullWidth={Styles.isPhone}
+        fullWidth={Kb.Styles.isPhone}
       />
       <EditRoleButton teamID={teamID} members={members} />
       {channelname !== 'general' && (
@@ -338,7 +337,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
           label="Remove from channel"
           type="Danger"
           onClick={onRemoveFromChannel}
-          fullWidth={Styles.isPhone}
+          fullWidth={Kb.Styles.isPhone}
         />
       )}
     </ActionsWrapper>
@@ -350,22 +349,22 @@ const teamActionsComponent: {[k in TeamSelectableTab]: React.ComponentType<TeamA
   teamMembers: TeamMembersActions,
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.white,
+      backgroundColor: Kb.Styles.globalColors.white,
       position: 'absolute',
     },
     isElectron: {
-      ...Styles.desktopStyles.boxShadow,
-      ...Styles.padding(6, Styles.globalMargins.xsmall),
+      ...Kb.Styles.desktopStyles.boxShadow,
+      ...Kb.Styles.padding(6, Kb.Styles.globalMargins.xsmall),
       borderRadius: 4,
       bottom: -48,
-      left: Styles.globalMargins.tiny,
-      right: Styles.globalMargins.tiny,
+      left: Kb.Styles.globalMargins.tiny,
+      right: Kb.Styles.globalMargins.tiny,
     },
     isMobile: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       bottom: 0,
       shadowOffset: {height: 2, width: 0},
       shadowOpacity: 0.8,
@@ -373,11 +372,11 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   containerShowing: {
-    bottom: Styles.globalMargins.small,
+    bottom: Kb.Styles.globalMargins.small,
   },
   topLink: {
     alignSelf: 'flex-start',
-    paddingBottom: Styles.globalMargins.tiny,
+    paddingBottom: Kb.Styles.globalMargins.tiny,
   },
 }))
 

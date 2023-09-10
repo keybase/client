@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as T from '../../../constants/types'
-import * as Styles from '../../../styles'
 import {ModalTitle} from '../../common'
 
 const MakeBigTeam = () => {
@@ -27,7 +26,7 @@ const MakeBigTeam = () => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Styles.isMobile ? 'xsmall' : 'tiny'}
+        gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
       >
         <Kb.RichButton
           description="With multiple roles and channels. Big team chats appear in the lower section in the inbox."
@@ -47,14 +46,14 @@ const MakeBigTeam = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bg: {backgroundColor: Styles.globalColors.blueGrey},
-  body: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       borderRadius: 4,
     },
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
 }))
 

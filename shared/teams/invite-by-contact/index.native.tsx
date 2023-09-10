@@ -1,6 +1,5 @@
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import {FloatingRolePicker} from '../role-picker'
 import type * as T from '../../constants/types'
 import type {Contact} from '../common/use-contacts.native'
@@ -25,10 +24,10 @@ const contactRow = (_: number, props: ContactRowProps) => {
           )}
           {!hasThumbnail && <Kb.Avatar size={48} style={styles.placeHolderAvatar} />}
           <Kb.Box>
-            <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+            <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
               <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
             </Kb.Box>
-            <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+            <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
               <Kb.Text type="BodySmall">{props.valueFormatted || props.value}</Kb.Text>
             </Kb.Box>
           </Kb.Box>
@@ -144,59 +143,59 @@ export const InviteByContact = (props: InviteByContactProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       contactList: {
         alignSelf: 'stretch',
       },
       contactRowBox: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         height: 56,
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
         width: '100%',
       },
       contactRowInnerBox: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         flex: 1,
       },
       errorMessageContainer: {
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.red,
+        backgroundColor: Kb.Styles.globalColors.red,
         justifyContent: 'center',
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
       },
       filter: {
         width: '100%',
       },
       filterContainer: {
-        borderBottomColor: Styles.globalColors.black_10,
-        borderBottomWidth: Styles.hairlineWidth,
-        padding: Styles.globalMargins.small,
+        borderBottomColor: Kb.Styles.globalColors.black_10,
+        borderBottomWidth: Kb.Styles.hairlineWidth,
+        padding: Kb.Styles.globalMargins.small,
       },
       inviteButton: {
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
         width: 100,
       },
       listContainer: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         flex: 1,
-        paddingBottom: Styles.globalMargins.xtiny,
+        paddingBottom: Kb.Styles.globalMargins.xtiny,
       },
       placeHolderAvatar: {
         marginRight: 16,
       },
       rolePickerBox: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
-        borderBottomColor: Styles.globalColors.black_10,
-        borderBottomWidth: Styles.hairlineWidth,
+        borderBottomColor: Kb.Styles.globalColors.black_10,
+        borderBottomWidth: Kb.Styles.hairlineWidth,
         justifyContent: 'center',
-        marginBottom: Styles.globalMargins.xtiny,
-        padding: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.xtiny,
+        padding: Kb.Styles.globalMargins.small,
       },
       thumbnail: {
         borderRadius: 24,

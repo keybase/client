@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 
 const placeholder = 'Search people'
 
@@ -43,9 +42,9 @@ const Recipients = () => {
           <Kb.Icon
             type="iconfont-remove"
             boxStyle={styles.removeRecipients}
-            style={Styles.isMobile && styles.removeRecipients}
-            color={Styles.globalColors.black_20}
-            hoverColor={inProgress ? Styles.globalColors.black_20 : undefined}
+            style={Kb.Styles.isMobile && styles.removeRecipients}
+            color={Kb.Styles.globalColors.black_20}
+            hoverColor={inProgress ? Kb.Styles.globalColors.black_20 : undefined}
             onClick={onClearRecipients}
           />
         ) : null}
@@ -56,33 +55,33 @@ const Recipients = () => {
 }
 
 const recipientsRowHeight = 40
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       input: {
-        ...Styles.globalStyles.flexGrow,
+        ...Kb.Styles.globalStyles.flexGrow,
         alignSelf: 'center',
         borderBottomWidth: 0,
         borderWidth: 0,
-        marginLeft: Styles.globalMargins.xtiny,
+        marginLeft: Kb.Styles.globalMargins.xtiny,
         paddingLeft: 0,
       },
       recipientsContainer: {
         minHeight: recipientsRowHeight,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
+        paddingRight: Kb.Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       removeRecipients: {
-        ...Styles.globalStyles.flexGrow,
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexGrow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         justifyContent: 'flex-end',
-        marginRight: Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
         textAlign: 'right',
       },
       toField: {
-        marginRight: Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
       },
     }) as const
 )

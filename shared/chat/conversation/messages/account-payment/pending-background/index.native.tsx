@@ -2,7 +2,6 @@ import * as C from '../../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as KbMobile from '../../../../../common-adapters/mobile.native'
-import * as Styles from '../../../../../styles'
 import type {Props} from '.'
 
 const lightPatternImage = require('../../../../../images/payment-pattern-80.png')
@@ -23,7 +22,7 @@ const PendingBackground = (p: Props) => {
     ).start()
   })
 
-  const source = Styles.isDarkMode() ? darkPatternImage : lightPatternImage
+  const source = Kb.Styles.isDarkMode() ? darkPatternImage : lightPatternImage
 
   return (
     <Kb.Box2 direction="vertical" style={style}>
@@ -37,7 +36,7 @@ const PendingBackground = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       image: {

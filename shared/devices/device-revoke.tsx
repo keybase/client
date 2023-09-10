@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as Constants from '../constants/devices'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import * as T from '../constants/types'
 
 type OwnProps = {deviceID: string}
@@ -33,24 +32,24 @@ class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>}>
 
 const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: () => void}) => (
   <Kb.Box2
-    direction={Styles.isMobile ? 'vertical' : 'horizontalReverse'}
-    fullWidth={Styles.isMobile}
+    direction={Kb.Styles.isMobile ? 'vertical' : 'horizontalReverse'}
+    fullWidth={Kb.Styles.isMobile}
     gap="tiny"
   >
     <Kb.WaitingButton
-      fullWidth={Styles.isMobile}
+      fullWidth={Kb.Styles.isMobile}
       type="Danger"
       label="Yes, delete it"
       waitingKey={C.devicesWaitingKey}
       onClick={onSubmit}
     />
-    <Kb.Button fullWidth={Styles.isMobile} type="Dim" onClick={onCancel} label="Cancel" />
+    <Kb.Button fullWidth={Kb.Styles.isMobile} type="Dim" onClick={onCancel} label="Cancel" />
   </Kb.Box2>
 )
 
 const getIcon = (deviceType: T.Devices.DeviceType, iconNumber: T.Devices.IconNumber) => {
   let iconType: Kb.IconType
-  const size = Styles.isMobile ? 64 : 48
+  const size = Kb.Styles.isMobile ? 64 : 48
   switch (deviceType) {
     case 'backup':
       iconType = `icon-paper-key-revoke-${size}`
@@ -65,7 +64,7 @@ const getIcon = (deviceType: T.Devices.DeviceType, iconNumber: T.Devices.IconNum
   if (Kb.isValidIconType(iconType)) {
     return iconType
   }
-  return Styles.isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48'
+  return Kb.Styles.isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48'
 }
 
 const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => {
@@ -171,7 +170,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
         )}
         ?
       </Kb.Text>
-      <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={Styles.isMobile}>
+      <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={Kb.Styles.isMobile}>
         {!props.waiting && <EndangeredTLFList endangeredTLFs={props.endangeredTLFs} />}
       </Kb.Box2>
       <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} />
@@ -184,40 +183,40 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {padding: Styles.globalMargins.small},
-      endangeredTLFContainer: Styles.platformStyles({
+      container: {padding: Kb.Styles.globalMargins.small},
+      endangeredTLFContainer: Kb.Styles.platformStyles({
         isElectron: {alignSelf: 'center'},
         isMobile: {flexGrow: 1},
       }),
       headerName: {
-        color: Styles.globalColors.redDark,
+        color: Kb.Styles.globalColors.redDark,
         textDecorationLine: 'line-through',
       },
-      italicName: {...Styles.globalStyles.italic},
-      listContainer: Styles.platformStyles({
+      italicName: {...Kb.Styles.globalStyles.italic},
+      listContainer: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
           alignContent: 'center',
-          borderColor: Styles.globalColors.black_10,
+          borderColor: Kb.Styles.globalColors.black_10,
           borderRadius: 4,
           borderStyle: 'solid',
           borderWidth: 1,
           flexGrow: 1,
-          marginBottom: Styles.globalMargins.small,
-          marginTop: Styles.globalMargins.small,
+          marginBottom: Kb.Styles.globalMargins.small,
+          marginTop: Kb.Styles.globalMargins.small,
           width: '100%',
         },
         isElectron: {height: 162, width: 440},
       }),
       row: {
-        paddingBottom: Styles.globalMargins.xxtiny,
-        paddingLeft: Styles.globalMargins.xtiny,
-        paddingTop: Styles.globalMargins.xxtiny,
+        paddingBottom: Kb.Styles.globalMargins.xxtiny,
+        paddingLeft: Kb.Styles.globalMargins.xtiny,
+        paddingTop: Kb.Styles.globalMargins.xxtiny,
       },
-      tlf: Styles.platformStyles({
+      tlf: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-word'} as const,
       }),
     }) as const

@@ -1,7 +1,6 @@
 import * as C from '../../../../../constants'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../../styles'
 import * as T from '../../../../../constants/types'
 import CoinFlipError from './errors'
 import CoinFlipParticipants from './participants'
@@ -59,7 +58,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
 
   const statusText = showParticipants ? (
     <Kb.Box2 direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor as any}>
-      {!Styles.isMobile && (
+      {!Kb.Styles.isMobile && (
         <Kb.Text selectable={true} type="BodySmall">
           Secured by{' '}
         </Kb.Text>
@@ -73,16 +72,16 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
     <Kb.Box2 direction="vertical">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
         <Kb.Text selectable={true} type="BodySmallSemibold">
-          {!Styles.isMobile && 'Collecting '}commitments: {numParticipants}
+          {!Kb.Styles.isMobile && 'Collecting '}commitments: {numParticipants}
         </Kb.Text>
         {phase === T.RPCChat.UICoinFlipPhase.reveals && (
-          <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} sizeType="Small" />
+          <Kb.Icon type="iconfont-check" color={Kb.Styles.globalColors.green} sizeType="Small" />
         )}
       </Kb.Box2>
       {phase === T.RPCChat.UICoinFlipPhase.reveals && (
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
           <Kb.Text selectable={true} type="BodySmallSemibold">
-            {!Styles.isMobile && 'Collecting '}secrets: {revealSummary}
+            {!Kb.Styles.isMobile && 'Collecting '}secrets: {revealSummary}
           </Kb.Text>
         </Kb.Box2>
       )}
@@ -94,7 +93,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
   return (
     <Kb.Box2
       direction="vertical"
-      style={Styles.collapseStyles([!errorInfo && styles.container])}
+      style={Kb.Styles.collapseStyles([!errorInfo && styles.container])}
       fullWidth={true}
     >
       {errorInfo ? (
@@ -108,7 +107,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
               ) : (
                 <Kb.Box2
                   direction="vertical"
-                  style={Styles.collapseStyles([styles.placeholder, styles.progressVis])}
+                  style={Kb.Styles.collapseStyles([styles.placeholder, styles.progressVis])}
                 />
               )}
             </Kb.Box2>
@@ -118,7 +117,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
               ) : (
                 <Kb.Box2
                   direction="vertical"
-                  style={Styles.collapseStyles([styles.placeholder, styles.progressVis])}
+                  style={Kb.Styles.collapseStyles([styles.placeholder, styles.progressVis])}
                 />
               )}
             </Kb.Box2>
@@ -154,22 +153,22 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
         alignSelf: 'flex-start',
-        borderColor: Styles.globalColors.grey,
+        borderColor: Kb.Styles.globalColors.grey,
         borderLeftWidth: 4,
         borderStyle: 'solid',
-        marginTop: Styles.globalMargins.xtiny,
-        paddingLeft: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.xtiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
       },
-      error: {color: Styles.globalColors.redDark},
-      flipAgainContainer: {paddingTop: Styles.globalMargins.tiny},
-      flipAgainContainerHidden: {opacity: 0, paddingTop: Styles.globalMargins.tiny},
-      placeholder: {backgroundColor: Styles.globalColors.grey},
-      progress: Styles.platformStyles({
+      error: {color: Kb.Styles.globalColors.redDark},
+      flipAgainContainer: {paddingTop: Kb.Styles.globalMargins.tiny},
+      flipAgainContainerHidden: {opacity: 0, paddingTop: Kb.Styles.globalMargins.tiny},
+      placeholder: {backgroundColor: Kb.Styles.globalColors.grey},
+      progress: Kb.Styles.platformStyles({
         isElectron: {
           cursor: 'text',
           userSelect: 'text',
@@ -180,7 +179,7 @@ const styles = Styles.styleSheetCreate(
         height: 40,
         width: 64,
       },
-      result: Styles.platformStyles({
+      result: Kb.Styles.platformStyles({
         common: {fontWeight: '600'},
         isElectron: {
           cursor: 'text',
@@ -188,7 +187,7 @@ const styles = Styles.styleSheetCreate(
           wordBreak: 'break-all',
         },
       }),
-      statusContainer: {paddingTop: Styles.globalMargins.tiny},
+      statusContainer: {paddingTop: Kb.Styles.globalMargins.tiny},
     }) as const
 )
 

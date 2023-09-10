@@ -1,5 +1,4 @@
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles/index'
 import * as T from '../../constants/types'
 import TopBar from '../top-bar'
 import * as C from '../../constants'
@@ -16,7 +15,7 @@ const OfflineFolder = (props: Props) => (
       <Kb.Icon
         type={props.syncEnabled ? 'iconfont-clock' : 'iconfont-cloud'}
         sizeType="Huge"
-        color={Styles.globalColors.black_10}
+        color={Kb.Styles.globalColors.black_10}
       />
       <Kb.Text type="BodySmall">
         {props.syncEnabled
@@ -27,15 +26,15 @@ const OfflineFolder = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       contentContainer: {
         flex: 1,
       },
       emptyContainer: {
-        ...Styles.globalStyles.flexGrow,
-        backgroundColor: Styles.globalColors.blueGrey,
+        ...Kb.Styles.globalStyles.flexGrow,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
         flex: 1,
       },
     }) as const

@@ -3,7 +3,6 @@ import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as KbMobile from '../../common-adapters/mobile.native'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import Dropdown from './dropdown.native'
 import UserCard from '../user-card'
 import type {Props as InputProps} from '../../common-adapters/labeled-input'
@@ -35,7 +34,7 @@ class LoginRender extends React.Component<Props, State> {
     return (
       <Kb.Box
         onLayout={(evt: any) => this.setState({scrollViewHeight: evt.nativeEvent.layout.height})}
-        style={Styles.globalStyles.flexOne}
+        style={Kb.Styles.globalStyles.flexOne}
       >
         <KbMobile.NativeScrollView
           style={styles.scrollView}
@@ -72,7 +71,10 @@ class LoginRender extends React.Component<Props, State> {
               <Kb.WaitingButton
                 disabled={this.props.needPassword && !this.props.password}
                 waitingKey={ConfigConstants.loginWaitingKey}
-                style={{marginTop: this.props.needPassword ? 0 : Styles.globalMargins.small, width: '100%'}}
+                style={{
+                  marginTop: this.props.needPassword ? 0 : Kb.Styles.globalMargins.small,
+                  width: '100%',
+                }}
                 fullWidth={true}
                 label="Log in"
                 onClick={this.props.onSubmit}
@@ -81,7 +83,10 @@ class LoginRender extends React.Component<Props, State> {
                 type="BodySmallSecondaryLink"
                 center={true}
                 onClick={this.props.onForgotPassword}
-                style={{marginBottom: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.medium}}
+                style={{
+                  marginBottom: Kb.Styles.globalMargins.tiny,
+                  marginTop: Kb.Styles.globalMargins.medium,
+                }}
               >
                 Forgot password?
               </Kb.Text>
@@ -89,7 +94,7 @@ class LoginRender extends React.Component<Props, State> {
                 Problems logging in?
               </Kb.Text>
             </UserCard>
-            <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} />
+            <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} />
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.createAccountContainer}>
               <Kb.Button
                 fullWidth={true}
@@ -106,40 +111,40 @@ class LoginRender extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       card: {
-        marginTop: Styles.globalMargins.medium,
+        marginTop: Kb.Styles.globalMargins.medium,
         width: '100%',
       },
-      cardInner: Styles.platformStyles({
+      cardInner: Kb.Styles.platformStyles({
         isTablet: {paddingBottom: 0},
       }),
       container: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.blueGrey,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
         flex: 1,
       },
-      createAccountContainer: Styles.platformStyles({
-        common: {padding: Styles.globalMargins.medium},
-        isTablet: {maxWidth: 410, padding: Styles.globalMargins.small},
+      createAccountContainer: Kb.Styles.platformStyles({
+        common: {padding: Kb.Styles.globalMargins.medium},
+        isTablet: {maxWidth: 410, padding: Kb.Styles.globalMargins.small},
       }),
       deviceNotSecureContainer: {
         alignSelf: 'stretch',
-        backgroundColor: Styles.globalColors.yellow,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
+        backgroundColor: Kb.Styles.globalColors.yellow,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       deviceNotSecureText: {
-        color: Styles.globalColors.brown_75,
+        color: Kb.Styles.globalColors.brown_75,
       },
       formElements: {
-        marginBottom: Styles.globalMargins.tiny,
+        marginBottom: Kb.Styles.globalMargins.tiny,
       },
       scrollView: {
-        backgroundColor: Styles.globalColors.blueGrey,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
       },
     }) as const
 )

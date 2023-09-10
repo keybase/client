@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as Constants from '../constants/devices'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '../util/timestamp'
 
 type OwnProps = {deviceID: string}
@@ -17,9 +16,9 @@ const TimelineMarker = ({
   closedCircle: boolean
 }) => (
   <Kb.Box style={styles.marker}>
-    <Kb.Box style={Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
+    <Kb.Box style={Kb.Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
     <Kb.Box style={closedCircle ? styles.circleClosed : styles.circleOpen} />
-    <Kb.Box style={Styles.collapseStyles([styles.timelineLineBottom, last && styles.invisible])} />
+    <Kb.Box style={Kb.Styles.collapseStyles([styles.timelineLineBottom, last && styles.invisible])} />
   </Kb.Box>
 )
 
@@ -100,7 +99,7 @@ const DevicePage = (ownProps: OwnProps) => {
   const metaOne = device?.currentDevice ? (
     'Current device'
   ) : device?.revokedAt ? (
-    <Kb.Meta title="revoked" style={styles.meta} backgroundColor={Styles.globalColors.red} />
+    <Kb.Meta title="revoked" style={styles.meta} backgroundColor={Kb.Styles.globalColors.red} />
   ) : null
 
   const deviceType = device?.type ?? 'desktop'
@@ -150,12 +149,12 @@ const DevicePage = (ownProps: OwnProps) => {
     </Kb.Box2>
   )
 }
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       circleClosed: {
-        backgroundColor: Styles.globalColors.grey,
-        borderColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.grey,
+        borderColor: Kb.Styles.globalColors.white,
         borderRadius: 8 / 2,
         borderStyle: 'solid',
         borderWidth: 2,
@@ -163,7 +162,7 @@ const styles = Styles.styleSheetCreate(
         width: 8,
       },
       circleOpen: {
-        borderColor: Styles.globalColors.grey,
+        borderColor: Kb.Styles.globalColors.grey,
         borderRadius: 8 / 2,
         borderStyle: 'solid',
         borderWidth: 2,
@@ -172,22 +171,22 @@ const styles = Styles.styleSheetCreate(
       },
       invisible: {opacity: 0},
       marker: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
       },
       meta: {
         alignSelf: 'center',
         marginTop: 4,
       },
-      subDesc: {color: Styles.globalColors.black},
+      subDesc: {color: Kb.Styles.globalColors.black},
       timelineLabel: {alignItems: 'flex-start'},
       timelineLineBottom: {
-        backgroundColor: Styles.globalColors.grey,
+        backgroundColor: Kb.Styles.globalColors.grey,
         flex: 1,
         width: 2,
       },
       timelineLineTop: {
-        backgroundColor: Styles.globalColors.grey,
+        backgroundColor: Kb.Styles.globalColors.grey,
         height: 6,
         width: 2,
       },

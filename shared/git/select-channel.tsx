@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import type * as T from '../constants/types'
 import {useAllChannelMetas} from '../teams/common/channel-hooks'
 
@@ -58,24 +57,24 @@ const SelectChannel = (ownProps: OwnProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    width: Styles.isMobile ? '100%' : 300,
+    width: Kb.Styles.isMobile ? '100%' : 300,
   },
   innerContainer: {
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Kb.Styles.globalMargins.xtiny,
+    paddingTop: Kb.Styles.globalMargins.xtiny,
   },
   radioButton: {
-    ...Styles.globalStyles.flexBoxRow,
-    marginLeft: Styles.globalMargins.tiny,
+    ...Kb.Styles.globalStyles.flexBoxRow,
+    marginLeft: Kb.Styles.globalMargins.tiny,
   },
   row: {
-    ...Styles.globalStyles.flexBoxRow,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
+    ...Kb.Styles.globalStyles.flexBoxRow,
+    paddingLeft: Kb.Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.tiny,
   },
-  scrollContainer: {padding: Styles.globalMargins.small},
+  scrollContainer: {padding: Kb.Styles.globalMargins.small},
 }))
 
 export default SelectChannel

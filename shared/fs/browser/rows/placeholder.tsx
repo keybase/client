@@ -1,5 +1,4 @@
 import {rowStyles} from './common'
-import * as Styles from '../../../styles'
 import * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
 
@@ -27,7 +26,7 @@ const PlaceholderRow = ({type}: PlaceholderProps) => (
 )
 export default PlaceholderRow
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       placeholder: {

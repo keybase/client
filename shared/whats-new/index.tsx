@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import type * as C from '../constants'
-import * as Styles from '../styles'
 import {currentVersion, lastVersion, lastLastVersion} from '../constants/whats-new'
 import type {VersionProps} from './versions'
 
@@ -23,17 +22,17 @@ const Wrapper = ({children}: {children: React.ReactNode}) => (
     alignItems="flex-start"
     alignSelf="flex-start"
     fullHeight={true}
-    style={!Styles.isMobile && styles.popupContainer}
+    style={!Kb.Styles.isMobile && styles.popupContainer}
   >
     <Kb.Box2
       direction="vertical"
       alignItems="flex-start"
       alignSelf="flex-start"
       fullHeight={true}
-      fullWidth={!Styles.isMobile}
+      fullWidth={!Kb.Styles.isMobile}
       style={styles.contentBackground}
     >
-      {Styles.isMobile ? (
+      {Kb.Styles.isMobile ? (
         <Kb.ScrollView style={styles.scrollView}>
           <Kb.Box2
             direction="vertical"
@@ -92,18 +91,18 @@ class WhatsNew extends React.PureComponent<Props> {
 
 const modalWidth = 288
 const modalHeight = 500
-const styles = Styles.styleSheetCreate(() => ({
-  contentBackground: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  contentBackground: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.blueGrey,
-      ...Styles.globalStyles.rounded,
+      backgroundColor: Kb.Styles.globalColors.blueGrey,
+      ...Kb.Styles.globalStyles.rounded,
     },
     isElectron: {
       // Align menu edge with icon on desktop
-      marginRight: Styles.globalMargins.xtiny,
+      marginRight: Kb.Styles.globalMargins.xtiny,
     },
   }),
-  popupContainer: Styles.platformStyles({
+  popupContainer: Kb.Styles.platformStyles({
     isElectron: {
       height: modalHeight,
       maxHeight: modalHeight,
@@ -111,26 +110,26 @@ const styles = Styles.styleSheetCreate(() => ({
       width: modalWidth,
     },
   }),
-  scrollView: Styles.platformStyles({
+  scrollView: Kb.Styles.platformStyles({
     common: {
       width: '100%',
     },
     isElectron: {
-      ...Styles.padding(Styles.globalMargins.tiny),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
     },
   }),
-  scrollViewInner: Styles.platformStyles({
+  scrollViewInner: Kb.Styles.platformStyles({
     isMobile: {
-      marginBottom: Styles.globalMargins.small,
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.small,
+      marginBottom: Kb.Styles.globalMargins.small,
+      marginLeft: Kb.Styles.globalMargins.small,
+      marginRight: Kb.Styles.globalMargins.small,
+      marginTop: Kb.Styles.globalMargins.small,
     },
   }),
   versionTitle: {
-    color: Styles.globalColors.black_50,
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.xsmall,
+    color: Kb.Styles.globalColors.black_50,
+    marginBottom: Kb.Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.xsmall,
   },
 }))
 

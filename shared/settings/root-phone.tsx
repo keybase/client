@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import * as T from '../constants/types'
 import {keybaseFM} from '../constants/whats-new'
 import {isAndroid} from '../constants/platform'
@@ -86,7 +85,7 @@ function SettingsNav() {
           </Kb.Text>
         ) : null
       }
-      style={Styles.globalStyles.fullHeight}
+      style={Kb.Styles.globalStyles.fullHeight}
       sections={
         [
           {
@@ -171,7 +170,7 @@ function SettingsNav() {
               {
                 onClick: () => onTabChange(C.settingsLogOutTab),
                 text: 'Sign out',
-                textColor: Styles.globalColors.red,
+                textColor: Kb.Styles.globalColors.red,
               },
             ] as const,
             title: 'More',
@@ -182,15 +181,15 @@ function SettingsNav() {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  perfInput: {backgroundColor: Styles.globalColors.grey},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  perfInput: {backgroundColor: Kb.Styles.globalColors.grey},
   perfRow: {height: 44},
   sectionTitle: {
-    backgroundColor: Styles.globalColors.blueLighter3,
-    color: Styles.globalColors.black_50,
+    backgroundColor: Kb.Styles.globalColors.blueLighter3,
+    color: Kb.Styles.globalColors.black_50,
     paddingBottom: 7,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
+    paddingLeft: Kb.Styles.globalMargins.small,
+    paddingRight: Kb.Styles.globalMargins.small,
     paddingTop: 7,
   },
 }))

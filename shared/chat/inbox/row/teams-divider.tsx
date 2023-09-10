@@ -3,7 +3,6 @@ import * as Kb from '../../../common-adapters'
 import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as RowSizes from './sizes'
-import * as Styles from '../../../styles'
 import {memoize} from '../../../util/memoize'
 
 type Props = {
@@ -12,7 +11,7 @@ type Props = {
   rows: Array<T.Chat.ChatInboxRowItem>
   showButton: boolean
   toggle: () => void
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 const getRowCounts = memoize((badges: T.Chat.ConversationCountMap, rows: Array<T.Chat.ChatInboxRowItem>) => {
@@ -41,7 +40,7 @@ const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
   let {badgeCount, hiddenCount} = getRowCounts(badges, rows)
   badgeCount += smallTeamBadgeCount
   hiddenCount += totalSmallTeams
-  if (!Styles.isMobile) {
+  if (!Kb.Styles.isMobile) {
     hiddenCount += hiddenCountDelta ?? 0
   }
 
@@ -55,7 +54,10 @@ const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
   return (
     <Kb.Box2
       direction="vertical"
-      style={Styles.collapseStyles([reallyShow ? styles.containerButton : styles.containerNoButton, style])}
+      style={Kb.Styles.collapseStyles([
+        reallyShow ? styles.containerButton : styles.containerNoButton,
+        style,
+      ])}
       gap="tiny"
       gapStart={true}
       gapEnd={true}
@@ -79,31 +81,31 @@ const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       button: {
         alignSelf: 'center',
-        bottom: Styles.globalMargins.tiny,
+        bottom: Kb.Styles.globalMargins.tiny,
         position: 'relative',
         width: undefined,
       },
-      containerButton: Styles.platformStyles({
+      containerButton: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
           flexShrink: 0,
           height: RowSizes.dividerHeight(true),
           justifyContent: 'center',
           width: '100%',
         },
-        isElectron: {backgroundColor: Styles.globalColors.blueGrey},
+        isElectron: {backgroundColor: Kb.Styles.globalColors.blueGrey},
         isMobile: {
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
       }),
       containerNoButton: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         flexShrink: 0,
         height: RowSizes.dividerHeight(false),
         justifyContent: 'center',
@@ -111,8 +113,8 @@ const styles = Styles.styleSheetCreate(
       },
       dividerText: {
         alignSelf: 'flex-start',
-        marginLeft: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.tiny,
+        marginLeft: Kb.Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
       },
     }) as const
 )

@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as TeamsConstants from '../constants/teams'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 
 type OwnProps = {isTeam: boolean}
 
@@ -94,9 +93,9 @@ class NewRepo extends React.Component<Props, State> {
         <Kb.Box
           key={NewTeamSentry}
           style={{
-            ...Styles.globalStyles.flexBoxRow,
+            ...Kb.Styles.globalStyles.flexBoxRow,
             alignItems: 'center',
-            paddingLeft: Styles.globalMargins.small,
+            paddingLeft: Kb.Styles.globalMargins.small,
           }}
         >
           <Kb.Text type="Header">New team...</Kb.Text>
@@ -106,10 +105,15 @@ class NewRepo extends React.Component<Props, State> {
 
     return (
       <Kb.Box key={item} style={styles.avatarBox}>
-        <Kb.Avatar isTeam={true} teamname={item} size={16} style={{marginRight: Styles.globalMargins.tiny}} />
+        <Kb.Avatar
+          isTeam={true}
+          teamname={item}
+          size={16}
+          style={{marginRight: Kb.Styles.globalMargins.tiny}}
+        />
         <Kb.Text
           type="Header"
-          style={Styles.platformStyles({
+          style={Kb.Styles.platformStyles({
             common: {
               overflow: 'hidden',
               width: '100%',
@@ -218,47 +222,47 @@ class NewRepo extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   addIcon: {marginBottom: 27},
   avatarBox: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.small,
+    paddingLeft: Kb.Styles.globalMargins.xsmall,
+    paddingRight: Kb.Styles.globalMargins.small,
     width: '100%',
   },
   buttonBar: {alignItems: 'center'},
   checkbox: {
     alignSelf: 'flex-start',
-    marginTop: Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.tiny,
   },
-  container: Styles.platformStyles({
+  container: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxColumn,
+      ...Kb.Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
       flex: 1,
       height: '100%',
-      padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.large,
+      padding: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
     },
     isElectron: {maxWidth: 400},
     isTablet: {
       alignSelf: 'center',
-      marginTop: Styles.globalMargins.xsmall,
+      marginTop: Kb.Styles.globalMargins.xsmall,
       width: 500,
     },
   }),
   dropdown: {
-    marginBottom: Styles.globalMargins.small,
+    marginBottom: Kb.Styles.globalMargins.small,
     width: '100%',
   },
   dropdownItem: {
     justifyContent: 'flex-start',
-    paddingLeft: Styles.globalMargins.xsmall,
+    paddingLeft: Kb.Styles.globalMargins.xsmall,
   },
   error: {
     alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.red,
-    marginBottom: Styles.globalMargins.small,
-    padding: Styles.globalMargins.tiny,
+    backgroundColor: Kb.Styles.globalColors.red,
+    marginBottom: Kb.Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.tiny,
   },
 }))

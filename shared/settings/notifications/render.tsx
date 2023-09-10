@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import type {NotificationsSettingsState} from '../../constants/settings-notifications'
 import type {Props} from './index'
 
@@ -47,7 +46,7 @@ export const Group = (props: GroupProps) => (
       <Kb.Box2 direction="vertical" alignSelf="flex-start" fullWidth={true}>
         <Kb.Text type="BodySmall">Or</Kb.Text>
         <Kb.Checkbox
-          style={{marginTop: Styles.globalMargins.xtiny}}
+          style={{marginTop: Kb.Styles.globalMargins.xtiny}}
           onCheck={props.onToggleUnsubscribeAll}
           disabled={!props.allowEdit}
           checked={!!props.unsubscribedFromAll}
@@ -87,7 +86,7 @@ const Notifications = (props: Props) => {
   const mobileHasPermissions = C.usePushState(s => s.hasPermissions)
   return !props.groups || !props.groups.get('email')?.settings ? (
     <Kb.Box2 direction="vertical" style={styles.loading}>
-      <Kb.ProgressIndicator type="Small" style={{width: Styles.globalMargins.medium}} />
+      <Kb.ProgressIndicator type="Small" style={{width: Kb.Styles.globalMargins.medium}} />
     </Kb.Box2>
   ) : (
     <Kb.Box style={styles.main}>
@@ -105,7 +104,7 @@ const Notifications = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
       )}
-      {(!Styles.isMobile || mobileHasPermissions) && !!props.groups.get('app_push')?.settings ? (
+      {(!Kb.Styles.isMobile || mobileHasPermissions) && !!props.groups.get('app_push')?.settings ? (
         <>
           <Kb.Divider style={styles.divider} />
           <PhoneSection {...props} />
@@ -115,20 +114,20 @@ const Notifications = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      checkbox: {marginRight: 0, marginTop: Styles.globalMargins.xtiny},
+      checkbox: {marginRight: 0, marginTop: Kb.Styles.globalMargins.xtiny},
       divider: {
-        marginBottom: Styles.globalMargins.small,
-        marginLeft: -Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.small,
+        marginLeft: -Kb.Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
       },
-      label: {marginBottom: Styles.globalMargins.xtiny, marginTop: Styles.globalMargins.xtiny},
+      label: {marginBottom: Kb.Styles.globalMargins.xtiny, marginTop: Kb.Styles.globalMargins.xtiny},
       loading: {alignItems: 'center', flex: 1, justifyContent: 'center'},
-      main: Styles.platformStyles({
-        common: {flex: 1, padding: Styles.globalMargins.small, paddingRight: 0, width: '100%'},
-        isElectron: Styles.desktopStyles.scrollable,
+      main: Kb.Styles.platformStyles({
+        common: {flex: 1, padding: Kb.Styles.globalMargins.small, paddingRight: 0, width: '100%'},
+        isElectron: Kb.Styles.desktopStyles.scrollable,
       }),
     }) as const
 )

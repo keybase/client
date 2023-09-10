@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 
 const About = () => {
@@ -32,17 +31,17 @@ const About = () => {
     </Kb.Box2>
   )
 }
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   terms: {
-    marginBottom: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.tiny,
   },
   version: {
-    marginBottom: Styles.globalMargins.large,
-    paddingTop: Styles.globalMargins.large,
+    marginBottom: Kb.Styles.globalMargins.large,
+    paddingTop: Kb.Styles.globalMargins.large,
   },
 }))
 

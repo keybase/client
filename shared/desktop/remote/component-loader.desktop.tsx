@@ -1,8 +1,8 @@
 // This loads up a remote component. It makes a pass-through store which accepts its props from the main window through ipc
 // Also protects it with an error boundary
 import * as React from 'react'
-import * as Styles from '../../styles'
 import * as ReactDOM from 'react-dom/client'
+import * as Kb from '../../common-adapters'
 import {Provider} from 'react-redux'
 import RemoteStore from './store.desktop'
 import Root from '../renderer/container.desktop'
@@ -25,7 +25,7 @@ type Props = {
   name: RemoteComponents
   params: string
   showOnProps: boolean
-  style?: Styles.StylesDesktop
+  style?: Kb.Styles.StylesDesktop
 }
 
 class RemoteComponentLoader extends React.Component<Props> {
@@ -62,10 +62,10 @@ class RemoteComponentLoader extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
     isElectron: {
-      backgroundColor: Styles.globalColors.white,
+      backgroundColor: Kb.Styles.globalColors.white,
       display: 'block' as const,
       height: '100%',
       overflow: 'hidden',
@@ -73,10 +73,10 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   errorFallback: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
   },
   loading: {
-    backgroundColor: Styles.globalColors.greyDark,
+    backgroundColor: Kb.Styles.globalColors.greyDark,
   },
 }))
 
@@ -85,7 +85,7 @@ export default function (options: {
   deserialize: (arg0: any, arg1: any) => any
   name: RemoteComponents
   params?: string
-  style?: Styles.StylesDesktop
+  style?: Kb.Styles.StylesDesktop
   showOnProps?: boolean
 }) {
   initDesktopStyles()

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import {Wrapper, Input, ContinueButton} from '../common'
 
 type Props = {
@@ -59,13 +58,13 @@ class InviteCode extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       progress: {
         width: 40,
       },
-    } as const)
+    }) as const
 )
 
 export default InviteCode

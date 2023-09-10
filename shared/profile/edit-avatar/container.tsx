@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as Container from '../../util/container'
-import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters'
 import * as T from '../../constants/types'
 import type * as ImagePicker from 'expo-image-picker'
 import EditAvatar from '.'
@@ -41,19 +41,19 @@ export default (ownProps: OwnProps) => {
     sendChatNotification: boolean,
     crop?: T.RPCGen.ImageCropRect
   ) => {
-    const filename = Styles.unnormalizePath(_filename)
+    const filename = Kb.Styles.unnormalizePath(_filename)
     uploadTeamAvatar(teamname, filename, sendChatNotification, crop)
   }
 
   const uploadAvatar = C.useProfileState(s => s.dispatch.uploadAvatar)
 
   const onSaveUserAvatar = (_filename: string, crop?: T.RPCGen.ImageCropRect) => {
-    const filename = Styles.unnormalizePath(_filename)
+    const filename = Kb.Styles.unnormalizePath(_filename)
     uploadAvatar(filename, crop)
   }
   const setTeamWizardAvatar = C.useTeamsState(s => s.dispatch.setTeamWizardAvatar)
   const onSaveWizardAvatar = (_filename: string, crop?: T.Teams.AvatarCrop) => {
-    const filename = Styles.unnormalizePath(_filename)
+    const filename = Kb.Styles.unnormalizePath(_filename)
     setTeamWizardAvatar(crop, filename)
   }
   const onSkip = () => {

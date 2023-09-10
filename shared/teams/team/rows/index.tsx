@@ -1,10 +1,10 @@
 import * as C from '../../../constants'
 import * as T from '../../../constants/types'
+import * as Kb from '../../../common-adapters'
 import * as ChatConstants from '../../../constants/chat2'
 import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import EmptyRow from './empty-row'
 import LoadingRow from './loading'
 import MemberRow from './member-row/container'
@@ -110,7 +110,7 @@ export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.Team
       ],
       key: 'invite-requests',
       renderItem: ({index, item}) => <RequestRow {...item} teamID={teamID} firstItem={index == 0} />,
-      title: Styles.isMobile ? `Requests (${details.requests.size})` : undefined,
+      title: Kb.Styles.isMobile ? `Requests (${details.requests.size})` : undefined,
     }
     sections.push(requestsSection)
   }
@@ -272,7 +272,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
   })
 
   if (customEmoji.length) {
-    if (!Styles.isMobile) {
+    if (!Kb.Styles.isMobile) {
       sections.push({
         data: ['emoji-header'],
         key: 'emoji-header',

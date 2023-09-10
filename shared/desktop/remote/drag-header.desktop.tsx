@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 
 export type HeaderType = 'Default' | 'Strong'
 export type Props = {
@@ -17,10 +16,10 @@ class DragHeader extends React.Component<Props> {
   static defaultProps = {type: 'Default', windowDragging: true}
 
   renderDefault() {
-    const maybeWindowDraggingStyle = this.props.windowDragging ? Styles.desktopStyles.windowDragging : {}
+    const maybeWindowDraggingStyle = this.props.windowDragging ? Kb.Styles.desktopStyles.windowDragging : {}
     return (
       <div
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.container,
           maybeWindowDraggingStyle,
           styles.defaultContainer,
@@ -40,10 +39,10 @@ class DragHeader extends React.Component<Props> {
   }
 
   renderStrong() {
-    const maybeWindowDraggingStyle = this.props.windowDragging ? Styles.desktopStyles.windowDragging : {}
+    const maybeWindowDraggingStyle = this.props.windowDragging ? Kb.Styles.desktopStyles.windowDragging : {}
     return (
       <div
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.container,
           maybeWindowDraggingStyle,
           styles.strongContainer,
@@ -54,8 +53,8 @@ class DragHeader extends React.Component<Props> {
           <Kb.Text
             type="Header"
             negative={true}
-            style={Styles.platformStyles({
-              common: {flex: 1, ...Styles.globalStyles.flexBoxCenter, paddingTop: 6},
+            style={Kb.Styles.platformStyles({
+              common: {flex: 1, ...Kb.Styles.globalStyles.flexBoxCenter, paddingTop: 6},
               isElectron: {cursor: 'default'},
             })}
           >
@@ -82,13 +81,13 @@ class DragHeader extends React.Component<Props> {
 }
 
 const styles = {
-  closeIcon: Styles.collapseStyles([
-    Styles.desktopStyles.windowDraggingClickable,
-    Styles.desktopStyles.clickable,
+  closeIcon: Kb.Styles.collapseStyles([
+    Kb.Styles.desktopStyles.windowDraggingClickable,
+    Kb.Styles.desktopStyles.clickable,
   ] as any),
-  container: Styles.collapseStyles([
-    Styles.globalStyles.flexBoxRow,
-    Styles.desktopStyles.noSelect,
+  container: Kb.Styles.collapseStyles([
+    Kb.Styles.globalStyles.flexBoxRow,
+    Kb.Styles.desktopStyles.noSelect,
     {
       paddingLeft: 10,
       paddingRight: 10,
@@ -104,7 +103,7 @@ const styles = {
     width: 22,
   },
   strongContainer: {
-    backgroundColor: Styles.globalColors.blue,
+    backgroundColor: Kb.Styles.globalColors.blue,
     paddingBottom: 12,
     paddingTop: 6,
   },

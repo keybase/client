@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import {SignupScreen} from '../../signup/common'
 import {addTicker, removeTicker} from '../../util/second-timer'
 import * as C from '../../constants'
@@ -79,7 +78,7 @@ const Waiting = (props: Props) => {
       >
         <Kb.Icon
           type={pipelineStarted ? 'iconfont-wave-2' : 'iconfont-mailbox'}
-          color={Styles.globalColors.black}
+          color={Kb.Styles.globalColors.black}
           fontSize={24}
         />
         <Kb.Box2 direction="vertical" centerChildren={true} gap="small">
@@ -118,19 +117,19 @@ const Waiting = (props: Props) => {
 
 export default Waiting
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   mainText: {
-    ...Styles.padding(0, Styles.globalMargins.xsmall),
+    ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xsmall),
     maxWidth: 300,
   },
   positionRelative: {
     position: 'relative',
   },
   progressContainer: {
-    ...Styles.globalStyles.fillAbsolute,
-    backgroundColor: Styles.globalColors.white_40OrBlack_60,
+    ...Kb.Styles.globalStyles.fillAbsolute,
+    backgroundColor: Kb.Styles.globalColors.white_40OrBlack_60,
   },
-  topGap: Styles.platformStyles({
+  topGap: Kb.Styles.platformStyles({
     isMobile: {
       justifyContent: 'flex-start',
       marginTop: '20%',

@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as T from '../../constants/types'
 import * as Constants from '../../constants/teams'
@@ -11,7 +10,7 @@ const Skip = () => {
   const onSkip = () => finishNewTeamWizard()
   const waiting = C.useAnyWaiting(Constants.teamCreationWaitingKey)
 
-  if (Styles.isMobile) {
+  if (Kb.Styles.isMobile) {
     return waiting ? (
       <Kb.ProgressIndicator />
     ) : (
@@ -52,7 +51,7 @@ const AddFromWhere = () => {
       header={{
         leftButton: newTeam ? (
           <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />
-        ) : Styles.isMobile ? (
+        ) : Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             Cancel
           </Kb.Text>
@@ -60,7 +59,7 @@ const AddFromWhere = () => {
         rightButton: newTeam ? <Skip /> : undefined,
         title: (
           <ModalTitle
-            title={Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'}
+            title={Kb.Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'}
             teamID={teamID}
           />
         ),
@@ -70,7 +69,7 @@ const AddFromWhere = () => {
     >
       <Kb.Box2
         direction="vertical"
-        gap={Styles.isMobile ? 'tiny' : 'xsmall'}
+        gap={Kb.Styles.isMobile ? 'tiny' : 'xsmall'}
         style={styles.body}
         fullWidth={true}
       >
@@ -89,7 +88,7 @@ const AddFromWhere = () => {
           description="Enter one or multiple email addresses."
           onClick={onContinueEmail}
         />
-        {Styles.isMobile && (
+        {Kb.Styles.isMobile && (
           <Kb.RichButton
             icon="icon-teams-add-phone-contacts-64"
             title="From your contacts"
@@ -108,20 +107,24 @@ const AddFromWhere = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bg: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.blueGrey},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  bg: Kb.Styles.platformStyles({
+    common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
     isElectron: {borderRadius: 4},
   }),
-  body: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.blueGrey},
+  body: Kb.Styles.platformStyles({
+    common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
     isElectron: {
-      ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.xlarge),
+      ...Kb.Styles.padding(
+        Kb.Styles.globalMargins.small,
+        Kb.Styles.globalMargins.small,
+        Kb.Styles.globalMargins.xlarge
+      ),
       borderBottomRadius: 4,
     },
     isMobile: {
-      ...Styles.globalStyles.flexOne,
-      ...Styles.padding(Styles.globalMargins.medium, Styles.globalMargins.small),
+      ...Kb.Styles.globalStyles.flexOne,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
     },
   }),
 }))
