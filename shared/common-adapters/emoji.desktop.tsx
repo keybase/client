@@ -1,5 +1,5 @@
 import type {Props} from './emoji'
-import {type EmojiData, emojiNameMap, skinTones} from '../util/emoji'
+import type {EmojiData, emojiNameMap as EmojiNameMapType, skinTones as SkinTonesType} from '../util/emoji'
 
 // Just the single set we use
 // @ts-ignore
@@ -17,6 +17,9 @@ const EmojiWrapper = (props: Props) => {
   if (!match) return null
   const name = match[1] ?? ''
   const skin = match[2]
+
+  const emojiNameMap = require('../util/emoji').emojiNameMap as typeof EmojiNameMapType
+  const skinTones = require('../util/emoji').skinTones as typeof SkinTonesType
 
   let emoji: EmojiData | undefined = emojiNameMap[name]
   if (skin) {

@@ -33,7 +33,7 @@ const AnimatedSlice = animated(Slice)
 const AnimatedPieSlice = (props: Props) => {
   const {degrees} = props
   const ad = useSpring({to: {degrees}})
-  return <AnimatedSlice degrees={ad.degrees} style={props.style as any} negative={props.negative} />
+  return <AnimatedSlice degrees={ad.degrees} style={props.style} negative={props.negative} />
 }
 
 const PieSlice = (props: Props) => {

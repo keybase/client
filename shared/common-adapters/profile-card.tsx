@@ -16,7 +16,7 @@ import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import WithTooltip from './with-tooltip'
 import DelayedMounting from './delayed-mounting'
-import FollowButton from '../profile/user/actions/follow-button'
+import {type default as FollowButtonType} from '../profile/user/actions/follow-button'
 import ChatButton from '../chat/chat-button'
 
 const Kb = {
@@ -179,6 +179,8 @@ const ProfileCard = ({
     showUserProfile(username)
     onHide?.()
   }, [showUserProfile, onHide, username])
+
+  const FollowButton = require('../profile/user/actions/follow-button') as typeof FollowButtonType
 
   return (
     <Kb.Box2

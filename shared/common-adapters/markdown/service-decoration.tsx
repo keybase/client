@@ -3,14 +3,18 @@ import * as React from 'react'
 import * as C from '../../constants'
 import * as Styles from '../../styles'
 import Channel from '../channel-container'
-import KbfsPath from '../../fs/common/kbfs-path'
-import MaybeMention from '../../chat/conversation/maybe-mention'
+import type KbfsPathType from '../../fs/common/kbfs-path'
+import type MaybeMentionType from '../../chat/conversation/maybe-mention'
 import Mention from '../mention-container'
 import PaymentStatus from '../../chat/payments/status/container'
 import Text, {type StylesTextCrossPlatform} from '../text'
 import WithTooltip from '../with-tooltip'
 import type {StyleOverride} from '.'
-import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../util/emoji'
+import type {
+  emojiDataToRenderableEmoji as emojiDataToRenderableEmojiType,
+  renderEmoji as renderEmojiType,
+  RPCToEmojiData as RPCToEmojiDataType,
+} from '../../util/emoji'
 
 const prefix = 'keybase://'
 export const linkIsKeybaseLink = (link: string) => link.startsWith(prefix)
@@ -146,6 +150,7 @@ const ServiceDecoration = (p: Props) => {
       />
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.maybemention) {
+    const MaybeMention = require('../../chat/conversation/maybe-mention') as typeof MaybeMentionType
     return (
       <MaybeMention
         allowFontScaling={allowFontScaling || false}
@@ -208,6 +213,7 @@ const ServiceDecoration = (p: Props) => {
       />
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.kbfspath) {
+    const KbfsPath = require('../../fs/common/kbfs-path') as typeof KbfsPathType
     return (
       <KbfsPath
         knownPathInfo={{
@@ -219,6 +225,10 @@ const ServiceDecoration = (p: Props) => {
       />
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.emoji) {
+    const emojiDataToRenderableEmoji = require('../../util/emoji')
+      .emojiDataToRenderableEmoji as typeof emojiDataToRenderableEmojiType
+    const renderEmoji = require('../../util/emoji').renderEmoji as typeof renderEmojiType
+    const RPCToEmojiData = require('../../util/emoji').RPCToEmojiData as typeof RPCToEmojiDataType
     return renderEmoji({
       customStyle: styleOverride.customEmoji,
       emoji: emojiDataToRenderableEmoji(RPCToEmojiData(parsed.emoji, disableEmojiAnimation)),
