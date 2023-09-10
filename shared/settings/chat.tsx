@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as T from '../constants/types'
 import * as React from 'react'
-import * as Styles from '../styles'
 import * as TeamConstants from '../constants/teams'
 import type {NotificationsGroupState} from '../constants/settings-notifications'
 import {Group} from './notifications/render'
@@ -260,8 +259,8 @@ class Chat extends React.Component<Props, State> {
                     <Kb.Box2
                       direction="vertical"
                       fullWidth={true}
-                      gap={Styles.isMobile ? 'small' : undefined}
-                      gapStart={Styles.isMobile}
+                      gap={Kb.Styles.isMobile ? 'small' : undefined}
+                      gapStart={Kb.Styles.isMobile}
                       style={styles.checkboxIndented}
                     >
                       <Kb.Checkbox label="You follow them, or..." checked={true} disabled={true} />
@@ -286,7 +285,7 @@ class Chat extends React.Component<Props, State> {
                       <Kb.Box2
                         direction="vertical"
                         fullWidth={true}
-                        gap={Styles.isMobile ? 'small' : undefined}
+                        gap={Kb.Styles.isMobile ? 'small' : undefined}
                         gapStart={false}
                         gapEnd={true}
                       >
@@ -374,9 +373,9 @@ class Chat extends React.Component<Props, State> {
                         <Kb.Box2
                           fullWidth={true}
                           direction="horizontal"
-                          style={Styles.collapseStyles([
+                          style={Kb.Styles.collapseStyles([
                             styles.whitelistRowContainer,
-                            wlremoved ? {backgroundColor: Styles.globalColors.red_20} : undefined,
+                            wlremoved ? {backgroundColor: Kb.Styles.globalColors.red_20} : undefined,
                           ])}
                         >
                           <Kb.Text type="BodySemibold">{w}</Kb.Text>
@@ -416,7 +415,7 @@ class Chat extends React.Component<Props, State> {
             <Kb.Box2
               direction="vertical"
               gap="tiny"
-              style={Styles.collapseStyles([styles.innerContainer, styles.btnContainer])}
+              style={Kb.Styles.collapseStyles([styles.innerContainer, styles.btnContainer])}
             >
               <Kb.WaitingButton
                 onClick={() => this.props.onUnfurlSave(this._getUnfurlMode(), this._getUnfurlWhitelist(true))}
@@ -480,14 +479,14 @@ const TeamRow = ({
   <Kb.Box2 direction="vertical" fullWidth={true}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
       <Kb.Checkbox checked={checked} onCheck={checked => onCheck(checked)} style={styles.teamCheckbox} />
-      <Kb.Avatar isTeam={true} size={Styles.isMobile ? 32 : 24} teamname={name} />
+      <Kb.Avatar isTeam={true} size={Kb.Styles.isMobile ? 32 : 24} teamname={name} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
           <Kb.Text type="BodySemibold" lineClamp={1}>
             {name}
           </Kb.Text>
           {isOpen && (
-            <Kb.Meta title="open" style={styles.teamMeta} backgroundColor={Styles.globalColors.green} />
+            <Kb.Meta title="open" style={styles.teamMeta} backgroundColor={Kb.Styles.globalColors.green} />
           )}
         </Kb.Box2>
       </Kb.Box2>
@@ -495,37 +494,37 @@ const TeamRow = ({
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   btnContainer: {
     alignSelf: 'flex-start',
   },
-  checkboxIndented: Styles.platformStyles({
-    isElectron: {paddingLeft: Styles.globalMargins.medium},
-    isMobile: {paddingBottom: Styles.globalMargins.medium, paddingLeft: Styles.globalMargins.small},
+  checkboxIndented: Kb.Styles.platformStyles({
+    isElectron: {paddingLeft: Kb.Styles.globalMargins.medium},
+    isMobile: {paddingBottom: Kb.Styles.globalMargins.medium, paddingLeft: Kb.Styles.globalMargins.small},
   }),
-  container: Styles.platformStyles({
+  container: Kb.Styles.platformStyles({
     common: {
-      paddingBottom: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
+      paddingBottom: Kb.Styles.globalMargins.small,
+      paddingTop: Kb.Styles.globalMargins.small,
       width: '100%',
     },
   }),
   divider: {
-    marginBottom: Styles.globalMargins.small,
+    marginBottom: Kb.Styles.globalMargins.small,
   },
   error: {
-    color: Styles.globalColors.redDark,
+    color: Kb.Styles.globalColors.redDark,
   },
-  innerContainer: Styles.platformStyles({
+  innerContainer: Kb.Styles.platformStyles({
     common: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      paddingLeft: Kb.Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
     },
     isElectron: {
       maxWidth: 600,
     },
   }),
-  removeIcon: Styles.platformStyles({
+  removeIcon: Kb.Styles.platformStyles({
     isElectron: {
       position: 'absolute',
       right: 0,
@@ -533,44 +532,44 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   removeText: {
-    color: Styles.globalColors.black,
+    color: Kb.Styles.globalColors.black,
   },
   save: {
-    marginBottom: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.small,
+    marginTop: Kb.Styles.globalMargins.tiny,
   },
-  teamCheckbox: Styles.platformStyles({
-    isElectron: {alignSelf: 'center', marginRight: Styles.globalMargins.tiny},
-    isMobile: {marginRight: Styles.globalMargins.medium},
+  teamCheckbox: Kb.Styles.platformStyles({
+    isElectron: {alignSelf: 'center', marginRight: Kb.Styles.globalMargins.tiny},
+    isMobile: {marginRight: Kb.Styles.globalMargins.medium},
   }),
   teamMeta: {
     alignSelf: 'center',
-    marginLeft: Styles.globalMargins.xtiny,
+    marginLeft: Kb.Styles.globalMargins.xtiny,
     marginTop: 2,
   },
   teamNameContainer: {
     alignSelf: 'center',
     flexShrink: 1,
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.small,
+    marginLeft: Kb.Styles.globalMargins.tiny,
+    marginRight: Kb.Styles.globalMargins.small,
   },
   teamRowContainer: {
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.isMobile ? Styles.globalMargins.large : 48,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Kb.Styles.globalMargins.xtiny,
+    paddingLeft: Kb.Styles.isMobile ? Kb.Styles.globalMargins.large : 48,
+    paddingRight: Kb.Styles.globalMargins.small,
+    paddingTop: Kb.Styles.globalMargins.xtiny,
   },
   teamText: {
     alignSelf: 'flex-start',
   },
-  whitelist: Styles.platformStyles({
+  whitelist: Kb.Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
-      backgroundColor: Styles.globalColors.blueGrey,
-      marginBottom: Styles.globalMargins.xtiny,
+      backgroundColor: Kb.Styles.globalColors.blueGrey,
+      marginBottom: Kb.Styles.globalMargins.xtiny,
       marginLeft: 22,
-      marginTop: Styles.globalMargins.xtiny,
-      paddingRight: Styles.globalMargins.medium,
+      marginTop: Kb.Styles.globalMargins.xtiny,
+      paddingRight: Kb.Styles.globalMargins.medium,
     },
     isElectron: {
       height: 150,
@@ -582,21 +581,21 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   whitelistInner: {
     marginBottom: 1,
-    paddingRight: Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.tiny,
   },
   whitelistOuter: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.tiny,
   },
-  whitelistRowContainer: Styles.platformStyles({
+  whitelistRowContainer: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.white,
+      backgroundColor: Kb.Styles.globalColors.white,
       flexShrink: 0,
       height: 40,
       justifyContent: 'space-between',
-      marginLeft: Styles.globalMargins.tiny,
-      padding: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.small,
+      marginLeft: Kb.Styles.globalMargins.tiny,
+      padding: Kb.Styles.globalMargins.tiny,
+      paddingRight: Kb.Styles.globalMargins.small,
     },
   }),
 }))

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 
 type Props = {
   fullname: string
@@ -16,12 +15,12 @@ class Friend extends React.PureComponent<Props> {
       <Kb.ClickableBox onClick={p.onClick} style={{width: p.width}}>
         <Kb.Box2
           direction="vertical"
-          style={Styles.collapseStyles([styles.container, {width: p.width}])}
+          style={Kb.Styles.collapseStyles([styles.container, {width: p.width}])}
           centerChildren={true}
         >
           <Kb.Avatar size={64} username={p.username} style={styles.avatar} showFollowingStatus={true} />
           <Kb.ConnectedUsernames
-            type={Styles.isMobile ? 'BodySmallBold' : 'BodyBold'}
+            type={Kb.Styles.isMobile ? 'BodySmallBold' : 'BodyBold'}
             usernames={p.username}
             onUsernameClicked="profile"
             colorBroken={true}
@@ -36,21 +35,21 @@ class Friend extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  avatar: {marginBottom: Styles.globalMargins.xxtiny},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  avatar: {marginBottom: Kb.Styles.globalMargins.xxtiny},
   container: {
     flexShrink: 0,
     height: 105,
     justifyContent: 'flex-start',
     minWidth: 0,
   },
-  fullname: Styles.platformStyles({
+  fullname: Kb.Styles.platformStyles({
     isElectron: {
       textAlign: 'center',
       width: 80,
       wordBreak: 'break-all',
     },
-    isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+    isMobile: {backgroundColor: Kb.Styles.globalColors.fastBlank},
   }),
 }))
 

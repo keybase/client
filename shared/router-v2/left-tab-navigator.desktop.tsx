@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 import TabBar from './tab-bar.desktop'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
@@ -79,8 +78,8 @@ const LeftTabNavigator = React.memo(function LeftTabNavigator({
   )
 })
 
-const styles = Styles.styleSheetCreate(() => ({
-  box: {backgroundColor: Styles.globalColors.white},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  box: {backgroundColor: Kb.Styles.globalColors.white},
   hidden: {display: 'none'},
 }))
 

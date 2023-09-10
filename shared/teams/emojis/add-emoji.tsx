@@ -2,7 +2,6 @@ import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import {AliasInput, Modal} from './common'
 import useRPC from '../../util/use-rpc'
 import {pickImages} from '../../util/pick-files'
@@ -21,7 +20,7 @@ type RoutableProps = {
 }
 
 // don't prefill on mobile since it's always a long random string.
-const filePathToDefaultAlias = Styles.isMobile
+const filePathToDefaultAlias = Kb.Styles.isMobile
   ? () => ''
   : (path: string) => {
       const name = T.FS.getLocalPathName(path)
@@ -174,8 +173,8 @@ export const AddEmojiModal = (props: Props) => {
       title="Add emoji"
       bannerImage="icon-illustration-emoji-add-460-96"
       desktopHeight={537}
-      footerButtonLabel={Styles.isMobile ? 'Choose Images' : undefined}
-      footerButtonOnClick={Styles.isMobile ? pick : undefined}
+      footerButtonLabel={Kb.Styles.isMobile ? 'Choose Images' : undefined}
+      footerButtonOnClick={Kb.Styles.isMobile ? pick : undefined}
     >
       <AddEmojiPrompt addFiles={addFiles} />
     </Modal>
@@ -237,7 +236,7 @@ const AddEmojiPrompt = (props: AddEmojiPromptProps) => {
       style={styles.contentContainer}
       gap="small"
     >
-      {Styles.isMobile ? (
+      {Kb.Styles.isMobile ? (
         <Kb.Text type="Body" center={true}>
           Choose images from your library
         </Kb.Text>
@@ -254,16 +253,16 @@ const AddEmojiPrompt = (props: AddEmojiPromptProps) => {
           </Kb.Text>
         </Kb.Box2>
       )}
-      {!Styles.isMobile && (
+      {!Kb.Styles.isMobile && (
         <Kb.Box2
           direction="vertical"
-          style={Styles.collapseStyles([styles.dropArea, dragOver && styles.dropAreaDragOver])}
+          style={Kb.Styles.collapseStyles([styles.dropArea, dragOver && styles.dropAreaDragOver])}
           centerChildren={true}
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           onDrop={onDrop}
         >
-          <Kb.Icon type="iconfont-emoji" fontSize={48} color={Styles.globalColors.black_10} />
+          <Kb.Icon type="iconfont-emoji" fontSize={48} color={Kb.Styles.globalColors.black_10} />
         </Kb.Box2>
       )}
       <Kb.Text type="BodySmall">Maximum 256KB per image.</Kb.Text>
@@ -304,7 +303,7 @@ const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
   item.type === 'add' ? (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.emojiToAddRow}>
       <Kb.ClickableBox onClick={item.add} style={styles.addEmojiIconContainer}>
-        <Kb.Icon type="iconfont-new" color={Styles.globalColors.blue} />
+        <Kb.Icon type="iconfont-new" color={Kb.Styles.globalColors.blue} />
       </Kb.ClickableBox>
     </Kb.Box2>
   ) : (
@@ -312,7 +311,7 @@ const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
       direction="horizontal"
       gap="xsmall"
       fullWidth={true}
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.emojiToAddRow,
         item.emojiToAdd.error && styles.emojiToAddRowWithError,
       ])}
@@ -363,7 +362,7 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
     <Kb.Box2
       direction="vertical"
       fullWidth={true}
-      style={Styles.collapseStyles([styles.contentContainer, dragOver && styles.contentContainerDragOver])}
+      style={Kb.Styles.collapseStyles([styles.contentContainer, dragOver && styles.contentContainerDragOver])}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
@@ -391,45 +390,45 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
   )
 }
 
-const emojiToAddRowHeightNoError = Styles.isMobile ? 48 : 40
-const emojiToAddRowHeightWithError = Styles.isMobile ? 70 : 60
+const emojiToAddRowHeightNoError = Kb.Styles.isMobile ? 48 : 40
+const emojiToAddRowHeightWithError = Kb.Styles.isMobile ? 70 : 60
 
-const styles = Styles.styleSheetCreate(() => ({
-  addEmojiIconContainer: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  addEmojiIconContainer: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxColumn,
+      ...Kb.Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
-      borderColor: Styles.globalColors.black_20,
-      borderRadius: Styles.globalMargins.xtiny,
+      borderColor: Kb.Styles.globalColors.black_20,
+      borderRadius: Kb.Styles.globalMargins.xtiny,
       borderStyle: 'solid',
       borderWidth: 1,
       justifyContent: 'center',
     },
     isElectron: {
-      height: Styles.globalMargins.mediumLarge,
-      width: Styles.globalMargins.mediumLarge,
+      height: Kb.Styles.globalMargins.mediumLarge,
+      width: Kb.Styles.globalMargins.mediumLarge,
     },
     isMobile: {
-      height: Styles.globalMargins.large,
-      width: Styles.globalMargins.large,
+      height: Kb.Styles.globalMargins.large,
+      width: Kb.Styles.globalMargins.large,
     },
   }),
-  contentContainer: Styles.platformStyles({
+  contentContainer: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexGrow,
-      backgroundColor: Styles.globalColors.blueGrey,
-      padding: Styles.globalMargins.small,
+      ...Kb.Styles.globalStyles.flexGrow,
+      backgroundColor: Kb.Styles.globalColors.blueGrey,
+      padding: Kb.Styles.globalMargins.small,
     },
   }),
-  contentContainerDragOver: Styles.platformStyles({
+  contentContainerDragOver: Kb.Styles.platformStyles({
     isElectron: {
       opacity: 0.7,
     },
   }),
-  dropArea: Styles.platformStyles({
+  dropArea: Kb.Styles.platformStyles({
     isElectron: {
-      backgroundColor: Styles.globalColors.black_05,
-      borderColor: Styles.globalColors.black_35,
+      backgroundColor: Kb.Styles.globalColors.black_05,
+      borderColor: Kb.Styles.globalColors.black_35,
       borderRadius: 30,
       borderStyle: 'dotted',
       borderWidth: 3,
@@ -437,44 +436,44 @@ const styles = Styles.styleSheetCreate(() => ({
       width: 175,
     },
   }),
-  dropAreaDragOver: Styles.platformStyles({
+  dropAreaDragOver: Kb.Styles.platformStyles({
     isElectron: {
-      backgroundColor: Styles.globalColors.black_10,
+      backgroundColor: Kb.Styles.globalColors.black_10,
     },
   }),
   emojiToAddImage: {
     height: '100%',
     width: '100%',
   },
-  emojiToAddImageContainer: Styles.platformStyles({
+  emojiToAddImageContainer: Kb.Styles.platformStyles({
     common: {
       backgroundColor: 'white',
     },
     isElectron: {
-      borderRadius: Styles.globalMargins.xxtiny + Styles.globalMargins.xtiny,
-      maxHeight: Styles.globalMargins.mediumLarge,
-      maxWidth: Styles.globalMargins.mediumLarge,
-      minHeight: Styles.globalMargins.mediumLarge,
-      minWidth: Styles.globalMargins.mediumLarge,
+      borderRadius: Kb.Styles.globalMargins.xxtiny + Kb.Styles.globalMargins.xtiny,
+      maxHeight: Kb.Styles.globalMargins.mediumLarge,
+      maxWidth: Kb.Styles.globalMargins.mediumLarge,
+      minHeight: Kb.Styles.globalMargins.mediumLarge,
+      minWidth: Kb.Styles.globalMargins.mediumLarge,
       padding: 3,
     },
     isMobile: {
-      borderRadius: Styles.globalMargins.xtiny,
-      maxHeight: Styles.globalMargins.large,
-      maxWidth: Styles.globalMargins.large,
-      minHeight: Styles.globalMargins.large,
-      minWidth: Styles.globalMargins.large,
-      padding: Styles.globalMargins.xtiny,
+      borderRadius: Kb.Styles.globalMargins.xtiny,
+      maxHeight: Kb.Styles.globalMargins.large,
+      maxWidth: Kb.Styles.globalMargins.large,
+      minHeight: Kb.Styles.globalMargins.large,
+      minWidth: Kb.Styles.globalMargins.large,
+      padding: Kb.Styles.globalMargins.xtiny,
     },
   }),
   emojiToAddRow: {
     height: emojiToAddRowHeightNoError,
-    paddingBottom: Styles.globalMargins.tiny,
+    paddingBottom: Kb.Styles.globalMargins.tiny,
   },
   emojiToAddRowWithError: {
     height: emojiToAddRowHeightWithError,
   },
   textChooseAlias: {
-    marginBottom: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.tiny,
   },
 }))

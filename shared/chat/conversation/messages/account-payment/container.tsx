@@ -1,6 +1,6 @@
 import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
-import * as Styles from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
 import AccountPayment from '.'
 import type * as T from '../../../../constants/types'
 
@@ -96,7 +96,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           amount,
           approxWorth: paymentInfo.worthAtSendTime,
           balanceChange: '',
-          balanceChangeColor: Styles.globalColors.black,
+          balanceChangeColor: Kb.Styles.globalColors.black,
           cancelButtonInfo: '',
           cancelButtonLabel: paymentInfo.showCancel ? 'Cancel' : '',
           canceled,

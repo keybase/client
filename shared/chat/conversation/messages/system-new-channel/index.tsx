@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import type * as T from '../../../../constants/types'
 import UserNotice from '../user-notice'
 
@@ -13,9 +12,9 @@ const NewChannel = (props: Props) => {
   const descStyleOverride = React.useMemo(
     () =>
       ({
-        link: {fontSize: Styles.isMobile ? 15 : 13, fontWeight: '600'},
+        link: {fontSize: Kb.Styles.isMobile ? 15 : 13, fontWeight: '600'},
         paragraph: {
-          fontSize: Styles.isMobile ? 15 : 13,
+          fontSize: Kb.Styles.isMobile ? 15 : 13,
           ...styles.text,
         },
       }) as const,
@@ -35,7 +34,7 @@ const NewChannel = (props: Props) => {
       <Kb.Text
         onClick={onManageChannels}
         type="BodySmallSemiboldSecondaryLink"
-        style={{color: Styles.globalColors.blueDark}}
+        style={{color: Kb.Styles.globalColors.blueDark}}
       >
         Browse other channels
       </Kb.Text>
@@ -43,13 +42,13 @@ const NewChannel = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  text: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  text: Kb.Styles.platformStyles({
     isElectron: {
-      color: Styles.globalColors.black_50OrWhite_40,
+      color: Kb.Styles.globalColors.black_50OrWhite_40,
     },
     isMobile: {
-      color: Styles.globalColors.black_50,
+      color: Kb.Styles.globalColors.black_50,
     },
   }),
 }))

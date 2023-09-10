@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../../../../../common-adapters/index'
-import * as Styles from '../../../../../../../styles'
 import logger from '../../../../../../../logger'
 import {Video as AVVideo, ResizeMode} from 'expo-av'
 import type {Props} from './video'
@@ -38,7 +37,7 @@ export const Video = (props: Props) => {
     uri: `${uri}&autoplay=${autoPlay ? 'true' : 'false'}&contentforce=true`,
   }
   return (
-    <Kb.ClickableBox onClick={_onClick} style={Styles.collapseStyles([style, styles.container])}>
+    <Kb.ClickableBox onClick={_onClick} style={Kb.Styles.collapseStyles([style, styles.container])}>
       <AVVideo
         ref={vidRef}
         source={source}
@@ -46,19 +45,19 @@ export const Video = (props: Props) => {
           logger.error(`Error loading vid: ${JSON.stringify(e)}`)
         }}
         resizeMode={ResizeMode.CONTAIN}
-        style={Styles.collapseStyles([styles.player, style])}
+        style={Kb.Styles.collapseStyles([styles.player, style])}
         isLooping={true}
         isMuted={true}
         shouldPlay={playing}
       />
-      <Kb.Box style={Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
+      <Kb.Box style={Kb.Styles.collapseStyles([styles.absoluteContainer, {height, width}])}>
         {!playing && <Kb.Icon type="icon-play-64" style={styles.playButton} />}
       </Kb.Box>
     </Kb.ClickableBox>
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       absoluteContainer: {
@@ -84,5 +83,5 @@ const styles = Styles.styleSheetCreate(
       player: {
         position: 'relative',
       },
-    } as const)
+    }) as const
 )

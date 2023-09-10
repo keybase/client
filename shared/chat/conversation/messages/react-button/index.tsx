@@ -1,6 +1,5 @@
 import * as React from 'react'
-import {Box2, ClickableBox2, Icon, Text, Markdown} from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
 import DelayInterval from './delay-interval'
 
 export type Props = {
@@ -12,21 +11,19 @@ export type Props = {
   onClick: () => void
   onLongPress?: () => void
   getAttachmentRef?: () => React.Component<any> | null
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 const markdownOverride = {
   customEmoji: {
-    height: Styles.isMobile ? 26 : 18,
-    marginTop: Styles.isMobile ? 0 : 4,
-    width: Styles.isMobile ? 20 : 18,
+    height: Kb.Styles.isMobile ? 26 : 18,
+    marginTop: Kb.Styles.isMobile ? 0 : 4,
+    width: Kb.Styles.isMobile ? 20 : 18,
   },
-  emoji: {
-    height: Styles.isMobile ? 20 : 21,
-  },
+  emoji: {height: Kb.Styles.isMobile ? 20 : 21},
   paragraph: {
-    height: Styles.isMobile ? 20 : 18,
-    ...(Styles.isMobile ? {} : {display: 'flex', fontSize: 14}),
+    height: Kb.Styles.isMobile ? 20 : 18,
+    ...(Kb.Styles.isMobile ? {} : {display: 'flex', fontSize: 14}),
   },
 }
 
@@ -35,34 +32,34 @@ const ReactButton = React.memo(function ReactButton(p: Props) {
   const {style, count} = p
   const text = decorated.length ? decorated : emoji
   return (
-    <ClickableBox2
-      className={Styles.classNames('react-button', className, {noShadow: active})}
+    <Kb.ClickableBox2
+      className={Kb.Styles.classNames('react-button', className, {noShadow: active})}
       onLongPress={onLongPress}
       onClick={onClick}
-      style={Styles.collapseStyles([styles.borderBase, styles.buttonBox, active && styles.active, style])}
+      style={Kb.Styles.collapseStyles([styles.borderBase, styles.buttonBox, active && styles.active, style])}
     >
-      <Box2 centerChildren={true} fullHeight={true} direction="horizontal" style={styles.container}>
-        <Box2 direction="horizontal" style={styles.containerInner} gap="xtiny">
-          <Box2 direction="vertical" className="center-emojis">
-            <Markdown
+      <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal" style={styles.container}>
+        <Kb.Box2 direction="horizontal" style={styles.containerInner} gap="xtiny">
+          <Kb.Box2 direction="vertical" className="center-emojis">
+            <Kb.Markdown
               styleOverride={markdownOverride as any}
               lineClamp={1}
               smallStandaloneEmoji={true}
               virtualText={true}
             >
               {text}
-            </Markdown>
-          </Box2>
-          <Text
+            </Kb.Markdown>
+          </Kb.Box2>
+          <Kb.Text
             type="BodyTinyBold"
             virtualText={true}
-            style={Styles.collapseStyles([styles.count, active && styles.countActive])}
+            style={Kb.Styles.collapseStyles([styles.count, active && styles.countActive])}
           >
             {count}
-          </Text>
-        </Box2>
-      </Box2>
-    </ClickableBox2>
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.ClickableBox2>
   )
 })
 
@@ -74,7 +71,7 @@ export type NewReactionButtonProps = {
   onOpenEmojiPicker: () => void
   onShowPicker?: (showing: boolean) => void
   showBorder: boolean
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 type NewReactionButtonState = {
@@ -103,7 +100,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   }
 
   _onShowPicker = (evt?: React.BaseSyntheticEvent) => {
-    if (Styles.isMobile) {
+    if (Kb.Styles.isMobile) {
       this.props.onOpenEmojiPicker()
       return
     }
@@ -143,40 +140,42 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
 
   render() {
     return (
-      <ClickableBox2
-        className={Styles.classNames('react-button', {border: this.props.showBorder})}
+      <Kb.ClickableBox2
+        className={Kb.Styles.classNames('react-button', {border: this.props.showBorder})}
         onLongPress={this.props.onLongPress}
         onClick={this._onShowPicker}
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.borderBase,
           styles.newReactionButtonBox,
           this.props.showBorder && styles.buttonBox,
           this.props.style,
         ])}
       >
-        <Box2
+        <Kb.Box2
           centerChildren={true}
           fullHeight={true}
           direction="horizontal"
           style={this.props.showBorder ? styles.container : null}
         >
-          {Styles.isMobile ? (
-            <Icon
+          {Kb.Styles.isMobile ? (
+            <Kb.Icon
               type="iconfont-reacji"
-              color={Styles.globalColors.black_50}
-              fontSize={Styles.isMobile ? 18 : 16}
+              color={Kb.Styles.globalColors.black_50}
+              fontSize={Kb.Styles.isMobile ? 18 : 16}
               style={styles.emojiIconWrapper}
             />
           ) : (
             iconCycle.map((iconName, iconIndex) => (
-              <Icon
+              <Kb.Icon
                 key={iconName}
                 type={iconName}
-                color={this.state.hovering ? Styles.globalColors.black_50 : Styles.globalColors.black_50}
+                color={
+                  this.state.hovering ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.black_50
+                }
                 fontSize={18}
-                style={Styles.collapseStyles([
+                style={Kb.Styles.collapseStyles([
                   styles.emojiIconWrapper,
-                  !Styles.isMobile && (this.props.showBorder ? {top: 4} : {top: 1}),
+                  !Kb.Styles.isMobile && (this.props.showBorder ? {top: 4} : {top: 1}),
                   !this.state.applyClasses &&
                     (iconIndex === this.state.iconIndex
                       ? ({transform: 'translateX(-8px)'} as any)
@@ -186,36 +185,36 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
               />
             ))
           )}
-        </Box2>
-      </ClickableBox2>
+        </Kb.Box2>
+      </Kb.ClickableBox2>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       active: {
-        backgroundColor: Styles.globalColors.blueLighter2,
-        borderColor: Styles.globalColors.blue,
+        backgroundColor: Kb.Styles.globalColors.blueLighter2,
+        borderColor: Kb.Styles.globalColors.blue,
       },
       borderBase: {
-        borderColor: Styles.globalColors.black_10,
-        borderRadius: Styles.borderRadius,
+        borderColor: Kb.Styles.globalColors.black_10,
+        borderRadius: Kb.Styles.borderRadius,
         borderStyle: 'solid',
       },
-      buttonBox: Styles.platformStyles({
+      buttonBox: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.white,
           borderWidth: 1,
-          height: Styles.isMobile ? 30 : 24,
+          height: Kb.Styles.isMobile ? 30 : 24,
           justifyContent: 'center',
         },
-        isElectron: {...Styles.transition('border-color', 'background-color', 'box-shadow')},
+        isElectron: {...Kb.Styles.transition('border-color', 'background-color', 'box-shadow')},
       }),
       container: {
-        height: Styles.isMobile ? 20 : undefined,
+        height: Kb.Styles.isMobile ? 20 : undefined,
         minWidth: 40,
         paddingLeft: 6,
         paddingRight: 6,
@@ -225,30 +224,30 @@ const styles = Styles.styleSheetCreate(
         height: 24,
       },
       count: {
-        color: Styles.globalColors.black_50,
+        color: Kb.Styles.globalColors.black_50,
         position: 'relative',
       },
-      countActive: {color: Styles.globalColors.blueDark},
+      countActive: {color: Kb.Styles.globalColors.blueDark},
       emoji: {height: 25},
-      emojiContainer: Styles.platformStyles({
+      emojiContainer: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.desktopStyles.boxShadow,
+          ...Kb.Styles.desktopStyles.boxShadow,
           borderRadius: 4,
-          marginRight: Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.small,
         },
       }),
-      emojiIconWrapper: Styles.platformStyles({
+      emojiIconWrapper: Kb.Styles.platformStyles({
         isElectron: {position: 'absolute'},
         isMobile: {marginTop: 2},
       }),
-      newReactionButtonBox: Styles.platformStyles({
+      newReactionButtonBox: Kb.Styles.platformStyles({
         common: {width: 37},
         isElectron: {
           minHeight: 18,
           overflow: 'hidden',
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default ReactButton

@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 
 export type Props = {
   errorText: string
@@ -65,7 +64,7 @@ const JoinTeam = (props: Props) => {
       header={{
         hideBorder: props.success,
         leftButton:
-          Styles.isMobile && !props.success ? (
+          Kb.Styles.isMobile && !props.success ? (
             <Kb.Text type="BodyBigLink" onClick={props.onBack}>
               Cancel
             </Kb.Text>
@@ -115,16 +114,16 @@ const JoinTeam = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      banner: Styles.platformStyles({isElectron: {overflowX: 'hidden'}}),
+      banner: Kb.Styles.platformStyles({isElectron: {overflowX: 'hidden'}}),
       buttonBar: {minHeight: undefined},
       container: {
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
         width: '100%',
       },
-      roundedBox: {marginBottom: Styles.globalMargins.tiny},
+      roundedBox: {marginBottom: Kb.Styles.globalMargins.tiny},
     }) as const
 )
 

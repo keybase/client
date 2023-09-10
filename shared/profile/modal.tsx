@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 
 type Props = React.PropsWithChildren<{
   onCancel?: () => void
@@ -22,23 +21,23 @@ const Modal = ({children, onCancel, skipButton}: Props) => (
   </Kb.PopupWrapper>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       buttonBar: {
         flexShrink: 0,
-        padding: Styles.isMobile ? undefined : Styles.globalMargins.medium,
+        padding: Kb.Styles.isMobile ? undefined : Kb.Styles.globalMargins.medium,
       },
       container: {
-        minHeight: Styles.isMobile ? undefined : 450,
-        padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.medium,
-        width: Styles.isMobile ? undefined : 560,
+        minHeight: Kb.Styles.isMobile ? undefined : 450,
+        padding: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.medium,
+        width: Kb.Styles.isMobile ? undefined : 560,
       },
       content: {
         flexGrow: 1,
         justifyContent: 'space-around',
       },
-    } as const)
+    }) as const
 )
 
 export default Modal

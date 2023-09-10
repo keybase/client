@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../../../../common-adapters/index'
 import * as Constants from '../../../../../../../constants/chat2'
-import * as Styles from '../../../../../../../styles'
 import {maxWidth} from '../../../../../messages/attachment/shared'
 import {Video} from './video'
 import openURL from '../../../../../../../util/open-url'
@@ -32,7 +31,7 @@ const UnfurlImage = (p: Props) => {
       autoPlay={autoplayVideo}
       height={height}
       onClick={onClick}
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.image,
         {height, minHeight: height, minWidth: width, width},
         style,
@@ -44,7 +43,7 @@ const UnfurlImage = (p: Props) => {
     <Kb.ClickableBox onClick={onClick || onOpenURL}>
       <Kb.Image2
         src={url}
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.video,
           {height, minHeight: height, minWidth: width, width},
           style,
@@ -54,11 +53,11 @@ const UnfurlImage = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       image: {
-        borderRadius: Styles.borderRadius,
+        borderRadius: Kb.Styles.borderRadius,
         flexGrow: 0,
         flexShrink: 0,
       },
@@ -66,7 +65,7 @@ const styles = Styles.styleSheetCreate(
         flexGrow: 0,
         flexShrink: 0,
       },
-    } as const)
+    }) as const
 )
 
 export default UnfurlImage

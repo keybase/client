@@ -1,7 +1,7 @@
 import * as C from '../../../../constants'
 import * as ChatConstants from '../../../../constants/chat2'
+import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import * as TeamConstants from '../../../../constants/teams'
 import * as T from '../../../../constants/types'
 import {InfoPanelMenu} from '.'
@@ -9,7 +9,7 @@ import {InfoPanelMenu} from '.'
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
   onHidden: () => void
-  floatingMenuContainerStyle?: Styles.StylesCrossPlatform
+  floatingMenuContainerStyle?: Kb.Styles.StylesCrossPlatform
   hasHeader: boolean
   isSmallTeam: boolean
   teamID?: T.Teams.TeamID
@@ -109,7 +109,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     }))
   }, [navigateAppend, teamname, participants])
   const onInvite = React.useCallback(() => {
-    const selected = Styles.isMobile ? 'teamInviteByContact' : 'teamInviteByEmail'
+    const selected = Kb.Styles.isMobile ? 'teamInviteByContact' : 'teamInviteByEmail'
     teamID && navigateAppend(() => ({props: {teamID}, selected}))
   }, [navigateAppend, teamID])
 

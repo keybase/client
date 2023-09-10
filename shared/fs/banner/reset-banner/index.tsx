@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 
 /*
  * This banner is used as part of a List2 in fs/folder/rows/rows.js, so it's
@@ -10,8 +9,8 @@ import * as Styles from '../../../styles'
  *
  */
 const addedHeightPerResetUser = C.isMobile
-  ? 2 * Styles.globalMargins.large + Styles.globalMargins.tiny + Styles.globalMargins.small
-  : Styles.globalMargins.large + Styles.globalMargins.tiny
+  ? 2 * Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny + Kb.Styles.globalMargins.small
+  : Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny
 const baseHeight = C.isMobile ? 440 : 378 // Change this when layout changes
 export const getHeight = (numResetUsers: number) => baseHeight + numResetUsers * addedHeightPerResetUser
 
@@ -27,11 +26,11 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
     direction="vertical"
     fullWidth={true}
     centerChildren={true}
-    style={Styles.collapseStyles([styles.banner, fixedHeight(getHeight(resetParticipants.length))])}
+    style={Kb.Styles.collapseStyles([styles.banner, fixedHeight(getHeight(resetParticipants.length))])}
   >
     <Kb.Icon
       type={C.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
-      style={{height: Styles.globalMargins.xlarge, margin: Styles.globalMargins.medium}}
+      style={{height: Kb.Styles.globalMargins.xlarge, margin: Kb.Styles.globalMargins.medium}}
     />
     <Kb.Box2 direction="vertical" centerChildren={true} style={styles.textIntro}>
       <Kb.Text type="BodySemibold" negative={true}>
@@ -40,7 +39,7 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
           showAnd={true}
           inline={true}
           inlineGrammar={true}
-          commaColor={Styles.globalColors.white}
+          commaColor={Kb.Styles.globalColors.white}
           onUsernameClicked="profile"
           underline={true}
           usernames={resetParticipants}
@@ -110,36 +109,36 @@ const fixedHeight = (height: number) => ({
   minHeight: height,
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       banner: {
-        backgroundColor: Styles.globalColors.red,
-        padding: Styles.globalMargins.medium,
+        backgroundColor: Kb.Styles.globalColors.red,
+        padding: Kb.Styles.globalMargins.medium,
       },
-      button: Styles.platformStyles({
+      button: Kb.Styles.platformStyles({
         isElectron: {
-          width: Styles.globalMargins.xlarge * 4,
+          width: Kb.Styles.globalMargins.xlarge * 4,
         },
         isMobile: {
-          width: Styles.globalMargins.xlarge * 5,
+          width: Kb.Styles.globalMargins.xlarge * 5,
         },
       }),
       listTextContainer: {
-        ...fixedHeight(C.isMobile ? Styles.globalMargins.large * 3 : Styles.globalMargins.large * 2),
+        ...fixedHeight(C.isMobile ? Kb.Styles.globalMargins.large * 3 : Kb.Styles.globalMargins.large * 2),
         justifyContent: 'center',
         maxWidth: C.isMobile ? 280 : 400,
       },
       listTextContent: {
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       textDontLetThemIn: {
-        ...fixedHeight(Styles.globalMargins.mediumLarge),
-        marginBottom: Styles.globalMargins.tiny,
+        ...fixedHeight(Kb.Styles.globalMargins.mediumLarge),
+        marginBottom: Kb.Styles.globalMargins.tiny,
       },
-      textIntro: fixedHeight(Styles.globalMargins.xlarge + Styles.globalMargins.small),
+      textIntro: fixedHeight(Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.small),
       textOrUntil: {
-        marginTop: Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
       },
     }) as const
 )

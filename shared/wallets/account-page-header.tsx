@@ -1,5 +1,4 @@
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 
 // Component to show page title on desktop
 // And account name / title like this on mobile:
@@ -15,7 +14,7 @@ type Props = {
 const AccountPageHeader = (props: Props) => (
   <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.container}>
     <Kb.Box2 direction="vertical">
-      {Styles.isMobile && !!props.accountName && (
+      {Kb.Styles.isMobile && !!props.accountName && (
         <Kb.Text center={true} type="BodySmallSemibold">
           {props.accountName}
         </Kb.Text>
@@ -27,7 +26,7 @@ const AccountPageHeader = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {flex: 1},
 }))
 

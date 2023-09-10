@@ -1,6 +1,5 @@
 import * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import type {allTextTypes} from '../../common-adapters/text.shared'
 
 type TextType = keyof typeof allTextTypes
@@ -9,7 +8,7 @@ type Props = {
   path?: T.FS.Path
   filename?: string
   selectable?: boolean
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
   type: TextType
 }
 
@@ -32,7 +31,7 @@ const Filename = (props: Props) => {
         fixOverdraw={true}
         className="hover-underline-child"
         type={props.type}
-        style={Styles.collapseStyles([props.style, styles.breakAll])}
+        style={Kb.Styles.collapseStyles([props.style, styles.breakAll])}
         lineClamp={1}
         selectable={props.selectable}
       >
@@ -43,7 +42,7 @@ const Filename = (props: Props) => {
           fixOverdraw={true}
           className="hover-underline-child"
           type={props.type}
-          style={Styles.collapseStyles([props.style, styles.noShrink])}
+          style={Kb.Styles.collapseStyles([props.style, styles.noShrink])}
           selectable={props.selectable}
         >
           {fileExtension}
@@ -55,10 +54,10 @@ const Filename = (props: Props) => {
 
 export default Filename
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      breakAll: Styles.platformStyles({
+      breakAll: Kb.Styles.platformStyles({
         isElectron: {
           wordBreak: 'break-all',
         },

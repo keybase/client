@@ -5,7 +5,6 @@ import * as Kb from '../../common-adapters'
 import type {LayoutEvent} from './../../common-adapters/box'
 import * as Constants from './../../constants/chat2'
 import * as T from './../../constants/types'
-import * as Styles from './../../styles'
 import * as Data from './../../util/emoji'
 import startCase from 'lodash/startCase'
 import debounce from 'lodash/debounce'
@@ -174,7 +173,7 @@ const WrapperMobile = (props: Props) => {
           onExpandChange={setSkinTonePickerExpanded}
           setSkinTone={setSkinTone}
         />
-        <Kb.Box style={Styles.globalStyles.flexOne} />
+        <Kb.Box style={Kb.Styles.globalStyles.flexOne} />
         {!props.small && !skinTonePickerExpanded && canManageEmoji && (
           <Kb.Button
             mode="Secondary"
@@ -206,7 +205,7 @@ export const EmojiPickerDesktop = (props: Props) => {
 
   return (
     <Kb.Box
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.containerDesktop,
         styles.contain,
         props.small && styles.containerDesktopSmall,
@@ -260,7 +259,7 @@ export const EmojiPickerDesktop = (props: Props) => {
             size: 36,
           })}
           {hoveredEmoji.teamname ? (
-            <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+            <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
               <Kb.Text type="BodyBig" lineClamp={1}>
                 {':' + hoveredEmoji.short_name + ':'}
               </Kb.Text>
@@ -269,7 +268,7 @@ export const EmojiPickerDesktop = (props: Props) => {
               </Kb.Text>
             </Kb.Box2>
           ) : (
-            <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+            <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
               <Kb.Text type="BodyBig" lineClamp={1}>
                 {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
               </Kb.Text>
@@ -287,27 +286,27 @@ export const EmojiPickerDesktop = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      addEmojiButton: Styles.platformStyles({
+      addEmojiButton: Kb.Styles.platformStyles({
         isElectron: {
           width: 88,
         },
       }),
       cancelContainerMobile: {
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
-      contain: Styles.platformStyles({
+      contain: Kb.Styles.platformStyles({
         isElectron: {
           contain: 'content',
         },
       }),
       containerDesktop: {
-        ...Styles.globalStyles.flexBoxColumn,
-        backgroundColor: Styles.globalColors.white,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
+        backgroundColor: Kb.Styles.globalColors.white,
         height: 561,
         maxWidth: 336,
         minHeight: 561,
@@ -317,36 +316,36 @@ const styles = Styles.styleSheetCreate(
         height: 250,
         minHeight: 250,
       },
-      footerContainer: Styles.platformStyles({
+      footerContainer: Kb.Styles.platformStyles({
         common: {
           flexShrink: 0,
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
         },
         isElectron: {
-          backgroundColor: Styles.globalColors.blueGrey,
-          height: Styles.globalMargins.xlarge + Styles.globalMargins.xtiny,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          height: Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.xtiny,
         },
         isMobile: {
-          backgroundColor: Styles.globalColors.blueGrey,
-          height: Styles.globalMargins.mediumLarge + Styles.globalMargins.small,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          height: Kb.Styles.globalMargins.mediumLarge + Kb.Styles.globalMargins.small,
         },
       }),
       input: {
         borderBottomWidth: 1,
-        borderColor: Styles.globalColors.black_10,
+        borderColor: Kb.Styles.globalColors.black_10,
         borderRadius: 0,
         borderWidth: 0,
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
-      searchFilter: Styles.platformStyles({
+      searchFilter: Kb.Styles.platformStyles({
         isMobile: {
           flexGrow: 1,
           flexShrink: 1,
         },
       }),
       topContainerDesktop: {
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
       },
     }) as const
 )

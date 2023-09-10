@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/tracker2'
+import * as Styles from '../../../styles'
 import OpenMeta from './openmeta'
 import FloatingMenu from '../../../common-adapters/floating-menu'
 import ConnectedUsernames from '../../../common-adapters/usernames'
@@ -14,6 +14,7 @@ const Kb = {
   ConnectedUsernames,
   FloatingMenu,
   NameWithIcon,
+  Styles,
   Text,
   WaitingButton,
 }
@@ -133,10 +134,10 @@ class TeamInfo extends React.Component<Props, {requested: boolean}> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      description: Styles.platformStyles({
+      description: Kb.Styles.platformStyles({
         common: {
           textAlign: 'center',
         },
@@ -147,12 +148,12 @@ const styles = Styles.styleSheetCreate(
       }),
       infoPopup: {
         maxWidth: 225,
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
-      publicAdmins: Styles.platformStyles({
+      publicAdmins: Kb.Styles.platformStyles({
         isElectron: {display: 'unset'},
       }),
-    } as const)
+    }) as const
 )
 
 export default TeamInfo

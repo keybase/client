@@ -4,7 +4,6 @@ import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Shim from './shim.native'
-import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
 import * as RouterLinking from './router-linking.native'
@@ -76,7 +75,7 @@ const TabBarIcon = React.memo(
           type={tabToData[routeName].icon}
           fontSize={32}
           style={styles.tab}
-          color={isFocused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
+          color={isFocused ? Kb.Styles.globalColors.whiteOrWhite : Kb.Styles.globalColors.blueDarkerOrBlack}
         />
         {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={styles.badge} />}
         {routeName === Tabs.fsTab && <Shared.FilesTabBadge />}
@@ -86,38 +85,38 @@ const TabBarIcon = React.memo(
   (a, b) => a.routeName === b.routeName && a.isFocused === b.isFocused
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      badge: Styles.platformStyles({
+      badge: Kb.Styles.platformStyles({
         common: {
           position: 'absolute',
           right: 8,
           top: 3,
         },
       }),
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
           flex: 1,
           justifyContent: 'center',
         },
         isTablet: {
           // This is to circumvent a React Navigation AnimatedComponent with minWidth: 64 that wraps TabBarIcon
-          minWidth: Styles.globalMargins.xlarge,
+          minWidth: Kb.Styles.globalMargins.xlarge,
         },
       }),
       keyboard: {
         flexGrow: 1,
         position: 'relative',
       },
-      label: {marginLeft: Styles.globalMargins.medium},
-      labelDarkMode: {color: Styles.globalColors.black_50},
-      labelDarkModeFocused: {color: Styles.globalColors.black},
-      labelLightMode: {color: Styles.globalColors.blueLighter},
-      labelLightModeFocused: {color: Styles.globalColors.white},
-      tab: Styles.platformStyles({
+      label: {marginLeft: Kb.Styles.globalMargins.medium},
+      labelDarkMode: {color: Kb.Styles.globalColors.black_50},
+      labelDarkModeFocused: {color: Kb.Styles.globalColors.black},
+      labelLightMode: {color: Kb.Styles.globalColors.blueLighter},
+      labelLightModeFocused: {color: Kb.Styles.globalColors.white},
+      tab: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          backgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
           paddingBottom: 6,
           paddingLeft: 16,
           paddingRight: 16,
@@ -196,9 +195,9 @@ const AppTabs = React.memo(
       (routeName: string) =>
       ({focused}: {focused: boolean}) => (
         <Kb.Text
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             styles.label,
-            Styles.isDarkMode()
+            Kb.Styles.isDarkMode()
               ? focused
                 ? styles.labelDarkModeFocused
                 : styles.labelDarkMode
@@ -222,12 +221,12 @@ const AppTabs = React.memo(
           return {
             ...Common.defaultNavigationOptions,
             headerShown: false,
-            tabBarActiveBackgroundColor: Styles.globalColors.transparent,
+            tabBarActiveBackgroundColor: Kb.Styles.globalColors.transparent,
             tabBarHideOnKeyboard: true,
             tabBarIcon: makeTabBarIcon(route.name),
-            tabBarInactiveBackgroundColor: Styles.globalColors.transparent,
+            tabBarInactiveBackgroundColor: Kb.Styles.globalColors.transparent,
             tabBarLabel: makeTabBarLabel(route.name),
-            tabBarShowLabel: Styles.isTablet,
+            tabBarShowLabel: Kb.Styles.isTablet,
             tabBarStyle: Common.tabBarStyle,
           }
         }}
@@ -342,7 +341,7 @@ const RNApp = React.memo(function RNApp() {
     <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true}>
       <StatusBar barStyle={barStyle} />
       <NavigationContainer
-        fallback={<View style={{backgroundColor: Styles.globalColors.white, flex: 1}} />}
+        fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
         linking={goodLinking}
         ref={Constants.navigationRef_ as any}
         key={String(navKey)}
@@ -367,7 +366,7 @@ const RNApp = React.memo(function RNApp() {
                 screenOptions={{
                   headerLeft: () => <HeaderLeftCancel2 />,
                   // hard to fight overdraw on android with this on so just treat modals as screens
-                  presentation: Styles.isAndroid ? undefined : 'modal',
+                  presentation: Kb.Styles.isAndroid ? undefined : 'modal',
                   title: '',
                 }}
               >

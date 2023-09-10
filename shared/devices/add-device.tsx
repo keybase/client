@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as React from 'react'
 import * as Constants from '../constants/devices'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import {useSafeCallback} from '../util/container'
 
 type OwnProps = {
@@ -49,13 +48,13 @@ export default function AddDevice(ownProps: OwnProps) {
           gapEnd={true}
         >
           <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
-            {!Styles.isMobile && <Kb.Text type="Header">Add a device</Kb.Text>}
+            {!Kb.Styles.isMobile && <Kb.Text type="Header">Add a device</Kb.Text>}
             <Kb.Text type="Body" center={true}>
               Protect your account by having more devices and paper keys.
             </Kb.Text>
           </Kb.Box2>
           <Kb.Box2
-            direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+            direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
             gap="mediumLarge"
             style={styles.deviceOptions}
             gapEnd={true}
@@ -90,7 +89,7 @@ type DeviceOptionProps = {
   onClick: () => void
   type: 'computer' | 'paper key' | 'phone'
 }
-const bigIcon = C.isLargeScreen && Styles.isMobile
+const bigIcon = C.isLargeScreen && Kb.Styles.isMobile
 const getIconType = (deviceType: DeviceOptionProps['type'], iconNumber?: number) => {
   let iconType: string
   const size = bigIcon ? 96 : 64
@@ -114,14 +113,14 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
   <Kb.ClickableBox onClick={onClick}>
     <Kb.Box2
       className="hover_background_color_blueLighter2"
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.deviceOption,
-        Styles.isMobile && highlight && styles.deviceOptionHighlighted,
+        Kb.Styles.isMobile && highlight && styles.deviceOptionHighlighted,
       ])}
       direction="vertical"
       centerChildren={true}
       gap="xtiny"
-      gapEnd={!Styles.isMobile}
+      gapEnd={!Kb.Styles.isMobile}
     >
       <Kb.Icon type={getIconType(type, iconNumber)} />
       <Kb.Text type="BodySemibold">
@@ -131,24 +130,24 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
   </Kb.ClickableBox>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {padding: Styles.globalMargins.small},
-  deviceOption: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: {padding: Kb.Styles.globalMargins.small},
+  deviceOption: Kb.Styles.platformStyles({
     common: {
-      borderColor: Styles.globalColors.black_05,
-      borderRadius: Styles.borderRadius,
+      borderColor: Kb.Styles.globalColors.black_05,
+      borderRadius: Kb.Styles.borderRadius,
       borderStyle: 'solid',
       borderWidth: 1,
-      padding: Styles.globalMargins.tiny,
-      width: Styles.isMobile ? 192 : 168,
+      padding: Kb.Styles.globalMargins.tiny,
+      width: Kb.Styles.isMobile ? 192 : 168,
     },
     isElectron: {
-      ...Styles.transition('background-color'),
+      ...Kb.Styles.transition('background-color'),
     },
   }),
-  deviceOptionHighlighted: {backgroundColor: Styles.globalColors.blueLighter2},
-  deviceOptions: Styles.platformStyles({
-    isElectron: {paddingLeft: Styles.globalMargins.large},
-    isMobile: {paddingTop: Styles.globalMargins.medium},
+  deviceOptionHighlighted: {backgroundColor: Kb.Styles.globalColors.blueLighter2},
+  deviceOptions: Kb.Styles.platformStyles({
+    isElectron: {paddingLeft: Kb.Styles.globalMargins.large},
+    isMobile: {paddingTop: Kb.Styles.globalMargins.medium},
   }),
 }))

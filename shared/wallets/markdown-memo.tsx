@@ -1,29 +1,28 @@
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import type {StyleOverride} from '../common-adapters/markdown'
 
-const styleOverride: StyleOverride = Styles.styleSheetCreate(() => ({
+const styleOverride: StyleOverride = Kb.Styles.styleSheetCreate(() => ({
   del: {
-    color: Styles.globalColors.black,
+    color: Kb.Styles.globalColors.black,
   },
   em: {
-    color: Styles.globalColors.black,
+    color: Kb.Styles.globalColors.black,
   },
   link: {
-    color: Styles.globalColors.black,
+    color: Kb.Styles.globalColors.black,
   },
   paragraph: {
-    color: Styles.globalColors.black,
+    color: Kb.Styles.globalColors.black,
   },
   strong: {
-    color: Styles.globalColors.black,
+    color: Kb.Styles.globalColors.black,
   },
 }))
 
 type Props = {
   memo: string
   hideDivider?: boolean
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
   styleOverride?: StyleOverride
 }
 
@@ -33,7 +32,7 @@ const MarkdownMemo = (props: Props) =>
       direction="horizontal"
       gap="small"
       fullWidth={true}
-      style={Styles.collapseStyles([props.style, styles.container])}
+      style={Kb.Styles.collapseStyles([props.style, styles.container])}
     >
       {!props.hideDivider && <Kb.Divider vertical={true} style={styles.quoteMarker} />}
       <Kb.Text type="Body" style={styles.memo}>
@@ -48,13 +47,13 @@ const MarkdownMemo = (props: Props) =>
     </Kb.Box2>
   ) : null
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    marginBottom: Styles.globalMargins.xxtiny,
-    marginTop: Styles.globalMargins.xxtiny,
+    marginBottom: Kb.Styles.globalMargins.xxtiny,
+    marginTop: Kb.Styles.globalMargins.xxtiny,
     maxWidth: '100%',
   },
-  memo: Styles.platformStyles({
+  memo: Kb.Styles.platformStyles({
     // Taken from text message styling
     common: {
       maxWidth: '100%',
@@ -67,7 +66,7 @@ const styles = Styles.styleSheetCreate(() => ({
       wordBreak: 'break-word',
     } as const,
     isMobile: {
-      ...Styles.globalStyles.flexBoxColumn,
+      ...Kb.Styles.globalStyles.flexBoxColumn,
     },
   }),
   quoteMarker: {maxWidth: 3, minWidth: 3},

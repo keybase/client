@@ -1,6 +1,6 @@
 import * as C from '../constants'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import DeviceList from './device-list.desktop'
 import DragHeader from '../desktop/remote/drag-header.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
@@ -62,7 +62,7 @@ const UnlockFolders = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {

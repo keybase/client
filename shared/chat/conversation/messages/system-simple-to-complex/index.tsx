@@ -1,7 +1,6 @@
 import * as React from 'react'
 import type * as T from '../../../../constants/types'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
 
 type Props = {
@@ -27,7 +26,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
           direction="vertical"
           alignSelf="flex-start"
           gap="tiny"
-          style={{marginLeft: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.xtiny}}
+          style={{marginLeft: Kb.Styles.globalMargins.tiny, marginTop: Kb.Styles.globalMargins.xtiny}}
         >
           <Kb.Text type="BodySmall">
             <Kb.Text type="BodySmall" style={styles.bullet}>
@@ -44,7 +43,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
             <Kb.Text
               onClick={onManageChannels}
               type="BodySmallSemiboldSecondaryLink"
-              style={{color: Styles.globalColors.blueDark}}
+              style={{color: Kb.Styles.globalColors.blueDark}}
             >
               Browse other channels
             </Kb.Text>
@@ -55,9 +54,9 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   bullet: {
-    marginRight: Styles.globalMargins.small,
+    marginRight: Kb.Styles.globalMargins.small,
   },
 }))
 

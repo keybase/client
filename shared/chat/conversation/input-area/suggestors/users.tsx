@@ -4,7 +4,6 @@ import * as Common from './common'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 
 export const transformer = (
   input: {
@@ -30,11 +29,11 @@ export const transformer = (
   return Common.standardTransformer(`${marker}${s}`, tData, preview)
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   iconPeople: {
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_10,
+    backgroundColor: Kb.Styles.globalColors.white,
+    borderColor: Kb.Styles.globalColors.black_10,
     borderRadius: 16,
     borderStyle: 'solid',
     borderWidth: 1,
@@ -223,16 +222,16 @@ const ItemRenderer = (p: Common.ItemRendererProps<ListItem>) => {
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         Common.styles.suggestionBase,
         Common.styles.fixSuggestionHeight,
-        {backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white},
+        {backgroundColor: selected ? Kb.Styles.globalColors.blueLighter2 : Kb.Styles.globalColors.white},
       ])}
       gap="tiny"
     >
       {Constants.isSpecialMention(username ?? '') ? (
         <Kb.Box2 direction="horizontal" style={styles.iconPeople}>
-          <Kb.Icon type="iconfont-people" color={Styles.globalColors.blueDark} fontSize={16} />
+          <Kb.Icon type="iconfont-people" color={Kb.Styles.globalColors.blueDark} fontSize={16} />
         </Kb.Box2>
       ) : (
         <Kb.Avatar username={username} size={32} />

@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import * as T from '../../constants/types'
 import DefaultView from './default-view-container'
 import TextView from './text-view'
@@ -110,7 +109,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
 
 export default FilePreviewView
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       banner: {
@@ -128,7 +127,7 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       zoomableBox: {
-        backgroundColor: Styles.globalColors.blackOrBlack,
+        backgroundColor: Kb.Styles.globalColors.blackOrBlack,
         height: '100%',
         position: 'relative',
         width: '100%',

@@ -1,4 +1,3 @@
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/crypto'
 import * as Common from '../../router-v2/common.desktop'
@@ -43,10 +42,8 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
           {state.routes.map((route, i) => {
             return i === state.index ? (
               <Kb.Box2 key={route.key} direction="vertical" fullHeight={true} fullWidth={true}>
-                {
-                  // @ts-ignore
-                  descriptors[route.key]?.render()
-                }
+                {// @ts-ignore
+                descriptors[route.key]?.render()}
               </Kb.Box2>
             ) : null
           })}
@@ -56,8 +53,8 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  box: {backgroundColor: Styles.globalColors.white},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  box: {backgroundColor: Kb.Styles.globalColors.white},
   nav: {width: 180},
 }))
 

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../../../styles'
+import * as Kb from '../../../common-adapters'
 import type {Props} from '.'
 import {View} from 'react-native'
 
@@ -12,7 +12,7 @@ class Measure extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {width: '100%'},
 }))
 

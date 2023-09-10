@@ -1,6 +1,5 @@
-import * as Styles from '../../styles'
-
 import type {Props} from './container'
+import * as Kb from '../../common-adapters'
 
 const Container = ({children, style, outerStyle}: Props) => {
   return (
@@ -10,22 +9,22 @@ const Container = ({children, style, outerStyle}: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-start',
         flex: 1,
         justifyContent: 'flex-start',
         padding: 64,
       },
       innerContainer: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignSelf: 'stretch',
         height: '100%',
         width: '100%',
       },
-    } as const)
+    }) as const
 )
 export default Container

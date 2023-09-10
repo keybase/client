@@ -1,8 +1,8 @@
 // A mirror of the remote menubar windows.
 import * as C from '../constants'
 import * as T from '../constants/types'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import type * as ChatConstants from '../constants/chat2'
 import KB2 from '../util/electron.desktop'
 import _getIcons from './icons'
@@ -106,7 +106,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   }, C.shallowEqual)
   const infoMap = C.useUsersState(s => s.infoMap)
   const widgetList = C.useChatState(s => s.inboxLayout?.widgetList)
-  const darkMode = Styles.isDarkMode()
+  const darkMode = Kb.Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === 'enabled'
 

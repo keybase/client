@@ -1,6 +1,5 @@
 import type * as T from '../../../constants/types'
 import * as C from '../../../constants'
-import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import type {FloatingMenuProps} from './types'
 
@@ -57,24 +56,24 @@ const PathItemActionConfirm = (props: Props) => (
 )
 export default PathItemActionConfirm
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       confirmText: {
         textAlign: 'center',
       },
       confirmTextBox: {
-        padding: Styles.globalMargins.medium,
+        padding: Kb.Styles.globalMargins.medium,
       },
       menuRowText: {
-        color: Styles.globalColors.blueDark,
+        color: Kb.Styles.globalColors.blueDark,
       },
       menuRowTextDisabled: {
-        color: Styles.globalColors.blueDark,
+        color: Kb.Styles.globalColors.blueDark,
         opacity: 0.6,
       },
       progressIndicator: {
-        marginRight: Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
       },
     }) as const
 )

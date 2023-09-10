@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
-import * as Styles from '../../styles'
 import SyncingFolders from './syncing-folders'
 import {IconWithPopup as WhatsNewIconWithPopup} from '../../whats-new/icon/container'
 // @ts-ignore
@@ -25,8 +24,8 @@ type Props = {
     subHeader?: React.JSXElementConstructor<{}>
     headerTransparent?: boolean
     headerHideBorder?: boolean
-    headerBottomStyle?: Styles.StylesCrossPlatform
-    headerStyle?: Styles.StylesCrossPlatform
+    headerBottomStyle?: Kb.Styles.StylesCrossPlatform
+    headerStyle?: Kb.Styles.StylesCrossPlatform
   }
   back?: boolean
   style?: any
@@ -122,7 +121,7 @@ const DesktopHeader = React.memo(
       subHeader = CustomSubHeader ? <CustomSubHeader /> : null
     }
 
-    let style: Styles.StylesCrossPlatform = null
+    let style: Kb.Styles.StylesCrossPlatform = null
     if (opt.headerTransparent) {
       style = {position: 'absolute'}
     }
@@ -138,16 +137,16 @@ const DesktopHeader = React.memo(
     // icons (minimize etc) because the left nav bar pushes it to the right -- unless you're logged
     // out, in which case there's no nav bar and they overlap. So, if we're on Mac, and logged out,
     // push the back arrow down below the system icons.
-    const iconContainerStyle: Styles.StylesCrossPlatform = Styles.collapseStyles([
+    const iconContainerStyle: Kb.Styles.StylesCrossPlatform = Kb.Styles.collapseStyles([
       styles.iconContainer,
       !back && styles.iconContainerInactive,
       !loggedIn && Platform.isDarwin && styles.iconContainerDarwin,
     ] as const)
     const iconColor = back
-      ? Styles.globalColors.black_50
+      ? Kb.Styles.globalColors.black_50
       : loggedIn
-      ? Styles.globalColors.black_10
-      : Styles.globalColors.transparent
+      ? Kb.Styles.globalColors.black_10
+      : Kb.Styles.globalColors.transparent
 
     const whatsNewAttachToRef = React.createRef<Kb.Box2>()
 
@@ -157,7 +156,7 @@ const DesktopHeader = React.memo(
           noShrink={true}
           direction="vertical"
           fullWidth={true}
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             styles.headerContainer,
             showDivider && styles.headerBorder,
             style,
@@ -175,7 +174,7 @@ const DesktopHeader = React.memo(
             {/* TODO have headerLeft be the back button */}
             {opt.headerLeft !== null && (
               <Kb.Box
-                className={Styles.classNames('hover_container', {
+                className={Kb.Styles.classNames('hover_container', {
                   hover_background_color_black_10: !!back,
                 })}
                 onClick={pop}
@@ -184,7 +183,7 @@ const DesktopHeader = React.memo(
                 <Kb.Icon
                   type="iconfont-arrow-left"
                   color={iconColor}
-                  className={Styles.classNames({hover_contained_color_blackOrBlack: back})}
+                  className={Kb.Styles.classNames({hover_contained_color_blackOrBlack: back})}
                   boxStyle={styles.icon}
                 />
               </Kb.Box>
@@ -192,8 +191,8 @@ const DesktopHeader = React.memo(
             <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
               <SyncingFolders
                 negative={
-                  p.style?.backgroundColor !== Styles.globalColors.transparent &&
-                  p.style?.backgroundColor !== Styles.globalColors.white
+                  p.style?.backgroundColor !== Kb.Styles.globalColors.transparent &&
+                  p.style?.backgroundColor !== Kb.Styles.globalColors.white
                 }
               />
               {loggedIn && <WhatsNewIconWithPopup attachToRef={whatsNewAttachToRef} />}
@@ -205,7 +204,7 @@ const DesktopHeader = React.memo(
             key="bottomBar"
             direction="horizontal"
             fullWidth={true}
-            style={Styles.collapseStyles([styles.bottom, opt.headerBottomStyle])}
+            style={Kb.Styles.collapseStyles([styles.bottom, opt.headerBottomStyle])}
           >
             <Kb.Box2 direction="horizontal" style={styles.bottomTitle}>
               {title}
@@ -227,88 +226,88 @@ const DesktopHeader = React.memo(
   }
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      appIcon: Styles.platformStyles({
+      appIcon: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.desktopStyles.windowDraggingClickable,
-          padding: Styles.globalMargins.xtiny,
+          ...Kb.Styles.desktopStyles.windowDraggingClickable,
+          padding: Kb.Styles.globalMargins.xtiny,
           position: 'relative',
-          top: Styles.globalMargins.xxtiny,
+          top: Kb.Styles.globalMargins.xxtiny,
         },
       }),
-      appIconBox: Styles.platformStyles({
+      appIconBox: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.desktopStyles.windowDraggingClickable,
-          padding: Styles.globalMargins.tiny,
+          ...Kb.Styles.desktopStyles.windowDraggingClickable,
+          padding: Kb.Styles.globalMargins.tiny,
           position: 'relative',
-          right: -Styles.globalMargins.tiny,
-          top: -Styles.globalMargins.xtiny,
+          right: -Kb.Styles.globalMargins.tiny,
+          top: -Kb.Styles.globalMargins.xtiny,
         },
       }),
       bottom: {height: 40 - 1, maxHeight: 40 - 1}, // for border
       bottomExpandable: {minHeight: 40 - 1},
       bottomTitle: {flexGrow: 1, height: '100%', maxHeight: '100%', overflow: 'hidden'},
       flexOne: {flex: 1},
-      headerBack: Styles.platformStyles({
+      headerBack: Kb.Styles.platformStyles({
         isElectron: {
           alignItems: 'center',
           height: 40,
           justifyContent: 'space-between',
-          padding: Styles.globalMargins.tiny,
+          padding: Kb.Styles.globalMargins.tiny,
         },
       }),
       headerBorder: {
-        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomColor: Kb.Styles.globalColors.black_10,
         borderBottomWidth: 1,
         borderStyle: 'solid',
       },
-      headerContainer: Styles.platformStyles({
+      headerContainer: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.desktopStyles.windowDragging,
+          ...Kb.Styles.desktopStyles.windowDragging,
           alignItems: 'center',
           containment: 'layout',
         },
       }),
-      icon: Styles.platformStyles({
+      icon: Kb.Styles.platformStyles({
         isElectron: {
           display: 'inline-block',
           height: 14,
           width: 14,
         },
       }),
-      iconContainer: Styles.platformStyles({
+      iconContainer: Kb.Styles.platformStyles({
         common: {
           // Needed to position blue badge
           position: 'relative',
         },
         isElectron: {
-          ...Styles.desktopStyles.clickable,
-          ...Styles.desktopStyles.windowDraggingClickable,
-          ...Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.desktopStyles.clickable,
+          ...Kb.Styles.desktopStyles.windowDraggingClickable,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
-          borderRadius: Styles.borderRadius,
+          borderRadius: Kb.Styles.borderRadius,
           marginLeft: 4,
           marginRight: 6,
-          padding: Styles.globalMargins.xtiny,
+          padding: Kb.Styles.globalMargins.xtiny,
         },
       }),
-      iconContainerDarwin: Styles.platformStyles({
+      iconContainerDarwin: Kb.Styles.platformStyles({
         isElectron: {
           position: 'relative',
           top: 30,
         },
       }),
-      iconContainerInactive: Styles.platformStyles({
+      iconContainerInactive: Kb.Styles.platformStyles({
         isElectron: {cursor: 'default'},
       }),
       plainContainer: {
-        ...Styles.globalStyles.flexGrow,
-        marginLeft: Styles.globalMargins.xsmall,
+        ...Kb.Styles.globalStyles.flexGrow,
+        marginLeft: Kb.Styles.globalMargins.xsmall,
       },
       plainText: {
-        ...Styles.globalStyles.flexGrow,
+        ...Kb.Styles.globalStyles.flexGrow,
       },
       topRightContainer: {flex: 1, justifyContent: 'flex-end'},
     }) as const

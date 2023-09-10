@@ -1,9 +1,8 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import type * as T from '../../../../constants/types'
 import * as InfoPanelCommon from '../common'
+import type * as T from '../../../../constants/types'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import {TeamsSubscriberMountOnly} from '../../../../teams/subscriber'
 
@@ -16,7 +15,7 @@ export type Props = {
   teamType?: T.Chat.TeamType
   ignored: boolean
   isMuted: boolean
-  floatingMenuContainerStyle?: Styles.StylesCrossPlatform
+  floatingMenuContainerStyle?: Kb.Styles.StylesCrossPlatform
   hasHeader: boolean
   isInChannel: boolean
   isSmallTeam: boolean
@@ -53,16 +52,16 @@ const AdhocHeader = (props: AdhocHeaderProps) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
       <Avatars
-        backgroundColor={Styles.globalColors.white}
+        backgroundColor={Kb.Styles.globalColors.white}
         isMuted={props.isMuted}
         participantOne={channelHumans[0]}
         participantTwo={channelHumans[1]}
-        singleSize={Styles.isMobile ? 48 : 32}
+        singleSize={Kb.Styles.isMobile ? 48 : 32}
       />
       <Kb.Box2 alignItems="flex-start" direction="vertical">
         <Kb.ConnectedUsernames
           colorFollowing={true}
-          commaColor={Styles.globalColors.black_50}
+          commaColor={Kb.Styles.globalColors.black_50}
           inline={false}
           skipSelf={channelHumans.length > 1}
           containerStyle={styles.maybeLongText}
@@ -101,10 +100,10 @@ const TeamHeader = (props: TeamHeaderProps) => {
         </Kb.Text>
         {teamHumanCount ? (
           <Kb.Meta
-            backgroundColor={Styles.globalColors.blueGrey}
-            color={Styles.globalColors.black_50}
+            backgroundColor={Kb.Styles.globalColors.blueGrey}
+            color={Kb.Styles.globalColors.black_50}
             icon="iconfont-people-solid"
-            iconColor={Styles.globalColors.black_20}
+            iconColor={Kb.Styles.globalColors.black_20}
             title={teamHumanCount}
           />
         ) : (
@@ -173,7 +172,7 @@ const InfoPanelMenu = (p: Props) => {
         fullHeight={true}
         fullWidth={true}
         key="teamHeader"
-        style={Styles.collapseStyles([styles.channelHeader, styles.teamHeader])}
+        style={Kb.Styles.collapseStyles([styles.channelHeader, styles.teamHeader])}
       >
         <Kb.Box2 direction="horizontal" gap="tiny">
           <Kb.Avatar teamname={teamname} size={16} />
@@ -337,12 +336,12 @@ const InfoPanelMenu = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      badge: Styles.platformStyles({
+      badge: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blue,
+          backgroundColor: Kb.Styles.globalColors.blue,
           borderRadius: 6,
           height: 8,
           margin: 6,
@@ -352,46 +351,46 @@ const styles = Styles.styleSheetCreate(
           margin: 4,
           marginTop: 5,
           position: 'absolute',
-          right: Styles.globalMargins.tiny,
+          right: Kb.Styles.globalMargins.tiny,
         },
       }),
-      channelHeader: Styles.platformStyles({
+      channelHeader: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueGreyLight,
+          backgroundColor: Kb.Styles.globalColors.blueGreyLight,
           justifyContent: 'space-between',
         },
         isElectron: {
-          ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
-          marginTop: -Styles.globalMargins.tiny,
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+          marginTop: -Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.medium),
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.medium),
         },
       }),
-      channelName: Styles.platformStyles({
+      channelName: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-all'},
       }),
-      headerContainer: Styles.platformStyles({
+      headerContainer: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.padding(
-            Styles.globalMargins.small,
-            Styles.globalMargins.small,
-            Styles.globalMargins.xsmall
+          ...Kb.Styles.padding(
+            Kb.Styles.globalMargins.small,
+            Kb.Styles.globalMargins.small,
+            Kb.Styles.globalMargins.xsmall
           ),
           width: '100%', // don't expand if text is long
         },
         isMobile: {
-          ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.medium),
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.medium),
           height: 64,
         },
       }),
-      maybeLongText: Styles.platformStyles({
+      maybeLongText: Kb.Styles.platformStyles({
         isElectron: {
           wordBreak: 'break-word',
         } as const,
       }),
       muteAction: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
       },
       noTopborder: {
@@ -399,17 +398,17 @@ const styles = Styles.styleSheetCreate(
       },
       teamHeader: {
         borderStyle: 'solid',
-        borderTopColor: Styles.globalColors.black_10,
+        borderTopColor: Kb.Styles.globalColors.black_10,
         borderTopWidth: 1,
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       teamText: {
         flex: 1,
         justifyContent: 'space-between',
       },
-      text: Styles.platformStyles({
+      text: Kb.Styles.platformStyles({
         isMobile: {
-          color: Styles.globalColors.blueDark,
+          color: Kb.Styles.globalColors.blueDark,
         },
       }),
     }) as const

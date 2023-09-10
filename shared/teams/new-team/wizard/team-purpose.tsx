@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
-import * as Styles from '../../../styles'
 import {ModalTitle} from '../../common'
 import * as T from '../../../constants/types'
 
@@ -16,7 +15,7 @@ const TeamPurpose = () => {
       mode="DefaultFullHeight"
       onClose={onBack}
       header={{
-        leftButton: Styles.isMobile ? (
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onBack}>
             Cancel
           </Kb.Text>
@@ -30,7 +29,7 @@ const TeamPurpose = () => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Styles.isMobile ? 'xsmall' : 'tiny'}
+        gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
       >
         <Kb.Text type="BodySemibold">What do you need a team for?</Kb.Text>
         <Kb.RichButton
@@ -65,22 +64,22 @@ const TeamPurpose = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bg: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.blueGrey},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  bg: Kb.Styles.platformStyles({
+    common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
     isElectron: {borderRadius: 4},
   }),
-  body: Styles.platformStyles({
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       borderRadius: 4,
     },
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   container: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
-  wordBreak: Styles.platformStyles({
+  wordBreak: Kb.Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
     },

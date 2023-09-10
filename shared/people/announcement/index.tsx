@@ -1,5 +1,4 @@
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import PeopleItem from '../item'
 
 type Props = {
@@ -39,12 +38,12 @@ const Announcement = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {alignSelf: 'flex-start'},
       icon: {flexShrink: 0, height: 32, width: 32},
-    } as const)
+    }) as const
 )
 
 export default Announcement

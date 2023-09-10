@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import type * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import type {Tab as TabType} from '../../../common-adapters/tabs'
 
 export type TabKey = 'members' | 'attachments' | 'bots' | 'settings' | 'loading'
@@ -41,22 +40,22 @@ const ChannelTabs = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   clickableBox: {
     flexGrow: 1,
   },
   container: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
     width: '100%',
   },
-  tab: Styles.platformStyles({
+  tab: Kb.Styles.platformStyles({
     isMobile: {
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
+      paddingLeft: Kb.Styles.globalMargins.tiny,
+      paddingRight: Kb.Styles.globalMargins.tiny,
     },
   }),
   tabContainer: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
     flexBasis: '100%',
     marginTop: 0,
   },

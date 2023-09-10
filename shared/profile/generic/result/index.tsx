@@ -1,5 +1,4 @@
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import type * as T from '../../../constants/types'
 import {SiteIcon} from '../shared'
 
@@ -39,7 +38,7 @@ const Result = (props: Props) => {
           <Kb.Box2 direction="vertical" style={styles.serviceIconContainer}>
             <SiteIcon set={props.serviceIcon} full={true} />
             <Kb.Box2 direction="vertical" style={styles.iconBadgeContainer}>
-              <Kb.Icon type={iconType} color={Styles.globalColors.green} />
+              <Kb.Icon type={iconType} color={Kb.Styles.globalColors.green} />
             </Kb.Box2>
           </Kb.Box2>
           {frag}
@@ -51,13 +50,13 @@ const Result = (props: Props) => {
     </Kb.PopupWrapper>
   )
 }
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bottomContainer: {
         height: 80,
       },
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
           height: 485,
           width: 560,
@@ -72,13 +71,13 @@ const styles = Styles.styleSheetCreate(
         height: 64,
         width: 64,
       },
-      serviceIconContainer: Styles.platformStyles({
+      serviceIconContainer: Kb.Styles.platformStyles({
         common: {
-          marginBottom: Styles.globalMargins.tiny,
+          marginBottom: Kb.Styles.globalMargins.tiny,
           position: 'relative',
         },
       }),
-      topContainer: Styles.platformStyles({
+      topContainer: Kb.Styles.platformStyles({
         common: {
           flex: 1,
         },

@@ -3,7 +3,6 @@ import * as Constants from '../../../../constants/teams'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import type * as T from '../../../../constants/types'
 import {Activity, useChannelParticipants} from '../../../common'
 import {pluralize} from '../../../../util/string'
@@ -90,9 +89,9 @@ const ChannelRow = (props: ChannelRowProps) => {
       <Kb.Text type="BodySmall" lineClamp={1}>
         {channel.description}
       </Kb.Text>
-      <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} alignSelf="flex-start" gap="xtiny">
+      <Kb.Box2 direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'} alignSelf="flex-start" gap="xtiny">
         <Kb.Text type="BodySmall">{membersText}</Kb.Text>
-        {!Styles.isMobile && activityLevel !== 'none' && <Kb.Text type="BodySmall">·</Kb.Text>}
+        {!Kb.Styles.isMobile && activityLevel !== 'none' && <Kb.Text type="BodySmall">·</Kb.Text>}
         <Activity level={activityLevel} />
       </Kb.Box2>
     </Kb.Box2>
@@ -123,7 +122,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     <Kb.Box2
       direction="horizontal"
       gap="tiny"
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.actionButtons,
         canPerform.deleteChannel ? styles.mobileMarginsHack : undefined,
       ])}
@@ -132,7 +131,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       {popup}
       <Kb.Button
         icon="iconfont-edit"
-        iconColor={Styles.globalColors.black_50}
+        iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
         onClick={onEditChannel}
         small={true}
@@ -140,7 +139,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       />
       <Kb.Button
         icon="iconfont-ellipsis"
-        iconColor={Styles.globalColors.black_50}
+        iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
         onClick={toggleShowingPopup}
         ref={popupAnchor}
@@ -161,7 +160,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       {...massActionsProps}
       action={actions}
       onlyShowActionOnHover="fade"
-      height={Styles.isMobile ? 90 : 64}
+      height={Kb.Styles.isMobile ? 90 : 64}
       type="Large"
       body={body}
       firstItem={isGeneral}
@@ -171,20 +170,20 @@ const ChannelRow = (props: ChannelRowProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       actionButtons: {
-        paddingTop: Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
-      checkCircle: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+      checkCircle: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
       listItemMargin: {marginLeft: 0},
-      mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
+      mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
       row: {
-        paddingTop: Styles.globalMargins.xtiny,
+        paddingTop: Kb.Styles.globalMargins.xtiny,
       },
-      selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
-      unselected: {backgroundColor: Styles.globalColors.white},
+      selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},
+      unselected: {backgroundColor: Kb.Styles.globalColors.white},
       widenClickableArea: {margin: -5, padding: 5},
     }) as const
 )

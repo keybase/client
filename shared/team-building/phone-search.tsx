@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
-import * as Styles from '../styles'
 import * as Constants from '../constants/team-building'
 import type * as T from 'constants/types'
 import ContinueButton from './continue-button'
@@ -70,14 +69,14 @@ const PhoneSearch = (props: PhoneSearchProps) => {
           ) : (
             <Kb.Box2
               alignSelf="center"
-              centerChildren={!Styles.isMobile}
+              centerChildren={!Kb.Styles.isMobile}
               direction="vertical"
               fullWidth={true}
               gap="tiny"
               style={styles.emptyContainer}
             >
-              {!Styles.isMobile && (
-                <Kb.Icon color={Styles.globalColors.black_20} fontSize={48} type="iconfont-number-pad" />
+              {!Kb.Styles.isMobile && (
+                <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-number-pad" />
               )}
 
               {namespace == 'chat2' ? (
@@ -106,7 +105,7 @@ type UserMatchMentionProps = {
 }
 export const UserMatchMention = ({username}: UserMatchMentionProps) => (
   <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
-    <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Styles.globalColors.greenDark} />
+    <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Kb.Styles.globalColors.greenDark} />
     <Kb.Text type="BodySmall">
       Great! That's{' '}
       <Kb.ConnectedUsernames
@@ -121,21 +120,21 @@ export const UserMatchMention = ({username}: UserMatchMentionProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       button: {flexGrow: 0},
-      containerStyle: Styles.platformStyles({
+      containerStyle: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueGrey,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
           flex: 1,
-          padding: Styles.globalMargins.small,
+          padding: Kb.Styles.globalMargins.small,
         },
         isMobile: {
           zIndex: -1,
         },
       }),
-      emptyContainer: Styles.platformStyles({
+      emptyContainer: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: {
           maxWidth: 290,
@@ -146,11 +145,11 @@ const styles = Styles.styleSheetCreate(
       flexGrow: {
         flex: 1,
       },
-      helperText: Styles.platformStyles({
+      helperText: Kb.Styles.platformStyles({
         common: {textAlign: 'center'},
         isMobile: {
-          paddingBottom: Styles.globalMargins.small,
-          paddingTop: Styles.globalMargins.small,
+          paddingBottom: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.small,
         },
       }),
       loading: {alignSelf: 'center'},

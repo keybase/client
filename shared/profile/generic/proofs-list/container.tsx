@@ -1,6 +1,6 @@
 import * as C from '../../../constants'
+import * as Kb from '../../../common-adapters'
 import ProofsList from '.'
-import * as Styles from '../../../styles'
 
 export default () => {
   const _proofSuggestions = C.useTrackerState(s => s.proofSuggestions)
@@ -17,7 +17,7 @@ export default () => {
     providerClicked: providerClicked,
     providers: _proofSuggestions.map(s => ({
       desc: s.pickerSubtext,
-      icon: Styles.isDarkMode() ? s.siteIconFullDarkmode : s.siteIconFull,
+      icon: Kb.Styles.isDarkMode() ? s.siteIconFullDarkmode : s.siteIconFull,
       key: s.assertionKey,
       name: s.pickerText,
       new: s.metas.some(({label}) => label === 'new'),

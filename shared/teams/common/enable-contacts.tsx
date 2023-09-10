@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 
 /**
  * Popup explaining that Keybase doesn't have contact permissions with a link to
@@ -44,8 +43,8 @@ const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: (
   ) : null
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {padding: Styles.globalMargins.small},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: {padding: Kb.Styles.globalMargins.small},
   header: {marginBottom: 6},
 }))
 

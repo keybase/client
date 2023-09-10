@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Util from '../../util/kbfs'
 
 type OwnProps = {
@@ -14,7 +13,7 @@ const OpenChat = (props: any) =>
     <Kb.WithTooltip tooltip={`Chat with users in this ${props.isTeam ? 'team' : 'folder'}`}>
       <Kb.Icon
         type="iconfont-chat"
-        color={Styles.globalColors.black_50}
+        color={Kb.Styles.globalColors.black_50}
         fontSize={16}
         onClick={props.onChat}
         style={styles.headerIcon}
@@ -22,11 +21,11 @@ const OpenChat = (props: any) =>
     </Kb.WithTooltip>
   )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       headerIcon: {
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
       },
     }) as const
 )

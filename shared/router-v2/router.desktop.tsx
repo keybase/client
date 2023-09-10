@@ -1,9 +1,9 @@
 import * as Common from './common.desktop'
 import * as C from '../constants'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Shim from './shim.desktop'
-import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import Header from './header/index.desktop'
 import type {RouteMap} from '../util/container'
@@ -94,10 +94,10 @@ const AppTabsInner = () => {
           ...Common.defaultNavigationOptions,
           header: undefined,
           headerShown: false,
-          tabBarActiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          tabBarActiveBackgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
           tabBarHideOnKeyboard: true,
-          tabBarInactiveBackgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
-          tabBarShowLabel: Styles.isTablet,
+          tabBarInactiveBackgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
+          tabBarShowLabel: Kb.Styles.isTablet,
           tabBarStyle: Common.tabBarStyle,
         }
       }}

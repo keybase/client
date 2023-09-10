@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import UserCard from '../user-card'
 import {errorBanner, SignupScreen} from '../../signup/common'
 import type {Props} from '.'
@@ -117,11 +116,11 @@ class Login extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
         flex: 1,
         justifyContent: 'center',
@@ -130,10 +129,10 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'center',
         flexGrow: 1,
         maxWidth: 460,
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
       forgotPassword: {
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       forgotPasswordContainer: {
         flex: 1,
@@ -145,7 +144,7 @@ const styles = Styles.styleSheetCreate(
       inputRow: {
         flex: 1,
         marginBottom: 0,
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
         width: '100%',
       },
       loginSubmitButton: {
@@ -157,27 +156,27 @@ const styles = Styles.styleSheetCreate(
         flexGrow: 1,
         justifyContent: 'flex-end',
       },
-      other: {color: Styles.globalColors.black},
-      provisioned: {color: Styles.globalColors.orange},
+      other: {color: Kb.Styles.globalColors.black},
+      provisioned: {color: Kb.Styles.globalColors.orange},
       userContainer: {
-        backgroundColor: Styles.globalColors.transparent,
+        backgroundColor: Kb.Styles.globalColors.transparent,
         flex: 1,
       },
       userDropdown: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         width: '100%',
       },
       userOverlayStyle: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         width: 348,
       },
       userRow: {
         alignItems: 'center',
-        marginLeft: Styles.globalMargins.xsmall,
+        marginLeft: Kb.Styles.globalMargins.xsmall,
         minHeight: 40,
         width: '100%',
       },
-    } as const)
+    }) as const
 )
 
 export default Login

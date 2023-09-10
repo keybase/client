@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import Row, {NewContext} from './row'
 import sortBy from 'lodash/sortBy'
 import type * as T from '../constants/types'
@@ -106,13 +105,13 @@ export default (ownProps: OwnProps) => {
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
-        {Styles.isMobile && (
+        {Kb.Styles.isMobile && (
           <Kb.ClickableBox ref={popupAnchor} style={styles.header} onClick={toggleShowingPopup}>
             <Kb.Icon
               type="iconfont-new"
-              style={{marginRight: Styles.globalMargins.tiny}}
-              color={Styles.globalColors.blue}
-              fontSize={Styles.isMobile ? 20 : 16}
+              style={{marginRight: Kb.Styles.globalMargins.tiny}}
+              color={Kb.Styles.globalColors.blue}
+              fontSize={Kb.Styles.isMobile ? 20 : 16}
             />
             <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
           </Kb.ClickableBox>
@@ -146,13 +145,13 @@ export default (ownProps: OwnProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {position: 'relative'},
       header: {
-        ...Styles.globalStyles.flexBoxCenter,
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxCenter,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         flexShrink: 0,
         height: 48,
       },

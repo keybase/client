@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import type * as T from '../../constants/types'
 import {SiteIcon} from '../../profile/generic/shared'
 import {formatTimeForAssertionPopup} from '../../util/timestamp'
@@ -93,38 +92,38 @@ const stateToValueTextStyle = (state: T.Tracker.AssertionState) => {
 const assertionColorToTextColor = (c: T.Tracker.AssertionColor) => {
   switch (c) {
     case 'blue':
-      return Styles.globalColors.blueDark
+      return Kb.Styles.globalColors.blueDark
     case 'red':
-      return Styles.globalColors.redDark
+      return Kb.Styles.globalColors.redDark
     case 'black':
-      return Styles.globalColors.black
+      return Kb.Styles.globalColors.black
     case 'green':
-      return Styles.globalColors.greenDark
+      return Kb.Styles.globalColors.greenDark
     case 'gray':
-      return Styles.globalColors.black_50
+      return Kb.Styles.globalColors.black_50
     case 'yellow': // fallthrough
     case 'orange':
     default:
-      return Styles.globalColors.redDark
+      return Kb.Styles.globalColors.redDark
   }
 }
 
 const assertionColorToColor = (c: T.Tracker.AssertionColor) => {
   switch (c) {
     case 'blue':
-      return Styles.globalColors.blue
+      return Kb.Styles.globalColors.blue
     case 'red':
-      return Styles.globalColors.red
+      return Kb.Styles.globalColors.red
     case 'black':
-      return Styles.globalColors.black
+      return Kb.Styles.globalColors.black
     case 'green':
-      return Styles.globalColors.green
+      return Kb.Styles.globalColors.green
     case 'gray':
-      return Styles.globalColors.black_50
+      return Kb.Styles.globalColors.black_50
     case 'yellow': // fallthrough
     case 'orange':
     default:
-      return Styles.globalColors.red
+      return Kb.Styles.globalColors.red
   }
 }
 
@@ -159,20 +158,20 @@ const StellarValue = (p: Props) => {
   )
   const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <Kb.Text
       type="BodyPrimaryLink"
-      style={Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
+      style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
     >
       {value}
     </Kb.Text>
   ) : (
     <Kb.Box ref={popupAnchor} style={styles.tooltip}>
-      <Kb.WithTooltip tooltip={Styles.isMobile || showingPopup ? '' : 'Stellar Federation Address'}>
+      <Kb.WithTooltip tooltip={Kb.Styles.isMobile || showingPopup ? '' : 'Stellar Federation Address'}>
         <Kb.Text
           type="BodyPrimaryLink"
           onClick={toggleShowingPopup}
-          style={Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
+          style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
         >
           {value}
         </Kb.Text>
@@ -188,7 +187,7 @@ const Value = (p: Props) => {
     content = <StellarValue {...p} />
   } else {
     let str = p.value
-    let style: Styles.StylesCrossPlatform = styles.username
+    let style: Kb.Styles.StylesCrossPlatform = styles.username
 
     if (!p.isSuggestion) {
       switch (p.type) {
@@ -208,7 +207,7 @@ const Value = (p: Props) => {
       <Kb.Text
         type={p.notAUser ? 'Body' : 'BodyPrimaryLink'}
         onClick={p.onCreateProof || p.onShowSite}
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           style,
           stateToValueTextStyle(p.state),
           {color: assertionColorToTextColor(p.color)},
@@ -245,7 +244,7 @@ type SIProps = {
 const AssertionSiteIcon = (p: SIProps) => {
   const {full, siteIconFullDarkmode, siteIconFull, siteIconDarkmode, siteIcon} = p
   const {onCreateProof, onShowProof, isSuggestion} = p
-  const isDarkMode = React.useContext(Styles.DarkModeContext)
+  const isDarkMode = React.useContext(Kb.Styles.DarkModeContext)
   const set = full
     ? isDarkMode
       ? siteIconFullDarkmode
@@ -258,7 +257,7 @@ const AssertionSiteIcon = (p: SIProps) => {
   if (full) {
     return child
   }
-  if (!Styles.isMobile && isSuggestion) {
+  if (!Kb.Styles.isMobile && isSuggestion) {
     child = <HoverOpacity>{child}</HoverOpacity>
   }
   return (
@@ -295,7 +294,10 @@ class Assertion extends React.PureComponent<Props, State> {
     if (p.metas.find(m => m.label === 'unreachable')) {
       return {
         header: (
-          <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.red}>
+          <Kb.PopupHeaderText
+            color={Kb.Styles.globalColors.white}
+            backgroundColor={Kb.Styles.globalColors.red}
+          >
             Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?
           </Kb.PopupHeaderText>
         ),
@@ -320,7 +322,10 @@ class Assertion extends React.PureComponent<Props, State> {
       }
       return {
         header: pendingMessage ? (
-          <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
+          <Kb.PopupHeaderText
+            color={Kb.Styles.globalColors.white}
+            backgroundColor={Kb.Styles.globalColors.blue}
+          >
             {pendingMessage}
           </Kb.PopupHeaderText>
         ) : null,
@@ -408,7 +413,7 @@ class Assertion extends React.PureComponent<Props, State> {
                   type={stateToIcon(p.state)}
                   fontSize={20}
                   hoverColor={assertionColorToColor(p.color)}
-                  color={p.isSuggestion ? Styles.globalColors.black_20 : assertionColorToColor(p.color)}
+                  color={p.isSuggestion ? Kb.Styles.globalColors.black_20 : assertionColorToColor(p.color)}
                 />
                 {items ? (
                   <>
@@ -443,40 +448,40 @@ class Assertion extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
-      crypto: Styles.platformStyles({
+      crypto: Kb.Styles.platformStyles({
         isElectron: {display: 'inline-block', fontSize: 11, wordBreak: 'break-all'},
       }),
       floatingMenu: {
         maxWidth: 240,
         minWidth: 196,
       },
-      halfOpacity: Styles.platformStyles({
+      halfOpacity: Kb.Styles.platformStyles({
         isMobile: {opacity: 0.5}, // desktop is handled by emotion
       }),
       menuHeader: {
-        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomColor: Kb.Styles.globalColors.black_10,
         borderBottomWidth: 1,
         borderStyle: 'solid',
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
-      metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
+      metaContainer: {flexShrink: 0, paddingLeft: 20 + Kb.Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
       positionRelative: {position: 'relative'},
-      site: {color: Styles.globalColors.black_20},
+      site: {color: Kb.Styles.globalColors.black_20},
       siteIconFullDecoration: {bottom: -8, position: 'absolute', right: -10},
-      statusContainer: Styles.platformStyles({
+      statusContainer: Kb.Styles.platformStyles({
         isMobile: {position: 'relative', top: -2},
       }),
       strikeThrough: {textDecorationLine: 'line-through'},
-      textContainer: Styles.platformStyles({
+      textContainer: Kb.Styles.platformStyles({
         common: {flexGrow: 1, flexShrink: 1, marginTop: -1},
-        isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+        isMobile: {backgroundColor: Kb.Styles.globalColors.fastBlank},
       }),
-      tooltip: Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
-      username: Styles.platformStyles({
+      tooltip: Kb.Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
+      username: Kb.Styles.platformStyles({
         common: {letterSpacing: 0.2},
         isElectron: {wordBreak: 'break-all'},
       }),

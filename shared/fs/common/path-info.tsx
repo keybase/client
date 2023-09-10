@@ -2,11 +2,10 @@ import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import * as T from '../../constants/types'
 import {useFsPathInfo} from './hooks'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 
 type PathInfoProps = {
-  containerStyle?: Styles.StylesCrossPlatform
+  containerStyle?: Kb.Styles.StylesCrossPlatform
   knownPathInfo?: T.FS.PathInfo
   path: T.FS.Path
 }
@@ -32,7 +31,7 @@ const PathInfo_ = (props: PathInfoProps) => {
           <Kb.Text type="BodySmallSemibold">Universal path:</Kb.Text>
           <Kb.CopyText
             containerStyle={styles.copyPath}
-            multiline={Styles.isMobile ? 3 : 4}
+            multiline={Kb.Styles.isMobile ? 3 : 4}
             text={pathInfo.deeplinkPath}
           />
         </>
@@ -44,7 +43,7 @@ const PathInfo_ = (props: PathInfoProps) => {
           </Kb.Text>
           <Kb.CopyText
             containerStyle={styles.copyPath}
-            multiline={Styles.isMobile ? 3 : 4}
+            multiline={Kb.Styles.isMobile ? 3 : 4}
             text={mountPointPath}
           />
         </>
@@ -55,14 +54,14 @@ const PathInfo_ = (props: PathInfoProps) => {
 
 export default PathInfo_
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       copyPath: {
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       localPath: {
-        marginTop: Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
       },
     }) as const
 )

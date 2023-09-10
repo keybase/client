@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import DeviceIcon from './device-icon'
 import type * as T from '../constants/types'
 import {formatTimeRelativeToNow} from '../util/timestamp'
@@ -46,7 +45,7 @@ export default (ownProps: OwnProps) => {
               {name} {currentDevice && <Kb.Text type="BodySmall">(Current device)</Kb.Text>}
             </Kb.Text>
             {isNew && !currentDevice && (
-              <Kb.Meta title="new" style={styles.meta} backgroundColor={Styles.globalColors.orange} />
+              <Kb.Meta title="new" style={styles.meta} backgroundColor={Kb.Styles.globalColors.orange} />
             )}
           </Kb.Box2>
           <Kb.Text type="BodySmall">
@@ -60,16 +59,16 @@ export default (ownProps: OwnProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       icon: {opacity: 0.3},
       meta: {
         alignSelf: 'center',
-        marginLeft: Styles.isMobile ? Styles.globalMargins.xxtiny : Styles.globalMargins.xtiny,
+        marginLeft: Kb.Styles.isMobile ? Kb.Styles.globalMargins.xxtiny : Kb.Styles.globalMargins.xtiny,
       },
       text: {
-        color: Styles.globalColors.black_20,
+        color: Kb.Styles.globalColors.black_20,
         textDecorationLine: 'line-through',
         textDecorationStyle: 'solid',
       },

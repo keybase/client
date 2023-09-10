@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import * as T from '../../../../constants/types'
 import type {Props} from './suggestion-list'
 import SafeReactList from '../../../../common-adapters/safe-react-list'
@@ -29,7 +28,7 @@ class SuggestionList extends React.Component<Props> {
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
-        style={Styles.collapseStyles([styles.listContainer, this.props.style])}
+        style={Kb.Styles.collapseStyles([styles.listContainer, this.props.style])}
       >
         <Kb.ScrollView style={styles.fullHeight}>
           <SafeReactList
@@ -50,16 +49,16 @@ class SuggestionList extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       commandStatusContainer: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         justifyContent: 'center',
-        ...Styles.padding(Styles.globalMargins.xxtiny, 0),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.xxtiny, 0),
       },
       fullHeight: {height: '100%'},
-      listContainer: {backgroundColor: Styles.globalColors.white, borderRadius: 4, maxHeight: 224},
+      listContainer: {backgroundColor: Kb.Styles.globalColors.white, borderRadius: 4, maxHeight: 224},
     }) as const
 )
 

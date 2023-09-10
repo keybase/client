@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
-import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters'
 import type * as T from '../../constants/types'
 import {memoize} from '../../util/memoize'
 import Profile2, {type BackgroundColorType} from '.'
@@ -103,7 +103,9 @@ const Connected = (ownProps: OwnProps) => {
         name,
         sbsAvatarUrl: nonUserDetails.pictureUrl || undefined,
         service,
-        serviceIcon: Styles.isDarkMode() ? nonUserDetails.siteIconFullDarkmode : nonUserDetails.siteIconFull,
+        serviceIcon: Kb.Styles.isDarkMode()
+          ? nonUserDetails.siteIconFullDarkmode
+          : nonUserDetails.siteIconFull,
         title,
         vouchDisableButton: true,
         vouchShowButton: false,

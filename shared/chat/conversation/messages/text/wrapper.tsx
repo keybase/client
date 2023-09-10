@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import {useReply} from './reply'
 import {useBottom} from './bottom'
 import {OrdinalContext} from '../ids-context'
@@ -14,21 +13,21 @@ const getStyle = (
   type: 'error' | 'sent' | 'pending',
   isEditing: boolean,
   isHighlighted?: boolean
-): Styles.StylesCrossPlatform => {
+): Kb.Styles.StylesCrossPlatform => {
   if (isHighlighted) {
-    return Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
+    return Kb.Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
   } else if (type === 'sent') {
     return isEditing
       ? sharedStyles.sentEditing
-      : Styles.collapseStyles([sharedStyles.sent, Styles.globalStyles.fastBackground])
+      : Kb.Styles.collapseStyles([sharedStyles.sent, Kb.Styles.globalStyles.fastBackground])
   } else {
     return isEditing
       ? sharedStyles.pendingFailEditing
-      : Styles.collapseStyles([sharedStyles.pendingFail, Styles.globalStyles.fastBackground])
+      : Kb.Styles.collapseStyles([sharedStyles.pendingFail, Kb.Styles.globalStyles.fastBackground])
   }
 }
 
-const MessageMarkdown = (p: {style: Styles.StylesCrossPlatform}) => {
+const MessageMarkdown = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
   const {style} = p
   const ordinal = React.useContext(OrdinalContext)
   const text = C.useChatContext(s => {
@@ -40,7 +39,7 @@ const MessageMarkdown = (p: {style: Styles.StylesCrossPlatform}) => {
   })
 
   const styleOverride = React.useMemo(
-    () => (Styles.isMobile ? ({paragraph: style} as any) : undefined),
+    () => (Kb.Styles.isMobile ? ({paragraph: style} as any) : undefined),
     [style]
   )
 

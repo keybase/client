@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as TabConstants from '../../constants/tabs'
 import WhatsNewIcon from '../../whats-new/icon/container'
@@ -18,7 +17,7 @@ const LeftNav = (props: Props) => {
   const badgeNotifications = C.usePushState(s => !s.hasPermissions)
   return (
     <Kb.ScrollView style={styles.container}>
-      {Styles.isTablet && (
+      {Kb.Styles.isTablet && (
         <>
           <SettingsItem
             icon="iconfont-nav-2-crypto"
@@ -62,7 +61,7 @@ const LeftNav = (props: Props) => {
         selected={props.selected === C.settingsChatTab}
         onClick={() => props.onClick(C.settingsChatTab)}
       />
-      {Styles.isTablet && props.contactsLabel && (
+      {Kb.Styles.isTablet && props.contactsLabel && (
         <SettingsItem
           text={props.contactsLabel}
           selected={props.selected === C.settingsContactsTab}
@@ -85,7 +84,7 @@ const LeftNav = (props: Props) => {
         selected={props.selected === C.settingsDisplayTab}
         onClick={() => props.onClick(C.settingsDisplayTab)}
       />
-      {Styles.isTablet && (
+      {Kb.Styles.isTablet && (
         <SettingsItem
           text="About"
           selected={props.selected === C.settingsAboutTab}
@@ -97,7 +96,7 @@ const LeftNav = (props: Props) => {
         selected={props.selected === C.settingsFeedbackTab}
         onClick={() => props.onClick(C.settingsFeedbackTab)}
       />
-      {!Styles.isTablet && (
+      {!Kb.Styles.isTablet && (
         <SettingsItem
           text="Invitations"
           selected={props.selected === C.settingsInvitationsTab}
@@ -122,15 +121,15 @@ const LeftNav = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      backgroundColor: Styles.globalColors.blueGrey,
+      ...Kb.Styles.globalStyles.flexBoxColumn,
+      backgroundColor: Kb.Styles.globalColors.blueGrey,
     },
     isElectron: {
       height: '100%',
-      paddingTop: Styles.globalMargins.small,
+      paddingTop: Kb.Styles.globalMargins.small,
     },
   }),
 }))

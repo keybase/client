@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import Modal from '../modal'
 import type * as T from '../../constants/types'
 
@@ -48,7 +47,7 @@ class EnterUsername extends React.Component<Props, State> {
             style={styles.centered}
             platform={this.props.platform}
             overlay="icon-proof-unfinished"
-            overlayColor={Styles.globalColors.greyDark}
+            overlayColor={Kb.Styles.globalColors.greyDark}
           />
           <Kb.LabeledInput
             autoFocus={true}
@@ -132,15 +131,15 @@ const platformText = {
   },
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   centered: {alignSelf: 'center'},
   error: {
-    backgroundColor: Styles.globalColors.red,
-    borderRadius: Styles.borderRadius,
-    marginBottom: Styles.globalMargins.small,
-    padding: Styles.globalMargins.medium,
+    backgroundColor: Kb.Styles.globalColors.red,
+    borderRadius: Kb.Styles.borderRadius,
+    marginBottom: Kb.Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.medium,
   },
-  tips: {padding: Styles.globalMargins.small},
+  tips: {padding: Kb.Styles.globalMargins.small},
 }))
 
 export default EnterUsername

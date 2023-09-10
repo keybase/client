@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
 import type * as T from '../../../../constants/types'
 
@@ -18,7 +17,7 @@ const Pin = (props: Props) => {
 
 export default Pin
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       text: {flexGrow: 1},

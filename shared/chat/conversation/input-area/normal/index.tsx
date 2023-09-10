@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import CommandMarkdown from '../../command-markdown/container'
 import CommandStatus from '../../command-status/container'
 import Giphy from '../../giphy/container'
@@ -31,7 +30,7 @@ const useHintText = (p: {
   const username = C.useCurrentUserState(s => s.username)
   const {teamType, teamname, channelname} = C.useChatContext(s => s.meta)
   const participantInfoName = C.useChatContext(s => s.participants.name)
-  if (Styles.isMobile && isExploding) {
+  if (Kb.Styles.isMobile && isExploding) {
     return C.isLargeScreen ? `Write an exploding message` : 'Exploding message'
   } else if (cannotWrite) {
     return `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
@@ -259,17 +258,17 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isMobile: {justifyContent: 'flex-end'},
       }),
-      suggestionOverlay: Styles.platformStyles({
+      suggestionOverlay: Kb.Styles.platformStyles({
         isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
         isTablet: {marginLeft: '30%', marginRight: 0},
       }),
-      suggestionOverlayInfoShowing: Styles.platformStyles({
+      suggestionOverlayInfoShowing: Kb.Styles.platformStyles({
         isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
         isTablet: {marginLeft: '30%', marginRight: infoPanelWidthTablet},
       }),

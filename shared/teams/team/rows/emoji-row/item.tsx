@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as T from '../../../../constants/types'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/teams'
 import * as Kb from '../../../../common-adapters'
@@ -89,15 +88,15 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
             {renderEmoji({
               emoji: emojiDataToRenderableEmoji(RPCToEmojiData(emoji, false)),
               showTooltip: false,
-              size: Styles.isMobile ? 32 : 26,
+              size: Kb.Styles.isMobile ? 32 : 26,
             })}
             <Kb.Text type="Body" style={styles.alias}>{`:${emoji.alias}:`}</Kb.Text>
-            {!Styles.isMobile && emoji.creationInfo && (
+            {!Kb.Styles.isMobile && emoji.creationInfo && (
               <Kb.Text type="Body" style={styles.date}>
                 {dateFns.format(emoji.creationInfo.time, 'EEE d MMM yyyy')}
               </Kb.Text>
             )}
-            {!Styles.isMobile && emoji.creationInfo && (
+            {!Kb.Styles.isMobile && emoji.creationInfo && (
               <Kb.NameWithIcon
                 colorFollowing={true}
                 colorBroken={true}
@@ -110,7 +109,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
             )}
             <Kb.Box2
               direction="horizontal"
-              style={Styles.collapseStyles([!(doAddAlias || doRemove) ? {opacity: 0} : null])}
+              style={Kb.Styles.collapseStyles([!(doAddAlias || doRemove) ? {opacity: 0} : null])}
             >
               {popup}
               <Kb.Button
@@ -126,24 +125,24 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
         }
         firstItem={firstItem}
         fullDivider={true}
-        height={Styles.isMobile ? 48 : 42}
+        height={Kb.Styles.isMobile ? 48 : 42}
       />
     </Kb.Box>
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      alias: Styles.platformStyles({
+      alias: Kb.Styles.platformStyles({
         common: {
           marginRight: 'auto',
         },
         isElectron: {
-          marginLeft: Styles.globalMargins.large - Styles.globalMargins.tiny,
+          marginLeft: Kb.Styles.globalMargins.large - Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          marginLeft: Styles.globalMargins.small,
+          marginLeft: Kb.Styles.globalMargins.small,
         },
       }),
       container: {
@@ -153,9 +152,9 @@ const styles = Styles.styleSheetCreate(
         maxWidth: 130,
         width: 130,
       },
-      outerContainer: Styles.platformStyles({
-        common: {backgroundColor: Styles.globalColors.white},
-        isElectron: Styles.padding(0, Styles.globalMargins.small),
+      outerContainer: Kb.Styles.platformStyles({
+        common: {backgroundColor: Kb.Styles.globalColors.white},
+        isElectron: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
       }),
       username: {
         maxWidth: 210,

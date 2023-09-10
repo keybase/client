@@ -1,7 +1,6 @@
 import * as React from 'react'
 import logger from '../../logger'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop'
 import type {RPCError} from '../../util/errors'
 import type {Props} from './index'
@@ -122,7 +121,7 @@ class GlobalError extends React.Component<Props, State> {
     const summary = this.state.cachedSummary
     const details = this.state.cachedDetails
 
-    let stylesContainer: Styles.StylesCrossPlatform
+    let stylesContainer: Kb.Styles.StylesCrossPlatform
     switch (this.state.size) {
       case 'Big':
         stylesContainer = styles.containerBig
@@ -150,8 +149,8 @@ class GlobalError extends React.Component<Props, State> {
           />
           {summary && (
             <Kb.Icon
-              color={Styles.globalColors.white_75}
-              hoverColor={Styles.globalColors.white}
+              color={Kb.Styles.globalColors.white_75}
+              hoverColor={Kb.Styles.globalColors.white}
               onClick={onDismiss}
               style={styles.closeIcon}
               type="iconfont-close"
@@ -175,32 +174,32 @@ class GlobalError extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => {
+const styles = Kb.Styles.styleSheetCreate(() => {
   const containerBase = {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     left: 0,
     overflow: 'hidden',
     position: 'absolute',
     right: 0,
     top: 0,
     zIndex: 1000,
-    ...Styles.transition('max-height'),
+    ...Kb.Styles.transition('max-height'),
   } as const
 
   return {
     closeIcon: {
       position: 'absolute',
-      right: Styles.globalMargins.xsmall,
+      right: Kb.Styles.globalMargins.xsmall,
       top: 10,
     },
-    containerBig: Styles.platformStyles({
+    containerBig: Kb.Styles.platformStyles({
       isElectron: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Big')},
     }),
-    containerClosed: Styles.platformStyles({
+    containerClosed: Kb.Styles.platformStyles({
       isElectron: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Closed')},
     }),
     containerOverlay: {
-      ...Styles.globalStyles.flexBoxColumn,
+      ...Kb.Styles.globalStyles.flexBoxColumn,
       bottom: 0,
       left: 0,
       position: 'absolute',
@@ -208,60 +207,60 @@ const styles = Styles.styleSheetCreate(() => {
       top: 0,
       zIndex: 1000,
     },
-    containerSmall: Styles.platformStyles({
+    containerSmall: Kb.Styles.platformStyles({
       isElectron: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Small')},
     }),
     details: {
-      backgroundColor: Styles.globalColors.black,
-      color: Styles.globalColors.white_75,
+      backgroundColor: Kb.Styles.globalColors.black,
+      color: Kb.Styles.globalColors.white_75,
       padding: 8,
-      paddingLeft: Styles.globalMargins.xlarge,
-      paddingRight: Styles.globalMargins.xlarge,
+      paddingLeft: Kb.Styles.globalMargins.xlarge,
+      paddingRight: Kb.Styles.globalMargins.xlarge,
     },
     feedbackButton: {
-      marginRight: Styles.globalMargins.large,
+      marginRight: Kb.Styles.globalMargins.large,
     },
     innerContainer: {
-      ...Styles.globalStyles.flexBoxRow,
+      ...Kb.Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      backgroundColor: Styles.globalColors.black,
+      backgroundColor: Kb.Styles.globalColors.black,
       flex: 1,
       justifyContent: 'center',
       minHeight: GlobalError.maxHeightForSize('Small'),
-      padding: Styles.globalMargins.xtiny,
+      padding: Kb.Styles.globalMargins.xtiny,
       position: 'relative',
     },
     message: {
-      color: Styles.globalColors.white,
+      color: Kb.Styles.globalColors.white,
     },
     overlayFill: {
-      ...Styles.globalStyles.flexBoxColumn,
+      ...Kb.Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
-      backgroundColor: Styles.globalColors.white,
+      backgroundColor: Kb.Styles.globalColors.white,
       flex: 1,
       justifyContent: 'center',
     },
     overlayRow: {
-      ...Styles.globalStyles.flexBoxRow,
+      ...Kb.Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      backgroundColor: Styles.globalColors.blue,
+      backgroundColor: Kb.Styles.globalColors.blue,
       justifyContent: 'center',
       padding: 8,
     },
     summary: {
-      color: Styles.globalColors.white,
+      color: Kb.Styles.globalColors.white,
       flex: 1,
     },
     summaryRow: {
-      ...Styles.globalStyles.flexBoxRow,
+      ...Kb.Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       flex: 1,
       justifyContent: 'center',
-      padding: Styles.globalMargins.xtiny,
+      padding: Kb.Styles.globalMargins.xtiny,
       position: 'relative',
     },
     summaryRowError: {
-      backgroundColor: Styles.globalColors.black,
+      backgroundColor: Kb.Styles.globalColors.black,
       minHeight: GlobalError.maxHeightForSize('Small'),
     },
   } as const

@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import type {UploadProps} from './upload'
 import capitalize from 'lodash/capitalize'
@@ -37,7 +36,7 @@ const Upload = React.memo(function Upload(props: UploadProps) {
         <Kb.Button
           onClick={debugToggleShow}
           label="Toggle"
-          style={Styles.collapseStyles([styles.toggleButton, {bottom: height}])}
+          style={Kb.Styles.collapseStyles([styles.toggleButton, {bottom: height}])}
         />
       )}
       {drawState !== 'hidden' && (
@@ -46,7 +45,7 @@ const Upload = React.memo(function Upload(props: UploadProps) {
           centerChildren={true}
           className="upload-animation-loop"
           fullWidth={true}
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             styles.stylesBox,
             {bottom: showing ? offset : offset - height, height, maxHeight: height},
           ])}
@@ -84,24 +83,24 @@ const Upload = React.memo(function Upload(props: UploadProps) {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      stylesBox: Styles.platformStyles({
+      stylesBox: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundImage: Styles.backgroundURL('upload-pattern-80.png'),
+          backgroundImage: Kb.Styles.backgroundURL('upload-pattern-80.png'),
           flexShrink: 0, // need this to be whole in menubar
-          paddingLeft: Styles.globalMargins.medium,
-          paddingRight: Styles.globalMargins.medium,
+          paddingLeft: Kb.Styles.globalMargins.medium,
+          paddingRight: Kb.Styles.globalMargins.medium,
           position: 'absolute',
         },
       }),
       stylesText: {
-        color: Styles.globalColors.whiteOrWhite,
+        color: Kb.Styles.globalColors.whiteOrWhite,
       },
-      textOverflow: Styles.platformStyles({
+      textOverflow: Kb.Styles.platformStyles({
         isElectron: {
-          color: Styles.globalColors.whiteOrWhite,
+          color: Kb.Styles.globalColors.whiteOrWhite,
           maxWidth: '100%',
           overflow: 'hidden',
           textAlign: 'center',

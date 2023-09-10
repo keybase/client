@@ -1,6 +1,5 @@
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import {InfoIcon} from '../../signup/common'
 
 const Error = React.lazy(async () => import('./error'))
@@ -12,7 +11,7 @@ const getOptions = () => ({
   headerRightActions: () => (
     <Kb.Box2
       direction="horizontal"
-      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
+      style={Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0)}
     >
       <InfoIcon />
     </Kb.Box2>

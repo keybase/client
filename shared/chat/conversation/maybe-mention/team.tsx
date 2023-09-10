@@ -4,7 +4,7 @@ import {Box2} from '../../../common-adapters/box'
 import * as Styles from '../../../styles'
 import TeamInfo from '../../../profile/user/teams/teaminfo'
 
-const Kb = {Box2, Text}
+const Kb = {Box2, Styles, Text}
 
 export type Props = {
   allowFontScaling?: boolean
@@ -55,14 +55,14 @@ class TeamMention extends React.Component<Props, State> {
       <Kb.Text
         ref={this._mentionRef}
         type="BodyBold"
-        className={Styles.classNames({'hover-underline': !Styles.isMobile})}
-        style={Styles.collapseStyles([this.props.style, styles.text])}
+        className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
+        style={Kb.Styles.collapseStyles([this.props.style, styles.text])}
         allowFontScaling={this.props.allowFontScaling}
         onClick={this._onClick}
       >
         <Kb.Text
           type="BodyBold"
-          style={Styles.collapseStyles([this.props.style, styles.resolved, styles.text])}
+          style={Kb.Styles.collapseStyles([this.props.style, styles.resolved, styles.text])}
           allowFontScaling={this.props.allowFontScaling}
         >
           {text}
@@ -86,7 +86,7 @@ class TeamMention extends React.Component<Props, State> {
       />
     )
     return this.props.resolved ? (
-      Styles.isMobile ? (
+      Kb.Styles.isMobile ? (
         <>
           {content}
           {popups}
@@ -110,20 +110,20 @@ class TeamMention extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
           display: 'inline-block',
         },
       }),
       resolved: {
-        backgroundColor: Styles.globalColors.blue,
+        backgroundColor: Kb.Styles.globalColors.blue,
         borderRadius: 2,
-        color: Styles.globalColors.white,
+        color: Kb.Styles.globalColors.white,
       },
-      text: Styles.platformStyles({
+      text: Kb.Styles.platformStyles({
         common: {
           letterSpacing: 0.3,
           paddingLeft: 2,
@@ -133,7 +133,7 @@ const styles = Styles.styleSheetCreate(
           display: 'inline-block',
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default TeamMention

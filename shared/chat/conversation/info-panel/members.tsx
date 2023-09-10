@@ -6,7 +6,6 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as T from '../../../constants/types'
 import Participant from './participant'
-import * as Styles from '../../../styles'
 
 type Props = {
   renderTabs: () => React.ReactNode
@@ -119,9 +118,9 @@ const MembersTab = (props: Props) => {
 }
 export default MembersTab
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      membersSpinner: {marginTop: Styles.globalMargins.small},
+      membersSpinner: {marginTop: Kb.Styles.globalMargins.small},
     }) as const
 )

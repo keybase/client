@@ -6,7 +6,7 @@ import type {MenuItems} from '../../../common-adapters/floating-menu/menu-layout
 import FloatingMenu from '../../../common-adapters/floating-menu'
 import * as Styles from '../../../styles'
 
-const Kb = {Box2, Button, FloatingMenu, Text}
+const Kb = {Box2, Button, FloatingMenu, Styles, Text}
 
 type PopupProps = {
   attachTo?: () => React.Component<any> | null
@@ -73,15 +73,15 @@ class UnknownMention extends React.Component<Props, State> {
       <Kb.Text
         ref={this._mentionRef}
         type="BodySemibold"
-        className={Styles.classNames({'hover-underline': !Styles.isMobile})}
+        className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
         allowFontScaling={this.props.allowFontScaling}
-        style={Styles.collapseStyles([this.props.style, styles.text])}
+        style={Kb.Styles.collapseStyles([this.props.style, styles.text])}
         onClick={this._onMouseOver}
       >
         <Kb.Text
           type="BodySemibold"
           allowFontScaling={this.props.allowFontScaling}
-          style={Styles.collapseStyles([this.props.style, styles.text])}
+          style={Kb.Styles.collapseStyles([this.props.style, styles.text])}
         >
           {text}
         </Kb.Text>
@@ -96,7 +96,7 @@ class UnknownMention extends React.Component<Props, State> {
         visible={this.state.showPopup}
       />
     )
-    return Styles.isMobile ? (
+    return Kb.Styles.isMobile ? (
       <>
         {content}
         {popups}
@@ -115,26 +115,26 @@ class UnknownMention extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
           display: 'inline-block',
         },
       }),
-      popupContainer: Styles.platformStyles({
+      popupContainer: Kb.Styles.platformStyles({
         common: {
-          padding: Styles.globalMargins.tiny,
+          padding: Kb.Styles.globalMargins.tiny,
           textAlign: 'center',
         },
         isElectron: {
           width: 200,
         },
       }),
-      text: Styles.platformStyles({
+      text: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.greyLight,
+          backgroundColor: Kb.Styles.globalColors.greyLight,
           borderRadius: 2,
           letterSpacing: 0.3,
           paddingLeft: 2,
@@ -145,9 +145,9 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       warning: {
-        color: Styles.globalColors.redDark,
+        color: Kb.Styles.globalColors.redDark,
       },
-    } as const)
+    }) as const
 )
 
 export default UnknownMention

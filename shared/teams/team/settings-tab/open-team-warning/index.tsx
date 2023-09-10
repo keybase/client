@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import * as C from '../../../../constants'
 import {useSettingsState} from '../use-settings'
 
@@ -10,9 +9,9 @@ type Props = {
 }
 
 const Wrapper = ({children, onBack}: {children: React.ReactNode; onBack: () => void}) =>
-  Styles.isMobile ? (
+  Kb.Styles.isMobile ? (
     <Kb.ScrollView
-      style={{...Styles.globalStyles.fillAbsolute, ...Styles.globalStyles.flexBoxColumn}}
+      style={{...Kb.Styles.globalStyles.fillAbsolute, ...Kb.Styles.globalStyles.flexBoxColumn}}
       contentContainerStyle={styles.scrollContainer}
       children={children}
     />
@@ -67,7 +66,7 @@ const OpenTeamWarning = (props: Props) => {
           <Kb.Button
             type="Danger"
             onClick={onConfirm}
-            label={Styles.isMobile ? 'Confirm' : `Yes, set to ${isOpenTeam ? 'Open' : 'Private'}`}
+            label={Kb.Styles.isMobile ? 'Confirm' : `Yes, set to ${isOpenTeam ? 'Open' : 'Private'}`}
             disabled={!enabled}
           />
         </Kb.ButtonBar>
@@ -76,38 +75,38 @@ const OpenTeamWarning = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bodyStyle: {marginBottom: Styles.globalMargins.small},
-  checkboxStyle: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  bodyStyle: {marginBottom: Kb.Styles.globalMargins.small},
+  checkboxStyle: Kb.Styles.platformStyles({
     isElectron: {
-      marginBottom: Styles.globalMargins.xlarge,
+      marginBottom: Kb.Styles.globalMargins.xlarge,
     },
     isMobile: {
-      marginBottom: Styles.globalMargins.small,
+      marginBottom: Kb.Styles.globalMargins.small,
     },
   }),
-  container: Styles.platformStyles({
+  container: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxColumn,
+      ...Kb.Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
-      paddingBottom: Styles.globalMargins.large,
+      paddingBottom: Kb.Styles.globalMargins.large,
     },
     isElectron: {
-      paddingLeft: Styles.globalMargins.xlarge,
-      paddingRight: Styles.globalMargins.xlarge,
-      paddingTop: Styles.globalMargins.xlarge,
+      paddingLeft: Kb.Styles.globalMargins.xlarge,
+      paddingRight: Kb.Styles.globalMargins.xlarge,
+      paddingTop: Kb.Styles.globalMargins.xlarge,
     },
     isMobile: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
+      paddingLeft: Kb.Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
+      paddingTop: Kb.Styles.globalMargins.small,
     },
   }),
-  headerStyle: {marginBottom: Styles.globalMargins.small},
+  headerStyle: {marginBottom: Kb.Styles.globalMargins.small},
   iconStyle: {marginBottom: 20},
   label: {flexShrink: 1},
   scrollContainer: {
-    ...Styles.globalStyles.flexBoxCenter,
+    ...Kb.Styles.globalStyles.flexBoxCenter,
     flex: 1,
   },
 }))

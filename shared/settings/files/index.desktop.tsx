@@ -3,7 +3,6 @@ import * as T from '../../constants/types'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
-import * as Styles from '../../styles'
 import * as Kbfs from '../../fs/common'
 import RefreshDriverStatusOnMount from '../../fs/common/refresh-driver-status-on-mount'
 import RefreshSettings from './refresh-settings'
@@ -147,49 +146,49 @@ const FilesSettings = (props: Props) => (
 )
 export default FilesSettings
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       actionNeededBox: {
-        marginLeft: Styles.globalMargins.medium,
+        marginLeft: Kb.Styles.globalMargins.medium,
       },
       actionNeededText: {
-        color: Styles.globalColors.redDark,
+        color: Kb.Styles.globalColors.redDark,
       },
       buttonBox: {
-        paddingTop: Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       contentHeader: {
-        paddingBottom: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
       },
       divider: {
-        marginTop: Styles.globalMargins.medium,
+        marginTop: Kb.Styles.globalMargins.medium,
       },
       finderIntegrationContent: {
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
       spinner: {
         height: 16,
         width: 16,
       },
       syncContent: {
-        paddingLeft: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.medium,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.medium,
       },
       syncNotificationCheckbox: {
         alignItems: 'center',
       },
       syncNotificationDropdownItem: {
         alignItems: 'center',
-        paddingLeft: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
       },
       syncNotificationDropdownOverlay: {
-        width: Styles.globalMargins.xlarge + Styles.globalMargins.medium,
+        width: Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.medium,
       },
       syncNotificationSettingDropdown: {
-        marginLeft: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.tiny,
-        width: Styles.globalMargins.xlarge + Styles.globalMargins.medium,
+        marginLeft: Kb.Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
+        width: Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.medium,
       },
     }) as const
 )

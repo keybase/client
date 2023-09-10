@@ -1,6 +1,6 @@
 import * as C from '../constants'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 
 const Building = React.lazy(async () => import('./container'))
 type OwnProps = C.ViewPropsToPageProps<typeof Building>
@@ -22,9 +22,9 @@ const getOptions = ({route}: OwnProps) => {
         modal2ClearCover: true,
         modal2Style: {
           alignSelf: 'flex-start',
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
-          paddingTop: Styles.globalMargins.mediumLarge,
+          paddingLeft: Kb.Styles.globalMargins.xsmall,
+          paddingRight: Kb.Styles.globalMargins.xsmall,
+          paddingTop: Kb.Styles.globalMargins.mediumLarge,
         },
         modal2Type: 'DefaultFullWidth',
       }

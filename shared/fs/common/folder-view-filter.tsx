@@ -1,14 +1,13 @@
 import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
 
 type Props = {
   onCancel?: () => void
   path: T.FS.Path
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 const FolderViewFilter = (props: Props) => {
@@ -27,7 +26,7 @@ const FolderViewFilter = (props: Props) => {
       size="small"
       placeholderCentered={true}
       mobileCancelButton={true}
-      focusOnMount={Styles.isMobile}
+      focusOnMount={Kb.Styles.isMobile}
       hotkey="f"
       onCancel={props.onCancel}
       onChange={onUpdate}

@@ -1,4 +1,3 @@
-import * as Styles from '../../../styles'
 import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
@@ -28,7 +27,7 @@ export const StillCommon = (
       <ItemIcon
         path={props.path}
         size={32}
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           rowStyles.pathItemIcon,
           props.writingToJournal && !props.uploadErrored && rowStyles.opacity30,
         ])}
@@ -40,7 +39,7 @@ export const StillCommon = (
     body={
       props.body || (
         <Kb.Box
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             rowStyles.itemBox,
             props.writingToJournal && !props.uploadErrored && rowStyles.opacity30,
           ])}
@@ -71,11 +70,11 @@ export const StillCommon = (
   />
 )
 
-export const rowStyles = Styles.styleSheetCreate(
+export const rowStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       itemBox: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         flex: 1,
         justifyContent: 'center',
         minWidth: 0,
@@ -85,10 +84,10 @@ export const rowStyles = Styles.styleSheetCreate(
         opacity: 0.3,
       },
       pathItemIcon: {
-        marginLeft: Styles.globalMargins.medium,
-        marginRight: Styles.globalMargins.medium,
+        marginLeft: Kb.Styles.globalMargins.medium,
+        marginRight: Kb.Styles.globalMargins.medium,
       },
-      rowText: Styles.platformStyles({
+      rowText: Kb.Styles.platformStyles({
         isMobile: {
           flexShrink: 1,
         },

@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as T from '../../constants/types'
 import * as Constants from '../../constants/teams'
 
@@ -15,12 +14,18 @@ const activityToLabel = {
   active: 'Active',
   recently: 'Recently active',
 }
-const Activity = ({level, style}: {level: T.Teams.ActivityLevel; style?: Styles.StylesCrossPlatform}) =>
+const Activity = ({level, style}: {level: T.Teams.ActivityLevel; style?: Kb.Styles.StylesCrossPlatform}) =>
   level === 'none' ? null : (
-    <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={Styles.isMobile} style={style}>
+    <Kb.Box2
+      direction="horizontal"
+      gap="xtiny"
+      alignItems="center"
+      fullWidth={Kb.Styles.isMobile}
+      style={style}
+    >
       <Kb.Icon
         type={activityToIcon[level]}
-        color={level === 'active' ? Styles.globalColors.greenDark : Styles.globalColors.black_50}
+        color={level === 'active' ? Kb.Styles.globalColors.greenDark : Kb.Styles.globalColors.black_50}
         sizeType="Small"
       />
       <Kb.Text type="BodySmall" style={level === 'active' ? styles.activityActive : undefined}>
@@ -35,7 +40,7 @@ export const ModalTitle = ({title, teamID}: Props) => {
   const avatarCrop = C.useTeamsState(state => state.newTeamWizard.avatarCrop)
   const isNewTeamWizard = teamID == T.Teams.newTeamWizardTeamID
 
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <Kb.Box2 direction="vertical" alignItems="center">
       {!!teamname && (
         <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
@@ -81,11 +86,11 @@ export const useActivityLevels = (forceLoad?: boolean) => {
   }, [getActivityForTeams, activityLevelsLoaded, forceLoad])
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   activityActive: {
-    color: Styles.globalColors.greenDark,
+    color: Kb.Styles.globalColors.greenDark,
   },
-  avatar: Styles.platformStyles({
+  avatar: Kb.Styles.platformStyles({
     isElectron: {
       height: 16,
       position: 'relative',
@@ -93,7 +98,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   title: {
-    paddingBottom: Styles.globalMargins.tiny,
+    paddingBottom: Kb.Styles.globalMargins.tiny,
   },
 }))
 

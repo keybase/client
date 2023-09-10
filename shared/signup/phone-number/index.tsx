@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import {SignupScreen, errorBanner} from '../common'
 import type {ButtonType} from '../../common-adapters/button'
 
@@ -49,7 +48,7 @@ const EnterPhoneNumber = (props: Props) => {
       showHeaderInfoicon={true}
     >
       <EnterPhoneNumberBody
-        autoFocus={!Styles.isMobile}
+        autoFocus={!Kb.Styles.isMobile}
         defaultCountry={props.defaultCountry}
         onChangeNumber={onChangeNumberCb}
         onContinue={onContinue}
@@ -75,7 +74,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
     <Kb.Box2
       alignItems="center"
       direction="vertical"
-      gap={Styles.isMobile ? 'small' : 'medium'}
+      gap={Kb.Styles.isMobile ? 'small' : 'medium'}
       fullWidth={true}
       style={styles.container}
     >
@@ -103,13 +102,13 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   checkbox: {width: '100%'},
-  container: Styles.platformStyles({
-    common: Styles.globalStyles.flexOne,
+  container: Kb.Styles.platformStyles({
+    common: Kb.Styles.globalStyles.flexOne,
     isTablet: {maxWidth: 386},
   }),
-  input: Styles.platformStyles({
+  input: Kb.Styles.platformStyles({
     isElectron: {
       height: 38,
       width: 368,
@@ -119,7 +118,7 @@ const styles = Styles.styleSheetCreate(() => ({
       width: '100%',
     },
   }),
-  inputBox: Styles.platformStyles({
+  inputBox: Kb.Styles.platformStyles({
     isElectron: {
       // need to set width so subtext will wrap
       width: 368,

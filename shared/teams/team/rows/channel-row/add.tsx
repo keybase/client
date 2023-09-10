@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import type * as T from '../../../../constants/types'
 import * as Constants from '../../../../constants/teams'
@@ -21,11 +20,11 @@ const ButtonRow = (props: {teamID: T.Teams.TeamID}) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    backgroundColor: Styles.globalColors.blueGrey,
+    backgroundColor: Kb.Styles.globalColors.blueGrey,
     justifyContent: 'flex-start',
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
   },
 }))
 

@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import LoginContainer from '../login/forms/container'
 import openURL from '../util/open-url'
 import type {RPCError} from '../util/errors'
@@ -61,7 +60,7 @@ const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
     <Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
       {p.children}
     </Box2>
-    {Styles.isMobile && <Button label="Close" onClick={p.onBack} />}
+    {Kb.Styles.isMobile && <Button label="Close" onClick={p.onBack} />}
   </LoginContainer>
 )
 

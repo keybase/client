@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import CommonResult, {type ResultProps} from './common-result'
 
 const YouResult = React.memo(function YouResult(props: ResultProps) {
@@ -35,27 +34,27 @@ const YouResult = React.memo(function YouResult(props: ResultProps) {
   return <CommonResult {...props} {...onAddOverride} rowStyle={styles.rowContainer} bottomRow={bottomRow} />
 })
 
-const styles = Styles.styleSheetCreate(() => ({
-  actionButton: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  actionButton: Kb.Styles.platformStyles({
     common: {
-      marginLeft: Styles.globalMargins.tiny,
+      marginLeft: Kb.Styles.globalMargins.tiny,
     },
     isElectron: {
-      height: Styles.globalMargins.small,
-      width: Styles.globalMargins.small,
+      height: Kb.Styles.globalMargins.small,
+      width: Kb.Styles.globalMargins.small,
     },
     isMobile: {
-      height: Styles.globalMargins.large,
-      marginRight: Styles.globalMargins.tiny,
-      width: Styles.globalMargins.large,
+      height: Kb.Styles.globalMargins.large,
+      marginRight: Kb.Styles.globalMargins.tiny,
+      width: Kb.Styles.globalMargins.large,
     },
   }),
   rowContainer: {
-    ...Styles.padding(
-      Styles.globalMargins.tiny,
-      Styles.globalMargins.medium,
-      Styles.globalMargins.tiny,
-      Styles.globalMargins.xsmall
+    ...Kb.Styles.padding(
+      Kb.Styles.globalMargins.tiny,
+      Kb.Styles.globalMargins.medium,
+      Kb.Styles.globalMargins.tiny,
+      Kb.Styles.globalMargins.xsmall
     ),
   },
 }))

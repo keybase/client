@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import * as ChatConstants from '../../../constants/chat2'
 import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
@@ -119,7 +118,7 @@ const AddToChannels = (props: Props) => {
       item && item.type === 'header'
         ? {
             index,
-            length: Styles.isMobile ? 48 : 40,
+            length: Kb.Styles.isMobile ? 48 : 40,
             offset: 0,
           }
         : {
@@ -171,14 +170,14 @@ const AddToChannels = (props: Props) => {
     <Kb.Modal
       mode="DefaultFullHeight"
       header={{
-        hideBorder: Styles.isMobile,
-        leftButton: Styles.isMobile ? (
+        hideBorder: Kb.Styles.isMobile,
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onCancel}>
             Cancel
           </Kb.Text>
         ) : undefined,
         rightButton:
-          Styles.isMobile && mode === 'others' ? (
+          Kb.Styles.isMobile && mode === 'others' ? (
             waiting ? (
               <Kb.ProgressIndicator type="Large" />
             ) : (
@@ -190,7 +189,7 @@ const AddToChannels = (props: Props) => {
         title: <Common.ModalTitle teamID={teamID} title={title} />,
       }}
       footer={
-        Styles.isMobile || mode === 'self'
+        Kb.Styles.isMobile || mode === 'self'
           ? undefined
           : {
               content: (
@@ -199,7 +198,7 @@ const AddToChannels = (props: Props) => {
                     type="Dim"
                     label="Cancel"
                     onClick={onCancel}
-                    style={Styles.globalStyles.flexOne}
+                    style={Kb.Styles.globalStyles.flexOne}
                     disabled={waiting}
                   />
                   <Kb.Button
@@ -208,7 +207,7 @@ const AddToChannels = (props: Props) => {
                     }
                     onClick={onFinish}
                     disabled={!numSelected}
-                    style={Styles.globalStyles.flexOne}
+                    style={Kb.Styles.globalStyles.flexOne}
                     waiting={waiting}
                   />
                 </Kb.Box2>
@@ -220,11 +219,11 @@ const AddToChannels = (props: Props) => {
       onClose={onCancel}
     >
       {loadingChannels && !channelMetas?.size ? (
-        <Kb.Box style={Styles.globalStyles.flexOne}>
+        <Kb.Box style={Kb.Styles.globalStyles.flexOne}>
           <Kb.ProgressIndicator type="Large" />
         </Kb.Box>
       ) : (
-        <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
             <Kb.SearchFilter
               placeholderText={`Search ${channelMetasAll.length} ${pluralize(
@@ -239,7 +238,7 @@ const AddToChannels = (props: Props) => {
               onBlur={() => setFiltering(false)}
             />
           </Kb.Box2>
-          <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} fullWidth={true}>
+          <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true}>
             <Kb.List2 items={items} renderItem={renderItem} itemHeight={{getItemLayout, type: 'variable'}} />
           </Kb.Box2>
         </Kb.Box2>
@@ -263,7 +262,7 @@ const HeaderRow = ({
     direction="horizontal"
     alignItems="center"
     fullWidth={true}
-    style={Styles.collapseStyles([styles.item, styles.headerItem])}
+    style={Kb.Styles.collapseStyles([styles.item, styles.headerItem])}
   >
     <Kb.Button label="Create channel" small={true} mode="Secondary" onClick={onCreate} />
     {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
@@ -394,7 +393,7 @@ const SelfChannelActions = ({
       gap="xtiny"
       fullHeight={true}
       centerChildren={true}
-      style={Styles.collapseStyles([selfMode && !Styles.isMobile && styles.channelRowSelfMode])}
+      style={Kb.Styles.collapseStyles([selfMode && !Kb.Styles.isMobile && styles.channelRowSelfMode])}
     >
       {popup}
       {meta.channelname !== 'general' && (
@@ -404,10 +403,10 @@ const SelfChannelActions = ({
           label={inChannel ? (buttonMousedOver ? 'Leave' : 'In') : 'Join'}
           icon={inChannel && !buttonMousedOver ? 'iconfont-check' : undefined}
           iconSizeType={inChannel && !buttonMousedOver ? 'Tiny' : undefined}
-          onMouseEnter={Styles.isMobile ? undefined : () => setMouseover(true)}
-          onMouseLeave={Styles.isMobile ? undefined : () => setMouseover(false)}
+          onMouseEnter={Kb.Styles.isMobile ? undefined : () => setMouseover(true)}
+          onMouseLeave={Kb.Styles.isMobile ? undefined : () => setMouseover(false)}
           onMouseDown={
-            Styles.isMobile
+            Kb.Styles.isMobile
               ? undefined
               : evt => {
                   // using onMouseDown so we can prevent blurring the search filter
@@ -415,7 +414,7 @@ const SelfChannelActions = ({
                   inChannel ? onLeave() : onJoin()
                 }
           }
-          onClick={Styles.isMobile ? (inChannel ? onLeave : onJoin) : undefined}
+          onClick={Kb.Styles.isMobile ? (inChannel ? onLeave : onJoin) : undefined}
           small={true}
           style={styles.joinLeaveButton}
           waiting={waiting}
@@ -424,7 +423,7 @@ const SelfChannelActions = ({
       {canEdit && (
         <Kb.Button
           icon="iconfont-ellipsis"
-          iconColor={Styles.globalColors.black_50}
+          iconColor={Kb.Styles.globalColors.black_50}
           onClick={toggleShowingPopup}
           ref={popupAnchor}
           small={true}
@@ -457,10 +456,10 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, user
       conversationIDKey: channelMeta.conversationIDKey,
       reason: 'manageView',
     })
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">
-        <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
           <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
             <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
               #{channelMeta.channelname}
@@ -478,7 +477,7 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, user
             disabled={channelMeta.channelname === 'general' || allInChannel}
             disabledColor={
               channelMeta.channelname === 'general' || allInChannel
-                ? Styles.globalColors.black_20OrWhite_20
+                ? Kb.Styles.globalColors.black_20OrWhite_20
                 : undefined
             }
           />
@@ -507,7 +506,7 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, user
             disabled={channelMeta.channelname === 'general' || allInChannel}
             disabledColor={
               channelMeta.channelname === 'general' || allInChannel
-                ? Styles.globalColors.black_20OrWhite_20
+                ? Kb.Styles.globalColors.black_20OrWhite_20
                 : undefined
             }
             onCheck={() => {
@@ -528,29 +527,29 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, user
           <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="xxtiny">
             <Common.Activity level={activityLevel} />
           </Kb.Box2>
-          {selfMode && !Styles.isMobile && (
+          {selfMode && !Kb.Styles.isMobile && (
             <Kb.Text type="BodySmall" lineClamp={1}>
               {channelMeta.description}
             </Kb.Text>
           )}
         </Kb.Box2>
       }
-      containerStyleOverride={Styles.collapseStyles([
+      containerStyleOverride={Kb.Styles.collapseStyles([
         styles.channelRowContainer,
-        selfMode && !Styles.isMobile && styles.channelRowSelfMode,
+        selfMode && !Kb.Styles.isMobile && styles.channelRowSelfMode,
       ])}
     />
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   channelRowContainer: {marginLeft: 16, marginRight: 8},
   channelRowSelfMode: {minHeight: 72},
   channelText: {flexShrink: 1},
   disabled: {opacity: 0.4},
-  headerItem: Styles.platformStyles({
+  headerItem: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.blueGrey,
+      backgroundColor: Kb.Styles.globalColors.blueGrey,
     },
     isElectron: {
       height: 40,
@@ -559,20 +558,20 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 48,
     },
   }),
-  item: Styles.platformStyles({
+  item: Kb.Styles.platformStyles({
     common: {justifyContent: 'space-between'},
     isElectron: {
-      ...Styles.padding(0, Styles.globalMargins.small),
+      ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
     },
     isMobile: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     },
   }),
   joinLeaveButton: {
     width: 63,
   },
-  searchFilterContainer: Styles.platformStyles({
-    isElectron: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+  searchFilterContainer: Kb.Styles.platformStyles({
+    isElectron: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
   }),
 }))
 

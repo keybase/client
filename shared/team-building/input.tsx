@@ -1,7 +1,6 @@
 import * as React from 'react'
 import noop from 'lodash/noop'
 import * as Kb from '../common-adapters/index'
-import * as Styles from '../styles'
 import * as Container from '../util/container'
 
 type Props = {
@@ -59,7 +58,7 @@ const Input = (props: Props) => {
   const prevFocusCounter = Container.usePrevious(focusCounter)
   React.useEffect(() => {
     if (
-      !Styles.isMobile &&
+      !Kb.Styles.isMobile &&
       prevFocusCounter !== undefined &&
       focusCounter > prevFocusCounter &&
       ref.current
@@ -109,10 +108,10 @@ const Input = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
     isElectron: {
-      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
     },
     isMobile: {
       justifyContent: 'flex-start',

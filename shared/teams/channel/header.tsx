@@ -2,7 +2,6 @@ import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import {pluralize} from '../../util/string'
@@ -109,7 +108,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 
   const bottomDescriptorsAndButtons = (
     <>
-      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Styles.isMobile}>
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Kb.Styles.isMobile}>
         {!!description && (
           <Kb.Text type="Body" lineClamp={3}>
             {description}
@@ -129,7 +128,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           {yourOperations.editChannelDescription && (
             <Kb.Button label="Edit" onClick={onEditChannel} small={true} mode="Secondary" />
           )}
-          {!Styles.isMobile && (
+          {!Kb.Styles.isMobile && (
             <Kb.Button
               label="Add members"
               onClick={onAddMembers}
@@ -143,7 +142,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
               mode="Secondary"
               small={true}
               icon="iconfont-ellipsis"
-              iconColor={Styles.globalColors.blue}
+              iconColor={Kb.Styles.globalColors.blue}
               ref={popupAnchor}
               onClick={toggleShowingPopup}
             />
@@ -156,12 +155,12 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 
   const tip = (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="tiny" style={styles.tipBox}>
-      <Kb.Icon color={Styles.globalColors.black_20} type="iconfont-info" sizeType="Small" />
+      <Kb.Icon color={Kb.Styles.globalColors.black_20} type="iconfont-info" sizeType="Small" />
       <Kb.Text type="BodySmall">Tip: Use @mentions to invite team members to channels from the chat.</Kb.Text>
     </Kb.Box2>
   )
 
-  if (Styles.isMobile) {
+  if (Kb.Styles.isMobile) {
     return (
       <Kb.Box2 alignItems="flex-start" direction="vertical" fullWidth={true} style={styles.backButton}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.outerBoxMobile}>
@@ -201,7 +200,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 }
 export default HeaderTitle
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       addMembersButton: {
@@ -211,7 +210,7 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-start',
       },
       backButton: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
       },
       flexShrink: {
         flexShrink: 1,
@@ -222,28 +221,28 @@ const styles = Styles.styleSheetCreate(
       outerBoxDesktop: {
         flexGrow: 1,
         flexShrink: 1,
-        marginBottom: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.small,
       },
       outerBoxMobile: {
-        ...Styles.padding(Styles.globalMargins.small),
-        backgroundColor: Styles.globalColors.white,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+        backgroundColor: Kb.Styles.globalColors.white,
       },
-      rightActionsContainer: Styles.platformStyles({
+      rightActionsContainer: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
-          paddingTop: Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
       }),
-      tipBox: Styles.platformStyles({
+      tipBox: Kb.Styles.platformStyles({
         isElectron: {
-          marginLeft: Styles.globalMargins.xlarge + Styles.globalMargins.large,
-          marginRight: Styles.globalMargins.large,
+          marginLeft: Kb.Styles.globalMargins.xlarge + Kb.Styles.globalMargins.large,
+          marginRight: Kb.Styles.globalMargins.large,
           maxWidth: 460,
-          paddingTop: Styles.globalMargins.xxtiny,
+          paddingTop: Kb.Styles.globalMargins.xxtiny,
         },
         isMobile: {
-          paddingTop: Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
       }),
     }) as const

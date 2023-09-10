@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '../../../../util/emoji'
 
 type Props = {
@@ -36,7 +35,7 @@ const ReactionItem = (props: Props) => {
     </Kb.Box2>
   )
 }
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       clickableBox: {
@@ -49,8 +48,8 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'center',
         flex: 1,
         justifyContent: 'space-between',
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
     }) as const
 )

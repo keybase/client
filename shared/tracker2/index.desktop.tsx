@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as React from 'react'
 import * as Constants from '../constants/tracker2'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import Assertion from './assertion/container'
 import Bio from './bio/container'
 import type * as T from '../constants/types'
@@ -51,7 +50,7 @@ const getButtons = (props: Props) => {
   )
   const buttonChat = (
     <Kb.WaitingButton key="Chat" label="Chat" waitingKey={Constants.waitingKey} onClick={props.onChat}>
-      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
+      <Kb.Icon type="iconfont-chat" color={Kb.Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
 
@@ -131,9 +130,9 @@ const Tracker = (props: Props) => {
 
   let backgroundColor
   if (['broken', 'error'].includes(props.state)) {
-    backgroundColor = Styles.globalColors.red
+    backgroundColor = Kb.Styles.globalColors.red
   } else {
-    backgroundColor = props.followThem ? Styles.globalColors.green : Styles.globalColors.blue
+    backgroundColor = props.followThem ? Kb.Styles.globalColors.green : Kb.Styles.globalColors.blue
   }
 
   const buttons = getButtons(props)
@@ -149,7 +148,7 @@ const Tracker = (props: Props) => {
       className={props.darkMode ? 'darkMode' : 'lightMode'}
       key={props.darkMode ? 'darkMode' : 'light'}
     >
-      <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.reason, {backgroundColor}])}>
+      <Kb.Text type="BodySmallSemibold" style={Kb.Styles.collapseStyles([styles.reason, {backgroundColor}])}>
         {props.reason}
       </Kb.Text>
       {/* The header box must go after the reason text, so that the
@@ -177,7 +176,7 @@ const Tracker = (props: Props) => {
                 underline={false}
                 selectable={true}
                 colorFollowing={true}
-                notFollowingColorOverride={Styles.globalColors.orange}
+                notFollowingColorOverride={Kb.Styles.globalColors.orange}
               />
             </Kb.Box2>
           </Kb.Box2>
@@ -210,27 +209,27 @@ const avatarSize = 96
 const barHeight = 62
 const reason = {
   alignSelf: 'center' as const,
-  color: Styles.globalColors.white,
+  color: Kb.Styles.globalColors.white,
   flexShrink: 0,
-  paddingBottom: Styles.globalMargins.small,
-  paddingLeft: Styles.globalMargins.medium,
-  paddingRight: Styles.globalMargins.medium,
-  paddingTop: Styles.globalMargins.small,
+  paddingBottom: Kb.Styles.globalMargins.small,
+  paddingLeft: Kb.Styles.globalMargins.medium,
+  paddingRight: Kb.Styles.globalMargins.medium,
+  paddingTop: Kb.Styles.globalMargins.small,
   textAlign: 'center' as const,
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       assertions: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         flexShrink: 0,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.small,
       },
       avatarBackground: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         bottom: 0,
         left: 0,
         position: 'absolute',
@@ -238,10 +237,10 @@ const styles = Styles.styleSheetCreate(
         top: avatarSize / 2,
       },
       avatarContainer: {flexShrink: 0, position: 'relative'},
-      buttons: Styles.platformStyles({
+      buttons: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.fillAbsolute,
-          backgroundColor: Styles.globalColors.white_90,
+          ...Kb.Styles.globalStyles.fillAbsolute,
+          backgroundColor: Kb.Styles.globalColors.white_90,
           flexShrink: 0,
           height: barHeight,
           position: 'absolute',
@@ -249,46 +248,46 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {boxShadow: 'rgba(0, 0, 0, 0.15) 0px 0px 3px'},
       }),
-      chatIcon: {marginRight: Styles.globalMargins.tiny},
-      close: Styles.platformStyles({
-        common: {padding: Styles.globalMargins.tiny},
+      chatIcon: {marginRight: Kb.Styles.globalMargins.tiny},
+      close: Kb.Styles.platformStyles({
+        common: {padding: Kb.Styles.globalMargins.tiny},
         isElectron: {
-          ...Styles.desktopStyles.windowDraggingClickable,
+          ...Kb.Styles.desktopStyles.windowDraggingClickable,
         },
       }),
       container: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         position: 'relative',
       },
       header: {
         justifyContent: 'flex-end',
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
         position: 'absolute',
         zIndex: 9,
       },
       nameWithIconContainer: {alignSelf: 'center'},
-      reason: Styles.platformStyles({
+      reason: Kb.Styles.platformStyles({
         common: {
           ...reason,
-          ...Styles.globalStyles.fillAbsolute,
+          ...Kb.Styles.globalStyles.fillAbsolute,
           bottom: undefined,
           paddingBottom: reason.paddingBottom + avatarSize / 2,
         },
         isElectron: {
-          ...Styles.desktopStyles.windowDragging,
+          ...Kb.Styles.desktopStyles.windowDragging,
         },
       }),
       reasonInvisible: {
         ...reason,
         opacity: 0,
       },
-      scrollView: Styles.platformStyles({
+      scrollView: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.globalStyles.fillAbsolute,
+          ...Kb.Styles.globalStyles.fillAbsolute,
           overflowX: 'hidden',
           overflowY: 'auto',
-          paddingBottom: Styles.globalMargins.small,
+          paddingBottom: Kb.Styles.globalMargins.small,
         },
       }),
       spaceUnderButtons: {
@@ -296,11 +295,11 @@ const styles = Styles.styleSheetCreate(
         height: barHeight,
       },
       teamShowcases: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         flexShrink: 0,
-        paddingLeft: Styles.globalMargins.medium,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.medium,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.small,
       },
     }) as const
 )

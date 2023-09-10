@@ -1,7 +1,6 @@
 import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 
 // The behavior is to only show spinner when user first time lands on a screen
 // and when don't have the data that drives it yet. Since RPCs happen
@@ -10,7 +9,7 @@ import * as Styles from '../../styles'
 
 type OwnProps = {path: T.FS.Path}
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       progressIndicator: {

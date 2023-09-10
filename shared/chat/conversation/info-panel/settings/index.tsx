@@ -3,7 +3,6 @@ import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as T from '../../../../constants/types'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
 import RetentionPicker from '../../../../teams/team/settings-tab/retention/container'
@@ -93,7 +92,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             style={styles.smallButton}
             waiting={spinnerForLeave}
             icon="iconfont-leave"
-            iconColor={Styles.globalColors.blue}
+            iconColor={Kb.Styles.globalColors.blue}
           />
         )}
         <Kb.Text type="Header">Conversation</Kb.Text>
@@ -126,7 +125,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 label="Block"
                 onClick={onShowBlockConversationDialog}
                 icon="iconfont-remove"
-                iconColor={Styles.globalColors.red}
+                iconColor={Kb.Styles.globalColors.red}
               />
             )}
             {entityType !== 'channel' &&
@@ -137,7 +136,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                   label="Unhide this conversation"
                   onClick={onUnhideConv}
                   icon="iconfont-unhide"
-                  iconColor={Styles.globalColors.red}
+                  iconColor={Kb.Styles.globalColors.red}
                 />
               ) : (
                 <Kb.Button
@@ -146,7 +145,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                   label="Hide this conversation"
                   onClick={onHideConv}
                   icon="iconfont-unhide"
-                  iconColor={Styles.globalColors.red}
+                  iconColor={Kb.Styles.globalColors.red}
                 />
               ))}
           </Kb.Box2>
@@ -156,16 +155,16 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       buttonStyle: {
         alignSelf: 'flex-start',
-        marginBottom: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
       },
-      container: {padding: Styles.globalMargins.small},
-      retentionDropdownStyle: Styles.platformStyles({
+      container: {padding: Kb.Styles.globalMargins.small},
+      retentionDropdownStyle: Kb.Styles.platformStyles({
         isElectron: {
           marginRight: 45 - 16,
           width: 'auto',
@@ -173,9 +172,9 @@ const styles = Styles.styleSheetCreate(
         isMobile: {width: '100%'},
       }),
       smallButton: {
-        marginBottom: Styles.globalMargins.medium,
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.medium,
+        marginLeft: Kb.Styles.globalMargins.small,
+        marginRight: Kb.Styles.globalMargins.small,
       },
     }) as const
 )

@@ -1,5 +1,4 @@
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import * as T from '../../../../constants/types'
 import {formatDurationShort} from '../../../../util/timestamp'
 
@@ -10,7 +9,7 @@ export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: num
   }
   return (
     <Kb.Meta
-      backgroundColor={Styles.globalColors.black_on_white}
+      backgroundColor={Kb.Styles.globalColors.black_on_white}
       noUppercase={true}
       style={styles.timeBadge}
       size="Small"
@@ -43,19 +42,19 @@ export const BotCommandUpdateStatus = (props: BotCommandUpdateStatusProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  botCommandContainer: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  botCommandContainer: Kb.Styles.platformStyles({
     isElectron: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      paddingLeft: Kb.Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
     },
     isMobile: {
-      paddingLeft: Styles.globalMargins.tiny,
+      paddingLeft: Kb.Styles.globalMargins.tiny,
     },
   }),
-  timeBadge: Styles.platformStyles({
+  timeBadge: Kb.Styles.platformStyles({
     common: {
-      borderColor: Styles.globalColors.white,
+      borderColor: Kb.Styles.globalColors.white,
       borderRadius: 3,
       borderStyle: 'solid',
     },

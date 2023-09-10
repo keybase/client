@@ -3,7 +3,6 @@ import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as KbMobile from '../../../common-adapters/mobile.native'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import DropView, {type DropItems} from '../../../common-adapters/drop-view.native'
 import Banner from '../bottom-banner/container'
@@ -110,18 +109,18 @@ const Conversation = React.memo(function Conversation(props: Props) {
   )
 
   const insets = useSafeAreaInsets()
-  const headerHeight = Styles.isTablet ? 115 : 44
+  const headerHeight = Kb.Styles.isTablet ? 115 : 44
   const height = Dimensions.get('window').height - insets.top - headerHeight
 
   const safeStyle = React.useMemo(
     () =>
-      Styles.isAndroid
+      Kb.Styles.isAndroid
         ? {paddingBottom: insets.bottom}
         : {
             height,
             maxHeight: height,
             minHeight: height,
-            paddingBottom: Styles.isTablet ? 0 : insets.bottom,
+            paddingBottom: Kb.Styles.isTablet ? 0 : insets.bottom,
           },
     [height, insets.bottom]
   )
@@ -138,20 +137,20 @@ const Conversation = React.memo(function Conversation(props: Props) {
     </Kb.Box2>
   )
 
-  return Styles.isAndroid ? (
+  return Kb.Styles.isAndroid ? (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
       {content}
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
-      <Kb.KeyboardAvoidingView2 extraPadding={Styles.isTablet ? -65 : -insets.bottom}>
+      <Kb.KeyboardAvoidingView2 extraPadding={Kb.Styles.isTablet ? -65 : -insets.bottom}>
         {content}
       </Kb.KeyboardAvoidingView2>
     </Kb.Box2>
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       dropView: {flexGrow: 1},
@@ -159,8 +158,8 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
         position: 'relative',
       },
-      offline: {padding: Styles.globalMargins.xxtiny},
-      outerContainer: Styles.platformStyles({
+      offline: {padding: Kb.Styles.globalMargins.xxtiny},
+      outerContainer: Kb.Styles.platformStyles({
         isTablet: {
           flex: 1,
           position: 'relative',

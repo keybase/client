@@ -1,7 +1,6 @@
 import * as React from 'react'
 import type * as T from '../../../../../constants/types'
 import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
 
 const defaultWelcomeMessageWriter = ':wave: Welcome to the team! Say hi to everyone and introduce yourself.'
 const defaultWelcomeMessageNonwriter = ':wave: Welcome to the team!'
@@ -47,11 +46,11 @@ function renderWelcomeMessage(
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       welcomeStyle: {
-        paddingTop: Styles.globalMargins.xtiny,
+        paddingTop: Kb.Styles.globalMargins.xtiny,
       },
     }) as const
 )

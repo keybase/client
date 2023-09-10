@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as Styles from '../../../styles'
+import * as Kb from '../../../common-adapters'
 
 export type FloatingMenuProps = {
-  containerStyle?: Styles.StylesCrossPlatform
+  containerStyle?: Kb.Styles.StylesCrossPlatform
   hide: () => void
   visible: boolean
   attachTo?: () => React.Component<any> | null

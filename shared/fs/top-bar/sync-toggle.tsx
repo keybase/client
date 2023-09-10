@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as T from '../../constants/types'
 
@@ -26,7 +25,7 @@ const Confirm = (props: Pick<Props, 'waiting' | 'disableSync'> & {toggleShowingP
       <Kb.Text key="explain" type="BodySmall" center={true} style={styles.explainText}>
         This will delete your local copies of all the files in this folder.
       </Kb.Text>
-      {!Styles.isMobile && (
+      {!Kb.Styles.isMobile && (
         <Kb.Box2
           direction="horizontal"
           style={styles.popupButtonContainer}
@@ -74,7 +73,7 @@ const SyncToggle = (props: Props) => {
             <Confirm waiting={waiting} disableSync={disableSync} toggleShowingPopup={toggleShowingPopup} />
           }
           items={
-            Styles.isMobile
+            Kb.Styles.isMobile
               ? [
                   {
                     danger: true,
@@ -110,37 +109,37 @@ const SyncToggle = (props: Props) => {
   ) : null
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      explainText: Styles.platformStyles({
+      explainText: Kb.Styles.platformStyles({
         isElectron: {
-          marginTop: Styles.globalMargins.xxtiny,
+          marginTop: Kb.Styles.globalMargins.xxtiny,
         },
         isMobile: {
-          marginTop: Styles.globalMargins.tiny,
+          marginTop: Kb.Styles.globalMargins.tiny,
         },
       }),
-      floating: Styles.platformStyles({
+      floating: Kb.Styles.platformStyles({
         isElectron: {
           marginTop: -38,
         },
       }),
       popupButtonContainer: {
-        marginTop: Styles.globalMargins.xsmall,
+        marginTop: Kb.Styles.globalMargins.xsmall,
       },
-      popupContainer: Styles.platformStyles({
+      popupContainer: Kb.Styles.platformStyles({
         common: {
-          paddingBottom: Styles.globalMargins.small,
-          paddingLeft: Styles.globalMargins.medium,
-          paddingRight: Styles.globalMargins.medium,
+          paddingBottom: Kb.Styles.globalMargins.small,
+          paddingLeft: Kb.Styles.globalMargins.medium,
+          paddingRight: Kb.Styles.globalMargins.medium,
         },
         isElectron: {
-          paddingTop: Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.small,
           width: 235,
         },
         isMobile: {
-          paddingTop: Styles.globalMargins.large,
+          paddingTop: Kb.Styles.globalMargins.large,
         },
       }),
     }) as const

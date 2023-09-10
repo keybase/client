@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import AudioRecorder from '../../../audio/audio-recorder.native'
 import FilePickerPopup from '../filepicker-popup'
 import HWKeyboardEvent from 'react-native-hw-keyboard-event'
@@ -97,7 +96,7 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
         </Kb.Box2>
       ) : (
         <Kb.Icon
-          color={isExploding ? Styles.globalColors.black : undefined}
+          color={isExploding ? Kb.Styles.globalColors.black : undefined}
           type="iconfont-timer"
           fixOverdraw={true}
         />
@@ -119,7 +118,7 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
       {explodingIcon}
       <Kb.Icon padding="tiny" onClick={openEmojiPicker} type="iconfont-emoji" fixOverdraw={true} />
       <Kb.Icon padding="tiny" onClick={insertMentionMarker} type="iconfont-mention" fixOverdraw={true} />
-      <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
+      <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} />
       {!hasText && (
         <Kb.Box2 direction="horizontal" alignItems="flex-end">
           <Kb.Icon onClick={openFilePicker} padding="tiny" type="iconfont-camera" fixOverdraw={true} />
@@ -178,7 +177,7 @@ const AnimatedExpand = (() => {
               type="iconfont-arrow-full-up"
               fontSize={18}
               style={topStyle}
-              color={Styles.globalColors.black_35}
+              color={Kb.Styles.globalColors.black_35}
             />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom} pointerEvents="none">
@@ -187,7 +186,7 @@ const AnimatedExpand = (() => {
               type="iconfont-arrow-full-up"
               fontSize={18}
               style={bottomStyle}
-              color={Styles.globalColors.black_35}
+              color={Kb.Styles.globalColors.black_35}
             />
           </Kb.Box2>
         </Kb.ClickableBox>
@@ -256,9 +255,12 @@ const PlatformInput = (p: Props) => {
     inputRef,
     onChangeText: p.onChangeText,
     suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
-    suggestionListStyle: Styles.collapseStyles([styles.suggestionList, !!height && {marginBottom: height}]),
+    suggestionListStyle: Kb.Styles.collapseStyles([
+      styles.suggestionList,
+      !!height && {marginBottom: height},
+    ]),
     suggestionOverlayStyle: p.suggestionOverlayStyle,
-    suggestionSpinnerStyle: Styles.collapseStyles([
+    suggestionSpinnerStyle: Kb.Styles.collapseStyles([
       styles.suggestionSpinnerStyle,
       !!height && {marginBottom: height},
     ]),
@@ -331,7 +333,7 @@ const PlatformInput = (p: Props) => {
     const cb = (hwKeyEvent: {pressedKey: string}) => {
       switch (hwKeyEvent.pressedKey) {
         case 'enter':
-          Styles.isIOS || !isOpen() ? onQueueSubmit() : insertText('\n')
+          Kb.Styles.isIOS || !isOpen() ? onQueueSubmit() : insertText('\n')
           break
         case 'shift-enter':
           insertText('\n')
@@ -420,7 +422,7 @@ const PlatformInput = (p: Props) => {
         {showTypingStatus && !popup && <Typing />}
         <Kb.Box2
           direction="vertical"
-          style={Styles.collapseStyles([styles.container, isExploding && styles.explodingContainer])}
+          style={Kb.Styles.collapseStyles([styles.container, isExploding && styles.explodingContainer])}
           fullWidth={true}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
@@ -503,7 +505,7 @@ const AnimatedInput = (() => {
   }
 })()
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       actionContainer: {
@@ -512,45 +514,45 @@ const styles = Styles.styleSheetCreate(
       },
       container: {
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.fastBlank,
-        borderTopColor: Styles.globalColors.black_10,
+        backgroundColor: Kb.Styles.globalColors.fastBlank,
+        borderTopColor: Kb.Styles.globalColors.black_10,
         borderTopWidth: 1,
         minHeight: 1,
         overflow: 'hidden',
-        ...Styles.padding(0, 0, Styles.globalMargins.tiny, 0),
+        ...Kb.Styles.padding(0, 0, Kb.Styles.globalMargins.tiny, 0),
       },
       editingButton: {
-        marginLeft: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.tiny,
+        marginLeft: Kb.Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
       },
       editingTabStyle: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-start',
-        backgroundColor: Styles.globalColors.yellowOrYellowAlt,
+        backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt,
         flexShrink: 0,
         height: '100%',
         minWidth: 32,
-        padding: Styles.globalMargins.xtiny,
+        padding: Kb.Styles.globalMargins.xtiny,
       },
       exploding: {
-        backgroundColor: Styles.globalColors.black,
-        borderRadius: Styles.globalMargins.mediumLarge / 2,
+        backgroundColor: Kb.Styles.globalColors.black,
+        borderRadius: Kb.Styles.globalMargins.mediumLarge / 2,
         height: 28,
-        margin: Styles.globalMargins.xtiny,
+        margin: Kb.Styles.globalMargins.xtiny,
         width: 28,
       },
-      explodingContainer: {borderTopColor: Styles.globalColors.black},
+      explodingContainer: {borderTopColor: Kb.Styles.globalColors.black},
       explodingSendBtn: {
-        backgroundColor: Styles.globalColors.black,
-        marginRight: Styles.globalMargins.tiny,
+        backgroundColor: Kb.Styles.globalColors.black,
+        marginRight: Kb.Styles.globalMargins.tiny,
       },
-      explodingSendBtnLabel: {color: Styles.globalColors.white},
+      explodingSendBtnLabel: {color: Kb.Styles.globalColors.white},
       explodingText: {
         fontSize: 11,
         lineHeight: 16,
       },
       explodingWrapper: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
         height: 38,
         justifyContent: 'center',
@@ -564,8 +566,8 @@ const styles = Styles.styleSheetCreate(
       },
       iconContainer: {
         height: 28,
-        marginRight: -Styles.globalMargins.xtiny,
-        marginTop: Styles.globalMargins.tiny,
+        marginRight: -Kb.Styles.globalMargins.xtiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
         position: 'relative',
         width: 28,
       },
@@ -574,40 +576,40 @@ const styles = Styles.styleSheetCreate(
         right: 0,
         top: 0,
       },
-      input: Styles.platformStyles({
+      input: Kb.Styles.platformStyles({
         common: {
           flex: 1,
           flexShrink: 1,
-          marginRight: Styles.globalMargins.tiny,
+          marginRight: Kb.Styles.globalMargins.tiny,
           minHeight: 0,
-          paddingTop: Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
       }),
       inputContainer: {
-        ...Styles.padding(0, Styles.globalMargins.tiny),
+        ...Kb.Styles.padding(0, Kb.Styles.globalMargins.tiny),
         flexGrow: 1,
         flexShrink: 1,
         maxHeight: '100%',
-        paddingBottom: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
       },
       outerContainer: {position: 'relative'},
-      sendBtn: {marginRight: Styles.globalMargins.tiny},
-      sendWrapper: {backgroundColor: Styles.globalColors.white_90, position: 'absolute'},
-      suggestionList: Styles.platformStyles({
+      sendBtn: {marginRight: Kb.Styles.globalMargins.tiny},
+      sendWrapper: {backgroundColor: Kb.Styles.globalColors.white_90, position: 'absolute'},
+      suggestionList: Kb.Styles.platformStyles({
         isMobile: {
-          backgroundColor: Styles.globalColors.white,
-          borderColor: Styles.globalColors.black_10,
+          backgroundColor: Kb.Styles.globalColors.white,
+          borderColor: Kb.Styles.globalColors.black_10,
           borderStyle: 'solid',
           borderTopWidth: 3,
           maxHeight: '50%',
           overflow: 'hidden',
         },
       }),
-      suggestionSpinnerStyle: Styles.platformStyles({
+      suggestionSpinnerStyle: Kb.Styles.platformStyles({
         isMobile: {
-          bottom: Styles.globalMargins.small,
+          bottom: Kb.Styles.globalMargins.small,
           position: 'absolute',
-          right: Styles.globalMargins.small,
+          right: Kb.Styles.globalMargins.small,
         },
       }),
     }) as const

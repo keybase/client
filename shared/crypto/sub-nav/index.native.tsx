@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Constants from '../../constants/crypto'
 import NavRow from './nav-row'
 
@@ -22,14 +21,14 @@ const CryptoSubNav = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        backgroundColor: Styles.globalColors.blueGrey,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.xsmall,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.xsmall,
       },
     }) as const
 )

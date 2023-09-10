@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import Actions from './actions/container'
 import Assertion from '../../tracker2/assertion/container'
 import Bio from '../../tracker2/bio/container'
@@ -85,7 +84,7 @@ const BioLayout = (p: BioTeamProofsProps) => (
       underline={false}
       selectable={true}
       colorFollowing={true}
-      notFollowingColorOverride={p.notAUser ? Styles.globalColors.black_50 : Styles.globalColors.orange}
+      notFollowingColorOverride={p.notAUser ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.orange}
       editableIcon={!!p.onEditAvatar}
       onEditIcon={p.onEditAvatar || undefined}
       avatarSize={avatarSize}
@@ -166,7 +165,7 @@ class Tabs extends React.Component<TabsProps> {
   _tab = (tab: Tab) => (
     <Kb.ClickableBox
       onClick={tab === 'following' ? this._onClickFollowing : this._onClickFollowers}
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.followTab,
         tab === this.props.selectedTab && styles.followTabSelected,
       ])}
@@ -198,7 +197,7 @@ class Tabs extends React.Component<TabsProps> {
 }
 
 const widthToDimensions = (width: number) => {
-  const singleItemWidth = Styles.isMobile ? 130 : 120
+  const singleItemWidth = Kb.Styles.isMobile ? 130 : 120
   const itemsInARow = Math.floor(Math.max(1, width / singleItemWidth))
   const itemWidth = Math.floor(width / itemsInARow)
   return {itemWidth, itemsInARow}
@@ -256,14 +255,14 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
       />
     </Kb.ButtonBar>
   ) : null
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
       {!!props.reason && (
         <Kb.Text
           type="BodySmallSemibold"
           negative={true}
           center={true}
-          style={Styles.collapseStyles([styles.reason, colorTypeToStyle(props.backgroundColorType)])}
+          style={Kb.Styles.collapseStyles([styles.reason, colorTypeToStyle(props.backgroundColorType)])}
         >
           {props.reason}
         </Kb.Text>
@@ -272,7 +271,10 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
         <Kb.Box2
           direction="vertical"
           fullWidth={true}
-          style={Styles.collapseStyles([styles.backgroundColor, colorTypeToStyle(props.backgroundColorType)])}
+          style={Kb.Styles.collapseStyles([
+            styles.backgroundColor,
+            colorTypeToStyle(props.backgroundColorType),
+          ])}
         />
       </Kb.Box2>
       <BioLayout {...props} />
@@ -287,7 +289,10 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
-        style={Styles.collapseStyles([styles.backgroundColor, colorTypeToStyle(props.backgroundColorType)])}
+        style={Kb.Styles.collapseStyles([
+          styles.backgroundColor,
+          colorTypeToStyle(props.backgroundColorType),
+        ])}
       />
       <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
         <BioLayout {...props} />
@@ -332,7 +337,7 @@ class User extends React.Component<Props2, State> {
     this.state = {
       // @ts-ignore
       selectedTab: usernameSelectedTab[props.username] || 'followers',
-      width: Styles.dimensionWidth,
+      width: Kb.Styles.dimensionWidth,
     }
   }
 
@@ -446,7 +451,8 @@ class User extends React.Component<Props2, State> {
 
     const containerStyle = {
       paddingTop:
-        (Styles.isAndroid ? 56 : Styles.isTablet ? 80 : Styles.isIOS ? 46 : 80) + this.props.insetTop,
+        (Kb.Styles.isAndroid ? 56 : Kb.Styles.isTablet ? 80 : Kb.Styles.isIOS ? 46 : 80) +
+        this.props.insetTop,
     }
 
     return (
@@ -461,10 +467,10 @@ class User extends React.Component<Props2, State> {
           direction="vertical"
           fullWidth={true}
           fullHeight={true}
-          style={Styles.collapseStyles([containerStyle, colorTypeToStyle(this.props.backgroundColorType)])}
+          style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(this.props.backgroundColorType)])}
         >
           <Kb.Box2 direction="vertical" style={styles.innerContainer}>
-            {!Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
+            {!Kb.Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
             {!!this.state.width && (
               <Kb.SectionList
                 key={this.props.username + this.state.width /* forc render on user change or width change */}
@@ -498,41 +504,41 @@ const usernameSelectedTab = {}
 
 const avatarSize = 128
 
-export const styles = Styles.styleSheetCreate(() => ({
+export const styles = Kb.Styles.styleSheetCreate(() => ({
   addIdentityButton: {
-    marginBottom: Styles.globalMargins.xsmall,
-    marginTop: Styles.globalMargins.xsmall,
+    marginBottom: Kb.Styles.globalMargins.xsmall,
+    marginTop: Kb.Styles.globalMargins.xsmall,
   },
-  addIdentityContainer: Styles.platformStyles({
+  addIdentityContainer: Kb.Styles.platformStyles({
     common: {justifyContent: 'center'},
     isElectron: {
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
+      paddingLeft: Kb.Styles.globalMargins.tiny,
+      paddingRight: Kb.Styles.globalMargins.tiny,
     },
   }),
   backgroundColor: {
-    ...Styles.globalStyles.fillAbsolute,
+    ...Kb.Styles.globalStyles.fillAbsolute,
     bottom: undefined,
-    height: avatarSize / 2 + Styles.globalMargins.tiny,
+    height: avatarSize / 2 + Kb.Styles.globalMargins.tiny,
   },
-  bio: Styles.platformStyles({
+  bio: Kb.Styles.platformStyles({
     common: {alignSelf: 'flex-start'},
-    isElectron: {marginBottom: Styles.globalMargins.small, width: 350},
-    isMobile: {marginBottom: Styles.globalMargins.medium, width: '100%'},
+    isElectron: {marginBottom: Kb.Styles.globalMargins.small, width: 350},
+    isMobile: {marginBottom: Kb.Styles.globalMargins.medium, width: '100%'},
   }),
-  bioAndProofs: Styles.platformStyles({
+  bioAndProofs: Kb.Styles.platformStyles({
     common: {
       justifyContent: 'space-around',
-      paddingBottom: Styles.globalMargins.medium,
+      paddingBottom: Kb.Styles.globalMargins.medium,
       position: 'relative',
     },
-    isElectron: {paddingTop: Styles.globalMargins.tiny},
-    isMobile: {paddingBottom: Styles.globalMargins.small},
+    isElectron: {paddingTop: Kb.Styles.globalMargins.tiny},
+    isMobile: {paddingBottom: Kb.Styles.globalMargins.small},
   }),
-  followTab: Styles.platformStyles({
+  followTab: Kb.Styles.platformStyles({
     common: {
       alignItems: 'center',
-      borderBottomColor: Styles.globalColors.white,
+      borderBottomColor: Kb.Styles.globalColors.white,
       borderBottomWidth: 2,
       justifyContent: 'center',
     },
@@ -547,11 +553,11 @@ export const styles = Styles.styleSheetCreate(() => ({
       width: '50%',
     },
   }),
-  followTabContainer: Styles.platformStyles({
+  followTabContainer: Kb.Styles.platformStyles({
     common: {
       alignItems: 'flex-end',
-      backgroundColor: Styles.globalColors.white,
-      borderBottomColor: Styles.globalColors.black_10,
+      backgroundColor: Kb.Styles.globalColors.white,
+      borderBottomColor: Kb.Styles.globalColors.black_10,
       borderBottomWidth: 1,
     },
     isElectron: {
@@ -563,21 +569,21 @@ export const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   followTabSelected: {
-    borderBottomColor: Styles.globalColors.blue,
+    borderBottomColor: Kb.Styles.globalColors.blue,
   },
-  followTabText: Styles.platformStyles({
-    common: {color: Styles.globalColors.black_50},
-    isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+  followTabText: Kb.Styles.platformStyles({
+    common: {color: Kb.Styles.globalColors.black_50},
+    isMobile: {backgroundColor: Kb.Styles.globalColors.fastBlank},
   }),
-  followTabTextSelected: Styles.platformStyles({
-    common: {color: Styles.globalColors.black},
-    isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+  followTabTextSelected: Kb.Styles.platformStyles({
+    common: {color: Kb.Styles.globalColors.black},
+    isMobile: {backgroundColor: Kb.Styles.globalColors.fastBlank},
   }),
-  friendRow: Styles.platformStyles({
+  friendRow: Kb.Styles.platformStyles({
     common: {
       maxWidth: '100%',
       minWidth: 0,
-      paddingTop: Styles.globalMargins.tiny,
+      paddingTop: Kb.Styles.globalMargins.tiny,
     },
     isElectron: {justifyContent: 'flex-start'},
     isMobile: {justifyContent: 'center'},
@@ -587,8 +593,8 @@ export const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
   },
   noGrow: {flexGrow: 0},
-  profileSearch: {marginTop: Styles.globalMargins.xtiny},
-  proofs: Styles.platformStyles({
+  profileSearch: {marginTop: Kb.Styles.globalMargins.xtiny},
+  proofs: Kb.Styles.platformStyles({
     isElectron: {
       alignSelf: 'flex-start',
       flexShrink: 0,
@@ -596,22 +602,22 @@ export const styles = Styles.styleSheetCreate(() => ({
     },
     isMobile: {width: '100%'},
   }),
-  proofsArea: Styles.platformStyles({
+  proofsArea: Kb.Styles.platformStyles({
     isMobile: {
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
+      paddingLeft: Kb.Styles.globalMargins.medium,
+      paddingRight: Kb.Styles.globalMargins.medium,
     },
   }),
-  proveIt: {paddingTop: Styles.globalMargins.small},
-  reason: Styles.platformStyles({
-    isElectron: {height: avatarSize / 2 + Styles.globalMargins.small},
-    isMobile: {padding: Styles.globalMargins.tiny},
+  proveIt: {paddingTop: Kb.Styles.globalMargins.small},
+  reason: Kb.Styles.platformStyles({
+    isElectron: {height: avatarSize / 2 + Kb.Styles.globalMargins.small},
+    isMobile: {padding: Kb.Styles.globalMargins.tiny},
   }),
   reloadable: {paddingTop: 60},
-  search: Styles.platformStyles({
+  search: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.black_10,
-      borderRadius: Styles.borderRadius,
+      backgroundColor: Kb.Styles.globalColors.black_10,
+      borderRadius: Kb.Styles.borderRadius,
     },
     isElectron: {
       minHeight: 24,
@@ -622,25 +628,25 @@ export const styles = Styles.styleSheetCreate(() => ({
       minWidth: 200,
     },
   }),
-  sectionList: Styles.platformStyles({
+  sectionList: Kb.Styles.platformStyles({
     common: {width: '100%'},
     isElectron: {
-      backgroundColor: Styles.globalColors.white,
+      backgroundColor: Kb.Styles.globalColors.white,
       position: 'relative',
       willChange: 'transform',
     },
   }),
-  sectionListContentStyle: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.white, paddingBottom: Styles.globalMargins.xtiny},
+  sectionListContentStyle: Kb.Styles.platformStyles({
+    common: {backgroundColor: Kb.Styles.globalColors.white, paddingBottom: Kb.Styles.globalMargins.xtiny},
     isMobile: {minHeight: '100%'},
   }),
   textEmpty: {
-    paddingBottom: Styles.globalMargins.large,
-    paddingTop: Styles.globalMargins.large,
+    paddingBottom: Kb.Styles.globalMargins.large,
+    paddingTop: Kb.Styles.globalMargins.large,
   },
-  typedBackgroundBlue: {backgroundColor: Styles.globalColors.blue},
-  typedBackgroundGreen: {backgroundColor: Styles.globalColors.green},
-  typedBackgroundRed: {backgroundColor: Styles.globalColors.red},
+  typedBackgroundBlue: {backgroundColor: Kb.Styles.globalColors.blue},
+  typedBackgroundGreen: {backgroundColor: Kb.Styles.globalColors.green},
+  typedBackgroundRed: {backgroundColor: Kb.Styles.globalColors.red},
 }))
 
 export default UserWrap

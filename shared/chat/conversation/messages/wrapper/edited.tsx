@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import {HighlightedContext, OrdinalContext} from '../ids-context'
 
 export const useEdited = () => {
@@ -29,10 +28,10 @@ export const useEdited = () => {
   return edited
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      edited: {color: Styles.globalColors.black_20},
-      editedHighlighted: {color: Styles.globalColors.black_20OrBlack},
+      edited: {color: Kb.Styles.globalColors.black_20},
+      editedHighlighted: {color: Kb.Styles.globalColors.black_20OrBlack},
     }) as const
 )

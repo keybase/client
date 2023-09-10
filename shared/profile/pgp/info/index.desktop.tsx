@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import Modal from '../../modal'
 
 const Info = () => {
@@ -75,7 +74,7 @@ const Info = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       centered: {alignSelf: 'center'},

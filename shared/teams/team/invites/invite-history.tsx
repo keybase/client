@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as T from '../../../constants/types'
 import {memoize} from '../../../util/memoize'
@@ -48,7 +47,7 @@ const InviteHistory = (props: Props) => {
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
-        style={Styles.globalStyles.flexOne}
+        style={Kb.Styles.globalStyles.flexOne}
         centerChildren={true}
       >
         {loading ? (
@@ -72,23 +71,23 @@ const InviteHistory = (props: Props) => {
     <Kb.Modal
       header={{
         hideBorder: true,
-        leftButton: Styles.isMobile ? (
+        leftButton: Kb.Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             Close
           </Kb.Text>
         ) : undefined,
-        rightButton: Styles.isMobile ? undefined : (
+        rightButton: Kb.Styles.isMobile ? undefined : (
           <Kb.Button mode="Secondary" label="Generate link" small={true} onClick={onGenerate} />
         ),
         title: <ModalTitle title="Invite links" teamID={teamID} />,
       }}
       footer={{
-        content: Styles.isMobile ? (
+        content: Kb.Styles.isMobile ? (
           <Kb.Button fullWidth={true} mode="Secondary" label="Generate link" onClick={onGenerate} />
         ) : (
           <Kb.Button fullWidth={true} type="Dim" label="Close" onClick={onClose} />
         ),
-        hideBorder: Styles.isMobile,
+        hideBorder: Kb.Styles.isMobile,
       }}
       onClose={onClose}
       allowOverflow={true}
@@ -124,17 +123,17 @@ const InviteHistory = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   listContent: {
-    paddingBottom: Styles.globalMargins.small,
+    paddingBottom: Kb.Styles.globalMargins.small,
   },
   tabs: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
   },
   wideMargins: {
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.small,
+    marginLeft: Kb.Styles.globalMargins.small,
+    marginRight: Kb.Styles.globalMargins.small,
+    marginTop: Kb.Styles.globalMargins.small,
   },
 }))
 

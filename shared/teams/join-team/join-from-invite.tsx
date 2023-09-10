@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
 import {Success} from '.'
 
@@ -107,10 +106,10 @@ const JoinFromInvite = () => {
             <Kb.Box2
               direction="horizontal"
               style={styles.meta}
-              fullWidth={!Styles.isMobile}
+              fullWidth={!Kb.Styles.isMobile}
               centerChildren={true}
             >
-              <Kb.Meta backgroundColor={Styles.globalColors.green} title="open" size="Small" />
+              <Kb.Meta backgroundColor={Kb.Styles.globalColors.green} title="open" size="Small" />
             </Kb.Box2>
           )}
         </Kb.Box>
@@ -136,12 +135,12 @@ const JoinFromInvite = () => {
           <Kb.Button type="Dim" label="Later" onClick={onClose} style={styles.button} waiting={waiting} />
         </Kb.Box2>
         {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
-        <Kb.Box style={Styles.globalStyles.flexOne} />
+        <Kb.Box style={Kb.Styles.globalStyles.flexOne} />
         <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.inviterBox}>
           <Kb.Avatar
             size={16}
             username={details.inviterUsername}
-            borderColor={Styles.isMobile ? Styles.globalColors.white : undefined}
+            borderColor={Kb.Styles.isMobile ? Kb.Styles.globalColors.white : undefined}
           />
           <Kb.ConnectedUsernames
             type="BodySmallBold"
@@ -150,7 +149,7 @@ const JoinFromInvite = () => {
           />
           <Kb.Text type="BodySmall"> invited you.</Kb.Text>
         </Kb.Box2>
-        {Styles.isMobile && (
+        {Kb.Styles.isMobile && (
           <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.laterBox}>
             <Kb.Button label="Later" type="Dim" onClick={onClose} style={styles.button} />
           </Kb.Box2>
@@ -158,7 +157,7 @@ const JoinFromInvite = () => {
       </Kb.Box2>
     )
 
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <Kb.MobilePopup overlayStyle={styles.mobileOverlay}>{body}</Kb.MobilePopup>
   ) : (
     <Kb.Modal mode="Wide" allowOverflow={true} noScrollView={true} onClose={onClose}>
@@ -167,41 +166,41 @@ const JoinFromInvite = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      avatar: Styles.platformStyles({
+      avatar: Kb.Styles.platformStyles({
         common: {marginBottom: -36, position: 'relative', top: -48},
         isElectron: {paddingTop: 80},
       }),
-      body: Styles.platformStyles({
+      body: Kb.Styles.platformStyles({
         common: {
-          paddingBottom: Styles.globalMargins.small,
+          paddingBottom: Kb.Styles.globalMargins.small,
         },
         isMobile: {
-          backgroundColor: Styles.globalColors.blueGreyLight,
+          backgroundColor: Kb.Styles.globalColors.blueGreyLight,
           borderRadius: 8,
         },
       }),
-      button: Styles.platformStyles({
+      button: Kb.Styles.platformStyles({
         isElectron: {width: 360},
         isMobile: {
           flex: 1,
-          marginLeft: Styles.globalMargins.small,
-          marginRight: Styles.globalMargins.small,
+          marginLeft: Kb.Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.small,
         },
       }),
-      buttonBar: {justifyContent: 'center', paddingTop: Styles.globalMargins.small},
+      buttonBar: {justifyContent: 'center', paddingTop: Kb.Styles.globalMargins.small},
       center: {justifyContent: 'center'},
-      description: Styles.platformStyles({
+      description: Kb.Styles.platformStyles({
         isElectron: {width: 460},
-        isMobile: Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.small),
+        isMobile: Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small),
       }),
-      inviterBox: {paddingBottom: Styles.globalMargins.small},
+      inviterBox: {paddingBottom: Kb.Styles.globalMargins.small},
       laterBox: {
-        borderTopColor: Styles.globalColors.black_10,
+        borderTopColor: Kb.Styles.globalColors.black_10,
         borderTopWidth: 1,
-        paddingTop: Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.small,
       },
       meta: {
         bottom: -7,

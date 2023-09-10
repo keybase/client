@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as T from '../../../constants/types'
 import * as Container from '../../../util/container'
-import * as Styles from '../../../styles'
 import logger from '../../../logger'
 import debounce from 'lodash/debounce'
 import {Avatars, TeamAvatar} from '../../avatars'
@@ -29,11 +28,13 @@ const _itemRenderer = (index: number, row: Row) => {
         direction="horizontal"
         fullWidth={true}
         gap="tiny"
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.results,
           {
             backgroundColor:
-              !Styles.isMobile && row.isSelected ? Styles.globalColors.blue : Styles.globalColors.white,
+              !Kb.Styles.isMobile && row.isSelected
+                ? Kb.Styles.globalColors.blue
+                : Kb.Styles.globalColors.white,
           },
         ])}
       >
@@ -154,23 +155,23 @@ export const ConversationListRender = (props: ConversationListRenderProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      filterContainer: Styles.platformStyles({
+      filterContainer: Kb.Styles.platformStyles({
         isElectron: {
-          padding: Styles.globalMargins.tiny,
+          padding: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          paddingBottom: Styles.globalMargins.tiny,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
         },
       }),
-      results: Styles.platformStyles({
+      results: Kb.Styles.platformStyles({
         common: {
-          padding: Styles.globalMargins.tiny,
+          padding: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          paddingBottom: Styles.globalMargins.tiny,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
         },
       }),
     }) as const

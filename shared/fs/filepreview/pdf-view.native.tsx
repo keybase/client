@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import type {Props} from './pdf-view'
 
@@ -15,7 +14,7 @@ const PdfView = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   webview: {
     height: '100%',
     width: '100%',

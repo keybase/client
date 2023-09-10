@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import * as Common from '../router-v2/common'
 import * as Shim from '../router-v2/shim'
 import LeftNav from './sub-nav/left-nav'
@@ -43,9 +42,9 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  box: {backgroundColor: Styles.globalColors.white},
-  nav: {width: Styles.isTablet ? 200 : 180},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  box: {backgroundColor: Kb.Styles.globalColors.white},
+  nav: {width: Kb.Styles.isTablet ? 200 : 180},
 }))
 
 const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)

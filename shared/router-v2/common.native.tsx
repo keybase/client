@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 import {TabActions} from '@react-navigation/core'
 import {HeaderLeftArrow} from '../common-adapters/header-hoc'
@@ -16,7 +15,7 @@ export const TabletWrapper = (p: {children: React.ReactNode}) => {
         height: 48,
         marginLeft: -20,
         maxWidth: undefined,
-        width: Styles.dimensionWidth,
+        width: Kb.Styles.dimensionWidth,
       }}
     >
       {children}
@@ -26,16 +25,16 @@ export const TabletWrapper = (p: {children: React.ReactNode}) => {
 
 export const headerDefaultStyle = {
   get backgroundColor() {
-    return Styles.isIOS ? Styles.globalColors.fastBlank : Styles.globalColors.white
+    return Kb.Styles.isIOS ? Kb.Styles.globalColors.fastBlank : Kb.Styles.globalColors.white
   },
-  borderBottomColor: Styles.globalColors.black_10,
-  borderBottomWidth: Styles.hairlineWidth,
+  borderBottomColor: Kb.Styles.globalColors.black_10,
+  borderBottomWidth: Kb.Styles.hairlineWidth,
   height: 44,
 }
 
 export const tabBarStyle = {
   get backgroundColor() {
-    return Styles.globalColors.blueDarkOrGreyDarkest
+    return Kb.Styles.globalColors.blueDarkOrGreyDarkest
   },
 }
 
@@ -87,22 +86,22 @@ export const defaultNavigationOptions: any = {
       {hp.children}
     </Kb.Text>
   ),
-  headerTitleAlign: Styles.isAndroid ? 'center' : undefined,
+  headerTitleAlign: Kb.Styles.isAndroid ? 'center' : undefined,
   headerTitleContainerStyle: {
     alignItems: 'stretch',
     flexGrow: 1,
     flexShrink: 0,
     // https://github.com/react-navigation/react-navigation/blob/main/packages/elements/src/Header/Header.tsx#L254
     // doesn't take into account custom sizes
-    maxWidth: Styles.dimensionWidth - 16 * 2 - actionWidth * 2,
+    maxWidth: Kb.Styles.dimensionWidth - 16 * 2 - actionWidth * 2,
     minHeight: 44,
     ...(DEBUGCOLORS ? {backgroundColor: 'cyan'} : {}),
   },
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   headerTitle: {
-    color: Styles.globalColors.black,
+    color: Kb.Styles.globalColors.black,
     ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
   },
 }))

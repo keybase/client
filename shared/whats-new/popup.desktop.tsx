@@ -1,5 +1,4 @@
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import WhatsNew from './container'
 import type {Props} from './popup'
 
@@ -17,14 +16,14 @@ const Popup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  container: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.rounded,
-      marginRight: Styles.globalMargins.tiny,
+      ...Kb.Styles.globalStyles.rounded,
+      marginRight: Kb.Styles.globalMargins.tiny,
     },
     isElectron: {
-      ...Styles.desktopStyles.boxShadow,
+      ...Kb.Styles.desktopStyles.boxShadow,
     },
   }),
 }))

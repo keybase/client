@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 
@@ -44,7 +43,7 @@ const DeleteConfirm = () => {
   const onCancel = () => nav.safeNavigateUp()
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteForever = () => {
-    if (Styles.isMobile && hasPassword) {
+    if (Kb.Styles.isMobile && hasPassword) {
       navigateAppend('checkPassphraseBeforeDeleteAccount')
     } else {
       deleteAccountForever()
@@ -79,10 +78,10 @@ const DeleteConfirm = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  checkbox: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  checkbox: Kb.Styles.platformStyles({
     isMobile: {
-      padding: Styles.globalMargins.mediumLarge,
+      padding: Kb.Styles.globalMargins.mediumLarge,
     },
   }),
 }))

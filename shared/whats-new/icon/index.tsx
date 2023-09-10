@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import type {IconStyle} from '../../common-adapters/icon'
 import {keybaseFM} from '../../constants/whats-new'
 import Popup from '../popup'
@@ -30,12 +29,12 @@ const Icon = (props: Props) => {
   const badgeSizeInner = badgeSize - 4
 
   return props.newRelease ? (
-    Styles.isMobile ? (
+    Kb.Styles.isMobile ? (
       <Kb.Icon
         type="iconfont-nav-2-fm"
         onClick={props.onClick}
-        color={Styles.globalColors.blue}
-        style={Styles.collapseStyles([{marginRight: Styles.globalMargins.small}, props.style])}
+        color={Kb.Styles.globalColors.blue}
+        style={Kb.Styles.collapseStyles([{marginRight: Kb.Styles.globalMargins.small}, props.style])}
       />
     ) : (
       <>
@@ -50,11 +49,11 @@ const Icon = (props: Props) => {
           border={true}
           leftRightPadding={0}
           height={badgeSize}
-          containerStyle={Styles.collapseStyles([
+          containerStyle={Kb.Styles.collapseStyles([
             styles.badgeContainerStyle,
             props.badgeColor ? styles.badgePositioningAlt : styles.badgePositioning,
           ])}
-          badgeStyle={Styles.collapseStyles([
+          badgeStyle={Kb.Styles.collapseStyles([
             styles.badgeStyles,
             props.badgeColor
               ? {
@@ -71,12 +70,12 @@ const Icon = (props: Props) => {
         />
       </>
     )
-  ) : Styles.isMobile ? (
+  ) : Kb.Styles.isMobile ? (
     <Kb.Icon
       fontSize={24}
       type="iconfont-nav-2-fm"
-      color={Styles.globalColors.black_50}
-      style={Styles.collapseStyles([{marginRight: Styles.globalMargins.small}, props.style])}
+      color={Kb.Styles.globalColors.black_50}
+      style={Kb.Styles.collapseStyles([{marginRight: Kb.Styles.globalMargins.small}, props.style])}
     />
   ) : (
     // className will be hover_contained_color_$color so that should override the non-hover color set by the `color` prop.
@@ -87,9 +86,9 @@ const Icon = (props: Props) => {
 export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps) {
   const {badgeColor, color, newRelease, attachToRef} = props
   const [popupVisible, setPopupVisible] = React.useState(false)
-  const baseColor = Styles.globalColors.black_50
+  const baseColor = Kb.Styles.globalColors.black_50
   const iconColor = color ? color : baseColor
-  const popupVisibleColor = color || Styles.globalColors.black
+  const popupVisibleColor = color || Kb.Styles.globalColors.black
   const onClick = React.useCallback(() => {
     popupVisible ? setPopupVisible(false) : !!attachToRef && setPopupVisible(true)
   }, [popupVisible, setPopupVisible, attachToRef])
@@ -99,7 +98,7 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
         <Kb.WithTooltip disabled={popupVisible} tooltip={keybaseFM} position="bottom center">
           <Kb.Box
             style={styles.iconContainer}
-            className={Styles.classNames(
+            className={Kb.Styles.classNames(
               popupVisible
                 ? ['background_color_black_10']
                 : ['hover_container', 'hover_background_color_black_10']
@@ -109,7 +108,7 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
             <Icon
               badgeColor={badgeColor}
               color={popupVisible ? popupVisibleColor : iconColor}
-              className={Styles.classNames(
+              className={Kb.Styles.classNames(
                 color ? `hover_contained_color_${color}` : 'hover_contained_color_black'
               )}
               newRelease={newRelease}
@@ -117,7 +116,7 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
           </Kb.Box>
         </Kb.WithTooltip>
       </Kb.Box>
-      {!Styles.isMobile && popupVisible && (
+      {!Kb.Styles.isMobile && popupVisible && (
         <Popup
           attachTo={() => attachToRef.current}
           position="bottom right"
@@ -131,7 +130,7 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
   )
 })
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   badgeContainerStyle: {
     position: 'absolute',
   },
@@ -144,30 +143,30 @@ const styles = Styles.styleSheetCreate(() => ({
     top: 3,
   },
   badgeStyles: {
-    backgroundColor: Styles.globalColors.blue,
+    backgroundColor: Kb.Styles.globalColors.blue,
   },
-  iconContainer: Styles.platformStyles({
+  iconContainer: Kb.Styles.platformStyles({
     common: {
       // Needed to position blue badge
       position: 'relative',
     },
     isElectron: {
-      ...Styles.desktopStyles.clickable,
-      ...Styles.desktopStyles.windowDraggingClickable,
-      ...Styles.globalStyles.flexBoxColumn,
+      ...Kb.Styles.desktopStyles.clickable,
+      ...Kb.Styles.desktopStyles.windowDraggingClickable,
+      ...Kb.Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
-      borderRadius: Styles.borderRadius,
-      padding: Styles.globalMargins.xtiny,
+      borderRadius: Kb.Styles.borderRadius,
+      padding: Kb.Styles.globalMargins.xtiny,
     },
   }),
   // This exists so WithTooltip won't appear before the hover background is
   // shown since WithTooltip triggers on the total size including margins and
   // the hover background triggers on padding
   iconContainerMargins: {
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.xtiny,
+    marginLeft: Kb.Styles.globalMargins.xtiny,
+    marginRight: Kb.Styles.globalMargins.xtiny,
   },
-  rainbowColor: Styles.platformStyles({
+  rainbowColor: Kb.Styles.platformStyles({
     isElectron: {
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',

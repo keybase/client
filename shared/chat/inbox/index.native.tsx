@@ -3,7 +3,6 @@ import * as Constants from '../../constants/chat2'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as RowSizes from './row/sizes'
-import * as Styles from '../../styles'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
 import ChatInboxHeader from './header/container'
@@ -311,7 +310,7 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
               overScrollMode="never"
               overrideItemLayout={this.overrideItemLayout}
               ref={this.listRef}
-              removeClippedSubviews={true /*Styles.isAndroid*/}
+              removeClippedSubviews={true /*Kb.Styles.isAndroid*/}
               renderItem={this.renderItem}
               windowSize={5 /* 21*/}
               getItemLayout={this.getItemLayout}
@@ -344,7 +343,7 @@ const LoadingLine = () => {
   ) : null
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       button: {width: '100%'},
@@ -353,16 +352,16 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-end',
         justifyContent: 'flex-end',
       },
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
-          backgroundColor: Styles.globalColors.fastBlank,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
+          backgroundColor: Kb.Styles.globalColors.fastBlank,
           flexGrow: 1,
           position: 'relative',
         },
         isTablet: {
-          backgroundColor: Styles.globalColors.blueGrey,
-          maxWidth: Styles.globalStyles.mediumSubNavWidth,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          maxWidth: Kb.Styles.globalStyles.mediumSubNavWidth,
         },
       }),
       loadingContainer: {
@@ -373,18 +372,18 @@ const styles = Styles.styleSheetCreate(
         zIndex: 1000,
       },
       newChat: {
-        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
-        backgroundColor: Styles.globalColors.fastBlank,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
+        backgroundColor: Kb.Styles.globalColors.fastBlank,
         flexShrink: 0,
         width: '100%',
       },
       noChatsContainer: {
         alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingBottom: Styles.globalMargins.large,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.large,
+        paddingBottom: Kb.Styles.globalMargins.large,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.large,
       },
     }) as const
 )

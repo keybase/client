@@ -3,7 +3,6 @@ import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import * as T from '../../../constants/types'
 import {ModalTitle} from '../../common'
 import {pluralize} from '../../../util/string'
@@ -79,7 +78,7 @@ const AddSubteamMembers = () => {
       mode="DefaultFullHeight"
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        rightButton: Styles.isMobile ? (
+        rightButton: Kb.Styles.isMobile ? (
           <Kb.Box2 direction="horizontal" style={styles.noWrap}>
             <Kb.Text type="BodyBigLink" onClick={onContinue}>
               {doneLabel}
@@ -89,7 +88,7 @@ const AddSubteamMembers = () => {
         title: <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Add members" />,
       }}
       footer={
-        Styles.isMobile
+        Kb.Styles.isMobile
           ? undefined
           : {
               content: <Kb.Button label={continueLabel} onClick={onContinue} fullWidth={true} />,
@@ -129,15 +128,15 @@ const AddSubteamMembers = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   flexShrink: {flexShrink: 1},
   header: {
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.blueGrey,
-    height: Styles.globalMargins.mediumLarge,
+    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    height: Kb.Styles.globalMargins.mediumLarge,
     justifyContent: 'space-between',
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.small,
+    paddingLeft: Kb.Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.small,
   },
   hideOverflow: {overflow: 'hidden'},
   noWrap: {
@@ -147,7 +146,7 @@ const styles = Styles.styleSheetCreate(() => ({
   search: {
     borderRadius: 4,
   },
-  searchContainer: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+  searchContainer: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
 }))
 
 export default AddSubteamMembers

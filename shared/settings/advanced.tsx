@@ -4,7 +4,6 @@ import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as T from '../constants/types'
 import * as React from 'react'
-import * as Styles from '../styles'
 import {ProxySettings} from './proxy/container'
 import {toggleRenderDebug} from '../router-v2/shim.shared'
 
@@ -46,7 +45,7 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
       disabled={disabled}
       onCheck={onChangeLockdownMode}
       labelComponent={
-        <Kb.Box2 direction="vertical" alignItems="flex-start" style={Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="vertical" alignItems="flex-start" style={Kb.Styles.globalStyles.flexOne}>
           <Kb.Text type="Body">{label}</Kb.Text>
           <Kb.Text type="BodySmall">Prevent making account changes from the website.</Kb.Text>
           <Kb.Text type="BodySmall">
@@ -59,7 +58,7 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
               type="iconfont-open-browser"
               sizeType="Tiny"
               boxStyle={styles.displayInline}
-              color={Styles.globalColors.blueDark}
+              color={Kb.Styles.globalColors.blueDark}
             />
           </Kb.Text>
         </Kb.Box2>
@@ -142,7 +141,7 @@ const Advanced = () => {
             <Kb.Checkbox
               checked={rememberPassword}
               labelComponent={
-                <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+                <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
                   <Kb.Text type="Body">Always stay logged in</Kb.Text>
                   <Kb.Text type="BodySmall">
                     You won't be asked for your password when restarting the app or your device.
@@ -172,7 +171,7 @@ const Advanced = () => {
         <Kb.Box2
           direction="vertical"
           fullWidth={true}
-          style={Styles.collapseStyles([styles.section, {paddingTop: 0}])}
+          style={Kb.Styles.collapseStyles([styles.section, {paddingTop: 0}])}
         >
           <ProxySettings />
         </Kb.Box2>
@@ -244,14 +243,14 @@ const Developer = () => {
 
           <Kb.Button
             waiting={traceInProgress}
-            style={{marginTop: Styles.globalMargins.small}}
+            style={{marginTop: Kb.Styles.globalMargins.small}}
             type="Danger"
             label={`Trace (${traceDurationSeconds}s)`}
             onClick={() => onTrace(traceDurationSeconds)}
           />
           <Kb.Button
             waiting={processorProfileInProgress}
-            style={{marginTop: Styles.globalMargins.small}}
+            style={{marginTop: Kb.Styles.globalMargins.small}}
             type="Danger"
             label={`CPU Profile (${traceDurationSeconds}s)`}
             onClick={() => onProcessorProfile(processorProfileDurationSeconds)}
@@ -266,62 +265,62 @@ const Developer = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   checkboxContainer: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
+    paddingBottom: Kb.Styles.globalMargins.tiny,
+    paddingTop: Kb.Styles.globalMargins.tiny,
     width: '100%',
   },
   developerButtons: {
-    marginTop: Styles.globalMargins.small,
+    marginTop: Kb.Styles.globalMargins.small,
   },
   developerContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     flex: 1,
-    paddingBottom: Styles.globalMargins.medium,
+    paddingBottom: Kb.Styles.globalMargins.medium,
   },
-  displayInline: Styles.platformStyles({isElectron: {display: 'inline'}}),
+  displayInline: Kb.Styles.platformStyles({isElectron: {display: 'inline'}}),
   divider: {
-    marginTop: Styles.globalMargins.xsmall,
+    marginTop: Kb.Styles.globalMargins.xsmall,
     width: '100%',
   },
   error: {
-    color: Styles.globalColors.redDark,
+    color: Kb.Styles.globalColors.redDark,
   },
   filler: {
     flex: 1,
   },
   progressContainer: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 32,
   },
   proxyDivider: {
-    marginBottom: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.small,
+    marginBottom: Kb.Styles.globalMargins.small,
+    marginTop: Kb.Styles.globalMargins.small,
     width: '100%',
   },
   scrollview: {
     width: '100%',
   },
-  section: Styles.platformStyles({
+  section: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(
-        Styles.globalMargins.small,
-        Styles.globalMargins.mediumLarge,
-        Styles.globalMargins.medium,
-        Styles.globalMargins.small
+      ...Kb.Styles.padding(
+        Kb.Styles.globalMargins.small,
+        Kb.Styles.globalMargins.mediumLarge,
+        Kb.Styles.globalMargins.medium,
+        Kb.Styles.globalMargins.small
       ),
     },
     isElectron: {
       maxWidth: 600,
     },
   }),
-  text: Styles.platformStyles({
+  text: Kb.Styles.platformStyles({
     isElectron: {
       cursor: 'default',
     },

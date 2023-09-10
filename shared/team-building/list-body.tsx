@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Shared from './shared'
-import * as Styles from '../styles'
 import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
 import throttle from 'lodash/throttle'
@@ -21,17 +20,17 @@ const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) 
   return (
     <Kb.Box2
       alignSelf="center"
-      centerChildren={!Styles.isMobile}
+      centerChildren={!Kb.Styles.isMobile}
       direction="vertical"
       fullWidth={true}
       gap="tiny"
       style={styles.emptyContainer}
     >
-      {!Styles.isMobile && (
+      {!Kb.Styles.isMobile && (
         <Kb.Icon
           fontSize={48}
           type={Shared.serviceIdToIconFont(selectedService)}
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             !!selectedService && {color: Shared.serviceIdToAccentColor(selectedService)},
           ])}
         />
@@ -376,7 +375,7 @@ export const ListBody = (
               isPreExistingTeamMember={result.isPreExistingTeamMember}
               isYou={result.isYou}
               followingState={result.followingState}
-              highlight={!Styles.isMobile && index === highlightedIndex}
+              highlight={!Kb.Styles.isMobile && index === highlightedIndex}
               userId={result.userId}
               onAdd={onAdd}
               onRemove={onRemove}
@@ -392,10 +391,10 @@ export const ListBody = (
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      emptyContainer: Styles.platformStyles({
+      emptyContainer: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: {
           maxWidth: 290,
@@ -403,19 +402,19 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {maxWidth: '80%'},
       }),
-      emptyServiceText: Styles.platformStyles({
+      emptyServiceText: Kb.Styles.platformStyles({
         isMobile: {
-          paddingBottom: Styles.globalMargins.small,
-          paddingTop: Styles.globalMargins.small,
+          paddingBottom: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.small,
         },
       }),
-      list: Styles.platformStyles({
-        common: {paddingBottom: Styles.globalMargins.small},
+      list: Kb.Styles.platformStyles({
+        common: {paddingBottom: Kb.Styles.globalMargins.small},
       }),
-      listContentContainer: Styles.platformStyles({
-        isMobile: {paddingTop: Styles.globalMargins.xtiny},
+      listContentContainer: Kb.Styles.platformStyles({
+        isMobile: {paddingTop: Kb.Styles.globalMargins.xtiny},
       }),
-      loadingAnimation: Styles.platformStyles({
+      loadingAnimation: Kb.Styles.platformStyles({
         isElectron: {
           height: 32,
           width: 32,
@@ -432,7 +431,7 @@ const styles = Styles.styleSheetCreate(
       noResults: {
         flex: 1,
         textAlign: 'center',
-        ...Styles.padding(Styles.globalMargins.small),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       },
     }) as const
 )

@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
-import * as Styles from '../../styles'
 import {memoize} from '../../util/memoize'
 import * as Container from '../../util/container'
 
@@ -103,7 +102,7 @@ const Breadcrumb = (props: Props) => {
 const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
   Constants.hasPublicTag(path) ? (
     <Kb.Box2 direction="horizontal">
-      <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} />
+      <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} />
     </Kb.Box2>
   ) : null
 
@@ -128,35 +127,35 @@ const FsNavHeaderTitle = (props: Props) =>
   )
 export default FsNavHeaderTitle
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
-          marginTop: -Styles.globalMargins.tiny,
-          paddingLeft: Styles.globalMargins.xsmall,
+          marginTop: -Kb.Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.xsmall,
         },
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
       }),
       dropdown: {
-        marginLeft: -Styles.globalMargins.tiny, // the icon has padding, so offset it to align with the name below
+        marginLeft: -Kb.Styles.globalMargins.tiny, // the icon has padding, so offset it to align with the name below
       },
-      floating: Styles.platformStyles({
+      floating: Kb.Styles.platformStyles({
         isElectron: {
           width: 196,
         },
       }),
       icon: {
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
       },
-      mainTitleText: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
+      mainTitleText: Kb.Styles.platformStyles({isElectron: Kb.Styles.desktopStyles.windowDraggingClickable}),
       rootTitle: {
         alignSelf: 'center',
-        marginLeft: Styles.globalMargins.xsmall,
+        marginLeft: Kb.Styles.globalMargins.xsmall,
       },
       slash: {
-        paddingLeft: Styles.globalMargins.xxtiny,
-        paddingRight: Styles.globalMargins.xxtiny,
+        paddingLeft: Kb.Styles.globalMargins.xxtiny,
+        paddingRight: Kb.Styles.globalMargins.xxtiny,
       },
     }) as const
 )

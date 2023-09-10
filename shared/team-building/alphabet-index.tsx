@@ -1,7 +1,6 @@
 import * as React from 'react'
 import type {NativeSyntheticEvent, NativeTouchEvent} from 'react-native'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 
 const stubTrue = () => true
 const initMeasureRef = {height: -1, pageY: -1}
@@ -14,7 +13,7 @@ type Props = {
   showNumSection: boolean
   measureKey?: any // change this when the position of AlphabetIndex on the screen changes
   onScroll: (label: string) => void
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 const AlphabetIndex = (props: Props) => {
@@ -25,7 +24,7 @@ const AlphabetIndex = (props: Props) => {
   // This timeout is long because our ref is set before the screen transition
   // finishes. Transition must be finished so we get accurate coords.
   const storeMeasure = Kb.useTimeout(() => {
-    if (topSectionRef.current && Styles.isMobile) {
+    if (topSectionRef.current && Kb.Styles.isMobile) {
       // @ts-ignore measure exists on mobile
       topSectionRef.current.measure(
         (_1: unknown, _2: unknown, _3: unknown, height: number, _4: unknown, pageY: number) => {
@@ -64,7 +63,7 @@ const AlphabetIndex = (props: Props) => {
 
   return (
     <Kb.Box
-      style={Styles.collapseStyles([styles.container, props.style])}
+      style={Kb.Styles.collapseStyles([styles.container, props.style])}
       onStartShouldSetResponder={stubTrue}
       onMoveShouldSetResponder={stubTrue}
       onResponderGrant={handleTouch}
@@ -92,14 +91,14 @@ const AlphabetIndex = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     justifyContent: 'center',
   },
   gap: {
-    ...Styles.padding(2, 6, 2, 2),
+    ...Kb.Styles.padding(2, 6, 2, 2),
     flexShrink: 1,
   },
 }))

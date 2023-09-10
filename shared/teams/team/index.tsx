@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as T from '../../constants/types'
 import {useFocusEffect} from '@react-navigation/core'
 import {memoize} from '../../util/memoize'
@@ -169,11 +168,11 @@ const Team = (props: Props) => {
   )
 
   return (
-    <Styles.CanFixOverdrawContext.Provider value={false}>
+    <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
       <Kb.Box style={styles.container}>
         <SectionList
           renderSectionHeader={renderSectionHeader}
-          stickySectionHeadersEnabled={Styles.isMobile}
+          stickySectionHeadersEnabled={Kb.Styles.isMobile}
           sections={sections}
           contentContainerStyle={styles.listContentContainer}
           style={styles.list}
@@ -185,11 +184,11 @@ const Team = (props: Props) => {
           teamID={teamID}
         />
       </Kb.Box>
-    </Styles.CanFixOverdrawContext.Provider>
+    </Kb.Styles.CanFixOverdrawContext.Provider>
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   backButton: {
     bottom: 0,
     left: 0,
@@ -197,36 +196,36 @@ const styles = Styles.styleSheetCreate(() => ({
     top: 0,
   },
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
-    backgroundColor: Styles.globalColors.blueGrey,
+    backgroundColor: Kb.Styles.globalColors.blueGrey,
     flex: 1,
     height: '100%',
     position: 'relative',
     width: '100%',
   },
   header: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
     height: 40,
     left: 0,
     position: 'absolute',
     right: 0,
     top: 0,
   },
-  list: Styles.platformStyles({
+  list: Kb.Styles.platformStyles({
     isElectron: {
-      ...Styles.globalStyles.fillAbsolute,
-      ...Styles.globalStyles.flexBoxColumn,
+      ...Kb.Styles.globalStyles.fillAbsolute,
+      ...Kb.Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
     },
   }),
-  listContentContainer: Styles.platformStyles({
+  listContentContainer: Kb.Styles.platformStyles({
     isMobile: {
       display: 'flex',
       flexGrow: 1,
     },
   }),
-  smallHeader: {...Styles.padding(0, Styles.globalMargins.xlarge)},
+  smallHeader: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.xlarge)},
 }))
 
 export default Team

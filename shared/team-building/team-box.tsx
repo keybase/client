@@ -1,7 +1,6 @@
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import GoButton from './go-button'
 import UserBubble from './user-bubble'
 import type * as T from '../constants/types'
@@ -75,7 +74,7 @@ const TeamBox = (props: Props) => {
     </Kb.Text>
   )
 
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
         <Kb.ScrollView
@@ -118,49 +117,49 @@ const TeamBox = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       addMorePrompt: {alignSelf: 'center', marginLeft: 28, maxWidth: 145},
-      bubbles: Styles.platformStyles({
+      bubbles: Kb.Styles.platformStyles({
         isElectron: {
           overflow: 'hidden',
         },
       }),
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueGrey,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
         },
         isElectron: {
-          paddingLeft: Styles.globalMargins.xtiny,
-          paddingRight: Styles.globalMargins.xsmall,
+          paddingLeft: Kb.Styles.globalMargins.xtiny,
+          paddingRight: Kb.Styles.globalMargins.xsmall,
         },
         isMobile: {
-          borderBottomColor: Styles.globalColors.black_10,
+          borderBottomColor: Kb.Styles.globalColors.black_10,
           borderBottomWidth: 1,
           borderStyle: 'solid',
           minHeight: 90,
         },
       }),
-      scrollContent: Styles.platformStyles({
+      scrollContent: Kb.Styles.platformStyles({
         isElectron: {
-          paddingBottom: Styles.globalMargins.xsmall,
-          paddingTop: Styles.globalMargins.xsmall,
+          paddingBottom: Kb.Styles.globalMargins.xsmall,
+          paddingTop: Kb.Styles.globalMargins.xsmall,
         },
         isMobile: {
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
       }),
-      search: Styles.platformStyles({
+      search: Kb.Styles.platformStyles({
         common: {
           flex: 1,
           flexWrap: 'wrap',
         },
         isElectron: {
-          ...Styles.globalStyles.rounded,
-          backgroundColor: Styles.globalColors.white,
-          borderColor: Styles.globalColors.black_20,
+          ...Kb.Styles.globalStyles.rounded,
+          backgroundColor: Kb.Styles.globalColors.white,
+          borderColor: Kb.Styles.globalColors.black_20,
           borderStyle: 'solid',
           borderWidth: 1,
           maxHeight: 170,
@@ -168,7 +167,7 @@ const styles = Styles.styleSheetCreate(
           overflowY: 'scroll',
         },
         isMobile: {
-          borderBottomColor: Styles.globalColors.black_10,
+          borderBottomColor: Kb.Styles.globalColors.black_10,
           borderBottomWidth: 1,
           borderStyle: 'solid',
           minHeight: 48,

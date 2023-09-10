@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Shared from './shim.shared'
-import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 import {EscapeHandler} from '../util/key-event-handler.desktop'
 import {useFocusEffect} from '@react-navigation/native'
@@ -56,7 +55,7 @@ const ModalWrapper = ({navigationOptions, navigation, children}: any) => {
 
   const [backgroundRef, onMouseUp, onMouseDown] = useMouseClick(navigation, modal2NoClose)
 
-  const modalModeToStyle = new Map<ModalType, Styles.StylesCrossPlatform>([
+  const modalModeToStyle = new Map<ModalType, Kb.Styles.StylesCrossPlatform>([
     ['Default', styles.modalModeDefault],
     ['DefaultFullHeight', styles.modalModeDefaultFullHeight],
     ['DefaultFullWidth', styles.modalModeDefaultFullWidth],
@@ -82,7 +81,7 @@ const ModalWrapper = ({navigationOptions, navigation, children}: any) => {
           key="background"
           direction="horizontal"
           ref={backgroundRef}
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             styles.modal2Container,
             modal2ClearCover && styles.modal2ClearCover,
             !topMostModal && styles.hidden,
@@ -93,15 +92,15 @@ const ModalWrapper = ({navigationOptions, navigation, children}: any) => {
           {modal2AvoidTabs && (
             <Kb.Box2 direction="vertical" className="tab-container" style={styles.modal2AvoidTabs} />
           )}
-          <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.modal2Style, modal2Style])}>
+          <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.modal2Style, modal2Style])}>
             <Kb.Box2 direction="vertical" style={modalModeToStyle.get(modal2Type ?? 'Default')}>
               {children}
               {!modal2ClearCover && !modal2NoClose && (
                 <Kb.Icon
                   type="iconfont-close"
                   onClick={() => navigation.pop()}
-                  color={Styles.globalColors.whiteOrWhite_75}
-                  hoverColor={Styles.globalColors.white_40OrWhite_40}
+                  color={Kb.Styles.globalColors.whiteOrWhite_75}
+                  hoverColor={Kb.Styles.globalColors.white_40OrWhite_40}
                   style={styles.modal2CloseIcon}
                 />
               )}
@@ -115,7 +114,7 @@ const ModalWrapper = ({navigationOptions, navigation, children}: any) => {
       <Kb.Box2
         key="background"
         direction="vertical"
-        style={Styles.collapseStyles([styles.modalContainer, !topMostModal && styles.hidden])}
+        style={Kb.Styles.collapseStyles([styles.modalContainer, !topMostModal && styles.hidden])}
       >
         {children}
       </Kb.Box2>
@@ -123,12 +122,12 @@ const ModalWrapper = ({navigationOptions, navigation, children}: any) => {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => {
-  const modalModeCommon = Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => {
+  const modalModeCommon = Kb.Styles.platformStyles({
     isElectron: {
-      ...Styles.desktopStyles.boxShadow,
-      backgroundColor: Styles.globalColors.white,
-      borderRadius: Styles.borderRadius,
+      ...Kb.Styles.desktopStyles.boxShadow,
+      backgroundColor: Kb.Styles.globalColors.white,
+      borderRadius: Kb.Styles.borderRadius,
       pointerEvents: 'auto',
       position: 'relative',
     },
@@ -138,7 +137,7 @@ const styles = Styles.styleSheetCreate(() => {
       flexGrow: 1,
       position: 'relative',
     },
-    contentAreaLogin: Styles.platformStyles({
+    contentAreaLogin: Kb.Styles.platformStyles({
       isElectron: {
         flexGrow: 1,
         position: 'relative',
@@ -151,7 +150,7 @@ const styles = Styles.styleSheetCreate(() => {
     hidden: {
       display: 'none',
     },
-    modal2AvoidTabs: Styles.platformStyles({
+    modal2AvoidTabs: Kb.Styles.platformStyles({
       isElectron: {
         backgroundColor: undefined,
         height: 0,
@@ -159,54 +158,54 @@ const styles = Styles.styleSheetCreate(() => {
       },
     }),
     modal2ClearCover: {backgroundColor: undefined},
-    modal2CloseIcon: Styles.platformStyles({
+    modal2CloseIcon: Kb.Styles.platformStyles({
       isElectron: {
         cursor: 'pointer',
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
         position: 'absolute',
-        right: Styles.globalMargins.tiny * -4,
+        right: Kb.Styles.globalMargins.tiny * -4,
         top: 0,
       },
     }),
     modal2Container: {
-      ...Styles.globalStyles.fillAbsolute,
-      backgroundColor: Styles.globalColors.black_50OrBlack_60,
+      ...Kb.Styles.globalStyles.fillAbsolute,
+      backgroundColor: Kb.Styles.globalColors.black_50OrBlack_60,
     },
-    modal2Style: Styles.platformStyles({
+    modal2Style: Kb.Styles.platformStyles({
       isElectron: {flexGrow: 1, pointerEvents: 'none'},
     }),
     modalContainer: {
-      ...Styles.globalStyles.fillAbsolute,
+      ...Kb.Styles.globalStyles.fillAbsolute,
     },
-    modalModeDefault: Styles.platformStyles({
+    modalModeDefault: Kb.Styles.platformStyles({
       common: {...modalModeCommon},
       isElectron: {
         maxHeight: 560,
         width: 400,
       },
     }),
-    modalModeDefaultFullHeight: Styles.platformStyles({
+    modalModeDefaultFullHeight: Kb.Styles.platformStyles({
       common: {...modalModeCommon},
       isElectron: {
         height: 560,
         width: 400,
       },
     }),
-    modalModeDefaultFullWidth: Styles.platformStyles({
+    modalModeDefaultFullWidth: Kb.Styles.platformStyles({
       common: {...modalModeCommon},
       isElectron: {
         height: 560,
         width: '100%',
       },
     }),
-    modalModeSuperWide: Styles.platformStyles({
+    modalModeSuperWide: Kb.Styles.platformStyles({
       common: {...modalModeCommon},
       isElectron: {
         height: Math.floor(document.body.scrollHeight * 0.8), // super hacky, want to minimally change how this thing works
         width: '80%',
       },
     }),
-    modalModeWide: Styles.platformStyles({
+    modalModeWide: Kb.Styles.platformStyles({
       common: {...modalModeCommon},
       isElectron: {
         height: 400,
@@ -214,7 +213,7 @@ const styles = Styles.styleSheetCreate(() => {
       },
     }),
     sceneContainer: {flexDirection: 'column'},
-    transparentSceneUnderHeader: {...Styles.globalStyles.fillAbsolute},
+    transparentSceneUnderHeader: {...Kb.Styles.globalStyles.fillAbsolute},
   } as const
 })
 

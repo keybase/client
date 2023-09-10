@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import {SettingsSection} from './account'
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'
@@ -85,7 +84,7 @@ const ManageContactsBanner = () => {
           <Kb.BannerParagraph bannerColor="green" content={[{onClick: onStartChat, text: 'Start a chat'}]} />
         </Kb.Banner>
       )}
-      {(status === 'denied' || (Styles.isAndroid && status !== 'granted' && contactsImported)) && (
+      {(status === 'denied' || (Kb.Styles.isAndroid && status !== 'granted' && contactsImported)) && (
         <Kb.Banner color="red">
           <Kb.BannerParagraph
             bannerColor="red"
@@ -112,11 +111,11 @@ const ManageContactsBanner = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       buttonBar: {
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
         minHeight: undefined,
         width: undefined,
       },

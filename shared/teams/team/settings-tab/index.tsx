@@ -6,7 +6,6 @@ import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
 import {pluralize} from '../../../util/string'
 import RetentionPicker from './retention/container'
-import * as Styles from '../../../styles'
 import DefaultChannels from './default-channels'
 
 type Props = {
@@ -316,7 +315,7 @@ export class Settings extends React.Component<Props, State> {
           )}
           {this.props.yourOperations.chat && (
             <RetentionPicker
-              containerStyle={{marginTop: Styles.globalMargins.small}}
+              containerStyle={{marginTop: Kb.Styles.globalMargins.small}}
               showSaveIndicator={false}
               teamID={this.props.teamID}
               entityType={this.props.isBigTeam ? 'big team' : 'small team'}
@@ -335,56 +334,56 @@ export class Settings extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   button: {
     justifyContent: 'center',
-    paddingBottom: C.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.small,
-    paddingTop: C.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.small,
+    paddingBottom: C.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.small,
+    paddingTop: C.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.small,
   },
-  floatingRolePicker: Styles.platformStyles({
+  floatingRolePicker: Kb.Styles.platformStyles({
     isElectron: {
       position: 'relative',
       top: -20,
     },
   }),
-  grey: {color: Styles.globalColors.black_50},
+  grey: {color: Kb.Styles.globalColors.black_50},
   header: {
-    ...Styles.globalStyles.flexBoxRow,
-    marginBottom: Styles.globalMargins.tiny,
+    ...Kb.Styles.globalStyles.flexBoxRow,
+    marginBottom: Kb.Styles.globalMargins.tiny,
   },
-  joinAs: Styles.platformStyles({
-    isElectron: {paddingRight: Styles.globalMargins.xtiny},
+  joinAs: Kb.Styles.platformStyles({
+    isElectron: {paddingRight: Kb.Styles.globalMargins.xtiny},
   }),
   main: {
     alignSelf: 'flex-start',
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
     flexBasis: 0,
     flexGrow: 1,
     justifyContent: 'flex-start',
     maxWidth: 600,
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
-  memberShowcase: {alignItems: 'flex-start', paddingRight: Styles.globalMargins.small},
+  memberShowcase: {alignItems: 'flex-start', paddingRight: Kb.Styles.globalMargins.small},
   openDropdown: {width: 70},
   openTeam: {
     flexShrink: 1,
-    paddingRight: Styles.globalMargins.small,
+    paddingRight: Kb.Styles.globalMargins.small,
   },
-  outerBox: {backgroundColor: Styles.globalColors.white},
-  paddingRight: {paddingRight: Styles.globalMargins.xtiny},
+  outerBox: {backgroundColor: Kb.Styles.globalColors.white},
+  paddingRight: {paddingRight: Kb.Styles.globalMargins.xtiny},
   publicitySettings: {
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
+    paddingRight: Kb.Styles.globalMargins.small,
+    paddingTop: Kb.Styles.globalMargins.small,
   },
   shrink: {flex: 1},
-  spinner: {paddingLeft: Styles.globalMargins.xtiny},
-  teamPadding: {paddingTop: Styles.globalMargins.small},
-  welcomeMessage: {paddingRight: Styles.globalMargins.small},
+  spinner: {paddingLeft: Kb.Styles.globalMargins.xtiny},
+  teamPadding: {paddingTop: Kb.Styles.globalMargins.small},
+  welcomeMessage: {paddingRight: Kb.Styles.globalMargins.small},
   welcomeMessageBorder: {
     alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.grey,
-    paddingLeft: Styles.globalMargins.xtiny,
+    backgroundColor: Kb.Styles.globalColors.grey,
+    paddingLeft: Kb.Styles.globalMargins.xtiny,
   },
-  welcomeMessageCard: {paddingBottom: Styles.globalMargins.tiny},
+  welcomeMessageCard: {paddingBottom: Kb.Styles.globalMargins.tiny},
   welcomeMessageContainer: {position: 'relative'},
 }))

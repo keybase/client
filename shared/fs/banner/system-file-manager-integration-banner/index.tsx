@@ -3,7 +3,6 @@ import * as Constants from '../../../constants/fs'
 import * as React from 'react'
 import * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import * as Kbfs from '../../common'
 
 type Props = {
@@ -58,15 +57,15 @@ const backgroundToTextStyle = (background: Background) => {
 const backgroundToBackgroundColor = (background: Background) => {
   switch (background) {
     case Background.Blue:
-      return Styles.globalColors.blue
+      return Kb.Styles.globalColors.blue
     case Background.Green:
-      return Styles.globalColors.green
+      return Kb.Styles.globalColors.green
     case Background.Yellow:
-      return Styles.globalColors.yellow
+      return Kb.Styles.globalColors.yellow
     case Background.Black:
-      return Styles.globalColors.black
+      return Kb.Styles.globalColors.black
     default:
-      return Styles.globalColors.black
+      return Kb.Styles.globalColors.black
   }
 }
 
@@ -87,7 +86,7 @@ const Banner = (props: BannerProps) => (
           {props.title}
         </Kb.Text>
         {props.body && (
-          <Kb.Box style={Styles.globalStyles.flexGrow}>
+          <Kb.Box style={Kb.Styles.globalStyles.flexGrow}>
             <Kb.Text type="Body" style={backgroundToTextStyle(props.background)}>
               {props.body}
             </Kb.Text>
@@ -118,13 +117,13 @@ const Banner = (props: BannerProps) => (
         </Kb.Box2>
       )}
     </Kb.Box2>
-    <Kb.Box style={Styles.globalStyles.flexGrow} />
+    <Kb.Box style={Kb.Styles.globalStyles.flexGrow} />
     {!!props.onDismiss && (
       <Kb.Box2 direction="vertical" alignSelf="flex-start">
         <Kb.Icon
           type="iconfont-close"
           onClick={props.onDismiss}
-          color={Styles.globalColors.white_40}
+          color={Kb.Styles.globalColors.white_40}
           fontSize={16}
           style={styles.dismissIcon}
         />
@@ -222,7 +221,7 @@ const Enabled = (props: Props) => {
 const Disabled = (props: Props) => {
   const {canContinue, component} = Kbfs.useFuseClosedSourceConsent(
     props.driverStatus.type === T.FS.DriverStatusType.Disabled && props.driverStatus.isEnabling,
-    Styles.globalColors.blue,
+    Kb.Styles.globalColors.blue,
     backgroundToTextStyle(Background.Blue)
   )
   if (props.driverStatus.type !== T.FS.DriverStatusType.Disabled) {
@@ -270,31 +269,31 @@ const SFMIBanner = (props: Props) => {
 }
 export default SFMIBanner
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       bodyContainer: {
         justifyContent: 'center',
-        maxWidth: Styles.globalMargins.large * 14 + Styles.globalMargins.mediumLarge * 2,
-        padding: Styles.globalMargins.mediumLarge,
+        maxWidth: Kb.Styles.globalMargins.large * 14 + Kb.Styles.globalMargins.mediumLarge * 2,
+        padding: Kb.Styles.globalMargins.mediumLarge,
       },
-      dismissIcon: Styles.platformStyles({
+      dismissIcon: Kb.Styles.platformStyles({
         isElectron: {
           display: 'block',
-          padding: Styles.globalMargins.tiny,
+          padding: Kb.Styles.globalMargins.tiny,
         },
       }),
       fancyIcon: {
-        marginBottom: Styles.globalMargins.medium,
-        marginTop: Styles.globalMargins.medium,
-        paddingLeft: Styles.globalMargins.large + Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.medium,
+        marginTop: Kb.Styles.globalMargins.medium,
+        paddingLeft: Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
       textBrown: {
-        color: Styles.globalColors.brown_75,
+        color: Kb.Styles.globalColors.brown_75,
       },
       textWhite: {
-        color: Styles.globalColors.white,
+        color: Kb.Styles.globalColors.white,
       },
     }) as const
 )

@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Constants from '../../constants/fs'
 import * as T from '../../constants/types'
 import type {Props} from '.'
@@ -72,7 +71,7 @@ const Files = (props: Props) => {
     <Kb.Box2
       direction="vertical"
       fullWidth={true}
-      alignItems={Styles.isTablet ? 'flex-start' : 'center'}
+      alignItems={Kb.Styles.isTablet ? 'flex-start' : 'center'}
       gap="small"
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent} gap="tiny">
@@ -86,7 +85,7 @@ const Files = (props: Props) => {
           label="Warn when low on storage space"
           on={props.spaceAvailableNotificationThreshold !== 0}
           disabled={props.areSettingsLoading}
-          gapSize={Styles.globalMargins.small}
+          gapSize={Kb.Styles.globalMargins.small}
           style={styles.switch}
         />
         {!!props.spaceAvailableNotificationThreshold && (
@@ -99,7 +98,7 @@ const Files = (props: Props) => {
           disabled={waitingToggleSyncOnCellular}
           label="Sync files over mobile network"
           labelSubtitle="Syncing over Wi-Fi is always on"
-          gapSize={Styles.globalMargins.small}
+          gapSize={Kb.Styles.globalMargins.small}
           style={styles.switch}
         />
       </Kb.Box2>
@@ -107,21 +106,21 @@ const Files = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       selectedText: {
-        paddingLeft: Styles.globalMargins.xsmall,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
         width: '100%',
       },
       switch: {
-        marginTop: Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
       },
-      syncContent: Styles.platformStyles({
+      syncContent: Kb.Styles.platformStyles({
         common: {
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
-          paddingTop: Styles.globalMargins.medium,
+          paddingLeft: Kb.Styles.globalMargins.xsmall,
+          paddingRight: Kb.Styles.globalMargins.xsmall,
+          paddingTop: Kb.Styles.globalMargins.medium,
         },
         isTablet: {
           maxWidth: 410,

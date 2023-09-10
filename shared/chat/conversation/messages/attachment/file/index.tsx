@@ -2,7 +2,6 @@ import captialize from 'lodash/capitalize'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Constants from '../../../../../constants/chat2'
-import * as Styles from '../../../../../styles'
 import type * as T from '../../../../../constants/types'
 import {getEditStyle, ShowToastAfterSaving} from '../shared'
 import * as CryptoConstants from '../../../../../constants/crypto'
@@ -37,7 +36,7 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
   return (
     <Kb.ClickableBox2 onLongPress={toggleMessageMenu} onClick={props.onDownload}>
       <ShowToastAfterSaving transferState={props.transferState} />
-      <Kb.Box style={Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing)])}>
+      <Kb.Box style={Kb.Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing)])}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
           <Kb.Icon fixOverdraw={true} type={iconType} style={styles.iconStyle} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
@@ -45,7 +44,7 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
               // if the title is the filename, don't try to parse it as markdown
               <Kb.Text
                 type="BodySemibold"
-                style={Styles.collapseStyles([
+                style={Kb.Styles.collapseStyles([
                   isSaltpackFile && styles.saltpackFileName,
                   getEditStyle(isEditing),
                 ])}
@@ -57,7 +56,7 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
                 messageType="attachment"
                 selectable={true}
                 style={getEditStyle(isEditing)}
-                styleOverride={Styles.isMobile ? ({paragraph: getEditStyle(isEditing)} as any) : undefined}
+                styleOverride={Kb.Styles.isMobile ? ({paragraph: getEditStyle(isEditing)} as any) : undefined}
                 allowFontScaling={true}
               >
                 {props.title}
@@ -67,7 +66,7 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
               <Kb.Text
                 type="BodyTiny"
                 onClick={props.onDownload}
-                style={Styles.collapseStyles([
+                style={Kb.Styles.collapseStyles([
                   isSaltpackFile && styles.saltpackFileName,
                   getEditStyle(isEditing),
                 ])}
@@ -77,7 +76,7 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
             )}
           </Kb.Box2>
         </Kb.Box2>
-        {!Styles.isMobile && isSaltpackFile && operation && (
+        {!Kb.Styles.isMobile && isSaltpackFile && operation && (
           <Kb.Box style={styles.saltpackOperationContainer}>
             <Kb.Button
               mode="Secondary"
@@ -113,7 +112,7 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
         )}
         {props.onShowInFinder && (
           <Kb.Text type="BodySmallPrimaryLink" onClick={props.onShowInFinder} style={styles.linkStyle}>
-            Show in {Styles.fileUIName}
+            Show in {Kb.Styles.fileUIName}
           </Kb.Text>
         )}
       </Kb.Box>
@@ -121,11 +120,11 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       containerStyle: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         width: '100%',
       },
       downloadedIcon: {
@@ -134,15 +133,15 @@ const styles = Styles.styleSheetCreate(
         top: 1,
       },
       downloadedIconWrapperStyle: {
-        ...Styles.globalStyles.flexBoxCenter,
-        ...Styles.padding(3, 0, 3, 3),
+        ...Kb.Styles.globalStyles.flexBoxCenter,
+        ...Kb.Styles.padding(3, 0, 3, 3),
         borderRadius: 20,
         bottom: 0,
         position: 'absolute',
-        right: Styles.globalMargins.small,
+        right: Kb.Styles.globalMargins.small,
       },
-      error: {color: Styles.globalColors.redDark},
-      iconStyle: Styles.platformStyles({
+      error: {color: Kb.Styles.globalColors.redDark},
+      iconStyle: Kb.Styles.platformStyles({
         common: {
           height: 32,
           width: 32,
@@ -152,28 +151,28 @@ const styles = Styles.styleSheetCreate(
           height: 35,
         },
       }),
-      linkStyle: {color: Styles.globalColors.black_50},
+      linkStyle: {color: Kb.Styles.globalColors.black_50},
       progressContainerStyle: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
       },
       progressLabelStyle: {
-        color: Styles.globalColors.black_50,
-        marginRight: Styles.globalMargins.tiny,
+        color: Kb.Styles.globalColors.black_50,
+        marginRight: Kb.Styles.globalMargins.tiny,
       },
       retry: {
-        color: Styles.globalColors.redDark,
+        color: Kb.Styles.globalColors.redDark,
         textDecorationLine: 'underline',
       },
       saltpackFileName: {
-        color: Styles.globalColors.greenDark,
+        color: Kb.Styles.globalColors.greenDark,
       },
-      saltpackOperation: Styles.platformStyles({
+      saltpackOperation: Kb.Styles.platformStyles({
         isTablet: {alignSelf: 'flex-start'},
       }),
       saltpackOperationContainer: {
         alignItems: 'flex-start',
-        marginTop: Styles.globalMargins.xtiny,
+        marginTop: Kb.Styles.globalMargins.xtiny,
       },
       titleStyle: {flex: 1},
     }) as const

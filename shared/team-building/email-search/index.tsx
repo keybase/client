@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import type * as T from '../../constants/types'
 import {validateEmailAddress} from '../../util/email-address'
 import {UserMatchMention} from '../phone-search'
@@ -69,14 +68,14 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
         ) : (
           <Kb.Box2
             alignSelf="center"
-            centerChildren={!Styles.isMobile}
+            centerChildren={!Kb.Styles.isMobile}
             direction="vertical"
             fullWidth={true}
             gap="tiny"
             style={styles.emptyContainer}
           >
-            {!Styles.isMobile && (
-              <Kb.Icon color={Styles.globalColors.black_20} fontSize={48} type="iconfont-mention" />
+            {!Kb.Styles.isMobile && (
+              <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-mention" />
             )}
             {namespace == 'chat2' ? (
               <Kb.Text type="BodySmall" style={styles.helperText}>
@@ -98,14 +97,14 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      background: Styles.platformStyles({
+      background: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueGrey,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
           flex: 1,
-          padding: Styles.globalMargins.small,
+          padding: Kb.Styles.globalMargins.small,
         },
         isMobile: {
           zIndex: -1,
@@ -114,7 +113,7 @@ const styles = Styles.styleSheetCreate(
       bottomContainer: {
         flexGrow: 1,
       },
-      emptyContainer: Styles.platformStyles({
+      emptyContainer: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: {
           maxWidth: 290,
@@ -125,27 +124,27 @@ const styles = Styles.styleSheetCreate(
       flexGrow: {
         flex: 1,
       },
-      helperText: Styles.platformStyles({
+      helperText: Kb.Styles.platformStyles({
         common: {textAlign: 'center'},
         isMobile: {
-          paddingBottom: Styles.globalMargins.small,
-          paddingTop: Styles.globalMargins.small,
+          paddingBottom: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.small,
         },
       }),
-      input: Styles.platformStyles({
+      input: Kb.Styles.platformStyles({
         common: {},
         isElectron: {
-          ...Styles.padding(0, Styles.globalMargins.xsmall),
+          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xsmall),
           height: 38,
         },
         isMobile: {
-          ...Styles.padding(0, Styles.globalMargins.small),
+          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
           height: 48,
         },
       }),
       userMatchMention: {
         alignSelf: 'flex-start',
-        marginLeft: Styles.globalMargins.small,
+        marginLeft: Kb.Styles.globalMargins.small,
       },
     }) as const
 )

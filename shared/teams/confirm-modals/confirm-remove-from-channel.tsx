@@ -3,7 +3,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
 
 type Props = {
@@ -73,14 +72,14 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 }
 export default ConfirmRemoveFromChannel
 
-const styles = Styles.styleSheetCreate(() => ({
-  headerIcon: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  headerIcon: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.red,
-      borderColor: Styles.globalColors.white,
+      backgroundColor: Kb.Styles.globalColors.red,
+      borderColor: Kb.Styles.globalColors.white,
       borderStyle: 'solid',
       borderWidth: 3,
-      color: Styles.globalColors.white,
+      color: Kb.Styles.globalColors.white,
       padding: 3,
     },
     isElectron: {

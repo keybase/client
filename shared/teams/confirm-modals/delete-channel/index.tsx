@@ -3,7 +3,6 @@ import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import {pluralize} from '../../../util/string'
 import {useAllChannelMetas} from '../../common/channel-hooks'
 
@@ -82,8 +81,8 @@ const DeleteChannel = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  prompt: Styles.padding(0, Styles.globalMargins.small),
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  prompt: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
 }))
 
 export default DeleteChannel

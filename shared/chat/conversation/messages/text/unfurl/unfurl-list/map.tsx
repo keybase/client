@@ -2,7 +2,6 @@ import * as C from '../../../../../../constants'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as T from '../../../../../../constants/types'
 import * as React from 'react'
-import * as Styles from '../../../../../../styles'
 import UnfurlImage from './image'
 import {OrdinalContext} from '../../../ids-context'
 import {formatDurationForLocation} from '../../../../../../util/timestamp'
@@ -75,7 +74,7 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
       {!!liveLocationEndTime && (
         <Kb.Box2
           direction="horizontal"
-          style={Styles.collapseStyles([styles.liveLocation, {width: maxWidth}])}
+          style={Kb.Styles.collapseStyles([styles.liveLocation, {width: maxWidth}])}
           fullWidth={true}
         >
           <Kb.Box2 direction="vertical">
@@ -145,17 +144,17 @@ const LiveDuration = (props: DurationProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      fastStyle: {backgroundColor: Styles.globalColors.blueGrey},
+      fastStyle: {backgroundColor: Kb.Styles.globalColors.blueGrey},
       liveLocation: {
-        backgroundColor: Styles.globalColors.blueGrey,
-        borderBottomLeftRadius: Styles.borderRadius,
-        borderBottomRightRadius: Styles.borderRadius,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        borderBottomLeftRadius: Kb.Styles.borderRadius,
+        borderBottomRightRadius: Kb.Styles.borderRadius,
         justifyContent: 'space-between',
         marginTop: -2,
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
       },
     }) as const
 )

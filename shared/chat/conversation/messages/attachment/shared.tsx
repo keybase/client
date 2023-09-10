@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import type * as T from '../../../../constants/types'
 import {OrdinalContext} from '../ids-context'
 import {sharedStyles} from '../shared-styles'
@@ -12,7 +11,7 @@ type Props = {
 }
 
 // this is a function of how much space is taken up by the rest of the elements
-export const maxWidth = Styles.isMobile ? Math.min(320, Styles.dimensionWidth - 60) : 320
+export const maxWidth = Kb.Styles.isMobile ? Math.min(320, Kb.Styles.dimensionWidth - 60) : 320
 export const maxHeight = 320
 
 export const missingMessage = Constants.makeMessageAttachment()
@@ -83,8 +82,8 @@ export const Title = () => {
 
   const styleOverride = React.useMemo(
     () =>
-      Styles.isMobile
-        ? ({paragraph: {backgroundColor: Styles.globalColors.black_05_on_white}} as any)
+      Kb.Styles.isMobile
+        ? ({paragraph: {backgroundColor: Kb.Styles.globalColors.black_05_on_white}} as any)
         : undefined,
     []
   )
@@ -121,20 +120,20 @@ const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  collapseLabel: {backgroundColor: Styles.globalColors.fastBlank},
-  collapseLabelWhite: {color: Styles.globalColors.white_75},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  collapseLabel: {backgroundColor: Kb.Styles.globalColors.fastBlank},
+  collapseLabelWhite: {color: Kb.Styles.globalColors.white_75},
   titleContainer: {
     alignSelf: 'flex-start',
-    paddingTop: Styles.globalMargins.xxtiny,
+    paddingTop: Kb.Styles.globalMargins.xxtiny,
   },
   transferring: {
-    backgroundColor: Styles.globalColors.black_50,
+    backgroundColor: Kb.Styles.globalColors.black_50,
     borderRadius: 2,
-    left: Styles.globalMargins.tiny,
+    left: Kb.Styles.globalMargins.tiny,
     overflow: 'hidden',
     position: 'absolute',
-    top: Styles.globalMargins.tiny,
+    top: Kb.Styles.globalMargins.tiny,
   },
 }))
 

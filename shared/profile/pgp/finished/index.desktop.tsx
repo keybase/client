@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import Modal from '../../modal'
 
 type Props = {
@@ -56,16 +55,16 @@ export class Finished extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      pgpKeyString: Styles.platformStyles({
+      pgpKeyString: Kb.Styles.platformStyles({
         isElectron: {
-          ...(Styles.globalStyles.fontTerminal as any),
-          backgroundColor: Styles.globalColors.greyLight,
-          border: `solid 1px ${Styles.globalColors.black_10}`,
+          ...(Kb.Styles.globalStyles.fontTerminal as any),
+          backgroundColor: Kb.Styles.globalColors.greyLight,
+          border: `solid 1px ${Kb.Styles.globalColors.black_10}`,
           borderRadius: 3,
-          color: Styles.globalColors.black,
+          color: Kb.Styles.globalColors.black,
           flexGrow: 1,
           fontSize: 12,
           lineHeight: 17,

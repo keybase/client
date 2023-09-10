@@ -3,7 +3,6 @@ import type * as T from '../../constants/types'
 import * as Constants from '../../constants/chat2'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import Rover from './background'
 import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
 import SelectableSmallTeam from '../selectable-small-team-container'
@@ -93,7 +92,7 @@ class InboxSearch extends React.Component<Props, State> {
         memberCount={item.memberCount}
         inTeam={item.inTeam}
         publicAdmins={item.publicAdmins}
-        isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
+        isSelected={!Kb.Styles.isMobile && this.props.selectedIndex === realIndex}
       />
     )
   }
@@ -129,7 +128,7 @@ class InboxSearch extends React.Component<Props, State> {
     return item.type === 'big' ? (
       <C.ChatProvider id={item.conversationIDKey}>
         <SelectableBigTeamChannel
-          isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
+          isSelected={!Kb.Styles.isMobile && this.props.selectedIndex === realIndex}
           name={item.name}
           numSearchHits={numHits}
           maxSearchHits={Constants.inboxSearchMaxTextMessages}
@@ -139,7 +138,7 @@ class InboxSearch extends React.Component<Props, State> {
     ) : (
       <C.ChatProvider id={item.conversationIDKey}>
         <SelectableSmallTeam
-          isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
+          isSelected={!Kb.Styles.isMobile && this.props.selectedIndex === realIndex}
           name={item.name}
           numSearchHits={numHits}
           maxSearchHits={Constants.inboxSearchMaxTextMessages}
@@ -269,7 +268,7 @@ class InboxSearch extends React.Component<Props, State> {
         ) : this.props.indexPercent > 0 && this.props.indexPercent < 100 ? (
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.percentContainer} fullWidth={true}>
             <Kb.Text type="BodyTiny">Indexing...</Kb.Text>
-            {Styles.isMobile ? (
+            {Kb.Styles.isMobile ? (
               <Kb.ProgressBar style={styles.progressBar} ratio={ratio} />
             ) : (
               <Kb.WithTooltip
@@ -384,7 +383,7 @@ class InboxSearch extends React.Component<Props, State> {
   }
 }
 
-export const rowHeight = Styles.isMobile ? 64 : 56
+export const rowHeight = Kb.Styles.isMobile ? 64 : 56
 type OpenTeamProps = T.Chat.InboxSearchOpenTeamHit & {
   isSelected: boolean
 }
@@ -442,10 +441,10 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         ref={popupAnchor as any}
         centerChildren={true}
         className="hover_background_color_blueGreyDark"
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.openTeamContainer,
           {
-            backgroundColor: isSelected ? Styles.globalColors.blue : Styles.globalColors.white,
+            backgroundColor: isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white,
             height: rowHeight,
           },
         ])}
@@ -456,19 +455,19 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
           <Kb.Text
             type="BodySemibold"
-            style={Styles.collapseStyles([
-              {color: isSelected ? Styles.globalColors.white : Styles.globalColors.black},
+            style={Kb.Styles.collapseStyles([
+              {color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black},
             ])}
             title={name}
-            lineClamp={Styles.isMobile ? 1 : undefined}
+            lineClamp={Kb.Styles.isMobile ? 1 : undefined}
             ellipsizeMode="tail"
           >
             {name}
           </Kb.Text>
           <Kb.Text
             type="BodySmall"
-            style={Styles.collapseStyles([
-              {color: isSelected ? Styles.globalColors.white : Styles.globalColors.black_50},
+            style={Kb.Styles.collapseStyles([
+              {color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50},
             ])}
             title={`#${description}`}
             lineClamp={1}
@@ -483,14 +482,14 @@ const OpenTeamRow = (p: OpenTeamProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.globalStyles.flexBoxColumn,
-          backgroundColor: Styles.globalColors.blueGrey,
-          borderRightColor: Styles.globalColors.black_10,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          borderRightColor: Kb.Styles.globalColors.black_10,
           borderRightWidth: 1,
           borderStyle: 'solid',
           contain: 'strict',
@@ -504,30 +503,30 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
       }),
-      emptyUnreadPlaceholder: Styles.platformStyles({
-        common: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)},
-        isTablet: {backgroundColor: Styles.globalColors.blueGrey},
+      emptyUnreadPlaceholder: Kb.Styles.platformStyles({
+        common: {...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny)},
+        isTablet: {backgroundColor: Kb.Styles.globalColors.blueGrey},
       }),
       errorText: {
-        color: Styles.globalColors.redDark,
+        color: Kb.Styles.globalColors.redDark,
       },
-      openTeamContainer: Styles.platformStyles({
+      openTeamContainer: Kb.Styles.platformStyles({
         isElectron: {
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
+          paddingLeft: Kb.Styles.globalMargins.xsmall,
+          paddingRight: Kb.Styles.globalMargins.xsmall,
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
         },
       }),
-      percentContainer: Styles.platformStyles({
+      percentContainer: Kb.Styles.platformStyles({
         common: {
-          padding: Styles.globalMargins.tiny,
+          padding: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
         },
       }),
       progressBar: {
@@ -536,7 +535,7 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       textHeader: {
-        backgroundColor: Styles.globalColors.blueLighter3,
+        backgroundColor: Kb.Styles.globalColors.blueLighter3,
       },
     }) as const
 )

@@ -1,6 +1,5 @@
 import * as Kb from '../../../common-adapters'
 import * as T from '../../../constants/types'
-import * as Styles from '../../../styles'
 
 type Props = {
   onRetry: () => void
@@ -30,7 +29,7 @@ const Banner = (props: Props) => {
             bannerColor="red"
             content={[
               'Your ',
-              Styles.isMobile ? 'phone' : 'computer',
+              Kb.Styles.isMobile ? 'phone' : 'computer',
               ' is out of space and some folders could not be properly synced. Make some space and ',
               {onClick: props.onRetry, text: 'retry the sync'},
               '.',
@@ -43,8 +42,8 @@ const Banner = (props: Props) => {
 
 export default Banner
 
-const styles = Styles.styleSheetCreate(() => ({
-  loadingLineContainer: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  loadingLineContainer: Kb.Styles.platformStyles({
     isElectron: {
       position: 'relative',
       top: -1,
