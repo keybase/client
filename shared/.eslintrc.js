@@ -190,7 +190,7 @@ module.exports = {
     '@typescript-eslint/no-unnecessary-condition': isFixMode ? 'off' : 'warn',
     '@typescript-eslint/no-unnecessary-qualifier': 'error',
     '@typescript-eslint/no-unnecessary-type-arguments': 'error',
-    '@typescript-eslint/no-unnecessary-type-assertion': 'error',
+    '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
     '@typescript-eslint/no-unnecessary-type-constraint': 'error',
     '@typescript-eslint/no-unsafe-argument': 'warn',
     '@typescript-eslint/no-unsafe-assignment': 'warn',
