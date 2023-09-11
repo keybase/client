@@ -150,7 +150,7 @@ const ServiceDecoration = (p: Props) => {
       />
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.maybemention) {
-    const MaybeMention = require('../../chat/conversation/maybe-mention') as typeof MaybeMentionType
+    const MaybeMention = require('../../chat/conversation/maybe-mention').default as typeof MaybeMentionType
     return (
       <MaybeMention
         allowFontScaling={allowFontScaling || false}
@@ -213,7 +213,7 @@ const ServiceDecoration = (p: Props) => {
       />
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.kbfspath) {
-    const KbfsPath = require('../../fs/common/kbfs-path') as typeof KbfsPathType
+    const KbfsPath = require('../../fs/common/kbfs-path').default as typeof KbfsPathType
     return (
       <KbfsPath
         knownPathInfo={{

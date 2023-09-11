@@ -180,7 +180,7 @@ const ProfileCard = ({
     onHide?.()
   }, [showUserProfile, onHide, username])
 
-  const FollowButton = require('../profile/user/actions/follow-button') as typeof FollowButtonType
+  const FollowButton = require('../profile/user/actions/follow-button').default as typeof FollowButtonType
 
   return (
     <Kb.Box2
