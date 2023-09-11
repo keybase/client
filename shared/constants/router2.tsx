@@ -12,6 +12,8 @@ export type PathParam = NavigateAppendType
 type Route = NavigationState['routes'][0]
 export type NavState = Route['state']
 
+const DEBUG_NAV = __DEV__ && false
+
 export const navigationRef_ = createNavigationContainerRef()
 export const _getNavigator = () => {
   return navigationRef_.isReady() ? navigationRef_ : undefined
@@ -259,6 +261,7 @@ export type State = Store & {
 export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearModals: () => {
+      DEBUG_NAV && console.log('[Nav] clearModals')
       const n = _getNavigator()
       if (!n) return
       const ns = getRootState()
@@ -270,6 +273,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       tabLongPress: undefined,
     },
     navUpToScreen: name => {
+      DEBUG_NAV && console.log('[Nav] navUpToScreen', {name})
       const n = _getNavigator()
       if (!n) return
       const ns = getRootState()
@@ -289,6 +293,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       n.dispatch(CommonActions.reset(nextState))
     },
     navigateAppend: (path, replace, fromKey) => {
+      DEBUG_NAV && console.log('[Nav] navigateAppend', {path})
       const n = _getNavigator()
       if (!n) return
       const ns = getRootState()
@@ -330,20 +335,24 @@ export const _useState = Z.createZustand<State>((set, get) => {
       n.dispatch(StackActions.push(routeName, params))
     },
     navigateUp: () => {
+      DEBUG_NAV && console.log('[Nav] navigateUp')
       const n = _getNavigator()
       return n?.dispatch(CommonActions.goBack())
     },
     popStack: () => {
+      DEBUG_NAV && console.log('[Nav] popStack')
       const n = _getNavigator()
       n?.dispatch(StackActions.popToTop())
     },
     resetState: () => {
+      DEBUG_NAV && console.log('[Nav] resetState')
       set(s => ({
         ...s,
         dispatch: s.dispatch,
       }))
     },
     setNavState: next => {
+      DEBUG_NAV && console.log('[Nav] setNavState')
       const prev = get().navState
       if (prev === next) return
       set(s => {
@@ -435,6 +444,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       C.useChatState.getState().dispatch.onRouteChanged(prev, next)
     },
     switchTab: name => {
+      DEBUG_NAV && console.log('[Nav] switchTab', {name})
       const n = _getNavigator()
       if (!n) return
       const ns = getRootState()
