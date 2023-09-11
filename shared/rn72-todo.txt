@@ -1,5 +1,3 @@
-• loggedout feedback back broken
-• input hint broken still team creation
 • team role modal broken
 • uncontrolled input in signup
 • ban member modal not dismissing

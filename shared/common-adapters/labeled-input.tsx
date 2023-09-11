@@ -53,8 +53,6 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
 
   // We're using fontSize to derive heights
   const textStyle = getTextStyle(props.textType || 'BodySemibold')
-  const computedHeight =
-    textStyle.fontSize * (props.rowsMax && multiline ? props.rowsMax * 1.3 : 1) + (isMobile ? 10 : 0)
   const computedContainerSize =
     textStyle.fontSize + (isMobile ? 48 : 38) + (multiline ? textStyle.fontSize : 0)
 
@@ -62,7 +60,6 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
   return (
     <Box2
       direction="vertical"
-      gap="xsmall"
       style={Styles.collapseStyles([
         styles.container,
         {height: !multiline ? computedContainerSize : undefined, minHeight: computedContainerSize},
@@ -71,21 +68,6 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
         containerStyle,
       ])}
     >
-      <PlainInput
-        {...plainInputProps}
-        onChangeText={_onChangeText}
-        onFocus={_onFocus}
-        onBlur={_onBlur}
-        placeholder={collapsed ? props.hoverPlaceholder : undefined}
-        ref={props.forwardedRef}
-        style={Styles.collapseStyles([
-          styles.input,
-          props.style,
-          {maxHeight: computedHeight},
-          collapsed && styles.inputSmall,
-          multiline && styles.inputMultiline,
-        ])}
-      />
       <Text
         type={collapsed ? 'BodyTinySemibold' : isMobile ? 'BodySemibold' : 'BodySmallSemibold'}
         style={Styles.collapseStyles([
@@ -97,6 +79,20 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
       >
         {placeholder}
       </Text>
+      <PlainInput
+        {...plainInputProps}
+        onChangeText={_onChangeText}
+        onFocus={_onFocus}
+        onBlur={_onBlur}
+        placeholder={collapsed ? props.hoverPlaceholder : undefined}
+        ref={props.forwardedRef}
+        style={Styles.collapseStyles([
+          styles.input,
+          props.style,
+          collapsed && styles.inputSmall,
+          multiline && styles.inputMultiline,
+        ])}
+      />
     </Box2>
   )
 }
@@ -128,34 +124,20 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {width: '100%'},
       }),
-      containerError: {
-        borderColor: Styles.globalColors.red,
+      containerError: {borderColor: Styles.globalColors.red},
+      containerFocused: {borderColor: Styles.globalColors.blue},
+      displayFlex: {display: 'flex'},
+      hideBorder: {borderWidth: 0},
+      icon: {marginRight: Styles.globalMargins.xtiny},
+      input: {
+        backgroundColor: Styles.globalColors.transparent,
+        flexGrow: 1,
+        marginBottom: 22,
+        marginTop: 22,
+        paddingLeft: Styles.globalMargins.xsmall,
+        paddingRight: Styles.globalMargins.xsmall,
+        width: '100%',
       },
-      containerFocused: {
-        borderColor: Styles.globalColors.blue,
-      },
-      displayFlex: {
-        display: 'flex',
-      },
-      hideBorder: {
-        borderWidth: 0,
-      },
-      icon: {
-        marginRight: Styles.globalMargins.xtiny,
-      },
-      input: Styles.platformStyles({
-        common: {
-          backgroundColor: Styles.globalColors.transparent,
-          flexGrow: 1,
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
-          width: '100%',
-        },
-        isElectron: {
-          marginTop: Styles.globalMargins.small,
-        },
-        isMobile: {},
-      }),
       inputMultiline: Styles.platformStyles({
         isMobile: {
           textAlignVertical: 'top',
@@ -169,22 +151,16 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.xsmall,
           position: 'absolute',
         },
-        isElectron: {
-          pointerEvents: 'none',
-        },
+        isElectron: {pointerEvents: 'none'},
       }),
       labelFocused: {color: Styles.globalColors.blueDark},
-
       labelLarge: {color: Styles.globalColors.black_50},
-      labelSmall: Styles.platformStyles({
-        common: {color: Styles.globalColors.black},
-        isElectron: {top: 2},
-        isMobile: {
-          height: '100%',
-          paddingTop: Styles.globalMargins.xtiny,
-        },
-      }),
-    } as const)
+      labelSmall: {
+        color: Styles.globalColors.black,
+        position: 'absolute',
+        top: 2,
+      },
+    }) as const
 )
 
 export default LabeledInput
