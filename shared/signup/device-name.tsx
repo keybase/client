@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as Constants from '../constants/provision'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from './common'
 
 const ConnectedEnterDevicename = () => {
@@ -33,11 +32,19 @@ type Props = {
   waiting: boolean
 }
 
+const makeCleanDeviceName = (d: string) => {
+  let good = d.replace(Constants.badDeviceChars, '')
+  good = Constants.cleanDeviceName(good)
+  return good
+}
+
 const EnterDevicename = (props: Props) => {
   const [deviceName, setDeviceName] = React.useState(props.initialDevicename || '')
   const [readyToShowError, setReadyToShowError] = React.useState(false)
-  const debouncedSetReadyToShowError = debounce(ready => setReadyToShowError(ready), 1000)
-  const cleanDeviceName = Constants.cleanDeviceName(deviceName)
+  const _setReadyToShowError = C.useDebouncedCallback((ready: boolean) => {
+    setReadyToShowError(ready)
+  }, 200)
+  const cleanDeviceName = makeCleanDeviceName(deviceName)
   const normalized = cleanDeviceName.replace(Constants.normalizeDeviceRE, '')
   const disabled =
     normalized.length < 3 ||
@@ -46,11 +53,38 @@ const EnterDevicename = (props: Props) => {
     Constants.badDeviceRE.test(cleanDeviceName)
   const showDisabled = disabled && !!cleanDeviceName && readyToShowError
   const _setDeviceName = (deviceName: string) => {
+    setDeviceName(deviceName)
     setReadyToShowError(false)
-    setDeviceName(deviceName.replace(Constants.badDeviceChars, ''))
-    debouncedSetReadyToShowError(true)
+    _setReadyToShowError(true)
   }
   const onContinue = () => (disabled ? {} : props.onContinue(cleanDeviceName))
+
+  const inputRef = React.useRef<Kb.PlainInput>(null)
+  C.useOnMountOnce(() => {
+    inputRef.current?.transformText(i => {
+      if (!props.initialDevicename) return i
+      return {
+        selection: {
+          end: props.initialDevicename.length,
+          start: 0,
+        },
+        text: props.initialDevicename,
+      }
+    })
+  })
+
+  if (cleanDeviceName !== deviceName) {
+    inputRef.current?.transformText(() => {
+      return {
+        selection: {
+          end: cleanDeviceName.length,
+          start: cleanDeviceName.length,
+        },
+        text: cleanDeviceName,
+      }
+    })
+  }
+
   return (
     <SignupScreen
       banners={errorBanner(props.error)}
@@ -76,6 +110,7 @@ const EnterDevicename = (props: Props) => {
         />
         <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
           <Kb.LabeledInput
+            ref={inputRef}
             autoFocus={true}
             containerStyle={styles.input}
             error={showDisabled}
@@ -84,7 +119,6 @@ const EnterDevicename = (props: Props) => {
             hoverPlaceholder={Kb.Styles.isMobile ? 'Phone 1' : 'Computer 1'}
             onChangeText={_setDeviceName}
             onEnterKeyDown={onContinue}
-            value={cleanDeviceName}
           />
           {showDisabled && readyToShowError ? (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>

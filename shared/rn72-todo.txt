@@ -1,5 +1,2 @@
-• team role modal broken
-• uncontrolled input in signup
 • ban member modal not dismissing
 • team avatar change not dimissing
-
