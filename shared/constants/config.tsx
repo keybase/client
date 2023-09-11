@@ -1016,8 +1016,8 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
 
       if (loggedIn) {
         Z.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
-        C.useDaemonState.getState().dispatch.loadDaemonAccounts()
       }
+      C.useDaemonState.getState().dispatch.loadDaemonAccounts()
 
       const {loadOnStart} = get().dispatch
       if (loggedIn) {
