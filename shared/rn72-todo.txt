@@ -1,2 +1,0 @@
-• ban member modal not dismissing
-• team avatar change not dimissing
