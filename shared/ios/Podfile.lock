@@ -556,7 +556,7 @@ PODS:
     - React-Core
   - RNGestureHandler (2.12.1):
     - React-Core
-  - RNReanimated (3.5.1):
+  - RNReanimated (3.4.2):
     - DoubleConversion
     - FBLazyVector
     - glog
@@ -974,7 +974,7 @@ SPEC CHECKSUMS:
   RNCPicker: 32ca102146bc7d34a8b93a998d9938d9f9ec7898
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
   RNGestureHandler: c0d04458598fcb26052494ae23dda8f8f5162b13
-  RNReanimated: b8117ecf4e6f787533aa2e4c9c531b999103e54e
+  RNReanimated: f8379347f71248607d530a21e31e4140c5910c25
   RNScreens: 85d3880b52d34db7b8eeebe2f1a0e807c05e69fa
   SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
   SDWebImageAVIFCoder: 8348fef6d0ec69e129c66c9fe4d74fbfbf366112

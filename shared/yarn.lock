@@ -9077,10 +9077,10 @@ react-native-image-keyboard@2.2.0:
   resolved "https://registry.yarnpkg.com/react-native-image-keyboard/-/react-native-image-keyboard-2.2.0.tgz#dc3f90aaaac20a79315015a330e62e85547e0674"
   integrity sha512-2JzKCXMBYiIUR6OtGV7F/lEWqwIU/6HS1CGOBulxwYNxoa7m1nZk45hNEZPP8SA5yE2pLNXEQePjc3WGAtXo3w==
 
-react-native-reanimated@3.5.1:
-  version "3.5.1"
-  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-3.5.1.tgz#72b2f84b522aad3aabcbc7c9fc2d718b82226339"
-  integrity sha512-ZBTOKibTn1IR5IaoQkpPCibuao5SjXR6Pzx+KHM50wrvBnL1PecsnQjmL2VEj8hbwshrzgRGgGt1XM82DKrykw==
+react-native-reanimated@3.4.2:
+  version "3.4.2"
+  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-3.4.2.tgz#744154fead6d8d31d5bd9ac617d8c84d74a6f697"
+  integrity sha512-FbtG+f1PB005vDTJSv4zAnTK7nNXi+FjFgbAM5gOzIZDajfph2BFMSUstzIsN8T77+OKuugUBmcTqLnQ24EBVg==
   dependencies:
     "@babel/plugin-transform-object-assign" "^7.16.7"
     "@babel/preset-typescript" "^7.16.7"
