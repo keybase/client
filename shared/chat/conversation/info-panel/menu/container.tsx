@@ -98,10 +98,10 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   }, [startAddMembersWizard, teamID])
   const navigateAppend = C.useChatNavigateAppend()
   const onBlockConv = React.useCallback(() => {
-    navigateAppend(convID => ({
+    navigateAppend(conversationIDKey => ({
       props: {
         blockUserByDefault: participants.length === 1,
-        convID,
+        conversationIDKey,
         others: participants,
         team: teamname,
       },

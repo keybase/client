@@ -47,7 +47,7 @@ export type State = Store & {
       reason: string
       comment: string
       includeTranscript: boolean
-      convID?: string
+      conversationIDKey?: string
     }) => void
     resetState: 'default'
     replace: (infoMap: State['infoMap'], blockMap?: State['blockMap']) => void
@@ -113,8 +113,18 @@ export const _useState = Z.createZustand<State>((set, get) => {
       })
     },
     reportUser: p => {
+      const {conversationIDKey, username, reason, comment, includeTranscript} = p
       const f = async () => {
-        await T.RPCGen.userReportUserRpcPromise(p, reportUserWaitingKey)
+        await T.RPCGen.userReportUserRpcPromise(
+          {
+            comment,
+            convID: conversationIDKey,
+            includeTranscript,
+            reason,
+            username,
+          },
+          reportUserWaitingKey
+        )
       }
       Z.ignorePromise(f())
     },

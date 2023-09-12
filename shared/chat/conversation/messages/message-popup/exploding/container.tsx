@@ -134,11 +134,11 @@ export default (ownProps: OwnProps) => {
       openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
   }
   const _onUserBlock = (message: T.Chat.Message, isSingle: boolean) => {
-    navigateAppend(convID => ({
+    navigateAppend(conversationIDKey => ({
       props: {
         blockUserByDefault: true,
         context: isSingle ? 'message-popup-single' : 'message-popup',
-        convID,
+        conversationIDKey,
         username: message.author,
       },
       selected: 'chatBlockingModal',

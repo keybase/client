@@ -47,10 +47,10 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const onUnhideConv = () => hideConversation(false)
   const onShowBlockConversationDialog = membersForBlock.length
     ? () => {
-        navigateAppend(convID => ({
+        navigateAppend(conversationIDKey => ({
           props: {
             blockUserByDefault: true,
-            convID,
+            conversationIDKey,
             others: membersForBlock,
             team: teamname,
           },
