@@ -117,7 +117,7 @@ export default (ownProps: OwnProps) => {
       props: {
         blockUserByDefault: true,
         context: isSingle ? 'message-popup-single' : 'message-popup',
-        convID: message.conversationIDKey,
+        conversationIDKey: message.conversationIDKey,
         username: message.author,
       },
       selected: 'chatBlockingModal',
@@ -128,7 +128,7 @@ export default (ownProps: OwnProps) => {
       props: {
         blockUserByDefault: true,
         context: isSingle ? 'message-popup-single' : 'message-popup',
-        convID: message.conversationIDKey,
+        conversationIDKey: message.conversationIDKey,
         filterUserByDefault: true,
         username: message.author,
       },
@@ -140,7 +140,7 @@ export default (ownProps: OwnProps) => {
       props: {
         blockUserByDefault: true,
         context: isSingle ? 'message-popup-single' : 'message-popup',
-        convID: message.conversationIDKey,
+        conversationIDKey: message.conversationIDKey,
         flagUserByDefault: true,
         reportsUserByDefault: true,
         username: message.author,
@@ -153,7 +153,7 @@ export default (ownProps: OwnProps) => {
       props: {
         blockUserByDefault: true,
         context: isSingle ? 'message-popup-single' : 'message-popup',
-        convID: message.conversationIDKey,
+        conversationIDKey: message.conversationIDKey,
         reportsUserByDefault: true,
         username: message.author,
       },

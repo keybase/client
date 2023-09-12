@@ -1,13 +1,13 @@
 import * as React from 'react'
-import type * as C from '../../../constants'
+import * as C from '../../../constants'
 
 const Block = React.lazy(async () => import('./container'))
 type OwnProps = C.ViewPropsToPageProps<typeof Block>
 
 const Screen = (p: OwnProps) => (
-  <React.Suspense>
+  <C.ProviderScreen rp={p} canBeNull={true}>
     <Block {...p.route.params} />
-  </React.Suspense>
+  </C.ProviderScreen>
 )
 
 export default {getScreen: () => Screen}

@@ -244,7 +244,13 @@ const LoggedOutScreens = makeNavScreens(Shim.shim(loggedOutRoutes, false, true),
 const LoggedOut = React.memo(function LoggedOut() {
   return (
     // TODO show header and use nav headers
-    <LoggedOutStack.Navigator initialRouteName="login" screenOptions={{headerShown: false}}>
+    <LoggedOutStack.Navigator
+      initialRouteName="login"
+      screenOptions={{
+        ...Common.defaultNavigationOptions,
+        headerShown: false,
+      }}
+    >
       {LoggedOutScreens}
     </LoggedOutStack.Navigator>
   )

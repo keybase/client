@@ -5,7 +5,6 @@ import type {WrapProps} from '.'
 
 const People = React.memo(function People(props: WrapProps) {
   const {waiting, ...rest} = props
-  console.log('aaaa', Kb.Styles)
   return (
     <Kb.ScrollView style={styles.container}>
       {waiting && <Kb.ProgressIndicator style={styles.progress} />}

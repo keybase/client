@@ -10,14 +10,14 @@ type OwnProps = {
   flagUserByDefault?: boolean
   reportsUserByDefault?: boolean
   context?: BlockModalContext
-  convID?: string
+  conversationIDKey?: string
   others?: Array<string>
   team?: string
   username?: string
 }
 
 export default (ownProps: OwnProps) => {
-  const {context, convID} = ownProps
+  const {context, conversationIDKey} = ownProps
   const teamname = ownProps.team
   const blockUserByDefault = ownProps.blockUserByDefault ?? false
   const filterUserByDefault = ownProps.filterUserByDefault ?? false
@@ -40,7 +40,7 @@ export default (ownProps: OwnProps) => {
     adderUsername,
     blockUserByDefault,
     context,
-    convID,
+    conversationIDKey,
     filterUserByDefault,
     finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,
     flagUserByDefault,
@@ -63,11 +63,11 @@ export default (ownProps: OwnProps) => {
   const _reportUser = C.useUsersState(s => s.dispatch.reportUser)
   const refreshBlocksFor = getBlockState
   const reportUser = React.useCallback(
-    (username: string, convID: string | undefined, report: ReportSettings) => {
+    (username: string, conversationIDKey: string | undefined, report: ReportSettings) => {
       _reportUser({
         comment: report.extraNotes,
-        convID,
-        includeTranscript: report.includeTranscript && !!convID,
+        conversationIDKey,
+        includeTranscript: report.includeTranscript && !!conversationIDKey,
         reason: report.reason,
         username,
       })
@@ -109,7 +109,7 @@ export default (ownProps: OwnProps) => {
         if (teamname) {
           takingAction = true
           leaveTeamAndBlock(teamname)
-        } else if (stateProps.convID) {
+        } else if (stateProps.conversationIDKey) {
           takingAction = true
           const anyReported = [...newBlocks.values()].some(v => v?.report !== undefined)
           setConversationStatus(anyReported)
@@ -119,7 +119,9 @@ export default (ownProps: OwnProps) => {
         takingAction = true
         setUserBlocks(newBlocks)
       }
-      newBlocks.forEach(({report}, username) => report && reportUser(username, stateProps.convID, report))
+      newBlocks.forEach(
+        ({report}, username) => report && reportUser(username, stateProps.conversationIDKey, report)
+      )
       if (!takingAction) {
         onClose()
       }

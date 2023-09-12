@@ -255,7 +255,7 @@ const styles = Styles.styleSheetCreate(
         marginBottom: Styles.globalMargins.tiny,
         marginTop: Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )
 
 export default MenuLayout

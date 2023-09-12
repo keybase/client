@@ -160,3 +160,5 @@ export const useOnUnMountOnce = (f: () => void) => {
     }
   }, [])
 }
+
+export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'

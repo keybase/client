@@ -106,7 +106,6 @@ const EnterUsername = (props: Props) => {
               maxLength={C.maxUsernameLength}
               onChangeText={onChangeUsername}
               onEnterKeyDown={onContinue}
-              value={username}
             />
             <Kb.Text type="BodySmall">Your username is unique and can not be changed in the future.</Kb.Text>
           </Kb.Box2>
