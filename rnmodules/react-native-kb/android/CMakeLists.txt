@@ -1,9 +1,6 @@
 project(cpp)
 cmake_minimum_required(VERSION 3.4.1)
 
-find_package(ReactAndroid REQUIRED CONFIG)
-find_package(fbjni REQUIRED CONFIG)
-
 set (CMAKE_VERBOSE_MAKEFILE ON)
 set (CMAKE_CXX_STANDARD 17)
 set (NODE_MODULES_DIR "${CMAKE_SOURCE_DIR}/../../../shared/node_modules")
@@ -36,35 +33,22 @@ set_target_properties(
 
 add_definitions(-DMSGPACK_NO_BOOST)
 
-file (GLOB LIBRN_DIR "${BUILD_DIR}/react-native-0*/jni/${ANDROID_ABI}")
-
+find_package(ReactAndroid REQUIRED CONFIG)
+find_package(fbjni REQUIRED CONFIG)
 find_library(LOG_LIB log)
-find_library(
-        FBJNI_LIB
-        fbjni
-        PATHS ${LIBRN_DIR}
-        NO_DEFAULT_PATH
-        NO_CMAKE_FIND_ROOT_PATH
-)
-find_library(
-        JSI_LIB
-        jsi
-        PATHS ${LIBRN_DIR}
-        NO_CMAKE_FIND_ROOT_PATH
-)
-find_library(
-        REACT_NATIVE_JNI_LIB
-        reactnativejni
-        PATHS ${LIBRN_DIR}
-        NO_CMAKE_FIND_ROOT_PATH
-)
+
+if(${USE_HERMES})
+  set(JSEXECUTOR_LIB ReactAndroid::hermes_executor)
+else()
+  set(JSEXECUTOR_LIB ReactAndroid::jscexecutor)
+endif()
 
 target_link_libraries(
         cpp
         ${LOG_LIB}
         fbjni::fbjni
         ReactAndroid::jsi
-        ReactAndroid::reactnativejni
-        fbjni::fbjni
+        ReactAndroid::turbomodulejsijni
+        ReactAndroid::react_nativemodule_core
         android
 )

@@ -89,26 +89,24 @@ static jstring string2jstring(JNIEnv *env, const string &str) {
 }
 
 void install(facebook::jsi::Runtime &jsiRuntime) {
-  auto rpcOnGoWrap = [](Runtime &runtime, const Value &thisValue,
-                        const Value *arguments, size_t count) -> Value {
-    return RpcOnGo(runtime, thisValue, arguments, count,
-                   [](void *ptr, size_t size) {
-                     JNIEnv *jniEnv = GetJniEnv();
-                     java_class = jniEnv->GetObjectClass(java_object);
-                     jmethodID rpcOnGo =
-                         jniEnv->GetMethodID(java_class, "rpcOnGo", "([B)V");
-                     jbyteArray jba = jniEnv->NewByteArray(size);
-                     jniEnv->SetByteArrayRegion(jba, 0, size, (jbyte *)ptr);
-                     jvalue params[1];
-                     params[0].l = jba;
-                     jniEnv->CallVoidMethodA(java_object, rpcOnGo, params);
-                   });
-  };
-  jsiRuntime.global().setProperty(
-      jsiRuntime, "rpcOnGo",
-      Function::createFromHostFunction(
-          jsiRuntime, PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1,
-          move(rpcOnGoWrap)));
+  auto rpcOnGo = Function::createFromHostFunction(
+      jsiRuntime, PropNameID::forAscii(jsiRuntime, "rpcOnGo"), 1,
+      [](Runtime &runtime, const Value &thisValue, const Value *arguments,
+         size_t count) -> Value {
+        return RpcOnGo(
+            runtime, thisValue, arguments, count, [](void *ptr, size_t size) {
+              JNIEnv *jniEnv = GetJniEnv();
+              java_class = jniEnv->GetObjectClass(java_object);
+              jmethodID rpcOnGo =
+                  jniEnv->GetMethodID(java_class, "rpcOnGo", "([B)V");
+              jbyteArray jba = jniEnv->NewByteArray(size);
+              jniEnv->SetByteArrayRegion(jba, 0, size, (jbyte *)ptr);
+              jvalue params[1];
+              params[0].l = jba;
+              jniEnv->CallVoidMethodA(java_object, rpcOnGo, params);
+            });
+      });
+  jsiRuntime.global().setProperty(jsiRuntime, "rpcOnGo", std::move(rpcOnGo));
 }
 
 extern "C" JNIEXPORT void JNICALL
