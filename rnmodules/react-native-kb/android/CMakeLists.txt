@@ -16,11 +16,6 @@ message(INFO "params: ${NODE_MODULES_DIR}")
 # Specifies a path to native header files.
 include_directories(
    ../cpp
-   "${NODE_MODULES_DIR}/react-native/React"
-   "${NODE_MODULES_DIR}/react-native/React/Base"
-   "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi"
-   "${NODE_MODULES_DIR}/react-native/ReactCommon/callinvoker"
-   "${NODE_MODULES_DIR}/react-native/ReactAndroid/src/main/jni/react/turbomodule"
    "${NODE_MODULES_DIR}/msgpack-cxx-4.1.1/include"
 )
 
