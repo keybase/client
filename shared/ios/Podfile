@@ -11,6 +11,7 @@ prepare_react_native_project!
 
 flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
 
+# needed for fabric but you MUST disable flipper else even non-fabric build will fail
 use_modular_headers!
 
 linkage = ENV['USE_FRAMEWORKS']
@@ -43,7 +44,7 @@ target 'Keybase' do
     #
     # Note that if you have use_frameworks! enabled, Flipper will not work and
     # you should disable the next line.
-    :flipper_configuration => flipper_config,
+    # :flipper_configuration => flipper_config,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
