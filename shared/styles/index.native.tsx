@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Shared from './shared'
-import {colors as lightColors, darkColors, themed} from './colors'
+import {colors as lightColors} from './colors'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import {StyleSheet, Dimensions} from 'react-native'
 import {isDarkMode} from './dark-mode'
