@@ -58,26 +58,6 @@ export const globalStyles = {
   ...util,
 }
 
-const cachedBackground = {
-  dark: {backgroundColor: darkColors.fastBlank},
-  light: {backgroundColor: lightColors.fastBlank},
-}
-if (isIOS) {
-  Object.defineProperty(globalStyles, 'fastBackground', {
-    configurable: false,
-    enumerable: true,
-    value: {backgroundColor: themed.fastBlank},
-  })
-} else {
-  Object.defineProperty(globalStyles, 'fastBackground', {
-    configurable: false,
-    enumerable: true,
-    get() {
-      return cachedBackground[isDarkMode() ? 'dark' : 'light']
-    },
-  })
-}
-
 export const hairlineWidth = StyleSheet.hairlineWidth
 export const styleSheetCreate = (obj: any) => styleSheetCreateProxy(obj, o => StyleSheet.create(o as any))
 // used to find specific styles to help debug perf

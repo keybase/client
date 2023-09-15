@@ -1,2 +1,4 @@
+•  ios switch system / forced colors will get back backgrounds in chat
 • imessage to chat input is url sometimes (heics , others?)
+• draft doens't show if start in thread?
 
