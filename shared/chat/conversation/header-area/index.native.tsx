@@ -91,7 +91,10 @@ const UsernameHeader = () => {
   )
 
   return (
-    <Kb.Box2 direction={theirFullname ? 'vertical' : 'horizontal'} style={styles.usernameHeaderContainer}>
+    <Kb.Box2
+      direction={theirFullname ? 'vertical' : 'horizontal'}
+      style={Styles.collapseStyles([styles.usernameHeaderContainer, {maxWidth: Styles.dimensionWidth - 140}])}
+    >
       {!!theirFullname && (
         <Kb.Text lineClamp={1} type="BodyBig" fixOverdraw={true}>
           {theirFullname}
