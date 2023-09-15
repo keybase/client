@@ -201,11 +201,6 @@ public class KbModule extends KbSpec {
         return constants;
     }
 
-    // comment out on new arch
-    public Map<String, Object> getConstants() {
-        return getTypedExportedConstants();
-    }
-
     // country code
     @ReactMethod
     public void getDefaultCountryCode(Promise promise) {

@@ -4,10 +4,16 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableMap;
+import java.util.Map;
 
 abstract class KbSpec extends ReactContextBaseJavaModule {
   KbSpec(ReactApplicationContext context) {
     super(context);
+  }
+  protected abstract Map<String,Object> getTypedExportedConstants();
+
+  public Map<String,Object> getConstants() {
+    return this.getTypedExportedConstants();
   }
 
     public abstract void getDefaultCountryCode(Promise promise);
