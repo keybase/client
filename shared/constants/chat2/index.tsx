@@ -1807,14 +1807,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
             // After the first layout, any other updates will come in the form of meta updates.
             layout.smallTeams?.forEach(t => {
               const cs = C.getConvoState(t.convID)
-              cs.dispatch.setMuted(t.isMuted)
-              cs.dispatch.setDraft(t.draft ?? '')
+              cs.dispatch.updateFromUIInboxLayout(t)
             })
             layout.bigTeams?.forEach(t => {
               if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {
                 const cs = C.getConvoState(t.channel.convID)
-                cs.dispatch.setMuted(t.channel.isMuted)
-                cs.dispatch.setDraft(t.channel.draft ?? '')
+                cs.dispatch.updateFromUIInboxLayout(t.channel)
               }
             })
           }

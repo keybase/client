@@ -192,6 +192,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     setEditing(false)
     injectText('')
   }, [injectText, setEditing])
+  const isMetaGood = C.useChatContext(s => s.isMetaGood())
 
   const [lastIsEditing, setLastIsEditing] = React.useState(isEditing)
   const [lastIsEditExploded, setLastIsEditExploded] = React.useState(isEditExploded)
@@ -220,7 +221,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     } else {
       // look at draft and unsent once
       // not reactive, just once per change
-      const draft = C.getConvoState(conversationIDKey).draft
+      const draft = C.getConvoState(conversationIDKey).meta.draft
       // prefer injection
       if (unsentText) {
         injectText(unsentText)
@@ -231,8 +232,12 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
         injectText('')
       }
     }
-    injectRef.current = conversationIDKey
-  }, [resetUnsentText, conversationIDKey, injectText, unsentText])
+
+    // only ignore draft etc if meta was good
+    if (isMetaGood) {
+      injectRef.current = conversationIDKey
+    }
+  }, [resetUnsentText, conversationIDKey, injectText, unsentText, isMetaGood])
 
   return (
     <PlatformInput

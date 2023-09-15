@@ -18,7 +18,7 @@ export default (ownProps: OwnProps) => {
   const _meta = C.useChatContext(s => s.meta)
   const _participantInfo = C.useChatContext(s => s.participants)
   const _username = C.useCurrentUserState(s => s.username)
-  const isMuted = C.useChatContext(s => s.muted)
+  const isMuted = C.useChatContext(s => s.meta.isMuted)
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
   const styles = Constants.getRowStyles(isSelected, _hasUnread)
   const participantNeedToRekey = _meta.rekeyers.size > 0

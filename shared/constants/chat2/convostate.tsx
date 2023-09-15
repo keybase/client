@@ -83,7 +83,6 @@ type ConvoStore = {
   commandStatus?: T.Chat.CommandStatusInfo
   containsLatestMessage?: boolean
   dismissedInviteBanners: boolean
-  draft?: string
   editing: T.Chat.Ordinal // current message being edited,
   explodingMode: number // seconds to exploding message expiration,
   explodingModeLock?: number // locks set on exploding mode while user is inputting text,
@@ -96,7 +95,6 @@ type ConvoStore = {
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message> // messages in a thread,
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoad: boolean
-  muted: boolean
   mutualTeams: Array<T.Teams.TeamID>
   participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
@@ -121,7 +119,6 @@ const initialConvoStore: ConvoStore = {
   commandStatus: undefined,
   containsLatestMessage: undefined,
   dismissedInviteBanners: false,
-  draft: undefined,
   editing: 0,
   explodingMode: 0,
   explodingModeLock: undefined,
@@ -135,7 +132,6 @@ const initialConvoStore: ConvoStore = {
   messageTypeMap: new Map(),
   meta: Meta.makeConversationMeta(),
   moreToLoad: false,
-  muted: false,
   mutualTeams: [],
   participants: noParticipantInfo,
   pendingOutboxToOrdinal: new Map(),
@@ -260,7 +256,6 @@ export type ConvoState = ConvoStore & {
     setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
     setContainsLatestMessage: (c: boolean) => void
     setConvRetentionPolicy: (policy: T.Retention.RetentionPolicy) => void
-    setDraft: (d?: string) => void
     setEditing: (ordinal: T.Chat.Ordinal | boolean) => void // true is last, false is clear
     setExplodingMode: (seconds: number, incoming?: boolean) => void
     setExplodingModeLocked: (locked: boolean) => void
@@ -272,7 +267,6 @@ export type ConvoState = ConvoStore & {
     setMeta: (m?: T.Chat.ConversationMeta) => void
     setMinWriterRole: (role: T.Teams.TeamRoleType) => void
     setMoreToLoad: (m: boolean) => void
-    setMuted: (m: boolean) => void
     setParticipants: (p: ConvoState['participants']) => void
     setPendingOutboxToOrdinal: (p: ConvoState['pendingOutboxToOrdinal']) => void
     setReplyTo: (o: T.Chat.Ordinal) => void
@@ -301,6 +295,7 @@ export type ConvoState = ConvoStore & {
     unfurlRemove: (messageID: T.Chat.MessageID) => void
     updateDraft: (text: string) => void
     updateContainsLatestMessage: (force: boolean) => void
+    updateFromUIInboxLayout: (l: {isMuted: boolean; draft?: string | null}) => void
     unfurlTogglePrompt: (messageID: T.Chat.MessageID, domain: string, show: boolean) => void
     unreadUpdated: (unread: number) => void
     updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
@@ -316,6 +311,7 @@ export type ConvoState = ConvoStore & {
   }
   getExplodingMode: () => number
   getEditInfo: () => {exploded: boolean; ordinal: T.Chat.Ordinal; text: string} | undefined
+  isMetaGood: () => boolean
 }
 
 // don't bug the users with black bars for network errors. chat isn't going to work in general
@@ -2336,11 +2332,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
-    setDraft: d => {
-      set(s => {
-        s.draft = d
-      })
-    },
     setEditing: _ordinal => {
       // clearing
       if (_ordinal === false) {
@@ -2574,8 +2565,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.meta = m
       })
-      get().dispatch.setDraft(get().meta.draft)
-      get().dispatch.setMuted(get().meta.isMuted)
     },
     setMinWriterRole: role => {
       const f = async () => {
@@ -2590,11 +2579,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMoreToLoad: m => {
       set(s => {
         s.moreToLoad = m
-      })
-    },
-    setMuted: m => {
-      set(s => {
-        s.muted = m
       })
     },
     setParticipants: p => {
@@ -2969,6 +2953,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     }, 200),
+    updateFromUIInboxLayout: l => {
+      if (get().isMetaGood()) return
+      const {isMuted, draft} = l
+      set(s => {
+        s.meta.draft = draft || ''
+        s.meta.isMuted = isMuted
+      })
+    },
     // maybe remove this when reducer is ported
     updateMessage: (ordinal: T.Chat.Ordinal, pm: Partial<T.Chat.Message>) => {
       set(s => {
@@ -2991,8 +2983,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           s.meta[k] = pm[k]
         })
       })
-      get().dispatch.setDraft(get().meta.draft)
-      get().dispatch.setMuted(get().meta.isMuted)
     },
     updateNotificationSettings: (
       notificationsDesktop,
@@ -3079,6 +3069,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const meta = get().meta
       const convRetention = Meta.getEffectiveRetentionPolicy(meta)
       return convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
+    },
+    isMetaGood: () => {
+      // fake meta doesn't have our actual id in it
+      return get().meta.conversationIDKey === get().id
     },
   }
 }

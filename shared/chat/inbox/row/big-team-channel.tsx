@@ -16,9 +16,9 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
   const isError = C.useChatContext(s => s.meta.trustedState === 'error')
   const snippetDecoration = C.useChatContext(s => s.meta.snippetDecoration)
   const hasBadge = C.useChatContext(s => s.badge > 0)
-  const hasDraft = C.useChatContext(s => !!s.draft)
+  const hasDraft = C.useChatContext(s => !!s.meta.draft)
   const hasUnread = C.useChatContext(s => s.unread > 0)
-  const isMuted = C.useChatContext(s => s.muted)
+  const isMuted = C.useChatContext(s => s.meta.isMuted)
   const navigateToThread = C.useChatContext(s => s.dispatch.navigateToThread)
 
   const onSelectConversation = () => navigateToThread('inboxBig')
