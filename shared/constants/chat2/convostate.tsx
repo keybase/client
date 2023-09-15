@@ -545,7 +545,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         let tlfName = _tlfName
         const conversationIDKey = get().id
         const meta = get().meta
-        if (meta.conversationIDKey !== conversationIDKey) {
+        if (!get().isMetaGood()) {
           if (!tlfName) {
             logger.warn('attachmentsUpload: missing meta for attachment upload', conversationIDKey)
             return
@@ -1027,7 +1027,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             },
             waitingKey: loadingKey,
           })
-          if (get().meta.conversationIDKey === conversationIDKey) {
+          if (get().isMetaGood()) {
             get().dispatch.updateMeta({offline: results.offline})
           }
         } catch (error) {
@@ -1085,7 +1085,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           logger.info('bail on not logged in')
           return
         }
-        const {id: conversationIDKey, meta, messageMap, messageOrdinals} = get()
+        const {id: conversationIDKey, meta, messageMap, messageOrdinals, isMetaGood} = get()
         if (!T.Chat.isValidConversationIDKey(conversationIDKey)) {
           logger.info('bail on no selected conversation')
           return
@@ -1108,7 +1108,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const message = ordinal ? messageMap.get(ordinal) : undefined
 
         let readMsgID: number | undefined
-        if (meta.conversationIDKey === conversationIDKey) {
+        if (isMetaGood()) {
           readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
         }
 
@@ -1204,7 +1204,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       Z.ignorePromise(f())
     },
     messageDelete: ordinal => {
-      const {id, dispatch, messageMap, meta} = get()
+      const {id, dispatch, messageMap, meta, isMetaGood} = get()
       const m = messageMap.get(ordinal)
       if (m?.type === 'text') {
         dispatch.updateMessage(ordinal, {submitState: 'deleting'})
@@ -1219,7 +1219,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           logger.warn('Deleting invalid message')
           return
         }
-        if (meta.conversationIDKey !== conversationIDKey) {
+        if (!isMetaGood()) {
           logger.warn('Deleting message w/ no meta')
           return
         }
@@ -1862,7 +1862,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           )
           if (role && role !== 'none') {
             // only insert if the convo is already in the inbox
-            if (get().meta.conversationIDKey === conversationIDKey) {
+            if (get().isMetaGood()) {
               get().dispatch.updateMeta({
                 cannotWrite,
                 minWriterRole: role,
@@ -2229,8 +2229,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const ensureSelectedTeamLoaded = () => {
         const selectedConversation = Common.getSelectedConversation()
-        const meta = _getConvoState(selectedConversation).meta
-        if (meta.conversationIDKey === selectedConversation) {
+        const {meta, isMetaGood} = _getConvoState(selectedConversation)
+        if (isMetaGood()) {
           const {teamID, teamname} = meta
           if (teamname) {
             C.useTeamsState.getState().dispatch.getMembers(teamID)
@@ -2238,9 +2238,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
       ensureSelectedTeamLoaded()
-      const meta = get().meta
       const participantInfo = get().participants
-      const force = meta.conversationIDKey !== conversationIDKey || participantInfo.all.length === 0
+      const force = !get().isMetaGood() || participantInfo.all.length === 0
       C.useChatState.getState().dispatch.unboxRows([conversationIDKey], force)
       get().dispatch.setThreadLoadStatus(T.RPCChat.UIChatThreadStatusTyp.none)
       get().dispatch.setMessageCenterOrdinal()
@@ -2255,7 +2254,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const clientPrev = getClientPrev()
         const ephemeralLifetime = get().explodingMode
         const meta = get().meta
-        if (meta.conversationIDKey !== conversationIDKey) {
+        if (!get().isMetaGood()) {
           logger.warn('sendAudioRecording: no meta for send')
           return
         }
@@ -2853,7 +2852,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         const conversationIDKey = get().id
         const meta = get().meta
-        if (meta.conversationIDKey !== conversationIDKey) {
+        if (!get().isMetaGood()) {
           logger.debug('unfurl remove no meta found, aborting!')
           return
         }
@@ -2934,10 +2933,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     updateContainsLatestMessage: force => {
       // already good
       if (!force && get().containsLatestMessage) return
+      if (!get().isMetaGood()) return
       const {meta, messageMap, messageOrdinals} = get()
-      // is our meta good?
-      if (meta.conversationIDKey !== get().id) return
-
       const lastOrdinalWithID = findLast(messageOrdinals ?? [], o => (messageMap.get(o)?.id ?? 0) > 0)
       const maxMsgID = lastOrdinalWithID ? messageMap.get(lastOrdinalWithID)?.id ?? 0 : 0
       dispatch.setContainsLatestMessage(maxMsgID >= meta.maxVisibleMsgID)

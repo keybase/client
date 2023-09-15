@@ -500,7 +500,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         return
       }
       const missing = inboxLayout.widgetList.reduce<Array<T.Chat.ConversationIDKey>>((l, v) => {
-        if (C.getConvoState(v.convID).meta.conversationIDKey !== v.convID) {
+        if (!C.getConvoState(v.convID).isMetaGood()) {
           l.push(v.convID)
         }
         return l
@@ -610,7 +610,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
 
           const missingMetas = results.reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
-            if (C.getConvoState(r.conversationIDKey).meta.conversationIDKey !== r.conversationIDKey) {
+            if (!C.getConvoState(r.conversationIDKey).isMetaGood()) {
               arr.push(r.conversationIDKey)
             }
             return arr
@@ -951,8 +951,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
       })
 
       const selectedConversation = Common.getSelectedConversation()
-      const meta = C.getConvoState(selectedConversation).meta
-      if (meta.conversationIDKey === selectedConversation) {
+      const {isMetaGood, meta} = C.getConvoState(selectedConversation)
+      if (isMetaGood()) {
         const {teamID} = meta
         if (!C.useTeamsState.getState().teamIDToMembers.get(teamID) && meta.teamname) {
           C.useTeamsState.getState().dispatch.getMembers(teamID)
@@ -1217,7 +1217,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               const conversationIDKey = T.Chat.conversationIDToKey(setAppNotificationSettings.convID)
               const settings = setAppNotificationSettings.settings
               const cs = C.getConvoState(conversationIDKey)
-              if (cs.meta.conversationIDKey === conversationIDKey) {
+              if (cs.isMetaGood()) {
                 cs.dispatch.updateMeta(Meta.parseNotificationSettings(settings))
               }
               break
@@ -1300,7 +1300,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
           const cs = C.getConvoState(meta.conversationIDKey)
           // only insert if the convo is already in the inbox
-          if (cs.meta.conversationIDKey === meta.conversationIDKey) {
+          if (cs.isMetaGood()) {
             cs.dispatch.setMeta(meta)
           }
           break
@@ -1318,7 +1318,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             metas.forEach(meta => {
               const cs = C.getConvoState(meta.conversationIDKey)
               // only insert if the convo is already in the inbox
-              if (cs.meta.conversationIDKey === meta.conversationIDKey) {
+              if (cs.isMetaGood()) {
                 cs.dispatch.setMeta(meta)
               }
             })
