@@ -13,7 +13,7 @@ using namespace facebook::jsi;
 using namespace std;
 using namespace kb;
 
-JavaVM *java_vm;
+JavaVM *java_vm = NULL;
 jclass java_class;
 jobject java_object;
 
