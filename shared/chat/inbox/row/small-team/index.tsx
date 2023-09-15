@@ -138,7 +138,7 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   const {backgroundColor, isSelected} = p
   const layoutIsTeam = React.useContext(IsTeamContext)
   const participants = React.useContext(ParticipantsContext)
-  const isMuted = C.useChatContext(s => s.muted)
+  const isMuted = C.useChatContext(s => s.meta.isMuted)
   const you = C.useCurrentUserState(s => s.username)
   const isLocked = C.useChatContext(s => {
     const {meta} = s

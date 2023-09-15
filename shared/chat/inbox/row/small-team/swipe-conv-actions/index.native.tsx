@@ -64,7 +64,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
     hideConversation(true)
   })
 
-  const isMuted = C.useChatContext(s => s.muted)
+  const isMuted = C.useChatContext(s => s.meta.isMuted)
 
   const onMarkAsUnread = Container.useEvent(() => {
     onMarkConversationAsUnread()

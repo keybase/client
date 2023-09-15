@@ -114,7 +114,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
 
   const you = C.useCurrentUserState(s => s.username)
   const hasUnread = C.useChatContext(s => s.unread > 0)
-  const _draft = C.useChatContext(s => s.draft)
+  const _draft = C.useChatContext(s => s.meta.draft)
   const {hasResetUsers, isDecryptingSnippet, participantNeedToRekey, youAreReset, youNeedToRekey} =
     C.useChatContext(s => {
       const {membershipType, rekeyers, resetParticipants, trustedState, conversationIDKey, snippetDecorated} =

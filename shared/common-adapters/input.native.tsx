@@ -295,7 +295,6 @@ class Input extends React.Component<Props, State> {
       autoCorrect: Object.prototype.hasOwnProperty.call(this.props, 'autoCorrect') && this.props.autoCorrect,
       autoFocus: this.props.autoFocus,
       editable: Object.prototype.hasOwnProperty.call(this.props, 'editable') ? this.props.editable : true,
-      keyboardAppearance: Styles.isIOS ? (Styles.isDarkMode() ? 'dark' : 'light') : undefined,
       keyboardType,
       onBlur: this.onBlur,
       onChangeText: this.onChangeText,
