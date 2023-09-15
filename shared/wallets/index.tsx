@@ -1,11 +1,9 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as T from '../constants/types'
 import * as Constants from '../constants/wallets'
-import * as WaitingConstants from '../constants/waiting'
 import {useFocusEffect} from '@react-navigation/native'
 
 const Row = (p: {account: Constants.Account}) => {
@@ -42,7 +40,7 @@ const Row = (p: {account: Constants.Account}) => {
       alignSelf="flex-start"
       alignItems="flex-start"
       style={styles.row}
-      fullWidth={Styles.isMobile}
+      fullWidth={Kb.Styles.isMobile}
     >
       <Kb.Text type="BodyBold">
         {name}
@@ -134,7 +132,7 @@ export default () => {
     })
   }, [accountMap])
 
-  const loading = WaitingConstants.useAnyWaiting(Constants.loadAccountsWaitingKey)
+  const loading = C.useAnyWaiting(Constants.loadAccountsWaitingKey)
 
   const rows = accounts.map((a, idx) => <Row account={a} key={String(idx)} />)
 
@@ -164,14 +162,14 @@ export default () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      accountID: Styles.platformStyles({
+      accountID: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-all'},
       }),
-      container: {padding: Styles.globalMargins.small},
-      copyText: Styles.platformStyles({
+      container: {padding: Kb.Styles.globalMargins.small},
+      copyText: Kb.Styles.platformStyles({
         isMobile: {
           flexShrink: 1,
           width: '100%',
@@ -179,11 +177,11 @@ const styles = Styles.styleSheetCreate(
       }),
       label: {flexShrink: 0},
       remove: {alignSelf: 'flex-end'},
-      reveal: {width: Styles.isMobile ? undefined : '75%'},
-      row: Styles.platformStyles({
+      reveal: {width: Kb.Styles.isMobile ? undefined : '75%'},
+      row: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueGreyLight,
-          borderRadius: Styles.borderRadius,
+          backgroundColor: Kb.Styles.globalColors.blueGreyLight,
+          borderRadius: Kb.Styles.borderRadius,
           flexShrink: 0,
         },
         isElectron: {

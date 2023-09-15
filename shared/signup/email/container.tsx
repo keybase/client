@@ -1,8 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
 import * as Constants from '../../constants/signup'
-import * as Platform from '../../constants/platform'
 import EnterEmail, {type Props} from '.'
 
 type WatcherProps = Props & {
@@ -34,11 +32,11 @@ const WatchForSuccess = (props: WatcherProps) => {
 }
 
 const ConnectedEnterEmail = () => {
-  const _showPushPrompt = C.usePushState(s => Platform.isMobile && !s.hasPermissions && s.showPushPrompt)
+  const _showPushPrompt = C.usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
   const addedEmail = C.useSettingsEmailState(s => s.addedEmail)
   const error = C.useSettingsEmailState(s => s.error)
   const initialEmail = C.useSignupState(s => s.email)
-  const waiting = Container.useAnyWaiting(C.addEmailWaitingKey)
+  const waiting = C.useAnyWaiting(C.addEmailWaitingKey)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const _navClearModals = () => {
     clearModals()

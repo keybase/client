@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
-import * as Styles from '../../styles'
 import * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
 import type {IconType} from '../../common-adapters/icon'
@@ -59,7 +58,7 @@ const icons = {
 export type TlfTypeIconProps = {
   badgeOverride?: any // TS freaking out IconType
   size: Size
-  style: Styles.StylesCrossPlatform
+  style: Kb.Styles.StylesCrossPlatform
   tlfType: T.FS.TlfType
 }
 
@@ -84,7 +83,7 @@ export const TlfTypeIcon = (props: TlfTypeIconProps) => {
       {props.badgeOverride ? (
         <Kb.Box style={styles.badgeContainer}>
           <Kb.Icon fixOverdraw={true} type={props.badgeOverride} style={badgeStyle.rightBottomBadge} />
-          color={Styles.globalColors.greyDarker}
+          color={Kb.Styles.globalColors.greyDarker}
         </Kb.Box>
       ) : (
         !!badgeCount && (
@@ -100,7 +99,7 @@ export const TlfTypeIcon = (props: TlfTypeIconProps) => {
 type TlfIconProps = {
   badgeOverride?: any // TS freaking out IconType
   size: Size
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
   tlfTypeForFolderIconOverride?: T.FS.TlfType
 }
 
@@ -117,7 +116,7 @@ const TlfIcon = (props: TlfIconProps) => (
           fixOverdraw={true}
           type={props.badgeOverride}
           style={badgeStyles[getIconSizeString(props.size)].rightBottomBadge}
-          color={Styles.globalColors.greyDarker}
+          color={Kb.Styles.globalColors.greyDarker}
         />
       </Kb.Box>
     )}
@@ -128,7 +127,7 @@ type InTlfItemIconProps = {
   badgeOverride?: any // TS freaking out IconType
   path: T.FS.Path
   size: Size
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
   tlfTypeForFolderIconOverride?: T.FS.TlfType
 }
 
@@ -155,7 +154,7 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
           <Kb.Icon
             type={badgeIcon}
             style={badgeStyle.rightBottomBadge}
-            color={Styles.globalColors.greyDarker}
+            color={Kb.Styles.globalColors.greyDarker}
           />
         </Kb.Box>
       ) : null}
@@ -168,7 +167,7 @@ export type ItemIconProps = {
   mixedMode?: boolean
   path: T.FS.Path
   size: Size
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 const ItemIcon = (props: ItemIconProps) => {
@@ -215,7 +214,7 @@ const ItemIcon = (props: ItemIconProps) => {
 
 export default ItemIcon
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       badgeContainer: {
@@ -231,93 +230,93 @@ const styles = Styles.styleSheetCreate(
 )
 
 const badgeStyles = {
-  '16': Styles.styleSheetCreate(
+  '16': Kb.Styles.styleSheetCreate(
     () =>
       ({
         numberBadge: {
-          left: Styles.globalMargins.tiny + Styles.globalMargins.xxtiny,
+          left: Kb.Styles.globalMargins.tiny + Kb.Styles.globalMargins.xxtiny,
           position: 'absolute',
-          top: -(Styles.globalMargins.medium + Styles.globalMargins.xxtiny),
+          top: -(Kb.Styles.globalMargins.medium + Kb.Styles.globalMargins.xxtiny),
         },
-        rightBottomBadge: Styles.platformStyles({
+        rightBottomBadge: Kb.Styles.platformStyles({
           common: {
             position: 'absolute',
           },
           isElectron: {
-            height: Styles.globalMargins.tiny,
-            left: Styles.globalMargins.xsmall - Styles.globalMargins.xxtiny,
-            top: -Styles.globalMargins.tiny,
-            width: Styles.globalMargins.tiny,
+            height: Kb.Styles.globalMargins.tiny,
+            left: Kb.Styles.globalMargins.xsmall - Kb.Styles.globalMargins.xxtiny,
+            top: -Kb.Styles.globalMargins.tiny,
+            width: Kb.Styles.globalMargins.tiny,
           },
           isMobile: {
-            height: Styles.globalMargins.xsmall,
-            left: Styles.globalMargins.xsmall - Styles.globalMargins.xtiny,
-            top: -Styles.globalMargins.tiny,
-            width: Styles.globalMargins.xsmall,
+            height: Kb.Styles.globalMargins.xsmall,
+            left: Kb.Styles.globalMargins.xsmall - Kb.Styles.globalMargins.xtiny,
+            top: -Kb.Styles.globalMargins.tiny,
+            width: Kb.Styles.globalMargins.xsmall,
           },
         }),
       }) as const
   ),
-  '32': Styles.styleSheetCreate(
+  '32': Kb.Styles.styleSheetCreate(
     () =>
       ({
         numberBadge: {
-          left: Styles.globalMargins.small + Styles.globalMargins.xtiny,
+          left: Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny,
           position: 'absolute',
-          top: -(Styles.globalMargins.mediumLarge + Styles.globalMargins.xtiny),
+          top: -(Kb.Styles.globalMargins.mediumLarge + Kb.Styles.globalMargins.xtiny),
         },
-        rightBottomBadge: Styles.platformStyles({
+        rightBottomBadge: Kb.Styles.platformStyles({
           common: {
             position: 'absolute',
           },
           isElectron: {
-            height: Styles.globalMargins.xsmall,
-            left: Styles.globalMargins.medium - Styles.globalMargins.xxtiny,
-            top: -(Styles.globalMargins.xsmall + Styles.globalMargins.xxtiny),
-            width: Styles.globalMargins.xsmall,
+            height: Kb.Styles.globalMargins.xsmall,
+            left: Kb.Styles.globalMargins.medium - Kb.Styles.globalMargins.xxtiny,
+            top: -(Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xxtiny),
+            width: Kb.Styles.globalMargins.xsmall,
           },
           isMobile: {
-            height: Styles.globalMargins.small,
-            left: Styles.globalMargins.medium - Styles.globalMargins.xtiny,
-            top: -Styles.globalMargins.small,
-            width: Styles.globalMargins.small,
+            height: Kb.Styles.globalMargins.small,
+            left: Kb.Styles.globalMargins.medium - Kb.Styles.globalMargins.xtiny,
+            top: -Kb.Styles.globalMargins.small,
+            width: Kb.Styles.globalMargins.small,
           },
         }),
       }) as const
   ),
-  '48': Styles.styleSheetCreate(
+  '48': Kb.Styles.styleSheetCreate(
     () =>
       ({
         numberBadge: {
-          left: Styles.globalMargins.mediumLarge + Styles.globalMargins.xtiny,
+          left: Kb.Styles.globalMargins.mediumLarge + Kb.Styles.globalMargins.xtiny,
           position: 'absolute',
-          top: -(Styles.globalMargins.large + Styles.globalMargins.tiny),
+          top: -(Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny),
         },
         rightBottomBadge: {
-          height: Styles.globalMargins.small,
-          left: Styles.globalMargins.mediumLarge - Styles.globalMargins.xxtiny,
+          height: Kb.Styles.globalMargins.small,
+          left: Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny,
           position: 'absolute',
-          top: -Styles.globalMargins.small - Styles.globalMargins.xtiny,
-          width: Styles.globalMargins.small,
+          top: -Kb.Styles.globalMargins.small - Kb.Styles.globalMargins.xtiny,
+          width: Kb.Styles.globalMargins.small,
         },
       }) as const
   ),
-  '96': Styles.styleSheetCreate(
+  '96': Kb.Styles.styleSheetCreate(
     () =>
       ({
         numberBadge: {
-          left: Styles.globalMargins.large + Styles.globalMargins.tiny,
+          left: Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny,
           position: 'absolute',
-          top: -(Styles.globalMargins.large + Styles.globalMargins.small),
+          top: -(Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.small),
         },
         rightBottomBadge: {
           // this doesn't work for the folder icon, but it's fine as we don't
           // have such badge on folder icon of 96 size.
-          height: Styles.globalMargins.medium,
-          left: Styles.globalMargins.xlarge,
+          height: Kb.Styles.globalMargins.medium,
+          left: Kb.Styles.globalMargins.xlarge,
           position: 'absolute',
-          top: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny),
-          width: Styles.globalMargins.medium,
+          top: -(Kb.Styles.globalMargins.medium + Kb.Styles.globalMargins.xtiny),
+          width: Kb.Styles.globalMargins.medium,
         },
       }) as const
   ),

@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import type * as T from '../constants/types'
 import Announcement from './announcement/container'
 import FollowNotification from './follow-notification'
@@ -114,7 +113,7 @@ const ResentEmailVerificationBanner = () => {
 
 export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
   return (
-    <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
+    <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
       <EmailVerificationBanner />
       <ResentEmailVerificationBanner />
       {props.newItems

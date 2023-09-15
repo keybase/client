@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import {isMobile} from '../constants/platform'
 import {Banner, BannerParagraph} from './banner'
 
 const Kb = {Banner}
@@ -12,7 +11,7 @@ const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onClickUsername = React.useCallback(
     (username: string) => {
-      if (isMobile) {
+      if (C.isMobile) {
         showUserProfile(username)
       } else {
         showUser(username, true)

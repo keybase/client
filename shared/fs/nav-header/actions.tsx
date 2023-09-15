@@ -4,7 +4,6 @@ import * as T from '../../constants/types'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
-import * as Styles from '../../styles'
 
 type Props = {
   onTriggerFilterMobile: () => void
@@ -16,13 +15,13 @@ const FsNavHeaderRightActions = (props: Props) => {
   const hasSoftError = !!Constants.getSoftError(softErrors, props.path)
   const setFolderViewFilter = C.useFSState(s => s.dispatch.setFolderViewFilter)
   React.useEffect(() => {
-    !Styles.isMobile && setFolderViewFilter() // mobile is handled in mobile-header.tsx
+    !Kb.Styles.isMobile && setFolderViewFilter() // mobile is handled in mobile-header.tsx
   }, [setFolderViewFilter, props.path]) // clear if path changes or it's a new layer of mount
 
   return !hasSoftError ? (
     <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>
       <Kbfs.UploadButton path={props.path} style={styles.uploadButton} />
-      {Styles.isMobile ? (
+      {Kb.Styles.isMobile ? (
         <Kbfs.FolderViewFilterIcon path={props.path} onClick={props.onTriggerFilterMobile} />
       ) : (
         <Kbfs.FolderViewFilter path={props.path} style={styles.folderViewFilter} />
@@ -40,25 +39,25 @@ const FsNavHeaderRightActions = (props: Props) => {
 
 export default FsNavHeaderRightActions
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.desktopStyles.windowDraggingClickable,
+          ...Kb.Styles.desktopStyles.windowDraggingClickable,
           height: 28,
           // Supposed to be small, but icons already have padding
-          paddingRight: Styles.globalMargins.tiny,
+          paddingRight: Kb.Styles.globalMargins.tiny,
         },
       }),
       folderViewFilter: {
-        marginRight: Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
         width: 140,
       },
-      uploadButton: Styles.platformStyles({
+      uploadButton: Kb.Styles.platformStyles({
         isElectron: {
-          marginLeft: Styles.globalMargins.tiny,
-          marginRight: Styles.globalMargins.tiny,
+          marginLeft: Kb.Styles.globalMargins.tiny,
+          marginRight: Kb.Styles.globalMargins.tiny,
         },
       }),
     }) as const

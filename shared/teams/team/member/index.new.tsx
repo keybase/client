@@ -5,7 +5,6 @@ import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as T from '../../../constants/types'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import RoleButton from '../../role-button'
 import isEqual from 'lodash/isEqual'
 import logger from '../../../logger'
@@ -122,7 +121,7 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
 const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => {
   const nav = Container.useSafeNavigation()
   const waitingKey = Constants.removeMemberWaitingKey(teamID, username)
-  const waiting = Container.useAnyWaiting(waitingKey)
+  const waiting = C.useAnyWaiting(waitingKey)
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
     if (wasWaiting && !waiting) {
@@ -300,15 +299,15 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
         direction="horizontal"
         fullWidth={true}
         alignItems="stretch"
-        style={Styles.collapseStyles([styles.row, styles.contentCollapsedFixedHeight])}
+        style={Kb.Styles.collapseStyles([styles.row, styles.contentCollapsedFixedHeight])}
       >
         <Kb.Box2
           direction="horizontal"
           alignSelf="flex-start"
           alignItems="center"
           gap="tiny"
-          style={Styles.collapseStyles([
-            Styles.globalStyles.flexGrow,
+          style={Kb.Styles.collapseStyles([
+            Kb.Styles.globalStyles.flexGrow,
             styles.inviteTeamInfo,
             styles.contentCollapsedFixedHeight,
           ] as const)}
@@ -317,8 +316,8 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
           <Kb.Box2
             direction="vertical"
             alignItems="flex-start"
-            style={Styles.collapseStyles([
-              Styles.globalStyles.flexOne,
+            style={Kb.Styles.collapseStyles([
+              Kb.Styles.globalStyles.flexOne,
               styles.membershipTeamText,
               styles.contentCollapsedFixedHeight,
             ])}
@@ -428,10 +427,8 @@ const NodeInRow = (props: NodeInRowProps) => {
   )
   const amLastOwner = C.useTeamsState(s => Constants.isLastOwner(s, props.node.teamID))
   const isMe = props.username == C.useCurrentUserState(s => s.username)
-  const changingRole = Container.useAnyWaiting(
-    Constants.editMembershipWaitingKey(props.node.teamID, props.username)
-  )
-  const loadingActivity = Container.useAnyWaiting(
+  const changingRole = C.useAnyWaiting(Constants.editMembershipWaitingKey(props.node.teamID, props.username))
+  const loadingActivity = C.useAnyWaiting(
     Constants.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
   )
 
@@ -445,7 +442,7 @@ const NodeInRow = (props: NodeInRowProps) => {
 
   const rolePicker = props.node.canAdminister ? (
     <RoleButton
-      containerStyle={Styles.collapseStyles([styles.roleButton, expanded && styles.roleButtonExpanded])}
+      containerStyle={Kb.Styles.collapseStyles([styles.roleButton, expanded && styles.roleButtonExpanded])}
       loading={changingRole}
       onClick={() => setOpen(true)}
       selectedRole={role}
@@ -475,12 +472,12 @@ const NodeInRow = (props: NodeInRowProps) => {
           {props.idx !== 0 && <Kb.Divider />}
 
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" style={styles.row}>
-            <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.expandIcon])}>
+            <Kb.Box2 direction="horizontal" style={Kb.Styles.collapseStyles([styles.expandIcon])}>
               <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
             </Kb.Box2>
             <Kb.Box2
               direction="horizontal"
-              style={Styles.collapseStyles([
+              style={Kb.Styles.collapseStyles([
                 {flexGrow: 1, flexShrink: 1},
                 !expanded && styles.contentCollapsedFixedHeight,
                 expanded && styles.membershipExpanded,
@@ -498,7 +495,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                   alignSelf="flex-start"
                   alignItems="center"
                   gap="tiny"
-                  style={Styles.collapseStyles([
+                  style={Kb.Styles.collapseStyles([
                     !expanded && styles.contentCollapsedFixedHeight,
                     expanded && styles.membershipContentExpanded,
                   ] as const)}
@@ -507,7 +504,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                   <Kb.Box2
                     direction="vertical"
                     alignItems="flex-start"
-                    style={Styles.collapseStyles([
+                    style={Kb.Styles.collapseStyles([
                       styles.membershipTeamText,
                       expanded && styles.membershipTeamTextExpanded,
                       !expanded && styles.contentCollapsedFixedHeight,
@@ -523,7 +520,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     )}
                   </Kb.Box2>
                 </Kb.Box2>
-                {expanded && Styles.isPhone && (
+                {expanded && Kb.Styles.isPhone && (
                   <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" alignItems="center">
                     {rolePicker}
                   </Kb.Box2>
@@ -533,7 +530,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     <Kb.Icon
                       type="iconfont-typing"
                       sizeType="Small"
-                      color={Styles.globalColors.black_20}
+                      color={Kb.Styles.globalColors.black_20}
                       boxStyle={styles.membershipIcon}
                     />
                     <LastActivity
@@ -548,12 +545,12 @@ const NodeInRow = (props: NodeInRowProps) => {
                     <Kb.Icon
                       type="iconfont-hash"
                       sizeType="Small"
-                      color={Styles.globalColors.black_20}
+                      color={Kb.Styles.globalColors.black_20}
                       boxStyle={styles.membershipIcon}
                     />
                     <Kb.Text
                       type="BodySmall"
-                      style={Styles.globalStyles.flexOne}
+                      style={Kb.Styles.globalStyles.flexOne}
                       lineClamp={4}
                       ellipsizeMode="tail"
                     >
@@ -566,7 +563,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     direction="horizontal"
                     gap="tiny"
                     alignSelf="flex-start"
-                    gapEnd={Styles.isMobile}
+                    gapEnd={Kb.Styles.isMobile}
                     style={styles.paddingBottomMobile}
                   >
                     {!isSmallTeam && (
@@ -592,7 +589,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                 )}
               </Kb.Box2>
             </Kb.Box2>
-            {!Styles.isPhone && (
+            {!Kb.Styles.isPhone && (
               <Kb.Box2 direction="horizontal" alignSelf={expanded ? 'flex-start' : 'center'}>
                 {rolePicker}
               </Kb.Box2>
@@ -630,7 +627,7 @@ export const TeamMemberHeader = (props: Props) => {
   }
 
   const buttons = (
-    <Kb.Box2 direction="horizontal" gap="tiny" alignSelf={Styles.isPhone ? 'flex-start' : 'flex-end'}>
+    <Kb.Box2 direction="horizontal" gap="tiny" alignSelf={Kb.Styles.isPhone ? 'flex-start' : 'flex-end'}>
       <Kb.Button small={true} label="Chat" onClick={onChat} />
       <Kb.Button small={true} label="View profile" onClick={onViewProfile} mode="Secondary" />
       {username !== yourUsername && <BlockDropdown username={username} />}
@@ -644,12 +641,12 @@ export const TeamMemberHeader = (props: Props) => {
           <Kb.Box2
             direction="horizontal"
             alignItems="center"
-            gap={Styles.isPhone ? 'tiny' : 'xtiny'}
+            gap={Kb.Styles.isPhone ? 'tiny' : 'xtiny'}
             alignSelf="flex-start"
           >
             <Kb.Avatar size={16} teamname={teamMeta.teamname} />
             <Kb.Text
-              type={Styles.isPhone ? 'BodySmallSemibold' : 'BodySmallSemiboldSecondaryLink'}
+              type={Kb.Styles.isPhone ? 'BodySmallSemibold' : 'BodySmallSemiboldSecondaryLink'}
               onClick={onViewTeam}
             >
               {teamMeta.teamname}
@@ -677,9 +674,9 @@ export const TeamMemberHeader = (props: Props) => {
                 </Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
-            {!Styles.isPhone && buttons}
+            {!Kb.Styles.isPhone && buttons}
           </Kb.Box2>
-          {Styles.isPhone && buttons}
+          {Kb.Styles.isPhone && buttons}
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
@@ -720,7 +717,7 @@ const BlockDropdown = (props: {username: string}) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   backButton: {
     bottom: 0,
     left: 0,
@@ -728,16 +725,16 @@ const styles = Styles.styleSheetCreate(() => ({
     top: 0,
   },
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     flex: 1,
     position: 'relative',
     width: '100%',
   },
-  contentCollapsedFixedHeight: Styles.platformStyles({
+  contentCollapsedFixedHeight: Kb.Styles.platformStyles({
     common: {height: 48},
     isPhone: {height: 64},
   }),
-  expandIcon: Styles.platformStyles({
+  expandIcon: Kb.Styles.platformStyles({
     common: {
       alignItems: 'center',
       alignSelf: 'flex-start',
@@ -745,80 +742,80 @@ const styles = Styles.styleSheetCreate(() => ({
       flexShrink: 0,
       height: 48,
       justifyContent: 'center',
-      padding: Styles.globalMargins.tiny,
+      padding: Kb.Styles.globalMargins.tiny,
       width: 40,
     },
     isPhone: {
       height: 64,
       padding: 0,
-      width: 10 + Styles.globalMargins.small * 2, // 16px side paddings
+      width: 10 + Kb.Styles.globalMargins.small * 2, // 16px side paddings
     },
   }),
-  floatingContainerStyle: Styles.platformStyles({
+  floatingContainerStyle: Kb.Styles.platformStyles({
     isElectron: {
       position: 'relative',
-      right: Styles.globalMargins.tiny,
+      right: Kb.Styles.globalMargins.tiny,
     },
   }),
-  headerContainer: Styles.platformStyles({
+  headerContainer: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.white,
-      paddingBottom: Styles.globalMargins.small,
+      backgroundColor: Kb.Styles.globalColors.white,
+      paddingBottom: Kb.Styles.globalMargins.small,
     },
-    isElectron: {...Styles.desktopStyles.windowDraggingClickable},
-    isPhone: {paddingTop: Styles.globalMargins.small},
-    isTablet: {paddingTop: Styles.globalMargins.small},
+    isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable},
+    isPhone: {paddingTop: Kb.Styles.globalMargins.small},
+    isTablet: {paddingTop: Kb.Styles.globalMargins.small},
   }),
-  headerContent: {...Styles.padding(0, Styles.globalMargins.small)},
-  headerText: Styles.platformStyles({
+  headerContent: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.small)},
+  headerText: Kb.Styles.platformStyles({
     common: {width: 127},
     isPhone: {flex: 1},
   }),
-  headerTextContainer: Styles.platformStyles({
-    isPhone: {paddingBottom: Styles.globalMargins.tiny},
+  headerTextContainer: Kb.Styles.platformStyles({
+    isPhone: {paddingBottom: Kb.Styles.globalMargins.tiny},
   }),
   inviteButton: {minWidth: 56},
-  inviteTeamInfo: Styles.platformStyles({
-    common: {paddingLeft: Styles.globalMargins.small},
+  inviteTeamInfo: Kb.Styles.platformStyles({
+    common: {paddingLeft: Kb.Styles.globalMargins.small},
   }),
-  membershipContentExpanded: Styles.platformStyles({
+  membershipContentExpanded: Kb.Styles.platformStyles({
     common: {
       height: 40,
-      paddingTop: Styles.globalMargins.tiny,
+      paddingTop: Kb.Styles.globalMargins.tiny,
     },
     isPhone: {
       height: 48,
-      paddingTop: Styles.globalMargins.small,
+      paddingTop: Kb.Styles.globalMargins.small,
     },
   }),
-  membershipExpanded: Styles.platformStyles({
-    isElectron: {paddingBottom: Styles.globalMargins.tiny},
-    isTablet: {paddingBottom: Styles.globalMargins.tiny},
+  membershipExpanded: Kb.Styles.platformStyles({
+    isElectron: {paddingBottom: Kb.Styles.globalMargins.tiny},
+    isTablet: {paddingBottom: Kb.Styles.globalMargins.tiny},
   }),
   membershipIcon: {
     flexShrink: 0,
-    paddingTop: Styles.globalMargins.xtiny,
+    paddingTop: Kb.Styles.globalMargins.xtiny,
   },
   membershipTeamText: {justifyContent: 'center'},
-  membershipTeamTextExpanded: Styles.platformStyles({
-    isMobile: {paddingTop: Styles.globalMargins.tiny},
+  membershipTeamTextExpanded: Kb.Styles.platformStyles({
+    isMobile: {paddingTop: Kb.Styles.globalMargins.tiny},
   }),
   mobileHeader: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
     height: 40,
     position: 'absolute',
     right: 0,
     top: 0,
   },
-  paddingBottomMobile: Styles.platformStyles({
-    isPhone: {paddingBottom: Styles.globalMargins.small},
+  paddingBottomMobile: Kb.Styles.platformStyles({
+    isPhone: {paddingBottom: Kb.Styles.globalMargins.small},
   }),
   reloadButton: {
-    marginTop: Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.tiny,
     minWidth: 56,
   },
   roleButton: {paddingRight: 0},
-  roleButtonExpanded: Styles.platformStyles({
+  roleButtonExpanded: Kb.Styles.platformStyles({
     isElectron: {
       marginTop: 10, // does not exist as an official size
     },
@@ -826,16 +823,16 @@ const styles = Styles.styleSheetCreate(() => ({
       marginTop: 10, // does not exist as an official size
     },
   }),
-  row: {paddingRight: Styles.globalMargins.small},
-  rowCollapsedFixedHeight: Styles.platformStyles({
+  row: {paddingRight: Kb.Styles.globalMargins.small},
+  rowCollapsedFixedHeight: Kb.Styles.platformStyles({
     common: {height: 49},
     isPhone: {
       flexShrink: 0,
       height: 65,
     },
   }),
-  smallHeader: {...Styles.padding(0, Styles.globalMargins.xlarge)},
-  teamNameLink: {color: Styles.globalColors.black},
+  smallHeader: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.xlarge)},
+  teamNameLink: {color: Kb.Styles.globalColors.black},
 }))
 
 export default TeamMember

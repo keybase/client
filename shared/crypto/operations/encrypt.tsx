@@ -1,14 +1,11 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/crypto'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import Recipients from '../recipients'
 import openURL from '../../util/open-url'
 import {DragAndDrop, Input, InputActionsBar, OperationBanner} from '../input'
 import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from '../output'
-import shallowEqual from 'shallowequal'
 
 const operation = Constants.Operations.Encrypt
 
@@ -19,7 +16,7 @@ const EncryptOptions = React.memo(function EncryptOptions() {
     const {hasRecipients, hideIncludeSelf, hasSBS} = o.meta
     const {includeSelf, sign} = o.options
     return {hasRecipients, hasSBS, hideIncludeSelf, inProgress, includeSelf, sign}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const setEncryptOptions = C.useCryptoState(s => s.dispatch.setEncryptOptions)
 
@@ -28,14 +25,14 @@ const EncryptOptions = React.memo(function EncryptOptions() {
     setEncryptOptions({includeSelf: newIncludeSelf, sign: newSign})
   }
 
-  const direction = Styles.isTablet ? 'horizontal' : Styles.isMobile ? 'vertical' : 'horizontal'
-  const gap = Styles.isTablet ? 'medium' : Styles.isMobile ? 'xtiny' : 'medium'
+  const direction = Kb.Styles.isTablet ? 'horizontal' : Kb.Styles.isMobile ? 'vertical' : 'horizontal'
+  const gap = Kb.Styles.isTablet ? 'medium' : Kb.Styles.isMobile ? 'xtiny' : 'medium'
 
   return (
     <Kb.Box2
       direction={direction}
       fullWidth={true}
-      centerChildren={Styles.isTablet}
+      centerChildren={Kb.Styles.isTablet}
       gap={gap}
       style={styles.optionsContainer}
     >
@@ -64,7 +61,7 @@ const EncryptOutputBanner = () => {
     const {hasRecipients} = o.meta
     const {includeSelf} = o.options
     return {hasRecipients, includeSelf, outputType, recipients}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const youAnd = (who: string) => (includeSelf ? `you and ${who}` : who)
   const whoCanRead = hasRecipients
@@ -102,12 +99,12 @@ const EncryptOutputBanner = () => {
   return <OutputInfoBanner operation={operation}>{paragraphs}</OutputInfoBanner>
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      optionsContainer: Styles.platformStyles({
+      optionsContainer: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small),
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small),
           alignItems: 'center',
           height: 40,
         },
@@ -115,7 +112,7 @@ const styles = Styles.styleSheetCreate(
           alignItems: 'flex-start',
         },
         isTablet: {
-          ...Styles.globalStyles.fullWidth,
+          ...Kb.Styles.globalStyles.fullWidth,
           alignSelf: 'center',
           justifyContent: 'space-between',
           maxWidth: 460,
@@ -125,7 +122,7 @@ const styles = Styles.styleSheetCreate(
 )
 
 export const EncryptInput = () => {
-  const options = Container.isMobile ? (
+  const options = C.isMobile ? (
     <InputActionsBar operation={operation}>
       <EncryptOptions />
     </InputActionsBar>
@@ -144,12 +141,12 @@ export const EncryptInput = () => {
   const resetOperation = C.useCryptoState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
-      if (Container.isMobile) {
+      if (C.isMobile) {
         resetOperation(operation)
       }
     }
   }, [resetOperation])
-  return Container.isMobile ? (
+  return C.isMobile ? (
     <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Constants.inputDesktopMaxHeight}>
@@ -162,11 +159,11 @@ export const EncryptOutput = () => (
   <Kb.Box2
     direction="vertical"
     fullHeight={true}
-    style={Container.isMobile ? undefined : Constants.outputDesktopMaxHeight}
+    style={C.isMobile ? undefined : Constants.outputDesktopMaxHeight}
   >
     <EncryptOutputBanner />
     <SignedSender operation={operation} />
-    {Container.isMobile ? <Kb.Divider /> : null}
+    {C.isMobile ? <Kb.Divider /> : null}
     <OperationOutput operation={operation} />
     <OutputActionsBar operation={operation} />
   </Kb.Box2>

@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import type {ButtonType} from '../../common-adapters/button'
 import {SignupScreen} from '../../signup/common'
 
@@ -39,8 +38,8 @@ const PaperKey = () => {
           direction="vertical"
           fullWidth={true}
           style={styles.contents}
-          centerChildren={!Styles.isAndroid /* android keyboardAvoiding doesnt work well */}
-          gap={Styles.isMobile ? 'tiny' : 'medium'}
+          centerChildren={!Kb.Styles.isAndroid /* android keyboardAvoiding doesnt work well */}
+          gap={Kb.Styles.isMobile ? 'tiny' : 'medium'}
         >
           <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
             <Kb.Icon type="icon-paper-key-96" />
@@ -66,15 +65,15 @@ const PaperKey = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   contents: {
     flexGrow: 1,
-    maxWidth: Styles.isMobile ? '100%' : 460,
+    maxWidth: Kb.Styles.isMobile ? '100%' : 460,
     width: '100%',
   },
   input: {
-    ...Styles.globalStyles.fontTerminal,
-    color: Styles.globalColors.black,
+    ...Kb.Styles.globalStyles.fontTerminal,
+    color: Kb.Styles.globalColors.black,
     marginTop: 10,
     width: '100%',
   },

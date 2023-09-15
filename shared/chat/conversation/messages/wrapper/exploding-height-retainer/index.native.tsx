@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as KbMobile from '../../../../../common-adapters/mobile.native'
-import * as Styles from '../../../../../styles'
 import throttle from 'lodash/throttle'
 // ios must animated plain colors not the dynamic ones
 import colors, {darkColors} from '../../../../../styles/colors'
@@ -73,7 +72,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     return (
       <Kb.Box
         onLayout={this._onLayout}
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.container,
           this.props.style,
           this.props.retainHeight && styles.retaining,
@@ -188,7 +187,7 @@ class EmojiTower extends React.Component<
     for (let i = 0; i < this.props.numImages * 4; i++) {
       const r = Math.random()
       let emoji
-      if (Styles.isAndroid) {
+      if (Kb.Styles.isAndroid) {
         emoji = r < 0.5 ? '💥' : '💣'
       } else {
         if (r < 0.33) {
@@ -214,7 +213,7 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
     children.push(
       <Kb.Image2
         key={i}
-        src={Styles.isDarkMode() ? explodedIllustrationDarkURL : explodedIllustrationURL}
+        src={Kb.Styles.isDarkMode() ? explodedIllustrationDarkURL : explodedIllustrationURL}
         style={styles.ashes}
       />
     )
@@ -248,17 +247,17 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
     </>
   )
 }
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       ashes: {
-        backgroundColor: Styles.globalColors.fastBlank,
+        backgroundColor: Kb.Styles.globalColors.fastBlank,
         height: 80,
         width: 400,
       },
-      container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
+      container: {...Kb.Styles.globalStyles.flexBoxColumn, flex: 1},
       emojiTower: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         bottom: 0,
         overflow: 'hidden',
         position: 'absolute',
@@ -267,15 +266,15 @@ const styles = Styles.styleSheetCreate(
         width: 20,
       },
       exploded: {
-        backgroundColor: Styles.globalColors.white,
-        color: Styles.globalColors.black_20_on_white,
-        paddingLeft: Styles.globalMargins.tiny,
+        backgroundColor: Kb.Styles.globalColors.white,
+        color: Kb.Styles.globalColors.black_20_on_white,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       retaining: {
         overflow: 'hidden',
       },
       slider: {
-        backgroundColor: Styles.isDarkMode() ? darkColors.white : colors.white,
+        backgroundColor: Kb.Styles.isDarkMode() ? darkColors.white : colors.white,
         bottom: 0,
         height: '100%',
         left: 0,
@@ -284,14 +283,14 @@ const styles = Styles.styleSheetCreate(
         top: 0,
       },
       tagBox: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-end',
-        backgroundColor: Styles.globalColors.fastBlank,
+        backgroundColor: Kb.Styles.globalColors.fastBlank,
         bottom: 2,
         minWidth: 80,
         position: 'absolute',
         right: 0,
       },
-    } as const)
+    }) as const
 )
 export default ExplodingHeightRetainer

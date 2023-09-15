@@ -1,12 +1,11 @@
 // A mirror of the remote menubar windows.
 import * as C from '../constants'
 import * as T from '../constants/types'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import type * as ChatConstants from '../constants/chat2'
 import KB2 from '../util/electron.desktop'
 import _getIcons from './icons'
-import shallowEqual from 'shallowequal'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {intersect} from '../util/set'
 import {mapFilterByKey} from '../util/map'
@@ -57,7 +56,7 @@ const GetRowsFromTlfUpdate = (t: T.FS.TlfUpdate, uploads: T.FS.Uploads): RemoteT
 
 const getCachedUsernames = memoize(
   (users: Array<string>) => new Set(users),
-  ([a], [b]) => shallowEqual(a, b)
+  ([a], [b]) => C.shallowEqual(a, b)
 )
 
 const convoDiff = (a: ChatConstants.ConvoState, b: ChatConstants.ConvoState) => {
@@ -78,7 +77,7 @@ const convoDiff = (a: ChatConstants.ConvoState, b: ChatConstants.ConvoState) => 
   if (
     a.badge !== b.badge ||
     a.unread !== b.unread ||
-    !shallowEqual(a.participants.name, b.participants.name)
+    !C.shallowEqual(a.participants.name, b.participants.name)
   ) {
     return true
   }
@@ -104,10 +103,10 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const {desktopAppBadgeCount, navBadges, widgetBadge} = C.useNotifState(s => {
     const {desktopAppBadgeCount, navBadges, widgetBadge} = s
     return {desktopAppBadgeCount, navBadges, widgetBadge}
-  }, shallowEqual)
+  }, C.shallowEqual)
   const infoMap = C.useUsersState(s => s.infoMap)
   const widgetList = C.useChatState(s => s.inboxLayout?.widgetList)
-  const darkMode = Styles.isDarkMode()
+  const darkMode = Kb.Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === 'enabled'
 

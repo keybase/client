@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/users'
-import * as Container from '../../../util/container'
 import * as React from 'react'
 import BlockModal, {type BlockModalContext, type BlockType, type NewBlocksMap, type ReportSettings} from '.'
 import {leaveTeamWaitingKey} from '../../../constants/teams'
@@ -11,14 +10,14 @@ type OwnProps = {
   flagUserByDefault?: boolean
   reportsUserByDefault?: boolean
   context?: BlockModalContext
-  convID?: string
+  conversationIDKey?: string
   others?: Array<string>
   team?: string
   username?: string
 }
 
 export default (ownProps: OwnProps) => {
-  const {context, convID} = ownProps
+  const {context, conversationIDKey} = ownProps
   const teamname = ownProps.team
   const blockUserByDefault = ownProps.blockUserByDefault ?? false
   const filterUserByDefault = ownProps.filterUserByDefault ?? false
@@ -26,22 +25,22 @@ export default (ownProps: OwnProps) => {
   const reportsUserByDefault = ownProps.reportsUserByDefault ?? false
   let others = ownProps.others
   let adderUsername = ownProps.username
-  const waitingForLeave = Container.useAnyWaiting(teamname ? leaveTeamWaitingKey(teamname) : undefined)
-  const waitingForBlocking = Container.useAnyWaiting(Constants.setUserBlocksWaitingKey)
-  const waitingForReport = Container.useAnyWaiting(Constants.reportUserWaitingKey)
+  const waitingForLeave = C.useAnyWaiting(teamname ? leaveTeamWaitingKey(teamname) : undefined)
+  const waitingForBlocking = C.useAnyWaiting(Constants.setUserBlocksWaitingKey)
+  const waitingForReport = C.useAnyWaiting(Constants.reportUserWaitingKey)
   if (others?.length === 1 && !adderUsername) {
     adderUsername = others[0]
     others = undefined
   }
 
   const _allKnownBlocks = C.useUsersState(s => s.blockMap)
-  const loadingWaiting = Container.useAnyWaiting(Constants.getUserBlocksWaitingKey)
+  const loadingWaiting = C.useAnyWaiting(Constants.getUserBlocksWaitingKey)
   const stateProps = {
     _allKnownBlocks,
     adderUsername,
     blockUserByDefault,
     context,
-    convID,
+    conversationIDKey,
     filterUserByDefault,
     finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,
     flagUserByDefault,
@@ -64,11 +63,11 @@ export default (ownProps: OwnProps) => {
   const _reportUser = C.useUsersState(s => s.dispatch.reportUser)
   const refreshBlocksFor = getBlockState
   const reportUser = React.useCallback(
-    (username: string, convID: string | undefined, report: ReportSettings) => {
+    (username: string, conversationIDKey: string | undefined, report: ReportSettings) => {
       _reportUser({
         comment: report.extraNotes,
-        convID,
-        includeTranscript: report.includeTranscript && !!convID,
+        conversationIDKey,
+        includeTranscript: report.includeTranscript && !!conversationIDKey,
         reason: report.reason,
         username,
       })
@@ -110,7 +109,7 @@ export default (ownProps: OwnProps) => {
         if (teamname) {
           takingAction = true
           leaveTeamAndBlock(teamname)
-        } else if (stateProps.convID) {
+        } else if (stateProps.conversationIDKey) {
           takingAction = true
           const anyReported = [...newBlocks.values()].some(v => v?.report !== undefined)
           setConversationStatus(anyReported)
@@ -120,7 +119,9 @@ export default (ownProps: OwnProps) => {
         takingAction = true
         setUserBlocks(newBlocks)
       }
-      newBlocks.forEach(({report}, username) => report && reportUser(username, stateProps.convID, report))
+      newBlocks.forEach(
+        ({report}, username) => report && reportUser(username, stateProps.conversationIDKey, report)
+      )
       if (!takingAction) {
         onClose()
       }

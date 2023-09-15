@@ -1,4 +1,4 @@
-import * as SettingsConstants from '../constants/settings'
+import * as C from '../constants'
 import login from './page'
 import proxySettingsModal from '../settings/proxy/page'
 import recoverPasswordDeviceSelector from './recover-password/device-selector/page'
@@ -13,13 +13,12 @@ import resetConfirm from './reset/confirm.page'
 import resetEnterPassword from './reset/password-enter.page'
 import resetKnowPassword from './reset/password-known.page'
 import resetWaiting from './reset/waiting.page'
-import type * as Container from '../util/container'
 import {newRoutes as provisionRoutes} from '../provision/routes-sub'
 import {sharedNewRoutes as settingsRoutes} from '../settings/routes'
 import {newRoutes as signupRoutes} from './signup/routes'
 
 export const newRoutes = {
-  feedback: settingsRoutes[SettingsConstants.feedbackTab],
+  feedback: settingsRoutes[C.settingsFeedbackTab],
   login,
   recoverPasswordDeviceSelector,
   recoverPasswordError,
@@ -40,4 +39,4 @@ export const newModalRoutes = {
   recoverPasswordSetPassword,
 }
 
-export type RootParamListLogin = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>
+export type RootParamListLogin = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

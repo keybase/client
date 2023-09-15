@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
 import Bio from '.'
-import shallowEqual from 'shallowequal'
 
 type OwnProps = {
   inTracker: boolean
@@ -37,7 +36,7 @@ export default (ownProps: OwnProps) => {
         location: d.location,
       }
     }
-  }, shallowEqual)
+  }, C.shallowEqual)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()

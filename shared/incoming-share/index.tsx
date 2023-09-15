@@ -1,12 +1,9 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import * as T from '../constants/types'
 import * as FsConstants from '../constants/fs'
 import * as FsCommon from '../fs/common'
-import * as Platform from '../constants/platform'
-import * as SettingsConstants from '../constants/settings'
 import {MobileSendToChat} from '../chat/send-to-chat'
 import useRPC from '../util/use-rpc'
 
@@ -173,7 +170,7 @@ const useFooter = (incomingShareItems: Array<T.RPCGen.IncomingShareItem>) => {
     : {
         content: (
           <Kb.ClickableBox style={styles.footer} onClick={saveInFiles}>
-            <Kb.Icon type="iconfont-file" color={Styles.globalColors.blue} style={styles.footerIcon} />
+            <Kb.Icon type="iconfont-file" color={Kb.Styles.globalColors.blue} style={styles.footerIcon} />
             <Kb.Text type="BodyBigLink">Save in Files</Kb.Text>
           </Kb.ClickableBox>
         ),
@@ -208,7 +205,7 @@ const IncomingShare = (props: IncomingShareProps) => {
       footer={useFooter(props.incomingShareItems)}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
           <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
         </Kb.Box2>
       </Kb.Box2>
@@ -223,7 +220,7 @@ const IncomingShareError = () => {
     clearModals()
     navigateAppend({
       props: {feedback: `iOS share failure`},
-      selected: SettingsConstants.feedbackTab,
+      selected: C.settingsFeedbackTab,
     })
   }
   const onCancel = () => clearModals()
@@ -253,7 +250,7 @@ const useIncomingShareItems = () => {
   // iOS
   const rpc = useRPC(T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise)
   const getIncomingShareItemsIOS = React.useCallback(() => {
-    if (!Platform.isIOS) {
+    if (!C.isIOS) {
       return
     }
 
@@ -268,7 +265,7 @@ const useIncomingShareItems = () => {
   // Android
   const androidShare = C.useConfigState(s => s.androidShare)
   const getIncomingShareItemsAndroid = React.useCallback(() => {
-    if (!Platform.isAndroid || !androidShare) {
+    if (!C.isAndroid || !androidShare) {
       return
     }
 
@@ -305,15 +302,15 @@ const IncomingShareMain = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   footer: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
   },
   footerIcon: {
-    marginRight: Styles.globalMargins.tiny,
+    marginRight: Kb.Styles.globalMargins.tiny,
   },
 }))
 

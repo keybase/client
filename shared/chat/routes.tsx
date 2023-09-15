@@ -1,4 +1,4 @@
-import type * as Container from '../util/container'
+import type * as C from '../constants'
 import * as ChatConstants from '../constants/chat2'
 import chatAddToChannel from './conversation/info-panel/add-to-channel/page'
 import chatAttachmentFullscreen from './conversation/attachment-fullscreen/page'
@@ -56,4 +56,4 @@ export const newModalRoutes = {
   chatUnfurlMapPopup,
 }
 
-export type RootParamListChat = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>
+export type RootParamListChat = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

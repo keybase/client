@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as T from '../../constants/types'
 
 // A list so the order of the elements is fixed
@@ -144,7 +143,7 @@ class ProxySettings extends React.Component<Props, State> {
 
 // TODO liklely use PopupWrapper
 const ProxySettingsPopup = (props: Props) => {
-  if (Styles.isMobile) {
+  if (Kb.Styles.isMobile) {
     return (
       <Kb.HeaderHocWrapper onBack={props.onBack}>
         <Kb.Box style={styles.popupBox}>
@@ -167,37 +166,37 @@ const ProxySettingsPopup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   divider: {
-    marginTop: Styles.globalMargins.xsmall,
+    marginTop: Kb.Styles.globalMargins.xsmall,
     width: '100%',
   },
   flexButtons: {
     display: 'flex',
     flexShrink: 0,
     flexWrap: 'wrap',
-    marginTop: Styles.globalMargins.tiny,
+    marginTop: Kb.Styles.globalMargins.tiny,
   },
   popupBox: {
     minHeight: '40%',
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
   proxyContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
-    paddingBottom: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.medium,
+    paddingBottom: Kb.Styles.globalMargins.medium,
+    paddingTop: Kb.Styles.globalMargins.medium,
   },
   proxySetting: {
-    marginBottom: Styles.globalMargins.small,
+    marginBottom: Kb.Styles.globalMargins.small,
   },
   proxySettingPopupBox: {
-    padding: Styles.globalMargins.xlarge,
+    padding: Kb.Styles.globalMargins.xlarge,
   },
   radioButton: {
-    marginRight: Styles.globalMargins.medium,
+    marginRight: Kb.Styles.globalMargins.medium,
   },
-  text: Styles.platformStyles({
+  text: Kb.Styles.platformStyles({
     isElectron: {
       cursor: 'default',
     },

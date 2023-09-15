@@ -118,8 +118,15 @@ const handleESC = (onESC: (() => void) | undefined, ev: KeyboardEvent) => {
   onESC?.()
 }
 
-const EscapeHandler = (props: EscapeHandlerProps) => (
-  <KeyEventHandlerWrapper onKeyDown={ev => handleESC(props.onESC, ev)} children={props.children} />
-)
+const EscapeHandler = (props: EscapeHandlerProps) => {
+  const {onESC} = props
+  const onKeyDown = React.useCallback(
+    (ev: KeyboardEvent) => {
+      handleESC(onESC, ev)
+    },
+    [onESC]
+  )
+  return <KeyEventHandlerWrapper onKeyDown={onKeyDown} children={props.children} />
+}
 
 export {GlobalKeyEventHandler, KeyEventHandlerWrapper as KeyEventHandler, EscapeHandler}

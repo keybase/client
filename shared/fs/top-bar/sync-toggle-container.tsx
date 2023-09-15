@@ -1,6 +1,5 @@
-import * as Container from '../../util/container'
-import * as T from '../../constants/types'
 import * as C from '../../constants'
+import * as T from '../../constants/types'
 import SyncToggle from './sync-toggle'
 
 type OwnProps = {
@@ -11,7 +10,7 @@ export default (ownProps: OwnProps) => {
   const {tlfPath} = ownProps
   const _tlfPathItem = C.useFSState(s => C.getPathItem(s.pathItems, ownProps.tlfPath))
   const _tlfs = C.useFSState(s => s.tlfs)
-  const waiting = Container.useAnyWaiting(C.syncToggleWaitingKey)
+  const waiting = C.useAnyWaiting(C.syncToggleWaitingKey)
 
   const setTlfSyncConfig = C.useFSState(s => s.dispatch.setTlfSyncConfig)
 

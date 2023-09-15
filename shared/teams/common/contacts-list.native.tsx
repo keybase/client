@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import type {Section as _Section} from '../../common-adapters/section-list'
 import useContacts, {type Contact as _Contact} from './use-contacts.native'
 import {memoize} from '../../util/memoize'
@@ -164,7 +163,7 @@ const ContactsList = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   checkCircle: {
     marginRight: 24,
   },

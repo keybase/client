@@ -1,12 +1,12 @@
+import * as React from 'react'
 import * as C from '../../../constants'
-import * as Container from '../../../util/container'
 import ChatInboxHeader from '.'
 
 type OwnProps = {
   headerContext: 'chat-header' | 'inbox-header'
 }
 
-export default (ownProps: OwnProps) => {
+export default React.memo(function ChatHeaderContainer(ownProps: OwnProps) {
   const hasLoadedEmptyInbox = C.useChatState(
     s =>
       s.inboxHasLoaded &&
@@ -15,33 +15,33 @@ export default (ownProps: OwnProps) => {
       (s.inboxLayout.bigTeams || []).length === 0
   )
   const showEmptyInbox = C.useChatState(s => !s.inboxSearch && hasLoadedEmptyInbox)
-  const showStartNewChat = !Container.isMobile && showEmptyInbox
+  const showStartNewChat = !C.isMobile && showEmptyInbox
   const isSearching = C.useChatState(s => !!s.inboxSearch)
   const showFilter = !showEmptyInbox
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = () => {
+  const onBack = React.useCallback(() => {
     navigateUp()
-  }
+  }, [navigateUp])
 
   const inboxSearchSelect = C.useChatState(s => s.dispatch.inboxSearchSelect)
   const inboxSearch = C.useChatState(s => s.dispatch.inboxSearch)
   const inboxSearchMoveSelectedIndex = C.useChatState(s => s.dispatch.inboxSearchMoveSelectedIndex)
-  const onEnsureSelection = () => {
+  const onEnsureSelection = React.useCallback(() => {
     inboxSearchSelect()
-  }
+  }, [inboxSearchSelect])
 
   const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
-  const onNewChat = () => {
+  const onNewChat = React.useCallback(() => {
     appendNewChatBuilder()
-  }
+  }, [appendNewChatBuilder])
   const onQueryChanged = inboxSearch
-  const onSelectDown = () => {
+  const onSelectDown = React.useCallback(() => {
     inboxSearchMoveSelectedIndex(true)
-  }
-  const onSelectUp = () => {
+  }, [inboxSearchMoveSelectedIndex])
+  const onSelectUp = React.useCallback(() => {
     inboxSearchMoveSelectedIndex(false)
-  }
+  }, [inboxSearchMoveSelectedIndex])
   const props = {
     isSearching: isSearching,
     onBack: onBack,
@@ -52,8 +52,8 @@ export default (ownProps: OwnProps) => {
     onSelectUp: onSelectUp,
     showFilter: showFilter,
     showNewChat: ownProps.headerContext == 'chat-header',
-    showSearch: ownProps.headerContext == 'chat-header' ? !Container.isTablet : Container.isMobile,
+    showSearch: ownProps.headerContext == 'chat-header' ? !C.isTablet : C.isMobile,
     showStartNewChat: showStartNewChat,
   }
   return <ChatInboxHeader {...props} />
-}
+})

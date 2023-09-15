@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
 import * as React from 'react'
 import * as T from '../../../constants/types'
-import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import {rowStyles} from './common'
 
@@ -60,7 +59,7 @@ const Editing = ({editID}: Props) => {
         <Kb.Box key="right" style={styles.rightBox}>
           {!!edit.error && (
             <Kb.WithTooltip tooltip={edit.error} showOnPressMobile={true}>
-              <Kb.Icon type="iconfont-exclamation" color={Styles.globalColors.red} />
+              <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
             </Kb.WithTooltip>
           )}
           <Kb.WaitingButton
@@ -74,8 +73,8 @@ const Editing = ({editID}: Props) => {
           <Kb.Icon
             onClick={onCancel}
             type={edit.type === T.FS.EditType.NewFolder ? 'iconfont-trash' : 'iconfont-close'}
-            color={Styles.globalColors.black_50}
-            hoverColor={Styles.globalColors.black}
+            color={Kb.Styles.globalColors.black_50}
+            hoverColor={Kb.Styles.globalColors.black}
             style={styles.iconCancel}
           />
         </Kb.Box>
@@ -84,15 +83,15 @@ const Editing = ({editID}: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       button: {
-        marginLeft: Styles.globalMargins.tiny,
+        marginLeft: Kb.Styles.globalMargins.tiny,
       },
-      iconCancel: Styles.platformStyles({
+      iconCancel: Kb.Styles.platformStyles({
         common: {
-          padding: Styles.globalMargins.tiny,
+          padding: Kb.Styles.globalMargins.tiny,
           paddingRight: 0,
         },
         isMobile: {
@@ -100,14 +99,14 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       rightBox: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         flexShrink: 1,
         justifyContent: 'flex-end',
       },
-      text: Styles.platformStyles({
+      text: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.fontSemibold,
+          ...Kb.Styles.globalStyles.fontSemibold,
           maxWidth: '100%',
         },
       }),

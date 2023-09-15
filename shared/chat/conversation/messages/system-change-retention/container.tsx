@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import * as Container from '../../../../util/container'
 import type * as T from '../../../../constants/types'
 import SystemChangeRetention from '.'
 import {getCanPerform} from '../../../../constants/teams'
@@ -22,7 +21,7 @@ const SystemChangeRetentionContainer = React.memo(function SystemChangeRetention
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onClickUserAvatar = React.useCallback(() => {
-    Container.isMobile ? showUserProfile(user) : showUser(user, true)
+    C.isMobile ? showUserProfile(user) : showUser(user, true)
   }, [showUserProfile, showUser, user])
   const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const onManageRetention = React.useCallback(() => {

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import clamp from 'lodash/clamp'
 import type {Props} from '.'
 import {ModalTitle} from '../../teams/common'
@@ -146,9 +145,9 @@ const EditAvatar = (p: Props) => {
       }
     >
       <Kb.Box
-        className={Styles.classNames({dropping: dropping})}
+        className={Kb.Styles.classNames({dropping: dropping})}
         onDrop={onDrop}
-        style={Styles.collapseStyles([styles.container, createdTeam && styles.paddingTopForCreatedTeam])}
+        style={Kb.Styles.collapseStyles([styles.container, createdTeam && styles.paddingTopForCreatedTeam])}
       >
         {type === 'team' && createdTeam && !wizard && (
           <Kb.Box style={styles.createdBanner}>
@@ -165,7 +164,7 @@ const EditAvatar = (p: Props) => {
           for one.
         </Kb.Text>
         <Kb.Box
-          className={Styles.classNames('hoverbox', {filled: loading !== 'loaded'})}
+          className={Kb.Styles.classNames('hoverbox', {filled: loading !== 'loaded'})}
           onClick={!loading ? filePickerOpen : undefined}
           style={{
             borderRadius: type === 'team' ? 32 : AVATAR_CONTAINER_SIZE,
@@ -184,7 +183,7 @@ const EditAvatar = (p: Props) => {
           {!loading && (
             <Kb.Icon
               className="icon"
-              color={Styles.globalColors.greyDark}
+              color={Kb.Styles.globalColors.greyDark}
               fontSize={48}
               style={styles.icon}
               type="iconfont-camera"
@@ -197,15 +196,15 @@ const EditAvatar = (p: Props) => {
   )
 }
 
-const hoverStyles = Styles.styleSheetCreate(
+const hoverStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      hoverContainer: Styles.platformStyles({
+      hoverContainer: Kb.Styles.platformStyles({
         common: {
           alignItems: 'flex-start',
           height: AVATAR_CONTAINER_SIZE,
-          marginBottom: Styles.globalMargins.small,
-          marginTop: Styles.globalMargins.medium,
+          marginBottom: Kb.Styles.globalMargins.small,
+          marginTop: Kb.Styles.globalMargins.medium,
           outlineStyle: 'dotted',
           outlineWidth: 4,
           overflow: 'hidden',
@@ -216,23 +215,23 @@ const hoverStyles = Styles.styleSheetCreate(
           cursor: 'pointer',
         },
       }),
-    } as const)
+    }) as const
 )
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     flexGrow: 1,
-    paddingTop: Styles.globalMargins.small,
+    paddingTop: Kb.Styles.globalMargins.small,
   },
   createdBanner: {
-    backgroundColor: Styles.globalColors.green,
+    backgroundColor: Kb.Styles.globalColors.green,
     borderTopLeftRadius: 4,
     borderTopRightRadius: 4,
-    marginBottom: Styles.globalMargins.large,
-    paddingBottom: Styles.globalMargins.xsmall,
-    paddingTop: Styles.globalMargins.xsmall,
+    marginBottom: Kb.Styles.globalMargins.large,
+    paddingBottom: Kb.Styles.globalMargins.xsmall,
+    paddingTop: Kb.Styles.globalMargins.xsmall,
     textAlign: 'center',
     width: '100%',
   },
@@ -245,7 +244,7 @@ const styles = Styles.styleSheetCreate(() => ({
     top: '50%',
   },
   instructions: {maxWidth: 200},
-  paddingTopForCreatedTeam: {paddingTop: Styles.globalMargins.xlarge},
+  paddingTopForCreatedTeam: {paddingTop: Kb.Styles.globalMargins.xlarge},
   skipButton: {minWidth: 60},
 }))
 

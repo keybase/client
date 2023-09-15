@@ -1,5 +1,6 @@
 // helpers for redux / zustand
-import {create as _create, type StateCreator} from 'zustand'
+import {type StateCreator} from 'zustand'
+import {createWithEqualityFn} from 'zustand/traditional'
 import {immer as immerZustand} from 'zustand/middleware/immer'
 
 export const ignorePromise = (f: Promise<void>) => {
@@ -27,7 +28,7 @@ export const createZustand = <T extends HasReset>(
   initializer: StateCreator<T, [['zustand/immer', never]]>
 ) => {
   const f = immerZustand(initializer)
-  const store = _create<T, [['zustand/immer', never]]>(f)
+  const store = createWithEqualityFn<T, [['zustand/immer', never]]>(f, Object.is)
   // includes dispatch, custom overrides typically don't
   const initialState = store.getState()
   const reset = initialState.dispatch.resetState

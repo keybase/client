@@ -1,6 +1,5 @@
 import * as Kb from '../common-adapters'
 import * as Container from '../util/container'
-import * as Styles from '../styles'
 import openURL from '../util/open-url'
 
 type PunycodeLinkWarningProps = {
@@ -21,7 +20,7 @@ const PunycodeLinkWarning = (props: PunycodeLinkWarningProps) => {
   return (
     <Kb.ConfirmModal
       icon="iconfont-open-browser"
-      iconColor={Styles.globalColors.red}
+      iconColor={Kb.Styles.globalColors.red}
       prompt={'Open URL?'}
       description={description}
       onCancel={onCancel}

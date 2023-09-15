@@ -1,35 +1,36 @@
 import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import {useReply} from './reply'
 import {useBottom} from './bottom'
 import {OrdinalContext} from '../ids-context'
 import {SetRecycleTypeContext} from '../../recycle-type-context'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import {sharedStyles} from '../shared-styles'
-import shallowEqual from 'shallowequal'
 
 // Encoding all 4 states as static objects so we don't re-render
 const getStyle = (
   type: 'error' | 'sent' | 'pending',
   isEditing: boolean,
   isHighlighted?: boolean
-): Styles.StylesCrossPlatform => {
+): Kb.Styles.StylesCrossPlatform => {
   if (isHighlighted) {
-    return Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
+    return Kb.Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
   } else if (type === 'sent') {
     return isEditing
       ? sharedStyles.sentEditing
-      : Styles.collapseStyles([sharedStyles.sent, Styles.globalStyles.fastBackground])
+      : Kb.Styles.collapseStyles([sharedStyles.sent, {backgroundColor: Kb.Styles.globalColors.fastBlank}])
   } else {
     return isEditing
       ? sharedStyles.pendingFailEditing
-      : Styles.collapseStyles([sharedStyles.pendingFail, Styles.globalStyles.fastBackground])
+      : Kb.Styles.collapseStyles([
+          sharedStyles.pendingFail,
+          {backgroundColor: Kb.Styles.globalColors.fastBlank},
+        ])
   }
 }
 
-const MessageMarkdown = (p: {style: Styles.StylesCrossPlatform}) => {
+const MessageMarkdown = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
   const {style} = p
   const ordinal = React.useContext(OrdinalContext)
   const text = C.useChatContext(s => {
@@ -41,7 +42,7 @@ const MessageMarkdown = (p: {style: Styles.StylesCrossPlatform}) => {
   })
 
   const styleOverride = React.useMemo(
-    () => (Styles.isMobile ? ({paragraph: style} as any) : undefined),
+    () => (Kb.Styles.isMobile ? ({paragraph: style} as any) : undefined),
     [style]
   )
 
@@ -72,7 +73,7 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
       : ('pending' as const)
     const hasReactions = (m?.reactions?.size ?? 0) > 0
     return {hasReactions, isEditing, textType}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const setRecycleType = React.useContext(SetRecycleTypeContext)
   let subType = ''

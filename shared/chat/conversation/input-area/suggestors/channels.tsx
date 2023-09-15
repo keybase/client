@@ -5,8 +5,6 @@ import * as Constants from '../../../../constants/chat2'
 import * as TeamsConstants from '../../../../constants/teams'
 import * as Common from './common'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import * as Container from '../../../../util/container'
 import isEqual from 'lodash/isEqual'
 
 export const transformer = (
@@ -33,10 +31,10 @@ const ItemRenderer = (p: Common.ItemRendererProps<ChannelType>) => {
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         Common.styles.suggestionBase,
         Common.styles.fixSuggestionHeight,
-        {backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white},
+        {backgroundColor: selected ? Kb.Styles.globalColors.blueLighter2 : Kb.Styles.globalColors.white},
       ])}
     >
       <Kb.Text type="BodySemibold">#{channelname}</Kb.Text>
@@ -92,7 +90,7 @@ export const useDataSource = (filter: string) => {
   const meta = C.useChatContext(s => s.meta)
   const {teamID} = meta
 
-  const suggestChannelsLoading = Container.useAnyWaiting([
+  const suggestChannelsLoading = C.useAnyWaiting([
     TeamsConstants.getChannelsWaitingKey(teamID),
     Constants.waitingKeyMutualTeams(conversationIDKey),
   ])

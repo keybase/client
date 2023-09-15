@@ -2,7 +2,6 @@ import * as React from 'react'
 import type * as T from './../../constants/types'
 import * as Data from './../../util/emoji'
 import * as Kb from './../../common-adapters'
-import * as Styles from './../../styles'
 import debounce from 'lodash/debounce'
 import {isMobile} from './../../constants/platform'
 import chunk from 'lodash/chunk'
@@ -286,7 +285,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
               <Kb.Icon
                 type={bookmark.iconType}
                 padding="tiny"
-                color={isActive ? Styles.globalColors.blue : Styles.globalColors.black_50}
+                color={isActive ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
                 onClick={() =>
                   this.sectionListRef.current?.scrollToLocation({
                     itemIndex: 0,
@@ -299,7 +298,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
         })}
       </Kb.Box2>
     )
-    return Styles.isMobile ? (
+    return Kb.Styles.isMobile ? (
       <Kb.ScrollView key="bookmark" horizontal={true} style={styles.bookmarkScrollView}>
         {content}
       </Kb.ScrollView>
@@ -377,12 +376,12 @@ class EmojiPicker extends React.PureComponent<Props, State> {
           fullWidth={true}
           centerChildren={true}
           alignItems="flex-start"
-          style={{...Styles.globalStyles.flexGrow, overflow: 'hidden'}}
+          style={{...Kb.Styles.globalStyles.flexGrow, overflow: 'hidden'}}
         >
           <Kb.Box2
             direction="horizontal"
             fullWidth={true}
-            style={Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
+            style={Kb.Styles.collapseStyles([styles.emojiRowContainer, styles.flexWrap])}
           >
             {this.getSectionHeader('Search results')}
             {results.map(e => this.getEmojiSingle(e, this.props.skinTone))}
@@ -437,23 +436,23 @@ const makeEmojiPlaceholder = (index: number) => (
   <Kb.Box key={`ph-${index.toString()}`} style={styles.emojiPlaceholder} />
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       activeBookmark: {
-        backgroundColor: Styles.globalColors.blue_10,
+        backgroundColor: Kb.Styles.globalColors.blue_10,
       },
       bookmarkContainer: {
         height: 44,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.tiny,
       },
       bookmarkScrollView: {
         flexShrink: 0,
       },
       emoji: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
         borderRadius: 2,
         height: emojiWidthWithPadding,
@@ -474,13 +473,13 @@ const styles = Styles.styleSheetCreate(
       notFoundContainer: {
         height: notFoundHeight,
         justifyContent: 'space-between',
-        ...Styles.padding(Styles.globalMargins.medium, 0),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, 0),
       },
       sectionHeader: {
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         height: 32,
-        paddingLeft: Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.tiny,
       },
       sectionListContainer: {
         flexGrow: 1,

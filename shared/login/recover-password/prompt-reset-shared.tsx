@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as T from '../../constants/types'
 import {SignupScreen} from '../../signup/common'
@@ -71,7 +70,7 @@ const PromptReset = (props: Props) => {
         gap="medium"
         style={styles.topGap}
       >
-        <Kb.Icon type="iconfont-skull" sizeType="Big" color={Styles.globalColors.black} />
+        <Kb.Icon type="iconfont-skull" sizeType="Big" color={Kb.Styles.globalColors.black} />
         {props.resetPassword ? (
           <Kb.Text type="Body" center={true} style={styles.main}>
             If you have forgotten your password you can reset it here. You will keep your username, but{' '}
@@ -100,13 +99,13 @@ const PromptReset = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   main: {
-    ...Styles.padding(0, Styles.globalMargins.medium, Styles.globalMargins.small),
+    ...Kb.Styles.padding(0, Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.small),
     maxWidth: 500,
   },
-  questionBox: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0),
-  topGap: Styles.platformStyles({
+  questionBox: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0),
+  topGap: Kb.Styles.platformStyles({
     isMobile: {
       justifyContent: 'flex-start',
       marginTop: '20%',

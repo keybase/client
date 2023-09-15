@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-hw-keyboard-event/android/build.gradle b/node_modules/react-native-hw-keyboard-event/android/build.gradle
+index a70aace..12b437c 100644
+--- a/node_modules/react-native-hw-keyboard-event/android/build.gradle
++++ b/node_modules/react-native-hw-keyboard-event/android/build.gradle
+@@ -1,7 +1,7 @@
+ apply plugin: 'com.android.library'
+ 
+ android {
+-    compileSdkVersion 28
++    compileSdkVersion 33
+ 
+     defaultConfig {
+         minSdkVersion 16

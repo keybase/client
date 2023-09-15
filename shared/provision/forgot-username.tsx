@@ -1,8 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Container from '../util/container'
-import * as Styles from '../styles'
 import {SignupScreen, errorBanner} from '../signup/common'
 
 const ForgotUsername = () => {
@@ -16,7 +14,7 @@ const ForgotUsername = () => {
   const forgotUsernameResult = C.useProvisionState(s => s.forgotUsernameResult)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
-  const waiting = Container.useAnyWaiting(C.forgotUsernameWaitingKey)
+  const waiting = C.useAnyWaiting(C.forgotUsernameWaitingKey)
 
   const [emailSelected, setEmailSelected] = React.useState(true)
   const [email, setEmail] = React.useState('')
@@ -103,8 +101,8 @@ const ForgotUsername = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  phoneInput: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  phoneInput: Kb.Styles.platformStyles({
     isElectron: {
       height: 38,
       width: '100%',
@@ -114,7 +112,7 @@ const styles = Styles.styleSheetCreate(() => ({
       width: '100%',
     },
   }),
-  wrapper: Styles.platformStyles({
+  wrapper: Kb.Styles.platformStyles({
     isElectron: {
       width: 400,
     },

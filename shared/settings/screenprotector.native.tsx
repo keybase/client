@@ -1,14 +1,13 @@
+import * as C from '../constants'
 import * as React from 'react'
-import * as Styles from '../styles'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import {isAndroid, getSecureFlagSetting, setSecureFlagSetting} from '../constants/platform.native'
 
 const Screenprotector = () => {
   const [secureFlag, setSecureFlag] = React.useState<undefined | boolean>(undefined)
-  const isMounted = Container.useIsMounted()
+  const isMounted = C.useIsMounted()
 
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     getSecureFlagSetting()
       .then(secureFlag => {
         isMounted() && setSecureFlag(secureFlag)
@@ -43,9 +42,9 @@ const Screenprotector = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.padding(Styles.globalMargins.small),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
   },
 }))
 

@@ -1,9 +1,7 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import Banner from '../bottom-banner/container'
 import InputArea from '../input-area/container'
 import InvitationToBlock from '../../blocking/invitation-to-block'
@@ -23,7 +21,7 @@ const Offline = () => (
 
 const LoadingLine = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const showLoader = Container.useAnyWaiting([
+  const showLoader = C.useAnyWaiting([
     Constants.waitingKeyThreadLoad(conversationIDKey),
     Constants.waitingKeyInboxSyncStarted,
   ])
@@ -86,11 +84,11 @@ class Conversation extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         flex: 1,
         position: 'relative',
       },
@@ -99,7 +97,7 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       offline: {
-        padding: Styles.globalMargins.xxtiny,
+        padding: Kb.Styles.globalMargins.xxtiny,
       },
       threadSearchStyle: {
         position: 'absolute' as const,

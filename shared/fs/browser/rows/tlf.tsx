@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Styles from '../../../styles'
 import * as T from '../../../constants/types'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
@@ -21,12 +20,12 @@ const Content = (props: TlfProps) => (
       direction="vertical"
       fullWidth={true}
       fullHeight={true}
-      style={Styles.collapseStyles([styles.leftBox, props.disabled && rowStyles.opacity30])}
+      style={Kb.Styles.collapseStyles([styles.leftBox, props.disabled && rowStyles.opacity30])}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.minWidth}>
         <Filename
           type={C.pathTypeToTextType(T.FS.PathType.Folder)}
-          style={Styles.collapseStyles([rowStyles.rowText, styles.kerning])}
+          style={Kb.Styles.collapseStyles([rowStyles.rowText, styles.kerning])}
           path={props.path}
         />
       </Kb.Box2>
@@ -59,14 +58,14 @@ const Tlf = (props: TlfProps) => (
       mixedMode={props.mixedMode}
       writingToJournal={false}
       body={
-        Styles.isMobile ? (
+        Kb.Styles.isMobile ? (
           <Kb.Box style={rowStyles.itemBox}>
             <Content {...props} />
           </Kb.Box>
         ) : undefined
       }
       content={
-        !Styles.isMobile ? (
+        !Kb.Styles.isMobile ? (
           <>
             <Content {...props} />
             <Avatars {...props} />
@@ -77,10 +76,10 @@ const Tlf = (props: TlfProps) => (
   </>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      avatarBox: {marginRight: Styles.globalMargins.xsmall},
+      avatarBox: {marginRight: Kb.Styles.globalMargins.xsmall},
       kerning: {letterSpacing: 0.2},
       leftBox: {flex: 1, justifyContent: 'center', minWidth: 0},
       minWidth: {minWidth: 0},

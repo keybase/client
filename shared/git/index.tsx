@@ -1,8 +1,6 @@
 import * as C from '../constants'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import Row, {NewContext} from './row'
 import sortBy from 'lodash/sortBy'
 import type * as T from '../constants/types'
@@ -10,7 +8,6 @@ import {memoize} from '../util/memoize'
 import {union} from '../util/set'
 import {useFocusEffect} from '@react-navigation/core'
 import {useLocalBadging} from '../util/use-local-badging'
-import shallowEqual from 'shallowequal'
 
 type OwnProps = {expanded?: string}
 
@@ -30,12 +27,12 @@ const getRepos = memoize((git: Map<string, T.Git.GitInfo>) =>
 
 export default (ownProps: OwnProps) => {
   const initialExpandedSet = ownProps.expanded ? new Set([ownProps.expanded]) : undefined
-  const loading = Container.useAnyWaiting(C.gitWaitingKey)
+  const loading = C.useAnyWaiting(C.gitWaitingKey)
   const {clearBadges, load, setError, error, idToInfo, isNew} = C.useGitState(s => {
     const {dispatch, error, idToInfo, isNew} = s
     const {clearBadges, load, setError} = dispatch
     return {clearBadges, error, idToInfo, isNew, load, setError}
-  }, shallowEqual)
+  }, C.shallowEqual)
   const {badged} = useLocalBadging(isNew, clearBadges)
   const {personals, teams} = getRepos(idToInfo)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -102,19 +99,19 @@ export default (ownProps: OwnProps) => {
   return (
     <Kb.Reloadable
       waitingKeys={C.gitWaitingKey}
-      onBack={Container.isMobile ? onBack : undefined}
+      onBack={C.isMobile ? onBack : undefined}
       onReload={load}
       reloadOnMount={true}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
-        {Styles.isMobile && (
+        {Kb.Styles.isMobile && (
           <Kb.ClickableBox ref={popupAnchor} style={styles.header} onClick={toggleShowingPopup}>
             <Kb.Icon
               type="iconfont-new"
-              style={{marginRight: Styles.globalMargins.tiny}}
-              color={Styles.globalColors.blue}
-              fontSize={Styles.isMobile ? 20 : 16}
+              style={{marginRight: Kb.Styles.globalMargins.tiny}}
+              color={Kb.Styles.globalColors.blue}
+              fontSize={Kb.Styles.isMobile ? 20 : 16}
             />
             <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
           </Kb.ClickableBox>
@@ -148,13 +145,13 @@ export default (ownProps: OwnProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {position: 'relative'},
       header: {
-        ...Styles.globalStyles.flexBoxCenter,
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxCenter,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         flexShrink: 0,
         height: 48,
       },

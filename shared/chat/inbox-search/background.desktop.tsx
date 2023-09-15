@@ -1,7 +1,6 @@
 // parallax animated rover while waiting for a search
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import {useSpring, animated} from 'react-spring'
 
 const widthX = window.innerWidth
@@ -75,7 +74,7 @@ const common = {
   position: 'absolute',
 } as const
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       background: {...common, bottom: 10},
@@ -85,7 +84,7 @@ const styles = Styles.styleSheetCreate(
         ...common,
         bottom: 70,
       },
-    } as const)
+    }) as const
 )
 
 export default Rover

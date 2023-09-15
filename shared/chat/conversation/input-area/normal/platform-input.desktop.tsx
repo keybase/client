@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import Typing from './typing'
 import type {Props} from './platform-input'
@@ -36,14 +35,14 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
 
   return (
     <Kb.ClickableBox2
-      className={Styles.classNames({expanded: showingPopup}, 'timer-icon-container')}
+      className={Kb.Styles.classNames({expanded: showingPopup}, 'timer-icon-container')}
       onClick={toggleShowingPopup}
       ref={popupAnchor as any}
-      style={Styles.collapseStyles([
+      style={Kb.Styles.collapseStyles([
         styles.explodingIconContainer,
         styles.explodingIconContainerClickable,
         !!explodingModeSeconds && {
-          backgroundColor: Styles.globalColors.black,
+          backgroundColor: Kb.Styles.globalColors.black,
         },
       ] as any)}
     >
@@ -55,7 +54,7 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
       ) : (
         <Kb.WithTooltip tooltip="Timer">
           <Kb.Icon
-            className={Styles.classNames('timer-icon', 'hover_color_black')}
+            className={Kb.Styles.classNames('timer-icon', 'hover_color_black')}
             onClick={toggleShowingPopup}
             padding="xtiny"
             type="iconfont-timer"
@@ -104,7 +103,7 @@ const EmojiButton = (p: EmojiButtonProps) => {
       <Kb.WithTooltip tooltip="Emoji">
         <Kb.Box style={styles.icon} ref={popupAnchor}>
           <Kb.Icon
-            color={showingPopup ? Styles.globalColors.black : undefined}
+            color={showingPopup ? Kb.Styles.globalColors.black : undefined}
             onClick={toggleShowingPopup}
             type="iconfont-emoji"
           />
@@ -369,7 +368,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
       <KeyEventHandler onKeyDown={globalKeyDownPressHandler} onKeyPress={globalKeyDownPressHandler}>
         <Kb.Box style={styles.container}>
           <Kb.Box
-            style={Styles.collapseStyles([
+            style={Kb.Styles.collapseStyles([
               styles.inputWrapper,
               isEditing && styles.inputWrapperEditing,
               explodingModeSeconds && styles.inputWrapperExplodingMode,
@@ -399,7 +398,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
                   inputRef.current = ref
                 }}
                 placeholder={hintText}
-                style={Styles.collapseStyles([styles.input, isEditing && styles.inputEditing])}
+                style={Kb.Styles.collapseStyles([styles.input, isEditing && styles.inputEditing])}
                 onChangeText={onChangeText}
                 multiline={true}
                 rowsMin={1}
@@ -416,29 +415,29 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      cancelEditingBtn: {margin: Styles.globalMargins.xtiny},
+      cancelEditingBtn: {margin: Kb.Styles.globalMargins.xtiny},
       container: {
-        ...Styles.globalStyles.flexBoxColumn,
-        backgroundColor: Styles.globalColors.white,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
+        backgroundColor: Kb.Styles.globalColors.white,
         width: '100%',
       },
-      emojiPickerContainer: Styles.platformStyles({
+      emojiPickerContainer: Kb.Styles.platformStyles({
         common: {
           borderRadius: 4,
           bottom: 32,
           position: 'absolute',
           right: -64,
         },
-        isElectron: {...Styles.desktopStyles.boxShadow},
+        isElectron: {...Kb.Styles.desktopStyles.boxShadow},
       }),
-      emojiPickerContainerWrapper: {...Styles.globalStyles.fillAbsolute},
+      emojiPickerContainerWrapper: {...Kb.Styles.globalStyles.fillAbsolute},
       emojiPickerRelative: {position: 'relative'},
-      explodingIconContainer: Styles.platformStyles({
+      explodingIconContainer: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
           alignSelf: 'stretch',
           borderBottomLeftRadius: 3,
@@ -447,21 +446,21 @@ const styles = Styles.styleSheetCreate(
           textAlign: 'center',
           width: 32,
         },
-        isElectron: {borderRight: `1px solid ${Styles.globalColors.black_20}`},
+        isElectron: {borderRight: `1px solid ${Kb.Styles.globalColors.black_20}`},
       }),
-      explodingIconContainerClickable: Styles.platformStyles({
-        isElectron: {...Styles.desktopStyles.clickable},
+      explodingIconContainerClickable: Kb.Styles.platformStyles({
+        isElectron: {...Kb.Styles.desktopStyles.clickable},
       }),
       footer: {
         alignSelf: 'flex-end',
-        color: Styles.globalColors.black_20,
-        marginBottom: Styles.globalMargins.xtiny,
-        marginRight: Styles.globalMargins.medium + 2,
+        color: Kb.Styles.globalColors.black_20,
+        marginBottom: Kb.Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.medium + 2,
         marginTop: 2,
         textAlign: 'right',
       },
       footerContainer: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'flex-start',
         justifyContent: 'space-between',
       },
@@ -469,12 +468,12 @@ const styles = Styles.styleSheetCreate(
       icon: {
         alignSelf: 'flex-end',
         marginBottom: 2,
-        marginRight: Styles.globalMargins.xtiny,
-        padding: Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
+        padding: Kb.Styles.globalMargins.xtiny,
       },
-      input: Styles.platformStyles({
+      input: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.transparent,
+          backgroundColor: Kb.Styles.globalColors.transparent,
           height: 22,
           // Line height change is so that emojis (unicode characters inside
           // textarea) are not clipped at the top. This change is accompanied by
@@ -486,36 +485,36 @@ const styles = Styles.styleSheetCreate(
       inputBox: {
         flexGrow: 1,
         flexShrink: 0,
-        paddingBottom: Styles.globalMargins.xtiny,
+        paddingBottom: Kb.Styles.globalMargins.xtiny,
         paddingLeft: 6,
         paddingRight: 6,
-        paddingTop: Styles.globalMargins.tiny - 2,
+        paddingTop: Kb.Styles.globalMargins.tiny - 2,
         textAlign: 'left',
       },
-      inputEditing: {color: Styles.globalColors.blackOrBlack},
+      inputEditing: {color: Kb.Styles.globalColors.blackOrBlack},
       inputWrapper: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'flex-end',
-        backgroundColor: Styles.globalColors.white,
-        borderColor: Styles.globalColors.black_20,
+        backgroundColor: Kb.Styles.globalColors.white,
+        borderColor: Kb.Styles.globalColors.black_20,
         borderRadius: 4,
         borderStyle: 'solid',
         borderWidth: 1,
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.xtiny,
+        marginLeft: Kb.Styles.globalMargins.small,
+        marginRight: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.xtiny,
       },
-      inputWrapperEditing: {backgroundColor: Styles.globalColors.yellowOrYellowAlt},
-      inputWrapperExplodingMode: {borderColor: Styles.globalColors.black},
+      inputWrapperEditing: {backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt},
+      inputWrapperExplodingMode: {borderColor: Kb.Styles.globalColors.black},
       suggestionSpinnerStyle: {
-        bottom: Styles.globalMargins.tiny,
+        bottom: Kb.Styles.globalMargins.tiny,
         position: 'absolute',
-        right: Styles.globalMargins.medium,
+        right: Kb.Styles.globalMargins.medium,
       },
       walletsIcon: {
         alignSelf: 'flex-end',
         marginBottom: 2,
-        marginRight: Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
       },
     }) as const
 )

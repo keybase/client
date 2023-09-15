@@ -1,11 +1,9 @@
 import * as React from 'react'
-import {useSpring, animated} from 'react-spring'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import {useSpring, animated} from 'react-spring'
 import capitalize from 'lodash/capitalize'
 import {pluralize} from '../../util/string'
 import type * as T from '../../constants/types'
-import type {StylesCrossPlatform} from '../../styles/css'
 
 // Controls the ordering of the role picker
 const orderedRoles: Array<Role<true>> = ['owner', 'admin', 'writer', 'reader', 'setIndividually']
@@ -58,7 +56,10 @@ const RoleRow = (p: RoleRowProps) => {
         direction="horizontal"
         alignItems="center"
         fullWidth={true}
-        style={Styles.collapseStyles([p.disabledReason ? styles.disabledRow : undefined, styles.rowPadding])}
+        style={Kb.Styles.collapseStyles([
+          p.disabledReason ? styles.disabledRow : undefined,
+          styles.rowPadding,
+        ])}
       >
         <Kb.RadioButton
           label=""
@@ -72,7 +73,7 @@ const RoleRow = (p: RoleRowProps) => {
         </Kb.Text>
       </Kb.Box2>
       <Kb.Box2
-        style={Styles.collapseStyles([styles.rowBody])}
+        style={Kb.Styles.collapseStyles([styles.rowBody])}
         direction="vertical"
         gap="xxtiny"
         gapStart={true}
@@ -116,11 +117,11 @@ const RoleRowWrapper = (props: RoleRowWrapperProps) => {
 
   // @ts-ignore spring is confused that I'm animating different things on desktop vs mobile
   const style = useSpring({
-    ...(Styles.isMobile ? {flexGrow: selected ? 1 : 0} : {height: selected ? 160 : 42}),
-    config: {tension: Styles.isMobile ? 250 : 260},
-  }) as Styles.StylesCrossPlatform
+    ...(Kb.Styles.isMobile ? {flexGrow: selected ? 1 : 0} : {height: selected ? 160 : 42}),
+    config: {tension: Kb.Styles.isMobile ? 250 : 260},
+  }) as Kb.Styles.StylesCrossPlatform
   return (
-    <AnimatedClickableBox onClick={onSelect} style={Styles.collapseStyles([styles.roleRow, style])}>
+    <AnimatedClickableBox onClick={onSelect} style={Kb.Styles.collapseStyles([styles.roleRow, style])}>
       <Kb.Divider />
       <RoleRow
         selected={selected}
@@ -235,15 +236,17 @@ const roleAbilities = (
       alignItems="flex-start"
       fullWidth={true}
       style={
-        addFinalPadding && i === abilities.length - 1 ? {paddingBottom: Styles.globalMargins.tiny} : undefined
+        addFinalPadding && i === abilities.length - 1
+          ? {paddingBottom: Kb.Styles.globalMargins.tiny}
+          : undefined
       }
     >
       <Kb.Icon
         type={canDo ? 'iconfont-check' : 'iconfont-block'}
         sizeType="Tiny"
-        style={Styles.isMobile ? styles.abilityCheck : undefined}
-        boxStyle={!Styles.isMobile ? styles.abilityCheck : undefined}
-        color={canDo ? Styles.globalColors.green : Styles.globalColors.black_50}
+        style={Kb.Styles.isMobile ? styles.abilityCheck : undefined}
+        boxStyle={!Kb.Styles.isMobile ? styles.abilityCheck : undefined}
+        color={canDo ? Kb.Styles.globalColors.green : Kb.Styles.globalColors.black_50}
       />
       <Kb.Text type="BodySmall" style={canDo ? styles.canText : undefined}>
         {ability}
@@ -273,8 +276,13 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
     Role<IncludeSetIndividually>
   >
   return (
-    <Kb.Box2 direction="vertical" alignItems="stretch" style={styles.container} fullHeight={Styles.isMobile}>
-      {!Styles.isMobile && <Header />}
+    <Kb.Box2
+      direction="vertical"
+      alignItems="stretch"
+      style={styles.container}
+      fullHeight={Kb.Styles.isMobile}
+    >
+      {!Kb.Styles.isMobile && <Header />}
       <Kb.ScrollView style={styles.innerScroll}>
         {roles.map(role => {
           const disabled = props.disabledRoles ? props.disabledRoles[role] : undefined
@@ -315,34 +323,34 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      abilityCheck: Styles.platformStyles({
+      abilityCheck: Kb.Styles.platformStyles({
         isElectron: {
-          paddingRight: Styles.globalMargins.xtiny,
+          paddingRight: Kb.Styles.globalMargins.xtiny,
           paddingTop: 6,
         },
-        isMobile: {paddingRight: Styles.globalMargins.tiny, paddingTop: 4},
+        isMobile: {paddingRight: Kb.Styles.globalMargins.tiny, paddingTop: 4},
       }),
-      canText: {color: Styles.globalColors.black},
+      canText: {color: Kb.Styles.globalColors.black},
       checkIcon: {
         left: -24,
         paddingTop: 2,
         position: 'absolute',
       },
       checkbox: {
-        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
         flexGrow: 0,
       },
-      container: Styles.platformStyles({
-        common: {backgroundColor: Styles.globalColors.white},
+      container: Kb.Styles.platformStyles({
+        common: {backgroundColor: Kb.Styles.globalColors.white},
         isElectron: {
-          borderColor: Styles.globalColors.blue,
-          borderRadius: Styles.borderRadius,
+          borderColor: Kb.Styles.globalColors.blue,
+          borderRadius: Kb.Styles.borderRadius,
           borderStyle: 'solid',
           borderWidth: 1,
-          boxShadow: `0 0 3px 0 rgba(0, 0, 0, 0.15), 0 0 5px 0 ${Styles.globalColors.black_20OrBlack}`,
+          boxShadow: `0 0 3px 0 rgba(0, 0, 0, 0.15), 0 0 5px 0 ${Kb.Styles.globalColors.black_20OrBlack}`,
           minHeight: 350,
           width: 310,
         },
@@ -354,60 +362,60 @@ const styles = Styles.styleSheetCreate(
       footer: {
         flexGrow: 0,
         justifyContent: 'flex-end',
-        paddingBottom: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       footerButtonBar: {
         minHeight: undefined,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
-      header: {padding: Styles.globalMargins.xsmall},
+      header: {padding: Kb.Styles.globalMargins.xsmall},
       innerScroll: {
         flexGrow: 1,
         width: '100%',
       },
-      opaqueContainer: Styles.platformStyles({
+      opaqueContainer: Kb.Styles.platformStyles({
         isMobile: {
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.white,
           paddingTop: 10,
         },
       }),
-      radioButton: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
-      roleIcon: {paddingRight: Styles.globalMargins.xtiny},
-      roleRow: Styles.platformStyles({common: {overflow: 'hidden'}, isMobile: {height: 56}}),
+      radioButton: Kb.Styles.platformStyles({isMobile: {paddingRight: Kb.Styles.globalMargins.tiny}}),
+      roleIcon: {paddingRight: Kb.Styles.globalMargins.xtiny},
+      roleRow: Kb.Styles.platformStyles({common: {overflow: 'hidden'}, isMobile: {height: 56}}),
       row: {
-        backgroundColor: Styles.globalColors.blueGreyLight,
+        backgroundColor: Kb.Styles.globalColors.blueGreyLight,
         position: 'relative',
       },
-      rowBody: Styles.platformStyles({
+      rowBody: Kb.Styles.platformStyles({
         // To push the body out of the zone visible when deselected
         common: {paddingTop: 6},
         // Width of the radio button. Used to align text with title
         isElectron: {paddingLeft: 22},
         isMobile: {paddingLeft: 38},
       }),
-      rowChild: Styles.platformStyles({
+      rowChild: Kb.Styles.platformStyles({
         common: {
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
-          paddingTop: Styles.globalMargins.tiny,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
 
         isMobile: {
-          paddingBottom: Styles.globalMargins.small,
-          paddingTop: Styles.globalMargins.small,
+          paddingBottom: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.small,
         },
       }),
-      rowPadding: Styles.platformStyles({
-        isElectron: {paddingTop: Styles.globalMargins.xtiny},
+      rowPadding: Kb.Styles.platformStyles({
+        isElectron: {paddingTop: Kb.Styles.globalMargins.xtiny},
       }),
       rowSelected: {
         position: 'relative',
       },
       scroll: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
       },
       text: {
         textAlign: 'left',
@@ -417,9 +425,9 @@ const styles = Styles.styleSheetCreate(
 
 // Helper to use this as a floating box
 export type FloatingProps<T extends boolean> = {
-  position?: Styles.Position
+  position?: Kb.Styles.Position
   children?: React.ReactNode
-  floatingContainerStyle?: StylesCrossPlatform
+  floatingContainerStyle?: Kb.Styles.StylesCrossPlatform
   open: boolean
 } & Props<T>
 
@@ -433,7 +441,7 @@ export class FloatingRolePicker<IncludeSetIndividually extends boolean = false> 
   render() {
     const {position, children, open, floatingContainerStyle, onCancel, ...props} = this.props
     const picker = (
-      <RolePicker<IncludeSetIndividually> {...props} onCancel={Styles.isMobile ? undefined : onCancel} />
+      <RolePicker<IncludeSetIndividually> {...props} onCancel={Kb.Styles.isMobile ? undefined : onCancel} />
     )
     return (
       <>
@@ -449,10 +457,10 @@ export class FloatingRolePicker<IncludeSetIndividually extends boolean = false> 
             <Kb.SafeAreaView>
               <Kb.Box2
                 direction="vertical"
-                fullHeight={Styles.isMobile}
-                style={Styles.collapseStyles([floatingContainerStyle, styles.opaqueContainer])}
+                fullHeight={Kb.Styles.isMobile}
+                style={Kb.Styles.collapseStyles([floatingContainerStyle, styles.opaqueContainer])}
               >
-                {Styles.isMobile && (
+                {Kb.Styles.isMobile && (
                   <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction="cancel" title="Pick a role" />
                 )}
                 {picker}

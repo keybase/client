@@ -1,15 +1,13 @@
 import * as C from '../constants'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import * as T from '../constants/types'
 
 const PaperKey = () => {
   const [paperkey, setPaperkey] = React.useState('')
   const [wroteItDown, setWroteItDown] = React.useState(false)
 
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     T.RPCGen.loginPaperKeyRpcListener({
       customResponseIncomingCallMap: {
         'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
@@ -80,28 +78,28 @@ const PaperKey = () => {
 
 const borderWidth = 3
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
         alignSelf: 'center',
-        maxWidth: Styles.isMobile ? undefined : 560,
-        padding: Styles.globalMargins.medium,
+        maxWidth: Kb.Styles.isMobile ? undefined : 560,
+        padding: Kb.Styles.globalMargins.medium,
       },
       header: {position: 'absolute'},
       intro: {textAlign: 'center'},
       keyBox: {
-        backgroundColor: Styles.globalColors.white,
-        borderColor: Styles.globalColors.blueDarker,
+        backgroundColor: Kb.Styles.globalColors.white,
+        borderColor: Kb.Styles.globalColors.blueDarker,
         borderRadius: borderWidth,
         borderStyle: 'solid',
         borderWidth,
         minHeight: 100,
-        padding: Styles.globalMargins.medium,
+        padding: Kb.Styles.globalMargins.medium,
       },
       text: {
-        ...Styles.globalStyles.fontTerminal,
-        color: Styles.globalColors.blueDark,
+        ...Kb.Styles.globalStyles.fontTerminal,
+        color: Kb.Styles.globalColors.blueDark,
       },
     }) as const
 )

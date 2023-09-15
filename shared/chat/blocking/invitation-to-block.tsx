@@ -33,7 +33,7 @@ const BlockButtons = () => {
     nav.safeNavigateAppend({
       props: {
         blockUserByDefault: true,
-        convID: conversationIDKey,
+        conversationIDKey,
         others: others,
         team: team,
         username: adder,

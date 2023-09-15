@@ -1,17 +1,13 @@
 import * as C from '../constants'
 import * as Constants from '../constants/provision'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as Platform from '../constants/platform'
 import * as React from 'react'
-import * as Styles from '../styles'
-import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from './common'
 
 const ConnectedEnterDevicename = () => {
   const error = C.useSignupState(s => s.devicenameError)
   const initialDevicename = C.useSignupState(s => s.devicename)
-  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
   const goBackAndClearErrors = C.useSignupState(s => s.dispatch.goBackAndClearErrors)
   const checkDeviceName = C.useSignupState(s => s.dispatch.checkDeviceName)
   const onBack = goBackAndClearErrors
@@ -36,11 +32,19 @@ type Props = {
   waiting: boolean
 }
 
+const makeCleanDeviceName = (d: string) => {
+  let good = d.replace(Constants.badDeviceChars, '')
+  good = Constants.cleanDeviceName(good)
+  return good
+}
+
 const EnterDevicename = (props: Props) => {
   const [deviceName, setDeviceName] = React.useState(props.initialDevicename || '')
   const [readyToShowError, setReadyToShowError] = React.useState(false)
-  const debouncedSetReadyToShowError = debounce(ready => setReadyToShowError(ready), 1000)
-  const cleanDeviceName = Constants.cleanDeviceName(deviceName)
+  const _setReadyToShowError = C.useDebouncedCallback((ready: boolean) => {
+    setReadyToShowError(ready)
+  }, 200)
+  const cleanDeviceName = makeCleanDeviceName(deviceName)
   const normalized = cleanDeviceName.replace(Constants.normalizeDeviceRE, '')
   const disabled =
     normalized.length < 3 ||
@@ -49,45 +53,72 @@ const EnterDevicename = (props: Props) => {
     Constants.badDeviceRE.test(cleanDeviceName)
   const showDisabled = disabled && !!cleanDeviceName && readyToShowError
   const _setDeviceName = (deviceName: string) => {
+    setDeviceName(deviceName)
     setReadyToShowError(false)
-    setDeviceName(deviceName.replace(Constants.badDeviceChars, ''))
-    debouncedSetReadyToShowError(true)
+    _setReadyToShowError(true)
   }
   const onContinue = () => (disabled ? {} : props.onContinue(cleanDeviceName))
+
+  const inputRef = React.useRef<Kb.PlainInput>(null)
+  C.useOnMountOnce(() => {
+    inputRef.current?.transformText(i => {
+      if (!props.initialDevicename) return i
+      return {
+        selection: {
+          end: props.initialDevicename.length,
+          start: 0,
+        },
+        text: props.initialDevicename,
+      }
+    })
+  })
+
+  if (cleanDeviceName !== deviceName) {
+    inputRef.current?.transformText(() => {
+      return {
+        selection: {
+          end: cleanDeviceName.length,
+          start: cleanDeviceName.length,
+        },
+        text: cleanDeviceName,
+      }
+    })
+  }
+
   return (
     <SignupScreen
       banners={errorBanner(props.error)}
       buttons={[{disabled, label: 'Continue', onClick: onContinue, type: 'Success', waiting: props.waiting}]}
       onBack={props.onBack}
-      title={Styles.isMobile ? 'Name this device' : 'Name this computer'}
+      title={Kb.Styles.isMobile ? 'Name this device' : 'Name this computer'}
     >
       <Kb.Box2
         alignItems="center"
         direction="vertical"
-        gap={Styles.isMobile ? 'small' : 'medium'}
+        gap={Kb.Styles.isMobile ? 'small' : 'medium'}
         fullWidth={true}
-        style={Styles.globalStyles.flexOne}
+        style={Kb.Styles.globalStyles.flexOne}
       >
         <Kb.Icon
           type={
-            Styles.isMobile
-              ? Platform.isLargeScreen
+            Kb.Styles.isMobile
+              ? C.isLargeScreen
                 ? 'icon-phone-background-1-96'
                 : 'icon-phone-background-1-64'
               : 'icon-computer-background-1-96'
           }
         />
-        <Kb.Box2 direction="vertical" fullWidth={Styles.isPhone} gap="tiny">
+        <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
           <Kb.LabeledInput
+            ref={inputRef}
             autoFocus={true}
             containerStyle={styles.input}
             error={showDisabled}
             maxLength={64}
             placeholder="Name"
-            hoverPlaceholder={Styles.isMobile ? 'Phone 1' : 'Computer 1'}
+            hoverPlaceholder={Kb.Styles.isMobile ? 'Phone 1' : 'Computer 1'}
             onChangeText={_setDeviceName}
             onEnterKeyDown={onContinue}
-            value={cleanDeviceName}
           />
           {showDisabled && readyToShowError ? (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>
@@ -103,12 +134,12 @@ const EnterDevicename = (props: Props) => {
     </SignupScreen>
   )
 }
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   deviceNameError: {
-    color: Styles.globalColors.redDark,
+    color: Kb.Styles.globalColors.redDark,
     marginLeft: 2,
   },
-  input: Styles.platformStyles({
+  input: Kb.Styles.platformStyles({
     isElectron: {width: 368},
     isTablet: {width: 368},
   }),

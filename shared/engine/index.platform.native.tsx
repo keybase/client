@@ -40,6 +40,9 @@ class NativeTransport extends TransportShared {
     buf.set(packed, len.length)
     // Pass data over to the native side to be handled, with JSI!
     try {
+      if (!global.rpcOnGo) {
+        logger.error('>>>> rpcOnGo send before rpcOnGo global?')
+      }
       global.rpcOnGo?.(buf.buffer)
     } catch (e) {
       logger.error('>>>> rpcOnGo JS thrown!', e)

@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
 import * as DevicesConstants from '../../constants/devices'
 import CodePage2 from '.'
 
@@ -17,7 +16,7 @@ const CodePageContainer = () => {
   const otherDevice = C.useProvisionState(s => s.codePageOtherDevice)
   const iconNumber = DevicesConstants.useDeviceIconNumber(otherDevice.id)
   const textCode = C.useProvisionState(s => s.codePageIncomingTextCode)
-  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
   const submitTextCode = C.useProvisionState(s => s.dispatch.dynamic.submitTextCode)
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

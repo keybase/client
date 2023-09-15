@@ -14,12 +14,10 @@ import * as ConfigConstants from '../config'
 import HiddenString from '../../util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '../../logger'
-import shallowEqual from 'shallowequal'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import throttle from 'lodash/throttle'
 import {RPCError} from '../../util/errors'
 import {findLast} from '../../util/arrays'
-import {isMobile, isIOS} from '../platform'
 import {mapGetEnsureValue} from '../../util/map'
 import {noConversationIDKey} from '../types/chat2/common'
 import {type StoreApi, type UseBoundStore} from 'zustand'
@@ -85,7 +83,6 @@ type ConvoStore = {
   commandStatus?: T.Chat.CommandStatusInfo
   containsLatestMessage?: boolean
   dismissedInviteBanners: boolean
-  draft?: string
   editing: T.Chat.Ordinal // current message being edited,
   explodingMode: number // seconds to exploding message expiration,
   explodingModeLock?: number // locks set on exploding mode while user is inputting text,
@@ -98,9 +95,7 @@ type ConvoStore = {
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message> // messages in a thread,
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoad: boolean
-  muted: boolean
   mutualTeams: Array<T.Teams.TeamID>
-  orangeLine: T.Chat.Ordinal // last message we've seen,
   participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
   replyTo: T.Chat.Ordinal
@@ -124,7 +119,6 @@ const initialConvoStore: ConvoStore = {
   commandStatus: undefined,
   containsLatestMessage: undefined,
   dismissedInviteBanners: false,
-  draft: undefined,
   editing: 0,
   explodingMode: 0,
   explodingModeLock: undefined,
@@ -138,9 +132,7 @@ const initialConvoStore: ConvoStore = {
   messageTypeMap: new Map(),
   meta: Meta.makeConversationMeta(),
   moreToLoad: false,
-  muted: false,
   mutualTeams: [],
-  orangeLine: 0,
   participants: noParticipantInfo,
   pendingOutboxToOrdinal: new Map(),
   replyTo: 0,
@@ -197,7 +189,6 @@ export type ConvoState = ConvoStore & {
       messageID: T.Chat.MessageID,
       highlightMode: T.Chat.CenterOrdinalHighlightMode
     ) => void
-    loadOrangeLine: () => void
     loadOlderMessagesDueToScroll: () => void
     loadNewerMessagesDueToScroll: () => void
     loadMoreMessages: (p: {
@@ -265,7 +256,6 @@ export type ConvoState = ConvoStore & {
     setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
     setContainsLatestMessage: (c: boolean) => void
     setConvRetentionPolicy: (policy: T.Retention.RetentionPolicy) => void
-    setDraft: (d?: string) => void
     setEditing: (ordinal: T.Chat.Ordinal | boolean) => void // true is last, false is clear
     setExplodingMode: (seconds: number, incoming?: boolean) => void
     setExplodingModeLocked: (locked: boolean) => void
@@ -277,8 +267,6 @@ export type ConvoState = ConvoStore & {
     setMeta: (m?: T.Chat.ConversationMeta) => void
     setMinWriterRole: (role: T.Teams.TeamRoleType) => void
     setMoreToLoad: (m: boolean) => void
-    setMuted: (m: boolean) => void
-    setOrangeLine: (o: T.Chat.Ordinal) => void
     setParticipants: (p: ConvoState['participants']) => void
     setPendingOutboxToOrdinal: (p: ConvoState['pendingOutboxToOrdinal']) => void
     setReplyTo: (o: T.Chat.Ordinal) => void
@@ -307,11 +295,11 @@ export type ConvoState = ConvoStore & {
     unfurlRemove: (messageID: T.Chat.MessageID) => void
     updateDraft: (text: string) => void
     updateContainsLatestMessage: (force: boolean) => void
+    updateFromUIInboxLayout: (l: {isMuted: boolean; draft?: string | null}) => void
     unfurlTogglePrompt: (messageID: T.Chat.MessageID, domain: string, show: boolean) => void
     unreadUpdated: (unread: number) => void
     updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
     updateAttachmentViewTransfered: (msgId: number, path: string) => void
-    updateUnreadline: (messageID: T.Chat.MessageID) => void
     updateMessage: (ordinal: T.Chat.Ordinal, m: Partial<T.Chat.Message>) => void
     updateMeta: (m: Partial<T.Chat.ConversationMeta>) => void
     updateNotificationSettings: (
@@ -323,6 +311,7 @@ export type ConvoState = ConvoStore & {
   }
   getExplodingMode: () => number
   getEditInfo: () => {exploded: boolean; ordinal: T.Chat.Ordinal; text: string} | undefined
+  isMetaGood: () => boolean
 }
 
 // don't bug the users with black bars for network errors. chat isn't going to work in general
@@ -366,8 +355,8 @@ const messageIDToOrdinal = (
 }
 
 type ScrollDirection = 'none' | 'back' | 'forward'
-export const numMessagesOnInitialLoad = isMobile ? 20 : 100
-export const numMessagesOnScrollback = isMobile ? 100 : 100
+export const numMessagesOnInitialLoad = C.isMobile ? 20 : 100
+export const numMessagesOnScrollback = C.isMobile ? 100 : 100
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const closeBotModal = () => {
@@ -556,7 +545,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         let tlfName = _tlfName
         const conversationIDKey = get().id
         const meta = get().meta
-        if (meta.conversationIDKey !== conversationIDKey) {
+        if (!get().isMetaGood()) {
           if (!tlfName) {
             logger.warn('attachmentsUpload: missing meta for attachment upload', conversationIDKey)
             return
@@ -640,7 +629,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     desktopNotification: (author, body) => {
-      if (isMobile) return
+      if (C.isMobile) return
 
       // Show a desktop notification
       const meta = get().meta
@@ -1038,7 +1027,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             },
             waitingKey: loadingKey,
           })
-          if (get().meta.conversationIDKey === conversationIDKey) {
+          if (get().isMetaGood()) {
             get().dispatch.updateMeta({offline: results.offline})
           }
         } catch (error) {
@@ -1079,45 +1068,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         scrollDirection: 'back',
       })
     },
-    loadOrangeLine: () => {
-      const f = async () => {
-        const conversationIDKey = get().id
-        if (!T.Chat.isValidConversationIDKey(conversationIDKey)) {
-          logger.info('Load unreadline bail: no conversationIDKey')
-          return
-        }
-        const convID = T.Chat.keyToConversationID(conversationIDKey)
-        if (!convID) {
-          logger.info('Load unreadline bail: invalid conversationIDKey')
-          return
-        }
-        const {readMsgID} = get().meta
-        try {
-          const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
-            convID,
-            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-            readMsgID: readMsgID < 0 ? 0 : readMsgID,
-          })
-          const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
-          logger.info(`marking unreadline ${conversationIDKey} ${unreadlineID}`)
-          get().dispatch.updateUnreadline(T.Chat.numberToMessageID(unreadlineID))
-          if (get().markedAsUnread) {
-            // Remove the force unread bit for the next time we view the thread.
-            get().dispatch.setMarkAsUnread(false)
-          }
-        } catch (error) {
-          if (error instanceof RPCError) {
-            if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
-              const {inboxRefresh, navigateToInbox} = C.useChatState.getState().dispatch
-              inboxRefresh('maybeKickedFromTeam')
-              navigateToInbox()
-            }
-          }
-          // ignore this error in general
-        }
-      }
-      Z.ignorePromise(f())
-    },
     markTeamAsRead: teamID => {
       const f = async () => {
         if (!C.useConfigState.getState().loggedIn) {
@@ -1129,13 +1079,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
-    markThreadAsRead: unreadLineMessageID => {
+    markThreadAsRead: () => {
       const f = async () => {
         if (!C.useConfigState.getState().loggedIn) {
           logger.info('bail on not logged in')
           return
         }
-        const {id: conversationIDKey, meta, messageMap, messageOrdinals} = get()
+        const {id: conversationIDKey, meta, messageMap, messageOrdinals, isMetaGood} = get()
         if (!T.Chat.isValidConversationIDKey(conversationIDKey)) {
           logger.info('bail on no selected conversation')
           return
@@ -1158,14 +1108,20 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const message = ordinal ? messageMap.get(ordinal) : undefined
 
         let readMsgID: number | undefined
-        if (meta.conversationIDKey === conversationIDKey) {
+        if (isMetaGood()) {
           readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
         }
-        if (unreadLineMessageID !== undefined && readMsgID && readMsgID >= unreadLineMessageID) {
-          // If we are marking as unread, don't send the local RPC.
+
+        //  invalid?
+        if (!readMsgID) {
+          logger.info(`marking read messages is invalid bail: ${conversationIDKey} ${readMsgID}`)
           return
         }
-
+        // noop?
+        if (readMsgID === meta.readMsgID) {
+          logger.info(`marking read messages is noop bail: ${conversationIDKey} ${readMsgID}`)
+          return
+        }
         logger.info(`marking read messages ${conversationIDKey} ${readMsgID}`)
         await T.RPCChat.localMarkAsReadLocalRpcPromise({
           conversationID: T.Chat.keyToConversationID(conversationIDKey),
@@ -1176,7 +1132,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       Z.ignorePromise(f())
     },
     messageAttachmentNativeSave: message => {
-      if (!isMobile) return
+      if (!C.isMobile) return
       if (!message || message.type !== 'attachment') {
         throw new Error('Invalid share message')
       }
@@ -1225,7 +1181,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
 
-        if (isIOS && message.fileName.endsWith('.pdf')) {
+        if (C.isIOS && message.fileName.endsWith('.pdf')) {
           C.useRouterState.getState().dispatch.navigateAppend({
             props: {
               message,
@@ -1248,7 +1204,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       Z.ignorePromise(f())
     },
     messageDelete: ordinal => {
-      const {id, dispatch, messageMap, meta} = get()
+      const {id, dispatch, messageMap, meta, isMetaGood} = get()
       const m = messageMap.get(ordinal)
       if (m?.type === 'text') {
         dispatch.updateMessage(ordinal, {submitState: 'deleting'})
@@ -1263,7 +1219,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           logger.warn('Deleting invalid message')
           return
         }
-        if (meta.conversationIDKey !== conversationIDKey) {
+        if (!isMetaGood()) {
           logger.warn('Deleting message w/ no meta')
           return
         }
@@ -1906,7 +1862,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           )
           if (role && role !== 'none') {
             // only insert if the convo is already in the inbox
-            if (get().meta.conversationIDKey === conversationIDKey) {
+            if (get().isMetaGood()) {
               get().dispatch.updateMeta({
                 cannotWrite,
                 minWriterRole: role,
@@ -2045,7 +2001,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
       if (
-        !isMobile &&
+        !C.isMobile &&
         displayDesktopNotification &&
         desktopNotificationSnippet &&
         cMsg.state === T.RPCChat.MessageUnboxedState.valid
@@ -2271,41 +2227,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
 
-      const updateOrangeAfterSelected = () => {
-        get().dispatch.setContainsLatestMessage(true)
-        const {readMsgID, maxVisibleMsgID} = get().meta
-        logger.info(
-          `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
-        )
-        if (maxVisibleMsgID > readMsgID) {
-          // Store the message ID that will display the orange line above it,
-          // which is the first message after the last read message. We can't
-          // just increment `readMsgID` since that msgID might be a
-          // non-visible (edit, delete, reaction...) message so we scan the
-          // ordinals for the appropriate value.
-          const messageMap = get().messageMap
-          const ordinals = get().messageOrdinals
-          const ord = ordinals?.find(o => {
-            const message = messageMap.get(o)
-            return !!(message && message.id >= readMsgID + 1)
-          })
-          const message = ord ? messageMap.get(ord) : null
-          if (message?.id) {
-            get().dispatch.setOrangeLine(message.id)
-          } else {
-            get().dispatch.setOrangeLine(0)
-          }
-        } else {
-          // If there aren't any new messages, we don't want to display an
-          // orange line so remove its entry from orangeLineMap
-          get().dispatch.setOrangeLine(0)
-        }
-      }
-
       const ensureSelectedTeamLoaded = () => {
         const selectedConversation = Common.getSelectedConversation()
-        const meta = _getConvoState(selectedConversation).meta
-        if (meta.conversationIDKey === selectedConversation) {
+        const {meta, isMetaGood} = _getConvoState(selectedConversation)
+        if (isMetaGood()) {
           const {teamID, teamname} = meta
           if (teamname) {
             C.useTeamsState.getState().dispatch.getMembers(teamID)
@@ -2313,14 +2238,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
       ensureSelectedTeamLoaded()
-      get().dispatch.loadOrangeLine()
-      const meta = get().meta
       const participantInfo = get().participants
-      const force = meta.conversationIDKey !== conversationIDKey || participantInfo.all.length === 0
+      const force = !get().isMetaGood() || participantInfo.all.length === 0
       C.useChatState.getState().dispatch.unboxRows([conversationIDKey], force)
       get().dispatch.setThreadLoadStatus(T.RPCChat.UIChatThreadStatusTyp.none)
       get().dispatch.setMessageCenterOrdinal()
-      updateOrangeAfterSelected()
+      get().dispatch.setContainsLatestMessage(true)
       fetchConversationBio()
       C.useChatState.getState().dispatch.resetConversationErrored()
     },
@@ -2331,7 +2254,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const clientPrev = getClientPrev()
         const ephemeralLifetime = get().explodingMode
         const meta = get().meta
-        if (meta.conversationIDKey !== conversationIDKey) {
+        if (!get().isMetaGood()) {
           logger.warn('sendAudioRecording: no meta for send')
           return
         }
@@ -2407,11 +2330,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
       Z.ignorePromise(f())
-    },
-    setDraft: d => {
-      set(s => {
-        s.draft = d
-      })
     },
     setEditing: _ordinal => {
       // clearing
@@ -2616,7 +2534,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
           .then(() => {})
           .catch(() => {})
-        get().dispatch.setOrangeLine(unreadLineID)
       }
       Z.ignorePromise(f())
     },
@@ -2627,7 +2544,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     setMessageOrdinals: os => {
       set(s => {
-        if (!shallowEqual(s.messageOrdinals, os)) {
+        if (!C.shallowEqual(s.messageOrdinals, os)) {
           s.messageOrdinals = os
         }
       })
@@ -2647,8 +2564,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.meta = m
       })
-      get().dispatch.setDraft(get().meta.draft)
-      get().dispatch.setMuted(get().meta.isMuted)
     },
     setMinWriterRole: role => {
       const f = async () => {
@@ -2663,16 +2578,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMoreToLoad: m => {
       set(s => {
         s.moreToLoad = m
-      })
-    },
-    setMuted: m => {
-      set(s => {
-        s.muted = m
-      })
-    },
-    setOrangeLine: o => {
-      set(s => {
-        s.orangeLine = o
       })
     },
     setParticipants: p => {
@@ -2708,7 +2613,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           s.typing = t
         }
       })
-    }, 2000),
+    }, 1000),
     setupSubscriptions: () => {
       // TODO
     },
@@ -2947,7 +2852,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         const conversationIDKey = get().id
         const meta = get().meta
-        if (meta.conversationIDKey !== conversationIDKey) {
+        if (!get().isMetaGood()) {
           logger.debug('unfurl remove no meta found, aborting!')
           return
         }
@@ -3028,10 +2933,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     updateContainsLatestMessage: force => {
       // already good
       if (!force && get().containsLatestMessage) return
+      if (!get().isMetaGood()) return
       const {meta, messageMap, messageOrdinals} = get()
-      // is our meta good?
-      if (meta.conversationIDKey !== get().id) return
-
       const lastOrdinalWithID = findLast(messageOrdinals ?? [], o => (messageMap.get(o)?.id ?? 0) > 0)
       const maxMsgID = lastOrdinalWithID ? messageMap.get(lastOrdinalWithID)?.id ?? 0 : 0
       dispatch.setContainsLatestMessage(maxMsgID >= meta.maxVisibleMsgID)
@@ -3047,6 +2950,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     }, 200),
+    updateFromUIInboxLayout: l => {
+      if (get().isMetaGood()) return
+      const {isMuted, draft} = l
+      set(s => {
+        s.meta.draft = draft || ''
+        s.meta.isMuted = isMuted
+      })
+    },
     // maybe remove this when reducer is ported
     updateMessage: (ordinal: T.Chat.Ordinal, pm: Partial<T.Chat.Message>) => {
       set(s => {
@@ -3069,8 +2980,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           s.meta[k] = pm[k]
         })
       })
-      get().dispatch.setDraft(get().meta.draft)
-      get().dispatch.setMuted(get().meta.isMuted)
     },
     updateNotificationSettings: (
       notificationsDesktop,
@@ -3129,9 +3038,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       get().dispatch.markThreadAsRead()
     },
-    updateUnreadline: messageID => {
-      get().dispatch.markThreadAsRead(messageID)
-    },
   }
   return {
     ...initialConvoStore,
@@ -3161,11 +3067,19 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const convRetention = Meta.getEffectiveRetentionPolicy(meta)
       return convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
     },
+    isMetaGood: () => {
+      // fake meta doesn't have our actual id in it
+      return get().meta.conversationIDKey === get().id
+    },
   }
 }
 
 type MadeStore = UseBoundStore<StoreApi<ConvoState>>
 export const _stores = new Map<T.Chat.ConversationIDKey, MadeStore>()
+
+export const clearChatStores = () => {
+  _stores.clear()
+}
 
 const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   const existing = _stores.get(id)
@@ -3188,7 +3102,11 @@ const Context = React.createContext<MadeStore | null>(null)
 type ConvoProviderProps = React.PropsWithChildren<{id: T.Chat.ConversationIDKey; canBeNull?: boolean}>
 export function _Provider({canBeNull, children, ...props}: ConvoProviderProps) {
   if (!canBeNull && (!props.id || props.id === noConversationIDKey)) {
-    throw new Error('No convo id in provider')
+    // let it not crash out but likely you'll get wrong answers in prod
+    if (__DEV__) {
+      console.log('Bad chat provider with id', props.id)
+      throw new Error('No convo id in provider')
+    }
   }
   return <Context.Provider value={createConvoStore(props.id)}>{children}</Context.Provider>
 }

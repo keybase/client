@@ -1,8 +1,7 @@
 import * as React from 'react'
+import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import * as Container from '../../../util/container'
 import {useTeamsSubscribe} from '../../subscriber'
 
 export type Props = {
@@ -16,7 +15,7 @@ export type Props = {
 
 const Spinner = (props: Props) => (
   <Kb.MaybePopup onClose={props.onBack}>
-    {Styles.isMobile && <Kb.HeaderHocHeader onBack={props.onBack} />}
+    {Kb.Styles.isMobile && <Kb.HeaderHocHeader onBack={props.onBack} />}
     <Kb.Box2 direction="vertical" style={styles.spinnerContainer}>
       <Kb.ProgressIndicator style={styles.spinnerProgressIndicator} />
     </Kb.Box2>
@@ -29,7 +28,7 @@ const Header = (props: Props) => (
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.iconContainer}>
       <Kb.Icon
         type="iconfont-leave"
-        color={Styles.globalColors.white}
+        color={Kb.Styles.globalColors.white}
         fontSize={14}
         style={styles.headerIcon}
       />
@@ -39,7 +38,7 @@ const Header = (props: Props) => (
 
 const _ReallyLeaveTeam = (props: Props) => {
   const {name} = props
-  const dispatchClearWaiting = Container.useDispatchClearWaiting()
+  const dispatchClearWaiting = C.useDispatchClearWaiting()
   React.useEffect(
     () => () => {
       dispatchClearWaiting(Constants.leaveTeamWaitingKey(name))
@@ -78,18 +77,18 @@ const _ReallyLeaveTeam = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  checkBox: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  checkBox: Kb.Styles.platformStyles({
     common: {
-      marginBottom: Styles.globalMargins.small,
+      marginBottom: Kb.Styles.globalMargins.small,
     },
     isElectron: {
       marginLeft: 48,
       marginRight: 48,
     },
     isMobile: {
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
+      marginLeft: Kb.Styles.globalMargins.small,
+      marginRight: Kb.Styles.globalMargins.small,
       marginTop: 12,
     },
   }),
@@ -98,8 +97,8 @@ const styles = Styles.styleSheetCreate(() => ({
     top: 1,
   },
   iconContainer: {
-    backgroundColor: Styles.globalColors.red,
-    borderColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.red,
+    borderColor: Kb.Styles.globalColors.white,
     borderRadius: 12,
     borderStyle: 'solid',
     borderWidth: 3,
@@ -110,14 +109,14 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 24,
     zIndex: 1,
   },
-  prompt: Styles.padding(0, Styles.globalMargins.small),
+  prompt: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
   spinnerContainer: {
     alignItems: 'center',
     flex: 1,
-    padding: Styles.globalMargins.xlarge,
+    padding: Kb.Styles.globalMargins.xlarge,
   },
   spinnerProgressIndicator: {
-    width: Styles.globalMargins.medium,
+    width: Kb.Styles.globalMargins.medium,
   },
 }))
 

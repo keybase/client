@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as Styles from '../../styles'
 import * as T from '../../constants/types'
 import {ModalTitle} from '../common'
 
@@ -26,11 +25,11 @@ const TeamInfo = (props: Props) => {
 
   const saveDisabled =
     (description === teamDetails?.description && newName === _leafName) || newName.length < 3
-  const waiting = Container.useAnyWaiting([Constants.teamWaitingKey(teamID), Constants.teamRenameWaitingKey])
+  const waiting = C.useAnyWaiting([Constants.teamWaitingKey(teamID), Constants.teamRenameWaitingKey])
 
   const errors = {
     desc: C.useTeamsState(s => s.errorInEditDescription),
-    rename: Container.useAnyErrors(Constants.teamRenameWaitingKey)?.message,
+    rename: C.useAnyErrors(Constants.teamRenameWaitingKey)?.message,
   }
 
   const editTeamDescription = C.useTeamsState(s => s.dispatch.editTeamDescription)
@@ -54,7 +53,7 @@ const TeamInfo = (props: Props) => {
       mode="DefaultFullHeight"
       onClose={onBack}
       header={{
-        leftButton: Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : undefined,
+        leftButton: Kb.Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : undefined,
         title: <ModalTitle teamID={teamID} title={isSubteam ? 'Edit subteam info' : 'Edit team info'} />,
       }}
       footer={{
@@ -130,26 +129,26 @@ const TeamInfo = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   avatar: {
     alignSelf: 'center',
-    marginBottom: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.tiny,
+    marginRight: Kb.Styles.globalMargins.tiny,
   },
-  bg: {backgroundColor: Styles.globalColors.blueGrey},
-  body: Styles.platformStyles({
+  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       borderRadius: 4,
     },
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   container: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
   faded: {opacity: 0.5},
-  subteamNameInput: Styles.padding(Styles.globalMargins.tiny),
-  wordBreak: Styles.platformStyles({
+  subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
+  wordBreak: Kb.Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
     },

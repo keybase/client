@@ -1,13 +1,11 @@
 import * as C from '../../../constants'
 import * as React from 'react'
-import * as TeamConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import InfoPanelMenu from './menu/container'
 import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'
 
-const gearIconSize = Styles.isMobile ? 24 : 16
+const gearIconSize = Kb.Styles.isMobile ? 24 : 16
 
 const TeamHeader = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
@@ -17,9 +15,7 @@ const TeamHeader = () => {
   const onJoinChannel = C.useChatContext(s => s.dispatch.joinConversation)
   const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(participants, meta)
 
-  const yourOperations = C.useTeamsState(s =>
-    teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined
-  )
+  const yourOperations = C.useTeamsState(s => (teamname ? C.getCanPerformByID(s, teamID) : undefined))
   const admin = yourOperations?.manageMembers ?? false
   const isPreview = membershipType === 'youArePreviewing'
   const isSmallTeam = !!teamname && !!channelname && teamType !== 'big'
@@ -63,10 +59,10 @@ const TeamHeader = () => {
               title={title}
             />
             <Kb.Meta
-              backgroundColor={Styles.globalColors.blueGrey}
-              color={Styles.globalColors.black_50}
+              backgroundColor={Kb.Styles.globalColors.blueGrey}
+              color={Kb.Styles.globalColors.black_50}
               icon="iconfont-people-solid"
-              iconColor={Styles.globalColors.black_20}
+              iconColor={Kb.Styles.globalColors.black_20}
               style={styles.meta}
               title={channelHumans.length}
             />
@@ -84,10 +80,10 @@ const TeamHeader = () => {
               </Kb.Text>
               {!isGeneralChannel && (
                 <Kb.Meta
-                  backgroundColor={Styles.globalColors.blueGrey}
-                  color={Styles.globalColors.black_50}
+                  backgroundColor={Kb.Styles.globalColors.blueGrey}
+                  color={Kb.Styles.globalColors.black_50}
                   icon="iconfont-people-solid"
-                  iconColor={Styles.globalColors.black_20}
+                  iconColor={Kb.Styles.globalColors.black_20}
                   title={channelHumans.length}
                 />
               )}
@@ -103,10 +99,10 @@ const TeamHeader = () => {
                 <Kb.Text type="BodySmallSemibold">{teamname}</Kb.Text>
               </Kb.Box2>
               <Kb.Meta
-                backgroundColor={Styles.globalColors.blueGrey}
-                color={Styles.globalColors.black_50}
+                backgroundColor={Kb.Styles.globalColors.blueGrey}
+                color={Kb.Styles.globalColors.black_50}
                 icon="iconfont-people-solid"
-                iconColor={Styles.globalColors.black_20}
+                iconColor={Kb.Styles.globalColors.black_20}
                 title={teamHumanCount}
               />
             </Kb.Box2>
@@ -167,41 +163,41 @@ export const AdhocHeader = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       addMembers: {
         alignSelf: undefined,
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
+        marginLeft: Kb.Styles.globalMargins.small,
+        marginRight: Kb.Styles.globalMargins.small,
       },
-      adhocPartContainer: {padding: Styles.globalMargins.tiny},
-      adhocScrollContainer: Styles.platformStyles({
+      adhocPartContainer: {padding: Kb.Styles.globalMargins.tiny},
+      adhocScrollContainer: Kb.Styles.platformStyles({
         isElectron: {maxHeight: 230},
         isMobile: {maxHeight: 220},
       }),
-      channelName: Styles.platformStyles({
+      channelName: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-all'},
       }),
       channelnameContainer: {flex: 1},
       description: {
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
       editBox: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         position: 'absolute',
         right: -50,
-        top: Styles.isMobile ? 2 : 1,
+        top: Kb.Styles.isMobile ? 2 : 1,
       },
-      editIcon: {marginRight: Styles.globalMargins.xtiny},
+      editIcon: {marginRight: Kb.Styles.globalMargins.xtiny},
       flexOne: {flex: 1},
-      floatingMenuContainerStyle: Styles.platformStyles({
+      floatingMenuContainerStyle: Kb.Styles.platformStyles({
         isElectron: {
-          marginRight: Styles.globalMargins.small,
+          marginRight: Kb.Styles.globalMargins.small,
         },
       }),
-      gear: Styles.platformStyles({
+      gear: Kb.Styles.platformStyles({
         common: {
           height: gearIconSize,
           paddingLeft: 16,
@@ -213,7 +209,7 @@ const styles = Styles.styleSheetCreate(
       meta: {alignSelf: 'center'},
       smallContainer: {
         alignItems: 'center',
-        paddingLeft: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
       },
       textWrapper: {
         flex: 1,

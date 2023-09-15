@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import {SignupScreen} from '../../signup/common'
 import * as Container from '../../util/container'
 
@@ -9,7 +8,7 @@ const EnterPassword = () => {
   const [password, setPassword] = React.useState('')
   const error = C.useAutoResetState(s => s.error)
   const endTime = C.useAutoResetState(s => s.endTime)
-  const waiting = Container.useAnyWaiting(C.enterPipelineWaitingKey)
+  const waiting = C.useAnyWaiting(C.enterPipelineWaitingKey)
   const nav = Container.useSafeNavigation()
   const onBack = React.useCallback(() => nav.safeNavigateUp(), [nav])
 
@@ -47,13 +46,13 @@ const EnterPassword = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  input: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  input: Kb.Styles.platformStyles({
     isElectron: {
       width: 368,
     },
   }),
-  topGap: Styles.platformStyles({
+  topGap: Kb.Styles.platformStyles({
     isMobile: {
       justifyContent: 'flex-start',
       marginTop: '20%',

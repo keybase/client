@@ -34,10 +34,10 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.turbomodule.core.CallInvokerHolderImpl;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -201,11 +201,6 @@ public class KbModule extends KbSpec {
         return constants;
     }
 
-    // comment out on new arch
-    public Map<String, Object> getConstants() {
-        return getTypedExportedConstants();
-    }
-
     // country code
     @ReactMethod
     public void getDefaultCountryCode(Promise promise) {
@@ -348,13 +343,7 @@ public class KbModule extends KbSpec {
     @ReactMethod
     public void androidRequestPushPermissions(Promise promise) {
         this.ensureFirebase();
-        FirebaseInstanceId.getInstance().getInstanceId()
-                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                        androidCheckPushPermissions(promise);
-                    }
-                });
+        androidCheckPushPermissions(promise);
     }
 
     private void ensureFirebase() {
@@ -362,7 +351,7 @@ public class KbModule extends KbSpec {
         if (!firebaseInitialized) {
             FirebaseApp.initializeApp(this.reactContext,
                     new FirebaseOptions.Builder()
-                            .setApplicationId(String.valueOf(getBuildConfigValue("LIBRARY_PACKAGE_NAME")))
+                            .setApplicationId(String.valueOf(getBuildConfigValue("APPLICATION_ID")))
                             .setProjectId("keybase-c30fb")
                             .setGcmSenderId("9603251415")
                             .build()
@@ -373,22 +362,22 @@ public class KbModule extends KbSpec {
     @ReactMethod
     public void androidGetRegistrationToken(Promise promise) {
         this.ensureFirebase();
-        FirebaseInstanceId.getInstance().getInstanceId()
-                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                        if (!task.isSuccessful()) {
-                            NativeLogger.warn("getInstanceId failed", task.getException());
-                            promise.reject(task.getException());
-                            return;
-                        }
-
-                        // Get new Instance ID token
-                        String token = task.getResult().getToken();
-                        NativeLogger.info("Got token: " + token);
-                        promise.resolve(token);
+        FirebaseMessaging.getInstance().getToken()
+            .addOnCompleteListener(new OnCompleteListener<String>() {
+                @Override
+                public void onComplete(@NonNull Task<String> task) {
+                    if (!task.isSuccessful()) {
+                        NativeLogger.info("Fetching FCM registration token failed " + task.getException());
+                        promise.reject(task.getException());
+                        return;
                     }
-                });
+
+                    // Get new FCM registration token
+                    String token = task.getResult();
+                    NativeLogger.info("Got token: " + token);
+                    promise.resolve(token);
+                }
+            });
     }
 
     // Unlink

@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 
 export const HeaderTitle = () => (
   <Kb.Box2
@@ -74,13 +73,17 @@ export const HeaderRightActions = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  headerTitle: {flex: 1, paddingBottom: Styles.globalMargins.xtiny, paddingLeft: Styles.globalMargins.xsmall},
-  headerTitleLink: Styles.platformStyles({
-    isElectron: {...Styles.desktopStyles.windowDraggingClickable, cursor: 'pointer'},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  headerTitle: {
+    flex: 1,
+    paddingBottom: Kb.Styles.globalMargins.xtiny,
+    paddingLeft: Kb.Styles.globalMargins.xsmall,
+  },
+  headerTitleLink: Kb.Styles.platformStyles({
+    isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable, cursor: 'pointer'},
   }),
-  newRepoButton: Styles.platformStyles({
-    common: {alignSelf: 'flex-end', marginBottom: 6, marginRight: Styles.globalMargins.xsmall},
-    isElectron: Styles.desktopStyles.windowDraggingClickable,
+  newRepoButton: Kb.Styles.platformStyles({
+    common: {alignSelf: 'flex-end', marginBottom: 6, marginRight: Kb.Styles.globalMargins.xsmall},
+    isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
   }),
 }))

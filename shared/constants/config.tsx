@@ -83,9 +83,7 @@ export type Store = {
   runtimeStats?: T.RPCGen.RuntimeStats
   startup: {
     loaded: boolean
-    wasFromPush: boolean
     conversation: T.Chat.ConversationIDKey
-    pushPayload: string
     followUser: string
     link: string
     tab?: Tab
@@ -151,8 +149,6 @@ const initialStore: Store = {
     followUser: '',
     link: '',
     loaded: false,
-    pushPayload: '',
-    wasFromPush: false,
   },
   unlockFoldersDevices: [],
   unlockFoldersError: '',
@@ -837,6 +833,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         configuredAccounts: s.configuredAccounts,
         defaultUsername: s.defaultUsername,
         dispatch: s.dispatch,
+        mobileAppState: s.mobileAppState,
         startup: {loaded: s.startup.loaded},
         useNativeFrame: s.useNativeFrame,
         userSwitching: s.userSwitching,
@@ -985,7 +982,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       if (r === T.RPCGen.Reachable.yes) {
         // not in waiting state
         if (C.useDaemonState.getState().handshakeWaiters.size === 0) {
-          Z.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(true))
+          Z.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
         }
       }
 
@@ -1017,11 +1014,10 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
 
       if (!changed) return
 
-      // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
-      if (!causedByStartup || !loggedIn) {
+      if (loggedIn) {
         Z.ignorePromise(C.useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
-        C.useDaemonState.getState().dispatch.loadDaemonAccounts()
       }
+      C.useDaemonState.getState().dispatch.loadDaemonAccounts()
 
       const {loadOnStart} = get().dispatch
       if (loggedIn) {

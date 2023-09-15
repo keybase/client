@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as T from '../../constants/types'
 import {ModalTitle, usePhoneNumberList} from '../common'
@@ -16,7 +15,7 @@ const AddPhone = () => {
 
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
-  const waiting = Container.useAnyWaiting(waitingKey)
+  const waiting = C.useAnyWaiting(waitingKey)
 
   const defaultCountry = C.useSettingsPhoneState(s => s.defaultCountry)
   const loadDefaultPhoneCountry = C.useSettingsPhoneState(s => s.dispatch.loadDefaultPhoneCountry)
@@ -101,19 +100,19 @@ const AddPhone = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  body: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
-      ...Styles.globalStyles.flexOne,
-      backgroundColor: Styles.globalColors.blueGrey,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+      ...Kb.Styles.globalStyles.flexOne,
+      backgroundColor: Kb.Styles.globalColors.blueGrey,
     },
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   container: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
-  wordBreak: Styles.platformStyles({
+  wordBreak: Kb.Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
     },

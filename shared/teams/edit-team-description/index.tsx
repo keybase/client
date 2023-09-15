@@ -1,9 +1,7 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
 import * as T from '../../constants/types'
 import {ModalTitle} from '../common'
 
@@ -12,9 +10,9 @@ type Props = {teamID: T.Teams.TeamID}
 const EditTeamDescription = (props: Props) => {
   const teamID = props.teamID ?? T.Teams.noTeamID
 
-  const teamname = C.useTeamsState(s => Constants.getTeamNameFromID(s, teamID))
-  const waitingKey = Constants.teamWaitingKey(teamID)
-  const waiting = Container.useAnyWaiting(waitingKey)
+  const teamname = C.useTeamsState(s => C.getTeamNameFromID(s, teamID))
+  const waitingKey = C.teamWaitingKey(teamID)
+  const waiting = C.useAnyWaiting(waitingKey)
   const error = C.useTeamsState(s => s.errorInEditDescription)
   const origDescription = C.useTeamsState(s => s.teamDetails.get(teamID))?.description ?? ''
 
@@ -79,16 +77,16 @@ const EditTeamDescription = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonBar: {alignItems: 'center'},
   container: {
-    ...Styles.padding(Styles.globalMargins.small),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     width: '100%',
   },
-  headerIcon: Styles.padding(Styles.globalMargins.tiny, 0, 0),
+  headerIcon: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, 0, 0),
   title: {
-    paddingBottom: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Kb.Styles.globalMargins.medium,
+    paddingTop: Kb.Styles.globalMargins.xtiny,
   },
 }))
 

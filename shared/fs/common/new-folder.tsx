@@ -1,12 +1,13 @@
 import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as React from 'react'
 
 type OwnProps = {path: T.FS.Path}
 
-const styles = Styles.styleSheetCreate(() => ({headerIcon: {padding: Styles.globalMargins.tiny}}) as const)
+const styles = Kb.Styles.styleSheetCreate(
+  () => ({headerIcon: {padding: Kb.Styles.globalMargins.tiny}}) as const
+)
 
 const NewFolder = (op: OwnProps) => {
   const {path} = op
@@ -21,7 +22,7 @@ const NewFolder = (op: OwnProps) => {
       <Kb.WithTooltip tooltip="New Folder">
         <Kb.Icon
           type="iconfont-folder-new"
-          color={Styles.globalColors.black_50}
+          color={Kb.Styles.globalColors.black_50}
           fontSize={16}
           onClick={onNewFolder}
           style={styles.headerIcon}

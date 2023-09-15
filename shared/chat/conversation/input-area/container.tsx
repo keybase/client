@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
 import Normal from './normal'
 import Preview from './preview/container'
 import ThreadSearch from '../search/container'
@@ -36,7 +35,7 @@ const InputAreaContainer = (p: OwnProps) => {
   if (isPreview) {
     return <Preview />
   }
-  if (showThreadSearch && Container.isMobile) {
+  if (showThreadSearch && C.isMobile) {
     return <ThreadSearch />
   }
   return (

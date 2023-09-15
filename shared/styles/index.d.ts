@@ -12,7 +12,6 @@ type _fakeFontDefSeeCommentsOnThisStyle = {
 }
 
 export declare const globalStyles: {
-  fastBackground: _fakeFontDefSeeCommentsOnThisStyle
   fillAbsolute: {
     bottom: 0
     left: 0
@@ -24,24 +23,12 @@ export declare const globalStyles: {
     alignItems: 'center'
     justifyContent: 'center'
   }
-  flexBoxColumn: {
-    flexDirection: 'column'
-  }
-  flexBoxColumnReverse: {
-    flexDirection: 'column-reverse'
-  }
-  flexBoxRow: {
-    flexDirection: 'row'
-  }
-  flexBoxRowReverse: {
-    flexDirection: 'row-reverse'
-  }
-  flexGrow: {
-    flexGrow: 1
-  }
-  flexOne: {
-    flex: 1
-  }
+  flexBoxColumn: {flexDirection: 'column'}
+  flexBoxColumnReverse: {flexDirection: 'column-reverse'}
+  flexBoxRow: {flexDirection: 'row'}
+  flexBoxRowReverse: {flexDirection: 'row-reverse'}
+  flexGrow: {flexGrow: 1}
+  flexOne: {flex: 1}
   flexWrap: {
     flexWrap: 'wrap'
   }
@@ -55,22 +42,16 @@ export declare const globalStyles: {
   fontSemibold: _fakeFontDefSeeCommentsOnThisStyle
   fontTerminal: _fakeFontDefSeeCommentsOnThisStyle
   fontTerminalSemibold: _fakeFontDefSeeCommentsOnThisStyle
-  fullHeight: {
-    height: '100%'
-  }
-  fullWidth: {
-    width: '100%'
-  }
+  fullHeight: {height: '100%'}
+  fullWidth: {width: '100%'}
   italic: _fakeFontDefSeeCommentsOnThisStyle
-  largeWidthPercent: string
+  largeWidthPercent: CSS.DimensionValue
   loadingTextStyle: CSS._StylesCrossPlatform
-  mediumSubNavWidth: number | string
-  mediumWidth: number | string
+  mediumSubNavWidth: CSS.DimensionValue
+  mediumWidth: CSS.DimensionValue
   opacity0: {opacity: 0}
   positionRelative: {position: 'relative'}
-  rounded: {
-    borderRadius: 3
-  }
+  rounded: {borderRadius: 3}
   shortSubNavWidth: number | string
 }
 
@@ -106,7 +87,7 @@ export declare function collapseStyles(styles: ReadonlyArray<CollapsibleStyle>):
 // new style, used in the common-adapters, not the components, can memo for you
 export declare function useCollapseStyles<
   IsMobile = false,
-  Ret = IsMobile extends false ? CSS._StylesCrossPlatform : CSS.StylesCrossPlatform
+  Ret = IsMobile extends false ? CSS._StylesCrossPlatform : CSS.StylesCrossPlatform,
 >(styles: CSS.StylesCrossPlatform, memo?: boolean): undefined | Ret
 
 export declare const windowStyle: {

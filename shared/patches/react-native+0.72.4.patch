@@ -1,0 +1,41 @@
+diff --git a/node_modules/react-native/Libraries/Animated/Animated.d.ts b/node_modules/react-native/Libraries/Animated/Animated.d.ts
+index aeeb981..5d96b30 100644
+--- a/node_modules/react-native/Libraries/Animated/Animated.d.ts
++++ b/node_modules/react-native/Libraries/Animated/Animated.d.ts
+@@ -100,7 +100,7 @@ export namespace Animated {
+   }
+ 
+   class AnimatedInterpolation<
+-    OutputT extends number | string,
++    OutputT extends number | string = number,
+   > extends AnimatedWithChildren {
+     interpolate(
+       config: InterpolationConfigType,
+diff --git a/node_modules/react-native/React/Modules/RCTUIManager.m b/node_modules/react-native/React/Modules/RCTUIManager.m
+index 3b8a851..5853042 100644
+--- a/node_modules/react-native/React/Modules/RCTUIManager.m
++++ b/node_modules/react-native/React/Modules/RCTUIManager.m
+@@ -101,9 +101,11 @@ RCT_EXPORT_MODULE()
+ 
+   RCTExecuteOnMainQueue(^{
+     RCT_PROFILE_BEGIN_EVENT(RCTProfileTagAlways, @"UIManager invalidate", nil);
++    NSMutableDictionary<NSNumber *, id<RCTComponent>> *viewRegistry = (NSMutableDictionary<NSNumber *, id<RCTComponent>> *)self->_viewRegistry;
+     for (NSNumber *rootViewTag in self->_rootViewTags) {
+       UIView *rootView = self->_viewRegistry[rootViewTag];
+       if ([rootView conformsToProtocol:@protocol(RCTInvalidating)]) {
++	[self _purgeChildren:[rootView reactSubviews] fromRegistry:viewRegistry];
+         [(id<RCTInvalidating>)rootView invalidate];
+       }
+     }
+diff --git a/node_modules/react-native/types/index.d.ts b/node_modules/react-native/types/index.d.ts
+index 5177707..e2c893e 100644
+--- a/node_modules/react-native/types/index.d.ts
++++ b/node_modules/react-native/types/index.d.ts
+@@ -68,7 +68,6 @@
+ /// <reference path="modules/BatchedBridge.d.ts" />
+ /// <reference path="modules/Codegen.d.ts" />
+ /// <reference path="modules/Devtools.d.ts" />
+-/// <reference path="modules/globals.d.ts" />
+ /// <reference path="modules/LaunchScreen.d.ts" />
+ 
+ export * from '../Libraries/ActionSheetIOS/ActionSheetIOS';

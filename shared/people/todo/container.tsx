@@ -1,8 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
-import * as SettingsConstants from '../../constants/settings'
-import * as Tabs from '../../constants/tabs'
 import openURL from '../../util/open-url'
 import type * as T from '../../constants/types'
 import type {IconType} from '../../common-adapters/icon.constants-gen'
@@ -52,8 +49,8 @@ const AddEmailConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = () => {
-    switchTab(Tabs.settingsTab)
-    navigateAppend(SettingsConstants.accountTab)
+    switchTab(C.settingsTab)
+    navigateAppend(C.settingsAccountTab)
     navigateAppend('settingsAddEmail')
   }
   const onDismiss = useOnSkipTodo('addEmail')
@@ -65,8 +62,8 @@ const AddPhoneNumberConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = () => {
-    switchTab(Tabs.settingsTab)
-    navigateAppend(SettingsConstants.accountTab)
+    switchTab(C.settingsTab)
+    navigateAppend(C.settingsAccountTab)
     navigateAppend('settingsAddPhone')
   }
   const onDismiss = useOnSkipTodo('addPhoneNumber')
@@ -76,7 +73,7 @@ const AddPhoneNumberConnector = (props: TodoOwnProps) => {
 
 const AvatarTeamConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const onConfirm = () => switchTab(Tabs.teamsTab)
+  const onConfirm = () => switchTab(C.teamsTab)
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel)
   return <Task {...props} buttons={buttons} />
 }
@@ -127,7 +124,7 @@ const FollowConnector = (props: TodoOwnProps) => {
 
 const ChatConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const onConfirm = () => switchTab(Tabs.chatTab)
+  const onConfirm = () => switchTab(C.chatTab)
   const onDismiss = useOnSkipTodo('chat')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
@@ -144,7 +141,7 @@ const TeamConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const launchNewTeamWizardOrModal = C.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onConfirm = () => {
-    switchTab(Tabs.teamsTab)
+    switchTab(C.teamsTab)
     launchNewTeamWizardOrModal()
   }
   const onDismiss = useOnSkipTodo('team')
@@ -154,7 +151,7 @@ const TeamConnector = (props: TodoOwnProps) => {
 
 const FolderConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const onConfirm = () => switchTab(Tabs.fsTab)
+  const onConfirm = () => switchTab(C.fsTab)
   const onDismiss = useOnSkipTodo('folder')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
@@ -164,10 +161,10 @@ const GitRepoConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (isTeam: boolean) => {
-    if (Container.isMobile) {
-      navigateAppend({props: {}, selected: SettingsConstants.gitTab})
+    if (C.isMobile) {
+      navigateAppend({props: {}, selected: C.settingsGitTab})
     } else {
-      switchTab(Tabs.gitTab)
+      switchTab(C.gitTab)
     }
     navigateAppend({props: {isTeam}, selected: 'gitNewRepo'})
   }
@@ -192,7 +189,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
 
 const TeamShowcaseConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
-  const onConfirm = () => switchTab(Tabs.teamsTab)
+  const onConfirm = () => switchTab(C.teamsTab)
   const onDismiss = useOnSkipTodo('teamShowcase')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
@@ -209,8 +206,8 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onManage = () => {
-    switchTab(Tabs.settingsTab)
-    navigateAppend(SettingsConstants.accountTab)
+    switchTab(C.settingsTab)
+    navigateAppend(C.settingsAccountTab)
   }
 
   const meta = props.metadata && props.metadata.type === 'email' ? props.metadata : undefined
@@ -248,8 +245,8 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
   }
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onManage = () => {
-    switchTab(Tabs.settingsTab)
-    navigateAppend(SettingsConstants.accountTab)
+    switchTab(C.settingsTab)
+    navigateAppend(C.settingsAccountTab)
   }
   const buttons: Array<TaskButton> = [
     ...(props.metadata
@@ -278,8 +275,8 @@ const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onConfirm = (email: string) => {
-    switchTab(Tabs.settingsTab)
-    navigateAppend(SettingsConstants.accountTab)
+    switchTab(C.settingsTab)
+    navigateAppend(C.settingsAccountTab)
     editEmail({email, makeSearchable: true})
   }
   const onDismiss = useOnSkipTodo('legacyEmailVisibility')

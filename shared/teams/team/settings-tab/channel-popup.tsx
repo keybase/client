@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import type * as T from '../../../constants/types'
 import {pluralize} from '../../../util/string'
 import {useAllChannelMetas} from '../../common/channel-hooks'
@@ -46,7 +45,7 @@ const ChannelPopup = (props: Props) => {
 
   const onAdd = () => onComplete(selected)
   return (
-    <Kb.MobilePopup overlayStyle={Styles.globalStyles.fullHeight}>
+    <Kb.MobilePopup overlayStyle={Kb.Styles.globalStyles.fullHeight}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header} gap="tiny">
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerTop}>
           <Kb.Text type="BodyBigLink" onClick={onCancel}>
@@ -83,7 +82,7 @@ const ChannelPopup = (props: Props) => {
             return (
               <Kb.ClickableBox key={channel.conversationIDKey} onClick={onClick}>
                 <Kb.Box2 direction="horizontal" style={styles.channelContainer} gap="tiny" fullWidth={true}>
-                  <Kb.Text type="Body" lineClamp={1} style={Styles.globalStyles.flexOne}>
+                  <Kb.Text type="Body" lineClamp={1} style={Kb.Styles.globalStyles.flexOne}>
                     #{channel.channelname}
                   </Kb.Text>
                   <Kb.CheckCircle
@@ -103,15 +102,15 @@ const ChannelPopup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   addDisabled: {opacity: 0.4},
   channelContainer: {
-    ...Styles.padding(14, Styles.globalMargins.medium, 14, Styles.globalMargins.small),
+    ...Kb.Styles.padding(14, Kb.Styles.globalMargins.medium, 14, Kb.Styles.globalMargins.small),
     height: 48,
     justifyContent: 'space-between',
   },
   header: {
-    ...Styles.padding(19, Styles.globalMargins.small, 0),
+    ...Kb.Styles.padding(19, Kb.Styles.globalMargins.small, 0),
   },
   headerTop: {justifyContent: 'space-between'},
   searchFilter: {paddingLeft: 0, paddingRight: 0},

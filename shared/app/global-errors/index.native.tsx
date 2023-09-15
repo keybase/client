@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as KbMobile from '../../common-adapters/mobile.native'
-import * as Styles from '../../styles'
 import type {RPCError} from '../../util/errors'
 import type {Props} from './index'
 
@@ -73,11 +72,14 @@ class GlobalError extends React.Component<Props, State> {
     return (
       <Kb.Box2
         direction="vertical"
-        style={Styles.collapseStyles([styles.container, size === 'Big' && Styles.globalStyles.fillAbsolute])}
+        style={Kb.Styles.collapseStyles([
+          styles.container,
+          size === 'Big' && Kb.Styles.globalStyles.fillAbsolute,
+        ])}
       >
         <Kb.SafeAreaViewTop style={styles.safeAreaView} />
-        <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
-          <Kb.Box style={Styles.collapseStyles([styles.summaryRow, styles.errorTextContainer])}>
+        <Kb.Box style={Kb.Styles.globalStyles.flexBoxColumn}>
+          <Kb.Box style={Kb.Styles.collapseStyles([styles.summaryRow, styles.errorTextContainer])}>
             <Kb.Text
               center={true}
               type="BodySmallSemibold"
@@ -85,7 +87,11 @@ class GlobalError extends React.Component<Props, State> {
               onClick={this.onExpandClick}
             >
               {size !== 'Big' && (
-                <Kb.Icon type="iconfont-caret-right" color={Styles.globalColors.white_75} sizeType="Tiny" />
+                <Kb.Icon
+                  type="iconfont-caret-right"
+                  color={Kb.Styles.globalColors.white_75}
+                  sizeType="Tiny"
+                />
               )}
               {'  '}
               An error occurred.
@@ -93,7 +99,7 @@ class GlobalError extends React.Component<Props, State> {
             <Kb.Icon
               type="iconfont-close"
               onClick={onDismiss}
-              color={Styles.globalColors.white_75}
+              color={Kb.Styles.globalColors.white_75}
               fontSize={21}
             />
           </Kb.Box>
@@ -115,49 +121,49 @@ class GlobalError extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        backgroundColor: Styles.globalColors.black,
+        backgroundColor: Kb.Styles.globalColors.black,
         position: 'absolute',
         top: 0,
       },
       details: {
-        color: Styles.globalColors.white_75,
+        color: Kb.Styles.globalColors.white_75,
         fontSize: 14,
         lineHeight: 19,
-        padding: Styles.globalMargins.xtiny,
-        paddingTop: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.xtiny,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       errorText: {
-        color: Styles.globalColors.white,
+        color: Kb.Styles.globalColors.white,
         flex: 1,
       },
       errorTextContainer: {
-        paddingBottom: Styles.globalMargins.xtiny,
+        paddingBottom: Kb.Styles.globalMargins.xtiny,
         position: 'relative',
       },
       itemText: {
-        color: Styles.globalColors.white,
+        color: Kb.Styles.globalColors.white,
         fontSize: 8,
         lineHeight: 8,
       },
       safeAreaView: {
-        backgroundColor: Styles.globalColors.transparent,
+        backgroundColor: Kb.Styles.globalColors.transparent,
         flexGrow: 0,
       },
       summaryRow: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         flexShrink: 0,
         justifyContent: 'center',
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.xsmall,
-        paddingTop: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
+        paddingRight: Kb.Styles.globalMargins.xsmall,
+        paddingTop: Kb.Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )
 
 export default GlobalError

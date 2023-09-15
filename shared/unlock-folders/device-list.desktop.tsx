@@ -1,12 +1,11 @@
-import * as Styles from '../styles'
+import type * as C from '../constants'
 import * as Kb from '../common-adapters'
-import type * as ConfigConstants from '../constants/config'
 
 export type Props = {
-  devices: ConfigConstants.Store['unlockFoldersDevices']
+  devices: C.ConfigStore['unlockFoldersDevices']
   toPaperKeyInput: () => void
 }
-type Device = ConfigConstants.Store['unlockFoldersDevices'][0]
+type Device = C.ConfigStore['unlockFoldersDevices'][0]
 
 const DeviceRow = ({device}: {device: Device}) => {
   const icon = (
@@ -18,7 +17,7 @@ const DeviceRow = ({device}: {device: Device}) => {
   )[device.type]
 
   return (
-    <div style={{...Styles.globalStyles.flexBoxRow, marginBottom: 16}}>
+    <div style={{...Kb.Styles.globalStyles.flexBoxRow, marginBottom: 16}}>
       <div style={styles.iconWrapper}>
         <Kb.Icon type={icon} style={{height: 22}} />
       </div>
@@ -30,7 +29,7 @@ const DeviceRow = ({device}: {device: Device}) => {
 }
 
 const DeviceList = (props: Props) => (
-  <div style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
+  <div style={{...Kb.Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
     <Kb.Text center={true} type="Body" style={styles.infoText}>
       This computer and possibly others are unable to read some of your folders. To avoid losing data forever,
       please turn on one of the devices below:
@@ -49,24 +48,24 @@ const DeviceList = (props: Props) => (
   </div>
 )
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       accessFolders: {marginRight: 0},
       buttonsContainer: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignSelf: 'center',
         marginRight: 30,
-        marginTop: Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
       },
-      devicesContainer: Styles.platformStyles({
+      devicesContainer: Kb.Styles.platformStyles({
         isElectron: {
           alignSelf: 'center',
-          backgroundColor: Styles.globalColors.greyLight,
+          backgroundColor: Kb.Styles.globalColors.greyLight,
           height: 162,
           overflowY: 'scroll',
-          paddingBottom: Styles.globalMargins.small,
-          paddingTop: Styles.globalMargins.small,
+          paddingBottom: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.small,
           width: 440,
         },
       }),

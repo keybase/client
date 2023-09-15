@@ -1,9 +1,6 @@
 import * as C from '../constants'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as Platform from '../constants/platform'
 import * as React from 'react'
-import * as Styles from '../styles'
 import {SignupScreen, errorBanner} from './common'
 
 const ConnectedEnterUsername = () => {
@@ -11,7 +8,7 @@ const ConnectedEnterUsername = () => {
   const initialUsername = C.useSignupState(s => s.username)
   const usernameTaken = C.useSignupState(s => s.usernameTaken)
   const checkUsername = C.useSignupState(s => s.dispatch.checkUsername)
-  const waiting = Container.useAnyWaiting(C.signupWaitingKey)
+  const waiting = C.useAnyWaiting(C.signupWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const restartSignup = C.useSignupState(s => s.dispatch.restartSignup)
   const onBack = () => {
@@ -90,18 +87,18 @@ const EnterUsername = (props: Props) => {
         },
       ]}
       onBack={props.onBack}
-      title={Styles.isMobile ? 'Create account' : 'Create an account'}
+      title={Kb.Styles.isMobile ? 'Create account' : 'Create an account'}
     >
       <Kb.ScrollView>
         <Kb.Box2
           alignItems="center"
-          gap={Styles.isMobile ? 'small' : 'medium'}
+          gap={Kb.Styles.isMobile ? 'small' : 'medium'}
           direction="vertical"
           style={styles.body}
           fullWidth={true}
         >
-          <Kb.Avatar size={Platform.isLargeScreen ? 96 : 64} />
-          <Kb.Box2 direction="vertical" fullWidth={Styles.isPhone} gap="tiny">
+          <Kb.Avatar size={C.isLargeScreen ? 96 : 64} />
+          <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
             <Kb.LabeledInput
               autoFocus={true}
               containerStyle={styles.input}
@@ -109,13 +106,12 @@ const EnterUsername = (props: Props) => {
               maxLength={C.maxUsernameLength}
               onChangeText={onChangeUsername}
               onEnterKeyDown={onContinue}
-              value={username}
             />
             <Kb.Text type="BodySmall">Your username is unique and can not be changed in the future.</Kb.Text>
           </Kb.Box2>
           <Kb.Box2
-            direction={Styles.isMobile ? 'vertical' : 'horizontal'}
-            fullWidth={Styles.isPhone}
+            direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
+            fullWidth={Kb.Styles.isPhone}
             gap="tiny"
             alignItems="flex-start"
           >
@@ -138,11 +134,11 @@ const EnterUsername = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   body: {
     flex: 1,
   },
-  input: Styles.platformStyles({
+  input: Kb.Styles.platformStyles({
     isElectron: {width: 368},
     isTablet: {width: 368},
   }),

@@ -1,4 +1,3 @@
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import type * as T from '../../constants/types'
 import {formatTimeForFS} from '../../util/timestamp'
@@ -25,14 +24,14 @@ const newMetaMaybe = (props: Props) =>
   props.mode === 'row' && props.isNew ? (
     <Kb.Meta
       title="new"
-      backgroundColor={Styles.globalColors.orange}
-      style={Styles.collapseStyles([styles.meta, {marginRight: Styles.globalMargins.xtiny}])}
+      backgroundColor={Kb.Styles.globalColors.orange}
+      style={Kb.Styles.collapseStyles([styles.meta, {marginRight: Kb.Styles.globalMargins.xtiny}])}
     />
   ) : null
 
 const resetMetaMaybe = (props: Props) =>
   props.mode === 'row' && props.reset === true ? (
-    <Kb.Meta title="reset" backgroundColor={Styles.globalColors.red} style={styles.meta} />
+    <Kb.Meta title="reset" backgroundColor={Kb.Styles.globalColors.red} style={styles.meta} />
   ) : null
 
 const resetText = (props: Props) => {
@@ -46,7 +45,7 @@ const resetText = (props: Props) => {
     <Kb.Text
       type="BodySmallError"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-      lineClamp={props.mode === 'row' && Styles.isMobile ? 1 : undefined}
+      lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
     >
       {text}
     </Kb.Text>
@@ -60,7 +59,7 @@ const getPrefixText = (props: Props) =>
         fixOverdraw={true}
         type="BodySmall"
         style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-        lineClamp={props.mode === 'row' && Styles.isMobile ? 1 : undefined}
+        lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
       >
         {props.tlfType}/
       </Kb.Text>
@@ -73,14 +72,14 @@ const timeText = (props: Props) =>
       fixOverdraw={true}
       type="BodySmall"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-      lineClamp={props.mode === 'row' && Styles.isMobile ? 1 : undefined}
+      lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
     >
       {formatTimeForFS(props.tlfMtime, props.mode !== 'row')}
     </Kb.Text>
   ) : null
 
 const getText = (props: Props) => {
-  if (Styles.isMobile && props.mixedMode) {
+  if (Kb.Styles.isMobile && props.mixedMode) {
     // on mobile in fs root, don't show reset text, and only show time text
     // if reset badge isn't shown, i.e. not self reset
     return props.reset !== true ? timeText(props) : null
@@ -102,7 +101,7 @@ const TlfInfoLine = (props: Props) => {
       fixOverdraw={true}
       type="BodySmall"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-      lineClamp={props.mode === 'row' && Styles.isMobile ? 1 : undefined}
+      lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
     >
       •&nbsp;
     </Kb.Text>
@@ -127,18 +126,18 @@ const TlfInfoLine = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       meta: {
         alignSelf: 'center',
-        marginRight: Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
       },
       textDefault: {
         flexShrink: 1,
         textAlign: 'center',
       },
-      textRow: Styles.platformStyles({
+      textRow: Kb.Styles.platformStyles({
         isElectron: {
           overflow: 'hidden',
           textOverflow: 'ellipsis',

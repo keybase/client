@@ -1,7 +1,6 @@
+import * as C from '../../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
-import {isLargeScreen} from '../../../../../constants/platform'
 import type * as T from '../../../../../constants/types'
 import BotMenu from '../bot-menu'
 
@@ -45,7 +44,7 @@ export const TeamBotRow = (props: Props) => {
     <Kb.Box2 direction="horizontal" alignSelf="flex-start">
       <Kb.Text
         type="BodySmallSemibold"
-        style={{color: Styles.globalColors.black}}
+        style={{color: Kb.Styles.globalColors.black}}
         onClick={props.onShowTracker}
       >
         {props.botAlias || props.username}
@@ -68,31 +67,31 @@ export const TeamBotRow = (props: Props) => {
 
   // TODO: switch this to a ListItem2 so that we get dividers, free styling, etc
   return (
-    <Kb.Box style={Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
+    <Kb.Box style={Kb.Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
       <Kb.Box style={styles.innerContainerTop}>
         <Kb.Box style={styles.clickable}>
           <Kb.Avatar
             username={props.username}
-            size={Styles.isMobile ? 48 : 32}
+            size={Kb.Styles.isMobile ? 48 : 32}
             onClick={props.onShowTracker}
           />
           <Kb.Box style={styles.nameContainer}>
-            <Kb.Box style={Styles.globalStyles.flexBoxRow}>{usernameDisplay}</Kb.Box>
+            <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>{usernameDisplay}</Kb.Box>
             <Kb.Box style={styles.nameContainerInner}>{descriptionLabel}</Kb.Box>
           </Kb.Box>
         </Kb.Box>
         <Kb.Box style={styles.menuIconContainer} ref={menuRef}>
-          {(active || isLargeScreen) && (
+          {(active || C.isLargeScreen) && (
             // Desktop & mobile large screen - display on the far right of the first row
             // Also when user is active
             <Kb.Icon
               onClick={_onShowMenu}
               style={
-                Styles.isMobile
-                  ? Styles.collapseStyles([styles.menuButtonMobile, styles.menuButtonMobileSmallTop])
+                Kb.Styles.isMobile
+                  ? Kb.Styles.collapseStyles([styles.menuButtonMobile, styles.menuButtonMobileSmallTop])
                   : styles.menuButtonDesktop
               }
-              fontSize={Styles.isMobile ? 20 : 16}
+              fontSize={Kb.Styles.isMobile ? 20 : 16}
               type="iconfont-ellipsis"
             />
           )}
@@ -110,50 +109,50 @@ export const TeamBotRow = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  buttonBarContainer: {...Styles.globalStyles.flexBoxRow, flexShrink: 1},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  buttonBarContainer: {...Kb.Styles.globalStyles.flexBoxRow, flexShrink: 1},
   clickable: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     flexGrow: 1,
   },
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
     flex: 1,
     height: '100%',
     position: 'relative',
     width: '100%',
   },
   containerReset: {
-    backgroundColor: Styles.globalColors.blueLighter2,
+    backgroundColor: Kb.Styles.globalColors.blueLighter2,
   },
   crownIcon: {
-    marginRight: Styles.globalMargins.xtiny,
+    marginRight: Kb.Styles.globalMargins.xtiny,
   },
-  fullNameLabel: {marginRight: Styles.globalMargins.xtiny},
-  innerContainerBottom: {...Styles.globalStyles.flexBoxRow, flexShrink: 1},
+  fullNameLabel: {marginRight: Kb.Styles.globalMargins.xtiny},
+  innerContainerBottom: {...Kb.Styles.globalStyles.flexBoxRow, flexShrink: 1},
   innerContainerTop: {
-    ...Styles.globalStyles.flexBoxRow,
-    ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
+    ...Kb.Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
     alignItems: 'center',
     flexShrink: 0,
-    height: Styles.isMobile ? 56 : 48,
+    height: Kb.Styles.isMobile ? 56 : 48,
     width: '100%',
   },
   lockedOutOrDeleted: {
-    ...Styles.globalStyles.fontBold,
-    backgroundColor: Styles.globalColors.red,
-    color: Styles.globalColors.white,
-    marginRight: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.xtiny,
-    paddingRight: Styles.globalMargins.xtiny,
+    ...Kb.Styles.globalStyles.fontBold,
+    backgroundColor: Kb.Styles.globalColors.red,
+    color: Kb.Styles.globalColors.white,
+    marginRight: Kb.Styles.globalMargins.xtiny,
+    paddingLeft: Kb.Styles.globalMargins.xtiny,
+    paddingRight: Kb.Styles.globalMargins.xtiny,
   },
   menuButtonDesktop: {
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.tiny,
-    padding: Styles.globalMargins.tiny,
+    marginLeft: Kb.Styles.globalMargins.small,
+    marginRight: Kb.Styles.globalMargins.tiny,
+    padding: Kb.Styles.globalMargins.tiny,
   },
   menuButtonMobile: {
     position: 'absolute',
@@ -164,11 +163,11 @@ const styles = Styles.styleSheetCreate(() => ({
     top: 12,
   },
   menuIconContainer: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     flexShrink: 1,
     height: '100%',
   },
-  nameContainer: {...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small},
-  nameContainerInner: {...Styles.globalStyles.flexBoxRow, alignItems: 'center'},
+  nameContainer: {...Kb.Styles.globalStyles.flexBoxColumn, marginLeft: Kb.Styles.globalMargins.small},
+  nameContainerInner: {...Kb.Styles.globalStyles.flexBoxRow, alignItems: 'center'},
 }))

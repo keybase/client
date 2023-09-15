@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import CommonResult, {type ResultProps} from './common-result'
 
 const HellobotResult = React.memo(function HellobotResult(props: ResultProps) {
@@ -18,13 +17,13 @@ const HellobotResult = React.memo(function HellobotResult(props: ResultProps) {
   return <CommonResult {...props} onAdd={onSelfChat} rowStyle={styles.rowContainer} bottomRow={bottomRow} />
 })
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   rowContainer: {
-    ...Styles.padding(
-      Styles.globalMargins.tiny,
-      Styles.globalMargins.medium,
-      Styles.globalMargins.tiny,
-      Styles.globalMargins.xsmall
+    ...Kb.Styles.padding(
+      Kb.Styles.globalMargins.tiny,
+      Kb.Styles.globalMargins.medium,
+      Kb.Styles.globalMargins.tiny,
+      Kb.Styles.globalMargins.xsmall
     ),
   },
 }))

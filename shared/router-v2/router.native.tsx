@@ -4,7 +4,6 @@ import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Shim from './shim.native'
-import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
 import * as RouterLinking from './router-linking.native'
@@ -24,8 +23,8 @@ if (module.hot) {
 
 const settingsTabChildrenPhone = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab, Tabs.settingsTab] as const
 const settingsTabChildrenTablet = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
-const settingsTabChildren = Container.isPhone ? settingsTabChildrenPhone : settingsTabChildrenTablet
-const tabs = Container.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
+const settingsTabChildren = C.isPhone ? settingsTabChildrenPhone : settingsTabChildrenTablet
+const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 const tabToData = {
   [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
   [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
@@ -55,66 +54,69 @@ const makeNavScreens = (rs: any, Screen: any, isModal: any) => {
   })
 }
 
-const TabBarIcon = React.memo(function TabBarIcon(props: {isFocused: boolean; routeName: Tabs.Tab}) {
-  const {isFocused, routeName} = props
-  const navBadges = C.useNotifState(s => s.navBadges)
-  const hasPermissions = C.usePushState(s => s.hasPermissions)
-  const onSettings = routeName === Tabs.settingsTab
-  const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
-  const badgeNumber = tabsToCount.reduce(
-    (res, tab) => res + (navBadges.get(tab) || 0),
-    // notifications gets badged on native if there's no push, special case
-    onSettings && !hasPermissions ? 1 : 0
-  )
+const TabBarIcon = React.memo(
+  function TabBarIcon(props: {isFocused: boolean; routeName: Tabs.Tab}) {
+    const {isFocused, routeName} = props
+    const navBadges = C.useNotifState(s => s.navBadges)
+    const hasPermissions = C.usePushState(s => s.hasPermissions)
+    const onSettings = routeName === Tabs.settingsTab
+    const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
+    const badgeNumber = tabsToCount.reduce(
+      (res, tab) => res + (navBadges.get(tab) || 0),
+      // notifications gets badged on native if there's no push, special case
+      onSettings && !hasPermissions ? 1 : 0
+    )
 
-  // @ts-ignore
-  return tabToData[routeName] ? (
-    <View style={styles.container}>
-      <Kb.Icon
-        // @ts-ignore
-        type={tabToData[routeName].icon}
-        fontSize={32}
-        style={styles.tab}
-        color={isFocused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
-      />
-      {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={styles.badge} />}
-      {routeName === Tabs.fsTab && <Shared.FilesTabBadge />}
-    </View>
-  ) : null
-})
+    // @ts-ignore
+    return tabToData[routeName] ? (
+      <View style={styles.container}>
+        <Kb.Icon
+          // @ts-ignore
+          type={tabToData[routeName].icon}
+          fontSize={32}
+          style={styles.tab}
+          color={isFocused ? Kb.Styles.globalColors.whiteOrWhite : Kb.Styles.globalColors.blueDarkerOrBlack}
+        />
+        {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={styles.badge} />}
+        {routeName === Tabs.fsTab && <Shared.FilesTabBadge />}
+      </View>
+    ) : null
+  },
+  (a, b) => a.routeName === b.routeName && a.isFocused === b.isFocused
+)
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      badge: Styles.platformStyles({
+      badge: Kb.Styles.platformStyles({
         common: {
           position: 'absolute',
           right: 8,
           top: 3,
         },
       }),
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
           flex: 1,
           justifyContent: 'center',
         },
         isTablet: {
           // This is to circumvent a React Navigation AnimatedComponent with minWidth: 64 that wraps TabBarIcon
-          minWidth: Styles.globalMargins.xlarge,
+          minWidth: Kb.Styles.globalMargins.xlarge,
         },
       }),
       keyboard: {
         flexGrow: 1,
         position: 'relative',
       },
-      label: {marginLeft: Styles.globalMargins.medium},
-      labelDarkMode: {color: Styles.globalColors.black_50},
-      labelDarkModeFocused: {color: Styles.globalColors.black},
-      labelLightMode: {color: Styles.globalColors.blueLighter},
-      labelLightModeFocused: {color: Styles.globalColors.white},
-      tab: Styles.platformStyles({
+      label: {marginLeft: Kb.Styles.globalMargins.medium},
+      labelDarkMode: {color: Kb.Styles.globalColors.black_50},
+      labelDarkModeFocused: {color: Kb.Styles.globalColors.black},
+      labelLightMode: {color: Kb.Styles.globalColors.blueLighter},
+      labelLightModeFocused: {color: Kb.Styles.globalColors.white},
+      tab: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest,
+          backgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
           paddingBottom: 6,
           paddingLeft: 16,
           paddingRight: 16,
@@ -177,7 +179,9 @@ const AppTabs = React.memo(
               }
             }}
             listeners={{
-              tabLongPress: () => C.useRouterState.getState().dispatch.dynamic.tabLongPress?.(tab),
+              tabLongPress: () => {
+                C.useRouterState.getState().dispatch.dynamic.tabLongPress?.(tab)
+              },
             }}
           />
         )),
@@ -191,9 +195,9 @@ const AppTabs = React.memo(
       (routeName: string) =>
       ({focused}: {focused: boolean}) => (
         <Kb.Text
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             styles.label,
-            Styles.isDarkMode()
+            Kb.Styles.isDarkMode()
               ? focused
                 ? styles.labelDarkModeFocused
                 : styles.labelDarkMode
@@ -217,12 +221,12 @@ const AppTabs = React.memo(
           return {
             ...Common.defaultNavigationOptions,
             headerShown: false,
-            tabBarActiveBackgroundColor: Styles.globalColors.transparent,
+            tabBarActiveBackgroundColor: Kb.Styles.globalColors.transparent,
             tabBarHideOnKeyboard: true,
             tabBarIcon: makeTabBarIcon(route.name),
-            tabBarInactiveBackgroundColor: Styles.globalColors.transparent,
+            tabBarInactiveBackgroundColor: Kb.Styles.globalColors.transparent,
             tabBarLabel: makeTabBarLabel(route.name),
-            tabBarShowLabel: Styles.isTablet,
+            tabBarShowLabel: Kb.Styles.isTablet,
             tabBarStyle: Common.tabBarStyle,
           }
         }}
@@ -240,7 +244,13 @@ const LoggedOutScreens = makeNavScreens(Shim.shim(loggedOutRoutes, false, true),
 const LoggedOut = React.memo(function LoggedOut() {
   return (
     // TODO show header and use nav headers
-    <LoggedOutStack.Navigator initialRouteName="login" screenOptions={{headerShown: false}}>
+    <LoggedOutStack.Navigator
+      initialRouteName="login"
+      screenOptions={{
+        ...Common.defaultNavigationOptions,
+        headerShown: false,
+      }}
+    >
       {LoggedOutScreens}
     </LoggedOutStack.Navigator>
   )
@@ -337,7 +347,7 @@ const RNApp = React.memo(function RNApp() {
     <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true}>
       <StatusBar barStyle={barStyle} />
       <NavigationContainer
-        fallback={<View style={{backgroundColor: Styles.globalColors.white, flex: 1}} />}
+        fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
         linking={goodLinking}
         ref={Constants.navigationRef_ as any}
         key={String(navKey)}
@@ -362,7 +372,7 @@ const RNApp = React.memo(function RNApp() {
                 screenOptions={{
                   headerLeft: () => <HeaderLeftCancel2 />,
                   // hard to fight overdraw on android with this on so just treat modals as screens
-                  presentation: Styles.isAndroid ? undefined : 'modal',
+                  presentation: Kb.Styles.isAndroid ? undefined : 'modal',
                   title: '',
                 }}
               >

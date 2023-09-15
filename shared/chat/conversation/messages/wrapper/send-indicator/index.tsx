@@ -2,7 +2,6 @@ import * as C from '../../../../../constants'
 import {OrdinalContext} from '../../ids-context'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
 
 type AnimationStatus =
   | 'encrypting'
@@ -74,12 +73,12 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
   const timeoutRef = React.useRef<ReturnType<typeof setInterval> | undefined>()
 
   const animationType: Kb.AnimationType | undefined = isExploding
-    ? Styles.isDarkMode()
+    ? Kb.Styles.isDarkMode()
       ? // @ts-ignore
         statusToIconDarkExploding[status]
       : // @ts-ignore
         statusToIconExploding[status]
-    : Styles.isDarkMode()
+    : Kb.Styles.isDarkMode()
     ? statusToIconDark[status]
     : statusToIcon[status]
 
@@ -133,21 +132,21 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
   ) : null
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      animationInvisible: Styles.platformStyles({
+      animationInvisible: Kb.Styles.platformStyles({
         common: {height: 20, opacity: 0, width: 20},
-        isMobile: {backgroundColor: Styles.globalColors.white},
+        isMobile: {backgroundColor: Kb.Styles.globalColors.white},
       }),
-      animationVisible: Styles.platformStyles({
+      animationVisible: Kb.Styles.platformStyles({
         common: {height: 20, opacity: 1, width: 20},
         isMobile: {
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.white,
           borderRadius: 10,
         },
       }),
-      send: Styles.platformStyles({
+      send: Kb.Styles.platformStyles({
         common: {
           position: 'absolute',
           top: 3,

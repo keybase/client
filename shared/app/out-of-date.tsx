@@ -1,23 +1,22 @@
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as React from 'react'
 import * as T from '../constants/types'
 import logger from '../logger'
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.globalStyles.fillAbsolute,
-    backgroundColor: Styles.globalColors.red,
+    ...Kb.Styles.globalStyles.fillAbsolute,
+    backgroundColor: Kb.Styles.globalColors.red,
     bottom: undefined,
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
     zIndex: 9999,
   },
   messageContainer: {
-    backgroundColor: Styles.globalColors.white_90,
-    borderRadius: Styles.borderRadius,
-    padding: Styles.globalMargins.medium,
+    backgroundColor: Kb.Styles.globalColors.white_90,
+    borderRadius: Kb.Styles.borderRadius,
+    padding: Kb.Styles.globalMargins.medium,
   },
 }))
 
@@ -26,7 +25,7 @@ export default () => {
   const [message, setMessage] = React.useState('')
   const [status, setStatus] = React.useState<Status>('ok')
 
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     const f = async () => {
       await Container.timeoutPromise(60_000) // don't bother checking during startup
       // check every hour
@@ -55,13 +54,13 @@ export default () => {
           logger.warn("Can't call critical check", e)
         }
         // We just need this once on mobile. Long timers don't work there.
-        if (Container.isMobile) {
+        if (C.isMobile) {
           break
         }
         await Container.timeoutPromise(3_600_000) // 1 hr
       }
     }
-    Container.ignorePromise(f())
+    C.ignorePromise(f())
   })
 
   const onOpenAppStore = C.useConfigState(s => s.dispatch.dynamic.openAppStore)
@@ -74,7 +73,7 @@ export default () => {
       <Kb.Box2 direction="vertical" style={styles.messageContainer} fullWidth={true}>
         <Kb.Markdown>{message}</Kb.Markdown>
       </Kb.Box2>
-      {Styles.isMobile && <Kb.Button label="Update" onClick={onOpenAppStore} />}
+      {Kb.Styles.isMobile && <Kb.Button label="Update" onClick={onOpenAppStore} />}
     </Kb.Box2>
   )
 }

@@ -1,9 +1,8 @@
 import * as React from 'react'
+import * as C from '../../../../../constants'
 import type * as T from '../../../../../constants/types'
 import * as Kb from '../../../../../common-adapters'
 import {FloatingRolePicker} from '../../../../role-picker'
-import * as Styles from '../../../../../styles'
-import {isLargeScreen} from '../../../../../constants/platform'
 import {formatTimeRelativeToNow} from '../../../../../util/timestamp'
 import MenuHeader from '../../menu-header.new'
 
@@ -89,10 +88,10 @@ export const TeamRequestRow = (props: Props) => {
               <Kb.Meta
                 title={reset ? 'locked out' : 'please decide'}
                 style={styleCharm}
-                backgroundColor={reset ? Styles.globalColors.red : Styles.globalColors.orange}
+                backgroundColor={reset ? Kb.Styles.globalColors.red : Kb.Styles.globalColors.orange}
               />
-              {Styles.isMobile ? (
-                isLargeScreen && (
+              {Kb.Styles.isMobile ? (
+                C.isLargeScreen && (
                   <Kb.Text type="BodySmall" ellipsizeMode="tail" lineClamp={1} style={styles.newFullName}>
                     {fullName !== '' && `${fullName}`}
                   </Kb.Text>
@@ -151,24 +150,24 @@ export const TeamRequestRow = (props: Props) => {
 
 const styleCharm = {
   alignSelf: 'center',
-  marginRight: Styles.globalMargins.xtiny,
+  marginRight: Kb.Styles.globalMargins.xtiny,
 } as const
 
-const styles = Styles.styleSheetCreate(() => ({
-  bg: {backgroundColor: Styles.globalColors.white},
-  clickContainer: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  bg: {backgroundColor: Kb.Styles.globalColors.white},
+  clickContainer: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
+      ...Kb.Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       flexGrow: 0,
       flexShrink: 1,
     },
     isElectron: {width: 'initial'},
   }),
-  container: Styles.platformStyles({
+  container: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
-      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+      ...Kb.Styles.globalStyles.flexBoxRow,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
       alignItems: 'center',
       flexDirection: 'row',
       flexGrow: 0,
@@ -183,37 +182,37 @@ const styles = Styles.styleSheetCreate(() => ({
     },
     isTablet: {height: 56},
   }),
-  disabled: {backgroundColor: Styles.globalColors.white, opacity: 0.4},
-  floatingRolePicker: Styles.platformStyles({
+  disabled: {backgroundColor: Kb.Styles.globalColors.white, opacity: 0.4},
+  floatingRolePicker: Kb.Styles.platformStyles({
     isElectron: {
       position: 'relative',
       top: -32,
     },
   }),
-  floatingRolePickerContainer: Styles.platformStyles({
+  floatingRolePickerContainer: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
+      ...Kb.Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       marginTop: 0,
     },
-    isMobile: {marginTop: Styles.globalMargins.tiny},
+    isMobile: {marginTop: Kb.Styles.globalMargins.tiny},
   }),
   icon: {
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.tiny,
+    marginLeft: Kb.Styles.globalMargins.small,
+    marginRight: Kb.Styles.globalMargins.tiny,
   },
-  ignoreButton: {marginLeft: Styles.globalMargins.xtiny},
+  ignoreButton: {marginLeft: Kb.Styles.globalMargins.xtiny},
   letInButton: {
-    backgroundColor: Styles.globalColors.green,
-    marginLeft: Styles.globalMargins.xtiny,
+    backgroundColor: Kb.Styles.globalColors.green,
+    marginLeft: Kb.Styles.globalMargins.xtiny,
   },
   newFullName: {
-    ...Styles.globalStyles.flexOne,
-    paddingRight: Styles.globalMargins.xtiny,
+    ...Kb.Styles.globalStyles.flexOne,
+    paddingRight: Kb.Styles.globalMargins.xtiny,
   },
   userDetails: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
-    marginLeft: Styles.globalMargins.small,
+    marginLeft: Kb.Styles.globalMargins.small,
   },
 }))

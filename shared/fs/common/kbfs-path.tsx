@@ -1,7 +1,6 @@
 import * as React from 'react'
 import type * as T from '../../constants/types'
 import * as C from '../../constants'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import PathInfo from './path-info'
 import PathItemInfo from './path-item-info'
@@ -28,7 +27,7 @@ const KbfsPathPopup = (props: PopupProps) => {
     <Kb.Box2 direction="vertical" style={styles.headerContainer} centerChildren={true} fullWidth={true}>
       <PathItemInfo
         path={props.standardPath}
-        containerStyle={Styles.collapseStyles([styles.sectionContainer, styles.noBottomPadding])}
+        containerStyle={Kb.Styles.collapseStyles([styles.sectionContainer, styles.noBottomPadding])}
       />
       <Kb.Divider />
       <PathInfo
@@ -45,10 +44,10 @@ const KbfsPathPopup = (props: PopupProps) => {
       attachTo={() => props.attachRef.current}
       onHidden={props.onHidden}
       position="top center"
-      propagateOutsideClicks={!Styles.isMobile}
+      propagateOutsideClicks={!Kb.Styles.isMobile}
       header={header}
       items={
-        Styles.isMobile
+        Kb.Styles.isMobile
           ? [
               'Divider',
               {
@@ -82,7 +81,7 @@ const KbfsPath = (props: Props) => {
   const popup = showing ? (
     <KbfsPathPopup attachRef={textRef} visible={showing} onHidden={() => setShowing(false)} {...props} />
   ) : null
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <>
       {text}
       {popup}
@@ -99,25 +98,25 @@ const KbfsPath = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      headerContainer: Styles.platformStyles({
+      headerContainer: Kb.Styles.platformStyles({
         isElectron: {
           maxWidth: 280,
         },
       }),
       noBottomPadding: {paddingBottom: 0},
-      sectionContainer: Styles.platformStyles({
+      sectionContainer: Kb.Styles.platformStyles({
         common: {
-          padding: Styles.globalMargins.small,
+          padding: Kb.Styles.globalMargins.small,
         },
         isMobile: {
-          paddingBottom: Styles.globalMargins.medium,
-          paddingTop: Styles.globalMargins.large,
+          paddingBottom: Kb.Styles.globalMargins.medium,
+          paddingTop: Kb.Styles.globalMargins.large,
         },
       }),
-      textContainer: Styles.platformStyles({
+      textContainer: Kb.Styles.platformStyles({
         isElectron: {
           display: 'inline-block',
         },

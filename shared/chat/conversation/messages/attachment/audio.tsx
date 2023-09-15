@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import * as Constants from '../../../../constants/chat2'
 import {OrdinalContext} from '../ids-context'
 import AudioPlayer from '../../../audio/audio-player'
@@ -24,7 +23,7 @@ const AudioAttachment = () => {
     message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
   }
   const url = !message.submitState && message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
-  const showInFinder = !!message.downloadPath && !Styles.isMobile
+  const showInFinder = !!message.downloadPath && !Kb.Styles.isMobile
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start">
       <Kb.Box2 direction="vertical" gap="xtiny">
@@ -48,7 +47,7 @@ const AudioAttachment = () => {
         )}
         {showInFinder && (
           <Kb.Text type="BodySmallPrimaryLink" onClick={onShowInFinder} style={styles.linkStyle}>
-            Show in {Styles.fileUIName}
+            Show in {Kb.Styles.fileUIName}
           </Kb.Text>
         )}
       </Kb.Box2>
@@ -56,14 +55,14 @@ const AudioAttachment = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  error: {color: Styles.globalColors.redDark},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  error: {color: Kb.Styles.globalColors.redDark},
   linkStyle: {
-    color: Styles.globalColors.black_50,
+    color: Kb.Styles.globalColors.black_50,
   },
   progressLabelStyle: {
-    color: Styles.globalColors.black_50,
-    marginRight: Styles.globalMargins.tiny,
+    color: Kb.Styles.globalColors.black_50,
+    marginRight: Kb.Styles.globalMargins.tiny,
   },
 }))
 

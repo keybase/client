@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../../util/container'
+import type * as C from '../../../constants'
 
 const Index = React.lazy(async () => import('./index.new'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Index>
+type OwnProps = C.ViewPropsToPageProps<typeof Index>
 
 const getOptions = () => ({
   headerHideBorder: true,

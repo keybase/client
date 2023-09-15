@@ -1,4 +1,3 @@
-import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
 import type * as T from '../../../../constants/types'
 
@@ -27,7 +26,7 @@ const SetDescriptionMessage = (props: Props) => {
 }
 export default SetDescriptionMessage
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       text: {flexGrow: 1},

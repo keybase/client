@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as T from '../../constants/types'
-import * as Styles from '../../styles'
 
 const ValidatedStatus = () => {
   const [visible, setVisible] = React.useState(true)
@@ -54,11 +53,11 @@ const ThreadLoadStatus = () => {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       banner: {
-        padding: Styles.globalMargins.xxtiny,
+        padding: Kb.Styles.globalMargins.xxtiny,
       },
     }) as const
 )

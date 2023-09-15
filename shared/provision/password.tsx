@@ -1,8 +1,6 @@
 import * as C from '../constants'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import UserCard from '../login/user-card'
 import {SignupScreen, errorBanner} from '../signup/common'
 import {isMobile} from '../constants/platform'
@@ -11,7 +9,7 @@ export default () => {
   const error = C.useProvisionState(s => s.error)
   const resetEmailSent = C.useRecoverState(s => s.resetEmailSent)
   const username = C.useProvisionState(s => s.username)
-  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const startRecoverPassword = C.useRecoverState(s => s.dispatch.startRecoverPassword)
   const _onForgotPassword = (username: string) => {
@@ -120,39 +118,39 @@ const Password = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  card: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  card: Kb.Styles.platformStyles({
     common: {
       alignItems: 'stretch',
-      backgroundColor: Styles.globalColors.transparent,
+      backgroundColor: Kb.Styles.globalColors.transparent,
     },
     isMobile: {
       paddingLeft: 0,
       paddingRight: 0,
     },
   }),
-  contentContainer: Styles.platformStyles({isMobile: {...Styles.padding(0)}}),
-  fill: Styles.platformStyles({
+  contentContainer: Kb.Styles.platformStyles({isMobile: {...Kb.Styles.padding(0)}}),
+  fill: Kb.Styles.platformStyles({
     isMobile: {height: '100%', width: '100%'},
     isTablet: {width: 410},
   }),
   forgotPassword: {
     alignSelf: 'flex-end',
   },
-  outerCard: {
-    flex: 1,
-    height: Styles.isMobile ? undefined : 'unset',
-  },
+  outerCard: Kb.Styles.platformStyles({
+    common: {flex: 1},
+    isElectron: {height: 'unset'},
+  }),
   outerCardAvatar: {
-    backgroundColor: Styles.globalColors.transparent,
+    backgroundColor: Kb.Styles.globalColors.transparent,
   },
-  scrollContentContainer: Styles.platformStyles({
+  scrollContentContainer: Kb.Styles.platformStyles({
     isElectron: {
       margin: 'auto',
     },
-    isMobile: {...Styles.padding(Styles.globalMargins.small)},
+    isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.small)},
   }),
-  wrapper: Styles.platformStyles({
+  wrapper: Kb.Styles.platformStyles({
     isElectron: {
       width: 400,
     },

@@ -10,7 +10,6 @@ import Text, {
   type TextTypeBold,
 } from './text'
 import {backgroundModeIsNegative} from './text.shared'
-import shallowEqual from 'shallowequal'
 import isArray from 'lodash/isArray'
 
 export type User = {
@@ -321,9 +320,9 @@ const Usernames = React.memo(
     )
   },
   (p, n) => {
-    return shallowEqual(p, n, (v, o) => {
+    return C.shallowEqual(p, n, (v, o) => {
       if (isArray(v) && isArray(o)) {
-        return shallowEqual(v, o)
+        return C.shallowEqual(v, o)
       }
       return undefined
     })

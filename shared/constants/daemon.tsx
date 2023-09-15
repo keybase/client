@@ -31,7 +31,7 @@ const initialStore: Store = {
 type State = Store & {
   dispatch: {
     loadDaemonAccounts: () => void
-    loadDaemonBootstrapStatus: (force?: boolean) => Promise<void>
+    loadDaemonBootstrapStatus: () => Promise<void>
     resetState: () => void
     setError: (e?: Error) => void
     setFailed: (r: string) => void
@@ -89,7 +89,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
     return
   }
 
-  let loadDaemonBootstrapStatusDoneVersion = -1
   // When there are no more waiters, we can show the actual app
 
   let _emitStartupOnLoadDaemonConnectedOnce = false
@@ -144,6 +143,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
     loadDaemonAccounts: () => {
       const f = async () => {
         const version = get().handshakeVersion
+        if (C.useConfigState.getState().configuredAccounts.length) {
+          // bail on already loaded
+          return
+        }
 
         let handshakeWait = false
         let handshakeVersion = 0
@@ -212,13 +215,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     // set to true so we reget status when we're reachable again
-    loadDaemonBootstrapStatus: async force => {
+    loadDaemonBootstrapStatus: async () => {
       const version = get().handshakeVersion
       const {wait} = get().dispatch
-      if (loadDaemonBootstrapStatusDoneVersion === version && !force) {
+
+      if (C.useCurrentUserState.getState().username) {
+        // ready loaded, can bail
         return
       }
-      loadDaemonBootstrapStatusDoneVersion = version
 
       const f = async () => {
         const {setBootstrap} = C.useCurrentUserState.getState().dispatch

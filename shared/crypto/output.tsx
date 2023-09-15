@@ -1,17 +1,15 @@
 import * as C from '../constants'
 import * as Constants from '../constants/crypto'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Path from '../util/path'
 import * as Platforms from '../constants/platform'
 import * as React from 'react'
-import * as Styles from '../styles'
 import capitalize from 'lodash/capitalize'
-import shallowEqual from 'shallowequal'
 import type * as T from '../constants/types'
 import {getStyle} from '../common-adapters/text'
 import {humanizeBytes} from '../constants/fs'
 import {pickFiles} from '../util/pick-files'
+import type HiddenString from '../util/hidden-string'
 
 type OutputProps = {operation: T.Crypto.Operations}
 type OutputActionsBarProps = {operation: T.Crypto.Operations}
@@ -29,7 +27,7 @@ const largeOutputLimit = 120
 
 export const SignedSender = (props: SignedSenderProps) => {
   const {operation} = props
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.useAnyWaiting(Constants.waitingKey)
 
   const {
     outputSigned: signed,
@@ -40,13 +38,13 @@ export const SignedSender = (props: SignedSenderProps) => {
     const o = s[operation]
     const {outputSigned, outputSenderUsername, outputSenderFullname, outputStatus} = o
     return {outputSenderFullname, outputSenderUsername, outputSigned, outputStatus}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const isSelfSigned = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
-  const avatarSize = isSelfSigned ? 16 : Styles.isMobile ? 32 : 48
+  const avatarSize = isSelfSigned ? 16 : Kb.Styles.isMobile ? 32 : 48
   const usernameType = isSelfSigned ? 'BodySmallBold' : 'BodyBold'
 
-  const space = Styles.isMobile ? '' : ' '
+  const space = Kb.Styles.isMobile ? '' : ' '
   const signedByText = `Signed by ${isSelfSigned ? `${space}you` : ''}`
 
   if (!outputStatus || (outputStatus && outputStatus === 'error')) {
@@ -60,7 +58,7 @@ export const SignedSender = (props: SignedSenderProps) => {
         direction="horizontal"
         fullWidth={true}
         alignItems="center"
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.signedContainer,
           isSelfSigned ? styles.signedContainerSelf : styles.signedContainerOther,
         ])}
@@ -131,7 +129,7 @@ export const OutputProgress = (props: OutputProgressProps) => {
     const o = s[operation]
     const {bytesComplete, bytesTotal, inProgress} = o
     return {bytesComplete, bytesTotal, inProgress}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const ratio = bytesComplete === 0 ? 0 : bytesComplete / bytesTotal
 
@@ -152,7 +150,7 @@ export const OutputInfoBanner = (props: OutputInfoProps) => {
       color="grey"
       style={styles.banner}
       textContainerStyle={styles.bannerContainer}
-      narrow={Styles.isMobile}
+      narrow={Kb.Styles.isMobile}
     >
       {props.children}
     </Kb.Banner>
@@ -165,7 +163,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const canReplyInChat =
     operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
 
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.useAnyWaiting(Constants.waitingKey)
 
   const {
     output,
@@ -178,7 +176,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     const o = s[operation]
     const {output, outputValid, outputStatus, outputType, outputSigned, outputSenderUsername} = o
     return {output, outputSenderUsername, outputSigned, outputStatus, outputType, outputValid}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const actionsDisabled = waiting || !outputValid
 
@@ -191,7 +189,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
-  const onReplyInChat = (username: Container.HiddenString) => {
+  const onReplyInChat = (username: HiddenString) => {
     navigateUp()
     previewConversation({participants: [username.stringValue()], reason: 'search'})
   }
@@ -239,18 +237,18 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
 
   return outputStatus && outputStatus === 'success' ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputActionsBarContainer}>
-      {outputType === 'file' && !Styles.isMobile ? (
+      {outputType === 'file' && !Kb.Styles.isMobile ? (
         <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
           <Kb.Button
             mode="Secondary"
-            label={`Open in ${Styles.fileUIName}`}
+            label={`Open in ${Kb.Styles.fileUIName}`}
             onClick={() => onShowInFinder()}
           />
         </Kb.ButtonBar>
       ) : (
         <Kb.ButtonBar
           direction="row"
-          align={Styles.isTablet ? 'center' : 'flex-start'}
+          align={Kb.Styles.isTablet ? 'center' : 'flex-start'}
           style={styles.buttonBar}
         >
           {canReplyInChat && signed && signedByUsername && (
@@ -258,7 +256,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
               mode="Primary"
               label="Reply in chat"
               disabled={actionsDisabled}
-              fullWidth={Styles.isMobile}
+              fullWidth={Kb.Styles.isMobile}
               onClick={() => onReplyInChat(signedByUsername)}
             />
           )}
@@ -268,17 +266,17 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
                 Copied to clipboard
               </Kb.Text>
             </Kb.Toast>
-            {Styles.isMobile && canReplyInChat ? null : (
+            {Kb.Styles.isMobile && canReplyInChat ? null : (
               <Kb.Button
-                mode={Styles.isMobile ? 'Primary' : 'Secondary'}
+                mode={Kb.Styles.isMobile ? 'Primary' : 'Secondary'}
                 label="Copy to clipboard"
                 disabled={actionsDisabled}
-                fullWidth={Styles.isMobile}
+                fullWidth={Kb.Styles.isMobile}
                 onClick={() => copy()}
               />
             )}
           </Kb.Box2>
-          {canSaveAsText && !Styles.isMobile && (
+          {canSaveAsText && !Kb.Styles.isMobile && (
             <Kb.Button
               mode="Secondary"
               label="Save as TXT"
@@ -293,7 +291,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
-      style={Styles.collapseStyles([styles.outputActionsBarContainer, styles.outputPlaceholder])}
+      style={Kb.Styles.collapseStyles([styles.outputActionsBarContainer, styles.outputPlaceholder])}
     >
       <Kb.ButtonBar direction="row" style={styles.buttonBar}>
         {null}
@@ -322,7 +320,7 @@ const OutputFileDestination = (props: {operation: T.Crypto.Operations}) => {
       const path = filePaths[0]!
       runFileOperation(operation, path)
     }
-    Container.ignorePromise(f())
+    C.ignorePromise(f())
   }
 
   return (
@@ -334,7 +332,7 @@ const OutputFileDestination = (props: {operation: T.Crypto.Operations}) => {
   )
 }
 
-const MobileScroll = Styles.isMobile ? Kb.ScrollView : React.Fragment
+const MobileScroll = Kb.Styles.isMobile ? Kb.ScrollView : React.Fragment
 
 const outputTextType = new Map([
   ['decrypt', 'plain'],
@@ -365,7 +363,7 @@ export const OperationOutput = (props: OutputProps) => {
     const o = s[operation]
     const {inProgress, inputType, output, outputValid, outputStatus, outputType} = o
     return {inProgress, inputType, output, outputStatus, outputType, outputValid}
-  }, shallowEqual)
+  }, C.shallowEqual)
   const output = _output.stringValue()
 
   const openLocalPathInSystemFileManagerDesktop = C.useFSState(
@@ -376,7 +374,7 @@ export const OperationOutput = (props: OutputProps) => {
     openLocalPathInSystemFileManagerDesktop?.(output)
   }
 
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.useAnyWaiting(Constants.waitingKey)
 
   // Output text can be 24 px when output is less that 120 characters
   const outputTextIsLarge =
@@ -387,7 +385,7 @@ export const OperationOutput = (props: OutputProps) => {
     output.length <= largeOutputLimit && {fontSize, lineHeight}
 
   const fileOutputTextColor =
-    textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
+    textType === 'cipher' ? Kb.Styles.globalColors.greenDark : Kb.Styles.globalColors.black
   const fileIcon = outputFileIcon.get(operation)
   const actionsDisabled = waiting || !outputValid
 
@@ -398,7 +396,7 @@ export const OperationOutput = (props: OutputProps) => {
         direction="vertical"
         fullHeight={true}
         fullWidth={true}
-        style={Styles.collapseStyles([styles.coverOutput, styles.outputPlaceholder])}
+        style={Kb.Styles.collapseStyles([styles.coverOutput, styles.outputPlaceholder])}
       >
         {inProgress ? (
           <OutputProgress operation={operation} />
@@ -423,7 +421,7 @@ export const OperationOutput = (props: OutputProps) => {
           {fileIcon ? <Kb.Icon type={fileIcon} sizeType="Huge" /> : null}
           <Kb.Text
             type="BodyPrimaryLink"
-            style={Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
+            style={Kb.Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
             onClick={() => onShowInFinder()}
           >
             {output}
@@ -441,7 +439,7 @@ export const OperationOutput = (props: OutputProps) => {
         <Kb.Text
           type={textType === 'cipher' ? 'Terminal' : 'Body'}
           selectable={!actionsDisabled}
-          style={Styles.collapseStyles([styles.output, outputLargeStyle])}
+          style={Kb.Styles.collapseStyles([styles.output, outputLargeStyle])}
         >
           {output}
         </Kb.Text>
@@ -450,103 +448,103 @@ export const OperationOutput = (props: OutputProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       banner: {
-        ...Styles.padding(Styles.globalMargins.tiny),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
         minHeight: 40,
       },
       bannerContainer: {
-        ...Styles.padding(0),
+        ...Kb.Styles.padding(0),
       },
       buttonBar: {
-        height: Styles.globalMargins.large,
-        minHeight: Styles.globalMargins.large,
+        height: Kb.Styles.globalMargins.large,
+        minHeight: Kb.Styles.globalMargins.large,
       },
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.globalStyles.flexGrow,
-          ...Styles.padding(Styles.globalMargins.tiny),
+          ...Kb.Styles.globalStyles.flexGrow,
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
           overflowY: 'auto',
         },
         isMobile: {
           flexShrink: 1,
         },
       }),
-      coverOutput: {...Styles.globalStyles.flexBoxCenter},
-      fileOutputContainer: {...Styles.padding(Styles.globalMargins.xsmall)},
-      fileOutputText: {...Styles.globalStyles.fontSemibold},
-      output: Styles.platformStyles({
+      coverOutput: {...Kb.Styles.globalStyles.flexBoxCenter},
+      fileOutputContainer: {...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall)},
+      fileOutputText: {...Kb.Styles.globalStyles.fontSemibold},
+      output: Kb.Styles.platformStyles({
         common: {
-          color: Styles.globalColors.black,
+          color: Kb.Styles.globalColors.black,
         },
         isElectron: {
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
         },
         isMobile: {
-          ...Styles.padding(Styles.globalMargins.small),
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
         },
       }),
-      outputActionsBarContainer: Styles.platformStyles({
+      outputActionsBarContainer: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.padding(Styles.globalMargins.tiny),
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
         },
         isMobile: {
-          ...Styles.padding(Styles.globalMargins.small),
-          backgroundColor: Styles.globalColors.blueGrey,
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
         },
         isTablet: {
           alignItems: 'center',
           justifyContent: 'center',
         },
       }),
-      outputPlaceholder: {backgroundColor: Styles.globalColors.blueGreyLight},
-      outputVerifiedContainer: {marginBottom: Styles.globalMargins.xlarge},
-      placeholder: {color: Styles.globalColors.black_50},
+      outputPlaceholder: {backgroundColor: Kb.Styles.globalColors.blueGreyLight},
+      outputVerifiedContainer: {marginBottom: Kb.Styles.globalMargins.xlarge},
+      placeholder: {color: Kb.Styles.globalColors.black_50},
       progressBar: {
         width: 200,
       },
       signedByText: {
         alignItems: 'baseline',
       },
-      signedContainer: Styles.platformStyles({
+      signedContainer: Kb.Styles.platformStyles({
         common: {
           flexShrink: 0,
           justifyContent: 'center',
-          minHeight: Styles.globalMargins.mediumLarge,
+          minHeight: Kb.Styles.globalMargins.mediumLarge,
         },
         isMobile: {
-          minHeight: Styles.globalMargins.large,
+          minHeight: Kb.Styles.globalMargins.large,
         },
       }),
-      signedContainerOther: Styles.platformStyles({
+      signedContainerOther: Kb.Styles.platformStyles({
         isElectron: {
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
+          paddingRight: Kb.Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          ...Styles.padding(Styles.globalMargins.small),
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
         },
       }),
-      signedContainerSelf: Styles.platformStyles({
+      signedContainerSelf: Kb.Styles.platformStyles({
         isElectron: {
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
+          paddingRight: Kb.Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          ...Styles.padding(Styles.globalMargins.tiny),
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
         },
       }),
-      signedIcon: {color: Styles.globalColors.green},
+      signedIcon: {color: Kb.Styles.globalColors.green},
       signedSender: {
-        ...Styles.globalStyles.flexGrow,
+        ...Kb.Styles.globalStyles.flexGrow,
       },
       toastText: {
-        color: Styles.globalColors.white,
+        color: Kb.Styles.globalColors.white,
         textAlign: 'center',
       },
     }) as const

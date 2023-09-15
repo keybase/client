@@ -1,6 +1,5 @@
 import * as Kb from '../../../common-adapters'
 import * as C from '../../../constants'
-import * as Styles from '../../../styles'
 import Modal from '../../modal'
 
 export default function Import() {
@@ -30,23 +29,23 @@ export default function Import() {
 }
 
 const styleHeader = {
-  marginTop: Styles.globalMargins.medium,
+  marginTop: Kb.Styles.globalMargins.medium,
 }
 
 const styleBody = {
-  marginBottom: Styles.globalMargins.small,
-  marginTop: Styles.globalMargins.small,
+  marginBottom: Kb.Styles.globalMargins.small,
+  marginTop: Kb.Styles.globalMargins.small,
 }
 
 const styleTerminal = {
-  ...Styles.globalStyles.flexBoxColumn,
+  ...Kb.Styles.globalStyles.flexBoxColumn,
   alignItems: 'stretch',
-  backgroundColor: Styles.globalColors.blueDarker2,
+  backgroundColor: Kb.Styles.globalColors.blueDarker2,
   borderRadius: 4,
   boxSizing: 'content-box',
-  color: Styles.globalColors.white,
-  marginLeft: -Styles.globalMargins.medium,
-  marginRight: -Styles.globalMargins.medium,
-  padding: Styles.globalMargins.medium,
+  color: Kb.Styles.globalColors.white,
+  marginLeft: -Kb.Styles.globalMargins.medium,
+  marginRight: -Kb.Styles.globalMargins.medium,
+  padding: Kb.Styles.globalMargins.medium,
   textAlign: 'left',
 }

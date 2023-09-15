@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as Constants from '../../../constants/tracker2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import type * as T from '../../../constants/types'
 import FollowButton from './follow-button'
 import ChatButton from '../../../chat/chat-button'
@@ -217,7 +216,7 @@ const DropdownButton = (p: DropdownProps) => {
     <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
         <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton}>
-          <Kb.Icon color={Styles.globalColors.blue} type="iconfont-ellipsis" />
+          <Kb.Icon color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />
         </Kb.Button>
       </Kb.Box2>
       {popup}
@@ -225,8 +224,8 @@ const DropdownButton = (p: DropdownProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  chatIcon: {marginRight: Styles.globalMargins.tiny},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  chatIcon: {marginRight: Kb.Styles.globalMargins.tiny},
   dropdownButton: {minWidth: undefined},
 }))
 

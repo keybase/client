@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 
 type Props = {
   allowFeedback?: boolean
@@ -55,11 +54,11 @@ const Splash = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {alignItems: 'center', justifyContent: 'center'},
-    } as const)
+    }) as const
 )
 
 export default React.memo(Splash)

@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as T from '../constants/types'
 import * as React from 'react'
-import * as Styles from '../styles'
 import DragHeader from '../desktop/remote/drag-header.desktop'
 
 export type Props = {
@@ -69,7 +68,7 @@ class Pinentry extends React.Component<Props, State> {
         key={this.props.darkMode ? 'darkMode' : 'light'}
       >
         <DragHeader icon={false} title="" onClose={this.props.onCancel} windowDragging={true} />
-        <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
+        <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
           <Kb.Text type="Body" center={true}>
             {this.props.prompt}
           </Kb.Text>
@@ -123,12 +122,12 @@ Pinentry.defaultProps = {
   submitLabel: 'Continue',
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  alignment: {marginLeft: Styles.globalMargins.xsmall},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  alignment: {marginLeft: Kb.Styles.globalMargins.xsmall},
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    backgroundColor: Styles.globalColors.white,
-    paddingBottom: Styles.globalMargins.medium,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
+    backgroundColor: Kb.Styles.globalColors.white,
+    paddingBottom: Kb.Styles.globalMargins.medium,
   },
   inputContainer: {maxWidth: 428},
 }))

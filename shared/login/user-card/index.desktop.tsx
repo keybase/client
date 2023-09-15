@@ -1,5 +1,4 @@
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import type {Props} from '.'
 
 const UserCard = ({
@@ -12,7 +11,7 @@ const UserCard = ({
   lighterPlaceholders,
 }: Props) => {
   return (
-    <div style={Styles.collapseStyles([styles.container, outerStyle])}>
+    <div style={Kb.Styles.collapseStyles([styles.container, outerStyle])}>
       <Kb.Avatar
         size={avatarSize}
         onClick={onAvatarClicked}
@@ -20,7 +19,7 @@ const UserCard = ({
         lighterPlaceholders={lighterPlaceholders}
       />
       <div
-        style={Styles.collapseStyles([
+        style={Kb.Styles.collapseStyles([
           styles.inside,
           {
             marginTop: -avatarSize / 2,
@@ -39,18 +38,18 @@ UserCard.defaultProps = {
   avatarSize: 128,
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     height: 430,
     width: 410,
   },
   inside: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
     borderRadius: 4,
     padding: 30,
   },

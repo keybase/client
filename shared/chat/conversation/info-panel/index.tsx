@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import type * as T from '../../../constants/types'
@@ -80,7 +79,7 @@ export class _InfoPanel extends React.PureComponent<
       return (
         <Kb.Box2
           direction="vertical"
-          style={Styles.collapseStyles([styles.container, {alignItems: 'center'}])}
+          style={Kb.Styles.collapseStyles([styles.container, {alignItems: 'center'}])}
           fullWidth={true}
           centerChildren={true}
         >
@@ -112,7 +111,7 @@ export class _InfoPanel extends React.PureComponent<
       default:
         sectionList = null
     }
-    if (Styles.isTablet) {
+    if (Kb.Styles.isTablet) {
       // Use a View to make the left border.
       return (
         <Kb.Box2
@@ -130,7 +129,7 @@ export class _InfoPanel extends React.PureComponent<
     } else {
       return (
         <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-          {Styles.isMobile && (
+          {Kb.Styles.isMobile && (
             <Kb.HeaderHocHeader
               onLeftAction={this.props.onCancel}
               leftAction="cancel"
@@ -146,36 +145,36 @@ export class _InfoPanel extends React.PureComponent<
 
 const tabletContainerBorderSize = 1
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      clickableTabStyle: Styles.platformStyles({
+      clickableTabStyle: Kb.Styles.platformStyles({
         isMobile: {width: undefined},
       }),
-      container: Styles.platformStyles({
-        common: {alignItems: 'stretch', paddingBottom: Styles.globalMargins.tiny},
+      container: Kb.Styles.platformStyles({
+        common: {alignItems: 'stretch', paddingBottom: Kb.Styles.globalMargins.tiny},
         isElectron: {
-          backgroundColor: Styles.globalColors.white,
-          borderLeft: `1px solid ${Styles.globalColors.black_10}`,
+          backgroundColor: Kb.Styles.globalColors.white,
+          borderLeft: `1px solid ${Kb.Styles.globalColors.black_10}`,
           width: infoPanelWidthElectron,
         },
         isTablet: {
-          paddingTop: Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.small,
           width: infoPanelWidthTablet,
         },
       }),
       containerBorder: {
-        backgroundColor: Styles.globalColors.black_10,
+        backgroundColor: Kb.Styles.globalColors.black_10,
         width: tabletContainerBorderSize,
       },
       containerOuterTablet: {width: infoPanelWidthTablet + tabletContainerBorderSize},
       tab: {
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.xsmall,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
+        paddingRight: Kb.Styles.globalMargins.xsmall,
       },
-      tabContainer: Styles.platformStyles({
+      tabContainer: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.white,
         },
         // TODO: this is less than ideal
         isElectron: {

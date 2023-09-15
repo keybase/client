@@ -1,7 +1,6 @@
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import SuggestionList from './suggestion-list'
 import type * as T from '../../../../constants/types'
 
@@ -29,11 +28,11 @@ export const TeamSuggestion = (p: {teamname: string; channelname: string | undef
   <Kb.Box2
     direction="horizontal"
     fullWidth={true}
-    style={Styles.collapseStyles([
+    style={Kb.Styles.collapseStyles([
       styles.suggestionBase,
       styles.fixSuggestionHeight,
       {
-        backgroundColor: p.selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
+        backgroundColor: p.selected ? Kb.Styles.globalColors.blueLighter2 : Kb.Styles.globalColors.white,
       },
     ])}
     gap="tiny"
@@ -49,8 +48,8 @@ export type ListProps<L> = {
   items: Array<L>
   keyExtractor: (item: L, idx: number) => string
   suggestBotCommandsUpdateStatus?: T.RPCChat.UIBotCommandsUpdateStatusTyp
-  listStyle: Styles.StylesCrossPlatform
-  spinnerStyle: Styles.StylesCrossPlatform
+  listStyle: Kb.Styles.StylesCrossPlatform
+  spinnerStyle: Kb.Styles.StylesCrossPlatform
   loading: boolean
   onSelected: (item: L, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
@@ -104,20 +103,22 @@ export function List<T>(p: ListProps<T>) {
         selectedIndex={selectedIndex}
         suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
       />
-      {loading && <Kb.ProgressIndicator type={Styles.isMobile ? undefined : 'Large'} style={spinnerStyle} />}
+      {loading && (
+        <Kb.ProgressIndicator type={Kb.Styles.isMobile ? undefined : 'Large'} style={spinnerStyle} />
+      )}
     </>
   )
 }
 
-export const styles = Styles.styleSheetCreate(() => ({
-  fixSuggestionHeight: Styles.platformStyles({
+export const styles = Kb.Styles.styleSheetCreate(() => ({
+  fixSuggestionHeight: Kb.Styles.platformStyles({
     isMobile: {height: 48},
   }),
   suggestionBase: {
     alignItems: 'center',
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Kb.Styles.globalMargins.xtiny,
+    paddingLeft: Kb.Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.tiny,
+    paddingTop: Kb.Styles.globalMargins.xtiny,
   },
 }))

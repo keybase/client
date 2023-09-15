@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import capitalize from 'lodash/capitalize'
 import {subtitle as platformSubtitle} from '../../util/platforms'
 import {SiteIcon} from '../generic/shared'
@@ -23,7 +22,7 @@ const Revoke = (props: Props) => {
     <Modal onCancel={props.onCancel} skipButton={true}>
       {!!props.errorMessage && (
         <Kb.Box style={styles.errorBanner}>
-          <Kb.Text center={!Styles.isMobile} style={styles.errorBannerText} type="BodySemibold">
+          <Kb.Text center={!Kb.Styles.isMobile} style={styles.errorBannerText} type="BodySemibold">
             {props.errorMessage}
           </Kb.Text>
         </Kb.Box>
@@ -33,7 +32,7 @@ const Revoke = (props: Props) => {
           <SiteIcon set={props.icon} full={true} style={styles.siteIcon} />
           <Kb.Icon type="icon-proof-broken" style={styles.revokeIcon} />
         </Kb.Box>
-        <Kb.Text center={!Styles.isMobile} style={styles.platformUsername} type="Header">
+        <Kb.Text center={!Kb.Styles.isMobile} style={styles.platformUsername} type="Header">
           {props.platformHandle}
         </Kb.Text>
         {!!platformHandleSubtitle && (
@@ -41,10 +40,10 @@ const Revoke = (props: Props) => {
             {platformHandleSubtitle}
           </Kb.Text>
         )}
-        <Kb.Text center={!Styles.isMobile} style={styles.descriptionText} type="Header">
+        <Kb.Text center={!Kb.Styles.isMobile} style={styles.descriptionText} type="Header">
           {formatMessage(props.platform)}
         </Kb.Text>
-        <Kb.Text center={!Styles.isMobile} style={styles.reminderText} type="Body">
+        <Kb.Text center={!Kb.Styles.isMobile} style={styles.reminderText} type="Body">
           You can add it again later, if you change your mind.
         </Kb.Text>
         <Kb.ButtonBar>
@@ -66,38 +65,38 @@ const Revoke = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       contentContainer: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
         flexGrow: 1,
         justifyContent: 'center',
-        margin: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.large,
+        margin: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
         maxWidth: 512,
-        textAlign: Styles.isMobile ? undefined : 'center',
+        textAlign: Kb.Styles.isMobile ? undefined : 'center',
       },
-      descriptionText: {marginTop: Styles.globalMargins.medium},
+      descriptionText: {marginTop: Kb.Styles.globalMargins.medium},
       errorBanner: {
-        ...Styles.globalStyles.flexBoxColumn,
+        ...Kb.Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.red,
+        backgroundColor: Kb.Styles.globalColors.red,
         justifyContent: 'center',
-        minHeight: Styles.globalMargins.large,
-        padding: Styles.globalMargins.tiny,
+        minHeight: Kb.Styles.globalMargins.large,
+        padding: Kb.Styles.globalMargins.tiny,
         width: '100%',
       },
       errorBannerText: {
-        color: Styles.globalColors.white,
+        color: Kb.Styles.globalColors.white,
         maxWidth: 512,
       },
       platformSubtitle: {
-        color: Styles.globalColors.black_20,
+        color: Kb.Styles.globalColors.black_20,
       },
-      platformUsername: Styles.platformStyles({
+      platformUsername: Kb.Styles.platformStyles({
         common: {
-          color: Styles.globalColors.redDark,
+          color: Kb.Styles.globalColors.redDark,
           textDecorationLine: 'line-through',
         },
         isElectron: {
@@ -106,9 +105,9 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       positionRelative: {position: 'relative'},
-      reminderText: {marginTop: Styles.globalMargins.tiny},
+      reminderText: {marginTop: Kb.Styles.globalMargins.tiny},
       revokeIcon: {bottom: -8, position: 'absolute', right: -10},
-      siteIcon: Styles.isMobile ? {height: 64, width: 64} : {height: 48, width: 48},
+      siteIcon: Kb.Styles.isMobile ? {height: 64, width: 64} : {height: 48, width: 48},
     }) as const
 )
 

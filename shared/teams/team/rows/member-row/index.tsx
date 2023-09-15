@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import type * as T from '../../../../constants/types'
 import {typeToLabel} from '../../../../constants/teams'
@@ -114,7 +113,7 @@ export const TeamMemberRow = (props: Props) => {
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
       <Kb.Avatar username={props.username} size={32} />
       <Kb.Box2 direction="vertical" style={styles.nameContainer}>
-        <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+        <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
           <Kb.ConnectedUsernames
             type="BodyBold"
             usernames={props.username}
@@ -128,7 +127,7 @@ export const TeamMemberRow = (props: Props) => {
           {crown}
           {!active && (
             <Kb.Meta
-              backgroundColor={Styles.globalColors.red}
+              backgroundColor={Kb.Styles.globalColors.red}
               title={props.status === 'reset' ? 'locked out' : 'deleted'}
               style={styles.lockedOutMeta}
             />
@@ -236,7 +235,7 @@ export const TeamMemberRow = (props: Props) => {
       {popup}
       <Kb.Button
         icon="iconfont-chat"
-        iconColor={Styles.globalColors.black_50}
+        iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
         onClick={props.onChat}
         small={true}
@@ -244,7 +243,7 @@ export const TeamMemberRow = (props: Props) => {
       />
       <Kb.Button
         icon="iconfont-ellipsis"
-        iconColor={Styles.globalColors.black_50}
+        iconColor={Kb.Styles.globalColors.black_50}
         mode="Secondary"
         onClick={toggleShowingPopup}
         ref={popupAnchor}
@@ -267,7 +266,7 @@ export const TeamMemberRow = (props: Props) => {
       {...massActionsProps}
       action={anySelected ? null : actions}
       onlyShowActionOnHover="fade"
-      height={Styles.isMobile ? 56 : 48}
+      height={Kb.Styles.isMobile ? 56 : 48}
       type="Large"
       body={body}
       firstItem={props.firstItem}
@@ -278,24 +277,24 @@ export const TeamMemberRow = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   checkCircle: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
     alignSelf: 'center',
   },
-  crownIcon: {marginRight: Styles.globalMargins.xtiny},
-  fullNameLabel: {flexShrink: 1, marginRight: Styles.globalMargins.xtiny},
+  crownIcon: {marginRight: Kb.Styles.globalMargins.xtiny},
+  fullNameLabel: {flexShrink: 1, marginRight: Kb.Styles.globalMargins.xtiny},
   listItemMargin: {marginLeft: 0},
-  lockedOutMeta: {marginRight: Styles.globalMargins.xtiny},
-  mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
+  lockedOutMeta: {marginRight: Kb.Styles.globalMargins.xtiny},
+  mobileMarginsHack: Kb.Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
   nameContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignSelf: undefined,
     flex: 1,
     justifyContent: 'center',
-    marginLeft: Styles.globalMargins.small,
+    marginLeft: Kb.Styles.globalMargins.small,
   },
-  selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
-  unselected: {backgroundColor: Styles.globalColors.white},
+  selected: {backgroundColor: Kb.Styles.globalColors.blueLighterOrBlueDarker},
+  unselected: {backgroundColor: Kb.Styles.globalColors.white},
   widenClickableArea: {margin: -5, padding: 5},
 }))

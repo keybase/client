@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
+import type * as C from '../../constants'
 
 const DeleteTeam = React.lazy(async () => import('./container'))
-type OwnProps = Container.ViewPropsToPageProps<typeof DeleteTeam>
+type OwnProps = C.ViewPropsToPageProps<typeof DeleteTeam>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

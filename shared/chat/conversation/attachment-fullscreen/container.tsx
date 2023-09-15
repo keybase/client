@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import Fullscreen from '.'
 import * as Container from '../../../util/container'
-import shallowEqual from 'shallowequal'
 import {maxWidth, maxHeight} from '../messages/attachment/shared'
 
 const blankMessage = Constants.makeMessageAttachment({})
@@ -40,7 +39,7 @@ const Connected = (props: OwnProps) => {
       title,
       transferProgress,
     }
-  }, shallowEqual)
+  }, C.shallowEqual)
   const {downloadPath, fileURL, id, lastOrdinal} = data
   const {message, previewHeight, previewURL, previewWidth, title, transferProgress} = data
   const getLastOrdinal = () => lastOrdinal

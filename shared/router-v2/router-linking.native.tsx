@@ -8,7 +8,7 @@ import {getStateFromPath} from '@react-navigation/native'
 import {tabRoots} from './routes'
 import {Linking} from 'react-native'
 
-const tabs: ReadonlyArray<Tabs.Tab> = Container.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
+const tabs: ReadonlyArray<Tabs.Tab> = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 
 const argArrayGood = (arr: Array<string>, len: number) => {
   return arr.length === len && arr.every(p => !!p.length)
@@ -52,6 +52,8 @@ export const isValidLink = (link: string) => {
       return true
     case 'team-invite-link':
       return argArrayGood(parts, 1)
+    case 'settingsPushPrompt':
+      return true
   }
 
   return false
@@ -126,10 +128,12 @@ const makeLinking = (options: OptionsType) => {
           url = `keybase://${startupTab ?? ''}`
         }
       }
+
       // allow deep links sagas access to the first link
       if (isValidLink(url)) {
         setTimeout(() => url && C.useDeepLinksState.getState().dispatch.handleAppLink(url), 1)
       }
+
       return url
     },
     getStateFromPath: (path: string, options: Parameters<typeof getStateFromPath>[1]) => {

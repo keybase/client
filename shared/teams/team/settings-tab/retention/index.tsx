@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
 import type * as T from '../../../../constants/types'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
@@ -12,8 +11,8 @@ export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team
 export type Props = {
   entityType: RetentionEntityType
   canSetPolicy: boolean
-  containerStyle?: Styles.StylesCrossPlatform
-  dropdownStyle?: Styles.StylesCrossPlatform
+  containerStyle?: Kb.Styles.StylesCrossPlatform
+  dropdownStyle?: Kb.Styles.StylesCrossPlatform
   policy: T.Retention.RetentionPolicy
   policyIsExploding: boolean
   teamPolicy?: T.Retention.RetentionPolicy
@@ -197,7 +196,7 @@ const RetentionPicker = (p: Props) => {
   const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, containerStyle])}>
+    <Kb.Box style={Kb.Styles.collapseStyles([Kb.Styles.globalStyles.flexBoxColumn, containerStyle])}>
       {popup}
       <Kb.Box style={styles.heading}>
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
@@ -205,8 +204,8 @@ const RetentionPicker = (p: Props) => {
       <Kb.ClickableBox
         onClick={toggleShowingPopup}
         ref={popupAnchor}
-        style={Styles.collapseStyles([styles.retentionDropdown, dropdownStyle])}
-        underlayColor={Styles.globalColors.white_40}
+        style={Kb.Styles.collapseStyles([styles.retentionDropdown, dropdownStyle])}
+        underlayColor={Kb.Styles.globalColors.white_40}
       >
         <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={styles.label}>
           {policyToLabel(policy, teamPolicy)}
@@ -216,7 +215,7 @@ const RetentionPicker = (p: Props) => {
       {policyIsExploding && (
         <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} gap="xtiny">
           <Kb.Text type="BodySmall">Participants will see their message explode.</Kb.Text>
-          <Kb.Icon color={Styles.globalColors.black_50} sizeType="Big" type="iconfont-boom" />
+          <Kb.Icon color={Kb.Styles.globalColors.black_50} sizeType="Big" type="iconfont-boom" />
         </Kb.Box2>
       )}
       {showOverrideNotice && <Kb.Text type="BodySmall">Individual channels can override this.</Kb.Text>}
@@ -248,8 +247,8 @@ const RetentionDisplay = (
   }
   const text = policyToExplanation(convType, props.policy, props.teamPolicy)
   return (
-    <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, props.containerStyle])}>
-      <Kb.Box style={Styles.collapseStyles([styles.heading, styles.displayHeading])}>
+    <Kb.Box style={Kb.Styles.collapseStyles([Kb.Styles.globalStyles.flexBoxColumn, props.containerStyle])}>
+      <Kb.Box style={Kb.Styles.collapseStyles([styles.heading, styles.displayHeading])}>
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
       </Kb.Box>
       <Kb.Text type="BodySmall">{text}</Kb.Text>
@@ -257,51 +256,51 @@ const RetentionDisplay = (
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   displayHeading: {
     marginBottom: 2,
   },
   heading: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    marginBottom: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.tiny,
   },
   label: {
     justifyContent: 'flex-start',
-    minHeight: Styles.isMobile ? 40 : 32,
-    paddingLeft: Styles.globalMargins.xsmall,
+    minHeight: Kb.Styles.isMobile ? 40 : 32,
+    paddingLeft: Kb.Styles.globalMargins.xsmall,
   },
   progressIndicator: {
     height: 30,
-    marginTop: Styles.globalMargins.small,
+    marginTop: Kb.Styles.globalMargins.small,
     width: 30,
   },
-  retentionDropdown: Styles.platformStyles({
+  retentionDropdown: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
+      ...Kb.Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      borderColor: Styles.globalColors.grey,
-      borderRadius: Styles.borderRadius,
+      borderColor: Kb.Styles.globalColors.grey,
+      borderRadius: Kb.Styles.borderRadius,
       borderStyle: 'solid',
       borderWidth: 1,
-      marginBottom: Styles.globalMargins.tiny,
+      marginBottom: Kb.Styles.globalMargins.tiny,
       minWidth: 220,
-      paddingRight: Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
     },
     isElectron: {
       width: 220,
     },
   }),
-  saveState: Styles.platformStyles({
+  saveState: Kb.Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
+      ...Kb.Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       height: 17,
       justifyContent: 'center',
-      marginTop: Styles.globalMargins.tiny,
+      marginTop: Kb.Styles.globalMargins.tiny,
     },
     isMobile: {
-      height: Styles.globalMargins.medium,
+      height: Kb.Styles.globalMargins.medium,
     },
   }),
 }))
@@ -342,7 +341,7 @@ const policyToLabel = (p?: T.Retention.RetentionPolicy, parent?: T.Retention.Ret
     text = 'Never auto-delete'
   }
   return [
-    timer ? <Kb.Icon color={Styles.globalColors.black} type="iconfont-timer" key="timer" /> : null,
+    timer ? <Kb.Icon color={Kb.Styles.globalColors.black} type="iconfont-timer" key="timer" /> : null,
     <Kb.Text type="BodySemibold" key="label">
       {text}
     </Kb.Text>,

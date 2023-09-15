@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/chat2'
 
 type Props = {
@@ -125,35 +124,35 @@ const UnpinPrompt = (props: UnpinProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       author: {
-        color: Styles.globalColors.black,
+        color: Kb.Styles.globalColors.black,
       },
       blueBar: {
         alignSelf: 'stretch',
-        backgroundColor: Styles.globalColors.blue,
-        width: Styles.globalMargins.xtiny,
+        backgroundColor: Kb.Styles.globalColors.blue,
+        width: Kb.Styles.globalMargins.xtiny,
       },
-      close: Styles.platformStyles({
+      close: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
         },
         isElectron: {
-          paddingBottom: Styles.globalMargins.xtiny,
-          paddingLeft: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.xtiny,
+          paddingBottom: Kb.Styles.globalMargins.xtiny,
+          paddingLeft: Kb.Styles.globalMargins.xtiny,
+          paddingTop: Kb.Styles.globalMargins.xtiny,
         },
         isMobile: {
-          padding: Styles.globalMargins.xtiny,
+          padding: Kb.Styles.globalMargins.xtiny,
         },
       }),
       container: {
-        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
-        backgroundColor: Styles.globalColors.white,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
+        backgroundColor: Kb.Styles.globalColors.white,
         borderBottomWidth: 1,
-        borderColor: Styles.globalColors.black_10,
+        borderColor: Kb.Styles.globalColors.black_10,
         borderStyle: 'solid',
         width: '100%',
       },
@@ -162,36 +161,36 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       label: {
-        color: Styles.globalColors.blueDark,
+        color: Kb.Styles.globalColors.blueDark,
       },
-      popup: Styles.platformStyles({
+      popup: Kb.Styles.platformStyles({
         common: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
-          paddingTop: Styles.globalMargins.small,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
+          paddingTop: Kb.Styles.globalMargins.small,
         },
         isElectron: {
           maxWidth: 200,
         },
       }),
-      styleOverride: Styles.platformStyles({
+      styleOverride: Kb.Styles.platformStyles({
         common: {
-          color: Styles.globalColors.black_50,
+          color: Kb.Styles.globalColors.black_50,
         },
         isElectron: {
           transition: 'color 0.25s ease-in-out',
         },
       }),
-      text: Styles.platformStyles({
+      text: Kb.Styles.platformStyles({
         common: {
-          color: Styles.globalColors.black_50,
+          color: Kb.Styles.globalColors.black_50,
         },
         isElectron: {
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
         } as const,
       }),
-    } as const)
+    }) as const
 )
 
 export default PinnedMessage

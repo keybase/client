@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import * as T from '../../../../constants/types'
 import LocationMap from '../../../location-map'
 import {watchPositionForMap} from '../../../../constants/platform-specific'
@@ -40,8 +39,8 @@ const LocationPopup = (props: Props) => {
     }
   }, [conversationIDKey])
 
-  const width = Math.ceil(Styles.dimensionWidth)
-  const height = Math.ceil(Styles.dimensionHeight - 320)
+  const width = Math.ceil(Kb.Styles.dimensionWidth)
+  const height = Math.ceil(Kb.Styles.dimensionHeight - 320)
   const mapSrc = location
     ? `http://${httpSrv.address}/map?lat=${location.lat}&lon=${location.lon}&width=${width}&height=${height}&username=${username}&token=${httpSrv.token}`
     : ''
@@ -119,19 +118,19 @@ const LocationPopup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       accuracy: {
-        color: Styles.globalColors.white_75,
+        color: Kb.Styles.globalColors.white_75,
       },
       denied: {
-        ...Styles.globalStyles.fillAbsolute,
+        ...Kb.Styles.globalStyles.fillAbsolute,
         justifyContent: 'center',
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
       },
       deniedText: {
-        color: Styles.globalColors.redDark,
+        color: Kb.Styles.globalColors.redDark,
       },
       liveButton: {
         height: 53,

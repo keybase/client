@@ -215,7 +215,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
       editable: !this.props.disabled,
       // needed to workaround changing this not doing the right thing
       key: this.props.type,
-      keyboardAppearance: isIOS ? (Styles.isDarkMode() ? 'dark' : 'light') : undefined,
       keyboardType: this.props.keyboardType,
       multiline: false,
       onBlur: this._onBlur,

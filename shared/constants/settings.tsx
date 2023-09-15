@@ -18,48 +18,48 @@ export const sendFeedbackWaitingKey = 'settings:sendFeedback'
 export const loadSettingsWaitingKey = 'settings:loadSettings'
 export const settingsWaitingKey = 'settings:generic'
 
-export const aboutTab = 'settingsTabs.aboutTab'
-export const advancedTab = 'settingsTabs.advancedTab'
-export const chatTab = 'settingsTabs.chatTab'
-export const cryptoTab = 'settingsTabs:cryptoTab'
-export const devicesTab = 'settingsTabs.devicesTab'
-export const displayTab = 'settingsTabs.displayTab'
-export const feedbackTab = 'settingsTabs.feedbackTab'
-export const foldersTab = 'settingsTabs.foldersTab'
-export const fsTab = 'settingsTabs.fsTab'
-export const gitTab = 'settingsTabs.gitTab'
-export const invitationsTab = 'settingsTabs.invitationsTab'
-export const accountTab = 'settingsTabs.accountTab'
-export const notificationsTab = 'settingsTabs.notificationsTab'
-export const passwordTab = 'settingsTabs.password'
-export const screenprotectorTab = 'settingsTabs.screenprotector'
-export const logOutTab = 'settingsTabs.logOutTab'
-export const updatePaymentTab = 'settingsTabs.updatePaymentTab'
-export const walletsTab = 'settingsTabs.walletsTab'
-export const contactsTab = 'settingsTabs.contactsTab'
-export const whatsNewTab = 'settingsTabs.whatsNewTab'
+export const settingsAboutTab = 'settingsTabs.aboutTab'
+export const settingsAdvancedTab = 'settingsTabs.advancedTab'
+export const settingsChatTab = 'settingsTabs.chatTab'
+export const settingsCryptoTab = 'settingsTabs:cryptoTab'
+export const settingsDevicesTab = 'settingsTabs.devicesTab'
+export const settingsDisplayTab = 'settingsTabs.displayTab'
+export const settingsFeedbackTab = 'settingsTabs.feedbackTab'
+export const settingsFoldersTab = 'settingsTabs.foldersTab'
+export const settingsFsTab = 'settingsTabs.fsTab'
+export const settingsGitTab = 'settingsTabs.gitTab'
+export const settingsInvitationsTab = 'settingsTabs.invitationsTab'
+export const settingsAccountTab = 'settingsTabs.accountTab'
+export const settingsNotificationsTab = 'settingsTabs.notificationsTab'
+export const settingsPasswordTab = 'settingsTabs.password'
+export const settingsScreenprotectorTab = 'settingsTabs.screenprotector'
+export const settingsLogOutTab = 'settingsTabs.logOutTab'
+export const settingsUpdatePaymentTab = 'settingsTabs.updatePaymentTab'
+export const settingsWalletsTab = 'settingsTabs.walletsTab'
+export const settingsContactsTab = 'settingsTabs.contactsTab'
+export const settingsWhatsNewTab = 'settingsTabs.whatsNewTab'
 
 export type SettingsTab =
-  | typeof accountTab
-  | typeof updatePaymentTab
-  | typeof invitationsTab
-  | typeof notificationsTab
-  | typeof advancedTab
-  | typeof feedbackTab
-  | typeof aboutTab
-  | typeof devicesTab
-  | typeof displayTab
-  | typeof gitTab
-  | typeof foldersTab
-  | typeof fsTab
-  | typeof logOutTab
-  | typeof screenprotectorTab
-  | typeof passwordTab
-  | typeof walletsTab
-  | typeof chatTab
-  | typeof cryptoTab
-  | typeof contactsTab
-  | typeof whatsNewTab
+  | typeof settingsAccountTab
+  | typeof settingsUpdatePaymentTab
+  | typeof settingsInvitationsTab
+  | typeof settingsNotificationsTab
+  | typeof settingsAdvancedTab
+  | typeof settingsFeedbackTab
+  | typeof settingsAboutTab
+  | typeof settingsDevicesTab
+  | typeof settingsDisplayTab
+  | typeof settingsGitTab
+  | typeof settingsFoldersTab
+  | typeof settingsFsTab
+  | typeof settingsLogOutTab
+  | typeof settingsScreenprotectorTab
+  | typeof settingsPasswordTab
+  | typeof settingsWalletsTab
+  | typeof settingsChatTab
+  | typeof settingsCryptoTab
+  | typeof settingsContactsTab
+  | typeof settingsWhatsNewTab
 
 type Store = {
   checkPasswordIsCorrect?: boolean

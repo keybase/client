@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as PhoneUtil from '../../util/phone-numbers'
 
@@ -16,9 +15,9 @@ type Props = {
 
 const getIcon = (props: Props) => {
   if (props.type === 'email') {
-    return Styles.isMobile ? 'icon-email-remove-96' : 'icon-email-remove-64'
+    return Kb.Styles.isMobile ? 'icon-email-remove-96' : 'icon-email-remove-64'
   }
-  return Styles.isMobile ? 'icon-phone-number-remove-96' : 'icon-phone-number-remove-64'
+  return Kb.Styles.isMobile ? 'icon-phone-number-remove-96' : 'icon-phone-number-remove-64'
 }
 const getPrompt = (props: Props) =>
   props.type === 'email' ? (

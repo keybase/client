@@ -1,6 +1,5 @@
 import * as C from '../../../../../../constants'
 import * as Kb from '../../../../../../common-adapters/index'
-import * as Styles from '../../../../../../styles'
 import type * as T from '../../../../../../constants/types'
 import openURL from '../../../../../../util/open-url'
 import LocationMap from '../../../../../location-map'
@@ -32,8 +31,8 @@ const UnfurlMapPopup = (props: Props) => {
     messageSend('/location stop')
   }
 
-  const width = Math.ceil(Styles.dimensionWidth)
-  const height = Math.ceil(Styles.dimensionHeight)
+  const width = Math.ceil(Kb.Styles.dimensionWidth)
+  const height = Math.ceil(Kb.Styles.dimensionHeight)
   const mapSrc = `http://${httpSrv.address}/map?lat=${coord.lat}&lon=${coord.lon}&width=${width}&height=${height}&token=${httpSrv.token}&username=${author}`
   return (
     <Kb.Modal

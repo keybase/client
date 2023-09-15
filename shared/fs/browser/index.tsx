@@ -3,7 +3,6 @@ import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import * as T from '../../constants/types'
 import ConflictBanner from '../banner/conflict-banner-container'
 import Footer from '../footer/footer'
@@ -12,7 +11,6 @@ import PublicReminder from '../banner/public-reminder'
 import Root from './root'
 import Rows from './rows/rows-container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
-import {isMobile} from '../../constants/platform'
 
 type OwnProps = {path: T.FS.Path}
 
@@ -44,15 +42,15 @@ type Props = {
 }
 
 const SelfReset = (_: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexGrow}>
+  <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexGrow}>
     <Kb.Banner color="red">
       <Kb.BannerParagraph
         bannerColor="red"
         content="Since you reset your account, participants have to accept to let you back in."
       />
     </Kb.Banner>
-    <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} centerChildren={true}>
-      <Kb.Icon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
+    <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexGrow} centerChildren={true}>
+      <Kb.Icon type={C.isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -72,7 +70,7 @@ const DragAndDrop = ({
     <Kb.DragAndDrop
       allowFolders={true}
       fullWidth={true}
-      containerStyle={Styles.globalStyles.flexOne}
+      containerStyle={Kb.Styles.globalStyles.flexOne}
       onAttach={!rejectReason ? onAttach : undefined}
       rejectReason={rejectReason}
     >

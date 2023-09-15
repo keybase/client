@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import type {Props} from '.'
 
 const ChatPDF = (props: Props) => {
@@ -36,12 +35,12 @@ const ChatPDF = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   progressContainer: {
     justifyContent: 'center',
     position: 'absolute',
   },
-  webViewContainer: {margin: Styles.globalMargins.xtiny},
+  webViewContainer: {margin: Kb.Styles.globalMargins.xtiny},
 }))
 
 export default ChatPDF

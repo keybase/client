@@ -14,6 +14,7 @@ export type Props = {
   // mobile only
   bounces?: boolean
   centerContent?: boolean
+  zoomScale?: number
   minimumZoomScale?: number
   maximumZoomScale?: number
   onLayout?: Function

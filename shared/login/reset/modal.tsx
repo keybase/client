@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import {formatDurationForAutoreset} from '../../util/timestamp'
 
 const ResetModal = () => {
@@ -32,7 +31,7 @@ const ResetModalImpl = () => {
   return (
     <Kb.SafeAreaView
       style={{
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         bottom: 0,
         left: 0,
         position: 'absolute',
@@ -71,8 +70,8 @@ const ResetModalImpl = () => {
             centerChildren={true}
           >
             <Kb.Icon
-              type={Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
-              color={Styles.globalColors.black_20}
+              type={Kb.Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
+              color={Kb.Styles.globalColors.black_20}
               fontSize={48}
             />
             <Kb.Text type="Body" center={true}>
@@ -89,15 +88,15 @@ const ResetModalImpl = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  textContainer: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  textContainer: Kb.Styles.platformStyles({
     common: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      paddingLeft: Kb.Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
     },
     isElectron: {
-      paddingBottom: Styles.globalMargins.xlarge,
-      paddingTop: Styles.globalMargins.xlarge,
+      paddingBottom: Kb.Styles.globalMargins.xlarge,
+      paddingTop: Kb.Styles.globalMargins.xlarge,
     },
   }),
 }))

@@ -1,5 +1,5 @@
 import * as C from '../constants'
-import * as Styles from '../styles'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
 import Main from './main.native'
 import {AppRegistry, AppState, Appearance, Linking, Keyboard} from 'react-native'
@@ -66,7 +66,7 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
   }, [setSystemDarkMode, handleAppLink, setMobileAppState])
 
   const darkMode = C.useDarkModeState(s => s.isDarkMode())
-  return <Styles.DarkModeContext.Provider value={darkMode}>{children}</Styles.DarkModeContext.Provider>
+  return <Kb.Styles.DarkModeContext.Provider value={darkMode}>{children}</Kb.Styles.DarkModeContext.Provider>
 }
 
 // dont' remake engine/store on reload
@@ -104,9 +104,9 @@ const Keybase = () => {
       <PortalProvider>
         <SafeAreaProvider initialMetrics={initialWindowMetrics}>
           <ReduxHelper>
-            <Styles.CanFixOverdrawContext.Provider value={true}>
+            <Kb.Styles.CanFixOverdrawContext.Provider value={true}>
               <Main />
-            </Styles.CanFixOverdrawContext.Provider>
+            </Kb.Styles.CanFixOverdrawContext.Provider>
           </ReduxHelper>
         </SafeAreaProvider>
       </PortalProvider>
@@ -114,7 +114,7 @@ const Keybase = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   gesture: {flexGrow: 1},
 }))
 

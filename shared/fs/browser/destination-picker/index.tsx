@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as T from '../../../constants/types'
 import * as C from '../../../constants'
-import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import Rows from '../rows/rows-container'
 import Root from '../root'
@@ -21,13 +20,13 @@ type Props = {
   onNewFolder?: () => void
   onBackUp?: () => void
   customComponent?: React.ReactNode | null
-  headerStyle?: Styles.StylesCrossPlatform
+  headerStyle?: Kb.Styles.StylesCrossPlatform
   headerRightButton?: React.ReactNode
 }
 
 const NewFolder = ({onNewFolder}: any) => (
   <Kb.ClickableBox style={styles.newFolderBox} onClick={onNewFolder}>
-    <Kb.Icon type="iconfont-folder-new" color={Styles.globalColors.blue} />
+    <Kb.Icon type="iconfont-folder-new" color={Kb.Styles.globalColors.blue} />
     <Kb.Text type="BodyBig" style={styles.newFolderText}>
       Create new folder
     </Kb.Text>
@@ -35,7 +34,7 @@ const NewFolder = ({onNewFolder}: any) => (
 )
 
 const makeLeftButton = (props: Props) => {
-  if (!Styles.isMobile) {
+  if (!Kb.Styles.isMobile) {
     return undefined
   }
   if (props.onCancel) {
@@ -56,7 +55,7 @@ const makeLeftButton = (props: Props) => {
 }
 
 const makeTitle = (props: Props) => {
-  if (Styles.isMobile) {
+  if (Kb.Styles.isMobile) {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         <FsCommon.Filename type="BodyTiny" filename={props.targetName} />
@@ -93,8 +92,8 @@ const DestinationPicker = (props: Props) => {
       noScrollView={true}
       mode="Wide"
     >
-      <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} fullWidth={true} fullHeight={true}>
-        {!Styles.isMobile && (
+      <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true} fullHeight={true}>
+        {!Kb.Styles.isMobile && (
           <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader}>
             <NavHeaderTitle inDestinationPicker={true} path={props.parentPath} />
             {!!props.onNewFolder && <NewFolder onNewFolder={props.onNewFolder} />}
@@ -105,7 +104,7 @@ const DestinationPicker = (props: Props) => {
           <Kb.ClickableBox key="up" style={styles.actionRowContainer} onClick={props.onBackUp}>
             <Kb.Icon
               type="iconfont-folder-up"
-              color={Styles.globalColors.black_50}
+              color={Kb.Styles.globalColors.black_50}
               fontSize={32}
               style={RowCommon.rowStyles.pathItemIcon}
             />
@@ -116,7 +115,7 @@ const DestinationPicker = (props: Props) => {
           <Kb.ClickableBox key="copy" style={styles.actionRowContainer} onClick={props.onCopyHere}>
             <Kb.Icon
               type="icon-folder-copy-32"
-              color={Styles.globalColors.blue}
+              color={Kb.Styles.globalColors.blue}
               style={RowCommon.rowStyles.pathItemIcon}
             />
             <Kb.Text type="BodySemibold" style={styles.actionText}>
@@ -128,7 +127,7 @@ const DestinationPicker = (props: Props) => {
           <Kb.ClickableBox key="move" style={styles.actionRowContainer} onClick={props.onMoveHere}>
             <Kb.Icon
               type="icon-folder-move-32"
-              color={Styles.globalColors.blue}
+              color={Kb.Styles.globalColors.blue}
               style={RowCommon.rowStyles.pathItemIcon}
             />
             <Kb.Text type="BodySemibold" style={styles.actionText}>
@@ -141,8 +140,8 @@ const DestinationPicker = (props: Props) => {
         ) : (
           <Rows path={props.parentPath} destinationPickerIndex={props.index} />
         )}
-        {Styles.isMobile && <Kb.Divider key="dfooter" />}
-        {(!Styles.isMobile || props.onNewFolder) && (
+        {Kb.Styles.isMobile && <Kb.Divider key="dfooter" />}
+        {(!Kb.Styles.isMobile || props.onNewFolder) && (
           <Kb.Box2
             key="footer"
             direction="horizontal"
@@ -150,7 +149,7 @@ const DestinationPicker = (props: Props) => {
             fullWidth={true}
             style={styles.footer}
           >
-            {Styles.isMobile ? (
+            {Kb.Styles.isMobile ? (
               <NewFolder onNewFolder={props.onNewFolder} />
             ) : (
               <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
@@ -164,45 +163,45 @@ const DestinationPicker = (props: Props) => {
 
 export default DestinationPicker
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       actionRowContainer: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.blueLighter3,
+        backgroundColor: Kb.Styles.globalColors.blueLighter3,
         flexShrink: 0,
         height: RowCommon.normalRowHeight,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
       actionText: {
-        color: Styles.globalColors.blueDark,
+        color: Kb.Styles.globalColors.blueDark,
       },
       anotherHeader: {
         height: 48,
         justifyContent: 'space-between',
-        paddingRight: Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.tiny,
       },
-      desktopHeader: Styles.padding(Styles.globalMargins.medium, Styles.globalMargins.medium, 10),
-      footer: Styles.platformStyles({
+      desktopHeader: Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.medium, 10),
+      footer: Kb.Styles.platformStyles({
         common: {
           height: 64,
         },
         isElectron: {
-          backgroundColor: Styles.globalColors.white_90,
+          backgroundColor: Kb.Styles.globalColors.white_90,
           bottom: 0,
           position: 'absolute',
         },
       }),
       newFolderBox: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
       },
       newFolderText: {
-        color: Styles.globalColors.blueDark,
-        marginLeft: Styles.globalMargins.tiny,
+        color: Kb.Styles.globalColors.blueDark,
+        marginLeft: Kb.Styles.globalMargins.tiny,
       },
     }) as const
 )

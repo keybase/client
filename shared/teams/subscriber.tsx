@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as Container from '../util/container'
 import type * as T from '../constants/types'
 import {useFocusEffect} from '@react-navigation/core'
 
@@ -29,7 +28,7 @@ const useTeamsSubscribeDesktop = () => {
     }
   }, [getTeams, unsubscribeTeamList])
 }
-export const useTeamsSubscribe = Container.isMobile ? useTeamsSubscribeMobile : useTeamsSubscribeDesktop
+export const useTeamsSubscribe = C.isMobile ? useTeamsSubscribeMobile : useTeamsSubscribeDesktop
 export const useTeamsSubscribeMountOnly = useTeamsSubscribeDesktop
 
 // Dummy component to add to a view to trigger team meta subscription behavior
@@ -61,7 +60,7 @@ const useTeamDetailsSubscribeDesktop = (teamID: T.Teams.TeamID) => {
     return () => unsubscribeTeamDetails(teamID)
   }, [loadTeam, unsubscribeTeamDetails, teamID])
 }
-export const useTeamDetailsSubscribe = Container.isMobile
+export const useTeamDetailsSubscribe = C.isMobile
   ? useTeamDetailsSubscribeMobile
   : useTeamDetailsSubscribeDesktop
 export const useTeamDetailsSubscribeMountOnly = useTeamDetailsSubscribeDesktop

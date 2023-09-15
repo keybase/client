@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../../../util/container'
+import type * as C from '../../../../constants'
 
 const OpenTW = React.lazy(async () => import('.'))
-type OwnProps = Container.ViewPropsToPageProps<typeof OpenTW>
+type OwnProps = C.ViewPropsToPageProps<typeof OpenTW>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

@@ -2,7 +2,7 @@ import * as React from 'react'
 import {Box2} from '../box'
 import * as Styles from '../../styles'
 import Text, {type TextType} from '../text'
-import TeamInfo from '../../profile/user/teams/teaminfo'
+import type TeamInfoType from '../../profile/user/teams/teaminfo'
 import DelayedMounting from '../delayed-mounting'
 import type * as T from '../../constants/types'
 import {TeamDetailsSubscriber} from '../../teams/subscriber'
@@ -37,6 +37,8 @@ export const TeamWithPopup = (props: Props) => {
   const _getAttachmentRef = () => popupRef.current
   const onHidePopup = () => setShowPopup(false)
   const onShowPopup = () => setShowPopup(true)
+
+  const TeamInfo = require('../../profile/user/teams/teaminfo').default as typeof TeamInfoType
 
   const popup = showPopup && (
     <>

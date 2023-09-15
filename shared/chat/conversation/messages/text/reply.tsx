@@ -3,7 +3,6 @@ import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import {OrdinalContext, HighlightedContext} from '../ids-context'
 import type * as T from '../../../../constants/types'
 
@@ -26,7 +25,7 @@ const AvatarHolder = () => {
         type="BodySmallBold"
         style={
           showCenteredHighlight
-            ? Styles.collapseStyles([styles.replyUsername, styles.replyUsernameHighlighted])
+            ? Kb.Styles.collapseStyles([styles.replyUsername, styles.replyUsernameHighlighted])
             : styles.replyUsername
         }
       >
@@ -92,7 +91,7 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
         gap="tiny"
         fullWidth={true}
         style={styles.replyContainer}
-        className={Styles.classNames('ReplyBox')}
+        className={Kb.Styles.classNames('ReplyBox')}
       >
         <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
         <Kb.Box2 direction="vertical" gap="xtiny" style={styles.replyContentContainer}>
@@ -148,20 +147,20 @@ const Reply = React.memo(function Reply() {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       quoteContainer: {
         alignSelf: 'stretch',
-        backgroundColor: Styles.globalColors.grey,
-        paddingLeft: Styles.globalMargins.xtiny,
+        backgroundColor: Kb.Styles.globalColors.grey,
+        paddingLeft: Kb.Styles.globalMargins.xtiny,
       },
       replyContainer: {
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.xtiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingTop: Kb.Styles.globalMargins.xtiny,
       },
       replyContentContainer: {flex: 1},
-      replyEdited: {color: Styles.globalColors.black_35},
+      replyEdited: {color: Kb.Styles.globalColors.black_35},
       replyImageContainer: {
         overflow: 'hidden',
         position: 'relative',
@@ -183,7 +182,7 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
       },
       replyUsername: {alignSelf: 'center'},
-      replyUsernameHighlighted: {color: Styles.globalColors.blackOrBlack},
-      textHighlighted: {color: Styles.globalColors.black_50OrBlack_50},
+      replyUsernameHighlighted: {color: Kb.Styles.globalColors.blackOrBlack},
+      textHighlighted: {color: Kb.Styles.globalColors.black_50OrBlack_50},
     }) as const
 )

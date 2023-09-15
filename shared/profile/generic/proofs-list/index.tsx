@@ -1,7 +1,6 @@
 import * as React from 'react'
 import type * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import {SiteIcon} from '../shared'
 import {makeInsertMatcher} from '../../../util/string'
 
@@ -26,7 +25,7 @@ type ProvidersProps = {
 
 class Providers extends React.Component<ProvidersProps> {
   static _itemHeight = {
-    height: Styles.isMobile ? 56 : 48,
+    height: Kb.Styles.isMobile ? 56 : 48,
     type: 'fixed',
   } as const
   _renderItem = (_: any, provider: any) => (
@@ -45,7 +44,7 @@ class Providers extends React.Component<ProvidersProps> {
           {(provider.new || !!provider.desc) && (
             <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
               {provider.new && (
-                <Kb.Meta title="NEW" backgroundColor={Styles.globalColors.blue} style={styles.new} />
+                <Kb.Meta title="NEW" backgroundColor={Kb.Styles.globalColors.blue} style={styles.new} />
               )}
               <Kb.Text type="BodySmall" style={styles.description}>
                 {provider.desc}
@@ -55,8 +54,8 @@ class Providers extends React.Component<ProvidersProps> {
         </Kb.Box2>
         <Kb.Icon
           type="iconfont-arrow-right"
-          color={Styles.globalColors.black_50}
-          fontSize={Styles.isMobile ? 20 : 16}
+          color={Kb.Styles.globalColors.black_50}
+          fontSize={Kb.Styles.isMobile ? 20 : 16}
           style={styles.iconArrow}
         />
       </Kb.ClickableBox>
@@ -104,7 +103,7 @@ class ProofsList extends React.Component<Props, State> {
       <Kb.PopupWrapper onCancel={this.props.onCancel}>
         <Kb.Box style={styles.mobileFlex}>
           <Kb.Box2 direction="vertical" style={styles.container}>
-            {!Styles.isMobile && (
+            {!Kb.Styles.isMobile && (
               <Kb.Text center={true} type="Header" style={styles.header}>
                 Prove your...
               </Kb.Text>
@@ -112,8 +111,8 @@ class ProofsList extends React.Component<Props, State> {
             <Kb.Box style={styles.inputContainer}>
               <Kb.Icon
                 type="iconfont-search"
-                color={Styles.globalColors.black_50}
-                fontSize={Styles.isMobile ? 20 : 16}
+                color={Kb.Styles.globalColors.black_50}
+                fontSize={Kb.Styles.isMobile ? 20 : 16}
               />
               <Kb.PlainInput
                 autoFocus={true}
@@ -137,7 +136,7 @@ class ProofsList extends React.Component<Props, State> {
   }
 }
 
-const rightColumnStyle = Styles.platformStyles({
+const rightColumnStyle = Kb.Styles.platformStyles({
   isElectron: {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -145,10 +144,10 @@ const rightColumnStyle = Styles.platformStyles({
   },
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
           borderRadius: 4,
           height: 485,
@@ -164,7 +163,7 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'center',
         display: 'flex',
         flexDirection: 'row',
-        height: Styles.isMobile ? 56 : 48,
+        height: Kb.Styles.isMobile ? 56 : 48,
         justifyContent: 'flex-start',
       },
       description: {
@@ -175,42 +174,42 @@ const styles = Styles.styleSheetCreate(
       },
       footer: {
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.blueGrey,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'center',
-        padding: Styles.globalMargins.xsmall,
+        padding: Kb.Styles.globalMargins.xsmall,
       },
       footerText: {
         ...rightColumnStyle,
-        color: Styles.globalColors.black_50,
-        marginLeft: Styles.globalMargins.tiny,
+        color: Kb.Styles.globalColors.black_50,
+        marginLeft: Kb.Styles.globalMargins.tiny,
       },
       header: {
-        color: Styles.globalColors.black,
-        marginTop: Styles.globalMargins.tiny,
+        color: Kb.Styles.globalColors.black,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       icon: {
         height: 32,
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
+        marginLeft: Kb.Styles.globalMargins.small,
+        marginRight: Kb.Styles.globalMargins.small,
         width: 32,
       },
       iconArrow: {
-        marginRight: Styles.globalMargins.small,
+        marginRight: Kb.Styles.globalMargins.small,
       },
       inputContainer: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.black_10,
-        borderRadius: Styles.borderRadius,
-        marginBottom: Styles.globalMargins.xsmall,
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.xsmall,
-        padding: Styles.globalMargins.tiny,
+        backgroundColor: Kb.Styles.globalColors.black_10,
+        borderRadius: Kb.Styles.borderRadius,
+        marginBottom: Kb.Styles.globalMargins.xsmall,
+        marginLeft: Kb.Styles.globalMargins.small,
+        marginRight: Kb.Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.xsmall,
+        padding: Kb.Styles.globalMargins.tiny,
       },
-      listContainer: Styles.platformStyles({
+      listContainer: Kb.Styles.platformStyles({
         common: {
           flex: 1,
         },
@@ -218,22 +217,22 @@ const styles = Styles.styleSheetCreate(
           maxHeight: 560 - 48,
         },
       }),
-      mobileFlex: Styles.platformStyles({
+      mobileFlex: Kb.Styles.platformStyles({
         isMobile: {flex: 1},
       }),
       new: {
-        marginRight: Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
         marginTop: 1,
       },
       text: {
-        backgroundColor: Styles.globalColors.transparent,
-        color: Styles.globalColors.black_50,
-        marginLeft: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.tiny,
+        backgroundColor: Kb.Styles.globalColors.transparent,
+        color: Kb.Styles.globalColors.black_50,
+        marginLeft: Kb.Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.tiny,
       },
       title: {
         ...rightColumnStyle,
-        color: Styles.globalColors.black,
+        color: Kb.Styles.globalColors.black,
       },
     }) as const
 )

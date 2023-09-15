@@ -1,13 +1,10 @@
 import * as C from '../constants'
 import './tab-bar.css'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
 import * as Platforms from '../constants/platform'
 import * as T from '../constants/types'
 import * as React from 'react'
-import * as SettingsConstants from '../constants/settings'
-import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as Common from './common.desktop'
 import * as TrackerConstants from '../constants/tracker2'
@@ -54,7 +51,7 @@ const Header = () => {
       if (isLinux) {
         stop(T.RPCGen.ExitCode.ok)
       } else {
-        Container.ignorePromise(dumpLogs?.('quitting through menu') ?? Promise.resolve())
+        C.ignorePromise(dumpLogs?.('quitting through menu') ?? Promise.resolve())
       }
     }
     // In case dump log doesn't exit for us
@@ -66,7 +63,7 @@ const Header = () => {
   const switchTab = C.useRouterState(s => s.dispatch.switchTab)
   const onSettings = () => switchTab(Tabs.settingsTab)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onSignOut = () => navigateAppend(SettingsConstants.logOutTab)
+  const onSignOut = () => navigateAppend(C.settingsLogOutTab)
 
   const menuHeader = () => (
     <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -114,7 +111,7 @@ const Header = () => {
         >
           <Kb.Avatar
             size={24}
-            borderColor={Styles.globalColors.blue}
+            borderColor={Kb.Styles.globalColors.blue}
             username={username}
             style={styles.avatar}
           />
@@ -124,7 +121,7 @@ const Header = () => {
             </Kb.Text>
             <Kb.Icon
               type="iconfont-arrow-down"
-              color={Styles.globalColors.blueLighter}
+              color={Kb.Styles.globalColors.blueLighter}
               fontSize={12}
               style={styles.caret}
             />
@@ -299,7 +296,7 @@ const Tab = React.memo(function Tab(props: TabProps) {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       avatar: {marginLeft: 14},
@@ -309,31 +306,31 @@ const styles = Styles.styleSheetCreate(
         right: 8,
       },
       badgeIconUpload: {
-        bottom: -Styles.globalMargins.xxtiny,
-        height: Styles.globalMargins.xsmall,
+        bottom: -Kb.Styles.globalMargins.xxtiny,
+        height: Kb.Styles.globalMargins.xsmall,
         position: 'absolute',
-        right: Styles.globalMargins.xsmall,
-        width: Styles.globalMargins.xsmall,
+        right: Kb.Styles.globalMargins.xsmall,
+        width: Kb.Styles.globalMargins.xsmall,
       },
       button: {
-        margin: Styles.globalMargins.xsmall,
+        margin: Kb.Styles.globalMargins.xsmall,
       },
       caret: {marginRight: 12},
-      divider: {marginTop: Styles.globalMargins.tiny},
+      divider: {marginTop: Kb.Styles.globalMargins.tiny},
       fullname: {maxWidth: 180},
       header: {flexShrink: 0, height: 80, marginBottom: 20},
       headerBox: {
-        paddingTop: Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.small,
       },
       iconBox: {
         justifyContent: 'flex-end',
         position: 'relative',
       },
-      menu: {marginLeft: Styles.globalMargins.tiny},
+      menu: {marginLeft: Kb.Styles.globalMargins.tiny},
       nameContainer: {height: 24},
-      osButtons: Styles.platformStyles({
+      osButtons: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.desktopStyles.windowDragging,
+          ...Kb.Styles.desktopStyles.windowDragging,
           flexGrow: 1,
         },
       }),
@@ -342,8 +339,8 @@ const styles = Styles.styleSheetCreate(
         paddingRight: 12,
         position: 'relative',
       },
-      username: Styles.platformStyles({
-        isElectron: {color: Styles.globalColors.blueLighter, flexGrow: 1, wordBreak: 'break-all'},
+      username: Kb.Styles.platformStyles({
+        isElectron: {color: Kb.Styles.globalColors.blueLighter, flexGrow: 1, wordBreak: 'break-all'},
       }),
     }) as const
 )

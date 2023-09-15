@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
+import type * as C from '../../constants'
 
 const AddEmoji = React.lazy(async () => import('./add-emoji'))
-type OwnProps = Container.ViewPropsToPageProps<typeof AddEmoji>
+type OwnProps = C.ViewPropsToPageProps<typeof AddEmoji>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

@@ -1,6 +1,5 @@
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import * as Shared from './shim.shared'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {View} from 'react-native'
@@ -25,7 +24,7 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
         <Kb.KeyboardAvoidingView2 extraOffset={40}>
           <SafeAreaProvider initialMetrics={initialWindowMetrics}>
             <Kb.SafeAreaView
-              style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
+              style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
             >
               {wrap}
             </Kb.SafeAreaView>
@@ -46,7 +45,7 @@ const ModalWrapper = (p: {children: React.ReactNode}) => {
   return <View style={styles.modal}>{children}</View>
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       keyboard: {
@@ -55,10 +54,10 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       modal: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         flexGrow: 1,
         maxHeight: '100%',
         position: 'relative',
       },
-    } as const)
+    }) as const
 )

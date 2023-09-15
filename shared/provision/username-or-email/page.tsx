@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
+import type * as C from '../../constants'
 
 const UOE = React.lazy(async () => import('./container'))
-type OwnProps = Container.ViewPropsToPageProps<typeof UOE>
+type OwnProps = C.ViewPropsToPageProps<typeof UOE>
 
 const getOptions = () => ({
   headerBottomStyle: {height: undefined},

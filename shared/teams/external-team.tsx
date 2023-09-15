@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as Constants from '../constants/teams'
 import * as T from '../constants/types'
@@ -51,7 +50,7 @@ const ExternalTeam = (props: Props) => {
       {waiting ? (
         <Kb.Box2
           direction="horizontal"
-          gap={Styles.isMobile ? 'small' : 'tiny'}
+          gap={Kb.Styles.isMobile ? 'small' : 'tiny'}
           fullWidth={true}
           alignItems="center"
         >
@@ -137,8 +136,8 @@ const Header = ({info}: ExternalTeamProps) => {
   const {popupAnchor, setShowingPopup, popup} = useTeamLinkPopup(teamname || '')
 
   const metaInfo = (
-    <Kb.Box2 direction="vertical" alignSelf="stretch" gap={Styles.isMobile ? 'small' : 'tiny'}>
-      <Kb.Box2 direction="vertical" alignSelf="stretch" gap={Styles.isMobile ? 'xtiny' : 'xxtiny'}>
+    <Kb.Box2 direction="vertical" alignSelf="stretch" gap={Kb.Styles.isMobile ? 'small' : 'tiny'}>
+      <Kb.Box2 direction="vertical" alignSelf="stretch" gap={Kb.Styles.isMobile ? 'xtiny' : 'xxtiny'}>
         {!!info.description && <Kb.Text type="Body">{info.description}</Kb.Text>}
         <Kb.Text type="BodySmall">
           {info.numMembers.toLocaleString()} {pluralize('member', info.numMembers)}
@@ -158,7 +157,7 @@ const Header = ({info}: ExternalTeamProps) => {
       </Kb.Box2>
     </Kb.Box2>
   )
-  const openMeta = <Kb.Meta style={styles.meta} title="OPEN" backgroundColor={Styles.globalColors.green} />
+  const openMeta = <Kb.Meta style={styles.meta} title="OPEN" backgroundColor={Kb.Styles.globalColors.green} />
   return (
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.headerContainer}>
       <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} alignItems="flex-start">
@@ -166,13 +165,13 @@ const Header = ({info}: ExternalTeamProps) => {
         <Kb.Box2 direction="vertical" gap="xxtiny" alignSelf="flex-start">
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
             <Kb.Text type="Header">{teamname}</Kb.Text>
-            {!Styles.isMobile && openMeta}
+            {!Kb.Styles.isMobile && openMeta}
           </Kb.Box2>
-          {Styles.isMobile && openMeta}
-          {!Styles.isMobile && metaInfo}
+          {Kb.Styles.isMobile && openMeta}
+          {!Kb.Styles.isMobile && metaInfo}
         </Kb.Box2>
       </Kb.Box2>
-      {Styles.isMobile && metaInfo}
+      {Kb.Styles.isMobile && metaInfo}
     </Kb.Box2>
   )
 }
@@ -219,40 +218,40 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
-  contentContainer: Styles.platformStyles({
+  contentContainer: Kb.Styles.platformStyles({
     common: {
-      paddingBottom: Styles.globalMargins.small,
+      paddingBottom: Kb.Styles.globalMargins.small,
     },
     isElectron: {
-      paddingTop: Styles.globalMargins.tiny,
+      paddingTop: Kb.Styles.globalMargins.tiny,
     },
   }),
-  crownIcon: Styles.platformStyles({
-    common: {marginRight: Styles.globalMargins.xtiny},
+  crownIcon: Kb.Styles.platformStyles({
+    common: {marginRight: Kb.Styles.globalMargins.xtiny},
   }),
-  error: {color: Styles.globalColors.redDark},
+  error: {color: Kb.Styles.globalColors.redDark},
   headerContainer: {
-    ...Styles.padding(0, Styles.globalMargins.small),
+    ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
   },
   memberBody: {
     flex: 1,
-    paddingRight: Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.tiny,
   },
-  meta: Styles.platformStyles({
+  meta: Kb.Styles.platformStyles({
     isElectron: {
       alignSelf: 'center',
     },
   }),
   middot: {
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.xtiny,
+    marginLeft: Kb.Styles.globalMargins.xtiny,
+    marginRight: Kb.Styles.globalMargins.xtiny,
   },
   tabs: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Kb.Styles.globalColors.white,
     width: '100%',
   },
 }))

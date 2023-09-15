@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 import {InfoIcon} from './common'
 
@@ -11,7 +10,7 @@ const getOptions = () => ({
   headerRightActions: () => (
     <Kb.Box2
       direction="horizontal"
-      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
+      style={Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0)}
     >
       <InfoIcon />
     </Kb.Box2>

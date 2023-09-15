@@ -1,13 +1,11 @@
 import * as C from '../../../../../../constants'
 import * as T from '../../../../../../constants/types'
 import * as React from 'react'
-import * as Styles from '../../../../../../styles'
 import UnfurlGeneric from './generic'
 import UnfurlGiphy from './giphy'
 import UnfurlMap from './map'
 import * as Kb from '../../../../../../common-adapters'
 import {OrdinalContext} from '../../../ids-context'
-import shallowEqual from 'shallowequal'
 
 export type UnfurlListItem = {
   unfurl: T.RPCChat.UnfurlDisplay
@@ -34,15 +32,15 @@ export type UnfurlProps = {
   unfurl: T.RPCChat.UnfurlDisplay
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
           flex: 1,
-          marginBottom: Styles.globalMargins.xtiny,
-          marginTop: Styles.globalMargins.xtiny,
+          marginBottom: Kb.Styles.globalMargins.xtiny,
+          marginTop: Kb.Styles.globalMargins.xtiny,
         },
       }),
     }) as const
@@ -71,7 +69,7 @@ const UnfurlListContainer = React.memo(function UnfurlListContainer() {
             return 'none'
         }
       }),
-    shallowEqual
+    C.shallowEqual
   )
   return (
     <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>

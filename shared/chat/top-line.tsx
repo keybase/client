@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import {pluralize} from '../util/string'
 
 type Props = {
@@ -30,7 +29,7 @@ class FilteredTopLine extends React.PureComponent<Props> {
         <Kb.Text
           type="BodySemibold"
           lineClamp={1}
-          style={Styles.collapseStyles([
+          style={Kb.Styles.collapseStyles([
             this.props.showBold && styles.boldOverride,
             styles.usernames,
             {color: this.props.usernameColor} as any,
@@ -41,7 +40,7 @@ class FilteredTopLine extends React.PureComponent<Props> {
         {!!this.props.numSearchHits && (
           <Kb.Text
             type="BodySmall"
-            style={Styles.collapseStyles([this.props.isSelected && styles.selectedText])}
+            style={Kb.Styles.collapseStyles([this.props.isSelected && styles.selectedText])}
           >
             {this._getSearchHits()} {pluralize('result', this.props.numSearchHits)}
           </Kb.Text>
@@ -51,15 +50,15 @@ class FilteredTopLine extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   boldOverride: {
-    ...Styles.globalStyles.fontBold,
+    ...Kb.Styles.globalStyles.fontBold,
   },
   selectedText: {
-    color: Styles.globalColors.white,
+    color: Kb.Styles.globalColors.white,
   },
   usernames: {
-    paddingRight: Styles.globalMargins.tiny,
+    paddingRight: Kb.Styles.globalMargins.tiny,
   },
 }))
 

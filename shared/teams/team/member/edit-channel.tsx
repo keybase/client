@@ -4,7 +4,6 @@ import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import {ModalTitle} from '../../common'
 import {useEditState} from './use-edit'
 
@@ -43,7 +42,7 @@ const EditChannel = (props: Props) => {
       updateTopic(teamID, conversationIDKey, description)
     }
   }
-  const waiting = Container.useAnyWaiting(Constants.updateChannelNameWaitingKey(teamID))
+  const waiting = C.useAnyWaiting(Constants.updateChannelNameWaitingKey(teamID))
   const wasWaiting = Container.usePrevious(waiting)
 
   const triggerEditUpdated = useEditState(s => s.dispatch.triggerEditUpdated)
@@ -107,16 +106,16 @@ const EditChannel = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bg: {backgroundColor: Styles.globalColors.blueGrey},
-  body: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  bg: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+  body: Kb.Styles.platformStyles({
     common: {
-      ...Styles.padding(Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       borderRadius: 4,
     },
-    isMobile: {...Styles.globalStyles.flexOne},
+    isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
-  channelNameinput: Styles.padding(Styles.globalMargins.tiny),
+  channelNameinput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),
 }))
 
 export default EditChannel

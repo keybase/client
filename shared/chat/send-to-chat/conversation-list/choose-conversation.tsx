@@ -1,12 +1,11 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import type * as T from '../../../constants/types'
 import ConversationList from './conversation-list'
 
 type Props = {
   convName: string
-  dropdownButtonStyle?: Styles.StylesCrossPlatform
+  dropdownButtonStyle?: Kb.Styles.StylesCrossPlatform
   onSelect: (conversationIDKey: T.Chat.ConversationIDKey, convName: string) => void
 }
 
@@ -43,7 +42,7 @@ const ChooseConversation = (props: Props) => {
         }
         popupAnchor={popupAnchor}
         toggleOpen={toggleShowingPopup}
-        style={Styles.collapseStyles([styles.dropdownButton, props.dropdownButtonStyle])}
+        style={Kb.Styles.collapseStyles([styles.dropdownButton, props.dropdownButtonStyle])}
       />
       {popup}
     </>
@@ -52,19 +51,19 @@ const ChooseConversation = (props: Props) => {
 
 export default ChooseConversation
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       dropdownButton: {
         width: 300,
       },
       overlay: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         height: 360,
         width: 300,
       },
       selectedText: {
-        paddingLeft: Styles.globalMargins.xsmall,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
         width: '100%',
       },
     }) as const

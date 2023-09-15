@@ -1,5 +1,4 @@
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import {subtitle} from '../../util/platforms'
 import Modal from '../modal'
 import type * as T from '../../constants/types'
@@ -62,15 +61,15 @@ const ConfirmOrPending = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  blue: Styles.platformStyles({
-    common: {color: Styles.globalColors.blueDark},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  blue: Kb.Styles.platformStyles({
+    common: {color: Kb.Styles.globalColors.blueDark},
     isElectron: {
       wordBreak: 'break-all',
     },
   }),
   center: {alignSelf: 'center'},
-  grey: {color: Styles.globalColors.black_20},
+  grey: {color: Kb.Styles.globalColors.black_20},
 }))
 
 const messageMap = new Map([

@@ -1,7 +1,7 @@
+import * as C from '../constants'
 import * as React from 'react'
 import {default as Button, type Props as ButtonProps} from './button'
 import type ClickableBox from './clickable-box'
-import * as Container from '../util/container'
 
 const Kb = {
   Button,
@@ -26,7 +26,7 @@ export type Props = {
 
 const WaitingButton = React.forwardRef<ClickableBox, Props>(function WaitingButton(props, ref) {
   const {onlyDisable, waitingKey, ...buttonProps} = props
-  const storeWaiting = Container.useAnyWaiting(waitingKey)
+  const storeWaiting = C.useAnyWaiting(waitingKey)
 
   const [localWaiting, setLocalWaiting] = React.useState(false)
 

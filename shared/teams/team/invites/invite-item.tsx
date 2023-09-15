@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import type * as T from '../../../constants/types'
 
 export const InviteItem = ({
@@ -16,7 +15,7 @@ export const InviteItem = ({
   inviteLink: T.Teams.InviteLink
   showDetails: boolean
   showExpireAction: boolean
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
   teamID: T.Teams.TeamID
 }) => {
   const yourUsername = C.useCurrentUserState(s => s.username)
@@ -33,7 +32,7 @@ export const InviteItem = ({
   return (
     <Kb.Box2
       direction="vertical"
-      style={Styles.collapseStyles([styles.inviteContainer, style])}
+      style={Kb.Styles.collapseStyles([styles.inviteContainer, style])}
       gap="xtiny"
       alignSelf={alignSelf}
     >
@@ -79,7 +78,7 @@ export const InviteItem = ({
             alignSelf="flex-start"
             alignItems="center"
             gap="tiny"
-            style={Styles.globalStyles.positionRelative}
+            style={Kb.Styles.globalStyles.positionRelative}
           >
             <Kb.Text
               type={waitingForExpire ? 'BodySmall' : 'BodySmallPrimaryLink'}
@@ -89,7 +88,11 @@ export const InviteItem = ({
               Expire now
             </Kb.Text>
             {waitingForExpire && (
-              <Kb.Box2 direction="horizontal" centerChildren={true} style={Styles.globalStyles.fillAbsolute}>
+              <Kb.Box2
+                direction="horizontal"
+                centerChildren={true}
+                style={Kb.Styles.globalStyles.fillAbsolute}
+              >
                 <Kb.ProgressIndicator type="Small" />
               </Kb.Box2>
             )}
@@ -100,13 +103,13 @@ export const InviteItem = ({
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   disabledText: {opacity: 0.4},
   inviteContainer: {
-    borderColor: Styles.globalColors.black_10,
-    borderRadius: Styles.borderRadius,
+    borderColor: Kb.Styles.globalColors.black_10,
+    borderRadius: Kb.Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
-    padding: Styles.globalMargins.tiny,
+    padding: Kb.Styles.globalMargins.tiny,
   },
 }))

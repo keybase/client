@@ -1,7 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as T from '../constants/types'
 import logger from '../logger'
@@ -59,11 +58,11 @@ const Display = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     flex: 1,
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
     width: '100%',
   },
   scrollview: {

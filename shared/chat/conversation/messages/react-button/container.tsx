@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import ReactButton, {NewReactionButton} from '.'
-import shallowEqual from 'shallowequal'
 import type {StylesCrossPlatform} from '../../../../styles'
 import {OrdinalContext} from '../ids-context'
 
@@ -29,7 +28,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
       count: reaction?.users.size ?? 0,
       decorated: reaction?.decorated ?? '',
     }
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const onAddReaction = React.useCallback(

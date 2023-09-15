@@ -1,9 +1,7 @@
 import * as T from '../../constants/types'
 import * as C from '../../constants'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {PathItemAction, LastModifiedLine, ItemIcon} from '../common'
-import {fileUIName, isMobile, isIOS} from '../../constants/platform'
 import {hasShare} from '../common/path-item-action/layout'
 
 type DefaultViewProps = {
@@ -30,13 +28,13 @@ const DefaultView = (props: DefaultViewProps) => {
           {props.pathItem.name}
         </Kb.Text>
         <Kb.Text type="BodySmall">{C.humanReadableFileSize(props.pathItem.size)}</Kb.Text>
-        {isMobile && <LastModifiedLine path={props.path} mode="default" />}
+        {C.isMobile && <LastModifiedLine path={props.path} mode="default" />}
         {props.pathItem.type === T.FS.PathType.Symlink && (
           <Kb.Text type="BodySmall" style={styles.symlink}>
             {'This is a symlink' + (props.pathItem.linkTarget ? ` to: ${props.pathItem.linkTarget}.` : '.')}
           </Kb.Text>
         )}
-        {isMobile && (
+        {C.isMobile && (
           <Kb.Text center={true} type="BodySmall" style={styles.noOpenMobile}>
             This document can not be opened on mobile. You can still interact with it using the ••• menu.
           </Kb.Text>
@@ -60,13 +58,13 @@ const DefaultView = (props: DefaultViewProps) => {
             </>
           )
         }
-        {!isIOS &&
+        {!C.isIOS &&
           (props.sfmiEnabled ? (
             <Kb.Button
               key="open"
               type="Dim"
-              label={'Show in ' + fileUIName}
-              style={{marginTop: Styles.globalMargins.small}}
+              label={'Show in ' + C.fileUIName}
+              style={{marginTop: Kb.Styles.globalMargins.small}}
               onClick={props.showInSystemFileManager}
             />
           ) : (
@@ -74,7 +72,7 @@ const DefaultView = (props: DefaultViewProps) => {
               key="download"
               mode="Secondary"
               label="Download"
-              style={{marginTop: Styles.globalMargins.small}}
+              style={{marginTop: Kb.Styles.globalMargins.small}}
               onClick={props.download}
             />
           ))}
@@ -83,40 +81,36 @@ const DefaultView = (props: DefaultViewProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
-        isElectron: {
-          padding: Styles.globalMargins.medium,
-        },
-        isMobile: {
-          paddingTop: Styles.globalMargins.mediumLarge,
-        },
+      container: Kb.Styles.platformStyles({
+        isElectron: {padding: Kb.Styles.globalMargins.medium},
+        isMobile: {paddingTop: Kb.Styles.globalMargins.mediumLarge},
       }),
       filename: {
-        marginBottom: Styles.globalMargins.tiny,
-        marginTop: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.small,
       },
-      innerContainer: Styles.platformStyles({
+      innerContainer: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
-          ...Styles.globalStyles.flexGrow,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexGrow,
           alignItems: 'center',
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.white,
           flex: 1,
           justifyContent: 'center',
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.large,
-          paddingRight: Styles.globalMargins.large,
+          paddingLeft: Kb.Styles.globalMargins.large,
+          paddingRight: Kb.Styles.globalMargins.large,
         },
       }),
       noOpenMobile: {
-        marginTop: Styles.globalMargins.medium,
+        marginTop: Kb.Styles.globalMargins.medium,
       },
       symlink: {
-        marginTop: Styles.globalMargins.medium,
+        marginTop: Kb.Styles.globalMargins.medium,
       },
     }) as const
 )

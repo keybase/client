@@ -242,6 +242,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
         case 'team-invite-link':
           C.useTeamsState.getState().dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
           return
+        case 'settingsPushPrompt':
+          C.useRouterState.getState().dispatch.navigateAppend('settingsPushPrompt')
+          return
         default:
         // Fall through to the error return below.
       }

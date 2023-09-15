@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import * as TeamConstants from '../../../../constants/teams'
 import RetentionNotice from '.'
 import {makeRetentionNotice} from '../../../../util/teams'
 
@@ -8,9 +7,7 @@ const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer() 
   const meta = C.useChatContext(s => s.meta)
   const {teamType, retentionPolicy, teamRetentionPolicy} = meta
   const canChange = C.useTeamsState(s => {
-    return meta.teamType !== 'adhoc'
-      ? TeamConstants.getCanPerformByID(s, meta.teamID).setRetentionPolicy
-      : true
+    return meta.teamType !== 'adhoc' ? C.getCanPerformByID(s, meta.teamID).setRetentionPolicy : true
   })
 
   const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)

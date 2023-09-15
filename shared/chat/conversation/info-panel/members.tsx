@@ -6,8 +6,6 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as T from '../../../constants/types'
 import Participant from './participant'
-import * as Styles from '../../../styles'
-import shallowEqual from 'shallowequal'
 
 type Props = {
   renderTabs: () => React.ReactNode
@@ -24,7 +22,7 @@ const MembersTab = (props: Props) => {
     const {meta} = s
     const {teamID, channelname, teamname} = meta
     return {channelname, teamID, teamname}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const isGeneral = channelname === 'general'
@@ -87,7 +85,7 @@ const MembersTab = (props: Props) => {
         ...props.commonSections,
         {
           data: sections,
-          renderItem: ({index, item}: {index: number; item: Container.Unpacked<typeof sections>}) => {
+          renderItem: ({index, item}: {index: number; item: T.Unpacked<typeof sections>}) => {
             if (item.key === auditingBannerItem) {
               return (
                 <Kb.Banner color="grey" small={true}>
@@ -120,9 +118,9 @@ const MembersTab = (props: Props) => {
 }
 export default MembersTab
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      membersSpinner: {marginTop: Styles.globalMargins.small},
+      membersSpinner: {marginTop: Kb.Styles.globalMargins.small},
     }) as const
 )

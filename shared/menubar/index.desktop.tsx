@@ -5,8 +5,6 @@ import * as T from '../constants/types'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RemoteGen from '../actions/remote-gen'
-import * as Styles from '../styles'
-import * as Tabs from '../constants/tabs'
 import ChatContainer from './chat-container.desktop'
 import FilesPreview from './files-container.desktop'
 import KB2 from '../util/electron.desktop'
@@ -65,7 +63,7 @@ const UploadWithCountdown = (p: UWCDProps) => {
 }
 
 const useMenuItems = (
-  p: Props & {showBadges?: boolean; openApp: (tab?: Tabs.AppTab) => void}
+  p: Props & {showBadges?: boolean; openApp: (tab?: C.AppTab) => void}
 ): ReadonlyArray<_InnerMenuItem> => {
   const {showBadges, navBadges, daemonHandshakeState, username, kbfsEnabled, openApp} = p
   const countMap = navBadges
@@ -120,36 +118,32 @@ const useMenuItems = (
     if (showBadges) {
       return [
         {
-          onClick: () => openApp(Tabs.walletsTab),
+          onClick: () => openApp(C.walletsTab),
           title: 'Wallet',
           view: (
-            <TabView title="Wallet" iconType="iconfont-nav-2-wallets" count={countMap.get(Tabs.walletsTab)} />
+            <TabView title="Wallet" iconType="iconfont-nav-2-wallets" count={countMap.get(C.walletsTab)} />
           ),
         },
         {
-          onClick: () => openApp(Tabs.gitTab),
+          onClick: () => openApp(C.gitTab),
           title: 'Git',
-          view: <TabView title="Git" iconType="iconfont-nav-2-git" count={countMap.get(Tabs.gitTab)} />,
+          view: <TabView title="Git" iconType="iconfont-nav-2-git" count={countMap.get(C.gitTab)} />,
         },
         {
-          onClick: () => openApp(Tabs.devicesTab),
+          onClick: () => openApp(C.devicesTab),
           title: 'Devices',
           view: (
-            <TabView
-              title="Devices"
-              iconType="iconfont-nav-2-devices"
-              count={countMap.get(Tabs.devicesTab)}
-            />
+            <TabView title="Devices" iconType="iconfont-nav-2-devices" count={countMap.get(C.devicesTab)} />
           ),
         },
         {
-          onClick: () => openApp(Tabs.settingsTab),
+          onClick: () => openApp(C.settingsTab),
           title: 'Settings',
           view: (
             <TabView
               title="Settings"
               iconType="iconfont-nav-2-settings"
-              count={countMap.get(Tabs.settingsTab)}
+              count={countMap.get(C.settingsTab)}
             />
           ),
         },
@@ -161,7 +155,7 @@ const useMenuItems = (
                 onClick: () => {
                   R.remoteDispatch(RemoteGen.createOpenPathInSystemFileManager({path: '/keybase'}))
                 },
-                title: `Open folders in ${Styles.fileUIName}`,
+                title: `Open folders in ${Kb.Styles.fileUIName}`,
               },
               'Divider',
             ] as const)
@@ -176,7 +170,7 @@ const useMenuItems = (
 
 const IconBar = (p: Props & {showBadges?: boolean}) => {
   const {navBadges, showBadges} = p
-  const openApp = React.useCallback((tab?: Tabs.AppTab) => {
+  const openApp = React.useCallback((tab?: C.AppTab) => {
     R.remoteDispatch(RemoteGen.createShowMain())
     tab && R.remoteDispatch(RemoteGen.createSwitchTab({tab}))
   }, [])
@@ -214,16 +208,18 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
       </Kb.Box>
       <Kb.Box
         style={{
-          ...Styles.desktopStyles.clickable,
-          marginRight: Styles.globalMargins.tiny,
+          ...Kb.Styles.desktopStyles.clickable,
+          marginRight: Kb.Styles.globalMargins.tiny,
           position: 'relative',
         }}
       >
         <Kb.Icon
           color={
-            Styles.isDarkMode() ? Styles.globalColors.black_50OrBlack_60 : Styles.globalColors.blueDarker
+            Kb.Styles.isDarkMode()
+              ? Kb.Styles.globalColors.black_50OrBlack_60
+              : Kb.Styles.globalColors.blueDarker
           }
-          hoverColor={Styles.globalColors.whiteOrWhite}
+          hoverColor={Kb.Styles.globalColors.whiteOrWhite}
           onClick={toggleShowingPopup}
           type="iconfont-nav-2-hamburger"
           sizeType="Big"
@@ -236,8 +232,8 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
   )
 }
 
-const badgeTypesInHeader = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab]
-const badgesInMenu = [Tabs.walletsTab, Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
+const badgeTypesInHeader = [C.peopleTab, C.chatTab, C.fsTab, C.teamsTab]
+const badgesInMenu = [C.walletsTab, C.gitTab, C.devicesTab, C.settingsTab]
 const LoggedIn = (p: Props) => {
   const {endEstimate, files, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
   const {outOfDate, windowShownCount} = p
@@ -291,7 +287,7 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const logIn = () => {
     R.remoteDispatch(RemoteGen.createShowMain())
-    navigateAppend(Tabs.loginTab)
+    navigateAppend(C.loginTab)
   }
   return (
     <>
@@ -300,13 +296,13 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
           direction="vertical"
           fullWidth={true}
           fullHeight={true}
-          style={{alignItems: 'center', justifyContent: 'center', padding: Styles.globalMargins.small}}
+          style={{alignItems: 'center', justifyContent: 'center', padding: Kb.Styles.globalMargins.small}}
         >
           <Kb.Box2 direction="vertical">
             <Kb.Icon
               type="icon-keybase-logo-logged-out-64"
               style={styles.logo}
-              color={Styles.globalColors.yellow}
+              color={Kb.Styles.globalColors.yellow}
             />
             <Kb.Text type="Body" style={{alignSelf: 'center', marginTop: 6}}>
               {text}
@@ -342,7 +338,7 @@ const MenubarRender = (p: Props) => {
   }
 
   return (
-    <Styles.DarkModeContext.Provider value={darkMode}>
+    <Kb.Styles.DarkModeContext.Provider value={darkMode}>
       <Kb.Box2
         direction="vertical"
         style={styles.widgetContainer}
@@ -354,7 +350,7 @@ const MenubarRender = (p: Props) => {
         <IconBar {...p} showBadges={loggedIn} />
         {content}
       </Kb.Box2>
-    </Styles.DarkModeContext.Provider>
+    </Kb.Styles.DarkModeContext.Provider>
   )
 }
 
@@ -362,11 +358,11 @@ const TabView = (p: {title: string; iconType: Kb.IconType; count?: number}) => {
   const {count, iconType, title} = p
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'center'}}>
-      <Kb.Box style={{marginRight: Styles.globalMargins.tiny, position: 'relative'}}>
-        <Kb.Icon type={iconType} color={Styles.globalColors.blue} sizeType="Big" />
+      <Kb.Box style={{marginRight: Kb.Styles.globalMargins.tiny, position: 'relative'}}>
+        <Kb.Icon type={iconType} color={Kb.Styles.globalColors.blue} sizeType="Big" />
         {!!count && <Kb.Badge badgeNumber={count} badgeStyle={styles.badge} />}
       </Kb.Box>
-      <Kb.Text className="title" type="BodySemibold" style={Styles.collapseStyles([{color: undefined}])}>
+      <Kb.Text className="title" type="BodySemibold" style={Kb.Styles.collapseStyles([{color: undefined}])}>
         {title}
       </Kb.Text>
     </Kb.Box2>
@@ -376,31 +372,35 @@ const TabView = (p: {title: string; iconType: Kb.IconType; count?: number}) => {
 // TODO
 const _realCSS = `
 body {
-  background-color: ${Styles.globalColors.transparent};
+  background-color: ${Kb.Styles.globalColors.transparent};
 }
 `
 
 const iconMap = {
-  [Tabs.peopleTab]: 'iconfont-nav-2-people',
-  [Tabs.chatTab]: 'iconfont-nav-2-chat',
-  [Tabs.devicesTab]: 'iconfont-nav-2-devices',
-  [Tabs.fsTab]: 'iconfont-nav-2-files',
-  [Tabs.teamsTab]: 'iconfont-nav-2-teams',
+  [C.peopleTab]: 'iconfont-nav-2-people',
+  [C.chatTab]: 'iconfont-nav-2-chat',
+  [C.devicesTab]: 'iconfont-nav-2-devices',
+  [C.fsTab]: 'iconfont-nav-2-files',
+  [C.teamsTab]: 'iconfont-nav-2-teams',
 } as const
 const BadgeIcon = ({tab, countMap, openApp}: any) => {
   const count = countMap.get(tab)
   // @ts-ignore
   const iconType = iconMap[tab]
 
-  if ((tab === Tabs.devicesTab && !count) || !iconType) {
+  if ((tab === C.devicesTab && !count) || !iconType) {
     return null
   }
 
   return (
-    <Kb.Box style={{...Styles.desktopStyles.clickable, position: 'relative'}}>
+    <Kb.Box style={{...Kb.Styles.desktopStyles.clickable, position: 'relative'}}>
       <Kb.Icon
-        color={Styles.isDarkMode() ? Styles.globalColors.black_50OrBlack_60 : Styles.globalColors.blueDarker}
-        hoverColor={Styles.globalColors.whiteOrWhite}
+        color={
+          Kb.Styles.isDarkMode()
+            ? Kb.Styles.globalColors.black_50OrBlack_60
+            : Kb.Styles.globalColors.blueDarker
+        }
+        hoverColor={Kb.Styles.globalColors.whiteOrWhite}
         onClick={() => openApp(tab)}
         sizeType="Big"
         style={styles.navIcons}
@@ -411,9 +411,9 @@ const BadgeIcon = ({tab, countMap, openApp}: any) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   arrowTick: {
-    borderBottomColor: Styles.isDarkMode() ? '#2d2d2d' : Styles.globalColors.blueDark,
+    borderBottomColor: Kb.Styles.isDarkMode() ? '#2d2d2d' : Kb.Styles.globalColors.blueDark,
     borderBottomWidth: 6,
     borderLeftColor: 'transparent',
     borderLeftWidth: 6,
@@ -437,10 +437,10 @@ const styles = Styles.styleSheetCreate(() => ({
   flexOne: {flexGrow: 1},
   footer: {width: 360},
   hamburgerIcon: {
-    marginRight: Styles.globalMargins.tiny,
+    marginRight: Kb.Styles.globalMargins.tiny,
   },
   headerBadgesContainer: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
@@ -450,13 +450,13 @@ const styles = Styles.styleSheetCreate(() => ({
     alignSelf: 'center',
     marginBottom: 12,
   },
-  navIcons: {paddingLeft: Styles.globalMargins.xtiny, paddingRight: Styles.globalMargins.xtiny},
+  navIcons: {paddingLeft: Kb.Styles.globalMargins.xtiny, paddingRight: Kb.Styles.globalMargins.xtiny},
   topRow: {
-    ...Styles.globalStyles.flexBoxRow,
+    ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    backgroundColor: Styles.isDarkMode() ? '#2d2d2d' : Styles.globalColors.blueDark,
-    borderTopLeftRadius: Styles.globalMargins.xtiny,
-    borderTopRightRadius: Styles.globalMargins.xtiny,
+    backgroundColor: Kb.Styles.isDarkMode() ? '#2d2d2d' : Kb.Styles.globalColors.blueDark,
+    borderTopLeftRadius: Kb.Styles.globalMargins.xtiny,
+    borderTopRightRadius: Kb.Styles.globalMargins.xtiny,
     flex: 1,
     maxHeight: 40,
     minHeight: 40,
@@ -464,9 +464,9 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingRight: 8,
   },
   widgetContainer: {
-    backgroundColor: Styles.globalColors.white,
-    borderTopLeftRadius: Styles.globalMargins.xtiny,
-    borderTopRightRadius: Styles.globalMargins.xtiny,
+    backgroundColor: Kb.Styles.globalColors.white,
+    borderTopLeftRadius: Kb.Styles.globalMargins.xtiny,
+    borderTopRightRadius: Kb.Styles.globalMargins.xtiny,
     flex: 1,
     height: '100%',
     marginTop: isDarwin ? 13 : 0,

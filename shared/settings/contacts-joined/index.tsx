@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import type * as T from '../../constants/types'
 import {FollowButton} from './buttons'
 
@@ -56,27 +55,27 @@ const ContactsJoinedModal = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       avatar: {
-        marginLeft: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.small,
+        marginLeft: Kb.Styles.globalMargins.tiny,
+        marginRight: Kb.Styles.globalMargins.small,
       },
       buttons: {
-        marginBottom: Styles.globalMargins.tiny,
-        marginTop: Styles.globalMargins.xtiny,
+        marginBottom: Kb.Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.xtiny,
       },
       divider: {
-        marginBottom: Styles.globalMargins.tiny,
-        marginTop: Styles.globalMargins.tiny,
+        marginBottom: Kb.Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       rightBox: {flexGrow: 1},
       woot: {
-        marginBottom: Styles.globalMargins.small,
-        marginLeft: Styles.globalMargins.medium,
-        marginRight: Styles.globalMargins.medium,
-        marginTop: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.small,
+        marginLeft: Kb.Styles.globalMargins.medium,
+        marginRight: Kb.Styles.globalMargins.medium,
+        marginTop: Kb.Styles.globalMargins.small,
       },
     }) as const
 )

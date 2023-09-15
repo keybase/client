@@ -1,8 +1,8 @@
-import * as Styles from '../../../../../styles'
 import './pending-background.css'
+import * as Kb from '../../../../../common-adapters'
 import type {Props} from '.'
 
-const patternImage = Styles.backgroundURL('payment-pattern-80.png')
+const patternImage = Kb.Styles.backgroundURL('payment-pattern-80.png')
 
 const PendingBackground = (p: Props) => {
   const {children, style} = p
@@ -16,10 +16,10 @@ const PendingBackground = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      bg: Styles.platformStyles({
+      bg: Kb.Styles.platformStyles({
         isElectron: {backgroundImage: patternImage},
       }),
       wrap: {
@@ -27,7 +27,7 @@ const styles = Styles.styleSheetCreate(
         overflow: 'hidden',
         position: 'absolute',
       },
-    } as const)
+    }) as const
 )
 
 export default PendingBackground

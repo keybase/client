@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Container from '../../util/container'
 import Splash from '.'
 
 const SplashContainer = () => {
@@ -33,7 +32,7 @@ const SplashContainer = () => {
   return (
     <Splash
       failed={failed}
-      onFeedback={Container.isMobile ? onFeedback : undefined}
+      onFeedback={C.isMobile ? onFeedback : undefined}
       onRetry={retriesLeft === 0 ? onRetry : undefined}
       status={status}
     />

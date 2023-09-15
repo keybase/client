@@ -1,11 +1,9 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as T from '../../constants/types'
 import * as Kbfs from '../common'
-import * as Container from '../../util/container'
 import Actions from './actions'
 import MainBanner from './main-banner/container'
 
@@ -22,11 +20,13 @@ type Props = {
 }
 
 const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
-  Constants.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} /> : null
+  Constants.hasPublicTag(path) ? (
+    <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} />
+  ) : null
 
 const NavMobileHeader = (props: Props) => {
   const expanded = C.useFSState(s => s.folderViewFilter !== undefined)
-  const {pop} = Container.useNav()
+  const {pop} = C.useNav()
   const setFolderViewFilter = C.useFSState(s => s.dispatch.setFolderViewFilter)
 
   const filterDone = setFolderViewFilter
@@ -87,8 +87,8 @@ const getBaseHeight = (path: T.FS.Path) => {
   return (
     44 +
     (path === Constants.defaultPath
-      ? Styles.headerExtraHeight
-      : (Styles.isAndroid ? 56 : 44) + (Constants.hasPublicTag(path) ? 7 : 0))
+      ? Kb.Styles.headerExtraHeight
+      : (Kb.Styles.isAndroid ? 56 : 44) + (Constants.hasPublicTag(path) ? 7 : 0))
   )
 }
 
@@ -107,30 +107,30 @@ export const useHeaderHeight = (path: T.FS.Path) => {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      backButton: Styles.platformStyles({
+      backButton: Kb.Styles.platformStyles({
         common: {
           opacity: 1,
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
         isAndroid: {
-          paddingRight: Styles.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
         },
       }),
       expandedTitleContainer: {
-        backgroundColor: Styles.globalColors.white,
-        padding: Styles.globalMargins.tiny,
-        paddingBottom: Styles.globalMargins.xsmall + Styles.globalMargins.xxtiny,
+        backgroundColor: Kb.Styles.globalColors.white,
+        padding: Kb.Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xxtiny,
       },
-      expandedTopContainer: Styles.platformStyles({
+      expandedTopContainer: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.white,
-          paddingRight: Styles.globalMargins.tiny,
+          backgroundColor: Kb.Styles.globalColors.white,
+          paddingRight: Kb.Styles.globalMargins.tiny,
         },
         isAndroid: {
           height: 56,
@@ -140,14 +140,14 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       filename: {
-        marginLeft: Styles.globalMargins.xtiny,
+        marginLeft: Kb.Styles.globalMargins.xtiny,
       },
       gap: {
         flex: 1,
       },
       headerContainer: {
-        backgroundColor: Styles.globalColors.white,
-        borderBottomColor: Styles.globalColors.black_10,
+        backgroundColor: Kb.Styles.globalColors.white,
+        borderBottomColor: Kb.Styles.globalColors.black_10,
         borderBottomWidth: 1,
         borderStyle: 'solid',
         minHeight: 44,

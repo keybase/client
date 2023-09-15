@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Container from '../../util/container'
 import type * as T from '../../constants/types'
 import BarePreview from './bare-preview'
 
@@ -17,4 +16,4 @@ const Noop = (_: OwnProps) => {
   return null
 }
 
-export default Container.isMobile ? ConnectedBarePreview : Noop
+export default C.isMobile ? ConnectedBarePreview : Noop

@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as T from '../../constants/types'
@@ -21,7 +20,7 @@ const EditTeamWelcomeMessage = (props: Props) => {
   }
 
   const waitingKey = Constants.setWelcomeMessageWaitingKey(teamID)
-  const waiting = Container.useAnyWaiting(waitingKey)
+  const waiting = C.useAnyWaiting(waitingKey)
   const error = C.useTeamsState(s => s.errorInEditWelcomeMessage)
   const origWelcomeMessage = C.useTeamsState(s => s.teamIDToWelcomeMessage.get(teamID))
 
@@ -80,14 +79,14 @@ const EditTeamWelcomeMessage = (props: Props) => {
           value={computeWelcomeMessageTextRaw(welcomeMessage, false /* cannotWrite */)}
           multiline={true}
           rowsMin={3}
-          rowsMax={Styles.isMobile ? 8 : 3}
+          rowsMax={Kb.Styles.isMobile ? 8 : 3}
           maxLength={welcomeMessageMaxLen}
           autoFocus={true}
         />
-        {(!Styles.isMobile || showNoWelcomeMessage) && (
+        {(!Kb.Styles.isMobile || showNoWelcomeMessage) && (
           <Kb.Text
             type="BodySmall"
-            style={Styles.collapseStyles([
+            style={Kb.Styles.collapseStyles([
               styles.info,
               !(welcomeMessage.set && welcomeMessage.raw.length === 0) && {visibility: 'hidden' as const},
             ] as any)}
@@ -100,7 +99,7 @@ const EditTeamWelcomeMessage = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   button: {
     width: '50%',
   },
@@ -109,17 +108,17 @@ const styles = Styles.styleSheetCreate(() => ({
     minHeight: undefined,
   },
   container: {
-    ...Styles.padding(Styles.globalMargins.small),
-    backgroundColor: Styles.globalColors.blueGrey,
-    paddingBottom: Styles.globalMargins.large,
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    paddingBottom: Kb.Styles.globalMargins.large,
     width: '100%',
   },
   info: {
-    paddingTop: Styles.globalMargins.tiny,
+    paddingTop: Kb.Styles.globalMargins.tiny,
   },
   title: {
-    paddingBottom: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Kb.Styles.globalMargins.medium,
+    paddingTop: Kb.Styles.globalMargins.xtiny,
   },
 }))
 

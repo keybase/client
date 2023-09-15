@@ -32,7 +32,7 @@ export const useAllChannelMetas = (
 } => {
   const getConversations = Container.useRPC(T.RPCChat.localGetTLFConversationsLocalRpcPromise)
 
-  const teamname = C.useTeamsState(s => Constants.getTeamNameFromID(s, teamID) ?? '')
+  const teamname = C.useTeamsState(s => C.getTeamNameFromID(s, teamID) ?? '')
   const [channelMetas, setChannelMetas] = React.useState(
     new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>()
   )
@@ -98,7 +98,7 @@ export const useChannelMeta = (
   const getInboxItem = Container.useRPC(T.RPCChat.localGetInboxAndUnboxUILocalRpcPromise)
   const [conv, setConv] = React.useState<T.RPCChat.InboxUIItem | undefined>()
 
-  const waitingKey = Constants.teamWaitingKey(teamID)
+  const waitingKey = C.teamWaitingKey(teamID)
 
   React.useEffect(() => {
     getInboxItem(

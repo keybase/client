@@ -1,11 +1,11 @@
 import * as React from 'react'
-import * as Container from '../util/container'
+import * as C from '../constants'
 import {HeaderTitle, HeaderRightActions} from './nav-header'
 
 const Index = React.lazy(async () => import('.'))
 
 const getOptions = () =>
-  Container.isMobile
+  C.isMobile
     ? {title: 'Devices'}
     : {
         headerRightActions: HeaderRightActions,

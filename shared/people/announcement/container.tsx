@@ -1,10 +1,7 @@
 import * as C from '../../constants'
 import Announcement from '.'
 import * as T from '../../constants/types'
-import * as Tabs from '../../constants/tabs'
-import * as SettingsTabs from '../../constants/settings'
 import openURL from '../../util/open-url'
-import * as Container from '../../util/container'
 
 type OwnProps = {
   appLink?: T.RPCGen.AppLinkType
@@ -36,34 +33,34 @@ export default (ownProps: OwnProps) => {
         navigateToInbox()
         break
       case T.RPCGen.AppLinkType.files:
-        switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.fsTab)
-        if (Container.isMobile) {
-          navigateAppend(SettingsTabs.fsTab)
+        switchTab(C.isMobile ? C.settingsTab : C.fsTab)
+        if (C.isMobile) {
+          navigateAppend(C.settingsFsTab)
         }
         break
       case T.RPCGen.AppLinkType.wallet:
-        switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.walletsTab)
-        if (Container.isMobile) {
-          navigateAppend(SettingsTabs.walletsTab)
+        switchTab(C.isMobile ? C.settingsTab : C.walletsTab)
+        if (C.isMobile) {
+          navigateAppend(C.settingsWalletsTab)
         }
         break
       case T.RPCGen.AppLinkType.git:
-        switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.gitTab)
-        if (Container.isMobile) {
-          navigateAppend({props: {}, selected: SettingsTabs.gitTab})
+        switchTab(C.isMobile ? C.settingsTab : C.gitTab)
+        if (C.isMobile) {
+          navigateAppend({props: {}, selected: C.settingsGitTab})
         }
         break
       case T.RPCGen.AppLinkType.devices:
-        switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.devicesTab)
-        if (Container.isMobile) {
-          navigateAppend(SettingsTabs.devicesTab)
+        switchTab(C.isMobile ? C.settingsTab : C.devicesTab)
+        if (C.isMobile) {
+          navigateAppend(C.settingsDevicesTab)
         }
         break
       case T.RPCGen.AppLinkType.settings:
-        switchTab(Tabs.settingsTab)
+        switchTab(C.settingsTab)
         break
       case T.RPCGen.AppLinkType.teams:
-        switchTab(Tabs.teamsTab)
+        switchTab(C.teamsTab)
         break
     }
     dismissAnnouncement(id)

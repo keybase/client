@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import type * as T from '../../../../constants/types'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import * as Constants from '../../../../constants/teams'
 import * as Container from '../../../../util/container'
 
@@ -43,7 +42,7 @@ const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
           style={styles.headerButton}
         />
       </Kb.Box2>
-      {!Styles.isMobile && (
+      {!Kb.Styles.isMobile && (
         <Kb.SearchFilter
           size="small"
           placeholderText="Filter"
@@ -58,22 +57,22 @@ const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   containerNew: {
-    ...Styles.padding(6, Styles.globalMargins.small),
-    backgroundColor: Styles.globalColors.blueGrey,
+    ...Kb.Styles.padding(6, Kb.Styles.globalMargins.small),
+    backgroundColor: Kb.Styles.globalColors.blueGrey,
     justifyContent: 'space-between',
   },
   filterInput: {
-    marginRight: Styles.globalMargins.tiny,
+    marginRight: Kb.Styles.globalMargins.tiny,
     maxWidth: 148,
   },
-  headerButton: Styles.platformStyles({
+  headerButton: Kb.Styles.platformStyles({
     isMobile: {
       flexGrow: 1,
     },
   }),
-  text: {padding: Styles.globalMargins.xtiny},
+  text: {padding: Kb.Styles.globalMargins.xtiny},
 }))
 
 export default AddEmoji

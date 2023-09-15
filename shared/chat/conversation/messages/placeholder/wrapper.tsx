@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import * as React from 'react'
 import * as T from '../../../../constants/types'
@@ -10,8 +9,8 @@ import {useChatDebugDump} from '../../../../constants/chat2/debug'
 
 const noop = () => {}
 
-const baseWidth = Styles.isMobile ? 100 : 150
-const mult = Styles.isMobile ? 5 : 10
+const baseWidth = Kb.Styles.isMobile ? 100 : 150
+const mult = Kb.Styles.isMobile ? 5 : 10
 
 const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
   const {ordinal} = p
@@ -55,12 +54,12 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
         alignItems: 'center',
-        height: Styles.isMobile ? 22 : 17, // to match a line of text
+        height: Kb.Styles.isMobile ? 22 : 17, // to match a line of text
         width: '100%',
       },
       spinner: {

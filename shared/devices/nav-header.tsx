@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as Constants from '../constants/devices'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 
 export const HeaderTitle = () => {
   const numActive = Constants.useActiveDeviceCounts()
@@ -30,17 +29,17 @@ export const HeaderRightActions = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  addDeviceButton: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  addDeviceButton: Kb.Styles.platformStyles({
     common: {
       alignSelf: 'flex-end',
       marginBottom: 6,
-      marginRight: Styles.globalMargins.xsmall,
+      marginRight: Kb.Styles.globalMargins.xsmall,
     },
-    isElectron: Styles.desktopStyles.windowDraggingClickable,
+    isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
   }),
   headerTitle: {
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.xsmall,
+    paddingBottom: Kb.Styles.globalMargins.xtiny,
+    paddingLeft: Kb.Styles.globalMargins.xsmall,
   },
 }))

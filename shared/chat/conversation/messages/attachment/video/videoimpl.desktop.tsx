@@ -1,6 +1,5 @@
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../../styles'
 import type {Props} from './videoimpl'
 import {useRedux} from './use-redux'
 
@@ -56,10 +55,10 @@ const VideoImpl = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      downloadIcon: Styles.platformStyles({
+      downloadIcon: Kb.Styles.platformStyles({
         isElectron: {
           display: 'inline-flex',
           opacity: 0.75,
@@ -68,20 +67,20 @@ const styles = Styles.styleSheetCreate(
       }),
       durationContainer: {
         alignSelf: 'flex-end',
-        backgroundColor: Styles.globalColors.black_50,
+        backgroundColor: Kb.Styles.globalColors.black_50,
         borderRadius: 2,
-        bottom: Styles.globalMargins.tiny,
+        bottom: Kb.Styles.globalMargins.tiny,
         overflow: 'hidden',
         padding: 1,
         position: 'absolute',
-        right: Styles.globalMargins.tiny,
+        right: Kb.Styles.globalMargins.tiny,
       },
       durationText: {
-        color: Styles.globalColors.white,
+        color: Kb.Styles.globalColors.white,
         paddingLeft: 3,
         paddingRight: 3,
       },
-      infoIcon: Styles.platformStyles({
+      infoIcon: Kb.Styles.platformStyles({
         isElectron: {
           display: 'inline-flex',
           opacity: 0.75,
@@ -89,7 +88,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       link: {
-        color: Styles.globalColors.black_50,
+        color: Kb.Styles.globalColors.black_50,
         flexGrow: 1,
       },
       playButton: {
@@ -104,16 +103,16 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 1,
         position: 'relative',
       },
-      tipText: {color: Styles.globalColors.white_75},
-      video: Styles.platformStyles({
+      tipText: {color: Kb.Styles.globalColors.white_75},
+      video: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.globalStyles.rounded,
+          ...Kb.Styles.globalStyles.rounded,
           maxHeight: 320,
           maxWidth: 320,
           objectFit: 'contain',
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default VideoImpl

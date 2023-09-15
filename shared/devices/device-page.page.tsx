@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../util/container'
+import type * as C from '../constants'
 
 const Device = React.lazy(async () => import('./device-page'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Device>
+type OwnProps = C.ViewPropsToPageProps<typeof Device>
 
 const getOptions = () => ({
   title: '',

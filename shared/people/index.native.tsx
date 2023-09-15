@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import {PeoplePageList} from './index.shared'
 import type {WrapProps} from '.'
-import * as Styles from '../styles'
 import {RefreshControl} from 'react-native'
 
 const People = React.memo(function People(props: WrapProps) {
@@ -19,8 +18,8 @@ const People = React.memo(function People(props: WrapProps) {
   )
 })
 
-const styles = Styles.styleSheetCreate(() => ({
-  scrollView: {...Styles.globalStyles.fullHeight},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  scrollView: {...Kb.Styles.globalStyles.fullHeight},
 }))
 
 export default People

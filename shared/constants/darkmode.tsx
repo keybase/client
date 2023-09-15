@@ -1,5 +1,7 @@
 import * as T from './types'
 import * as Z from '../util/zustand'
+import {Appearance} from 'react-native'
+import {isMobile} from './platform'
 
 export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight'
 
@@ -54,9 +56,26 @@ export const _useState = Z.createZustand<State>((set, get) => {
         ...s,
         ...initialStore,
         darkModePreference: s.darkModePreference,
+        supported: s.supported,
+        systemDarkMode: s.systemDarkMode,
       }))
     },
     setDarkModePreference: p => {
+      if (isMobile) {
+        // update RN so keyboards / etc are correct on the native side
+        switch (p) {
+          case 'system':
+            Appearance.setColorScheme(null)
+            break
+          case 'alwaysDark':
+            Appearance.setColorScheme('dark')
+            break
+          case 'alwaysLight':
+            Appearance.setColorScheme('light')
+            break
+        }
+      }
+
       set(s => {
         s.darkModePreference = p
       })

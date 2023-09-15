@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 import Header from './header/index.desktop'
 import {HeaderLeftArrow} from '../common-adapters/header-hoc'
@@ -9,7 +8,7 @@ import type {useSubnavTabAction as useSubnavTabActionType} from './common'
 export const headerDefaultStyle = {}
 export const tabBarStyle = {
   get backgroundColor() {
-    return Styles.globalColors.blueDarkOrGreyDarkest
+    return Kb.Styles.globalColors.blueDarkOrGreyDarkest
   },
 }
 export const TabletWrapper = (p: {children: React.ReactNode}) => p.children
@@ -36,11 +35,11 @@ export const defaultNavigationOptions = {
   },
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   headerTitle: {
     alignSelf: 'center',
-    color: Styles.globalColors.black,
-    marginLeft: Styles.globalMargins.xsmall,
+    color: Kb.Styles.globalColors.black,
+    marginLeft: Kb.Styles.globalMargins.xsmall,
   },
 }))
 

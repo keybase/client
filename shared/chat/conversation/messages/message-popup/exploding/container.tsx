@@ -1,8 +1,6 @@
 import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/chat2'
-import * as Container from '../../../../../util/container'
 import * as React from 'react'
-import * as TeamConstants from '../../../../../constants/teams'
 import Exploding from '.'
 import ReactionItem from '../reactionitem'
 import openURL from '../../../../../util/open-url'
@@ -10,8 +8,8 @@ import type * as T from '../../../../../constants/types'
 import type {MenuItems} from '../../../../../common-adapters'
 import type {Position} from '../../../../../styles'
 import type {StylesCrossPlatform} from '../../../../../styles/css'
-import {isIOS} from '../../../../../constants/platform'
 import {makeMessageText} from '../../../../../constants/chat2/message'
+import type HiddenString from '../../../../../util/hidden-string'
 
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -34,7 +32,7 @@ export default (ownProps: OwnProps) => {
   const meta = C.useChatContext(s => s.meta)
   const participantInfo = C.useChatContext(s => s.participants)
   const _canDeleteHistory = C.useTeamsState(
-    s => meta.teamType === 'adhoc' || TeamConstants.getCanPerformByID(s, meta.teamID).deleteChatHistory
+    s => meta.teamType === 'adhoc' || C.getCanPerformByID(s, meta.teamID).deleteChatHistory
   )
   const _canExplodeNow = (yourMessage || _canDeleteHistory) && message.isDeleteable
   const _canEdit = yourMessage && message.isEditable
@@ -75,7 +73,7 @@ export default (ownProps: OwnProps) => {
     showInfoPanel(true, 'attachments')
   }
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-  const _onCopy = (h: Container.HiddenString) => {
+  const _onCopy = (h: HiddenString) => {
     copyToClipboard(h.stringValue())
   }
   const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
@@ -136,11 +134,11 @@ export default (ownProps: OwnProps) => {
       openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
   }
   const _onUserBlock = (message: T.Chat.Message, isSingle: boolean) => {
-    navigateAppend(convID => ({
+    navigateAppend(conversationIDKey => ({
       props: {
         blockUserByDefault: true,
         context: isSingle ? 'message-popup-single' : 'message-popup',
-        convID,
+        conversationIDKey,
         username: message.author,
       },
       selected: 'chatBlockingModal',
@@ -149,7 +147,7 @@ export default (ownProps: OwnProps) => {
 
   const authorInTeam = _teamMembers?.has(message.author) ?? true
   const items: MenuItems = []
-  if (Container.isMobile) {
+  if (C.isMobile) {
     // 'Add a reaction' is an option on mobile
     items.push({
       title: 'Reactions',
@@ -159,7 +157,7 @@ export default (ownProps: OwnProps) => {
     items.push('Divider')
   }
   if (message.type === 'attachment') {
-    if (Container.isMobile) {
+    if (C.isMobile) {
       if (message.attachmentType === 'image') {
         items.push({
           icon: 'iconfont-download-2',
@@ -167,7 +165,7 @@ export default (ownProps: OwnProps) => {
           title: 'Save',
         })
       }
-      if (isIOS) {
+      if (C.isIOS) {
         items.push({
           icon: 'iconfont-share',
           onClick: () => _onShareAttachment(message),

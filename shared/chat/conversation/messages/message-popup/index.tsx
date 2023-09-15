@@ -1,21 +1,19 @@
 import * as C from '../../../../constants'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import * as React from 'react'
 import AttachmentMessage from './attachment/container'
 import ExplodingMessage from './exploding/container'
 import JourneycardMessage from './journeycard/container'
 import TextMessage from './text/container'
 import type * as T from '../../../../constants/types'
-import type {Position, StylesCrossPlatform} from '../../../../styles'
 
 type Props = {
   ordinal: T.Chat.Ordinal
   attachTo?: () => React.Component<any> | null
   onHidden: () => void
-  position: Position
-  style?: StylesCrossPlatform
+  position: Kb.Styles.Position
+  style?: Kb.Styles.StylesCrossPlatform
   visible: boolean
 }
 
@@ -118,7 +116,7 @@ type ModalProps = {
 }
 export const MessagePopupModal = (p: ModalProps) => {
   const {ordinal} = p
-  const {pop} = Container.useNav()
+  const {pop} = C.useNav()
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo} = p
@@ -152,7 +150,7 @@ export const MessagePopupModal = (p: ModalProps) => {
 export const useMessagePopup = (p: {
   ordinal: T.Chat.Ordinal
   shouldShow?: () => boolean
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }) => {
   const {ordinal, shouldShow, style} = p
   const makePopup = React.useCallback(
@@ -193,5 +191,5 @@ export const useMessagePopup = (p: {
     }),
   }
 
-  return Styles.isMobile ? mobilePopup : desktopPopup
+  return Kb.Styles.isMobile ? mobilePopup : desktopPopup
 }

@@ -4,7 +4,6 @@ import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
 import * as RowSizes from '../../sizes'
-import * as Styles from '../../../../../styles'
 import type {Props} from '.'
 import {RectButton} from 'react-native-gesture-handler'
 import {Swipeable} from '../../../../../common-adapters/swipeable.native'
@@ -15,7 +14,7 @@ const actionWidth = 64
 const Action = (p: {
   text: string
   mult: number
-  color: Styles.Color
+  color: Kb.Styles.Color
   iconType: Kb.IconType
   onClick: () => void
   progress: Reanimated.SharedValue<number>
@@ -30,7 +29,7 @@ const Action = (p: {
   return (
     <Reanimated.default.View style={[styles.action, as]}>
       <RectButton style={[styles.rightAction, {backgroundColor: color as string}]} onPress={onClick}>
-        <Kb.Icon type={iconType} color={Styles.globalColors.white} />
+        <Kb.Icon type={iconType} color={Kb.Styles.globalColors.white} />
         <Kb.Text type="BodySmall" style={styles.actionText}>
           {text}
         </Kb.Text>
@@ -65,7 +64,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
     hideConversation(true)
   })
 
-  const isMuted = C.useChatContext(s => s.muted)
+  const isMuted = C.useChatContext(s => s.meta.isMuted)
 
   const onMarkAsUnread = Container.useEvent(() => {
     onMarkConversationAsUnread()
@@ -89,7 +88,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
     <View style={styles.container}>
       <Action
         text="Unread"
-        color={Styles.globalColors.blue}
+        color={Kb.Styles.globalColors.blue}
         iconType="iconfont-envelope-solid"
         onClick={onMarkAsUnread}
         mult={0}
@@ -97,7 +96,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
       />
       <Action
         text={isMuted ? 'Unmute' : 'Mute'}
-        color={Styles.globalColors.orange}
+        color={Kb.Styles.globalColors.orange}
         iconType="iconfont-shh"
         onClick={onMute}
         mult={1 / 3}
@@ -105,7 +104,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
       />
       <Action
         text="Hide"
-        color={Styles.globalColors.greyDarker}
+        color={Kb.Styles.globalColors.greyDarker}
         iconType="iconfont-hide"
         onClick={onHide}
         mult={2 / 3}
@@ -149,7 +148,7 @@ const SwipeConvActionsImpl = React.memo(function SwipeConvActionsImpl(props: IPr
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       action: {
@@ -161,7 +160,7 @@ const styles = Styles.styleSheetCreate(
       },
       actionText: {
         backgroundColor: 'transparent',
-        color: Styles.globalColors.white,
+        color: Kb.Styles.globalColors.white,
       },
       container: {
         display: 'flex',

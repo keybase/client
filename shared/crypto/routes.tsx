@@ -1,5 +1,5 @@
+import * as C from '../constants'
 import * as Constants from '../constants/crypto'
-import * as Container from '../util/container'
 import cryptoRoot from './sub-nav/page'
 import cryptoTeamBuilder from '../team-building/page'
 import decryptIn from './operations/decrypt.in.page'
@@ -11,7 +11,7 @@ import signOut from './operations/sign.out.page'
 import verifyIn from './operations/verify.in.page'
 import verifyOut from './operations/verify.out.page'
 
-export const newRoutes = Container.isMobile
+export const newRoutes = C.isMobile
   ? {
       [Constants.encryptTab]: encryptIn,
       [Constants.decryptTab]: decryptIn,
@@ -19,7 +19,7 @@ export const newRoutes = Container.isMobile
       [Constants.verifyTab]: verifyIn,
     }
   : {cryptoRoot}
-export const newModalRoutes = Container.isMobile
+export const newModalRoutes = C.isMobile
   ? {
       cryptoTeamBuilder,
       [Constants.encryptOutput]: encryptOut,
@@ -31,4 +31,4 @@ export const newModalRoutes = Container.isMobile
       cryptoTeamBuilder,
     }
 
-export type RootParamListCrypto = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>
+export type RootParamListCrypto = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

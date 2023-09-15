@@ -1,5 +1,5 @@
+import * as C from '../../constants'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import type * as TInbox from './index.d'
 import type * as T from '../../constants/types'
 import AutoSizer from 'react-virtualized-auto-sizer'
@@ -13,7 +13,6 @@ import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
 import {inboxWidth, getRowHeight, smallRowHeight, dividerHeight} from './row/sizes'
 import {makeRow} from './row'
-import shallowEqual from 'shallowequal'
 import './inbox.css'
 
 type State = {
@@ -32,12 +31,12 @@ const FakeRow = ({idx}: {idx: number}) => (
     <Kb.Box2 direction="vertical" style={styles.fakeText}>
       <Kb.Box2
         direction="vertical"
-        style={Styles.collapseStyles([styles.fakeTextTop, {width: stableWidth(idx) / 4}])}
+        style={Kb.Styles.collapseStyles([styles.fakeTextTop, {width: stableWidth(idx) / 4}])}
         alignSelf="flex-start"
       />
       <Kb.Box2
         direction="vertical"
-        style={Styles.collapseStyles([styles.fakeTextBottom, {width: stableWidth(idx)}])}
+        style={Kb.Styles.collapseStyles([styles.fakeTextBottom, {width: stableWidth(idx)}])}
         alignSelf="flex-start"
       />
     </Kb.Box2>
@@ -82,7 +81,7 @@ class Inbox extends React.Component<TInbox.Props, State> {
       // ^ this will force an update so just do it once instead of twice
       return false
     }
-    return !shallowEqual(this.props, nextProps) || !shallowEqual(this.state, nextState)
+    return !C.shallowEqual(this.props, nextProps) || !C.shallowEqual(this.state, nextState)
   }
 
   componentDidUpdate(prevProps: TInbox.Props) {
@@ -91,7 +90,7 @@ class Inbox extends React.Component<TInbox.Props, State> {
       this.calculateShowFloating()
     }
     if (
-      !shallowEqual(prevProps.unreadIndices, this.props.unreadIndices) ||
+      !C.shallowEqual(prevProps.unreadIndices, this.props.unreadIndices) ||
       prevProps.unreadTotal !== this.props.unreadTotal
     ) {
       this.calculateShowUnreadShortcut()
@@ -125,7 +124,9 @@ class Inbox extends React.Component<TInbox.Props, State> {
       // likely small teams were just collapsed
       return null
     }
+
     const divStyle = style
+
     if (row.type === 'divider') {
       const newSmallRows = this.deltaNewSmallRows()
       let expandingRows: Array<string> = []
@@ -158,7 +159,7 @@ class Inbox extends React.Component<TInbox.Props, State> {
           {this.state.dragY !== -1 && (
             <Kb.Box2
               direction="vertical"
-              style={Styles.collapseStyles([
+              style={Kb.Styles.collapseStyles([
                 styles.fakeRowContainer,
                 {
                   bottom: expandingRows.length ? undefined : dividerHeight(row.showButton),
@@ -197,7 +198,7 @@ class Inbox extends React.Component<TInbox.Props, State> {
 
     // pointer events on so you can click even right after a scroll
     return (
-      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'} as any])}>
+      <div style={Kb.Styles.collapseStyles([divStyle, {pointerEvents: 'auto'} as any])}>
         {makeRow(row, this.props.navKey)}
       </div>
     )
@@ -375,13 +376,13 @@ class Inbox extends React.Component<TInbox.Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.globalStyles.flexBoxColumn,
-          backgroundColor: Styles.globalColors.blueGrey,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
           contain: 'strict',
           height: '100%',
           maxWidth: inboxWidth,
@@ -393,16 +394,16 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: 'purple',
         overflow: 'hidden',
       },
-      fakeAvatar: Styles.platformStyles({
+      fakeAvatar: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.black_10,
+          backgroundColor: Kb.Styles.globalColors.black_10,
           borderRadius: '50%',
           height: 48,
           marginLeft: 8,
           width: 48,
         },
       }),
-      fakeRemovingRow: Styles.platformStyles({
+      fakeRemovingRow: Kb.Styles.platformStyles({
         isElectron: {
           height: 56,
           position: 'relative',
@@ -414,16 +415,16 @@ const styles = Styles.styleSheetCreate(
         top: 0,
         width: '100%',
       },
-      fakeRow: Styles.platformStyles({
+      fakeRow: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.blueGrey,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
           height: 56,
           position: 'relative',
           width: '100%',
         },
       }),
       fakeRowContainer: {
-        backgroundColor: Styles.globalColors.blueGrey,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
         left: 0,
         position: 'absolute',
         right: 0,
@@ -441,28 +442,28 @@ const styles = Styles.styleSheetCreate(
         padding: 8,
         paddingLeft: 16,
       },
-      fakeTextBottom: Styles.platformStyles({
+      fakeTextBottom: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.black_10,
+          backgroundColor: Kb.Styles.globalColors.black_10,
           borderRadius: 8,
           height: 10,
           width: '75%',
         },
       }),
-      fakeTextTop: Styles.platformStyles({
+      fakeTextTop: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.black_10,
+          backgroundColor: Kb.Styles.globalColors.black_10,
           borderRadius: 8,
           height: 10,
           width: '25%',
         },
       }),
-      grabber: Styles.platformStyles({
+      grabber: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxRow,
-          backgroundColor: Styles.globalColors.black_05,
+          ...Kb.Styles.globalStyles.flexBoxRow,
+          backgroundColor: Kb.Styles.globalColors.black_05,
           bottom: 8,
-          height: Styles.globalMargins.tiny,
+          height: Kb.Styles.globalMargins.tiny,
           justifyContent: 'center',
           position: 'absolute',
           width: '100%',
@@ -472,22 +473,22 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       grabberLine: {
-        backgroundColor: Styles.globalColors.black_35,
+        backgroundColor: Kb.Styles.globalColors.black_35,
         height: 1,
         marginBottom: 1,
         width: '100%',
       },
       grabberLineContainer: {
         paddingTop: 1,
-        width: Styles.globalMargins.small,
+        width: Kb.Styles.globalMargins.small,
       },
-      hover: {backgroundColor: Styles.globalColors.blueGreyDark},
+      hover: {backgroundColor: Kb.Styles.globalColors.blueGreyDark},
       list: {flex: 1},
       rowWithDragger: {
         height: 68,
       },
       spacer: {
-        backgroundColor: Styles.globalColors.blueGrey,
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
         bottom: 0,
         height: 8,
         position: 'absolute',

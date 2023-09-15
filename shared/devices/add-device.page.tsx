@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../util/container'
+import type * as C from '../constants'
 
 const Add = React.lazy(async () => import('./add-device'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Add>
+type OwnProps = C.ViewPropsToPageProps<typeof Add>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

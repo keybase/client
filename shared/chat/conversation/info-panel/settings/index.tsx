@@ -1,11 +1,8 @@
 import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as T from '../../../../constants/types'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
-import * as TeamConstants from '../../../../constants/teams'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
 import RetentionPicker from '../../../../teams/team/settings-tab/retention/container'
@@ -18,13 +15,11 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const username = C.useCurrentUserState(s => s.username)
   const meta = C.useChatContext(s => s.meta)
   const {status, teamname, teamType, channelname, teamID} = meta
-  const yourOperations = C.useTeamsState(s =>
-    teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined
-  )
+  const yourOperations = C.useTeamsState(s => (teamname ? C.getCanPerformByID(s, teamID) : undefined))
   const ignored = status === T.RPCChat.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'
 
-  const spinnerForLeave = Container.useAnyWaiting(Constants.waitingKeyLeaveConversation)
+  const spinnerForLeave = C.useAnyWaiting(Constants.waitingKeyLeaveConversation)
 
   const canDeleteHistory =
     teamname && yourOperations ? yourOperations.deleteChatHistory && !meta.cannotWrite : true
@@ -52,10 +47,10 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const onUnhideConv = () => hideConversation(false)
   const onShowBlockConversationDialog = membersForBlock.length
     ? () => {
-        navigateAppend(convID => ({
+        navigateAppend(conversationIDKey => ({
           props: {
             blockUserByDefault: true,
-            convID,
+            conversationIDKey,
             others: membersForBlock,
             team: teamname,
           },
@@ -97,7 +92,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             style={styles.smallButton}
             waiting={spinnerForLeave}
             icon="iconfont-leave"
-            iconColor={Styles.globalColors.blue}
+            iconColor={Kb.Styles.globalColors.blue}
           />
         )}
         <Kb.Text type="Header">Conversation</Kb.Text>
@@ -130,7 +125,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                 label="Block"
                 onClick={onShowBlockConversationDialog}
                 icon="iconfont-remove"
-                iconColor={Styles.globalColors.red}
+                iconColor={Kb.Styles.globalColors.red}
               />
             )}
             {entityType !== 'channel' &&
@@ -141,7 +136,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                   label="Unhide this conversation"
                   onClick={onUnhideConv}
                   icon="iconfont-unhide"
-                  iconColor={Styles.globalColors.red}
+                  iconColor={Kb.Styles.globalColors.red}
                 />
               ) : (
                 <Kb.Button
@@ -150,7 +145,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
                   label="Hide this conversation"
                   onClick={onHideConv}
                   icon="iconfont-unhide"
-                  iconColor={Styles.globalColors.red}
+                  iconColor={Kb.Styles.globalColors.red}
                 />
               ))}
           </Kb.Box2>
@@ -160,16 +155,16 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       buttonStyle: {
         alignSelf: 'flex-start',
-        marginBottom: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
       },
-      container: {padding: Styles.globalMargins.small},
-      retentionDropdownStyle: Styles.platformStyles({
+      container: {padding: Kb.Styles.globalMargins.small},
+      retentionDropdownStyle: Kb.Styles.platformStyles({
         isElectron: {
           marginRight: 45 - 16,
           width: 'auto',
@@ -177,9 +172,9 @@ const styles = Styles.styleSheetCreate(
         isMobile: {width: '100%'},
       }),
       smallButton: {
-        marginBottom: Styles.globalMargins.medium,
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
+        marginBottom: Kb.Styles.globalMargins.medium,
+        marginLeft: Kb.Styles.globalMargins.small,
+        marginRight: Kb.Styles.globalMargins.small,
       },
     }) as const
 )

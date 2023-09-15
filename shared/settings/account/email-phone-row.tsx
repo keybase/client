@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as T from '../../constants/types'
 import {isMobile} from '../../constants/platform'
 
@@ -27,7 +26,7 @@ const addSpacer = (into: string, add: string) => {
 
 const badge = (backgroundColor: string, menuItem: boolean = false) => (
   <Kb.Box
-    style={Styles.collapseStyles([
+    style={Kb.Styles.collapseStyles([
       styles.badge,
       menuItem ? styles.badgeMenuItem : styles.badgeGearIcon,
       {backgroundColor},
@@ -43,7 +42,7 @@ const EmailPhoneRow = (props: Props) => {
     const menuItems: Kb.MenuItems = []
     if (!verified) {
       menuItems.push({
-        decoration: verified ? undefined : badge(Styles.globalColors.orange, true),
+        decoration: verified ? undefined : badge(Kb.Styles.globalColors.orange, true),
         icon: 'iconfont-lock',
         onClick: onVerify,
         title: 'Verify',
@@ -60,12 +59,12 @@ const EmailPhoneRow = (props: Props) => {
     if (verified) {
       const copyType = type === 'email' ? 'email' : 'number'
       menuItems.push({
-        decoration: searchable ? undefined : badge(Styles.globalColors.blue, true),
+        decoration: searchable ? undefined : badge(Kb.Styles.globalColors.blue, true),
         icon: searchable ? 'iconfont-hide' : 'iconfont-unhide',
         onClick: onToggleSearchable,
         subTitle: searchable
           ? `Don't let friends find you by this ${copyType}.`
-          : `${Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this ${copyType}.`,
+          : `${Kb.Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this ${copyType}.`,
         title: searchable ? 'Make unsearchable' : 'Make searchable',
       })
     }
@@ -116,7 +115,7 @@ const EmailPhoneRow = (props: Props) => {
           closeText="Cancel"
           visible={true}
           position="bottom right"
-          header={Styles.isMobile ? header : undefined}
+          header={Kb.Styles.isMobile ? header : undefined}
           onHidden={toggleShowingPopup}
           items={menuItems}
           closeOnSelect={true}
@@ -155,20 +154,20 @@ const EmailPhoneRow = (props: Props) => {
 
   let gearIconBadge: React.ReactNode | null = null
   if (!verified) {
-    gearIconBadge = badge(Styles.globalColors.orange)
+    gearIconBadge = badge(Kb.Styles.globalColors.orange)
   } else if (!searchable) {
-    gearIconBadge = badge(Styles.globalColors.blue)
+    gearIconBadge = badge(Kb.Styles.globalColors.blue)
   }
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
-      <Kb.Box2 alignItems="flex-start" direction="vertical" style={{...Styles.globalStyles.flexOne}}>
+      <Kb.Box2 alignItems="flex-start" direction="vertical" style={{...Kb.Styles.globalStyles.flexOne}}>
         <Kb.Text type="BodySemibold" selectable={true} lineClamp={1}>
           {address}
         </Kb.Text>
         {(!!subtitle || !verified) && (
           <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny" fullWidth={true}>
-            {!verified && <Kb.Meta backgroundColor={Styles.globalColors.red} title="UNVERIFIED" />}
+            {!verified && <Kb.Meta backgroundColor={Kb.Styles.globalColors.red} title="UNVERIFIED" />}
             {!!subtitle && <Kb.Text type="BodySmall">{subtitle}</Kb.Text>}
           </Kb.Box2>
         )}
@@ -191,13 +190,13 @@ const EmailPhoneRow = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       badge: {
-        borderRadius: Styles.isMobile ? 5 : 4,
-        height: Styles.isMobile ? 10 : 8,
-        width: Styles.isMobile ? 10 : 8,
+        borderRadius: Kb.Styles.isMobile ? 5 : 4,
+        height: Kb.Styles.isMobile ? 10 : 8,
+        width: Kb.Styles.isMobile ? 10 : 8,
       },
       badgeGearIcon: {
         position: 'absolute',
@@ -209,13 +208,13 @@ const styles = Styles.styleSheetCreate(
         marginLeft: 'auto',
       },
       container: {
-        height: Styles.isMobile ? 48 : 40,
+        height: Kb.Styles.isMobile ? 48 : 40,
       },
-      gearIcon: Styles.platformStyles({
-        isElectron: {...Styles.desktopStyles.clickable},
+      gearIcon: Kb.Styles.platformStyles({
+        isElectron: {...Kb.Styles.desktopStyles.clickable},
       }),
       gearIconContainer: {
-        padding: Styles.globalMargins.xtiny,
+        padding: Kb.Styles.globalMargins.xtiny,
         position: 'relative',
       },
       menuHeader: {

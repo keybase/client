@@ -1,5 +1,4 @@
 import type * as T from '../../../constants/types'
-import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import PathItemInfo from '../path-item-info'
 import PathInfo from '../path-info'
@@ -22,16 +21,16 @@ const Header = (props: Props) => (
 
 export default Header
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
-          padding: Styles.globalMargins.small,
+          padding: Kb.Styles.globalMargins.small,
         },
         isMobile: {
-          paddingBottom: Styles.globalMargins.medium,
-          paddingTop: Styles.globalMargins.large,
+          paddingBottom: Kb.Styles.globalMargins.medium,
+          paddingTop: Kb.Styles.globalMargins.large,
         },
       }),
     }) as const

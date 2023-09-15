@@ -24,7 +24,9 @@ export const isWindows = platform === 'win32'
 export const isLinux = platform === 'linux'
 export const isMac = isDarwin && !isIOS
 
+export const isDeviceSecureAndroid = false
 export const isAndroidNewerThanN = false
+export const isAndroidNewerThanM = false
 export const shortcutSymbol = isDarwin ? '⌘' : 'Ctrl-'
 export const realDeviceName = ''
 

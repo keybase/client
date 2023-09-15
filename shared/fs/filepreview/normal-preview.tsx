@@ -1,5 +1,4 @@
 import type * as T from '../../constants/types'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import Footer from '../footer/footer'
@@ -22,23 +21,23 @@ const NormalPreview = (props: NormalPreviewProps) => (
 
 export default NormalPreview
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      contentContainer: Styles.platformStyles({
+      contentContainer: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
-          ...Styles.globalStyles.flexGrow,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
+          ...Kb.Styles.globalStyles.flexGrow,
           height: '100%',
           width: '100%',
         },
         isElectron: {
-          paddingLeft: Styles.globalMargins.medium,
-          paddingRight: Styles.globalMargins.medium,
+          paddingLeft: Kb.Styles.globalMargins.medium,
+          paddingRight: Kb.Styles.globalMargins.medium,
         },
       }),
       greyContainer: {
-        backgroundColor: Styles.globalColors.blueLighter3,
+        backgroundColor: Kb.Styles.globalColors.blueLighter3,
         flexGrow: 1,
         flexShrink: 1,
         width: '100%',

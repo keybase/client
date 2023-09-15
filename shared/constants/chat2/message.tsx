@@ -1,15 +1,14 @@
 // Message related constants
 import * as T from '../types'
+import * as C from '..'
 import * as TeamConstants from '../teams'
 import * as WalletConstants from '../wallets'
 import type * as ConvoConstants from './convostate'
 import HiddenString from '../../util/hidden-string'
 import invert from 'lodash/invert'
 import logger from '../../logger'
-import shallowEqual from 'shallowequal'
 import type * as MessageTypes from '../types/chat2/message'
 import type {ServiceId} from 'util/platforms'
-import {assertNever} from '../../util/container'
 import {isMobile} from '../platform'
 import {noConversationIDKey} from '../types/chat2/common'
 import isEqual from 'lodash/isEqual'
@@ -1214,7 +1213,7 @@ export const uiMessageToMessage = (
     case T.RPCChat.MessageUnboxedState.journeycard:
       return journeycardUIMessageToMessage(conversationIDKey, uiMessage.journeycard)
     default: // A type error here means there is an unhandled message state
-      assertNever(uiMessage)
+      C.assertNever(uiMessage)
       return
   }
 }
@@ -1335,7 +1334,7 @@ export const mergeMessage = (old: T.Chat.Message | undefined, m: T.Chat.Message)
       case 'mentionsAt':
       case 'audioAmps':
         // @ts-ignore
-        if (shallowEqual([...old[key]], [...m[key]])) {
+        if (C.shallowEqual([...old[key]], [...m[key]])) {
           // @ts-ignore
           toRet[key] = old[key]
         } else {

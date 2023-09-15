@@ -2,7 +2,6 @@ import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat2'
@@ -233,7 +232,7 @@ const Channel = (props: OwnProps) => {
     <Kb.Box style={styles.container}>
       <SectionList
         renderSectionHeader={renderSectionHeader}
-        stickySectionHeadersEnabled={Styles.isMobile}
+        stickySectionHeadersEnabled={Kb.Styles.isMobile}
         sections={sections}
         contentContainerStyle={styles.listContentContainer}
         style={styles.list}
@@ -243,7 +242,7 @@ const Channel = (props: OwnProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   backButton: {
     bottom: 0,
     left: 0,
@@ -251,7 +250,7 @@ const styles = Styles.styleSheetCreate(() => ({
     top: 0,
   },
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
     flex: 1,
     height: '100%',
@@ -263,17 +262,17 @@ const styles = Styles.styleSheetCreate(() => ({
     height: 0,
   },
   header: {height: 40, left: 0, position: 'absolute', right: 0, top: 0},
-  list: Styles.platformStyles({
+  list: Kb.Styles.platformStyles({
     isElectron: {
-      ...Styles.globalStyles.fillAbsolute,
-      ...Styles.globalStyles.flexBoxColumn,
+      ...Kb.Styles.globalStyles.fillAbsolute,
+      ...Kb.Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
     },
   }),
-  listContentContainer: Styles.platformStyles({
+  listContentContainer: Kb.Styles.platformStyles({
     isElectron: {
-      ...Styles.globalStyles.fillAbsolute,
-      ...Styles.globalStyles.flexBoxColumn,
+      ...Kb.Styles.globalStyles.fillAbsolute,
+      ...Kb.Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
     },
     isMobile: {
@@ -282,7 +281,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   smallHeader: {
-    ...Styles.padding(0, Styles.globalMargins.xlarge),
+    ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xlarge),
   },
 }))
 

@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as Container from '../util/container'
+import * as C from '../constants'
 
 const WN = React.lazy(async () => import('./container'))
 
 export const getOptions = () =>
-  Container.isMobile
+  C.isMobile
     ? {
         HeaderTitle: 'Keybase FM 87.7',
         header: undefined,

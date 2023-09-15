@@ -1,8 +1,6 @@
 // Just for desktop and tablet, we show inbox and conversation side by side
 import * as C from '../constants'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import * as React from 'react'
 import type * as T from '../constants/types'
 import Conversation from './conversation/container'
@@ -26,7 +24,7 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props?: Pr
     return first?.convID
   })
 
-  Container.useOnMountOnce(() => {
+  C.useOnMountOnce(() => {
     if (needSelectConvoID) {
       // hack to select the convo after we render
       setTimeout(() => {
@@ -38,7 +36,7 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props?: Pr
   return (
     <Kb.KeyboardAvoidingView2>
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.container}>
-        {!Container.isTablet && inboxSearch ? (
+        {!C.isTablet && inboxSearch ? (
           <InboxSearch />
         ) : (
           <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
@@ -60,13 +58,13 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props?: Pr
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {position: 'relative'},
       conversation: {flexGrow: 1},
       infoPanel: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Kb.Styles.globalColors.white,
         bottom: 0,
         position: 'absolute',
         right: 0,

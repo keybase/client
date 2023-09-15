@@ -5,8 +5,6 @@ import Attachment from '.'
 import * as React from 'react'
 import type * as T from '../../../../../constants/types'
 import type {Position, StylesCrossPlatform} from '../../../../../styles'
-import {getCanPerformByID} from '../../../../../constants/teams'
-import {isMobile, isIOS} from '../../../../../constants/platform'
 import {makeMessageAttachment} from '../../../../../constants/chat2/message'
 
 type OwnProps = {
@@ -27,7 +25,7 @@ export default (ownProps: OwnProps) => {
   const meta = C.useChatContext(s => s.meta)
   const isTeam = !!meta.teamname
   const participantInfo = C.useChatContext(s => s.participants)
-  const yourOperations = C.useTeamsState(s => getCanPerformByID(s, meta.teamID))
+  const yourOperations = C.useTeamsState(s => C.getCanPerformByID(s, meta.teamID))
   const _canAdminDelete = yourOperations.deleteOtherMessages
   const _canPinMessage = !isTeam || yourOperations.pinMessage
   const _authorIsBot = C.useTeamsState(s => Constants.messageAuthorIsBot(s, meta, message, participantInfo))
@@ -128,11 +126,11 @@ export default (ownProps: OwnProps) => {
     isDeleteable,
     isEditable,
     isKickable: isDeleteable && !!_teamID && !yourMessage && authorInTeam,
-    onAddReaction: isMobile ? () => _onAddReaction(message) : undefined,
+    onAddReaction: C.isMobile ? () => _onAddReaction(message) : undefined,
     onAllMedia,
     onCopyLink: () => _onCopyLink(_label, message),
     onDelete: isDeleteable ? () => _onDelete(message) : undefined,
-    onDownload: !isMobile && !message.downloadPath ? () => _onDownload(message) : undefined,
+    onDownload: !C.isMobile && !message.downloadPath ? () => _onDownload(message) : undefined,
     onEdit: () => _onEdit(message),
     onForward: () => _onForward(message),
     onHidden: () => ownProps.onHidden(),
@@ -143,9 +141,9 @@ export default (ownProps: OwnProps) => {
     onReact: (emoji: string) => _onReact(message, emoji),
     onReply: () => _onReply(message),
     onSaveAttachment:
-      isMobile && message.attachmentType === 'image' ? () => _onSaveAttachment(message) : undefined,
-    onShareAttachment: isIOS ? () => _onShareAttachment(message) : undefined,
-    onShowInFinder: !isMobile && message.downloadPath ? () => _onShowInFinder(message) : undefined,
+      C.isMobile && message.attachmentType === 'image' ? () => _onSaveAttachment(message) : undefined,
+    onShareAttachment: C.isIOS ? () => _onShareAttachment(message) : undefined,
+    onShowInFinder: !C.isMobile && message.downloadPath ? () => _onShowInFinder(message) : undefined,
     pending,
     position: ownProps.position,
     style: ownProps.style,

@@ -35,7 +35,7 @@ const detailContainerStyle = {
   maxHeight: 100,
   minWidth: '75%',
   padding: 10,
-}
+} as const
 
 const detailStyle = Styles.platformStyles({
   isElectron: {

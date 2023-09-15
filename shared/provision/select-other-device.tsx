@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import DeviceIcon from '../devices/device-icon'
 import {SignupScreen} from '../signup/common'
 
@@ -10,7 +9,7 @@ const SelectOtherDeviceContainer = () => {
   const devices = C.useProvisionState(s => s.devices)
   const submitDeviceSelect = C.useProvisionState(s => s.dispatch.dynamic.submitDeviceSelect)
   const username = C.useProvisionState(s => s.username)
-  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, false)
@@ -102,9 +101,9 @@ export class SelectOtherDevice extends React.Component<Props> {
         title={
           this.props.passwordRecovery
             ? 'Recover password'
-            : `Authorize this ${Styles.isMobile ? 'device' : 'computer'}`
+            : `Authorize this ${Kb.Styles.isMobile ? 'device' : 'computer'}`
         }
-        contentContainerStyle={Styles.padding(0)}
+        contentContainerStyle={Kb.Styles.padding(0)}
       >
         <Kb.Box2
           direction="vertical"
@@ -122,8 +121,8 @@ export class SelectOtherDevice extends React.Component<Props> {
               <Kb.Box2 direction="vertical" style={styles.headerText}>
                 {!this.props.passwordRecovery && (
                   <Kb.Text center={true} type="Body">
-                    For security reasons, you need to authorize this {Styles.isMobile ? 'phone' : 'computer'}{' '}
-                    with another device or a paper key.
+                    For security reasons, you need to authorize this{' '}
+                    {Kb.Styles.isMobile ? 'phone' : 'computer'} with another device or a paper key.
                   </Kb.Text>
                 )}
                 <Kb.Text center={true} type="Body">
@@ -138,32 +137,32 @@ export class SelectOtherDevice extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  contentBox: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  contentBox: Kb.Styles.platformStyles({
     common: {alignSelf: 'center', flexGrow: 1},
     isElectron: {
       maxWidth: 460,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      paddingLeft: Kb.Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
     },
   }),
-  headerText: Styles.platformStyles({
+  headerText: Kb.Styles.platformStyles({
     common: {
-      paddingBottom: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
+      paddingBottom: Kb.Styles.globalMargins.small,
+      paddingTop: Kb.Styles.globalMargins.small,
     },
     isMobile: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
+      paddingLeft: Kb.Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
+      paddingTop: Kb.Styles.globalMargins.small,
     },
   }),
   list: {
     flexGrow: 1,
   },
   or: {
-    backgroundColor: Styles.globalColors.blueGrey,
-    color: Styles.globalColors.black_50,
-    ...Styles.padding(Styles.globalMargins.xsmall),
+    backgroundColor: Kb.Styles.globalColors.blueGrey,
+    color: Kb.Styles.globalColors.black_50,
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall),
   },
 }))

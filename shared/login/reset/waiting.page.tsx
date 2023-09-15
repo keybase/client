@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
+import type * as C from '../../constants'
 
 const Waiting = React.lazy(async () => import('./waiting'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Waiting>
+type OwnProps = C.ViewPropsToPageProps<typeof Waiting>
 
 const getOptions = () => ({
   headerBottomStyle: {height: undefined},

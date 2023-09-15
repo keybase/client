@@ -3,7 +3,6 @@ import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 
 type Props = {
   type: 'channelsEmpty' | 'channelsFew' | 'members' | 'subteams'
@@ -95,7 +94,7 @@ const EmptyRow = (props: Props) => {
       addToTeam(teamID, [{assertion: you, role: 'admin'}], false)
     }
   }
-  const waiting = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, you))
+  const waiting = C.useAnyWaiting(Constants.addMemberWaitingKey(teamID, you))
 
   const teamOrChannel = props.conversationIDKey ? 'channel' : 'team'
   const teamOrChannelName = props.conversationIDKey ? 'This channel' : teamMeta.teamname
@@ -113,7 +112,7 @@ const EmptyRow = (props: Props) => {
           .istanbul, ...
         </Kb.Text>
       )}
-      <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} gap="tiny">
+      <Kb.Box2 direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'} gap="tiny">
         {props.type === 'members' && notIn && (
           <Kb.Button small={true} mode="Primary" label="Add yourself" onClick={onAddSelf} waiting={waiting} />
         )}
@@ -128,16 +127,16 @@ const EmptyRow = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Styles.padding(40, 0),
-        backgroundColor: Styles.globalColors.blueGrey,
+        ...Kb.Styles.padding(40, 0),
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
         justifyContent: 'flex-start',
       },
       iconHeight: {height: 96},
-      text: Styles.platformStyles({
+      text: Kb.Styles.platformStyles({
         isElectron: {maxWidth: 272},
       }),
     }) as const

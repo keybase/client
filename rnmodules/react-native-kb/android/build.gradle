@@ -132,7 +132,7 @@ dependencies {
   // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
   //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"
-    implementation "com.google.firebase:firebase-messaging:17.3.0"
+    implementation "com.google.firebase:firebase-messaging:22.0.0"
     implementation "me.leolin:ShortcutBadger:1.1.22@aar"
     implementation project(':keybaselib')
 }

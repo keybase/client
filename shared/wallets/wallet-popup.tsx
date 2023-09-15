@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import AccountPageHeader from './account-page-header'
 
 // WalletPopup - wraps all stellar modals except for the send / request forms.
@@ -14,16 +13,16 @@ type WalletPopupProps = {
   // If none are included, the bar is not rendered.
   bottomButtons?: Array<React.ReactNode>
   buttonBarDirection?: 'column' | 'row'
-  buttonBarStyle?: Styles.StylesCrossPlatform
+  buttonBarStyle?: Kb.Styles.StylesCrossPlatform
   children: React.ReactNode
-  containerStyle?: Styles.StylesCrossPlatform
+  containerStyle?: Kb.Styles.StylesCrossPlatform
   // Header props, only applies on mobile. backButtonType === 'back' renders back button on desktop
   accountName?: string
   backButtonType: 'back' | 'cancel' | 'close' // 'back' -> '<' ; 'cancel' -> 'Cancel' ; 'close' -> 'Close'
-  headerStyle?: Styles.StylesCrossPlatform
+  headerStyle?: Kb.Styles.StylesCrossPlatform
   headerTitle?: string
-  safeAreaViewBottomStyle?: Styles.StylesCrossPlatform
-  safeAreaViewTopStyle?: Styles.StylesCrossPlatform
+  safeAreaViewBottomStyle?: Kb.Styles.StylesCrossPlatform
+  safeAreaViewTopStyle?: Kb.Styles.StylesCrossPlatform
 }
 
 const WalletPopup = (props: WalletPopupProps) => {
@@ -42,7 +41,9 @@ const WalletPopup = (props: WalletPopupProps) => {
       }
       styleClipContainer={styles.popup}
     >
-      {onBack && !Styles.isMobile && <Kb.HeaderHocHeader onBack={onBack} headerStyle={styles.headerStyle} />}
+      {onBack && !Kb.Styles.isMobile && (
+        <Kb.HeaderHocHeader onBack={onBack} headerStyle={styles.headerStyle} />
+      )}
       <Kb.Box2 direction="vertical" style={styles.outerContainer}>
         <Kb.ScrollView
           alwaysBounceVertical={false}
@@ -51,13 +52,13 @@ const WalletPopup = (props: WalletPopupProps) => {
         >
           <Kb.Box2
             direction="vertical"
-            fullHeight={!Styles.isMobile}
+            fullHeight={!Kb.Styles.isMobile}
             fullWidth={true}
             centerChildren={true}
-            style={Styles.collapseStyles([
+            style={Kb.Styles.collapseStyles([
               styles.container,
-              props.backButtonType === 'back' && !Styles.isMobile
-                ? {paddingTop: Styles.globalMargins.small}
+              props.backButtonType === 'back' && !Kb.Styles.isMobile
+                ? {paddingTop: Kb.Styles.globalMargins.small}
                 : {},
               props.containerStyle,
             ])}
@@ -66,9 +67,9 @@ const WalletPopup = (props: WalletPopupProps) => {
             {props.bottomButtons && props.bottomButtons.length > 0 && (
               <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
                 <Kb.ButtonBar
-                  direction={props.buttonBarDirection || (Styles.isMobile ? 'column' : 'row')}
-                  fullWidth={Styles.isMobile}
-                  style={Styles.collapseStyles([styles.buttonBar, props.buttonBarStyle])}
+                  direction={props.buttonBarDirection || (Kb.Styles.isMobile ? 'column' : 'row')}
+                  fullWidth={Kb.Styles.isMobile}
+                  style={Kb.Styles.collapseStyles([styles.buttonBar, props.buttonBarStyle])}
                 >
                   {props.bottomButtons}
                 </Kb.ButtonBar>
@@ -81,40 +82,40 @@ const WalletPopup = (props: WalletPopupProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  buttonBar: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  buttonBar: Kb.Styles.platformStyles({
     isElectron: {
       minHeight: 0,
     },
   }),
-  buttonBarContainer: Styles.platformStyles({
+  buttonBarContainer: Kb.Styles.platformStyles({
     isElectron: {flex: 1, justifyContent: 'flex-end'},
     isMobile: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      paddingLeft: Kb.Styles.globalMargins.small,
+      paddingRight: Kb.Styles.globalMargins.small,
     },
   }),
-  container: Styles.platformStyles({
+  container: Kb.Styles.platformStyles({
     common: {
       flexGrow: 1,
     },
     isElectron: {
       borderRadius: 'inherit',
-      paddingBottom: Styles.globalMargins.xlarge,
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.xlarge,
+      paddingBottom: Kb.Styles.globalMargins.xlarge,
+      paddingLeft: Kb.Styles.globalMargins.medium,
+      paddingRight: Kb.Styles.globalMargins.medium,
+      paddingTop: Kb.Styles.globalMargins.xlarge,
       textAlign: 'center',
     },
     isMobile: {},
   }),
-  header: Styles.platformStyles({
+  header: Kb.Styles.platformStyles({
     isElectron: {
       borderRadius: 4,
     },
   }),
-  headerStyle: {backgroundColor: Styles.globalColors.transparent},
-  outerContainer: Styles.platformStyles({
+  headerStyle: {backgroundColor: Kb.Styles.globalColors.transparent},
+  outerContainer: Kb.Styles.platformStyles({
     isElectron: {
       borderRadius: 4,
       height: 560,
@@ -124,14 +125,14 @@ const styles = Styles.styleSheetCreate(() => ({
       width: '100%',
     },
   }),
-  popup: Styles.platformStyles({isElectron: {height: '560px', overflow: 'hidden'}}),
+  popup: Kb.Styles.platformStyles({isElectron: {height: '560px', overflow: 'hidden'}}),
   scrollView: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Kb.Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
     height: '100%',
     width: '100%',
   },
-  scrollViewContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1},
+  scrollViewContentContainer: {...Kb.Styles.globalStyles.flexBoxColumn, flexGrow: 1},
 }))
 
 export default WalletPopup

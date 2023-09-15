@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
 import CommandMarkdown from '../../command-markdown/container'
 import CommandStatus from '../../command-status/container'
 import Giphy from '../../giphy/container'
@@ -11,8 +10,6 @@ import ReplyPreview from '../../reply-preview'
 import type * as T from '../../../../constants/types'
 import {indefiniteArticle} from '../../../../util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
-import {isLargeScreen} from '../../../../constants/platform'
-import * as Platform from '../../../../constants/platform'
 import {assertionToDisplay} from '../../../../common-adapters/usernames'
 
 type Props = {
@@ -33,8 +30,8 @@ const useHintText = (p: {
   const username = C.useCurrentUserState(s => s.username)
   const {teamType, teamname, channelname} = C.useChatContext(s => s.meta)
   const participantInfoName = C.useChatContext(s => s.participants.name)
-  if (Styles.isMobile && isExploding) {
-    return isLargeScreen ? `Write an exploding message` : 'Exploding message'
+  if (Kb.Styles.isMobile && isExploding) {
+    return C.isLargeScreen ? `Write an exploding message` : 'Exploding message'
   } else if (cannotWrite) {
     return `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
   } else if (isEditing) {
@@ -45,7 +42,7 @@ const useHintText = (p: {
     switch (teamType) {
       case 'big':
         if (channelname) {
-          return `Write in ${Platform.isMobile ? '' : `@${teamname}`}#${channelname}`
+          return `Write in ${C.isMobile ? '' : `@${teamname}`}#${channelname}`
         }
         break
       case 'small':
@@ -195,6 +192,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     setEditing(false)
     injectText('')
   }, [injectText, setEditing])
+  const isMetaGood = C.useChatContext(s => s.isMetaGood())
 
   const [lastIsEditing, setLastIsEditing] = React.useState(isEditing)
   const [lastIsEditExploded, setLastIsEditExploded] = React.useState(isEditExploded)
@@ -223,7 +221,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     } else {
       // look at draft and unsent once
       // not reactive, just once per change
-      const draft = C.getConvoState(conversationIDKey).draft
+      const draft = C.getConvoState(conversationIDKey).meta.draft
       // prefer injection
       if (unsentText) {
         injectText(unsentText)
@@ -234,8 +232,12 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
         injectText('')
       }
     }
-    injectRef.current = conversationIDKey
-  }, [resetUnsentText, conversationIDKey, injectText, unsentText])
+
+    // only ignore draft etc if meta was good
+    if (isMetaGood) {
+      injectRef.current = conversationIDKey
+    }
+  }, [resetUnsentText, conversationIDKey, injectText, unsentText, isMetaGood])
 
   return (
     <PlatformInput
@@ -261,17 +263,17 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isMobile: {justifyContent: 'flex-end'},
       }),
-      suggestionOverlay: Styles.platformStyles({
+      suggestionOverlay: Kb.Styles.platformStyles({
         isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
         isTablet: {marginLeft: '30%', marginRight: 0},
       }),
-      suggestionOverlayInfoShowing: Styles.platformStyles({
+      suggestionOverlayInfoShowing: Kb.Styles.platformStyles({
         isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
         isTablet: {marginLeft: '30%', marginRight: infoPanelWidthTablet},
       }),

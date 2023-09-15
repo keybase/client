@@ -61,7 +61,7 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
       pictureUri = contact.image.uri
     }
     phoneNumbers.forEach(pn => {
-      if (pn.number) {
+      if (pn.number && pn.id) {
         const value = C.getE164(pn.number, pn.countryCode || region)
         if (value) {
           const valueFormatted = e164ToDisplay(value)
@@ -70,7 +70,7 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
       }
     })
     emails.forEach(em => {
-      if (em.email) {
+      if (em.email && em.id) {
         ret.push({id: em.id, name, pictureUri, type: 'email', value: em.email})
       }
     })

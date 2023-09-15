@@ -1,9 +1,9 @@
 import * as React from 'react'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
-import type * as Container from '../util/container'
+import type * as C from '../constants'
 
 const Revoke = React.lazy(async () => import('./device-revoke'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Revoke>
+type OwnProps = C.ViewPropsToPageProps<typeof Revoke>
 
 const getOptions = () => ({
   headerLeft: (p: any) => <HeaderLeftCancel {...p} />,

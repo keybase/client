@@ -1,6 +1,5 @@
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import AlphabetIndex from './alphabet-index'
 import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
@@ -49,7 +48,7 @@ const TeamAlphabetIndex = (
             ? recommendations.length - 1
             : recommendations.findIndex(section => section.label === label))) ||
         -1
-      if (sectionIndex >= 0 && Styles.isMobile) {
+      if (sectionIndex >= 0 && Kb.Styles.isMobile) {
         ref.scrollToLocation({
           animated: false,
           itemIndex: 0,
@@ -171,7 +170,7 @@ export const RecsAndRecos = (
           stickySectionHeadersEnabled={false}
           scrollEventThrottle={1}
           onScroll={onScroll}
-          selectedIndex={Styles.isMobile ? undefined : highlightedIndex || 0}
+          selectedIndex={Kb.Styles.isMobile ? undefined : highlightedIndex || 0}
           sections={recommendations ?? []}
           keyExtractor={(item: Types.ResultData, index: number) => {
             if (!isImportContactsEntry(item) && !isSearchHintEntry(item) && item.contact) {
@@ -204,7 +203,7 @@ export const RecsAndRecos = (
                 isYou={result.isYou}
                 followingState={result.followingState}
                 highlight={
-                  !Styles.isMobile &&
+                  !Kb.Styles.isMobile &&
                   !!highlightDetails &&
                   highlightDetails.section === section &&
                   highlightDetails.index === index
@@ -216,12 +215,12 @@ export const RecsAndRecos = (
             )
           }
           renderSectionHeader={({section: {label}}: any) =>
-            label && (!Styles.isMobile || label !== 'Recommendations') ? (
+            label && (!Kb.Styles.isMobile || label !== 'Recommendations') ? (
               <Kb.SectionDivider label={label} />
             ) : null
           }
         />
-        {Styles.isMobile && (
+        {Kb.Styles.isMobile && (
           <TeamAlphabetIndex
             recommendations={recommendations}
             sectionListRef={sectionListRef}
@@ -233,16 +232,16 @@ export const RecsAndRecos = (
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       alphabetIndex: {
         maxHeight: '80%',
         position: 'absolute',
         right: 0,
-        top: Styles.globalMargins.large,
+        top: Kb.Styles.globalMargins.large,
       },
-      listContainer: Styles.platformStyles({
+      listContainer: Kb.Styles.platformStyles({
         common: {position: 'relative'},
         isElectron: {flex: 1, height: '100%', overflow: 'hidden'},
         isMobile: {
@@ -251,9 +250,9 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       searchHint: {
-        paddingLeft: Styles.globalMargins.xlarge,
-        paddingRight: Styles.globalMargins.xlarge,
-        paddingTop: Styles.globalMargins.xlarge,
+        paddingLeft: Kb.Styles.globalMargins.xlarge,
+        paddingRight: Kb.Styles.globalMargins.xlarge,
+        paddingTop: Kb.Styles.globalMargins.xlarge,
       },
     }) as const
 )

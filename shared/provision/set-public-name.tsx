@@ -5,14 +5,13 @@ import * as Devices from '../constants/devices'
 import * as Kb from '../common-adapters'
 import * as Platform from '../constants/platform'
 import * as React from 'react'
-import * as Styles from '../styles'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from '../signup/common'
 
 const PublicNameContainer = () => {
   const devices = C.useProvisionState(s => s.devices)
   const error = C.useProvisionState(s => s.error)
-  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, !!error)
@@ -71,13 +70,13 @@ const SetPublicName = (props: Props) => {
     debouncedSetReadyToShowError(true)
   }
 
-  const maybeIcon = Styles.isMobile
+  const maybeIcon = Kb.Styles.isMobile
     ? Platform.isLargeScreen
       ? `icon-phone-background-${props.deviceIconNumber}-96`
       : `icon-phone-background-${props.deviceIconNumber}-64`
     : `icon-computer-background-${props.deviceIconNumber}-96`
 
-  const defaultIcon = Styles.isMobile
+  const defaultIcon = Kb.Styles.isMobile
     ? Platform.isLargeScreen
       ? `icon-phone-96`
       : `icon-phone-64`
@@ -96,7 +95,7 @@ const SetPublicName = (props: Props) => {
         },
       ]}
       onBack={props.onBack}
-      title={Styles.isMobile ? 'Name this device' : 'Name this computer'}
+      title={Kb.Styles.isMobile ? 'Name this device' : 'Name this computer'}
     >
       <Kb.Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
         <Kb.Icon type={Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcon} />
@@ -126,27 +125,27 @@ const SetPublicName = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  backButton: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  backButton: Kb.Styles.platformStyles({
     isElectron: {
-      marginLeft: Styles.globalMargins.medium,
-      marginTop: Styles.globalMargins.medium,
+      marginLeft: Kb.Styles.globalMargins.medium,
+      marginTop: Kb.Styles.globalMargins.medium,
     },
     isMobile: {
       marginLeft: 0,
       marginTop: 0,
     },
   }),
-  contents: Styles.platformStyles({
+  contents: Kb.Styles.platformStyles({
     common: {width: '100%'},
     isTablet: {width: undefined},
   }),
   deviceNameError: {
-    color: Styles.globalColors.redDark,
+    color: Kb.Styles.globalColors.redDark,
   },
-  nameInput: Styles.platformStyles({
+  nameInput: Kb.Styles.platformStyles({
     common: {
-      padding: Styles.globalMargins.tiny,
+      padding: Kb.Styles.globalMargins.tiny,
     },
     isMobile: {
       minHeight: 48,
@@ -155,7 +154,7 @@ const styles = Styles.styleSheetCreate(() => ({
       maxWidth: 368,
     },
   }),
-  wrapper: Styles.platformStyles({
+  wrapper: Kb.Styles.platformStyles({
     isElectron: {
       width: 400,
     },

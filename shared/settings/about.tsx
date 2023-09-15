@@ -1,7 +1,5 @@
 import * as C from '../constants'
-import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
-import {version} from '../constants/platform'
 
 const About = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -21,7 +19,7 @@ const About = () => {
           You are running version{' '}
         </Kb.Text>
         <Kb.Text type="BodySemibold" selectable={true}>
-          {version}
+          {C.version}
         </Kb.Text>
       </Kb.Box2>
       <Kb.Text style={styles.terms} type="BodyPrimaryLink" onClick={onShowTerms}>
@@ -33,17 +31,17 @@ const About = () => {
     </Kb.Box2>
   )
 }
-const styles = Styles.styleSheetCreate(() => ({
+const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   terms: {
-    marginBottom: Styles.globalMargins.tiny,
+    marginBottom: Kb.Styles.globalMargins.tiny,
   },
   version: {
-    marginBottom: Styles.globalMargins.large,
-    paddingTop: Styles.globalMargins.large,
+    marginBottom: Kb.Styles.globalMargins.large,
+    paddingTop: Kb.Styles.globalMargins.large,
   },
 }))
 

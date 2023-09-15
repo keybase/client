@@ -3,14 +3,10 @@ import * as React from 'react'
 import * as Constants from '../constants/crypto'
 import * as FsConstants from '../constants/fs'
 import type * as T from '../constants/types'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import * as Platform from '../constants/platform'
 import type {IconType} from '../common-adapters/icon.constants-gen'
 import capitalize from 'lodash/capitalize'
 import {pickFiles} from '../util/pick-files'
-import shallowEqual from 'shallowequal'
 
 type CommonProps = {
   operation: T.Crypto.Operations
@@ -56,13 +52,13 @@ const inputTextType = new Map([
 const inputPlaceholder = new Map([
   [
     'decrypt',
-    Platform.isMobile ? 'Enter text to decrypt' : 'Enter ciphertext, drop an encrypted file or folder, or',
+    C.isMobile ? 'Enter text to decrypt' : 'Enter ciphertext, drop an encrypted file or folder, or',
   ],
-  ['encrypt', Platform.isMobile ? 'Enter text to encrypt' : 'Enter text, drop a file or folder, or'],
-  ['sign', Platform.isMobile ? 'Enter text to sign' : 'Enter text, drop a file or folder, or'],
+  ['encrypt', C.isMobile ? 'Enter text to encrypt' : 'Enter text, drop a file or folder, or'],
+  ['sign', C.isMobile ? 'Enter text to sign' : 'Enter text, drop a file or folder, or'],
   [
     'verify',
-    Platform.isMobile ? 'Enter text to verify' : 'Enter a signed message, drop a signed file or folder, or',
+    C.isMobile ? 'Enter text to verify' : 'Enter a signed message, drop a signed file or folder, or',
   ],
 ] as const)
 
@@ -94,7 +90,7 @@ export const TextInput = (props: TextProps) => {
     // On Windows and Linux only files will be able to be selected. Their native pickers don't allow for selecting both directories and files at once.
     // To set a directory as input, a user will need to drag the directory into Keybase.
     const filePaths = await pickFiles({
-      allowDirectories: Platform.isDarwin,
+      allowDirectories: C.isDarwin,
       buttonLabel: 'Select',
     })
     if (!filePaths.length) return
@@ -103,12 +99,12 @@ export const TextInput = (props: TextProps) => {
   }
 
   // Styling
-  const rowsMax = Styles.isMobile ? undefined : value ? undefined : 1
-  const growAndScroll = !Styles.isMobile
-  const inputStyle = Styles.collapseStyles([
+  const rowsMax = Kb.Styles.isMobile ? undefined : value ? undefined : 1
+  const growAndScroll = !Kb.Styles.isMobile
+  const inputStyle = Kb.Styles.collapseStyles([
     styles.input,
     value ? styles.inputFull : styles.inputEmpty,
-    !value && !Styles.isMobile && {width: emptyWidth},
+    !value && !Kb.Styles.isMobile && {width: emptyWidth},
   ])
   const inputContainerStyle = value ? styles.inputContainer : styles.inputContainerEmpty
 
@@ -129,11 +125,11 @@ export const TextInput = (props: TextProps) => {
     <Kb.Box onClick={onFocusInput} style={styles.containerInputFocus}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.commonContainer}>
         <Kb.Box2
-          direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+          direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
           alignItems="flex-start"
           alignSelf="flex-start"
-          fullWidth={Styles.isMobile || !!value}
-          fullHeight={Styles.isMobile || !!value}
+          fullWidth={Kb.Styles.isMobile || !!value}
+          fullHeight={Kb.Styles.isMobile || !!value}
           style={styles.inputAndFilePickerContainer}
         >
           <Kb.NewInput
@@ -154,10 +150,10 @@ export const TextInput = (props: TextProps) => {
             onChangeText={onChangeText}
             ref={inputRef}
           />
-          {!Styles.isMobile && browseButton}
+          {!Kb.Styles.isMobile && browseButton}
         </Kb.Box2>
       </Kb.Box2>
-      {!Styles.isMobile && clearButton}
+      {!Kb.Styles.isMobile && clearButton}
     </Kb.Box>
   )
 }
@@ -172,7 +168,7 @@ const inputFileIcon = new Map([
 export const FileInput = (props: FileProps) => {
   const {path, size, operation} = props
   const fileIcon = inputFileIcon.get(operation) as IconType
-  const waiting = Container.useAnyWaiting(Constants.waitingKey)
+  const waiting = C.useAnyWaiting(Constants.waitingKey)
 
   return (
     <Kb.Box2
@@ -215,7 +211,7 @@ export const Input = (props: CommonProps) => {
     const o = s[operation]
     const {input, inputType} = o
     return {input, inputType}
-  }, shallowEqual)
+  }, C.shallowEqual)
   const input = _input.stringValue()
 
   const [inputValue, setInputValue] = React.useState(input)
@@ -296,7 +292,7 @@ export const OperationBanner = (props: CommonProps) => {
   const {errorMessage: _errorMessage, warningMessage: _warningMessage} = C.useCryptoState(s => {
     const {errorMessage, warningMessage} = s[operation]
     return {errorMessage, warningMessage}
-  }, shallowEqual)
+  }, C.shallowEqual)
   const errorMessage = _errorMessage.stringValue()
   const warningMessage = _warningMessage.stringValue()
 
@@ -334,11 +330,11 @@ export const InputActionsBar = (props: RunOperationProps) => {
     runTextOperation(operation)
   }
 
-  return Styles.isMobile ? (
+  return Kb.Styles.isMobile ? (
     <Kb.Box2
       direction="vertical"
       fullWidth={true}
-      gap={Styles.isTablet ? 'small' : 'tiny'}
+      gap={Kb.Styles.isTablet ? 'small' : 'tiny'}
       style={styles.inputActionsBarContainer}
     >
       {children}
@@ -353,7 +349,7 @@ export const InputActionsBar = (props: RunOperationProps) => {
   ) : null
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       browseFile: {
@@ -362,16 +358,16 @@ const styles = Styles.styleSheetCreate(
       clearButtonInput: {
         alignSelf: 'flex-start',
         flexShrink: 1,
-        padding: Styles.globalMargins.tiny,
+        padding: Kb.Styles.globalMargins.tiny,
       },
       commonContainer: {
-        ...Styles.globalStyles.flexGrow,
-        ...Styles.globalStyles.positionRelative,
+        ...Kb.Styles.globalStyles.flexGrow,
+        ...Kb.Styles.globalStyles.positionRelative,
       },
-      containerInputFocus: Styles.platformStyles({
+      containerInputFocus: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexGrow,
-          ...Styles.globalStyles.fullHeight,
+          ...Kb.Styles.globalStyles.flexGrow,
+          ...Kb.Styles.globalStyles.fullHeight,
           display: 'flex',
         },
         isMobile: {
@@ -382,79 +378,79 @@ const styles = Styles.styleSheetCreate(
       }),
       fileContainer: {
         alignSelf: 'flex-start',
-        ...Styles.padding(Styles.globalMargins.small),
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
       },
       hidden: {
         display: 'none',
       },
-      input: Styles.platformStyles({
+      input: Kb.Styles.platformStyles({
         common: {
-          color: Styles.globalColors.black,
+          color: Kb.Styles.globalColors.black,
         },
         isMobile: {
-          ...Styles.globalStyles.fullHeight,
+          ...Kb.Styles.globalStyles.fullHeight,
         },
       }),
-      inputActionsBarContainer: Styles.platformStyles({
+      inputActionsBarContainer: Kb.Styles.platformStyles({
         isMobile: {
-          ...Styles.padding(Styles.globalMargins.small),
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
           alignItems: 'flex-start',
-          backgroundColor: Styles.globalColors.blueGrey,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
         },
       }),
-      inputAndFilePickerContainer: Styles.platformStyles({
+      inputAndFilePickerContainer: Kb.Styles.platformStyles({
         isElectron: {
           paddingBottom: 0,
-          paddingLeft: Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
           paddingRight: 0,
-          paddingTop: Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
       }),
-      inputContainer: Styles.platformStyles({
+      inputContainer: Kb.Styles.platformStyles({
         isElectron: {
           // We want the immediate container not to overflow, so we tell it be height: 100% to match the parent
-          ...Styles.globalStyles.fullHeight,
+          ...Kb.Styles.globalStyles.fullHeight,
           alignItems: 'stretch',
           padding: 0,
         },
         isMobile: {
-          ...Styles.globalStyles.fullHeight,
-          ...Styles.padding(0),
+          ...Kb.Styles.globalStyles.fullHeight,
+          ...Kb.Styles.padding(0),
         },
       }),
-      inputContainerEmpty: Styles.platformStyles({
+      inputContainerEmpty: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.padding(0),
+          ...Kb.Styles.padding(0),
         },
         isMobile: {
-          ...Styles.globalStyles.fullHeight,
-          ...Styles.padding(0),
+          ...Kb.Styles.globalStyles.fullHeight,
+          ...Kb.Styles.padding(0),
         },
       }),
-      inputEmpty: Styles.platformStyles({
+      inputEmpty: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.padding(0),
+          ...Kb.Styles.padding(0),
           minHeight: 'initial',
           overflowY: 'hidden',
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
-          paddingTop: Styles.globalMargins.xsmall,
+          paddingLeft: Kb.Styles.globalMargins.xsmall,
+          paddingRight: Kb.Styles.globalMargins.xsmall,
+          paddingTop: Kb.Styles.globalMargins.xsmall,
         },
       }),
-      inputFull: Styles.platformStyles({
+      inputFull: Kb.Styles.platformStyles({
         common: {
-          ...Styles.padding(0),
+          ...Kb.Styles.padding(0),
         },
         isElectron: {
           paddingRight: 46,
         },
         isMobile: {
-          paddingBottom: Styles.globalMargins.xsmall,
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
-          paddingTop: Styles.globalMargins.xsmall,
+          paddingBottom: Kb.Styles.globalMargins.xsmall,
+          paddingLeft: Kb.Styles.globalMargins.xsmall,
+          paddingRight: Kb.Styles.globalMargins.xsmall,
+          paddingTop: Kb.Styles.globalMargins.xsmall,
         },
       }),
     }) as const

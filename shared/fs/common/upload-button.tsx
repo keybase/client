@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
-import * as Platforms from '../../constants/platform'
 import type * as Styles from '../../styles'
 
 type OwnProps = {
@@ -60,7 +59,7 @@ const UploadButton = (props: UploadButtonProps) => {
   // dialog. In both cases a menu is needed.
   return (
     <>
-      {Platforms.isMobile ? (
+      {C.isMobile ? (
         <Kb.Icon type="iconfont-upload" padding="tiny" onClick={toggleShowingPopup} />
       ) : (
         <Kb.Button onClick={toggleShowingPopup} label="Upload" ref={popupAnchor} style={props.style} />
@@ -77,28 +76,27 @@ export default (ownProps: OwnProps) => {
   const _openAndUploadBoth = () => {
     openAndUploadDesktop?.(T.FS.OpenDialogType.Both, ownProps.path)
   }
-  const openAndUploadBoth = Platforms.isDarwin ? _openAndUploadBoth : undefined
+  const openAndUploadBoth = C.isDarwin ? _openAndUploadBoth : undefined
   const _openAndUploadDirectory = () => {
     openAndUploadDesktop?.(T.FS.OpenDialogType.Directory, ownProps.path)
   }
-  const openAndUploadDirectory =
-    Platforms.isElectron && !Platforms.isDarwin ? _openAndUploadDirectory : undefined
+  const openAndUploadDirectory = C.isElectron && !C.isDarwin ? _openAndUploadDirectory : undefined
   const _openAndUploadFile = () => {
     openAndUploadDesktop?.(T.FS.OpenDialogType.File, ownProps.path)
   }
-  const openAndUploadFile = Platforms.isElectron && !Platforms.isDarwin ? _openAndUploadFile : undefined
+  const openAndUploadFile = C.isElectron && !C.isDarwin ? _openAndUploadFile : undefined
   const _pickAndUploadMixed = () => {
     pickAndUploadMobile?.(T.FS.MobilePickType.Mixed, ownProps.path)
   }
-  const pickAndUploadMixed = Platforms.isIOS ? _pickAndUploadMixed : undefined
+  const pickAndUploadMixed = C.isIOS ? _pickAndUploadMixed : undefined
   const _pickAndUploadPhoto = () => {
     pickAndUploadMobile?.(T.FS.MobilePickType.Photo, ownProps.path)
   }
-  const pickAndUploadPhoto = Platforms.isAndroid ? _pickAndUploadPhoto : undefined
+  const pickAndUploadPhoto = C.isAndroid ? _pickAndUploadPhoto : undefined
   const _pickAndUploadVideo = () => {
     pickAndUploadMobile?.(T.FS.MobilePickType.Video, ownProps.path)
   }
-  const pickAndUploadVideo = Platforms.isAndroid ? _pickAndUploadVideo : undefined
+  const pickAndUploadVideo = C.isAndroid ? _pickAndUploadVideo : undefined
 
   const props = {
     canUpload: _pathItem.type === 'folder' && _pathItem.writable,

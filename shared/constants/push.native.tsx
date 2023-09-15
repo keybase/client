@@ -305,7 +305,13 @@ export const _useState = Z.createZustand<State>((set, get) => {
         // We've just started up, we don't have the permissions, we're logged in and we
         // haven't just signed up. This handles the scenario where the push notifications
         // permissions checker finishes after the routeToInitialScreen is done.
-        if (p.show && C.useConfigState.getState().loggedIn && !get().justSignedUp && !get().hasPermissions) {
+        if (
+          p.show &&
+          C.useConfigState.getState().loggedIn &&
+          C.useDaemonState.getState().handshakeState === 'done' &&
+          !get().justSignedUp &&
+          !get().hasPermissions
+        ) {
           logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
           await Z.timeoutPromise(100)
           C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)

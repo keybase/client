@@ -300,17 +300,16 @@ export const initPushListener = () => {
 
   C.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return
-
     const f = async () => {
       if (isAndroid) {
         try {
           await listenForNativeAndroidIntentNotifications()
-        } catch {}
+        } catch (e) {}
       } else {
         iosListenForPushNotificationsFromJS()
       }
     }
-    Container.ignorePromise(f())
+    C.ignorePromise(f())
   })
 }
 

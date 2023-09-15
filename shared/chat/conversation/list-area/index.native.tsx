@@ -3,7 +3,6 @@ import * as Container from '../../../util/container'
 import * as Hooks from './hooks'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
@@ -27,12 +26,6 @@ const List = /*usingFlashList ? FlashList :*/ FlatList
 let markedInitiallyLoaded = false
 
 export const DEBUGDump = () => {}
-
-// not highly documented. keeps new content from shifting around the list if you're scrolled up
-const maintainVisibleContentPosition = {
-  autoscrollToTopThreshold: 1,
-  minIndexForVisible: 0,
-}
 
 const useScrolling = (p: {
   centeredOrdinal: T.Chat.Ordinal
@@ -261,7 +254,7 @@ const ConversationList = React.memo(function ConversationList(p: {
             <Kb.Box style={styles.container}>
               <List
                 extraData={extraData}
-                removeClippedSubviews={Styles.isAndroid}
+                removeClippedSubviews={Kb.Styles.isAndroid}
                 // @ts-ignore
                 drawDistance={100}
                 estimatedItemSize={100}
@@ -274,7 +267,6 @@ const ConversationList = React.memo(function ConversationList(p: {
                 getItemType={getItemType}
                 inverted={true}
                 renderItem={renderItem}
-                maintainVisibleContentPosition={maintainVisibleContentPosition}
                 onEndReached={onEndReached}
                 keyboardDismissMode="on-drag"
                 keyboardShouldPersistTaps="handled"
@@ -291,7 +283,7 @@ const ConversationList = React.memo(function ConversationList(p: {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {flex: 1, position: 'relative'},

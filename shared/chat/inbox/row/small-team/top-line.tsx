@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import {formatTimeForConversationList} from '../../../../util/timestamp'
 import {TimeContext, ParticipantsContext} from './contexts'
@@ -24,32 +23,32 @@ const Timestamp = React.memo(function Timestamp() {
 const Names = React.memo(function Names(p: {isSelected?: boolean; showBold: boolean; isInWidget: boolean}) {
   const participants = React.useContext(ParticipantsContext)
   const {isSelected, isInWidget, showBold} = p
-  const usernameColor = isSelected ? Styles.globalColors.white : Styles.globalColors.black
+  const usernameColor = isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black
   const backgroundColor = isInWidget
-    ? Styles.globalColors.white
+    ? Kb.Styles.globalColors.white
     : isSelected
-    ? Styles.globalColors.blue
-    : Styles.isPhone
-    ? Styles.globalColors.fastBlank
-    : Styles.globalColors.blueGrey
+    ? Kb.Styles.globalColors.blue
+    : Kb.Styles.isPhone
+    ? Kb.Styles.globalColors.fastBlank
+    : Kb.Styles.globalColors.blueGrey
   const nameContainerStyle = React.useMemo(
     () =>
-      Styles.collapseStyles([
+      Kb.Styles.collapseStyles([
         styles.name,
         showBold && styles.bold,
         {color: usernameColor},
-        Styles.isMobile && {backgroundColor},
-      ]) as Styles.StylesCrossPlatform,
+        Kb.Styles.isMobile && {backgroundColor},
+      ]) as Kb.Styles.StylesCrossPlatform,
     [showBold, usernameColor, backgroundColor]
   )
 
   const teamContainerStyle = React.useMemo(
     () =>
-      Styles.collapseStyles([
+      Kb.Styles.collapseStyles([
         styles.teamTextStyle,
         showBold && styles.bold,
         {color: usernameColor},
-      ]) as Styles.StylesCrossPlatform,
+      ]) as Kb.Styles.StylesCrossPlatform,
     [showBold, usernameColor]
   )
   return typeof participants === 'string' ? (
@@ -100,12 +99,12 @@ const SimpleTopLineImpl = React.memo(function SimpleTopLineImpl(p: IProps) {
   const showGear = !isInWidget
   const showBold = !isSelected && hasUnread
   const subColor = isSelected
-    ? Styles.globalColors.white
+    ? Kb.Styles.globalColors.white
     : hasUnread
-    ? Styles.globalColors.black
-    : Styles.globalColors.black_50
+    ? Kb.Styles.globalColors.black
+    : Kb.Styles.globalColors.black_50
 
-  const iconHoverColor = isSelected ? Styles.globalColors.white_75 : Styles.globalColors.black
+  const iconHoverColor = isSelected ? Kb.Styles.globalColors.white_75 : Kb.Styles.globalColors.black
 
   const makePopup = React.useCallback((p: Kb.Popup2Parms) => {
     const {attachTo, toggleShowingPopup} = p
@@ -124,11 +123,11 @@ const SimpleTopLineImpl = React.memo(function SimpleTopLineImpl(p: IProps) {
   const tssubColor = (!hasBadge || isSelected) && subColor
   const timestampStyle = React.useMemo(
     () =>
-      Styles.collapseStyles([
+      Kb.Styles.collapseStyles([
         showBold && styles.bold,
         styles.timestamp,
         tssubColor !== false && ({color: tssubColor} as any),
-      ]) as Styles.StylesCrossPlatform,
+      ]) as Kb.Styles.StylesCrossPlatform,
     [showBold, tssubColor]
   )
 
@@ -143,12 +142,12 @@ const SimpleTopLineImpl = React.memo(function SimpleTopLineImpl(p: IProps) {
       <Kb.Text
         key="timestamp"
         type="BodyTiny"
-        className={Styles.classNames({'conversation-timestamp': showGear})}
+        className={Kb.Styles.classNames({'conversation-timestamp': showGear})}
         style={timestampStyle}
       >
         <Timestamp />
       </Kb.Text>
-      {!Styles.isMobile && showGear && (
+      {!Kb.Styles.isMobile && showGear && (
         <Kb.Icon
           type="iconfont-gear"
           className="conversation-gear"
@@ -165,43 +164,43 @@ const SimpleTopLineImpl = React.memo(function SimpleTopLineImpl(p: IProps) {
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      bold: {...Styles.globalStyles.fontBold},
+      bold: {...Kb.Styles.globalStyles.fontBold},
       container: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
       },
       icon: {position: 'relative'},
       insideContainer: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         flexGrow: 1,
-        height: Styles.isMobile ? 21 : 17,
+        height: Kb.Styles.isMobile ? 21 : 17,
         position: 'relative',
       },
-      name: {paddingRight: Styles.globalMargins.tiny},
+      name: {paddingRight: Kb.Styles.globalMargins.tiny},
       nameContainer: {
-        ...Styles.globalStyles.flexBoxRow,
-        ...Styles.globalStyles.fillAbsolute,
+        ...Kb.Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.fillAbsolute,
         alignItems: 'center',
       },
-      teamTextStyle: Styles.platformStyles({
+      teamTextStyle: Kb.Styles.platformStyles({
         isElectron: {
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
         },
       }),
-      timestamp: Styles.platformStyles({
+      timestamp: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.fastBlank,
-          color: Styles.globalColors.blueDark,
+          backgroundColor: Kb.Styles.globalColors.fastBlank,
+          color: Kb.Styles.globalColors.blueDark,
         },
         isTablet: {backgroundColor: undefined},
       }),
       unreadDotStyle: {
-        backgroundColor: Styles.globalColors.orange,
+        backgroundColor: Kb.Styles.globalColors.orange,
         borderRadius: 6,
         height: 8,
         marginLeft: 4,

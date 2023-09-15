@@ -1,13 +1,12 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import {SignupScreen} from '../../signup/common'
 import * as Container from '../../util/container'
 
 const KnowPassword = () => {
   const error = C.useAutoResetState(s => s.error)
-  const waiting = Container.useAnyWaiting(C.enterPipelineWaitingKey)
+  const waiting = C.useAnyWaiting(C.enterPipelineWaitingKey)
   const nav = Container.useSafeNavigation()
   const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
   const onYes = React.useCallback(() => nav.safeNavigateAppend('resetEnterPassword'), [nav])
@@ -39,7 +38,7 @@ const KnowPassword = () => {
         centerChildren={true}
         style={styles.topGap}
       >
-        <Kb.Icon type="iconfont-password" color={Styles.globalColors.black} fontSize={24} />
+        <Kb.Icon type="iconfont-password" color={Kb.Styles.globalColors.black} fontSize={24} />
         <Kb.Box2 direction="vertical" centerChildren={true}>
           <Kb.Text type="Header" center={true}>
             Do you know your
@@ -53,13 +52,13 @@ const KnowPassword = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  input: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  input: Kb.Styles.platformStyles({
     isElectron: {
       width: 368,
     },
   }),
-  topGap: Styles.platformStyles({
+  topGap: Kb.Styles.platformStyles({
     isMobile: {
       justifyContent: 'flex-start',
       marginTop: '20%',

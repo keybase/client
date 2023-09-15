@@ -1,10 +1,7 @@
 import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../../styles'
-import shallowEqual from 'shallowequal'
 import {OrdinalContext, HighlightedContext} from '../ids-context'
 import EmojiRow from '../emoji-row/container'
 import ExplodingHeightRetainer from './exploding-height-retainer/container'
@@ -58,7 +55,7 @@ export const useCommon = (ordinal: T.Chat.Ordinal) => {
     const type = m?.type
     const shouldShowPopup = Constants.shouldShowPopup(accountsInfoMap, m ?? undefined)
     return {shouldShowPopup, type}
-  }, shallowEqual)
+  }, C.shallowEqual)
 
   const shouldShow = React.useCallback(() => {
     return messageShowsPopup(type) && shouldShowPopup
@@ -104,7 +101,7 @@ const useRedux = (ordinal: T.Chat.Ordinal) => {
     hasReactions: boolean,
     message: T.Chat.Message
   ) => {
-    if (Container.isMobile) return 'none' as const
+    if (C.isMobile) return 'none' as const
     if (hasReactions) {
       return 'none' as const
     }
@@ -182,7 +179,7 @@ const useRedux = (ordinal: T.Chat.Ordinal) => {
       you,
       youSent,
     }
-  }, shallowEqual)
+  }, C.shallowEqual)
   return {...d, isEditing}
 }
 
@@ -210,9 +207,15 @@ type TSProps = {
   you: string
 }
 
-const NormalWrapper = ({children, style}: {children: React.ReactNode; style: Styles.StylesCrossPlatform}) => {
+const NormalWrapper = ({
+  children,
+  style,
+}: {
+  children: React.ReactNode
+  style: Kb.Styles.StylesCrossPlatform
+}) => {
   return (
-    <Kb.Box2 direction="vertical" style={style} fullWidth={!Styles.isMobile}>
+    <Kb.Box2 direction="vertical" style={style} fullWidth={!Kb.Styles.isMobile}>
       {children}
     </Kb.Box2>
   )
@@ -223,13 +226,13 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   const {showingPopup, ecrType, exploding, hasReactions, isPendingPayment, popupAnchor} = p
   const {type, reactionsPopupPosition, setShowingPicker, showCoinsIcon} = p
   const {toggleShowingPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
-  const pressableProps = Styles.isMobile
+  const pressableProps = Kb.Styles.isMobile
     ? {
         onLongPress: decorate ? toggleShowingPopup : undefined,
-        style: isHighlighted ? {backgroundColor: Styles.globalColors.yellowOrYellowAlt} : undefined,
+        style: isHighlighted ? {backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt} : undefined,
       }
     : {
-        className: Styles.classNames({
+        className: Kb.Styles.classNames({
           TextAndSiblings: true,
           noOverflow: isPendingPayment,
           systemMessage: type?.startsWith('system'),
@@ -268,7 +271,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
 
   return (
     <LongPressable {...pressableProps}>
-      <Kb.Box2 direction="vertical" style={styles.middle} fullWidth={!Styles.isMobile}>
+      <Kb.Box2 direction="vertical" style={styles.middle} fullWidth={!Kb.Styles.isMobile}>
         <Background style={styles.background}>
           {content}
           <BottomSide
@@ -319,7 +322,7 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
     const reason = m?.errorReason ?? ''
     const failureDescription = `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`
     return {failureDescription, outboxID}
-  }, shallowEqual)
+  }, C.shallowEqual)
   const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
   const onCancel = React.useCallback(() => {
     messageDelete(ordinal)
@@ -384,9 +387,9 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
   const reactionsRow = hasReactions ? <ReactionsRow /> : null
 
   const reactionsPopup =
-    !Container.isMobile && reactionsPopupPosition !== 'none' && !showingPopup ? (
+    !C.isMobile && reactionsPopupPosition !== 'none' && !showingPopup ? (
       <EmojiRow
-        className={Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
+        className={Kb.Styles.classNames('WrapperMessage-emojiButton', 'hover-visible')}
         onShowingEmojiPicker={setShowingPicker}
         tooltipPosition={reactionsPopupPosition === 'middle' ? 'top center' : 'bottom center'}
         style={reactionsPopupPosition === 'last' ? styles.emojiRowLast : styles.emojiRow}
@@ -424,7 +427,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 
   const revokedIcon = showRevoked ? (
     <Kb.WithTooltip tooltip="Revoked device">
-      <Kb.Icon type="iconfont-rip" color={Styles.globalColors.black_35} />
+      <Kb.Icon type="iconfont-rip" color={Kb.Styles.globalColors.black_35} />
     </Kb.WithTooltip>
   ) : null
 
@@ -432,7 +435,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
 
   const bot = botname ? (
     <Kb.WithTooltip tooltip={`Encrypted for @${botname}`}>
-      <Kb.Icon color={Styles.globalColors.black_35} type="iconfont-bot" />
+      <Kb.Icon color={Kb.Styles.globalColors.black_35} type="iconfont-bot" />
     </Kb.WithTooltip>
   ) : null
 
@@ -444,7 +447,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
   // left, then on hover we invert the list so its on the right. Theres usually only 1 non menu item so this
   // is fine
 
-  const menu = Container.isMobile ? null : (
+  const menu = C.isMobile ? null : (
     <Kb.WithTooltip
       tooltip="More actions..."
       toastStyle={styles.moreActionsTooltip}
@@ -463,7 +466,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
         alignSelf="flex-start"
         style={hasVisibleItems ? styles.rightSideItems : styles.rightSide}
         gap="tiny"
-        className={Styles.classNames({
+        className={Kb.Styles.classNames({
           'hover-reverse-row': hasVisibleItems && menu,
           'hover-visible': !hasVisibleItems && menu,
         })}
@@ -502,7 +505,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight && !isEditing
 
-  const maybeSentChildren = Container.isMobile && youSent ? <Sent>{children}</Sent> : children
+  const maybeSentChildren = C.isMobile && youSent ? <Sent>{children}</Sent> : children
 
   const tsprops = {
     botname,
@@ -531,16 +534,16 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   return (
     <OrdinalContext.Provider value={ordinal}>
       <HighlightedContext.Provider value={showCenteredHighlight}>
-        <Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
+        <Kb.Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
           <TextAndSiblings {...tsprops} />
           {popup}
-        </Styles.CanFixOverdrawContext.Provider>
+        </Kb.Styles.CanFixOverdrawContext.Provider>
       </HighlightedContext.Provider>
     </OrdinalContext.Provider>
   )
 })
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       background: {
@@ -549,48 +552,48 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 1,
         position: 'relative',
       },
-      ellipsis: Styles.platformStyles({
+      ellipsis: Kb.Styles.platformStyles({
         isElectron: {height: 4, paddingTop: 0},
         isMobile: {paddingTop: 4},
       }),
-      emojiRow: Styles.platformStyles({
+      emojiRow: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.white,
-          border: `1px solid ${Styles.globalColors.black_10}`,
-          borderRadius: Styles.borderRadius,
-          bottom: -Styles.globalMargins.medium + 3,
-          paddingRight: Styles.globalMargins.xtiny,
+          backgroundColor: Kb.Styles.globalColors.white,
+          border: `1px solid ${Kb.Styles.globalColors.black_10}`,
+          borderRadius: Kb.Styles.borderRadius,
+          bottom: -Kb.Styles.globalMargins.medium + 3,
+          paddingRight: Kb.Styles.globalMargins.xtiny,
           position: 'absolute',
           right: 96,
           zIndex: 2,
         },
       }),
-      emojiRowLast: Styles.platformStyles({
+      emojiRowLast: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.white,
-          border: `1px solid ${Styles.globalColors.black_10}`,
-          borderRadius: Styles.borderRadius,
-          bottom: -Styles.globalMargins.medium + 3,
-          paddingRight: Styles.globalMargins.xtiny,
+          backgroundColor: Kb.Styles.globalColors.white,
+          border: `1px solid ${Kb.Styles.globalColors.black_10}`,
+          borderRadius: Kb.Styles.borderRadius,
+          bottom: -Kb.Styles.globalMargins.medium + 3,
+          paddingRight: Kb.Styles.globalMargins.xtiny,
           position: 'absolute',
           right: 96,
-          top: -Styles.globalMargins.medium + 5,
+          top: -Kb.Styles.globalMargins.medium + 5,
           zIndex: 2,
         },
       }),
-      fail: {color: Styles.globalColors.redDark},
-      failExploding: {color: Styles.globalColors.black_50},
-      failExplodingIcon: Styles.platformStyles({
+      fail: {color: Kb.Styles.globalColors.redDark},
+      failExploding: {color: Kb.Styles.globalColors.black_50},
+      failExplodingIcon: Kb.Styles.platformStyles({
         isElectron: {
           display: 'inline-block',
           verticalAlign: 'middle',
         },
       }),
-      failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
+      failUnderline: {color: Kb.Styles.globalColors.redDark, textDecorationLine: 'underline'},
       highlighted: {
-        backgroundColor: Styles.globalColors.yellowOrYellowAlt,
+        backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt,
       },
-      menuButtons: Styles.platformStyles({
+      menuButtons: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
           flexShrink: 0,
@@ -600,36 +603,36 @@ const styles = Styles.styleSheetCreate(
         isElectron: {height: 20},
         isMobile: {height: 24},
       }),
-      messagePopupContainer: {marginRight: Styles.globalMargins.small},
+      messagePopupContainer: {marginRight: Kb.Styles.globalMargins.small},
       middle: {
         flexGrow: 1,
         flexShrink: 1,
-        paddingLeft: Styles.isMobile ? 48 : 56,
+        paddingLeft: Kb.Styles.isMobile ? 48 : 56,
         paddingRight: 4,
         position: 'relative',
       },
-      moreActionsTooltip: {marginRight: -Styles.globalMargins.xxtiny},
-      paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
-      rightSide: Styles.platformStyles({
+      moreActionsTooltip: {marginRight: -Kb.Styles.globalMargins.xxtiny},
+      paddingLeftTiny: {paddingLeft: Kb.Styles.globalMargins.tiny},
+      rightSide: Kb.Styles.platformStyles({
         common: {
-          borderRadius: Styles.borderRadius,
+          borderRadius: Kb.Styles.borderRadius,
           minHeight: 20,
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
+          paddingRight: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
-          backgroundColor: Styles.globalColors.white_90,
+          backgroundColor: Kb.Styles.globalColors.white_90,
           minHeight: 14,
           position: 'absolute',
           right: 16,
           top: 4,
         },
       }),
-      rightSideItems: Styles.platformStyles({
+      rightSideItems: Kb.Styles.platformStyles({
         common: {
-          borderRadius: Styles.borderRadius,
+          borderRadius: Kb.Styles.borderRadius,
           minHeight: 20,
-          paddingLeft: Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {minHeight: 14},
       }),
@@ -637,7 +640,7 @@ const styles = Styles.styleSheetCreate(
         height: 20,
         width: 20,
       },
-      timestamp: Styles.platformStyles({
+      timestamp: Kb.Styles.platformStyles({
         isElectron: {
           flexShrink: 0,
           lineHeight: 19,

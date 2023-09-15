@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../../fs/common'
-import * as Styles from '../../styles'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 
@@ -166,40 +165,40 @@ export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => 
   )
 }
 
-const SendToChat = Styles.isMobile ? MobileSendToChatRoutable : DesktopSendToChat
+const SendToChat = Kb.Styles.isMobile ? MobileSendToChatRoutable : DesktopSendToChat
 
 export default SendToChat
 
-const desktopStyles = Styles.styleSheetCreate(
+const desktopStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       belly: {
-        ...Styles.globalStyles.flexGrow,
+        ...Kb.Styles.globalStyles.flexGrow,
         alignItems: 'center',
-        marginBottom: Styles.globalMargins.small,
-        paddingLeft: Styles.globalMargins.large,
-        paddingRight: Styles.globalMargins.large,
+        marginBottom: Kb.Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.large,
+        paddingRight: Kb.Styles.globalMargins.large,
       },
       buttonBar: {alignItems: 'center'},
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
           maxHeight: 560,
           width: 400,
         },
       }),
       dropdown: {
-        marginBottom: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.mediumLarge,
+        marginBottom: Kb.Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.mediumLarge,
         width: '100%',
       },
       header: {
-        paddingTop: Styles.globalMargins.mediumLarge,
+        paddingTop: Kb.Styles.globalMargins.mediumLarge,
       },
       input: {
         width: '100%',
       },
       pathItem: {
-        marginTop: Styles.globalMargins.mediumLarge,
+        marginTop: Kb.Styles.globalMargins.mediumLarge,
       },
     }) as const
 )

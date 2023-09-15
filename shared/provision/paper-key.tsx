@@ -1,15 +1,13 @@
 import * as C from '../constants'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import {SignupScreen, errorBanner} from '../signup/common'
 import {isMobile} from '../constants/platform'
 
 export default () => {
   const error = C.useProvisionState(s => s.error)
   const hint = C.useProvisionState(s => `${s.codePageOtherDevice.name || ''}...`)
-  const waiting = Container.useAnyWaiting(C.provisionWaitingKey)
+  const waiting = C.useAnyWaiting(C.provisionWaitingKey)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
@@ -59,8 +57,8 @@ export class PaperKey extends React.Component<Props, {paperKey: string}> {
         <Kb.Box2
           direction="vertical"
           style={styles.contents}
-          centerChildren={!Styles.isAndroid /* android keyboardAvoiding doesnt work well */}
-          gap={Styles.isMobile ? 'tiny' : 'medium'}
+          centerChildren={!Kb.Styles.isAndroid /* android keyboardAvoiding doesnt work well */}
+          gap={Kb.Styles.isMobile ? 'tiny' : 'medium'}
         >
           <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
             <Kb.Icon type="icon-paper-key-64" />
@@ -85,20 +83,20 @@ export class PaperKey extends React.Component<Props, {paperKey: string}> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      backButton: Styles.platformStyles({
+      backButton: Kb.Styles.platformStyles({
         isElectron: {
-          marginLeft: Styles.globalMargins.medium,
-          marginTop: Styles.globalMargins.medium,
+          marginLeft: Kb.Styles.globalMargins.medium,
+          marginTop: Kb.Styles.globalMargins.medium,
         },
         isMobile: {
           marginLeft: 0,
           marginTop: 0,
         },
       }),
-      contents: Styles.platformStyles({
+      contents: Kb.Styles.platformStyles({
         common: {
           flexGrow: 1,
           width: '100%',
@@ -108,16 +106,16 @@ const styles = Styles.styleSheetCreate(
         isTablet: {maxWidth: 460},
       }),
       input: {
-        color: Styles.globalColors.black,
-        ...Styles.globalStyles.fontTerminal,
+        color: Kb.Styles.globalColors.black,
+        ...Kb.Styles.globalStyles.fontTerminal,
       },
       inputContainer: {
-        borderColor: Styles.globalColors.black_10,
+        borderColor: Kb.Styles.globalColors.black_10,
         borderRadius: 4,
         borderStyle: 'solid',
         borderWidth: 1,
         minHeight: 77,
-        padding: Styles.globalMargins.small,
+        padding: Kb.Styles.globalMargins.small,
         width: '100%',
       },
     }) as const

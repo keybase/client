@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
 import VerifyPhoneNumber, {type Props} from './verify'
 
 type WatcherProps = Props & {
@@ -36,12 +35,9 @@ export class WatchForSuccess extends React.Component<WatcherProps> {
 export default () => {
   const error = C.useSettingsPhoneState(s => (s.verificationState === 'error' ? s.error : ''))
   const phoneNumber = C.useSettingsPhoneState(s => s.pendingVerification)
-  const resendWaiting = Container.useAnyWaiting([
-    C.resendVerificationForPhoneWaitingKey,
-    C.addPhoneNumberWaitingKey,
-  ])
+  const resendWaiting = C.useAnyWaiting([C.resendVerificationForPhoneWaitingKey, C.addPhoneNumberWaitingKey])
   const verificationStatus = C.useSettingsPhoneState(s => s.verificationState)
-  const verifyWaiting = Container.useAnyWaiting(C.verifyPhoneNumberWaitingKey)
+  const verifyWaiting = C.useAnyWaiting(C.verifyPhoneNumberWaitingKey)
 
   const verifyPhoneNumber = C.useSettingsPhoneState(s => s.dispatch.verifyPhoneNumber)
   const resendVerificationForPhone = C.useSettingsPhoneState(s => s.dispatch.resendVerificationForPhone)

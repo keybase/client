@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat2'
@@ -54,7 +53,7 @@ const AddMembersConfirm = () => {
   const [_error, setError] = React.useState('')
   const newTeamWizErr = C.useTeamsState(s => (fromNewTeamWizard ? s.newTeamWizard.error : undefined))
   const error = _error || newTeamWizErr
-  const newTeamWaiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
+  const newTeamWaiting = C.useAnyWaiting(Constants.teamCreationWaitingKey)
   const waiting = _waiting || newTeamWaiting
 
   const addMembers = Container.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
@@ -220,7 +219,7 @@ const AddMoreMembers = () => {
           visible={true}
           items={[
             {onClick: onAddKeybase, title: 'From Keybase'},
-            ...(Styles.isMobile ? [{onClick: onAddContacts, title: 'From contacts'}] : []),
+            ...(Kb.Styles.isMobile ? [{onClick: onAddContacts, title: 'From contacts'}] : []),
             {onClick: onAddEmail, title: 'By email address'},
             {onClick: onAddPhone, title: 'By phone number'},
           ]}
@@ -268,7 +267,7 @@ const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
         presetRole={storeRole}
         onCancel={storeRole === role ? () => setShowingMenu(false) : undefined}
         onConfirm={onConfirmRole}
-        includeSetIndividually={!Styles.isPhone && (memberCount > 1 || storeRole === 'setIndividually')}
+        includeSetIndividually={!Kb.Styles.isPhone && (memberCount > 1 || storeRole === 'setIndividually')}
         disabledRoles={disabledRoles}
         plural={memberCount !== 1}
       >
@@ -289,17 +288,17 @@ const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
 const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
   const addingMembers = C.useTeamsState(s => s.addMembersWizard.addingMembers)
   const [expanded, setExpanded] = React.useState(false)
-  const showDivider = Styles.isMobile && addingMembers.length > 4
-  const aboveDivider = Container.isMobile ? addingMembers.slice(0, 4) : addingMembers
-  const belowDivider = Container.isMobile && expanded ? addingMembers.slice(4) : []
+  const showDivider = Kb.Styles.isMobile && addingMembers.length > 4
+  const aboveDivider = C.isMobile ? addingMembers.slice(0, 4) : addingMembers
+  const belowDivider = C.isMobile && expanded ? addingMembers.slice(4) : []
   const toggleExpanded = () => {
-    if (Styles.isMobile) {
+    if (Kb.Styles.isMobile) {
       Kb.LayoutAnimation.configureNext(Kb.LayoutAnimation.Presets.easeInEaseOut)
     }
     setExpanded(!expanded)
   }
   const content = (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap={Styles.isMobile ? 'tiny' : 'xtiny'}>
+    <Kb.Box2 direction="vertical" fullWidth={true} gap={Kb.Styles.isMobile ? 'tiny' : 'xtiny'}>
       {aboveDivider.map(toAdd => (
         <AddingMember
           key={toAdd.assertion}
@@ -328,7 +327,7 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
         ))}
     </Kb.Box2>
   )
-  if (Styles.isMobile) {
+  if (Kb.Styles.isMobile) {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.addingMembers}>
         {content}
@@ -475,40 +474,48 @@ const DefaultChannels = ({teamID}: {teamID: T.Teams.TeamID}) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  addingMember: Styles.platformStyles({
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  addingMember: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.white,
-      borderRadius: Styles.borderRadius,
+      backgroundColor: Kb.Styles.globalColors.white,
+      borderRadius: Kb.Styles.borderRadius,
       justifyContent: 'space-between',
     },
-    isElectron: {height: 32, paddingLeft: Styles.globalMargins.tiny, paddingRight: Styles.globalMargins.tiny},
-    isMobile: {height: 40, paddingLeft: Styles.globalMargins.tiny, paddingRight: Styles.globalMargins.xsmall},
+    isElectron: {
+      height: 32,
+      paddingLeft: Kb.Styles.globalMargins.tiny,
+      paddingRight: Kb.Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      height: 40,
+      paddingLeft: Kb.Styles.globalMargins.tiny,
+      paddingRight: Kb.Styles.globalMargins.xsmall,
+    },
   }),
   addingMemberDivider: {
-    backgroundColor: Styles.globalColors.black_20,
-    borderRadius: Styles.borderRadius,
+    backgroundColor: Kb.Styles.globalColors.black_20,
+    borderRadius: Kb.Styles.borderRadius,
     height: 40,
     justifyContent: 'center',
   },
-  addingMembers: Styles.platformStyles({
+  addingMembers: Kb.Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.blueGreyDark,
-      borderRadius: Styles.borderRadius,
+      backgroundColor: Kb.Styles.globalColors.blueGreyDark,
+      borderRadius: Kb.Styles.borderRadius,
     },
     isElectron: {
-      ...Styles.padding(
-        Styles.globalMargins.tiny,
-        Styles.globalMargins.small,
-        Styles.globalMargins.tiny,
-        Styles.globalMargins.tiny
+      ...Kb.Styles.padding(
+        Kb.Styles.globalMargins.tiny,
+        Kb.Styles.globalMargins.small,
+        Kb.Styles.globalMargins.tiny,
+        Kb.Styles.globalMargins.tiny
       ),
       maxHeight: 168,
     },
-    isMobile: {padding: Styles.globalMargins.tiny},
+    isMobile: {padding: Kb.Styles.globalMargins.tiny},
   }),
   body: {
-    padding: Styles.globalMargins.small,
+    padding: Kb.Styles.globalMargins.small,
   },
   controls: {
     justifyContent: 'space-between',

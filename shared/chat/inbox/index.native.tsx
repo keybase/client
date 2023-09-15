@@ -1,10 +1,8 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/chat2'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as RowSizes from './row/sizes'
-import * as Styles from '../../styles'
 import BigTeamsDivider from './row/big-teams-divider'
 import BuildTeam from './row/build-team'
 import ChatInboxHeader from './header/container'
@@ -12,7 +10,6 @@ import InboxSearch from '../inbox-search/container'
 import TeamsDivider from './row/teams-divider'
 import UnreadShortcut from './unread-shortcut'
 import debounce from 'lodash/debounce'
-import shallowEqual from 'shallowequal'
 import type * as TInbox from './index.d'
 import type * as T from '../../constants/types'
 import {type ViewToken, FlatList} from 'react-native'
@@ -73,7 +70,7 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
 
   componentDidUpdate(prevProps: TInbox.Props) {
     if (
-      !shallowEqual(prevProps.unreadIndices, this.props.unreadIndices) ||
+      !C.shallowEqual(prevProps.unreadIndices, this.props.unreadIndices) ||
       prevProps.unreadTotal !== this.props.unreadTotal
     ) {
       this.updateShowUnread()
@@ -233,8 +230,51 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
         break
     }
   }
+  // Help us calculate row heights and offsets quickly
+  private dividerIndex: number = -1
+  private dividerShowButton: boolean = false
+  private getItemLayout = (data: ArrayLike<RowItem> | undefined | null, index: number) => {
+    // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
+    // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
+    const smallHeight = RowSizes.smallRowHeight
+    if (index < this.dividerIndex || this.dividerIndex === -1) {
+      const offset = index ? smallHeight * index : 0
+      const length = smallHeight
+      return {index, length, offset}
+    }
+
+    const dividerHeight = RowSizes.dividerHeight(this.dividerShowButton)
+    if (index === this.dividerIndex) {
+      const offset = smallHeight * index
+      const length = dividerHeight
+      return {index, length, offset}
+    }
+
+    let offset = smallHeight * this.dividerIndex + dividerHeight
+    let i = this.dividerIndex + 1
+
+    for (; i < index; ++i) {
+      const h = data?.[i]?.type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
+      offset += h
+    }
+    const length = data?.[i]?.type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
+    return {index, length, offset}
+  }
+
+  private HeadComponent = (<ChatInboxHeader headerContext="inbox-header" />)
 
   render() {
+    if (!usingFlashList) {
+      this.dividerShowButton = false
+      this.dividerIndex = this.props.rows.findIndex(r => {
+        if (r.type === 'divider') {
+          this.dividerShowButton = r.showButton
+          return true
+        }
+        return false
+      })
+    }
+
     const debugWhichList = __DEV__ ? (
       <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
         {usingFlashList ? 'FLASH' : 'old'}
@@ -248,21 +288,19 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
 
-    const HeadComponent = <ChatInboxHeader headerContext="inbox-header" />
-
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
           <LoadingLine />
           {this.props.isSearching ? (
             <Kb.Box2 direction="vertical" fullWidth={true}>
-              <InboxSearch header={HeadComponent} />
+              <InboxSearch header={this.HeadComponent} />
             </Kb.Box2>
           ) : (
             <List
               // @ts-ignore
               disableAutoLayout={true}
-              ListHeaderComponent={HeadComponent}
+              ListHeaderComponent={this.HeadComponent}
               data={this.props.rows}
               estimatedItemSize={64}
               getItemType={this.getItemType}
@@ -272,8 +310,10 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
               overScrollMode="never"
               overrideItemLayout={this.overrideItemLayout}
               ref={this.listRef}
-              removeClippedSubviews={Styles.isAndroid}
+              removeClippedSubviews={true /*Kb.Styles.isAndroid*/}
               renderItem={this.renderItem}
+              windowSize={5 /* 21*/}
+              getItemLayout={this.getItemLayout}
             />
           )}
           {noChats}
@@ -295,10 +335,7 @@ const NoRowsBuildTeam = () => {
 }
 
 const LoadingLine = () => {
-  const isLoading = Container.useAnyWaiting([
-    Constants.waitingKeyInboxRefresh,
-    Constants.waitingKeyInboxSyncStarted,
-  ])
+  const isLoading = C.useAnyWaiting([Constants.waitingKeyInboxRefresh, Constants.waitingKeyInboxSyncStarted])
   return isLoading ? (
     <Kb.Box style={styles.loadingContainer}>
       <Kb.LoadingLine />
@@ -306,7 +343,7 @@ const LoadingLine = () => {
   ) : null
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       button: {width: '100%'},
@@ -315,16 +352,16 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-end',
         justifyContent: 'flex-end',
       },
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxColumn,
-          backgroundColor: Styles.globalColors.fastBlank,
+          ...Kb.Styles.globalStyles.flexBoxColumn,
+          backgroundColor: Kb.Styles.globalColors.fastBlank,
           flexGrow: 1,
           position: 'relative',
         },
         isTablet: {
-          backgroundColor: Styles.globalColors.blueGrey,
-          maxWidth: Styles.globalStyles.mediumSubNavWidth,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          maxWidth: Kb.Styles.globalStyles.mediumSubNavWidth,
         },
       }),
       loadingContainer: {
@@ -335,18 +372,18 @@ const styles = Styles.styleSheetCreate(
         zIndex: 1000,
       },
       newChat: {
-        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
-        backgroundColor: Styles.globalColors.fastBlank,
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
+        backgroundColor: Kb.Styles.globalColors.fastBlank,
         flexShrink: 0,
         width: '100%',
       },
       noChatsContainer: {
         alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingBottom: Styles.globalMargins.large,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.large,
+        paddingBottom: Kb.Styles.globalMargins.large,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.large,
       },
     }) as const
 )

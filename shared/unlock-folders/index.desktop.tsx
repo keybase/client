@@ -1,17 +1,16 @@
 import * as C from '../constants'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
 import DeviceList from './device-list.desktop'
 import DragHeader from '../desktop/remote/drag-header.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
 import Success from './success.desktop'
 import type * as Constants from '../constants/unlock-folders'
-import type * as ConfigConstants from '../constants/config'
 
 export type Props = {
   darkMode: boolean
   phase: Constants.State['phase']
-  devices: ConfigConstants.Store['unlockFoldersDevices']
+  devices: C.ConfigStore['unlockFoldersDevices']
   onClose: () => void
   toPaperKeyInput: () => void
   onBackFromPaperKey: () => void
@@ -63,7 +62,7 @@ const UnlockFolders = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {

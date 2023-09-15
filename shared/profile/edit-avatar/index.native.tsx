@@ -1,7 +1,6 @@
+import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import {isIOS, isTablet} from '../../constants/platform'
 import {type Props} from '.'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
 import {ModalTitle} from '../../teams/common'
@@ -61,9 +60,9 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
   _z: boolean = false
 
   private avatar_size = (): number => {
-    const margin = this.props.type === 'team' ? Styles.globalMargins.large : Styles.globalMargins.medium
-    const big = Styles.dimensionWidth - margin * 2
-    if (isTablet) {
+    const margin = this.props.type === 'team' ? Kb.Styles.globalMargins.large : Kb.Styles.globalMargins.medium
+    const big = Kb.Styles.dimensionWidth - margin * 2
+    if (C.isTablet) {
       return Math.min(500, big)
     } else {
       return big
@@ -130,7 +129,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
     }
   }
 
-  private getImageStyle = (): Styles.StylesCrossPlatform => ({
+  private getImageStyle = (): Kb.Styles.StylesCrossPlatform => ({
     borderRadius: this.props.type === 'team' ? 32 : this.avatar_size(),
     height: this.avatar_size(),
     width: this.avatar_size(),
@@ -140,10 +139,10 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
     if (this.props.type === 'team' && !this.props.image) {
       return (
         <Kb.ClickableBox
-          style={Styles.collapseStyles([styles.placeholder, this.getImageStyle()])}
+          style={Kb.Styles.collapseStyles([styles.placeholder, this.getImageStyle()])}
           onClick={this.props.onChooseNewAvatar}
         >
-          <Kb.Icon type="iconfont-camera" sizeType="Huge" color={Styles.globalColors.black_10} />
+          <Kb.Icon type="iconfont-camera" sizeType="Huge" color={Kb.Styles.globalColors.black_10} />
         </Kb.ClickableBox>
       )
     }
@@ -152,7 +151,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
       <Kb.ZoomableImage
         src={uri}
         onChanged={this._onZoom}
-        style={Styles.collapseStyles([styles.zoomContainer, this.getImageStyle()])}
+        style={Kb.Styles.collapseStyles([styles.zoomContainer, this.getImageStyle()])}
       />
     ) : null
   }
@@ -180,7 +179,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
               <ModalTitle
                 teamID={this.props.teamID}
                 title={
-                  this.props.image && isIOS
+                  this.props.image && C.isIOS
                     ? 'Zoom and pan'
                     : this.props.wizard
                     ? 'Upload avatar'
@@ -214,7 +213,10 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
     }
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.HeaderHocHeader onCancel={this.props.onClose} title={isIOS ? 'Zoom and pan' : 'Upload avatar'} />
+        <Kb.HeaderHocHeader
+          onCancel={this.props.onClose}
+          title={C.isIOS ? 'Zoom and pan' : 'Upload avatar'}
+        />
         {this.props.error ? (
           <Kb.Banner color="red">
             <Kb.Text type="Body">{this.props.error}</Kb.Text>
@@ -223,9 +225,9 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
         <Kb.Box style={styles.container}>
           <Kb.Box
             style={
-              isIOS
+              C.isIOS
                 ? null
-                : Styles.collapseStyles([
+                : Kb.Styles.collapseStyles([
                     styles.zoomContainer,
                     {
                       borderRadius: this.avatar_size(),
@@ -252,39 +254,39 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       button: {
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
         width: '100%',
       },
       container: {
-        ...Styles.padding(0, Styles.globalMargins.medium),
-        marginBottom: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.small,
+        ...Kb.Styles.padding(0, Kb.Styles.globalMargins.medium),
+        marginBottom: Kb.Styles.globalMargins.small,
+        marginTop: Kb.Styles.globalMargins.small,
       },
       flexReallyGrow: {
         flexGrow: 1000,
       },
       placeholder: {
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.black_05,
-        borderColor: Styles.globalColors.black_50,
+        backgroundColor: Kb.Styles.globalColors.black_05,
+        borderColor: Kb.Styles.globalColors.black_50,
         borderStyle: 'dotted',
         borderWidth: 4,
         display: 'flex',
         justifyContent: 'center',
       },
-      standardScreen: {...Styles.padding(0), flexGrow: 1},
+      standardScreen: {...Kb.Styles.padding(0), flexGrow: 1},
       wizardContainer: {
-        ...Styles.padding(64, Styles.globalMargins.large),
-        backgroundColor: Styles.globalColors.blueGrey,
+        ...Kb.Styles.padding(64, Kb.Styles.globalMargins.large),
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
       },
-      zoomContainer: Styles.platformStyles({
+      zoomContainer: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.grey,
-          marginBottom: Styles.globalMargins.tiny,
+          backgroundColor: Kb.Styles.globalColors.grey,
+          marginBottom: Kb.Styles.globalMargins.tiny,
           overflow: 'hidden',
           position: 'relative',
         },

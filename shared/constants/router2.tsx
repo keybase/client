@@ -6,12 +6,13 @@ import * as Container from '../util/container'
 import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
-import shallowEqual from 'shallowequal'
 import type {NavigationState} from '@react-navigation/core'
 import type {NavigateAppendType} from '../router-v2/route-params'
 export type PathParam = NavigateAppendType
 type Route = NavigationState['routes'][0]
 export type NavState = Route['state']
+
+const DEBUG_NAV = __DEV__ && false
 
 export const navigationRef_ = createNavigationContainerRef()
 export const _getNavigator = () => {
@@ -140,7 +141,7 @@ export const getTab = (navState?: NavState) => {
   return undefined
 }
 
-const isSplit = !Container.isMobile || Container.isTablet // Whether the inbox and conversation panels are visible side-by-side.
+const isSplit = !C.isMobile || C.isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
 export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const rs = getRootState()
@@ -247,7 +248,7 @@ export type State = Store & {
     navigateUp: () => void
     navUpToScreen: (name: string) => void
     popStack: () => void
-    resetState: 'default'
+    resetState: () => void
     setNavState: (ns: NavState) => void
     switchTab: (tab: Tabs.AppTab) => void
   }
@@ -260,6 +261,7 @@ export type State = Store & {
 export const _useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     clearModals: () => {
+      DEBUG_NAV && console.log('[Nav] clearModals')
       const n = _getNavigator()
       if (!n) return
       const ns = getRootState()
@@ -271,6 +273,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       tabLongPress: undefined,
     },
     navUpToScreen: name => {
+      DEBUG_NAV && console.log('[Nav] navUpToScreen', {name})
       const n = _getNavigator()
       if (!n) return
       const ns = getRootState()
@@ -290,6 +293,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       n.dispatch(CommonActions.reset(nextState))
     },
     navigateAppend: (path, replace, fromKey) => {
+      DEBUG_NAV && console.log('[Nav] navigateAppend', {path})
       const n = _getNavigator()
       if (!n) return
       const ns = getRootState()
@@ -310,7 +314,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const vp = getVisiblePath(ns)
       const visible = vp.at(-1)
       if (visible) {
-        if (routeName === visible.name && shallowEqual(visible.params, params)) {
+        if (routeName === visible.name && C.shallowEqual(visible.params, params)) {
           console.log('Skipping append dupe')
           return
         }
@@ -331,15 +335,24 @@ export const _useState = Z.createZustand<State>((set, get) => {
       n.dispatch(StackActions.push(routeName, params))
     },
     navigateUp: () => {
+      DEBUG_NAV && console.log('[Nav] navigateUp')
       const n = _getNavigator()
       return n?.dispatch(CommonActions.goBack())
     },
     popStack: () => {
+      DEBUG_NAV && console.log('[Nav] popStack')
       const n = _getNavigator()
       n?.dispatch(StackActions.popToTop())
     },
-    resetState: 'default',
+    resetState: () => {
+      DEBUG_NAV && console.log('[Nav] resetState')
+      set(s => ({
+        ...s,
+        dispatch: s.dispatch,
+      }))
+    },
     setNavState: next => {
+      DEBUG_NAV && console.log('[Nav] setNavState')
       const prev = get().navState
       if (prev === next) return
       set(s => {
@@ -431,6 +444,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       C.useChatState.getState().dispatch.onRouteChanged(prev, next)
     },
     switchTab: name => {
+      DEBUG_NAV && console.log('[Nav] switchTab', {name})
       const n = _getNavigator()
       if (!n) return
       const ns = getRootState()

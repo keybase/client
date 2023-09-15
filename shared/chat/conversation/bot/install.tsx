@@ -1,10 +1,8 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import * as TeamConstants from '../../../constants/teams'
 import ChannelPicker from './channel-picker'
 import openURL from '../../../util/open-url'
 import * as T from '../../../constants/types'
@@ -88,7 +86,7 @@ const InstallBotPopup = (props: Props) => {
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
 
   const readOnly = C.useTeamsState(s =>
-    meta?.teamname ? !TeamConstants.getCanPerformByID(s, meta.teamID).manageBots : false
+    meta?.teamname ? !C.getCanPerformByID(s, meta.teamID).manageBots : false
   )
   const settings = C.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
   let teamname: string | undefined
@@ -99,7 +97,7 @@ const InstallBotPopup = (props: Props) => {
   }
 
   const {channelMetas} = useAllChannelMetas(teamID)
-  const error = Container.useAnyErrors([Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove])
+  const error = C.useAnyErrors([Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove])
   // dispatch
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -158,7 +156,7 @@ const InstallBotPopup = (props: Props) => {
   }, [refreshBotRoleInConv, refreshBotSettings, conversationIDKey, inTeam, botUsername])
   const noCommands = !commands?.commands
 
-  const dispatchClearWaiting = Container.useDispatchClearWaiting()
+  const dispatchClearWaiting = C.useDispatchClearWaiting()
   const refreshBotPublicCommands = C.useChatState(s => s.dispatch.refreshBotPublicCommands)
   React.useEffect(() => {
     dispatchClearWaiting([Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove])

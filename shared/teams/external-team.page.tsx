@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type * as Container from '../util/container'
+import type * as C from '../constants'
 
 const Ext = React.lazy(async () => import('./external-team'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Ext>
+type OwnProps = C.ViewPropsToPageProps<typeof Ext>
 
 const getOptions = () => ({
   header: undefined,

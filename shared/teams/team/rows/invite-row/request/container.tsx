@@ -1,7 +1,6 @@
 import * as C from '../../../../../constants'
 import * as Constants from '../../../../../constants/teams'
 import * as ChatConstants from '../../../../../constants/chat2'
-import * as Container from '../../../../../util/container'
 import * as React from 'react'
 import type * as T from '../../../../../constants/types'
 import type {RowProps} from '.'
@@ -68,7 +67,7 @@ export default (ownProps: OwnProps) => {
   const disabledReasonsForRolePicker = C.useTeamsState(s =>
     Constants.getDisabledReasonsForRolePicker(s, teamID, username)
   )
-  const waiting = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
+  const waiting = C.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
   const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
   const ignoreRequest = C.useTeamsState(s => s.dispatch.ignoreRequest)
 

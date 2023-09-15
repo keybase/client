@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import {subtitle} from '../../util/platforms'
 import openUrl from '../../util/open-url'
 import type * as T from '../../constants/types'
@@ -41,7 +40,7 @@ const WebDescription = ({platformUserName}: {platformUserName: string}) => {
   const root = `${platformUserName}/keybase.txt`
   const wellKnown = `${platformUserName}/.well-known/keybase.txt`
   return (
-    <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
+    <Kb.Box style={Kb.Styles.globalStyles.flexBoxColumn}>
       <Kb.Text center={true} type="BodySemibold">
         Please serve the text below <Kb.Text type="BodySemiboldItalic">exactly as it appears</Kb.Text> at one
         of these URL's.
@@ -50,7 +49,7 @@ const WebDescription = ({platformUserName}: {platformUserName: string}) => {
         type="BodyPrimaryLink"
         center={true}
         onClickURL={`https://${root}`}
-        style={{color: Styles.globalColors.blueDark, marginTop: Styles.globalMargins.tiny}}
+        style={{color: Kb.Styles.globalColors.blueDark, marginTop: Kb.Styles.globalMargins.tiny}}
       >
         {root}
       </Kb.Text>
@@ -58,7 +57,7 @@ const WebDescription = ({platformUserName}: {platformUserName: string}) => {
         type="BodyPrimaryLink"
         center={true}
         onClickURL={`https://${wellKnown}`}
-        style={{color: Styles.globalColors.blueDark}}
+        style={{color: Kb.Styles.globalColors.blueDark}}
       >
         {wellKnown}
       </Kb.Text>
@@ -91,7 +90,7 @@ const descriptionMap = new Map([
     () => (
       <Kb.Text center={true} type="BodySemibold">
         Please add the below text{' '}
-        <Kb.Text type="BodySemibold" style={{...Styles.globalStyles.italic}}>
+        <Kb.Text type="BodySemibold" style={{...Kb.Styles.globalStyles.italic}}>
           exactly as it appears
         </Kb.Text>{' '}
         to your profile.
@@ -114,7 +113,7 @@ const descriptionMap = new Map([
     () => (
       <Kb.Text center={true} type="BodySemibold">
         Please tweet the text below{' '}
-        <Kb.Text type="BodySemiboldItalic" style={{...Styles.globalStyles.italic}}>
+        <Kb.Text type="BodySemiboldItalic" style={{...Kb.Styles.globalStyles.italic}}>
           exactly as it appears.
         </Kb.Text>
       </Kb.Text>
@@ -169,7 +168,7 @@ class PostProof extends React.Component<Props, State> {
               platform={props.platform}
               style={styles.center}
               overlay="icon-proof-unfinished"
-              overlayColor={Styles.globalColors.greyDark}
+              overlayColor={Kb.Styles.globalColors.greyDark}
             />
             <>
               <Kb.Text center={true} style={styles.blue} type="Header">
@@ -188,7 +187,7 @@ class PostProof extends React.Component<Props, State> {
                 {noteText}
               </Kb.Text>
             )}
-            <Kb.Box2 direction={Styles.isMobile ? 'verticalReverse' : 'horizontal'} gap="small">
+            <Kb.Box2 direction={Kb.Styles.isMobile ? 'verticalReverse' : 'horizontal'} gap="small">
               <Kb.Button type="Dim" onClick={props.onCancel} label="Cancel" />
               {this.state.showSubmit ? (
                 <Kb.WaitingButton
@@ -213,16 +212,16 @@ class PostProof extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  blue: {color: Styles.globalColors.blueDark},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  blue: {color: Kb.Styles.globalColors.blueDark},
   center: {alignSelf: 'center'},
   error: {
     alignSelf: 'center',
-    backgroundColor: Styles.globalColors.red,
-    borderRadius: Styles.borderRadius,
-    padding: Styles.globalMargins.medium,
+    backgroundColor: Kb.Styles.globalColors.red,
+    borderRadius: Kb.Styles.borderRadius,
+    padding: Kb.Styles.globalMargins.medium,
   },
-  grey: {color: Styles.globalColors.black_20},
+  grey: {color: Kb.Styles.globalColors.black_20},
   proof: {
     flexGrow: 1,
     minHeight: 116,

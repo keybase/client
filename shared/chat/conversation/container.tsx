@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
 import type * as T from '../../constants/types'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
@@ -11,10 +10,9 @@ import Rekey from './rekey/container'
 type SwitchProps = {conversationIDKey?: T.Chat.ConversationIDKey} // needed by page
 
 const Conversation = React.memo(function Conversation(_: SwitchProps) {
-  const conversationIDKey = C.useChatContext(s => s.id)
   const type = C.useChatContext(s => {
     const meta = s.meta
-    switch (conversationIDKey) {
+    switch (s.id) {
       case C.noConversationIDKey:
         return 'noConvo'
       default:
@@ -44,7 +42,7 @@ const Conversation = React.memo(function Conversation(_: SwitchProps) {
       // On iOS it is less noticeable because screen transitions slide away to
       // the right, though it is visible for a small amount of time.
       // To solve this we render a blank screen on mobile conversation views with "noConvo"
-      return Container.isPhone ? null : <NoConversation />
+      return C.isPhone ? null : <NoConversation />
     case 'normal':
       return <Normal />
     case 'youAreReset':

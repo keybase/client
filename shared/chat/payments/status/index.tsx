@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Styles from '../../../styles'
 import type * as T from '../../../constants/types'
+import * as Styles from '../../../styles'
 import PaymentStatusError from './error'
 import Text from '../../../common-adapters/text'
 import {Box2} from '../../../common-adapters/box'
@@ -10,6 +10,7 @@ import Icon from '../../../common-adapters/icon'
 const Kb = {
   Box2,
   Icon,
+  Styles,
   Text,
 }
 
@@ -48,13 +49,13 @@ const getIcon = (status: Status) => {
 const statusColor = (s: Status) => {
   switch (s) {
     case 'completed':
-      return Styles.globalColors.purpleDarkOrWhite
+      return Kb.Styles.globalColors.purpleDarkOrWhite
     case 'claimable':
       return undefined
     case 'pending':
-      return Styles.globalColors.black_50OrWhite
+      return Kb.Styles.globalColors.black_50OrWhite
     case 'error':
-      return Styles.globalColors.redDarkOrWhite
+      return Kb.Styles.globalColors.redDarkOrWhite
   }
 }
 
@@ -108,7 +109,7 @@ class PaymentStatus extends React.Component<Props, State> {
         visible={this.state.showPopup}
       />
     ) : null
-    return Styles.isMobile ? (
+    return Kb.Styles.isMobile ? (
       <>
         {text}
         {popups}
@@ -127,46 +128,46 @@ class PaymentStatus extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       claimable: {
-        backgroundColor: Styles.globalColors.purple_10OrPurple,
-        borderRadius: Styles.globalMargins.xxtiny,
-        color: Styles.globalColors.purpleDarkOrWhite,
-        paddingLeft: Styles.globalMargins.xtiny,
-        paddingRight: Styles.globalMargins.xtiny,
+        backgroundColor: Kb.Styles.globalColors.purple_10OrPurple,
+        borderRadius: Kb.Styles.globalMargins.xxtiny,
+        color: Kb.Styles.globalColors.purpleDarkOrWhite,
+        paddingLeft: Kb.Styles.globalMargins.xtiny,
+        paddingRight: Kb.Styles.globalMargins.xtiny,
       },
       completed: {
-        backgroundColor: Styles.globalColors.purple_10OrPurple,
-        borderRadius: Styles.globalMargins.xxtiny,
-        color: Styles.globalColors.purpleDarkOrWhite,
-        paddingLeft: Styles.globalMargins.xtiny,
-        paddingRight: Styles.globalMargins.xtiny,
+        backgroundColor: Kb.Styles.globalColors.purple_10OrPurple,
+        borderRadius: Kb.Styles.globalMargins.xxtiny,
+        color: Kb.Styles.globalColors.purpleDarkOrWhite,
+        paddingLeft: Kb.Styles.globalMargins.xtiny,
+        paddingRight: Kb.Styles.globalMargins.xtiny,
       },
-      container: Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         isElectron: {
           display: 'inline-block',
         },
       }),
       error: {
-        backgroundColor: Styles.globalColors.red_10OrRed,
-        borderRadius: Styles.globalMargins.xxtiny,
-        color: Styles.globalColors.redDarkOrWhite,
-        paddingLeft: Styles.globalMargins.xtiny,
-        paddingRight: Styles.globalMargins.xtiny,
+        backgroundColor: Kb.Styles.globalColors.red_10OrRed,
+        borderRadius: Kb.Styles.globalMargins.xxtiny,
+        color: Kb.Styles.globalColors.redDarkOrWhite,
+        paddingLeft: Kb.Styles.globalMargins.xtiny,
+        paddingRight: Kb.Styles.globalMargins.xtiny,
       },
-      iconBoxStyle: Styles.platformStyles({
+      iconBoxStyle: Kb.Styles.platformStyles({
         isElectron: {
           display: 'inline',
         },
       }),
       pending: {
-        backgroundColor: Styles.globalColors.greyLight,
-        borderRadius: Styles.globalMargins.xxtiny,
-        color: Styles.globalColors.black_50OrWhite,
-        paddingLeft: Styles.globalMargins.xtiny,
-        paddingRight: Styles.globalMargins.xtiny,
+        backgroundColor: Kb.Styles.globalColors.greyLight,
+        borderRadius: Kb.Styles.globalMargins.xxtiny,
+        color: Kb.Styles.globalColors.black_50OrWhite,
+        paddingLeft: Kb.Styles.globalMargins.xtiny,
+        paddingRight: Kb.Styles.globalMargins.xtiny,
       },
     }) as const
 )

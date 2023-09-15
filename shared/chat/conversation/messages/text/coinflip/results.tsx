@@ -1,6 +1,5 @@
 import partition from 'lodash/partition'
 import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
 import * as T from '../../../../../constants/types'
 
 type Props = {
@@ -80,19 +79,19 @@ const cards = [
 
 const suits = {
   clubs: {
-    color: Styles.globalColors.blackOrBlack,
+    color: Kb.Styles.globalColors.blackOrBlack,
     icon: 'iconfont-club',
   },
   diamonds: {
-    color: Styles.globalColors.redDark,
+    color: Kb.Styles.globalColors.redDark,
     icon: 'iconfont-diamond',
   },
   hearts: {
-    color: Styles.globalColors.redDark,
+    color: Kb.Styles.globalColors.redDark,
     icon: 'iconfont-heart',
   },
   spades: {
-    color: Styles.globalColors.blackOrBlack,
+    color: Kb.Styles.globalColors.blackOrBlack,
     icon: 'iconfont-spade',
   },
 } as const
@@ -107,7 +106,7 @@ const Card = (props: CardType) => (
     <Kb.Box2 direction="horizontal">
       <Kb.Text
         selectable={true}
-        type={Styles.isMobile ? 'BodySmall' : 'Body'}
+        type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'}
         style={
           // @ts-ignore
           {color: suits[cards[props.card].suit].color}
@@ -121,7 +120,7 @@ const Card = (props: CardType) => (
     </Kb.Box2>
     <Kb.Box2 direction="horizontal">
       <Kb.Icon
-        fontSize={Styles.isMobile ? 10 : 12}
+        fontSize={Kb.Styles.isMobile ? 10 : 12}
         type={
           // @ts-ignore
           suits[cards[props.card]?.suit]?.icon
@@ -145,7 +144,7 @@ const CoinFlipResultDeck = (props: DeckType) => (
   <Kb.Box2
     direction="horizontal"
     fullWidth={true}
-    style={Styles.collapseStyles([styles.cards, !props.hand && styles.noMarginTop])}
+    style={Kb.Styles.collapseStyles([styles.cards, !props.hand && styles.noMarginTop])}
   >
     {props.deck?.map(card => <Card key={card} card={card} hand={props.hand} />)}
   </Kb.Box2>
@@ -251,7 +250,7 @@ const CoinFlipResultShuffleItem = (props: {index: number; item: string}) => (
         selectable={true}
         center={true}
         type={props.index === 0 ? 'BodyBig' : 'BodyTiny'}
-        style={Styles.collapseStyles([styles.listOrder, props.index === 0 && styles.listOrderFirst])}
+        style={Kb.Styles.collapseStyles([styles.listOrder, props.index === 0 && styles.listOrderFirst])}
       >
         {props.index + 1}
       </Kb.Text>
@@ -265,31 +264,31 @@ const CoinFlipResultShuffleItem = (props: {index: number; item: string}) => (
 const paragraphOverrides = {
   paragraph: {
     // These are Header's styles.
-    fontSize: Styles.isMobile ? 20 : 18,
+    fontSize: Kb.Styles.isMobile ? 20 : 18,
     fontWeight: '700',
-    lineHeight: Styles.isMobile ? 24 : undefined,
+    lineHeight: Kb.Styles.isMobile ? 24 : undefined,
   } as const,
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      break: Styles.platformStyles({
+      break: Kb.Styles.platformStyles({
         isElectron: {
           wordBreak: 'break-all',
         },
       }),
-      card: Styles.platformStyles({
+      card: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.whiteOrWhite,
-          borderColor: Styles.globalColors.black_10OrBlack,
-          borderRadius: Styles.borderRadius,
+          backgroundColor: Kb.Styles.globalColors.whiteOrWhite,
+          borderColor: Kb.Styles.globalColors.black_10OrBlack,
+          borderRadius: Kb.Styles.borderRadius,
           borderStyle: 'solid',
           borderWidth: 1,
           flexShrink: 0,
           height: 44,
           marginRight: -4,
-          marginTop: Styles.globalMargins.tiny,
+          marginTop: Kb.Styles.globalMargins.tiny,
           width: 28,
         },
         isMobile: {
@@ -298,22 +297,22 @@ const styles = Styles.styleSheetCreate(
           width: 20,
         },
       }),
-      cardSuit: Styles.platformStyles({
+      cardSuit: Kb.Styles.platformStyles({
         isMobile: {
           position: 'relative',
           top: -1,
         },
       }),
       // compensate for the bottom margin on cards
-      cards: Styles.platformStyles({
+      cards: Kb.Styles.platformStyles({
         common: {
           flexWrap: 'wrap',
         },
         isElectron: {
-          marginTop: -Styles.globalMargins.tiny,
+          marginTop: -Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          marginTop: -Styles.globalMargins.xtiny,
+          marginTop: -Kb.Styles.globalMargins.xtiny,
         },
       }),
       coin: {
@@ -321,33 +320,33 @@ const styles = Styles.styleSheetCreate(
         width: 48,
       },
       commonContainer: {
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
       handContainer: {
         flexShrink: 1,
-        paddingRight: Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.tiny,
       },
       handTarget: {
         height: 'auto',
         justifyContent: 'space-around',
-        paddingRight: Styles.globalMargins.tiny,
+        paddingRight: Kb.Styles.globalMargins.tiny,
       },
       listContainer: {
-        marginTop: Styles.globalMargins.xsmall,
+        marginTop: Kb.Styles.globalMargins.xsmall,
       },
-      listFull: Styles.platformStyles({
+      listFull: Kb.Styles.platformStyles({
         isElectron: {
           wordBreak: 'break-word',
         } as const,
       }),
       listFullContainer: {
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Kb.Styles.globalMargins.tiny,
       },
-      listOrder: Styles.platformStyles({
+      listOrder: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.greyDark,
+          backgroundColor: Kb.Styles.globalColors.greyDark,
           borderRadius: 2,
-          color: Styles.globalColors.black,
+          color: Kb.Styles.globalColors.black,
           height: 14,
           width: 14,
         },
@@ -358,14 +357,14 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       listOrderContainer: {
-        marginLeft: Styles.globalMargins.xtiny,
-        marginRight: Styles.globalMargins.xtiny,
+        marginLeft: Kb.Styles.globalMargins.xtiny,
+        marginRight: Kb.Styles.globalMargins.xtiny,
         width: 20,
       },
-      listOrderFirst: Styles.platformStyles({
+      listOrderFirst: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.black,
-          color: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.black,
+          color: Kb.Styles.globalColors.white,
           height: 18,
           width: 18,
         },

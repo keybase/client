@@ -3,8 +3,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
 import * as TeamConstants from '../constants/teams'
-import * as Platforms from '../constants/platform'
-import * as Styles from '../styles'
 import type * as T from '../constants/types'
 import ChatInboxHeader from './inbox/header/container'
 
@@ -142,7 +140,7 @@ const Header2 = (props: Props) => {
                 {fullName}
               </Kb.Text>
             ) : withoutSelf ? (
-              <Kb.Box2 direction="horizontal" style={Styles.globalStyles.flexOne}>
+              <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne}>
                 <Kb.Text type="Header" lineClamp={1}>
                   {withoutSelf.map((part, i) => (
                     <Kb.Text type="Header" key={part}>
@@ -150,7 +148,7 @@ const Header2 = (props: Props) => {
                         colorFollowing={true}
                         underline={true}
                         inline={true}
-                        commaColor={Styles.globalColors.black_50}
+                        commaColor={Kb.Styles.globalColors.black_50}
                         type="Header"
                         usernames={part}
                         onUsernameClicked="profile"
@@ -165,7 +163,7 @@ const Header2 = (props: Props) => {
               <Kb.Icon
                 type="iconfont-shh"
                 style={styles.shhIconStyle}
-                color={Styles.globalColors.black_20}
+                color={Kb.Styles.globalColors.black_20}
                 fontSize={20}
                 onClick={unMuteConversation}
               />
@@ -179,7 +177,7 @@ const Header2 = (props: Props) => {
                     colorFollowing={true}
                     underline={true}
                     inline={true}
-                    commaColor={Styles.globalColors.black_50}
+                    commaColor={Kb.Styles.globalColors.black_50}
                     type="BodySmallBold"
                     usernames={withoutSelf[0] ?? ''}
                     onUsernameClicked="profile"
@@ -207,7 +205,7 @@ const Header2 = (props: Props) => {
             alignSelf="flex-end"
             style={styles.actionIcons}
           >
-            <Kb.WithTooltip tooltip={`Search in this chat (${Platforms.shortcutSymbol}F)`}>
+            <Kb.WithTooltip tooltip={`Search in this chat (${C.shortcutSymbol}F)`}>
               <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={onToggleThreadSearch} />
             </Kb.WithTooltip>
             <Kb.WithTooltip tooltip="Open folder">
@@ -215,7 +213,7 @@ const Header2 = (props: Props) => {
             </Kb.WithTooltip>
             <Kb.WithTooltip tooltip="Chat info & settings">
               <Kb.Icon
-                color={infoPanelShowing ? Styles.globalColors.blue : undefined}
+                color={infoPanelShowing ? Kb.Styles.globalColors.blue : undefined}
                 style={styles.clickable}
                 type="iconfont-info"
                 onClick={onToggleInfoPanel}
@@ -228,26 +226,26 @@ const Header2 = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       actionIcons: {
-        paddingBottom: Styles.globalMargins.tiny,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
       },
-      clickable: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
+      clickable: Kb.Styles.platformStyles({isElectron: Kb.Styles.desktopStyles.windowDraggingClickable}),
       container: {
         flexGrow: 1,
         height: 40 - 1,
       },
       desc: {
-        ...Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
-        color: Styles.globalColors.black_50,
+        ...Kb.Styles.platformStyles({isElectron: Kb.Styles.desktopStyles.windowDraggingClickable}),
+        color: Kb.Styles.globalColors.black_50,
       },
       descriptionContainer: {
         height: 17,
         overflow: 'hidden',
       },
-      descriptionTextContainer: Styles.platformStyles({
+      descriptionTextContainer: Kb.Styles.platformStyles({
         isElectron: {
           alignItems: 'baseline',
         },
@@ -255,23 +253,23 @@ const styles = Styles.styleSheetCreate(
           alignItems: 'baseline',
         },
       }),
-      headerTitle: Styles.platformStyles({
+      headerTitle: Kb.Styles.platformStyles({
         common: {
           flexGrow: 1,
-          paddingBottom: Styles.globalMargins.xtiny,
+          paddingBottom: Kb.Styles.globalMargins.xtiny,
         },
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
         isTablet: {
           flex: 1,
         },
       }),
-      left: Styles.platformStyles({
-        common: {width: Styles.globalStyles.mediumSubNavWidth},
+      left: Kb.Styles.platformStyles({
+        common: {width: Kb.Styles.globalStyles.mediumSubNavWidth},
         isTablet: {
-          paddingLeft: Styles.globalMargins.small,
+          paddingLeft: Kb.Styles.globalMargins.small,
         },
       }),
-      markdownOverride: Styles.platformStyles({
+      markdownOverride: Kb.Styles.platformStyles({
         common: {
           fontSize: 13,
           lineHeight: 17,
@@ -282,23 +280,23 @@ const styles = Styles.styleSheetCreate(
           wordBreak: 'break-all',
         },
         isMobile: {
-          color: Styles.globalColors.black_50 as any,
+          color: Kb.Styles.globalColors.black_50 as any,
           fontSize: 15,
           lineHeight: 19,
         },
       } as any),
-      right: Styles.platformStyles({
+      right: Kb.Styles.platformStyles({
         common: {
           flex: 1,
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
+          paddingLeft: Kb.Styles.globalMargins.xsmall,
+          paddingRight: Kb.Styles.globalMargins.xsmall,
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.tiny,
+          paddingLeft: Kb.Styles.globalMargins.tiny,
         },
       }),
       shhIconStyle: {
-        marginLeft: Styles.globalMargins.xtiny,
+        marginLeft: Kb.Styles.globalMargins.xtiny,
       },
     }) as const
 )

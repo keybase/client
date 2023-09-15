@@ -1,4 +1,4 @@
-import type * as Container from '../util/container'
+import type * as C from '../constants'
 import feedback from './feedback.page'
 import signupEnterDevicename from './device-name.page'
 import signupEnterUsername from './username.page'
@@ -20,4 +20,4 @@ export const newModalRoutes = {
   signupVerifyPhoneNumber,
 }
 
-export type RootParamListSignup = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>
+export type RootParamListSignup = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>

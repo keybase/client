@@ -1,7 +1,6 @@
 import logger from '../../logger'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
 import type * as T from '../../constants/types'
 import {Picker} from '@react-native-picker/picker'
 import {TouchableWithoutFeedback, Modal} from 'react-native'
@@ -102,7 +101,7 @@ class Dropdown extends React.Component<Props, State> {
         <Kb.Text key="text" type="Header" style={styles.orangeText}>
           {this._label(this.state.value)}
         </Kb.Text>
-        {Styles.isAndroid ? null : (
+        {Kb.Styles.isAndroid ? null : (
           <Kb.Icon key="icon" type="iconfont-caret-down" style={styles.icon} sizeType="Tiny" />
         )}
       </>
@@ -187,46 +186,46 @@ class Dropdown extends React.Component<Props, State> {
   }
 
   render() {
-    return Styles.isIOS ? this._renderIOS() : this._renderAndroid()
+    return Kb.Styles.isIOS ? this._renderIOS() : this._renderAndroid()
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.white,
-        borderColor: Styles.globalColors.black_10,
-        borderRadius: Styles.borderRadius,
+        backgroundColor: Kb.Styles.globalColors.white,
+        borderColor: Kb.Styles.globalColors.black_10,
+        borderRadius: Kb.Styles.borderRadius,
         borderWidth: 1,
         height: 48,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
       },
       icon: {width: 10},
-      item: {color: Styles.globalColors.black},
+      item: {color: Kb.Styles.globalColors.black},
       orangeText: {
-        color: Styles.globalColors.orange,
+        color: Kb.Styles.globalColors.orange,
         flex: 1,
         lineHeight: 28,
       },
       pickerAndroid: {
-        backgroundColor: Styles.globalColors.transparent,
+        backgroundColor: Kb.Styles.globalColors.transparent,
         bottom: 0,
-        color: Styles.globalColors.transparent,
+        color: Kb.Styles.globalColors.transparent,
         left: 0,
         position: 'absolute',
         right: 0,
         top: 0,
       },
       pickerContainer: {
-        backgroundColor: Styles.globalColors.black_50OrBlack_60,
+        backgroundColor: Kb.Styles.globalColors.black_50OrBlack_60,
         flex: 1,
         justifyContent: 'flex-end',
       },
-      pickerIOS: {backgroundColor: Styles.globalColors.white},
+      pickerIOS: {backgroundColor: Kb.Styles.globalColors.white},
     }) as const
 )
 

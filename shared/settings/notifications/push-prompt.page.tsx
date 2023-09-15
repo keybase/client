@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as Container from '../../util/container'
+import * as C from '../../constants'
 
 const Push = React.lazy(async () => import('./push-prompt'))
 
 const Screen = () =>
-  Container.isMobile ? (
+  C.isMobile ? (
     <React.Suspense>
       <Push />
     </React.Suspense>

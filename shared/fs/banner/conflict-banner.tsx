@@ -1,6 +1,6 @@
 import * as Kb from '../../common-adapters'
+import * as C from '../../constants'
 import * as T from '../../constants/types'
-import {fileUIName} from '../../constants/platform'
 
 export type Props = {
   conflictState: T.FS.ConflictState
@@ -87,7 +87,7 @@ const ConflictBanner = (props: Props) => {
             content={[
               {
                 onClick: () => props.openInSystemFileManager(conflictState.normalViewTlfPath),
-                text: ` Open in ${fileUIName} `,
+                text: ` Open in ${C.fileUIName} `,
               },
               finishRes,
               helpAction,

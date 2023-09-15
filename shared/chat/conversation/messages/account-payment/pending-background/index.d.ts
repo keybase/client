@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as Styles from '../../../../../styles'
+import * as Kb from '../../../../../common-adapters'
 
 export type Props = {
-  style: Styles.StylesCrossPlatform
+  style: Kb.Styles.StylesCrossPlatform
   children: React.ReactNode
 }
 

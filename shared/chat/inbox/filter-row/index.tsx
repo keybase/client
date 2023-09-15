@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import * as Platforms from '../../../constants/platform'
 
 export type Props = {
@@ -17,7 +16,7 @@ export type Props = {
   onStopSearch: () => void
   showNewChat: boolean
   showSearch: boolean
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 class ConversationFilterInput extends React.PureComponent<Props> {
@@ -38,7 +37,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
   }
 
   private onEnterKeyDown = (e?: React.BaseSyntheticEvent) => {
-    if (!Styles.isMobile) {
+    if (!Kb.Styles.isMobile) {
       if (e) {
         e.preventDefault()
         e.stopPropagation()
@@ -73,7 +72,11 @@ class ConversationFilterInput extends React.PureComponent<Props> {
         style={styles.searchBox}
         icon="iconfont-search"
         placeholderText={
-          this.props.isSearching ? 'Search your chats...' : Styles.isMobile ? 'Search your chats' : 'Search'
+          this.props.isSearching
+            ? 'Search your chats...'
+            : Kb.Styles.isMobile
+            ? 'Search your chats'
+            : 'Search'
         }
         hotkey="k"
         showXOverride={this.props.isSearching ? true : undefined}
@@ -82,8 +85,8 @@ class ConversationFilterInput extends React.PureComponent<Props> {
         // On mobile SearchFilter is re-mounted when toggling isSearching. (See chat/inbox/index.native.tsx:render's use of isSearching)
         // Simple props would cause the keyboard to appear and then disappear on dismount.
         // Take care instead to only launch the keyboard from the isSearching=true mountpoint.
-        dummyInput={Styles.isMobile && !this.props.isSearching}
-        focusOnMount={Styles.isMobile && this.props.isSearching}
+        dummyInput={Kb.Styles.isMobile && !this.props.isSearching}
+        focusOnMount={Kb.Styles.isMobile && this.props.isSearching}
         onChange={this.onChange}
         onCancel={this.props.onStopSearch}
         onFocus={this.props.onStartSearch}
@@ -94,20 +97,20 @@ class ConversationFilterInput extends React.PureComponent<Props> {
     return (
       <Kb.Box2
         direction="horizontal"
-        centerChildren={!Styles.isTablet}
-        gap={Styles.isMobile ? 'small' : 'xtiny'}
-        style={Styles.collapseStyles([
+        centerChildren={!Kb.Styles.isTablet}
+        gap={Kb.Styles.isMobile ? 'small' : 'xtiny'}
+        style={Kb.Styles.collapseStyles([
           styles.containerNotFiltering,
-          Styles.isPhone ? null : Styles.isTablet && this.props.showSearch ? null : styles.whiteBg,
-          !Styles.isMobile && styles.whiteBg,
+          Kb.Styles.isPhone ? null : Kb.Styles.isTablet && this.props.showSearch ? null : styles.whiteBg,
+          !Kb.Styles.isMobile && styles.whiteBg,
           this.props.style,
         ])}
         gapStart={this.props.showSearch}
         gapEnd={true}
       >
-        {!Styles.isMobile && <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKeys} />}
+        {!Kb.Styles.isMobile && <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKeys} />}
         {this.props.showSearch && searchInput}
-        {!!this.props.onNewChat && !Styles.isPhone && (Styles.isTablet || !this.props.isSearching) && (
+        {!!this.props.onNewChat && !Kb.Styles.isPhone && (Kb.Styles.isTablet || !this.props.isSearching) && (
           <Kb.Box style={styles.rainbowBorder}>
             <Kb.WithTooltip position="top center" tooltip={`(${Platforms.shortcutSymbol}N)`}>
               <Kb.Button
@@ -124,28 +127,28 @@ class ConversationFilterInput extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      containerFiltering: Styles.platformStyles({
+      containerFiltering: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueGrey,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
           position: 'relative',
         },
         isElectron: {
-          ...Styles.desktopStyles.windowDraggingClickable,
-          ...Styles.padding(0, Styles.globalMargins.small),
+          ...Kb.Styles.desktopStyles.windowDraggingClickable,
+          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
           height: 39,
         },
         isMobile: {
-          ...Styles.padding(0, Styles.globalMargins.small, 0, Styles.globalMargins.xsmall),
+          ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small, 0, Kb.Styles.globalMargins.xsmall),
           height: 48,
         },
-        isPhone: {backgroundColor: Styles.globalColors.fastBlank},
+        isPhone: {backgroundColor: Kb.Styles.globalColors.fastBlank},
       }),
-      containerNotFiltering: Styles.platformStyles({
+      containerNotFiltering: Kb.Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.blueGrey,
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
           height: undefined,
           position: 'relative',
           width: '100%',
@@ -153,25 +156,25 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           alignSelf: 'stretch',
           flexGrow: 1,
-          marginLeft: Styles.globalMargins.tiny,
-          marginRight: Styles.globalMargins.tiny,
+          marginLeft: Kb.Styles.globalMargins.tiny,
+          marginRight: Kb.Styles.globalMargins.tiny,
           width: undefined,
         },
         isPhone: {
-          backgroundColor: Styles.globalColors.white,
+          backgroundColor: Kb.Styles.globalColors.white,
         },
       }),
-      filterContainer: Styles.platformStyles({
+      filterContainer: Kb.Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.flexBoxRow,
+          ...Kb.Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
-          backgroundColor: Styles.globalColors.black_10,
-          borderRadius: Styles.borderRadius,
+          backgroundColor: Kb.Styles.globalColors.black_10,
+          borderRadius: Kb.Styles.borderRadius,
           flexGrow: 1,
           justifyContent: 'flex-start',
         },
         isElectron: {
-          ...Styles.desktopStyles.editable,
+          ...Kb.Styles.desktopStyles.editable,
           height: 28,
           paddingLeft: 8,
         },
@@ -181,69 +184,69 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       flexOne: {flex: 1},
-      icon: Styles.platformStyles({
+      icon: Kb.Styles.platformStyles({
         common: {position: 'relative'},
         isElectron: {top: 1},
         isMobile: {top: 0},
       }),
       input: {
-        color: Styles.globalColors.black_50,
+        color: Kb.Styles.globalColors.black_50,
         position: 'relative',
         top: 1,
       },
-      newChatButton: Styles.platformStyles({
+      newChatButton: Kb.Styles.platformStyles({
         isElectron: {
-          ...Styles.desktopStyles.windowDraggingClickable,
-          paddingRight: Styles.globalMargins.xsmall,
+          ...Kb.Styles.desktopStyles.windowDraggingClickable,
+          paddingRight: Kb.Styles.globalMargins.xsmall,
         },
       }),
       newChatButtonText: {
-        color: Styles.globalColors.white,
-        marginRight: Styles.globalMargins.xtiny,
+        color: Kb.Styles.globalColors.white,
+        marginRight: Kb.Styles.globalMargins.xtiny,
       },
       newIcon: {
         position: 'relative',
         top: 1,
       },
-      rainbowBorder: Styles.platformStyles({
+      rainbowBorder: Kb.Styles.platformStyles({
         common: {
           padding: 2,
         },
         isElectron: {
-          background: Styles.isDarkMode()
+          background: Kb.Styles.isDarkMode()
             ? 'linear-gradient(rgba(255, 93, 93, 0.75), rgba(255, 247, 90, 0.75) 50%, rgba(58, 255, 172, 0.75))'
             : 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #3AFFAC)',
           borderRadius: 6,
         },
         isMobile: {borderRadius: 8},
       }),
-      searchBox: Styles.platformStyles({
+      searchBox: Kb.Styles.platformStyles({
         common: {flex: 1},
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
         // hacky, redo the layout of this component later
         isTablet: {maxWidth: 270 - 16 * 2},
       }),
-      text: Styles.platformStyles({
+      text: Kb.Styles.platformStyles({
         common: {
-          color: Styles.globalColors.black_50,
-          marginRight: Styles.globalMargins.xtiny,
+          color: Kb.Styles.globalColors.black_50,
+          marginRight: Kb.Styles.globalMargins.xtiny,
           position: 'relative',
         },
         isElectron: {
-          marginLeft: Styles.globalMargins.xtiny,
+          marginLeft: Kb.Styles.globalMargins.xtiny,
           top: 0,
         },
         isMobile: {
-          marginLeft: Styles.globalMargins.tiny,
+          marginLeft: Kb.Styles.globalMargins.tiny,
           top: 1,
         },
       }),
       textFaint: {
-        color: Styles.globalColors.black_35,
+        color: Kb.Styles.globalColors.black_35,
         position: 'relative',
       },
-      whiteBg: {backgroundColor: Styles.globalColors.white},
-    } as const)
+      whiteBg: {backgroundColor: Kb.Styles.globalColors.white},
+    }) as const
 )
 
 export default ConversationFilterInput

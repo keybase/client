@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as T from '../../constants/types'
 import * as ChatConstants from '../../constants/chat2'
 import CommonResult, {type ResultProps} from './common-result'
@@ -79,11 +78,11 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
         onChat()
       }}
     >
-      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
+      <Kb.Icon type="iconfont-chat" color={Kb.Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
 
-  const rightButtons = Styles.isMobile ? [] : [chatButton, dropdown] // don't show action buttons on mobile for space reasons
+  const rightButtons = Kb.Styles.isMobile ? [] : [chatButton, dropdown] // don't show action buttons on mobile for space reasons
 
   return <CommonResult {...props} rowStyle={styles.rowContainer} rightButtons={rightButtons} />
 })
@@ -153,7 +152,7 @@ const DropdownButton = (p: DropdownProps) => {
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
         <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton} small={true}>
-          <Kb.Icon color={Styles.globalColors.blue} type="iconfont-ellipsis" />
+          <Kb.Icon color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />
         </Kb.Button>
       </Kb.Box2>
       {popup}
@@ -161,17 +160,17 @@ const DropdownButton = (p: DropdownProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  chatIcon: {marginRight: Styles.globalMargins.tiny},
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  chatIcon: {marginRight: Kb.Styles.globalMargins.tiny},
   dropdownButton: {minWidth: undefined},
-  highlighted: Styles.platformStyles({
+  highlighted: Kb.Styles.platformStyles({
     isElectron: {
-      backgroundColor: Styles.globalColors.blueLighter2,
-      borderRadius: Styles.borderRadius,
+      backgroundColor: Kb.Styles.globalColors.blueLighter2,
+      borderRadius: Kb.Styles.borderRadius,
     },
   }),
   rowContainer: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
   },
 }))
 
