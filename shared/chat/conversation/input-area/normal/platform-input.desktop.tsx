@@ -5,7 +5,7 @@ import SetExplodingMessagePopup from '../../messages/set-explode-popup/container
 import Typing from './typing'
 import type {Props} from './platform-input'
 import {EmojiPickerDesktop} from '../../../emoji-picker/container'
-import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
+import {KeyEventHandler} from '../../../../common-adapters/key-event-handler.desktop'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {useSuggestors} from '../suggestors'
 

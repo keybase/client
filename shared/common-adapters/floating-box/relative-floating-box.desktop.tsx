@@ -6,7 +6,7 @@ import includes from 'lodash/includes'
 import without from 'lodash/without'
 import Box from '../box'
 import ReactDOM from 'react-dom'
-import {EscapeHandler} from '../../util/key-event-handler.desktop'
+import {EscapeHandler} from '../key-event-handler.desktop'
 import isEqual from 'lodash/isEqual'
 
 const Kb = {
