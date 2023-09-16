@@ -22,7 +22,7 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
     if (isModal || isLoggedOut) {
       wrap = (
         <Kb.KeyboardAvoidingView2 extraOffset={40}>
-          <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+          <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
             <Kb.SafeAreaView
               style={Kb.Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
             >
