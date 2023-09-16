@@ -11,7 +11,9 @@ export const Portal = (p: {children: React.ReactNode; hostName?: string; useFull
   return fullWindow ? (
     <GPortal hostName={hostName}>
       <FullWindowOverlay>
-        <SafeAreaProvider initialMetrics={initialWindowMetrics}>{children}</SafeAreaProvider>
+        <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
+          {children}
+        </SafeAreaProvider>
       </FullWindowOverlay>
     </GPortal>
   ) : (

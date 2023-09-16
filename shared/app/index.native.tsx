@@ -102,7 +102,7 @@ const Keybase = () => {
   return (
     <GestureHandlerRootView style={styles.gesture}>
       <PortalProvider>
-        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
           <ReduxHelper>
             <Kb.Styles.CanFixOverdrawContext.Provider value={true}>
               <Main />

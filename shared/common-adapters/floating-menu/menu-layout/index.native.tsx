@@ -105,6 +105,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
     <SafeAreaProvider
       initialMetrics={initialWindowMetrics}
       style={[styles.safeProvider, props.safeProviderStyle]}
+      pointerEvents="box-none"
     >
       <SafeAreaView
         style={Styles.collapseStyles([
