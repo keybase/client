@@ -4,11 +4,9 @@ import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
 import * as TeamConstants from '../constants/teams'
 import type * as T from '../constants/types'
-import ChatInboxHeader from './inbox/header/container'
+import ChatInboxHeader from './inbox/header'
 
-type Props = {
-  conversationIDKey?: T.Chat.ConversationIDKey
-}
+type Props = {conversationIDKey?: T.Chat.ConversationIDKey}
 const Header = (props: Props) => {
   return (
     <C.ChatProvider canBeNull={true} id={props.conversationIDKey ?? C.noConversationIDKey}>

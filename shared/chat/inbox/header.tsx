@@ -1,12 +1,12 @@
 import * as React from 'react'
-import * as C from '../../../constants'
-import ChatInboxHeader from '.'
+import * as C from '../../constants'
+import ChatFilterRow from './filter-row'
+import StartNewChat from './row/start-new-chat'
 
-type OwnProps = {
-  headerContext: 'chat-header' | 'inbox-header'
-}
+type OwnProps = {headerContext: 'chat-header' | 'inbox-header'}
 
 export default React.memo(function ChatHeaderContainer(ownProps: OwnProps) {
+  const {headerContext} = ownProps
   const hasLoadedEmptyInbox = C.useChatState(
     s =>
       s.inboxHasLoaded &&
@@ -24,6 +24,7 @@ export default React.memo(function ChatHeaderContainer(ownProps: OwnProps) {
     navigateUp()
   }, [navigateUp])
 
+  const [query, setQuery] = React.useState('')
   const inboxSearchSelect = C.useChatState(s => s.dispatch.inboxSearchSelect)
   const inboxSearch = C.useChatState(s => s.dispatch.inboxSearch)
   const inboxSearchMoveSelectedIndex = C.useChatState(s => s.dispatch.inboxSearchMoveSelectedIndex)
@@ -35,25 +36,46 @@ export default React.memo(function ChatHeaderContainer(ownProps: OwnProps) {
   const onNewChat = React.useCallback(() => {
     appendNewChatBuilder()
   }, [appendNewChatBuilder])
-  const onQueryChanged = inboxSearch
+  const onQueryChanged = React.useCallback(
+    (q: string) => {
+      setQuery(q)
+      inboxSearch(q)
+    },
+    [inboxSearch]
+  )
   const onSelectDown = React.useCallback(() => {
     inboxSearchMoveSelectedIndex(true)
   }, [inboxSearchMoveSelectedIndex])
   const onSelectUp = React.useCallback(() => {
     inboxSearchMoveSelectedIndex(false)
   }, [inboxSearchMoveSelectedIndex])
-  const props = {
-    isSearching: isSearching,
-    onBack: onBack,
-    onEnsureSelection: onEnsureSelection,
-    onNewChat: onNewChat,
-    onQueryChanged: onQueryChanged,
-    onSelectDown: onSelectDown,
-    onSelectUp: onSelectUp,
-    showFilter: showFilter,
-    showNewChat: ownProps.headerContext == 'chat-header',
-    showSearch: ownProps.headerContext == 'chat-header' ? !C.isTablet : C.isMobile,
-    showStartNewChat: showStartNewChat,
+
+  const [lastSearching, setLastSearching] = React.useState(isSearching)
+  if (lastSearching !== isSearching) {
+    setLastSearching(isSearching)
+    if (!isSearching) {
+      setQuery('')
+    }
   }
-  return <ChatInboxHeader {...props} />
+
+  const showNewChat = headerContext == 'chat-header'
+  const showSearch = headerContext == 'chat-header' ? !C.isTablet : C.isMobile
+
+  return (
+    <>
+      {!!showStartNewChat && <StartNewChat onBack={onBack} onNewChat={onNewChat} />}
+      {!!showFilter && (
+        <ChatFilterRow
+          onNewChat={onNewChat}
+          onSelectUp={onSelectUp}
+          onSelectDown={onSelectDown}
+          onEnsureSelection={onEnsureSelection}
+          onQueryChanged={onQueryChanged}
+          query={query}
+          showNewChat={showNewChat}
+          showSearch={showSearch}
+        />
+      )}
+    </>
+  )
 })
