@@ -40,7 +40,7 @@ const Rover = () => {
           left: props.xy.interpolate(transBackgroundX),
         }}
       >
-        <Kb.Icon style={styles.background} type="icon-illustration-mars-rover-background" />
+        <Kb.Icon style={styles.background} type="icon-illustration-mars-rover-background" allowLazy={false} />
       </animated.div>
       <animated.div
         style={{
@@ -51,7 +51,7 @@ const Rover = () => {
           left: props.xy.interpolate(transRoverX),
         }}
       >
-        <Kb.Icon type="icon-illustration-mars-rover" />
+        <Kb.Icon type="icon-illustration-mars-rover" allowLazy={false} />
       </animated.div>
       <animated.div
         style={{
@@ -62,7 +62,7 @@ const Rover = () => {
           left: props.xy.interpolate(transForegroundX),
         }}
       >
-        <Kb.Icon style={styles.foreground} type="icon-illustration-mars-rover-foreground" />
+        <Kb.Icon style={styles.foreground} type="icon-illustration-mars-rover-foreground" allowLazy={false} />
       </animated.div>
     </div>
   )

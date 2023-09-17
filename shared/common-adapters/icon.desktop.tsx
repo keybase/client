@@ -15,7 +15,7 @@ const Icon = React.memo<Props>(
   // @ts-ignore
   React.forwardRef<HTMLDivElement | HTMLImageElement, Props>(function Icon(props, ref) {
     const {type, inheritColor, opacity, fontSize, noContainer, onMouseEnter, onMouseLeave, style} = props
-    const {className, hint, colorOverride, padding, boxStyle} = props
+    const {className, hint, colorOverride, padding, boxStyle, allowLazy = true} = props
     const iconType = Shared.typeToIconMapper(type)
     if (!iconType) {
       logger.warn('Null iconType passed')
@@ -77,7 +77,7 @@ const Icon = React.memo<Props>(
 
       iconElement = (
         <img
-          loading="lazy"
+          loading={allowLazy ? 'lazy' : undefined}
           className={className}
           draggable={false}
           ref={hasContainer ? undefined : (ref as any)}

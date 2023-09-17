@@ -37,6 +37,7 @@ export type Props = {
   // only applies to icon fonts
   sizeType?: SizeType
   padding?: keyof typeof globalMargins
+  allowLazy?: boolean // desktop only
 }
 
 declare class Icon extends React.Component<Props> {
