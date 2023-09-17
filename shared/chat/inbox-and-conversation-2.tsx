@@ -5,7 +5,7 @@ import * as React from 'react'
 import type * as T from '../constants/types'
 import Conversation from './conversation/container'
 import Inbox from './inbox/container'
-import InboxSearch from './inbox-search/container'
+import InboxSearch from './inbox-search'
 import InfoPanel from './conversation/info-panel/container'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; navKey?: string}
