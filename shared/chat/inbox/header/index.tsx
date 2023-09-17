@@ -1,5 +1,5 @@
 import * as React from 'react'
-import ChatFilterRow from '../filter-row/container'
+import ChatFilterRow from '../filter-row'
 import StartNewChat from '../row/start-new-chat'
 
 type Props = {
