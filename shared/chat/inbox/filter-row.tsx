@@ -178,9 +178,7 @@ const styles = Kb.Styles.styleSheetCreate(
           marginRight: Kb.Styles.globalMargins.tiny,
           width: undefined,
         },
-        isPhone: {
-          backgroundColor: Kb.Styles.globalColors.white,
-        },
+        isPhone: {backgroundColor: Kb.Styles.globalColors.white},
       }),
       filterContainer: Kb.Styles.platformStyles({
         common: {
@@ -227,9 +225,7 @@ const styles = Kb.Styles.styleSheetCreate(
         top: 1,
       },
       rainbowBorder: Kb.Styles.platformStyles({
-        common: {
-          padding: 2,
-        },
+        common: {padding: 2},
         isElectron: {
           background: Kb.Styles.isDarkMode()
             ? 'linear-gradient(rgba(255, 93, 93, 0.75), rgba(255, 247, 90, 0.75) 50%, rgba(58, 255, 172, 0.75))'
