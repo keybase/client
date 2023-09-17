@@ -20,25 +20,27 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
   const _inboxSearch = C.useChatState(s => s.inboxSearch ?? emptySearch)
   const toggleInboxSearch = C.useChatState(s => s.dispatch.toggleInboxSearch)
   const inboxSearchSelect = C.useChatState(s => s.dispatch.inboxSearchSelect)
-  const onCancel = () => {
+  const onCancel = React.useCallback(() => {
     toggleInboxSearch(false)
-  }
+  }, [toggleInboxSearch])
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onInstallBot = (username: string) => {
-    navigateAppend({props: {botUsername: username}, selected: 'chatInstallBotPick'})
-  }
-  const onSelectConversation = (
-    conversationIDKey: T.Chat.ConversationIDKey,
-    selectedIndex: number,
-    query: string
-  ) => {
-    inboxSearchSelect(conversationIDKey, query.length > 0 ? query : undefined, selectedIndex)
-  }
+  const onInstallBot = React.useCallback(
+    (username: string) => {
+      navigateAppend({props: {botUsername: username}, selected: 'chatInstallBotPick'})
+    },
+    [navigateAppend]
+  )
+  const onSelectConversation = React.useCallback(
+    (conversationIDKey: T.Chat.ConversationIDKey, selectedIndex: number, query: string) => {
+      inboxSearchSelect(conversationIDKey, query.length > 0 ? query : undefined, selectedIndex)
+    },
+    [inboxSearchSelect]
+  )
   const {header} = ownProps
   const {indexPercent, nameResults: _nameResults, nameResultsUnread, nameStatus, textStatus} = _inboxSearch
-  const {botsResults, botsResultsSuggested, botsStatus} = _inboxSearch
-  const {openTeamsResults, openTeamsResultsSuggested, openTeamsStatus} = _inboxSearch
-  const {query, selectedIndex, textResults: _textResults} = _inboxSearch
+  const {botsResults: _botsResults, botsResultsSuggested, botsStatus} = _inboxSearch
+  const {openTeamsResults: _openTeamsResults, openTeamsResultsSuggested, openTeamsStatus} = _inboxSearch
+  const {selectedIndex, textResults: _textResults} = _inboxSearch
 
   const [botsAll, setBotsAll] = React.useState(false)
   const [botsCollapsed, setBotsCollapsed] = React.useState(false)
@@ -46,6 +48,24 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
   const [openTeamsAll, setOpenTeamsAll] = React.useState(false)
   const [openTeamsCollapsed, setOpenTeamsCollapsed] = React.useState(false)
   const [textCollapsed, setTextCollapsed] = React.useState(false)
+  const toggleCollapseName = React.useCallback(() => {
+    setNameCollapsed(s => !s)
+  }, [])
+  const toggleCollapseText = React.useCallback(() => {
+    setTextCollapsed(s => !s)
+  }, [])
+  const toggleCollapseOpenTeams = React.useCallback(() => {
+    setOpenTeamsCollapsed(s => !s)
+  }, [])
+  const toggleOpenTeamsAll = React.useCallback(() => {
+    setOpenTeamsAll(s => !s)
+  }, [])
+  const toggleCollapseBots = React.useCallback(() => {
+    setBotsCollapsed(s => !s)
+  }, [])
+  const toggleBotsAll = React.useCallback(() => {
+    setBotsAll(s => !s)
+  }, [])
 
   const renderOpenTeams = (h: {
     item: T.Chat.InboxSearchOpenTeamHit
@@ -66,20 +86,6 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     )
   }
 
-  const nameResults = _nameResults.map(r => ({
-    conversationIDKey: r.conversationIDKey,
-    name: r.name,
-    type: r.teamType,
-  }))
-
-  const textResults = _textResults.map(r => ({
-    conversationIDKey: r.conversationIDKey,
-    name: r.name,
-    numHits: r.numHits,
-    query: r.query,
-    type: r.teamType,
-  }))
-
   const renderBots = (h: {item: T.RPCGen.FeaturedBot; section: {indexOffset: number}; index: number}) => {
     const {item, index} = h
     return (
@@ -87,25 +93,6 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
         <Bot {...item} onClick={onInstallBot} firstItem={index === 0} hideHover={true} />
       </C.ChatProvider>
     )
-  }
-
-  const toggleCollapseName = () => {
-    setNameCollapsed(s => !s)
-  }
-  const toggleCollapseText = () => {
-    setTextCollapsed(s => !s)
-  }
-  const toggleCollapseOpenTeams = () => {
-    setOpenTeamsCollapsed(s => !s)
-  }
-  const toggleOpenTeamsAll = () => {
-    setOpenTeamsAll(s => !s)
-  }
-  const toggleCollapseBots = () => {
-    setBotsCollapsed(s => !s)
-  }
-  const toggleBotsAll = () => {
-    setBotsAll(s => !s)
   }
 
   const selectText = (item: TextResult, index: number) => {
@@ -127,12 +114,8 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     )
   }
 
-  const getOpenTeamsResults = () => {
-    return openTeamsAll ? openTeamsResults : openTeamsResults.slice(0, 3)
-  }
-
   const renderTeamHeader = (section: any) => {
-    const showMore = openTeamsResults.length > 3 && !openTeamsCollapsed
+    const showMore = _openTeamsResults.length > 3 && !openTeamsCollapsed
     const label = (
       <Kb.Box2 direction="horizontal" gap="xtiny">
         <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
@@ -159,12 +142,8 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     )
   }
 
-  const getBotsResults = () => {
-    return botsAll ? botsResults : botsResults.slice(0, 3)
-  }
-
   const renderBotsHeader = (section: Section<T.RPCGen.FeaturedBot>) => {
-    const showMore = botsResults.length > 3 && !botsCollapsed
+    const showMore = _botsResults.length > 3 && !botsCollapsed
     const label = (
       <Kb.Box2 direction="horizontal" gap="xtiny">
         <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
@@ -291,59 +270,103 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     onCancel()
   }
 
-  const props = {
-    botsAll,
-    botsCollapsed,
-    botsResults,
-    botsResultsSuggested,
-    botsStatus,
-    getBotsResults,
-    getOpenTeamsResults,
-    header,
-    indexPercent,
-    keyExtractor,
-    nameCollapsed,
-    nameResults,
-    nameResultsUnread,
-    nameStatus,
-    onCancel,
-    onInstallBot,
-    onSelectConversation,
-    openTeamsAll,
-    openTeamsCollapsed,
-    openTeamsResults,
-    openTeamsResultsSuggested,
-    openTeamsStatus,
-    query,
-    renderBots,
-    renderBotsHeader,
-    renderHit,
-    renderNameHeader,
-    renderOpenTeams,
-    renderSectionHeader,
-    renderTeamHeader,
-    renderTextHeader,
-    selectBot,
-    selectName,
-    selectText,
-    selectedIndex,
-    setBotsAll,
-    setBotsCollapsed,
-    setNameCollapsed,
-    setOpenTeamsAll,
-    setOpenTeamsCollapsed,
-    setTextCollapsed,
-    textCollapsed,
-    textResults,
-    textStatus,
-    toggleBotsAll,
-    toggleCollapseBots,
-    toggleCollapseName,
-    toggleCollapseOpenTeams,
-    toggleCollapseText,
-    toggleOpenTeamsAll,
+  const nameResults: Array<NameResult> = nameCollapsed
+    ? []
+    : _nameResults.length
+    ? _nameResults.map(r => ({
+        conversationIDKey: r.conversationIDKey,
+        name: r.name,
+        type: r.teamType,
+      }))
+    : nameResultsUnread
+    ? [emptyUnreadPlaceholder]
+    : []
+
+  const textResults = textCollapsed
+    ? []
+    : _textResults.map(r => ({
+        conversationIDKey: r.conversationIDKey,
+        name: r.name,
+        numHits: r.numHits,
+        query: r.query,
+        type: r.teamType,
+      }))
+
+  const openTeamsResults = openTeamsCollapsed
+    ? []
+    : openTeamsAll
+    ? _openTeamsResults
+    : _openTeamsResults.slice(0, 3)
+
+  const botsResults = botsCollapsed ? [] : botsAll ? _botsResults : _botsResults.slice(0, 3)
+  const indexOffset = botsResults.length + openTeamsResults.length + nameResults.length
+
+  const nameSection: Section<NameResult> = {
+    data: nameResults,
+    indexOffset: 0,
+    isCollapsed: nameCollapsed,
+    onCollapse: toggleCollapseName,
+    onSelect: selectName,
+    renderHeader: renderNameHeader,
+    renderItem: renderHit,
+    status: nameStatus,
+    title: nameResultsUnread ? 'Unread' : 'Chats',
   }
-  return <InboxSearch {...props} />
+  const openTeamsSection: Section<T.Chat.InboxSearchOpenTeamHit> = {
+    data: openTeamsResults,
+    indexOffset: nameResults.length,
+    isCollapsed: openTeamsCollapsed,
+    onCollapse: toggleCollapseOpenTeams,
+    // @ts-ignore TODO: pretty sure this line is just wrong:
+    onSelect: selectText,
+    renderHeader: renderTeamHeader,
+    renderItem: renderOpenTeams,
+    status: openTeamsStatus,
+    title: openTeamsResultsSuggested ? 'Suggested teams' : 'Open teams',
+  }
+  const botsSection: Section<T.RPCGen.FeaturedBot> = {
+    data: botsResults,
+    indexOffset: openTeamsResults.length + nameResults.length,
+    isCollapsed: botsCollapsed,
+    onCollapse: toggleCollapseBots,
+    onSelect: selectBot,
+    renderHeader: renderBotsHeader,
+    renderItem: renderBots,
+    status: botsStatus,
+    title: botsResultsSuggested ? 'Suggested bots' : 'Featured bots',
+  }
+  const messagesSection: Section<TextResult> = {
+    data: textResults,
+    indexOffset,
+    isCollapsed: textCollapsed,
+    onCollapse: toggleCollapseText,
+    onSelect: selectText,
+    renderHeader: renderTextHeader,
+    // @ts-ignore better typing
+    renderItem: renderHit,
+    status: textStatus,
+    title: 'Messages',
+  }
+  const sections = [
+    nameSection,
+    openTeamsSection,
+    botsSection,
+    ...(!nameResultsUnread ? [messagesSection] : []),
+  ]
+
+  return (
+    <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
+      <Rover />
+      <Kb.SectionList
+        ListHeaderComponent={header}
+        stickySectionHeadersEnabled={true}
+        renderSectionHeader={renderSectionHeader as any}
+        keyExtractor={keyExtractor}
+        keyboardShouldPersistTaps="handled"
+        sections={sections}
+      />
+    </Kb.Box2>
+  )
 })
 
 type NameResult = {
@@ -370,175 +393,7 @@ type SectionExtra<T> = {
 }
 type Section<T> = _Section<T, SectionExtra<T>>
 
-export type Props = {
-  keyExtractor: (
-    _: T.RPCGen.FeaturedBot | T.Chat.InboxSearchOpenTeamHit | NameResult | TextResult,
-    index: number
-  ) => number
-  renderSectionHeader: ({
-    section,
-  }: {
-    section:
-      | Section<NameResult>
-      | Section<T.Chat.InboxSearchOpenTeamHit>
-      | Section<T.RPCGen.FeaturedBot>
-      | Section<TextResult>
-  }) => React.ReactNode
-  renderTextHeader: (section: Section<TextResult>) => React.JSX.Element
-  renderBotsHeader: (section: Section<T.RPCGen.FeaturedBot>) => React.JSX.Element
-  getBotsResults: () => T.RPCChat.Keybase1.FeaturedBot[]
-  renderTeamHeader: (section: any) => React.JSX.Element
-  getOpenTeamsResults: () => T.Chat.InboxSearchOpenTeamHit[]
-  renderNameHeader: (section: Section<NameResult>) => React.JSX.Element
-  selectBot: (item: T.RPCGen.FeaturedBot) => void
-  selectText: (item: TextResult, index: number) => void
-  selectName: (item: NameResult, index: number) => void
-  renderHit: (h: {
-    item: TextResult | NameResult
-    section: {
-      indexOffset: number
-      onSelect: (item: NameResult | TextResult, index: number) => void
-    }
-    index: number
-  }) => React.JSX.Element
-  toggleCollapseName: () => void
-  toggleCollapseText: () => void
-  toggleCollapseOpenTeams: () => void
-  toggleOpenTeamsAll: () => void
-  toggleCollapseBots: () => void
-  toggleBotsAll: () => void
-  renderBots: (h: {
-    item: T.RPCGen.FeaturedBot
-    section: {
-      indexOffset: number
-    }
-    index: number
-  }) => React.JSX.Element
-  renderOpenTeams: (h: {
-    item: T.Chat.InboxSearchOpenTeamHit
-    section: {
-      indexOffset: number
-    }
-    index: number
-  }) => React.JSX.Element
-  botsAll: boolean
-  botsCollapsed: boolean
-  nameCollapsed: boolean
-  openTeamsAll: boolean
-  openTeamsCollapsed: boolean
-  textCollapsed: boolean
-
-  setBotsAll: React.Dispatch<React.SetStateAction<boolean>>
-  setBotsCollapsed: React.Dispatch<React.SetStateAction<boolean>>
-  setNameCollapsed: React.Dispatch<React.SetStateAction<boolean>>
-  setOpenTeamsAll: React.Dispatch<React.SetStateAction<boolean>>
-  setOpenTeamsCollapsed: React.Dispatch<React.SetStateAction<boolean>>
-  setTextCollapsed: React.Dispatch<React.SetStateAction<boolean>>
-
-  botsResults: Array<T.RPCGen.FeaturedBot>
-  botsResultsSuggested: boolean
-  botsStatus: T.Chat.InboxSearchStatus
-  header?: React.ReactElement | null
-  indexPercent: number
-  nameResults: Array<NameResult>
-  nameResultsUnread: boolean
-  nameStatus: T.Chat.InboxSearchStatus
-  onInstallBot: (username: string) => void
-  onCancel: () => void
-  onSelectConversation: (arg0: T.Chat.ConversationIDKey, arg1: number, arg2: string) => void
-  openTeamsResults: Array<T.Chat.InboxSearchOpenTeamHit>
-  openTeamsResultsSuggested: boolean
-  openTeamsStatus: T.Chat.InboxSearchStatus
-  query: string
-  selectedIndex: number
-  textResults: Array<TextResult>
-  textStatus: T.Chat.InboxSearchStatus
-}
-
 const emptyUnreadPlaceholder = {conversationIDKey: '', name: '---EMPTYRESULT---', type: 'small' as const}
-
-class InboxSearch extends React.Component<Props> {
-  render() {
-    const nameResults: Array<NameResult> = this.props.nameCollapsed ? [] : this.props.nameResults
-    const textResults = this.props.textCollapsed ? [] : this.props.textResults
-    const openTeamsResults = this.props.openTeamsCollapsed ? [] : this.props.getOpenTeamsResults()
-    const botsResults = this.props.botsCollapsed ? [] : this.props.getBotsResults()
-
-    const indexOffset = botsResults.length + openTeamsResults.length + nameResults.length
-
-    if (this.props.nameResultsUnread && !this.props.nameCollapsed && nameResults.length === 0) {
-      nameResults.push(emptyUnreadPlaceholder)
-    }
-
-    const nameSection: Section<NameResult> = {
-      data: nameResults,
-      indexOffset: 0,
-      isCollapsed: this.props.nameCollapsed,
-      onCollapse: this.props.toggleCollapseName,
-      onSelect: this.props.selectName,
-      renderHeader: this.props.renderNameHeader,
-      renderItem: this.props.renderHit,
-      status: this.props.nameStatus,
-      title: this.props.nameResultsUnread ? 'Unread' : 'Chats',
-    }
-    const openTeamsSection: Section<T.Chat.InboxSearchOpenTeamHit> = {
-      data: openTeamsResults,
-      indexOffset: nameResults.length,
-      isCollapsed: this.props.openTeamsCollapsed,
-      onCollapse: this.props.toggleCollapseOpenTeams,
-      // @ts-ignore TODO: pretty sure this line is just wrong:
-      onSelect: this.props.selectText,
-      renderHeader: this.props.renderTeamHeader,
-      renderItem: this.props.renderOpenTeams,
-      status: this.props.openTeamsStatus,
-      title: this.props.openTeamsResultsSuggested ? 'Suggested teams' : 'Open teams',
-    }
-    const botsSection: Section<T.RPCGen.FeaturedBot> = {
-      data: botsResults,
-      indexOffset: openTeamsResults.length + nameResults.length,
-      isCollapsed: this.props.botsCollapsed,
-      onCollapse: this.props.toggleCollapseBots,
-      onSelect: this.props.selectBot,
-      renderHeader: this.props.renderBotsHeader,
-      renderItem: this.props.renderBots,
-      status: this.props.botsStatus,
-      title: this.props.botsResultsSuggested ? 'Suggested bots' : 'Featured bots',
-    }
-    const messagesSection: Section<TextResult> = {
-      data: textResults,
-      indexOffset,
-      isCollapsed: this.props.textCollapsed,
-      onCollapse: this.props.toggleCollapseText,
-      onSelect: this.props.selectText,
-      renderHeader: this.props.renderTextHeader,
-      // @ts-ignore better typing
-      renderItem: this.renderHit,
-      status: this.props.textStatus,
-      title: 'Messages',
-    }
-    const sections = [
-      nameSection,
-      openTeamsSection,
-      botsSection,
-      ...(!this.props.nameResultsUnread ? [messagesSection] : []),
-    ]
-
-    return (
-      <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
-        <Rover />
-        <Kb.SectionList
-          ListHeaderComponent={this.props.header}
-          stickySectionHeadersEnabled={true}
-          // @ts-ignore
-          renderSectionHeader={this.props.renderSectionHeader}
-          keyExtractor={this.props.keyExtractor}
-          keyboardShouldPersistTaps="handled"
-          sections={sections}
-        />
-      </Kb.Box2>
-    )
-  }
-}
 
 export const rowHeight = Kb.Styles.isMobile ? 64 : 56
 type OpenTeamProps = T.Chat.InboxSearchOpenTeamHit & {isSelected: boolean}
