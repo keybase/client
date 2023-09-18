@@ -7,93 +7,82 @@ import type {Props} from '.'
 
 const gridHeight = 100
 
-type State = {
-  width: number | undefined
-}
+const GiphySearch = (props: Props) => {
+  const [width, setWidth] = React.useState<number | undefined>(undefined)
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
 
-class GiphySearch extends React.Component<Props, State> {
-  container: HTMLDivElement | null = null
-  state: State = {width: undefined}
+  React.useEffect(() => {
+    if (!containerRef.current) return
+    const cs = getComputedStyle(containerRef.current)
+    setWidth(containerRef.current.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight))
+  }, [])
 
-  componentDidMount() {
-    const c = this.container
-    if (c) {
-      const cs = getComputedStyle(c)
-      this.setState({width: c.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)})
-    }
-  }
-
-  render() {
-    let margins: Array<number> = []
-    const w = this.state.width
-    if (w) {
-      margins = getMargins(
-        w - 2 * Styles.globalMargins.tiny,
-        (this.props.previews || []).reduce<Array<number>>((arr, p) => {
-          return arr.concat(p.previewWidth)
-        }, [])
-      )
-    }
-    return (
-      <Kb.Box style={styles.outerContainer}>
-        <Kb.Box2
-          direction="vertical"
-          ref={(el: any) => (this.container = el)}
-          style={Styles.collapseStyles([
-            styles.scrollContainer,
-            {overflowY: this.state.width ? 'auto' : 'scroll'} as any,
-          ])}
-        >
-          <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="xtiny">
-            <Kb.Text style={styles.instructions} type="BodySmall">
-              Tip: hit 'Enter' now to send a random GIF.
-            </Kb.Text>
-            <Kb.Text
-              style={styles.instructions}
-              type="BodySmallSecondaryLink"
-              onClickURL="https://keybase.io/docs/chat/linkpreviews"
-            >
-              Learn more about GIFs & encryption
-            </Kb.Text>
-          </Kb.Box2>
-          {this.state.width &&
-            (this.props.previews ? (
-              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-                {this.props.previews?.map((p, index) => {
-                  const margin = -margins[index]! / 2 - 1
-                  return p.targetUrl ? (
-                    <Kb.Box2 key={String(index)} direction="horizontal" style={styles.imageContainer}>
-                      <Kb.Box style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
-                        <UnfurlImage
-                          autoplayVideo={true}
-                          height={gridHeight}
-                          isVideo={p.previewIsVideo}
-                          onClick={() => this.props.onClick(p)}
-                          style={styles.image}
-                          url={p.previewUrl}
-                          width={scaledWidth(p.previewWidth)}
-                        />
-                      </Kb.Box>
-                    </Kb.Box2>
-                  ) : null
-                })}
-              </Kb.Box2>
-            ) : (
-              <Kb.Box2
-                direction="vertical"
-                style={styles.loadingContainer}
-                centerChildren={true}
-                fullWidth={true}
-                fullHeight={true}
-              >
-                <Kb.ProgressIndicator />
-              </Kb.Box2>
-            ))}
-        </Kb.Box2>
-        <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
-      </Kb.Box>
+  let margins: Array<number> = []
+  const w = width
+  if (w) {
+    margins = getMargins(
+      w - 2 * Styles.globalMargins.tiny,
+      (props.previews || []).reduce<Array<number>>((arr, p) => {
+        return arr.concat(p.previewWidth)
+      }, [])
     )
   }
+  return (
+    <Kb.Box style={styles.outerContainer}>
+      <Kb.Box2
+        direction="vertical"
+        ref={containerRef as any}
+        style={Styles.collapseStyles([styles.scrollContainer, {overflowY: width ? 'auto' : 'scroll'} as any])}
+      >
+        <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="xtiny">
+          <Kb.Text style={styles.instructions} type="BodySmall">
+            Tip: hit 'Enter' now to send a random GIF.
+          </Kb.Text>
+          <Kb.Text
+            style={styles.instructions}
+            type="BodySmallSecondaryLink"
+            onClickURL="https://keybase.io/docs/chat/linkpreviews"
+          >
+            Learn more about GIFs & encryption
+          </Kb.Text>
+        </Kb.Box2>
+        {width &&
+          (props.previews ? (
+            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+              {props.previews?.map((p, index) => {
+                const margin = -margins[index]! / 2 - 1
+                return p.targetUrl ? (
+                  <Kb.Box2 key={String(index)} direction="horizontal" style={styles.imageContainer}>
+                    <Kb.Box style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
+                      <UnfurlImage
+                        autoplayVideo={true}
+                        height={gridHeight}
+                        isVideo={p.previewIsVideo}
+                        onClick={() => props.onClick(p)}
+                        style={styles.image}
+                        url={p.previewUrl}
+                        width={scaledWidth(p.previewWidth)}
+                      />
+                    </Kb.Box>
+                  </Kb.Box2>
+                ) : null
+              })}
+            </Kb.Box2>
+          ) : (
+            <Kb.Box2
+              direction="vertical"
+              style={styles.loadingContainer}
+              centerChildren={true}
+              fullWidth={true}
+              fullHeight={true}
+            >
+              <Kb.ProgressIndicator />
+            </Kb.Box2>
+          ))}
+      </Kb.Box2>
+      <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
+    </Kb.Box>
+  )
 }
 
 const styles = Styles.styleSheetCreate(
@@ -153,7 +142,7 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default GiphySearch
