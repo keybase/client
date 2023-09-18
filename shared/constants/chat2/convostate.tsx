@@ -310,7 +310,6 @@ export type ConvoState = ConvoStore & {
     updateReactions: (updates: Array<{targetMsgID: T.RPCChat.MessageID; reactions: T.Chat.Reactions}>) => void
   }
   getExplodingMode: () => number
-  getEditInfo: () => {exploded: boolean; ordinal: T.Chat.Ordinal; text: string} | undefined
   isMetaGood: () => boolean
 }
 
@@ -1711,6 +1710,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             if (modalPath.length > 0) {
               C.useRouterState.getState().dispatch.clearModals()
             }
+
             C.useRouterState
               .getState()
               .dispatch.navigateAppend(
@@ -3044,25 +3044,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   return {
     ...initialConvoStore,
     dispatch,
-    getEditInfo: () => {
-      const ordinal = get().editing
-      if (!ordinal) {
-        return
-      }
-
-      const message = get().messageMap.get(ordinal)
-      if (!message) {
-        return
-      }
-      switch (message.type) {
-        case 'text':
-          return {exploded: message.exploded, ordinal, text: message.text.stringValue()}
-        case 'attachment':
-          return {exploded: message.exploded, ordinal, text: message.title}
-        default:
-          return
-      }
-    },
     getExplodingMode: (): number => {
       const mode = get().explodingModeLock ?? get().explodingMode
       const meta = get().meta

@@ -96,9 +96,9 @@ const makeLinking = (options: OptionsType) => {
     draft => {
       const {screens} = draft.screens.loggedIn
       // @ts-ignore
-      screens[Tabs.chatTab].screens.chatConversation = 'chat/:convoName/:highlightMessageID?'
+      screens[Tabs.chatTab].screens.chatConversation = 'chat/:_convoName/:_highlightMessageID?'
       // @ts-ignore
-      screens[Tabs.peopleTab].screens.profile = 'profile/show/:username'
+      screens[Tabs.peopleTab].screens.profile = 'profile/show/:_username'
     }
   )
 

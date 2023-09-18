@@ -1,2 +1,4 @@
 • imessage to chat input is url sometimes (heics , others?)
 • send from imessage shows double items? jump to recent button
+• on share pushes twice, params different
+

@@ -26,7 +26,11 @@ export const useDebugLayout = __DEV__
     }
 
 // helper to debug method calls into an object
-export function createLoggingProxy<T extends object>(obj: T): T {
+export function createLoggingProxy<T extends object>(
+  obj: T,
+  logMethods: boolean = true,
+  logProps: boolean = false
+): T {
   console.log('[PROXY] installed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
   const proxy = new Proxy(obj, {
     get(target, propKey) {
@@ -34,14 +38,21 @@ export function createLoggingProxy<T extends object>(obj: T): T {
       const originalMethod = target[propKey] as any
       if (typeof originalMethod === 'function') {
         return function (...args: any[]) {
-          console.log(`[PROXY] Calling method: ${String(propKey)}`)
-          console.log('[PROXY] Arguments:', args)
+          if (logMethods) {
+            console.log(`[PROXY] Calling method: ${String(propKey)}`)
+            console.log('[PROXY] Arguments:', args)
+          }
           // @ts-ignore
           const result = originalMethod.apply(this, args)
-          console.log('[PROXY] Result:', result)
+          if (logMethods) {
+            console.log('[PROXY] Result:', result)
+          }
           return result
         }
       } else {
+        if (logProps) {
+          console.log(`[PROXY] props access: ${String(propKey)}`)
+        }
         return originalMethod
       }
     },
