@@ -722,12 +722,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.giphyWindow = false
       })
       const f = async () => {
-        const conversationIDKey = get().id
         const replyTo = get().messageMap.get(get().replyTo)?.id
         try {
           await T.RPCChat.localTrackGiphySelectRpcPromise({result})
         } catch {}
-        _getConvoState(conversationIDKey).dispatch.injectIntoInput('')
+        get().dispatch.injectIntoInput('')
         get().dispatch.messageSend(result.targetUrl, replyTo)
       }
       Z.ignorePromise(f())
@@ -1456,6 +1455,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       get().dispatch.setReplyTo(0)
       get().dispatch.setCommandMarkdown()
+      set(s => {
+        s.giphyWindow = false
+      })
     },
     messagesAdd: messages => {
       set(s => {

@@ -1,4 +1,3 @@
 • imessage to chat input is url sometimes (heics , others?)
-• giphy flashes white in darkmode while loading
 
 
