@@ -9,7 +9,6 @@ import invert from 'lodash/invert'
 import logger from '../../logger'
 import type * as MessageTypes from '../types/chat2/message'
 import type {ServiceId} from 'util/platforms'
-import {isMobile} from '../platform'
 import {noConversationIDKey} from '../types/chat2/common'
 import isEqual from 'lodash/isEqual'
 
@@ -18,6 +17,12 @@ export const getMessageRenderType = (m: T.Chat.Message): T.Chat.RenderMessageTyp
     case 'attachment':
       if (m.inlineVideoPlayable && m.attachmentType !== 'audio') {
         return 'attachment:video'
+      }
+      if (C.isMobile) {
+        // allow heic on mobile only
+        if (m.fileName.toLowerCase().endsWith('.heic')) {
+          return 'attachment:image'
+        }
       }
       return `attachment:${m.attachmentType}`
     default:
@@ -1104,7 +1109,7 @@ const outboxUIMessagetoMessage = (
         conversationIDKey,
         decoratedText: o.decoratedTextBody ? new HiddenString(o.decoratedTextBody) : undefined,
         deviceName: currentDeviceName,
-        deviceType: isMobile ? 'mobile' : 'desktop',
+        deviceType: C.isMobile ? 'mobile' : 'desktop',
         errorReason,
         errorTyp,
         exploding: o.isEphemeral,
@@ -1243,7 +1248,7 @@ export const makePendingTextMessage = (
     author: currentUsername,
     conversationIDKey,
     deviceName: '',
-    deviceType: isMobile ? 'mobile' : 'desktop',
+    deviceType: C.isMobile ? 'mobile' : 'desktop',
     id: T.Chat.numberToMessageID(0),
     ordinal,
     outboxID,
@@ -1276,7 +1281,7 @@ export const makePendingAttachmentMessage = (
     author: currentUsername,
     conversationIDKey,
     deviceName: '',
-    deviceType: isMobile ? 'mobile' : 'desktop',
+    deviceType: C.isMobile ? 'mobile' : 'desktop',
     errorReason: errorReason,
     errorTyp: errorTyp,
     exploding,
