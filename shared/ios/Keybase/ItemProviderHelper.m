@@ -72,9 +72,9 @@
     self.payloadFolderURL = [self makePayloadFolder];
     
     NSLog(@"aaa initForShare \n%@\n%@\n", itemArrs, sArrs);
-//    if (self.unprocessed == 0) {
-//      self.completionHandler();
-//    }
+    //    if (self.unprocessed == 0) {
+    //      self.completionHandler();
+    //    }
   }
   return self;
 }
@@ -164,7 +164,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
 //    [self completeItemAndAppendManifestType:@"text" content:text];
 //    return;
 //  } // If length is too large, just ignore the chatOnly flag.
-//  
+//
 //  // We write the text into a file regardless because this could go to KBFS.
 //  // But if the text is short enough, we also include it in the manifest so
 //  // GUI can easily pre-fill it into the chat compose box.
@@ -204,19 +204,19 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
 //- (void)processItem:(NSItemProvider*)item {
 //  // It's hard to figure out what will actually decode so we try a bunch of methods and keep falling back
 //  NSMutableArray * decodes = [NSMutableArray new];
-//  
+//
 //  void (^tryNextDecode)(void) = ^void() {
 //    if (decodes.count == 0) {
 //      [self completeItemAndAppendManifestAndLogErrorWithText:@"dataHandler: unable to decode share" error:nil];
 //      return;
 //    }
-//    
+//
 //    void (^next)(void) = [decodes objectAtIndex:0];
 //    [decodes removeObjectAtIndex:0];
 //    next();
 //  };
-//  
-//  
+//
+//
 //  NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
 //    if (self.attributedContentText.length > 0){
 //      [self handleText: [NSString stringWithFormat:@"%@ %@", self.attributedContentText, url.absoluteString] chatOnly:true loadError:error];
@@ -224,7 +224,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
 //      [self handleText: url.absoluteString chatOnly:true loadError:error];
 //    }
 //  };
-//  
+//
 //  NSItemProviderCompletionHandler dataHandler = ^(NSData* data, NSError* error) {
 //    if (error != nil) {
 //      tryNextDecode();
@@ -238,7 +238,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
 //    }
 //    [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
 //  };
-//  
+//
 //  NSItemProviderCompletionHandler fileHandlerSimple = ^(NSURL* url, NSError* error) {
 //    if (error != nil) {
 //      tryNextDecode();
@@ -252,7 +252,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
 //    }
 //    [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
 //  };
-//  
+//
 //  NSItemProviderCompletionHandler textHandler = ^(NSString* text, NSError* error) {
 //    if (error != nil) {
 //      tryNextDecode();
@@ -260,7 +260,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
 //    }
 //    [self handleText:text chatOnly:false loadError:error];
 //  };
-//  
+//
 //  NSItemProviderCompletionHandler imageHandler = ^(UIImage* image, NSError* error) {
 //    if (error != nil) {
 //      tryNextDecode();
@@ -282,26 +282,26 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
 //    }
 //    [self handleAndCompleteMediaFile:originalFileURL isVideo:false ];
 //  };
-//  
+//
 //  // The NSItemProviderCompletionHandler interface is a little tricky. The caller of our handler
 //  // will inspect the arguments that we have given, and will attempt to give us the attachment
 //  // in this form. For files, we always want a file URL, and so that is what we pass in.
 //  NSItemProviderCompletionHandler fileHandlerMedia = ^(NSURL* url, NSError* error) {
 //    BOOL hasImage = [item hasItemConformingToTypeIdentifier:@"public.image"];
 //    BOOL hasVideo = [item hasItemConformingToTypeIdentifier:@"public.movie"];
-//    
+//
 //    if (error != nil) {
 //      tryNextDecode();
 //      return;
 //    }
-//    
+//
 //    NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
 //    [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
 //    if (error != nil) {
 //      tryNextDecode();
 //      return;
 //    }
-//    
+//
 //    if (hasVideo) {
 //      [self handleAndCompleteMediaFile:filePayloadURL isVideo:true];
 //    } else if (hasImage) {
@@ -310,15 +310,15 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
 //      [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
 //    }
 //  };
-//  
+//
 //#pragma mark actually figuring out how to handle types
-//  
+//
 //  if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
 //    if (self.isShare) {
 //      [decodes addObject:^(){
 //        [item loadItemForTypeIdentifier:@"public.movie" options:nil completionHandler:fileHandlerMedia];
 //      }];
-//      
+//
 //    } else {
 //      // drag drop doesn't give us working urls
 //      [decodes addObject:^(){
@@ -326,10 +326,10 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
 //      }];
 //    }
 //  }
-//  
+//
 //  if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
 //    if (self.isShare) {
-//      
+//
 //      // Use the fileHandler here, so if the image is from e.g. the Photos app,
 //      // we'd go with the copy routine instead of having to encode an NSImage.
 //      // This is important for staying under the mem limit.
@@ -390,7 +390,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
 //      }];
 //    }
 //  }
-//  
+//
 //  if (self.isShare) {
 //    // catch-all, including file-url or stuff like pdf from safari, or contact card.
 //    [decodes addObject:^(){
@@ -401,13 +401,33 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
 //      [item loadFileRepresentationForTypeIdentifier:@"public.item" completionHandler:fileHandlerSimple];
 //    }];
 //  }
-//  
+//
 //  tryNextDecode();
-//  
+//
 //}
 
+
+
+  
+
+ 
+
 // new method, try and deprecate processItem
+/**
+ How this works:
+ On a share we get an array of inputItems. Each inputItem has a metadata string and an array of NSItemProviders. Depending on the sending app
+ we can get one inputItem and then an array of itemProviders, or we can get many inputItems with many itemProviders etc
+ The itemProviders give an ordered list of representations to use. The NSItemProvider API has a binary API and a coercing API
+ We attempt to use the binary API to explicitly ask for certain data types (png, gif, plainTextutf8 etc). If we can't resolve that we go down into very
+ generic types (image, text) which we have to use the (worse) coercing types to get the framework to peer into the data and do the right thing.
+ This approach seems to give us the best chance to decode these attachments. It really varies wildly depending on the app and apple itself
+ doesn't give you nice types on old apps (app store, etc)
+ 
+ 
+ */
 -(void) startProcessing {
+  NSArray * types = @[ @"public.item", @"public.content", @"public.composite-content", @"public.message", @"public.contact", @"public.archive", @"public.disk-image", @"public.data", @"public.directory", @"com.apple.resolvable", @"public.symlink", @"public.executable", @"com.apple.mount-point", @"com.apple.alias-file", @"com.apple.alias-record", @"com.apple.bookmark", @"public.url", @"public.file-url", @"public.text", @"public.plain-text", @"public.utf8-plain-text", @"public.utf16-external-plain-text", @"public.utf16-plain-text", @"public.delimited-values-text", @"public.comma-separated-values-text", @"public.tab-separated-values-text", @"public.utf8-tab-separated-values-text", @"public.rtf", @"public.html", @"public.xml", @"public.source-code", @"public.assembly-source", @"public.c-source", @"public.objective-c-source", @"public.swift-source", @"public.c-plus-plus-source", @"public.objective-c-plus-plus-source", @"public.c-header", @"public.c-plus-plus-header", @"com.sun.java-source", @"public.script", @"com.apple.applescript.text", @"com.apple.applescript.script", @"com.apple.applescript.script-bundle", @"com.netscape.javascript-source", @"public.shell-script", @"public.perl-script", @"public.python-script", @"public.ruby-script", @"public.php-script", @"public.json", @"com.apple.property-list", @"com.apple.xml-property-list", @"com.apple.binary-property-list", @"com.adobe.pdf", @"com.apple.rtfd", @"com.apple.flat-rtfd", @"com.apple.txn.text-multimedia-data", @"com.apple.webarchive", @"public.image", @"public.jpeg", @"public.jpeg-2000", @"public.tiff", @"com.apple.pict", @"com.compuserve.gif", @"public.png", @"com.apple.quicktime-image", @"com.apple.icns", @"com.microsoft.bmp", @"com.microsoft.ico", @"public.camera-raw-image", @"public.svg-image", @"com.apple.live-photo", @"public.audiovisual-content", @"public.movie", @"public.video", @"public.audio", @"com.apple.quicktime-movie", @"public.mpeg", @"public.mpeg-2-video", @"public.mpeg-2-transport-stream", @"public.mp3", @"public.mpeg-4", @"public.mpeg-4-audio", @"com.apple.protected-mpeg-4-audio", @"com.apple.protected-mpeg-4-video", @"public.avi", @"public.aiff-audio", @"com.microsoft.waveform-audio", @"public.midi-audio", @"public.playlist", @"public.m3u-playlist", @"public.folder", @"public.volume", @"com.apple.package", @"com.apple.bundle", @"com.apple.plugin", @"com.apple.metadata-importer", @"com.apple.quicklook-generator", @"com.apple.xpc-service", @"com.apple.framework", @"com.apple.application", @"com.apple.application-bundle", @"com.apple.application-file", @"public.unix-executable", @"com.microsoft.windows-executable", @"com.sun.java-class", @"com.sun.java-archive", @"com.apple.systempreference.prefpane", @"org.gnu.gnu-zip-archive", @"public.bzip2-archive", @"public.zip-archive", @"public.spreadsheet", @"public.presentation", @"public.database", @"public.vcard", @"public.to-do-item", @"public.calendar-event", @"public.email-message", @"com.apple.internet-location", @"com.apple.ink.inktext", @"public.font", @"public.bookmark", @"public.3d-content", @"com.rsa.pkcs-12", @"public.x509-certificate", @"org.idpf.epub-container", @"public.log"];
+  
   NSItemProviderCompletionHandler fileHandlerSimple2 = ^(id<NSSecureCoding> item, NSError* error) {
     if (error != nil) {
       [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandlerSimple: unable to decode share" error:error];
@@ -431,7 +451,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
     [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
   };
   
-  NSItemProviderCompletionHandler unknownImageHandlerSimple2 = ^(id<NSSecureCoding> item , NSError* error) {
+  NSItemProviderCompletionHandler coerceImageHandlerSimple2 = ^(id<NSSecureCoding> item , NSError* error) {
     if (error != nil) {
       [self completeItemAndAppendManifestAndLogErrorWithText:@"itemHandlerSimple2: unable to decode share" error:error];
       return;
@@ -440,9 +460,13 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
     NSData *imgData;
     if([(NSObject*)item isKindOfClass:[NSURL class]]) {
       imgData = [NSData dataWithContentsOfURL:(NSURL*)item];
+      if (imgData) {
+        UIImage *image = [UIImage imageWithData:imgData];
+        imgData = UIImageJPEGRepresentation(image, 0.85);
+      }
     }
     if([(NSObject*)item isKindOfClass:[UIImage class]]) {
-      imgData = UIImagePNGRepresentation((UIImage*)item);
+      imgData = UIImageJPEGRepresentation((UIImage*)item, 0.85);
     }
   
       NSURL * originalFileURL = [self getPayloadURLFromExt: @"jpg"];
@@ -454,7 +478,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
       [self handleAndCompleteMediaFile:originalFileURL isVideo:false ];
   };
   
-  NSItemProviderCompletionHandler textHandler2 = ^(id<NSSecureCoding> item, NSError* error) {
+  NSItemProviderCompletionHandler coerceTextHandler2 = ^(id<NSSecureCoding> item, NSError* error) {
     if (error != nil) {
       [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: load error" error:error];
       return;
@@ -463,6 +487,14 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
     NSString* text = nil;
     if([(NSObject*)item isKindOfClass:[NSString class]]) {
       text = (NSString*)item;
+    } else if([(NSObject*)item isKindOfClass:[NSURL class]]) {
+      NSURL * url = (NSURL*)item;
+      text = url.absoluteString;
+      // not a user url
+      if ([text hasPrefix:@"file://"]) {
+        NSData * d = [NSData dataWithContentsOfURL:url];
+        text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
+      }
     } else {
       NSLog(@"aaa non text?");
       [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: non text" error:nil];
@@ -489,7 +521,14 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
     self.attributedContentText = self.attributedContentTexts[idx];
     ++idx;
 
-    for (NSItemProvider * item in items) {      
+    for (NSItemProvider * item in items) {  
+      for (NSString * s in types) {
+        if ([item hasItemConformingToTypeIdentifier:s]) {
+          NSLog(@"aaa hasconform %@", s);
+        }
+      }
+      
+      
       NSLog(@"aaa reg: %@", item.registeredTypeIdentifiers);
       for (NSString * stype in item.registeredTypeIdentifiers) {
         NSLog(@"aaa stype: %@", stype);
@@ -518,13 +557,13 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
           NSLog(@"aaa generic image?");
           self.unprocessed++;
           handled = YES;
-          [item loadFileRepresentationForTypeIdentifier:@"public.image" completionHandler:unknownImageHandlerSimple2];
+          [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:coerceImageHandlerSimple2];
           break;
         } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypePlainText)) {
           NSLog(@"aaa plaintext");
           handled = YES;
           self.unprocessed++;
-          [item loadItemForTypeIdentifier:@"public.plain-text" options:nil completionHandler:textHandler2];
+          [item loadItemForTypeIdentifier:@"public.plain-text" options:nil completionHandler:coerceTextHandler2];
           break;
         }
         else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeFileURL)) {
@@ -537,8 +576,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
           NSLog(@"aaa url");
           handled = YES;
           self.unprocessed++;
-          
-          [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:textHandler2];
+          [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:coerceTextHandler2];
           break;
           
         }

@@ -171,8 +171,8 @@
 			isa = PBXGroup;
 			children = (
 				279FB6F521403B8B005E4864 /* KeybaseShare.entitlements */,
-				279FB59E2139AB6A005E4864 /* ShareViewController.h */,
 				279FB5A42139AB6A005E4864 /* Info.plist */,
+				279FB59E2139AB6A005E4864 /* ShareViewController.h */,
 				279FB59F2139AB6A005E4864 /* ShareViewController.m */,
 				279FB5A12139AB6A005E4864 /* MainInterface.storyboard */,
 			);
