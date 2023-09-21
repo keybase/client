@@ -227,66 +227,10 @@
 }
 
 - (void)writeManifest {
-//  NSString * url = nil;
-//  int textCount = 0;
-//  int mediaCount = 0;
-//  int fileCount = 0;
-//  int total = self.manifest.count;
-//  for(NSDictionary * obj in self.manifest) {
-//    if ([obj[@"isURL"] isEqualToNumber:@1]) {
-//      url = obj[@"content"];
-//    }
-//    
-//    if ([obj[@"type"] isEqual:@"text"]) {
-//      textCount++;
-//    } else if ([obj[@"type"] isEqual:@"video"] || [obj[@"type"] isEqual:@"image"]) {
-//      mediaCount++;
-//    } else if ([obj[@"type"] isEqual:@"file"]) {
-//      fileCount++;
-//    }
-//  }
-//  
-//  NSArray * toWrite = self.manifest;
-//  // Since we render previews, if there is a url, mostly ignore media
-//  if (url) {
-//    NSString * content = url;
-//    // special case, sometimes the text we get also contains the url so we can take that instead
-//    if (textCount) {
-//      
-//    }
-//    toWrite = @[@{
-//      @"type": @"text",
-//      @"content": content,
-//    }];
-//  } else {
-//    // likely multiple texts that are slightly different, just choose the first
-//    if (allText) {
-//      toWrite = @[self.manifest.firstObject];
-//    } else {
-//      // if we have media, just use that and ignore text
-//      if (hasMedia) {
-//        
-//      }
-//    }
-//  }
-  
-//  NSArray * justURL = [self.manifest filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id  _Nullable evaluatedObject, NSDictionary<NSString *,id> * _Nullable bindings) {
-//    NSDictionary *object = (NSDictionary *)evaluatedObject;
-//    NSNumber *type = object[@"isURL"];
-//    return [type isEqualToNumber:@1];
-//  }]];
-//  
-//  if (justURL.count) {
-//    toWrite = @[justURL.firstObject];
-//  }
-  
   NSArray * toWrite = self.manifest;
   NSLog(@"aaa output %@", toWrite);
-  if (!toWrite.count) {
-    return;
-  }
-  
   NSURL* fileURL = [self getManifestFileURL];
+  // write even if empty so we don't keep old manifests around
   NSOutputStream * output = [NSOutputStream outputStreamWithURL:fileURL append:false];
   [output open];
   NSError * error;
@@ -295,32 +239,6 @@
 
 NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit in chat
 
-//- (void) handleText:(NSString *)text chatOnly:(BOOL)chatOnly loadError:(NSError *)error {
-//  if (chatOnly && text.length < TEXT_LENGTH_THRESHOLD) {
-//    [self completeItemAndAppendManifestType:@"text" content:text];
-//    return;
-//  } // If length is too large, just ignore the chatOnly flag.
-//
-//  // We write the text into a file regardless because this could go to KBFS.
-//  // But if the text is short enough, we also include it in the manifest so
-//  // GUI can easily pre-fill it into the chat compose box.
-//  if (error != nil) {
-//    [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: load error" error:error];
-//    return;
-//  }
-//  NSURL * originalFileURL = [self getPayloadURLFromExt:@"txt"];
-//  [text writeToURL:originalFileURL atomically:true encoding:NSUTF8StringEncoding error:&error];
-//  if (error != nil){
-//    [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: unable to write payload file" error:error];
-//    return;
-//  }
-//  if (text.length < TEXT_LENGTH_THRESHOLD) {
-//    [self completeItemAndAppendManifestType:@"text" originalFileURL:originalFileURL content:text];
-//  } else {
-//    [self completeItemAndAppendManifestType:@"text" originalFileURL:originalFileURL];
-//  }
-//}
-//
 - (void) handleAndCompleteMediaFile:(NSURL *)url isVideo:(BOOL)isVideo {
   ProcessMediaCompletion completion = ^(NSError * error, NSURL * scaled, NSURL * thumbnail) {
     if (error != nil) {
@@ -336,219 +254,6 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
   }
 }
 
-// processItem will invoke the correct function on the Go side for the given attachment type.
-//- (void)processItem:(NSItemProvider*)item {
-//  // It's hard to figure out what will actually decode so we try a bunch of methods and keep falling back
-//  NSMutableArray * decodes = [NSMutableArray new];
-//
-//  void (^tryNextDecode)(void) = ^void() {
-//    if (decodes.count == 0) {
-//      [self completeItemAndAppendManifestAndLogErrorWithText:@"dataHandler: unable to decode share" error:nil];
-//      return;
-//    }
-//
-//    void (^next)(void) = [decodes objectAtIndex:0];
-//    [decodes removeObjectAtIndex:0];
-//    next();
-//  };
-//
-//
-//  NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
-//    if (self.attributedContentText.length > 0){
-//      [self handleText: [NSString stringWithFormat:@"%@ %@", self.attributedContentText, url.absoluteString] chatOnly:true loadError:error];
-//    }else{
-//      [self handleText: url.absoluteString chatOnly:true loadError:error];
-//    }
-//  };
-//
-//  NSItemProviderCompletionHandler dataHandler = ^(NSData* data, NSError* error) {
-//    if (error != nil) {
-//      tryNextDecode();
-//      return;
-//    }
-//    NSURL* filePayloadURL = [self getPayloadURLFromExt:@"data"];
-//    BOOL OK = [data writeToURL:filePayloadURL atomically:true];
-//    if (!OK) {
-//      tryNextDecode();
-//      return;
-//    }
-//    [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
-//  };
-//
-//  NSItemProviderCompletionHandler fileHandlerSimple = ^(NSURL* url, NSError* error) {
-//    if (error != nil) {
-//      tryNextDecode();
-//      return;
-//    }
-//    NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
-//    [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
-//    if (error != nil) {
-//      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandlerSimple: copy error" error:error];
-//      return;
-//    }
-//    [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
-//  };
-//
-//  NSItemProviderCompletionHandler textHandler = ^(NSString* text, NSError* error) {
-//    if (error != nil) {
-//      tryNextDecode();
-//      return;
-//    }
-//    [self handleText:text chatOnly:false loadError:error];
-//  };
-//
-//  NSItemProviderCompletionHandler imageHandler = ^(UIImage* image, NSError* error) {
-//    if (error != nil) {
-//      tryNextDecode();
-//      return;
-//    }
-//    CGImageAlphaInfo alpha = CGImageGetAlphaInfo(image.CGImage);
-//    BOOL hasAlpha = (
-//                     alpha == kCGImageAlphaFirst ||
-//                     alpha == kCGImageAlphaLast ||
-//                     alpha == kCGImageAlphaPremultipliedFirst ||
-//                     alpha == kCGImageAlphaPremultipliedLast
-//                     );
-//    NSData * imageData = hasAlpha ? UIImagePNGRepresentation(image) : UIImageJPEGRepresentation(image, .85);
-//    NSURL * originalFileURL = [self getPayloadURLFromExt: hasAlpha ? @"png" : @"jpg"];
-//    BOOL OK = [imageData writeToURL:originalFileURL atomically:true];
-//    if (!OK){
-//      tryNextDecode();
-//      return;
-//    }
-//    [self handleAndCompleteMediaFile:originalFileURL isVideo:false ];
-//  };
-//
-//  // The NSItemProviderCompletionHandler interface is a little tricky. The caller of our handler
-//  // will inspect the arguments that we have given, and will attempt to give us the attachment
-//  // in this form. For files, we always want a file URL, and so that is what we pass in.
-//  NSItemProviderCompletionHandler fileHandlerMedia = ^(NSURL* url, NSError* error) {
-//    BOOL hasImage = [item hasItemConformingToTypeIdentifier:@"public.image"];
-//    BOOL hasVideo = [item hasItemConformingToTypeIdentifier:@"public.movie"];
-//
-//    if (error != nil) {
-//      tryNextDecode();
-//      return;
-//    }
-//
-//    NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
-//    [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
-//    if (error != nil) {
-//      tryNextDecode();
-//      return;
-//    }
-//
-//    if (hasVideo) {
-//      [self handleAndCompleteMediaFile:filePayloadURL isVideo:true];
-//    } else if (hasImage) {
-//      [self handleAndCompleteMediaFile:filePayloadURL isVideo:false];
-//    } else {
-//      [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
-//    }
-//  };
-//
-//#pragma mark actually figuring out how to handle types
-//
-//  if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
-//    if (self.isShare) {
-//      [decodes addObject:^(){
-//        [item loadItemForTypeIdentifier:@"public.movie" options:nil completionHandler:fileHandlerMedia];
-//      }];
-//
-//    } else {
-//      // drag drop doesn't give us working urls
-//      [decodes addObject:^(){
-//        [item loadFileRepresentationForTypeIdentifier:@"public.movie" completionHandler:fileHandlerMedia];
-//      }];
-//    }
-//  }
-//
-//  if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
-//    if (self.isShare) {
-//
-//      // Use the fileHandler here, so if the image is from e.g. the Photos app,
-//      // we'd go with the copy routine instead of having to encode an NSImage.
-//      // This is important for staying under the mem limit.
-//      [decodes addObject:^(){
-//        [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandlerMedia];
-//      }];
-//      [decodes addObject:^(){
-//        [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:imageHandler];
-//      }];
-//      // drag drop doesn't give us working urls
-//      [decodes addObject:^(){
-//        [item loadObjectOfClass:[UIImage class] completionHandler:imageHandler];
-//      }];
-//    } else {
-//      // drag drop doesn't give us working urls, must be the first thing we try
-//      [decodes addObject:^(){
-//        [item loadObjectOfClass:[UIImage class] completionHandler:imageHandler];
-//      }];
-//      [decodes addObject:^(){
-//        [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:imageHandler];
-//      }];
-//      [decodes addObject:^(){
-//        [item loadFileRepresentationForTypeIdentifier:@"public.image" completionHandler:fileHandlerMedia];
-//      }];
-//    }
-//  }
-//  if ([item hasItemConformingToTypeIdentifier:@"public.file-url"]) {
-//    if (self.isShare) {
-//      // Although this will be covered in the catch-all below, do it before public.text and public.url so that we get the file instead of a web URL when user shares a downloaded file from safari.
-//      [decodes addObject:^(){
-//        [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandlerSimple];
-//      }];
-//    } else {
-//      [decodes addObject:^(){
-//        [item loadFileRepresentationForTypeIdentifier:@"public.file-url" completionHandler:fileHandlerSimple];
-//      }];
-//    }
-//  }
-//  if ([item hasItemConformingToTypeIdentifier:@"public.text"]) {
-//    if (self.isShare) {
-//      [decodes addObject:^(){
-//        [item loadItemForTypeIdentifier:@"public.text" options:nil completionHandler:textHandler];
-//      }];
-//    } else {
-//      [decodes addObject:^(){
-//        [item loadObjectOfClass:NSString.class completionHandler:textHandler];
-//      }];
-//    }
-//  }
-//  if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
-//    if (self.isShare) {
-//      [decodes addObject:^(){
-//        [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
-//      }];
-//    } else {
-//      [decodes addObject:^(){
-//        [item loadObjectOfClass:[NSString class] completionHandler:textHandler];
-//      }];
-//    }
-//  }
-//
-//  if (self.isShare) {
-//    // catch-all, including file-url or stuff like pdf from safari, or contact card.
-//    [decodes addObject:^(){
-//      [item loadItemForTypeIdentifier:@"public.item" options:nil completionHandler: fileHandlerSimple];
-//    }];
-//  } else {
-//    [decodes addObject:^(){
-//      [item loadFileRepresentationForTypeIdentifier:@"public.item" completionHandler:fileHandlerSimple];
-//    }];
-//  }
-//
-//  tryNextDecode();
-//
-//}
-
-
-
-  
-
- 
-
-// new method, try and deprecate processItem
 /**
  How this works:
  On a share we get an array of inputItems. Each inputItem has a metadata string and an array of NSItemProviders. Depending on the sending app
@@ -620,7 +325,6 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
       return;
     }
     
-//    BOOL isURL = NO;
     NSString* text = nil;
     if([(NSObject*)item isKindOfClass:[NSString class]]) {
       text = (NSString*)item;
@@ -631,8 +335,6 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
       if ([text hasPrefix:@"file://"]) {
         NSData * d = [NSData dataWithContentsOfURL:url];
         text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
-//      } else {
-//        isURL = YES;
       }
     } else {
       NSLog(@"aaa non text?");
@@ -729,106 +431,11 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
     }
   }
   
-  // TODO didn't handle anything
-  if (!handled) {
-    NSLog(@"aaa fallback");
-    // try super generic
-//    [item loadFileRepresentationForTypeIdentifier: @"public.item" completionHandler:fileHandlerSimple2];
-  }
-  
   self.unprocessed++;
   // in case we didn't find anything clean up
   dispatch_async(dispatch_get_main_queue(), ^{
     [self completeProcessingItemAlreadyInMainThread];
   });
 }
-
-//NSItemProviderCompletionHandler textFileHandlerSimple2 = ^(NSURL* url, NSError* error) {
-//  if (error != nil) {
-//    [self completeItemAndAppendManifestAndLogErrorWithText:@"textFileHandlerSimple: unable to decode share" error:error];
-//    return;
-//  }
-//  
-//  NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
-//  [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
-//  if (error != nil) {
-//    [self completeItemAndAppendManifestAndLogErrorWithText:@"textFileHandlerSimple: copy error" error:error];
-//    return;
-//  }
-//  
-//  // try and extract
-//  NSData * urlData = [NSData dataWithContentsOfURL:filePayloadURL];
-//  if (urlData) {
-//    NSString* str = [[NSString alloc] initWithData:urlData encoding:NSUTF8StringEncoding];
-//    if (str.length < TEXT_LENGTH_THRESHOLD) {
-//      [self completeItemAndAppendManifestType:@"text" content:str];
-//      return;
-//    }
-//  }
-//  [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
-//};
-
-//  NSItemProviderCompletionHandler textHandler3 = ^(id item, NSError* error) {
-//    if (error != nil) {
-//      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: load error" error:error];
-//      return;
-//    }
-//
-//    if (![item isKindOfClass:[NSData class]]) {
-//      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: load error" error:error];
-//      return;
-//    }
-//
-//    NSString *text = [[NSString alloc] initWithData:(NSData *)item encoding:NSUTF8StringEncoding];
-//    if (!text || text.length) {
-//      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: load error" error:error];
-//      return;
-//    }
-//
-//    if (text.length < TEXT_LENGTH_THRESHOLD) {
-//      [self completeItemAndAppendManifestType:@"text" content:text];
-//      return;
-//    }
-//
-//    NSURL * originalFileURL = [self getPayloadURLFromExt:@"txt"];
-//    [text writeToURL:originalFileURL atomically:true encoding:NSUTF8StringEncoding error:&error];
-//    if (error != nil){
-//      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: unable to write payload file" error:error];
-//      return;
-//    }
-//
-//    [self completeItemAndAppendManifestType:@"text" originalFileURL:originalFileURL];
-//  };
-
-
-//NSItemProviderCompletionHandler textHandler2 = ^(NSString* text, NSError* error) {
-//  if (error != nil) {
-//    [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: load error" error:error];
-//    return;
-//  }
-//  
-//  if (text.length < TEXT_LENGTH_THRESHOLD) {
-//    [self completeItemAndAppendManifestType:@"text" content:text];
-//    return;
-//  }
-//  
-//  NSURL * originalFileURL = [self getPayloadURLFromExt:@"txt"];
-//  [text writeToURL:originalFileURL atomically:true encoding:NSUTF8StringEncoding error:&error];
-//  if (error != nil){
-//    [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: unable to write payload file" error:error];
-//    return;
-//  }
-//  
-//  [self completeItemAndAppendManifestType:@"text" originalFileURL:originalFileURL];
-//};
-// TODO low memory use url only? share sheet?
-// TODO maybe heic actually just works w/ expo-image
-//typedef void (NS_SWIFT_SENDABLE ^FileCompletionHandler)(NSURL *_Nullable URL, BOOL openInPlace, NSError *_Nullable error);
-/*UTType * uttype = [UTType typeWithIdentifier:stype];
-if ([uttype conformsToType:UTTypePNG]) {
-  
-}*/
-
-
 
 @end
