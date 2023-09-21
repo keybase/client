@@ -20,6 +20,7 @@
 @property (nonatomic, strong) NSArray* attributedContentTexts;
 @property BOOL isShare;
 @property BOOL done;
+@property (nonatomic, strong) NSMutableDictionary * typeToArray;
 @property (nonatomic, copy) void (^completionHandler)(void);
 
 // edited while processing
@@ -68,7 +69,7 @@
     self.attributedContentTexts = sArrs;
     self.unprocessed = 0;
     self.completionHandler = handler;
-    self.manifest = [[NSMutableArray alloc] init];
+    self.typeToArray = [[NSMutableDictionary alloc] init];
     self.payloadFolderURL = [self makePayloadFolder];
     
     NSLog(@"aaa initForShare \n%@\n%@\n", itemArrs, sArrs);
@@ -97,7 +98,12 @@
 
 - (void)completeItemAndAppendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL {
   dispatch_async(dispatch_get_main_queue(), ^{
-    [self.manifest addObject: @{
+    NSMutableArray * arr = self.typeToArray[type];
+    if (!arr) {
+      arr = [[NSMutableArray alloc] init];
+      self.typeToArray[type] = arr;
+    }
+    [arr addObject: @{
       @"type": type,
       @"originalPath":[originalFileURL absoluteURL].path,
     }];
@@ -108,9 +114,15 @@
 // No path; this is chatOnly.
 - (void)completeItemAndAppendManifestType:(NSString*)type content:(NSString*)content {
   dispatch_async(dispatch_get_main_queue(), ^{
-    [self.manifest addObject: @{
+    NSMutableArray * arr = self.typeToArray[type];
+    if (!arr) {
+      arr = [[NSMutableArray alloc] init];
+      self.typeToArray[type] = arr;
+    }
+    [arr addObject: @{
       @"type": type,
       @"content": content,
+//      @"isURL" : [type isEqual: @"url"] ? @1 : @0,
     }];
     [self completeProcessingItemAlreadyInMainThread];
   });
@@ -118,7 +130,12 @@
 
 - (void)completeItemAndAppendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL content:(NSString*)content {
   dispatch_async(dispatch_get_main_queue(), ^{
-    [self.manifest addObject: @{
+    NSMutableArray * arr = self.typeToArray[type];
+    if (!arr) {
+      arr = [[NSMutableArray alloc] init];
+      self.typeToArray[type] = arr;
+    }
+    [arr addObject: @{
       @"type": type,
       @"originalPath":[originalFileURL absoluteURL].path,
       @"content": content,
@@ -129,7 +146,12 @@
 
 - (void)completeItemAndAppendManifestType:(NSString*)type originalFileURL:(NSURL*) originalFileURL scaledFileURL:(NSURL*)scaledFileURL thumbnailFileURL:(NSURL*)thumbnailFileURL {
   dispatch_async(dispatch_get_main_queue(), ^{
-    [self.manifest addObject: @{
+    NSMutableArray * arr = self.typeToArray[type];
+    if (!arr) {
+      arr = [[NSMutableArray alloc] init];
+      self.typeToArray[type] = arr;
+    }
+    [arr addObject: @{
       @"type": type,
       @"originalPath":[originalFileURL absoluteURL].path,
       @"scaledPath":[scaledFileURL absoluteURL].path,
@@ -141,20 +163,134 @@
 
 - (void)completeItemAndAppendManifestAndLogErrorWithText:(NSString*)text error:(NSError*)error {
   dispatch_async(dispatch_get_main_queue(), ^{
-    [self.manifest addObject:@{
+    NSString * type = @"error";
+    NSMutableArray * arr = self.typeToArray[type];
+    if (!arr) {
+      arr = [[NSMutableArray alloc] init];
+      self.typeToArray[type] = arr;
+    }
+    [arr addObject:@{
       @"error": [NSString stringWithFormat:@"%@: %@", text, error != nil ? error : @"<empty>"],
     }];
     [self completeProcessingItemAlreadyInMainThread];
   });
 }
 
-- (NSError *)writeManifest {
+- (NSArray *)manifest {
+  // reconcile what we're sending over // types text, url, video, image, file, error
+  NSLog(@"aaa writeManifest %@", self.typeToArray);
+  
+  NSMutableArray * toWrite = [[NSMutableArray alloc] init];
+  NSArray * urls = self.typeToArray[@"url"];
+ 
+  // We treat all text that has http in it a url, we take the longest one as its likely most descriptive
+  if (urls) {
+    NSString * content = urls.firstObject[@"content"];
+    for (NSDictionary * url in urls) {
+      NSString * c = url[@"content"];
+      if (c.length > content.length) {
+        content = c;
+      }
+    }
+//    NSString * content = url;
+//    NSArray * texts = self.typeToArray[@"text"];
+//    for(NSDictionary * text in texts) {
+//      NSString * c = text[@"content"];
+//      if ([content rangeOfString:url].location != NSNotFound) {
+//        // longer is better, probably
+//        if (c.length > content.length) {
+//          content = c;
+//        }
+//      }
+//    }
+    [toWrite addObject:@{
+      @"type": @"text",
+      @"content": content,
+    }];
+  } else {
+    NSArray * images = self.typeToArray[@"image"];
+    NSArray * videos = self.typeToArray[@"video"];
+    NSArray * files = self.typeToArray[@"file"];
+    NSArray * texts = self.typeToArray[@"text"];
+    // If we have media, ignore text, we want to attach stuff and not also inject into the input box
+    if (images.count || videos.count || files.count) {
+      [toWrite addObjectsFromArray: images];
+      [toWrite addObjectsFromArray: videos];
+      [toWrite addObjectsFromArray: files];
+    } else if(texts.count) {
+      // Likely just one piece of text
+      [toWrite addObject:texts.firstObject];
+    }
+  }
+  
+  return toWrite;
+}
+
+- (void)writeManifest {
+//  NSString * url = nil;
+//  int textCount = 0;
+//  int mediaCount = 0;
+//  int fileCount = 0;
+//  int total = self.manifest.count;
+//  for(NSDictionary * obj in self.manifest) {
+//    if ([obj[@"isURL"] isEqualToNumber:@1]) {
+//      url = obj[@"content"];
+//    }
+//    
+//    if ([obj[@"type"] isEqual:@"text"]) {
+//      textCount++;
+//    } else if ([obj[@"type"] isEqual:@"video"] || [obj[@"type"] isEqual:@"image"]) {
+//      mediaCount++;
+//    } else if ([obj[@"type"] isEqual:@"file"]) {
+//      fileCount++;
+//    }
+//  }
+//  
+//  NSArray * toWrite = self.manifest;
+//  // Since we render previews, if there is a url, mostly ignore media
+//  if (url) {
+//    NSString * content = url;
+//    // special case, sometimes the text we get also contains the url so we can take that instead
+//    if (textCount) {
+//      
+//    }
+//    toWrite = @[@{
+//      @"type": @"text",
+//      @"content": content,
+//    }];
+//  } else {
+//    // likely multiple texts that are slightly different, just choose the first
+//    if (allText) {
+//      toWrite = @[self.manifest.firstObject];
+//    } else {
+//      // if we have media, just use that and ignore text
+//      if (hasMedia) {
+//        
+//      }
+//    }
+//  }
+  
+//  NSArray * justURL = [self.manifest filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id  _Nullable evaluatedObject, NSDictionary<NSString *,id> * _Nullable bindings) {
+//    NSDictionary *object = (NSDictionary *)evaluatedObject;
+//    NSNumber *type = object[@"isURL"];
+//    return [type isEqualToNumber:@1];
+//  }]];
+//  
+//  if (justURL.count) {
+//    toWrite = @[justURL.firstObject];
+//  }
+  
+  NSArray * toWrite = self.manifest;
+  NSLog(@"aaa output %@", toWrite);
+  if (!toWrite.count) {
+    return;
+  }
+  
   NSURL* fileURL = [self getManifestFileURL];
   NSOutputStream * output = [NSOutputStream outputStreamWithURL:fileURL append:false];
   [output open];
   NSError * error;
-  [NSJSONSerialization writeJSONObject:self.manifest toStream:output options:0 error:&error];
-  return error;
+  [NSJSONSerialization writeJSONObject:toWrite toStream:output options:0 error:&error];
 }
 
 NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit in chat
@@ -484,6 +620,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
       return;
     }
     
+//    BOOL isURL = NO;
     NSString* text = nil;
     if([(NSObject*)item isKindOfClass:[NSString class]]) {
       text = (NSString*)item;
@@ -494,14 +631,18 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
       if ([text hasPrefix:@"file://"]) {
         NSData * d = [NSData dataWithContentsOfURL:url];
         text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
+//      } else {
+//        isURL = YES;
       }
     } else {
       NSLog(@"aaa non text?");
       [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: non text" error:nil];
     }
+      
+    BOOL isURL = [text rangeOfString:@"http" options:NSCaseInsensitiveSearch].location != NSNotFound;
     
     if (text.length < TEXT_LENGTH_THRESHOLD) {
-      [self completeItemAndAppendManifestType:@"text" content:text];
+      [self completeItemAndAppendManifestType: isURL ? @"url" : @"text" content:text];
       return;
     }
     
@@ -518,6 +659,10 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
   int idx = 0;
   BOOL handled = NO;
   for (NSArray * items in self.itemArrs) {
+    // only handle one from itemArrs
+    if (handled) {
+      break;
+    }
     self.attributedContentText = self.attributedContentTexts[idx];
     ++idx;
 

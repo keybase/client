@@ -117,19 +117,23 @@ const getContentDescription = (items: Array<T.RPCGen.IncomingShareItem>) => {
     )
   }
 
-  if (items[0]!.content) {
-    // If it's a text snippet, just say "1 text snippet" and don't show text
-    // file name. We can get a file name here if the payload is from a text
-    // selection (rather than URL).
-    return <Kb.Text type="BodyTiny">1 {incomingShareTypeToString(items[0]!.type, false, false)}</Kb.Text>
+  const item = items[0]
+  if (!item) return undefined
+
+  if (item.content) {
+    return (
+      <Kb.Text type="BodyTiny" lineClamp={1}>
+        {item.content}
+      </Kb.Text>
+    )
   }
 
   // If it's a URL, originalPath is not populated.
-  const name = items[0]!.originalPath && T.FS.getLocalPathName(items[0]!.originalPath)
+  const name = item.originalPath && T.FS.getLocalPathName(item.originalPath)
   return name ? (
     <FsCommon.Filename type="BodyTiny" filename={name} />
   ) : (
-    <Kb.Text type="BodyTiny">1 {incomingShareTypeToString(items[0]!.type, false, false)}</Kb.Text>
+    <Kb.Text type="BodyTiny">1 {incomingShareTypeToString(item.type, false, false)}</Kb.Text>
   )
 }
 

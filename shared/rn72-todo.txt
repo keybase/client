@@ -5,3 +5,4 @@
 share of apple app store fails on image
 SKIP BUNDLING ON
 TODO check drop into app drop into chat
+TODO share into kbfs different
