@@ -1,4 +1,7 @@
 • imessage to chat input is url sometimes (heics , others?)
 • send from imessage shows double items? jump to recent button
-• on share pushes twice, params different
-
+• video share preview doesn't work
+• heic share preview doesn't work
+share of apple app store fails on image
+SKIP BUNDLING ON
+TODO check drop into app drop into chat

@@ -20,7 +20,7 @@ export const getMessageRenderType = (m: T.Chat.Message): T.Chat.RenderMessageTyp
       }
       if (C.isMobile) {
         // allow heic on mobile only
-        if (m.fileName.toLowerCase().endsWith('.heic')) {
+        if (m.attachmentType === 'file' && m.fileName.toLowerCase().endsWith('.heic')) {
           return 'attachment:image'
         }
       }
