@@ -434,6 +434,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
       
       NSLog(@"aaa reg: %@", item.registeredTypeIdentifiers);
       for (NSString * stype in item.registeredTypeIdentifiers) {
+        // Movies
         NSLog(@"aaa stype: %@", stype);
         if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeMovie)) {
           NSLog(@"aaa movie");
@@ -441,6 +442,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
           handled = YES;
           [item loadFileRepresentationForTypeIdentifier:stype completionHandler:fileHandlerSimple2];
           break;
+          // Images
         } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypePNG) ||
                    UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeGIF) ||
                    UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeJPEG)
@@ -450,37 +452,48 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
           self.unprocessed++;
           [item loadFileRepresentationForTypeIdentifier:stype completionHandler:fileHandlerSimple2];
           break;
+          // HEIC Images
         } else if ([stype isEqual:@"public.heic"]) {
           NSLog(@"aaa heic");
           handled = YES;
           self.unprocessed++;
           [item loadFileRepresentationForTypeIdentifier:@"public.heic" completionHandler:fileHandlerSimple2];
           break;
+          // Unknown images, coerced
         } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeImage)) {
           NSLog(@"aaa generic image?");
           self.unprocessed++;
           handled = YES;
-          [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:coerceImageHandlerSimple2];
+          [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:coerceImageHandlerSimple2]; // ⚠️ coerce
           break;
+          // Contact cards
         } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeVCard)) {
           NSLog(@"aaa vcard");
           handled = YES;
           self.unprocessed++;
           [item loadDataRepresentationForTypeIdentifier:@"public.vcard" completionHandler: vcardHandler];
           break;
+          // Text
+        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypePlainText)) {
+          NSLog(@"aaa plain text");
+          handled = YES;
+          self.unprocessed++;
+          [item loadItemForTypeIdentifier:@"public.plain-text" options: nil completionHandler: coerceTextHandler2]; // ⚠️ coerce
+          break;
+          // local file urls
         } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeFileURL)) {
           handled = YES;
           self.unprocessed++;
           // this is a local url and not something to show to the user, instead we download it
           [item loadFileRepresentationForTypeIdentifier: @"public.item" completionHandler:fileHandlerSimple2];
           break;
+          // web urls
         } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeURL)) {
           NSLog(@"aaa url");
           handled = YES;
           self.unprocessed++;
-          [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:coerceTextHandler2];
+          [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:coerceTextHandler2]; // ⚠️ coerce
           break;
-          
         }
       }
     }
