@@ -268,6 +268,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
     } else {
       NSLog(@"aaa non url?");
       [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandlerSimple: non url?" error:nil];
+      return;
     }
     
     NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
@@ -343,11 +344,14 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
       if (contents.count) {
         NSString * text = [contents componentsJoinedByString:@"\n\n"];
         [self completeItemAndAppendManifestType: @"text" content:text];
+        return;
       } else {
         [self completeItemAndAppendManifestAndLogErrorWithText:@"vcardHandler: unable to decode share" error:nil];
+        return;
       }
     } else {
       [self completeItemAndAppendManifestAndLogErrorWithText:@"vcardHandler: unable to decode share" error:nil];
+      return;
     }
   };
   
@@ -395,9 +399,13 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
         NSData * d = [NSData dataWithContentsOfURL:url];
         text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
       }
+    } else if([(NSObject*)item isKindOfClass:[NSData class]]) {
+      NSData * d = (NSData*) item;
+      text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
     } else {
       NSLog(@"aaa non text?");
       [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: non text" error:nil];
+      return;
     }
       
     BOOL isURL = [text rangeOfString:@"http" options:NSCaseInsensitiveSearch].location != NSNotFound;

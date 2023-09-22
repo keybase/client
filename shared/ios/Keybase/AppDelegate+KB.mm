@@ -21,7 +21,7 @@
 
 - (void)setupGo {
   // set to true to see logs in xcode
-  BOOL skipLogFile = false;
+  BOOL skipLogFile = true;
   // uncomment to get more console.logs
   // RCTSetLogThreshold(RCTLogLevelInfo - 1);
   self.fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:YES];
