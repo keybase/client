@@ -13,11 +13,15 @@
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <MobileCoreServices/UTCoreTypes.h>
 #import <MobileCoreServices/UTType.h>
+#import <Contacts/CNContactVCardSerialization.h>
+#import <Contacts/CNContact.h>
+#import <Contacts/CNContactFormatter.h>
+#import <Contacts/CNPostalAddressFormatter.h>
+
 
 @interface ItemProviderHelper ()
 @property (nonatomic, strong) NSArray * itemArrs;
 @property (nonatomic, strong) NSURL * payloadFolderURL;
-@property (nonatomic, strong) NSArray* attributedContentTexts;
 @property BOOL isShare;
 @property BOOL done;
 @property (nonatomic, strong) NSMutableDictionary * typeToArray;
@@ -25,7 +29,6 @@
 
 // edited while processing
 @property NSInteger unprocessed;
-@property (nonatomic, strong) NSString* attributedContentText;
 @end
 
 @implementation ItemProviderHelper
@@ -62,20 +65,16 @@
   return payloadFolderURL;
 }
 
--(id) initForShare: (BOOL) isShare withItems: (NSArray*) itemArrs attrStrings: (NSArray *) sArrs completionHandler:(nonnull void (^)(void))handler {
+-(id) initForShare: (BOOL) isShare withItems: (NSArray*) itemArrs completionHandler:(nonnull void (^)(void))handler {
   if (self = [super init]) {
     self.isShare = isShare;
     self.itemArrs = itemArrs;
-    self.attributedContentTexts = sArrs;
     self.unprocessed = 0;
     self.completionHandler = handler;
     self.typeToArray = [[NSMutableDictionary alloc] init];
     self.payloadFolderURL = [self makePayloadFolder];
     
-    NSLog(@"aaa initForShare \n%@\n%@\n", itemArrs, sArrs);
-    //    if (self.unprocessed == 0) {
-    //      self.completionHandler();
-    //    }
+    NSLog(@"aaa initForShare \n%@\n", itemArrs);
   }
   return self;
 }
@@ -122,7 +121,6 @@
     [arr addObject: @{
       @"type": type,
       @"content": content,
-//      @"isURL" : [type isEqual: @"url"] ? @1 : @0,
     }];
     [self completeProcessingItemAlreadyInMainThread];
   });
@@ -192,17 +190,6 @@
         content = c;
       }
     }
-//    NSString * content = url;
-//    NSArray * texts = self.typeToArray[@"text"];
-//    for(NSDictionary * text in texts) {
-//      NSString * c = text[@"content"];
-//      if ([content rangeOfString:url].location != NSNotFound) {
-//        // longer is better, probably
-//        if (c.length > content.length) {
-//          content = c;
-//        }
-//      }
-//    }
     [toWrite addObject:@{
       @"type": @"text",
       @"content": content,
@@ -292,6 +279,78 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
     [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
   };
   
+  NSItemProviderCompletionHandler vcardHandler = ^(id<NSSecureCoding> item, NSError* error) {
+    if (error != nil) {
+      [self completeItemAndAppendManifestAndLogErrorWithText:@"vcardHandler: unable to decode share" error:error];
+      return;
+    }
+    
+    if ([(NSObject*)item isKindOfClass:[NSData class]]) {
+      NSData *vCardData = (NSData *)item;
+      NSError * err = nil;
+      NSArray<CNContact *> * contacts = [CNContactVCardSerialization contactsWithData:vCardData error:&err];
+      CNPostalAddressFormatter *addressFormatter = [[CNPostalAddressFormatter alloc] init];
+      NSMutableArray * contents = [[NSMutableArray alloc] init];
+      
+      for (CNContact * contact in contacts) {
+        NSLog(@"aaa %@", contact);
+        NSMutableArray * content = [[NSMutableArray alloc] init];
+        NSString *fullName = [CNContactFormatter stringFromContact:contact style:CNContactFormatterStyleFullName];
+        if (fullName.length) {
+          [content addObject:fullName];
+        }
+        if (contact.organizationName.length) {
+          [content addObject:[NSString stringWithFormat:@"Organization: %@", contact.organizationName]];
+        }
+        for (CNLabeledValue<CNPhoneNumber *> *phoneNumber in contact.phoneNumbers) {
+          NSString *label = [CNLabeledValue localizedStringForLabel:phoneNumber.label];
+          NSString *number = [phoneNumber.value stringValue];
+          
+          if (label.length && number.length) {
+            [content addObject: [NSString stringWithFormat:@"%@: %@", label, number]];
+          } else if (number.length) {
+            [content addObject: number];
+          }
+        }
+        NSMutableArray * misc = [[NSMutableArray alloc] init];
+        [misc addObjectsFromArray: contact.emailAddresses];
+        [misc addObjectsFromArray: contact.urlAddresses];
+        for (CNLabeledValue<NSString *> *m in misc) {
+          NSString *label = [CNLabeledValue localizedStringForLabel:m.label];
+          NSString *val = m.value;
+          
+          if (label.length && val.length) {
+            [content addObject: [NSString stringWithFormat:@"%@: %@", label, val]];
+          } else if (val.length) {
+            [content addObject: val];
+          }
+        }
+        
+        for(CNLabeledValue<CNPostalAddress *> *postalAddress in contact.postalAddresses) {
+          NSString *label = [CNLabeledValue localizedStringForLabel:postalAddress.label];
+          NSString *val = [addressFormatter stringFromPostalAddress:postalAddress.value];
+          if (label.length && val.length) {
+            [content addObject: [NSString stringWithFormat:@"%@: %@", label, val]];
+          } else if (val.length) {
+            [content addObject: val];
+          }
+        }
+        
+        if (content.count) {
+          [contents addObject:[content componentsJoinedByString:@"\n"]];
+        }
+      }
+      if (contents.count) {
+        NSString * text = [contents componentsJoinedByString:@"\n\n"];
+        [self completeItemAndAppendManifestType: @"text" content:text];
+      } else {
+        [self completeItemAndAppendManifestAndLogErrorWithText:@"vcardHandler: unable to decode share" error:nil];
+      }
+    } else {
+      [self completeItemAndAppendManifestAndLogErrorWithText:@"vcardHandler: unable to decode share" error:nil];
+    }
+  };
+  
   NSItemProviderCompletionHandler coerceImageHandlerSimple2 = ^(id<NSSecureCoding> item , NSError* error) {
     if (error != nil) {
       [self completeItemAndAppendManifestAndLogErrorWithText:@"itemHandlerSimple2: unable to decode share" error:error];
@@ -358,23 +417,20 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
     [self completeItemAndAppendManifestType:@"text" originalFileURL:originalFileURL];
   };
   
-  int idx = 0;
   BOOL handled = NO;
   for (NSArray * items in self.itemArrs) {
     // only handle one from itemArrs
     if (handled) {
       break;
     }
-    self.attributedContentText = self.attributedContentTexts[idx];
-    ++idx;
 
     for (NSItemProvider * item in items) {  
+      // debug temp
       for (NSString * s in types) {
         if ([item hasItemConformingToTypeIdentifier:s]) {
           NSLog(@"aaa hasconform %@", s);
         }
       }
-      
       
       NSLog(@"aaa reg: %@", item.registeredTypeIdentifiers);
       for (NSString * stype in item.registeredTypeIdentifiers) {
@@ -400,20 +456,19 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
           self.unprocessed++;
           [item loadFileRepresentationForTypeIdentifier:@"public.heic" completionHandler:fileHandlerSimple2];
           break;
-        } if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeImage)) {
+        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeImage)) {
           NSLog(@"aaa generic image?");
           self.unprocessed++;
           handled = YES;
           [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:coerceImageHandlerSimple2];
           break;
-        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypePlainText)) {
-          NSLog(@"aaa plaintext");
+        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeVCard)) {
+          NSLog(@"aaa vcard");
           handled = YES;
           self.unprocessed++;
-          [item loadItemForTypeIdentifier:@"public.plain-text" options:nil completionHandler:coerceTextHandler2];
+          [item loadDataRepresentationForTypeIdentifier:@"public.vcard" completionHandler: vcardHandler];
           break;
-        }
-        else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeFileURL)) {
+        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeFileURL)) {
           handled = YES;
           self.unprocessed++;
           // this is a local url and not something to show to the user, instead we download it

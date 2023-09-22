@@ -142,7 +142,6 @@
   self.iph = [[ItemProviderHelper alloc]
            initForShare:false
               withItems:@[items]
-             attrStrings:@[@""]
       completionHandler:^{
         NSURL *url = [NSURL URLWithString:@"keybase://incoming-share"];
         __typeof__(self) strongSelf = weakSelf;

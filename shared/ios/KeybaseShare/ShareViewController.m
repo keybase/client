@@ -75,18 +75,18 @@ const BOOL isSimulator = NO;
   [super viewDidAppear:animated];
   
   NSMutableArray *itemArrs = [NSMutableArray array];
-  NSMutableArray *sArrs = [NSMutableArray array];
+//  NSMutableArray *sArrs = [NSMutableArray array];
   for (NSExtensionItem *inputItem in self.extensionContext.inputItems) {
     [itemArrs addObject:inputItem.attachments];
-    NSString * str = inputItem.attributedContentText.string;
-    if (str == nil) {
-      str = @"";
-    }
-    [sArrs addObject: str];
+//    NSString * str = inputItem.attributedContentText.string;
+//    if (str == nil) {
+//      str = @"";
+//    }
+//    [sArrs addObject: str];
   }
   
   __weak __typeof__(self) weakSelf = self;
-  self.iph = [[ItemProviderHelper alloc] initForShare: true withItems:itemArrs attrStrings:sArrs completionHandler:^{
+  self.iph = [[ItemProviderHelper alloc] initForShare: true withItems:itemArrs completionHandler:^{
     __typeof__(self) strongSelf = weakSelf;
     if (strongSelf != nil) {
       [strongSelf completeRequestAlreadyInMainThread];
