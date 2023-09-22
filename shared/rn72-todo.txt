@@ -7,3 +7,5 @@ SKIP BUNDLING ON
 TODO check drop into app drop into chat
 heic on kbfs
 logging on in app delegate
+
+RESTTEST share sheet urls with new url handler
