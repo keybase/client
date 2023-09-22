@@ -281,50 +281,50 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
     [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
   };
   
-  NSItemProviderCompletionHandler urlHandler = ^(id<NSSecureCoding> item, NSError* error) {
-    if (error != nil) {
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"urlHandler: unable to decode share" error:error];
-      return;
-    }
-    
-    NSURL * url = nil;
-    NSObject * i = (NSObject*) item;
-    NSString * text = @"";
-    if([i isKindOfClass:[NSURL class]]) {
-      url = (NSURL*)i;
-      text = url.absoluteString;
-      // not a user url
-      if ([text hasPrefix:@"file://"]) {
-        NSData * d = [NSData dataWithContentsOfURL:url];
-        text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
-      }
-      
-    } else if ([i isKindOfClass:[NSData class]]) {
-      NSData * d = (NSData*) i;
-      NSString * text = @"";
-      text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
-      if (!text || !text.length) {
-        NSDictionary * obj = [NSPropertyListSerialization propertyListWithData:d options:NSPropertyListImmutable format:NULL error:nil];
-        if ([obj isKindOfClass:[NSArray class]]) {
-          NSArray * arr = (NSArray*) obj;
-          NSObject * s = arr[0];
-          if ([s isKindOfClass:[NSString class]]) {
-            text = (NSString*)s;
-          }
-        }
-      } else if ([i isKindOfClass:[NSString class]]) {
-        text = (NSString*) i;
-      }
-    }
-    
-    if (text.length) {
-      BOOL isURL = [text rangeOfString:@"http" options:NSCaseInsensitiveSearch].location != NSNotFound;
-      [self completeItemAndAppendManifestType: isURL ? @"url" : @"text" content:text];
-    } else {
-      NSLog(@"aaa non url?");
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"urlHandler: non url?" error:nil];
-    }
-  };
+//  NSItemProviderCompletionHandler urlHandler = ^(id<NSSecureCoding> item, NSError* error) {
+//    if (error != nil) {
+//      [self completeItemAndAppendManifestAndLogErrorWithText:@"urlHandler: unable to decode share" error:error];
+//      return;
+//    }
+//    
+//    NSURL * url = nil;
+//    NSObject * i = (NSObject*) item;
+//    NSString * text = @"";
+//    if([i isKindOfClass:[NSURL class]]) {
+//      url = (NSURL*)i;
+//      text = url.absoluteString;
+//      // not a user url
+//      if ([text hasPrefix:@"file://"]) {
+//        NSData * d = [NSData dataWithContentsOfURL:url];
+//        text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
+//      }
+//      
+//    } else if ([i isKindOfClass:[NSData class]]) {
+//      NSData * d = (NSData*) i;
+//      NSString * text = @"";
+//      text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
+//      if (!text || !text.length) {
+//        NSDictionary * obj = [NSPropertyListSerialization propertyListWithData:d options:NSPropertyListImmutable format:NULL error:nil];
+//        if ([obj isKindOfClass:[NSArray class]]) {
+//          NSArray * arr = (NSArray*) obj;
+//          NSObject * s = arr[0];
+//          if ([s isKindOfClass:[NSString class]]) {
+//            text = (NSString*)s;
+//          }
+//        }
+//      } else if ([i isKindOfClass:[NSString class]]) {
+//        text = (NSString*) i;
+//      }
+//    }
+//    
+//    if (text.length) {
+//      BOOL isURL = [text rangeOfString:@"http" options:NSCaseInsensitiveSearch].location != NSNotFound;
+//      [self completeItemAndAppendManifestType: isURL ? @"url" : @"text" content:text];
+//    } else {
+//      NSLog(@"aaa non url?");
+//      [self completeItemAndAppendManifestAndLogErrorWithText:@"urlHandler: non url?" error:nil];
+//    }
+//  };
   
   
   NSItemProviderCompletionHandler vcardHandler = ^(id<NSSecureCoding> item, NSError* error) {
@@ -466,49 +466,49 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
   };
   
   
-  NSItemProviderCompletionHandler coerceTextHandler2 = ^(id<NSSecureCoding> item, NSError* error) {
-    if (error != nil) {
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: load error" error:error];
-      return;
-    }
-    
-    NSString* text = nil;
-    NSObject * i = (NSObject*)item;
-    if([i isKindOfClass:[NSString class]]) {
-      text = (NSString*)i;
-    } else if([i isKindOfClass:[NSURL class]]) {
-      NSURL * url = (NSURL*)i;
-      text = url.absoluteString;
-      // not a user url
-      if ([text hasPrefix:@"file://"]) {
-        NSData * d = [NSData dataWithContentsOfURL:url];
-        text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
-      }
-    } else if([i isKindOfClass:[NSData class]]) {
-      NSData * d = (NSData*) i;
-      text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
-    } else {
-      NSLog(@"aaa non text?");
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: non text" error:nil];
-      return;
-    }
-      
-    BOOL isURL = [text rangeOfString:@"http" options:NSCaseInsensitiveSearch].location != NSNotFound;
-    
-    if (text.length < TEXT_LENGTH_THRESHOLD) {
-      [self completeItemAndAppendManifestType: isURL ? @"url" : @"text" content:text];
-      return;
-    }
-    
-    NSURL * originalFileURL = [self getPayloadURLFromExt:@"txt"];
-    [text writeToURL:originalFileURL atomically:true encoding:NSUTF8StringEncoding error:&error];
-    if (error != nil){
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: unable to write payload file" error:error];
-      return;
-    }
-    
-    [self completeItemAndAppendManifestType:@"text" originalFileURL:originalFileURL];
-  };
+//  NSItemProviderCompletionHandler coerceTextHandler2 = ^(id<NSSecureCoding> item, NSError* error) {
+//    if (error != nil) {
+//      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: load error" error:error];
+//      return;
+//    }
+//    
+//    NSString* text = nil;
+//    NSObject * i = (NSObject*)item;
+//    if([i isKindOfClass:[NSString class]]) {
+//      text = (NSString*)i;
+//    } else if([i isKindOfClass:[NSURL class]]) {
+//      NSURL * url = (NSURL*)i;
+//      text = url.absoluteString;
+//      // not a user url
+//      if ([text hasPrefix:@"file://"]) {
+//        NSData * d = [NSData dataWithContentsOfURL:url];
+//        text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
+//      }
+//    } else if([i isKindOfClass:[NSData class]]) {
+//      NSData * d = (NSData*) i;
+//      text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
+//    } else {
+//      NSLog(@"aaa non text?");
+//      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: non text" error:nil];
+//      return;
+//    }
+//      
+//    BOOL isURL = [text rangeOfString:@"http" options:NSCaseInsensitiveSearch].location != NSNotFound;
+//    
+//    if (text.length < TEXT_LENGTH_THRESHOLD) {
+//      [self completeItemAndAppendManifestType: isURL ? @"url" : @"text" content:text];
+//      return;
+//    }
+//    
+//    NSURL * originalFileURL = [self getPayloadURLFromExt:@"txt"];
+//    [text writeToURL:originalFileURL atomically:true encoding:NSUTF8StringEncoding error:&error];
+//    if (error != nil){
+//      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: unable to write payload file" error:error];
+//      return;
+//    }
+//    
+//    [self completeItemAndAppendManifestType:@"text" originalFileURL:originalFileURL];
+//  };
   
   BOOL handled = NO;
   for (NSArray * items in self.itemArrs) {
@@ -573,7 +573,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
           self.unprocessed++;
 //          [item loadDataRepresentationForTypeIdentifier:@"public.url" completionHandler: urlHandler];
 //          [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:coerceTextHandler2]; // ⚠️ coerce
-                    [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:coerceURLHandler2]; // ⚠️ coerce
+            [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:coerceURLHandler2]; // ⚠️ coerce
           break;
           // Text
         } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypePlainText)) {
