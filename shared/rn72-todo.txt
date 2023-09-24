@@ -9,3 +9,23 @@ heic on kbfs
 logging on in app delegate
 
 RESTTEST share sheet urls with new url handler
+
+
+safari:
+url share: good
+url drag drop: good
+pdf share: good
+web archive share: good
+
+app store share: good
+audible share: good
+slickdeal share: good
+
+twitter share: good
+
+reddit share: good
+
+message:
+sent heic to share: good
+sent text to share: fail
+

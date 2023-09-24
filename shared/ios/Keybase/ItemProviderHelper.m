@@ -175,12 +175,11 @@
 }
 
 - (NSArray *)manifest {
-  // reconcile what we're sending over // types text, url, video, image, file, error
-  NSLog(@"aaa writeManifest %@", self.typeToArray);
+  // reconcile what we're sending over. types=text, url, video, image, file, error
   
   NSMutableArray * toWrite = [[NSMutableArray alloc] init];
   NSArray * urls = self.typeToArray[@"url"];
- 
+  
   // We treat all text that has http in it a url, we take the longest one as its likely most descriptive
   if (urls) {
     NSString * content = urls.firstObject[@"content"];
@@ -215,7 +214,6 @@
 
 - (void)writeManifest {
   NSArray * toWrite = self.manifest;
-  NSLog(@"aaa output %@", toWrite);
   NSURL* fileURL = [self getManifestFileURL];
   // write even if empty so we don't keep old manifests around
   NSOutputStream * output = [NSOutputStream outputStreamWithURL:fileURL append:false];
@@ -223,8 +221,6 @@
   NSError * error;
   [NSJSONSerialization writeJSONObject:toWrite toStream:output options:0 error:&error];
 }
-
-NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit in chat
 
 - (void) handleAndCompleteMediaFile:(NSURL *)url isVideo:(BOOL)isVideo {
   ProcessMediaCompletion completion = ^(NSError * error, NSURL * scaled, NSURL * thumbnail) {
@@ -249,266 +245,169 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
  We attempt to use the binary API to explicitly ask for certain data types (png, gif, plainTextutf8 etc). If we can't resolve that we go down into very
  generic types (image, text) which we have to use the (worse) coercing types to get the framework to peer into the data and do the right thing.
  This approach seems to give us the best chance to decode these attachments. It really varies wildly depending on the app and apple itself
- doesn't give you nice types on old apps (app store, etc)
+ doesn't give you nice types on old apps (app store, etc). When coercing we usually want nscoding ids but often we get an inscrutible
+ NSArchiving or Binary plist so instead we have to get the system to coerce it to NSURL/NSString
  
  
  */
--(void) startProcessing {
-  NSArray * types = @[ @"public.item", @"public.content", @"public.composite-content", @"public.message", @"public.contact", @"public.archive", @"public.disk-image", @"public.data", @"public.directory", @"com.apple.resolvable", @"public.symlink", @"public.executable", @"com.apple.mount-point", @"com.apple.alias-file", @"com.apple.alias-record", @"com.apple.bookmark", @"public.url", @"public.file-url", @"public.text", @"public.plain-text", @"public.utf8-plain-text", @"public.utf16-external-plain-text", @"public.utf16-plain-text", @"public.delimited-values-text", @"public.comma-separated-values-text", @"public.tab-separated-values-text", @"public.utf8-tab-separated-values-text", @"public.rtf", @"public.html", @"public.xml", @"public.source-code", @"public.assembly-source", @"public.c-source", @"public.objective-c-source", @"public.swift-source", @"public.c-plus-plus-source", @"public.objective-c-plus-plus-source", @"public.c-header", @"public.c-plus-plus-header", @"com.sun.java-source", @"public.script", @"com.apple.applescript.text", @"com.apple.applescript.script", @"com.apple.applescript.script-bundle", @"com.netscape.javascript-source", @"public.shell-script", @"public.perl-script", @"public.python-script", @"public.ruby-script", @"public.php-script", @"public.json", @"com.apple.property-list", @"com.apple.xml-property-list", @"com.apple.binary-property-list", @"com.adobe.pdf", @"com.apple.rtfd", @"com.apple.flat-rtfd", @"com.apple.txn.text-multimedia-data", @"com.apple.webarchive", @"public.image", @"public.jpeg", @"public.jpeg-2000", @"public.tiff", @"com.apple.pict", @"com.compuserve.gif", @"public.png", @"com.apple.quicktime-image", @"com.apple.icns", @"com.microsoft.bmp", @"com.microsoft.ico", @"public.camera-raw-image", @"public.svg-image", @"com.apple.live-photo", @"public.audiovisual-content", @"public.movie", @"public.video", @"public.audio", @"com.apple.quicktime-movie", @"public.mpeg", @"public.mpeg-2-video", @"public.mpeg-2-transport-stream", @"public.mp3", @"public.mpeg-4", @"public.mpeg-4-audio", @"com.apple.protected-mpeg-4-audio", @"com.apple.protected-mpeg-4-video", @"public.avi", @"public.aiff-audio", @"com.microsoft.waveform-audio", @"public.midi-audio", @"public.playlist", @"public.m3u-playlist", @"public.folder", @"public.volume", @"com.apple.package", @"com.apple.bundle", @"com.apple.plugin", @"com.apple.metadata-importer", @"com.apple.quicklook-generator", @"com.apple.xpc-service", @"com.apple.framework", @"com.apple.application", @"com.apple.application-bundle", @"com.apple.application-file", @"public.unix-executable", @"com.microsoft.windows-executable", @"com.sun.java-class", @"com.sun.java-archive", @"com.apple.systempreference.prefpane", @"org.gnu.gnu-zip-archive", @"public.bzip2-archive", @"public.zip-archive", @"public.spreadsheet", @"public.presentation", @"public.database", @"public.vcard", @"public.to-do-item", @"public.calendar-event", @"public.email-message", @"com.apple.internet-location", @"com.apple.ink.inktext", @"public.font", @"public.bookmark", @"public.3d-content", @"com.rsa.pkcs-12", @"public.x509-certificate", @"org.idpf.epub-container", @"public.log"];
+
+-(void) sendText: (NSString*) text {
+  if (text.length == 0) {
+    [self completeItemAndAppendManifestAndLogErrorWithText:@"sendText: empty?" error:nil];
+    return;
+  }
+  if (text.length < 1000) {
+    BOOL isURL = [text rangeOfString:@"http" options:NSCaseInsensitiveSearch].location != NSNotFound;
+    [self completeItemAndAppendManifestType: isURL ? @"url" : @"text" content:text];
+    return;
+  }
   
-  NSItemProviderCompletionHandler fileHandlerSimple2 = ^(id<NSSecureCoding> item, NSError* error) {
-    if (error != nil) {
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandlerSimple: unable to decode share" error:error];
-      return;
+  NSURL * originalFileURL = [self getPayloadURLFromExt:@"txt"];
+  NSError * error;
+  [text writeToURL:originalFileURL atomically:true encoding:NSUTF8StringEncoding error:&error];
+  if (error != nil){
+    [self completeItemAndAppendManifestAndLogErrorWithText:@"sendText: unable to write payload file" error:error];
+    return;
+  }
+  
+  [self completeItemAndAppendManifestType:@"text" originalFileURL:originalFileURL];
+}
+
+- (void) sendFile: (NSURL *) url {
+  if (!url) {
+    [self completeItemAndAppendManifestAndLogErrorWithText:@"sendFile: unable to decode share" error:nil];
+    return;
+  }
+  
+  NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
+  NSError * error = nil;
+  [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
+  if (error != nil) {
+    [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandlerSimple: copy error" error:error];
+  } else {
+    [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
+  }
+}
+
+- (void) sendContact: (NSData*) vCardData {
+  NSError * err = nil;
+  NSArray<CNContact *> * contacts = [CNContactVCardSerialization contactsWithData:vCardData error:&err];
+  CNPostalAddressFormatter *addressFormatter = [[CNPostalAddressFormatter alloc] init];
+  NSMutableArray * contents = [[NSMutableArray alloc] init];
+  
+  for (CNContact * contact in contacts) {
+    NSMutableArray * content = [[NSMutableArray alloc] init];
+    NSString *fullName = [CNContactFormatter stringFromContact:contact style:CNContactFormatterStyleFullName];
+    if (fullName.length) {
+      [content addObject:fullName];
+    }
+    if (contact.organizationName.length) {
+      [content addObject:[NSString stringWithFormat:@"Organization: %@", contact.organizationName]];
+    }
+    for (CNLabeledValue<CNPhoneNumber *> *phoneNumber in contact.phoneNumbers) {
+      NSString *label = [CNLabeledValue localizedStringForLabel:phoneNumber.label];
+      NSString *number = [phoneNumber.value stringValue];
+      
+      if (label.length && number.length) {
+        [content addObject: [NSString stringWithFormat:@"%@: %@", label, number]];
+      } else if (number.length) {
+        [content addObject: number];
+      }
+    }
+    NSMutableArray * misc = [[NSMutableArray alloc] init];
+    [misc addObjectsFromArray: contact.emailAddresses];
+    [misc addObjectsFromArray: contact.urlAddresses];
+    for (CNLabeledValue<NSString *> *m in misc) {
+      NSString *label = [CNLabeledValue localizedStringForLabel:m.label];
+      NSString *val = m.value;
+      
+      if (label.length && val.length) {
+        [content addObject: [NSString stringWithFormat:@"%@: %@", label, val]];
+      } else if (val.length) {
+        [content addObject: val];
+      }
     }
     
+    for(CNLabeledValue<CNPostalAddress *> *postalAddress in contact.postalAddresses) {
+      NSString *label = [CNLabeledValue localizedStringForLabel:postalAddress.label];
+      NSString *val = [addressFormatter stringFromPostalAddress:postalAddress.value];
+      if (label.length && val.length) {
+        [content addObject: [NSString stringWithFormat:@"%@: %@", label, val]];
+      } else if (val.length) {
+        [content addObject: val];
+      }
+    }
+    
+    if (content.count) {
+      [contents addObject:[content componentsJoinedByString:@"\n"]];
+    }
+  }
+  if (contents.count) {
+    NSString * text = [contents componentsJoinedByString:@"\n\n"];
+    [self completeItemAndAppendManifestType: @"text" content:text];
+  } else {
+    [self completeItemAndAppendManifestAndLogErrorWithText:@"vcardHandler: unable to decode share" error:nil];
+  }
+}
+
+-(void) sendMovie :(NSURL *) url {
+  NSError * error = nil;
+  NSURL * filePayloadURL = nil;
+  if (url != nil) {
+    filePayloadURL = [self getPayloadURLFromURL:url];
+    [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
+  }
+  if (filePayloadURL && error == nil) {
+    [self handleAndCompleteMediaFile:filePayloadURL isVideo:true ];
+  } else {
+    [self completeItemAndAppendManifestAndLogErrorWithText:@"movieFileHandlerSimple2: copy error" error:error];
+  }
+}
+
+- (void) sendImage: (NSData *) imgData {
+  if (imgData) {
+    NSURL * originalFileURL = [self getPayloadURLFromExt: @"jpg"];
+    BOOL OK = [imgData writeToURL:originalFileURL atomically:true];
+    if (OK) {
+      [self handleAndCompleteMediaFile:originalFileURL isVideo:false ];
+      return;
+    }
+  }
+  
+  [self completeItemAndAppendManifestAndLogErrorWithText:@"coerceImageHandlerSimple2: unable to decode share" error:nil];
+}
+
+-(void) startProcessing {
+  NSItemProviderCompletionHandler fileHandlerSimple2 = ^(id<NSSecureCoding> item, NSError* error) {
     NSURL * url = nil;
     NSObject * i = (NSObject*)item ;
-    if([i isKindOfClass:[NSURL class]]) {
+    if(!error && [i isKindOfClass:[NSURL class]]) {
       url = (NSURL*)i;
-    } else {
-      NSLog(@"aaa non url?");
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandlerSimple: non url?" error:nil];
-      return;
     }
-    
-    NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
-    [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
-    if (error != nil) {
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"fileHandlerSimple: copy error" error:error];
-      return;
-    }
-    [self completeItemAndAppendManifestType: @"file" originalFileURL:filePayloadURL];
-  };
-  
-//  NSItemProviderCompletionHandler urlHandler = ^(id<NSSecureCoding> item, NSError* error) {
-//    if (error != nil) {
-//      [self completeItemAndAppendManifestAndLogErrorWithText:@"urlHandler: unable to decode share" error:error];
-//      return;
-//    }
-//    
-//    NSURL * url = nil;
-//    NSObject * i = (NSObject*) item;
-//    NSString * text = @"";
-//    if([i isKindOfClass:[NSURL class]]) {
-//      url = (NSURL*)i;
-//      text = url.absoluteString;
-//      // not a user url
-//      if ([text hasPrefix:@"file://"]) {
-//        NSData * d = [NSData dataWithContentsOfURL:url];
-//        text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
-//      }
-//      
-//    } else if ([i isKindOfClass:[NSData class]]) {
-//      NSData * d = (NSData*) i;
-//      NSString * text = @"";
-//      text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
-//      if (!text || !text.length) {
-//        NSDictionary * obj = [NSPropertyListSerialization propertyListWithData:d options:NSPropertyListImmutable format:NULL error:nil];
-//        if ([obj isKindOfClass:[NSArray class]]) {
-//          NSArray * arr = (NSArray*) obj;
-//          NSObject * s = arr[0];
-//          if ([s isKindOfClass:[NSString class]]) {
-//            text = (NSString*)s;
-//          }
-//        }
-//      } else if ([i isKindOfClass:[NSString class]]) {
-//        text = (NSString*) i;
-//      }
-//    }
-//    
-//    if (text.length) {
-//      BOOL isURL = [text rangeOfString:@"http" options:NSCaseInsensitiveSearch].location != NSNotFound;
-//      [self completeItemAndAppendManifestType: isURL ? @"url" : @"text" content:text];
-//    } else {
-//      NSLog(@"aaa non url?");
-//      [self completeItemAndAppendManifestAndLogErrorWithText:@"urlHandler: non url?" error:nil];
-//    }
-//  };
-  
-  
-  NSItemProviderCompletionHandler vcardHandler = ^(id<NSSecureCoding> item, NSError* error) {
-    if (error != nil) {
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"vcardHandler: unable to decode share" error:error];
-      return;
-    }
-    
-    NSObject * i = (NSObject*) item;
-    if ([i isKindOfClass:[NSData class]]) {
-      NSData *vCardData = (NSData *)i;
-      NSError * err = nil;
-      NSArray<CNContact *> * contacts = [CNContactVCardSerialization contactsWithData:vCardData error:&err];
-      CNPostalAddressFormatter *addressFormatter = [[CNPostalAddressFormatter alloc] init];
-      NSMutableArray * contents = [[NSMutableArray alloc] init];
-      
-      for (CNContact * contact in contacts) {
-        NSLog(@"aaa %@", contact);
-        NSMutableArray * content = [[NSMutableArray alloc] init];
-        NSString *fullName = [CNContactFormatter stringFromContact:contact style:CNContactFormatterStyleFullName];
-        if (fullName.length) {
-          [content addObject:fullName];
-        }
-        if (contact.organizationName.length) {
-          [content addObject:[NSString stringWithFormat:@"Organization: %@", contact.organizationName]];
-        }
-        for (CNLabeledValue<CNPhoneNumber *> *phoneNumber in contact.phoneNumbers) {
-          NSString *label = [CNLabeledValue localizedStringForLabel:phoneNumber.label];
-          NSString *number = [phoneNumber.value stringValue];
-          
-          if (label.length && number.length) {
-            [content addObject: [NSString stringWithFormat:@"%@: %@", label, number]];
-          } else if (number.length) {
-            [content addObject: number];
-          }
-        }
-        NSMutableArray * misc = [[NSMutableArray alloc] init];
-        [misc addObjectsFromArray: contact.emailAddresses];
-        [misc addObjectsFromArray: contact.urlAddresses];
-        for (CNLabeledValue<NSString *> *m in misc) {
-          NSString *label = [CNLabeledValue localizedStringForLabel:m.label];
-          NSString *val = m.value;
-          
-          if (label.length && val.length) {
-            [content addObject: [NSString stringWithFormat:@"%@: %@", label, val]];
-          } else if (val.length) {
-            [content addObject: val];
-          }
-        }
-        
-        for(CNLabeledValue<CNPostalAddress *> *postalAddress in contact.postalAddresses) {
-          NSString *label = [CNLabeledValue localizedStringForLabel:postalAddress.label];
-          NSString *val = [addressFormatter stringFromPostalAddress:postalAddress.value];
-          if (label.length && val.length) {
-            [content addObject: [NSString stringWithFormat:@"%@: %@", label, val]];
-          } else if (val.length) {
-            [content addObject: val];
-          }
-        }
-        
-        if (content.count) {
-          [contents addObject:[content componentsJoinedByString:@"\n"]];
-        }
-      }
-      if (contents.count) {
-        NSString * text = [contents componentsJoinedByString:@"\n\n"];
-        [self completeItemAndAppendManifestType: @"text" content:text];
-        return;
-      } else {
-        [self completeItemAndAppendManifestAndLogErrorWithText:@"vcardHandler: unable to decode share" error:nil];
-        return;
-      }
-    } else {
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"vcardHandler: unable to decode share" error:nil];
-      return;
-    }
-  };
-  
-  NSItemProviderCompletionHandler coerceImageHandlerSimple2 = ^(id<NSSecureCoding> item , NSError* error) {
-    if (error != nil) {
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"itemHandlerSimple2: unable to decode share" error:error];
-      return;
-    }
-    
-    NSData *imgData;
-    NSObject * i = (NSObject*)item;
-    if([i isKindOfClass:[NSURL class]]) {
-      imgData = [NSData dataWithContentsOfURL:(NSURL*)i];
-      if (imgData) {
-        UIImage *image = [UIImage imageWithData:imgData];
-        imgData = UIImageJPEGRepresentation(image, 0.85);
-      }
-    }
-    if([i isKindOfClass:[UIImage class]]) {
-      imgData = UIImageJPEGRepresentation((UIImage*)i, 0.85);
-    }
-  
-      NSURL * originalFileURL = [self getPayloadURLFromExt: @"jpg"];
-      BOOL OK = [imgData writeToURL:originalFileURL atomically:true];
-      if (!OK){
-        [self completeItemAndAppendManifestAndLogErrorWithText:@"itemHandlerSimple2: unable to decode share" error:error];
-        return;
-      }
-      [self handleAndCompleteMediaFile:originalFileURL isVideo:false ];
-  };
-  
-  NSItemProviderCompletionHandler coerceURLHandler2 = ^(NSURL * url, NSError* error) {
-    if (error != nil) {
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"coerceURLHandler2: load error" error:error];
-      return;
-    }
-    
-    NSString * text = url.absoluteString;
-    // not a user url
-    if ([text hasPrefix:@"file://"]) {
-      NSData * d = [NSData dataWithContentsOfURL:url];
-      text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
-    }
-    
-    [self completeItemAndAppendManifestType: @"url" content:text];
-  };
-  
-  NSItemProviderCompletionHandler coercePlainTextHandler2 = ^(NSString * text, NSError* error) {
-    BOOL isURL = [text rangeOfString:@"http" options:NSCaseInsensitiveSearch].location != NSNotFound;
-    
-    if (text.length < TEXT_LENGTH_THRESHOLD) {
-      [self completeItemAndAppendManifestType: isURL ? @"url" : @"text" content:text];
-      return;
-    }
-    
-    NSURL * originalFileURL = [self getPayloadURLFromExt:@"txt"];
-    [text writeToURL:originalFileURL atomically:true encoding:NSUTF8StringEncoding error:&error];
-    if (error != nil){
-      [self completeItemAndAppendManifestAndLogErrorWithText:@"coercePlainTextHandler2: unable to write payload file" error:error];
-      return;
-    }
-    
-    [self completeItemAndAppendManifestType:@"text" originalFileURL:originalFileURL];
+    [self sendFile:url];
   };
   
   
-//  NSItemProviderCompletionHandler coerceTextHandler2 = ^(id<NSSecureCoding> item, NSError* error) {
-//    if (error != nil) {
-//      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: load error" error:error];
-//      return;
-//    }
-//    
-//    NSString* text = nil;
-//    NSObject * i = (NSObject*)item;
-//    if([i isKindOfClass:[NSString class]]) {
-//      text = (NSString*)i;
-//    } else if([i isKindOfClass:[NSURL class]]) {
-//      NSURL * url = (NSURL*)i;
-//      text = url.absoluteString;
-//      // not a user url
-//      if ([text hasPrefix:@"file://"]) {
-//        NSData * d = [NSData dataWithContentsOfURL:url];
-//        text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
-//      }
-//    } else if([i isKindOfClass:[NSData class]]) {
-//      NSData * d = (NSData*) i;
-//      text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
-//    } else {
-//      NSLog(@"aaa non text?");
-//      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: non text" error:nil];
-//      return;
-//    }
-//      
-//    BOOL isURL = [text rangeOfString:@"http" options:NSCaseInsensitiveSearch].location != NSNotFound;
-//    
-//    if (text.length < TEXT_LENGTH_THRESHOLD) {
-//      [self completeItemAndAppendManifestType: isURL ? @"url" : @"text" content:text];
-//      return;
-//    }
-//    
-//    NSURL * originalFileURL = [self getPayloadURLFromExt:@"txt"];
-//    [text writeToURL:originalFileURL atomically:true encoding:NSUTF8StringEncoding error:&error];
-//    if (error != nil){
-//      [self completeItemAndAppendManifestAndLogErrorWithText:@"handleText: unable to write payload file" error:error];
-//      return;
-//    }
-//    
-//    [self completeItemAndAppendManifestType:@"text" originalFileURL:originalFileURL];
-//  };
+  
+  //  NSItemProviderCompletionHandler coerceURLHandler2 = ^(NSURL * url, NSError* error) {
+  //    NSString * text = url.absoluteString;
+  //    [self sendText:text];
+  
+  //    if (error != nil) {
+  //      [self completeItemAndAppendManifestAndLogErrorWithText:@"coerceURLHandler2: load error" error:error];
+  //      return;
+  //    }
+  //
+  //    NSString * text = url.absoluteString;
+  //    // not a user url
+  //    if ([text hasPrefix:@"file://"]) {
+  //      NSData * d = [NSData dataWithContentsOfURL:url];
+  //      text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
+  //    }
+  //
+  //    [self completeItemAndAppendManifestType: @"url" content:text];
+  //  };
+  
   
   BOOL handled = NO;
   for (NSArray * items in self.itemArrs) {
@@ -516,80 +415,119 @@ NSInteger TEXT_LENGTH_THRESHOLD = 1000; // TODO make this match the actual limit
     if (handled) {
       break;
     }
-
-    for (NSItemProvider * item in items) {  
-      // debug temp
-      for (NSString * s in types) {
-        if ([item hasItemConformingToTypeIdentifier:s]) {
-          NSLog(@"aaa hasconform %@", s);
-        }
-      }
-      
-      NSLog(@"aaa reg: %@", item.registeredTypeIdentifiers);
+    
+    for (NSItemProvider * item in items) {
       for (NSString * stype in item.registeredTypeIdentifiers) {
         // Movies
-        NSLog(@"aaa stype: %@", stype);
         if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeMovie)) {
-          NSLog(@"aaa movie");
           self.unprocessed++;
           handled = YES;
-          [item loadFileRepresentationForTypeIdentifier:stype completionHandler:fileHandlerSimple2];
+          [item loadFileRepresentationForTypeIdentifier:stype completionHandler: ^(id<NSSecureCoding> item, NSError* error) {
+            NSObject * i = (NSObject*)item ;
+            if(!error && [i isKindOfClass:[NSURL class]]) {
+              [self sendMovie:(NSURL*)i];
+            } else {
+              [self sendMovie:nil];
+            }
+            
+          }];
           break;
           // Images
         } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypePNG) ||
                    UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeGIF) ||
                    UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeJPEG)
                    ) {
-          NSLog(@"aaa image");
           handled = YES;
           self.unprocessed++;
           [item loadFileRepresentationForTypeIdentifier:stype completionHandler:fileHandlerSimple2];
           break;
           // HEIC Images
         } else if ([stype isEqual:@"public.heic"]) {
-          NSLog(@"aaa heic");
           handled = YES;
           self.unprocessed++;
           [item loadFileRepresentationForTypeIdentifier:@"public.heic" completionHandler:fileHandlerSimple2];
           break;
-          // Unknown images, coerced
+          // Unknown images, ⚠️ coerce
         } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeImage)) {
-          NSLog(@"aaa generic image?");
           self.unprocessed++;
           handled = YES;
-          [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:coerceImageHandlerSimple2]; // ⚠️ coerce
+          [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler: ^(id<NSSecureCoding> item , NSError* error) {
+            NSData *imgData = nil;
+            NSObject * i = (NSObject*)item;
+            if (error == nil) {
+              if([i isKindOfClass:[NSURL class]]) {
+                imgData = [NSData dataWithContentsOfURL:(NSURL*)i];
+                if (imgData) {
+                  UIImage *image = [UIImage imageWithData:imgData];
+                  imgData = UIImageJPEGRepresentation(image, 0.85);
+                }
+              } else if([i isKindOfClass:[UIImage class]]) {
+                imgData = UIImageJPEGRepresentation((UIImage*)i, 0.85);
+              }
+            }
+            [self sendImage:imgData];
+          }];
           break;
           // Contact cards
         } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeVCard)) {
-          NSLog(@"aaa vcard");
           handled = YES;
           self.unprocessed++;
-          [item loadDataRepresentationForTypeIdentifier:@"public.vcard" completionHandler: vcardHandler];
+          [item loadDataRepresentationForTypeIdentifier:@"public.vcard" completionHandler: ^(id<NSSecureCoding> item, NSError* error) {
+            if (error == nil) {
+              NSObject * i = (NSObject*) item;
+              if ([i isKindOfClass:[NSData class]]) {
+                [self sendContact:(NSData *)i];
+                return;
+              }
+              [self completeItemAndAppendManifestAndLogErrorWithText:@"vcardHandler: unable to decode share" error:nil];
+            }
+          }];
           break;
-          // web urls
-        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeURL)) {
-          NSLog(@"aaa url");
-          handled = YES;
-          self.unprocessed++;
-//          [item loadDataRepresentationForTypeIdentifier:@"public.url" completionHandler: urlHandler];
-//          [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:coerceTextHandler2]; // ⚠️ coerce
-            [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:coerceURLHandler2]; // ⚠️ coerce
-          break;
-          // Text
+          // Text ⚠️ coerce
         } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypePlainText)) {
-          NSLog(@"aaa plain text");
           handled = YES;
+          // We run a coersed to NSString an a NSSecureCoding so we can handle this better, sometimes we get an empty text otherwise sadly
           self.unprocessed++;
-//          [item loadDataRepresentationForTypeIdentifier:@"public.plain-text" completionHandler: urlHandler];
-//          [item loadItemForTypeIdentifier:@"public.plain-text" options: nil completionHandler: coerceTextHandler2]; // ⚠️ coerce
-                    [item loadItemForTypeIdentifier:@"public.plain-text" options: nil completionHandler: coercePlainTextHandler2]; // ⚠️ coerce
+          [item loadItemForTypeIdentifier:@"public.plain-text" options: nil completionHandler: ^(NSString * text, NSError* error) {
+            [self sendText:text];
+          }];
+          self.unprocessed++;
+          [item loadItemForTypeIdentifier:@"public.plain-text" options: nil completionHandler: ^(id<NSSecureCoding> item, NSError* error) {
+            NSString* text = nil;
+            if (error == nil) {
+              NSObject * i = (NSObject*)item;
+              if([i isKindOfClass:[NSString class]]) {
+                text = (NSString*)i;
+              } else if([i isKindOfClass:[NSURL class]]) {
+                NSURL * url = (NSURL*)i;
+                text = url.absoluteString;
+                // not a user url
+                if ([text hasPrefix:@"file://"]) {
+                  NSData * d = [NSData dataWithContentsOfURL:url];
+                  text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
+                }
+              } else if([i isKindOfClass:[NSData class]]) {
+                NSData * d = (NSData*) i;
+                text = [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding];
+              }
+            }
+            [self sendText:text];
+          }];
           break;
           // local file urls, basically unknown
         } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeFileURL)) {
           handled = YES;
           self.unprocessed++;
-          // this is a local url and not something to show to the user, instead we download it
           [item loadFileRepresentationForTypeIdentifier: @"public.item" completionHandler:fileHandlerSimple2];
+          break;
+          // web urls ⚠️ coerce
+        } else if (UTTypeConformsTo((__bridge CFStringRef)stype, kUTTypeURL)) {
+          handled = YES;
+          self.unprocessed++;
+          [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler: ^(NSURL * url, NSError* error) {
+            NSString * text = url.absoluteString;
+            [self sendText:text];
+          }];
           break;
         }
       }
