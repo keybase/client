@@ -1,8 +1,7 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import GlobalError from '.'
 
-const Connected = () => {
+const useData = () => {
   const loggedIn = C.useConfigState(s => s.loggedIn)
   const daemonError = C.useDaemonState(s => s.error)
   const error = C.useConfigState(s => s.globalError)
@@ -30,17 +29,13 @@ const Connected = () => {
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onDismiss = setGlobalError
 
-  if (daemonError || error) {
-    return (
-      <GlobalError
-        copyToClipboard={copyToClipboard}
-        daemonError={daemonError}
-        error={error}
-        onDismiss={onDismiss}
-        onFeedback={onFeedback}
-      />
-    )
+  return {
+    copyToClipboard,
+    daemonError,
+    error,
+    onDismiss,
+    onFeedback,
   }
-  return null
 }
-export default Connected
+
+export default useData

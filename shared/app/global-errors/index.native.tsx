@@ -1,124 +1,100 @@
 import * as React from 'react'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as KbMobile from '../../common-adapters/mobile.native'
 import type {RPCError} from '../../util/errors'
-import type {Props} from './index'
+import useData from './hook'
 
 type Size = 'Closed' | 'Small' | 'Big'
 
-type State = {
-  size: Size
-  cachedDetails?: string
-}
+const detailsForError = (err?: Error | RPCError) => (err ? err.stack : undefined)
 
-class GlobalError extends React.Component<Props, State> {
-  state: State
-  timerID?: ReturnType<typeof setTimeout>
+const GlobalError = () => {
+  const {daemonError, error, onDismiss, onFeedback} = useData()
+  const [cachedDetails, setDetails] = React.useState(detailsForError(error))
+  const [size, setSize] = React.useState<Size>('Closed')
+  const timerRef = React.useRef<any>(0)
 
-  constructor(props: Props) {
-    super(props)
+  const onExpandClick = React.useCallback(() => {
+    setSize('Big')
+  }, [])
 
-    this.state = {
-      cachedDetails: this.detailsForError(props.error),
-      size: 'Closed',
-    }
+  const resetError = React.useCallback((newError: boolean) => {
+    const nsize = newError ? 'Small' : 'Closed'
+    setSize(nsize)
+  }, [])
+
+  C.useOnMountOnce(() => {
+    resetError(!!error)
+  })
+
+  C.useOnUnMountOnce(() => {
+    timerRef.current && clearTimeout(timerRef.current)
+    timerRef.current = 0
+  })
+
+  const [lastError, setLastError] = React.useState(error)
+
+  if (lastError !== error) {
+    setLastError(error)
+
+    timerRef.current = setTimeout(
+      () => {
+        setDetails(detailsForError(error))
+      },
+      error ? 0 : 7000
+    ) // if it's set, do it immediately, if it's cleared set it in a bit
+    resetError(!!error)
   }
 
-  componentDidMount() {
-    this.resetError(!!this.props.error)
+  if (size === 'Closed') {
+    return null
   }
 
-  componentWillUnmount() {
-    this.timerID && clearTimeout(this.timerID)
+  if (!daemonError && !error) {
+    return null
   }
 
-  private onExpandClick = () => {
-    this.setState({size: 'Big'})
-  }
-
-  private resetError(newError: boolean) {
-    const size = newError ? 'Small' : 'Closed'
-    if (this.state.size !== size) {
-      this.setState({size})
-    }
-  }
-
-  private detailsForError(err?: Error | RPCError) {
-    return err ? err.stack : undefined
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.error !== this.props.error) {
-      this.timerID = setTimeout(
-        () => {
-          this.setState({
-            cachedDetails: this.detailsForError(this.props.error),
-          })
-        },
-        this.props.error ? 0 : 7000
-      ) // if it's set, do it immediately, if it's cleared set it in a bit
-      this.resetError(!!this.props.error)
-    }
-  }
-
-  render() {
-    const {onDismiss, onFeedback, error} = this.props
-    const {size, cachedDetails} = this.state
-
-    if (size === 'Closed') {
-      return null
-    }
-
-    return (
-      <Kb.Box2
-        direction="vertical"
-        style={Kb.Styles.collapseStyles([
-          styles.container,
-          size === 'Big' && Kb.Styles.globalStyles.fillAbsolute,
-        ])}
-      >
-        <Kb.SafeAreaViewTop style={styles.safeAreaView} />
-        <Kb.Box style={Kb.Styles.globalStyles.flexBoxColumn}>
-          <Kb.Box style={Kb.Styles.collapseStyles([styles.summaryRow, styles.errorTextContainer])}>
-            <Kb.Text
-              center={true}
-              type="BodySmallSemibold"
-              style={styles.errorText}
-              onClick={this.onExpandClick}
-            >
-              {size !== 'Big' && (
-                <Kb.Icon
-                  type="iconfont-caret-right"
-                  color={Kb.Styles.globalColors.white_75}
-                  sizeType="Tiny"
-                />
-              )}
-              {'  '}
-              An error occurred.
-            </Kb.Text>
-            <Kb.Icon
-              type="iconfont-close"
-              onClick={onDismiss}
-              color={Kb.Styles.globalColors.white_75}
-              fontSize={21}
-            />
-          </Kb.Box>
-          <Kb.Box style={styles.summaryRow}>
-            <Kb.Button fullWidth={true} label="Please tell us" onClick={onFeedback} small={true} type="Dim" />
-          </Kb.Box>
+  return (
+    <Kb.Box2
+      direction="vertical"
+      style={Kb.Styles.collapseStyles([
+        styles.container,
+        size === 'Big' && Kb.Styles.globalStyles.fillAbsolute,
+      ])}
+    >
+      <Kb.SafeAreaViewTop style={styles.safeAreaView} />
+      <Kb.Box style={Kb.Styles.globalStyles.flexBoxColumn}>
+        <Kb.Box style={Kb.Styles.collapseStyles([styles.summaryRow, styles.errorTextContainer])}>
+          <Kb.Text center={true} type="BodySmallSemibold" style={styles.errorText} onClick={onExpandClick}>
+            {size !== 'Big' && (
+              <Kb.Icon type="iconfont-caret-right" color={Kb.Styles.globalColors.white_75} sizeType="Tiny" />
+            )}
+            {'  '}
+            An error occurred.
+          </Kb.Text>
+          <Kb.Icon
+            type="iconfont-close"
+            onClick={onDismiss}
+            color={Kb.Styles.globalColors.white_75}
+            fontSize={21}
+          />
         </Kb.Box>
-        {size === 'Big' && (
-          <KbMobile.NativeScrollView>
-            <Kb.Text type="BodySmall" selectable={true} style={styles.details}>
-              {error?.message}
-              {'\n\n'}
-              {cachedDetails}
-            </Kb.Text>
-          </KbMobile.NativeScrollView>
-        )}
-      </Kb.Box2>
-    )
-  }
+        <Kb.Box style={styles.summaryRow}>
+          <Kb.Button fullWidth={true} label="Please tell us" onClick={onFeedback} small={true} type="Dim" />
+        </Kb.Box>
+      </Kb.Box>
+      {size === 'Big' && (
+        <KbMobile.NativeScrollView>
+          <Kb.Text type="BodySmall" selectable={true} style={styles.details}>
+            {error?.message}
+            {'\n\n'}
+            {cachedDetails}
+          </Kb.Text>
+        </KbMobile.NativeScrollView>
+      )}
+    </Kb.Box2>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
