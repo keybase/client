@@ -65,10 +65,19 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   // find out if resource has updated. So embed timestamp into URL to force a
   // reload when needed.
   const url = fileContext.url + `&unused_field_ts=${loadedLastModifiedTimestamp}`
-
   switch (fileContext.viewType) {
-    case T.RPCGen.GUIViewType.default:
+    case T.RPCGen.GUIViewType.default: {
+      // mobile client only supports heic now, but this doesn't work, TODO
+      // if (C.isMobile && pathItem.name.toLowerCase().endsWith('.heic')) {
+      //   return (
+      //     <>
+      //       {reloadBanner}
+      //       <Kb.ZoomableImage src={url} style={styles.zoomableBox} />
+      //     </>
+      //   )
+      // }
       return <DefaultView path={path} />
+    }
     case T.RPCGen.GUIViewType.text:
       return tooLargeForText ? (
         <DefaultView path={path} />
