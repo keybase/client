@@ -75,14 +75,8 @@ const BOOL isSimulator = NO;
   [super viewDidAppear:animated];
   
   NSMutableArray *itemArrs = [NSMutableArray array];
-//  NSMutableArray *sArrs = [NSMutableArray array];
   for (NSExtensionItem *inputItem in self.extensionContext.inputItems) {
     [itemArrs addObject:inputItem.attachments];
-//    NSString * str = inputItem.attributedContentText.string;
-//    if (str == nil) {
-//      str = @"";
-//    }
-//    [sArrs addObject: str];
   }
   
   __weak __typeof__(self) weakSelf = self;
