@@ -25,7 +25,50 @@ twitter share: good
 
 reddit share: good
 
+overcast share link: good
+overcast share clip: good
+
+contact card: good
+
+netflix:
+apple tv
+youtube
+
+amazon
+notes
+reminders
+photos share default: good
+photoes share currnt: good
+photoes share most compat: good
+photoes share all photo data: good
+photos share 2x default: good
+photos share drop: good
+photos share 2x drop: good
+
+chrome: good
+
+ios screenshot: good
+
+google maps: good
+spotify: good
+soundcloud: good
+twitch:  good
+
+zillow
+walmart
+yelp
+what 3:
+whatsapp:
+chatgpt:
+
+
+
+
 message:
 sent heic to share: good
-sent text to share: fail
+sent heic to drop: good
+sent text to share: good
+sent text to drop: good
+
+
 
