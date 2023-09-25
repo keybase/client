@@ -570,3 +570,13 @@
 }
 
 @end
+
+/**
+ Useful flows to check:
+ Popular apps just sharing a url/text: zillow, chrome, messaging/social apps etc
+ Apple apps: app store, music, notes, reminders, safari, contacts, apple tv, photos, system screenshot
+ Special cases:
+ imessage: share sent heic, drag drop sent heic, drag and extract image
+ safari: drag url, share with all options (pdf, webarchive, etc)
+ photos: drag, drag multiple, share with all options, share multiple
+ */
