@@ -1,3 +1,4 @@
+// @ts-ignore
 import {rimrafSync} from 'rimraf'
 import fs from 'fs-extra'
 import os from 'os'
