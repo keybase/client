@@ -1642,7 +1642,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const loadMessages = () => {
         const {dispatch} = get()
         let reason: string = _reason || 'navigated'
-        let forceClear = false
+        let forceClear = true
         let forceContainsLatestCalc = false
         let messageIDControl: T.RPCChat.MessageIDControl | undefined = undefined
         const knownRemotes = pushBody && pushBody.length > 0 ? [pushBody] : []
