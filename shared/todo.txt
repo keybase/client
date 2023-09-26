@@ -1,1 +1,4 @@
 Some short term todos:
+send animation super slow
+animated? no
+new rn?

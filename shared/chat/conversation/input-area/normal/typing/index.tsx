@@ -45,12 +45,12 @@ const Typing = React.memo(function Typing() {
   const names = C.useChatContext(s => s.typing)
   return (
     <Kb.Box style={styles.isTypingContainer}>
-      {(names?.size ?? 0) > 0 && (
+      {names.size > 0 && (
         <Kb.Box style={styles.typingIconContainer}>
           <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
         </Kb.Box>
       )}
-      {(names?.size ?? 0) > 0 && (
+      {names.size > 0 && (
         <Kb.Text lineClamp={1} type="BodyTiny" style={styles.isTypingText}>
           <Names names={names} />
         </Kb.Text>

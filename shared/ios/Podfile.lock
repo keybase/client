@@ -29,7 +29,7 @@ PODS:
     - ExpoModulesCore
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
-  - Expo (49.0.10):
+  - Expo (49.0.11):
     - ExpoModulesCore
   - ExpoClipboard (4.5.0):
     - ExpoModulesCore
@@ -148,9 +148,9 @@ PODS:
   - libwebp/sharpyuv (1.3.1)
   - libwebp/webp (1.3.1):
     - libwebp/sharpyuv
-  - lottie-ios (3.5.0)
-  - lottie-react-native (5.1.6):
-    - lottie-ios (~> 3.5.0)
+  - lottie-ios (4.3.1)
+  - lottie-react-native (6.3.1):
+    - lottie-ios (~> 4.3.0)
     - React-Core
   - OpenSSL-Universal (1.1.1100)
   - RCT-Folly (2021.07.22.00):
@@ -550,13 +550,13 @@ PODS:
     - React-perflogger (= 0.72.4)
   - RNCMaskedView (0.2.9):
     - React-Core
-  - RNCPicker (2.5.0):
+  - RNCPicker (2.5.1):
     - React-Core
   - RNCPushNotificationIOS (1.11.0):
     - React-Core
-  - RNGestureHandler (2.12.1):
+  - RNGestureHandler (2.13.1):
     - React-Core
-  - RNReanimated (3.5.2):
+  - RNReanimated (3.5.4):
     - DoubleConversion
     - FBLazyVector
     - glog
@@ -900,7 +900,7 @@ SPEC CHECKSUMS:
   EXImageLoader: 03063370bc06ea1825713d3f55fe0455f7c88d04
   EXLocation: e5dd52bdf61ccb6153c9e46ad4cb2686c96a35f9
   EXMediaLibrary: 802eee8ef888ee16ef80f1b79005d3d611793e14
-  Expo: 0ff83f0415a0e7a9368ce38bf25cad539b18a08c
+  Expo: 8a2d2c235bcbe4f41774562a0635bd74c174858c
   ExpoClipboard: d2f0e44d50e5ba07b02f5fb7bd280178b420e24e
   ExpoHaptics: 604aca02e942d1d43c139cae7cf397b26f85476f
   ExpoImage: bbd451559f49f78d858592fe1d4d74aedb3d900b
@@ -927,8 +927,8 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   libvmaf: 27f523f1e63c694d14d534cd0fddd2fab0ae8711
   libwebp: 33dc822fbbf4503668d09f7885bbfedc76c45e96
-  lottie-ios: c55158d67d0629a260625cc2ded2052b829e3c3e
-  lottie-react-native: 3752fd1e56bd0c464dfeedcee170d291a0c2db6b
+  lottie-ios: 6279047f1cc31b395e11f1fc24f3dab68cbf0df2
+  lottie-react-native: c9f1db4f4124dcce9f8159e65d8dc6e8bcb11fb4
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: c0569ecc035894e4a68baecb30fe6a7ea6e399f9
@@ -971,10 +971,10 @@ SPEC CHECKSUMS:
   React-utils: b79f2411931f9d3ea5781404dcbb2fa8a837e13a
   ReactCommon: 2635a013764a291989765d6ec136513911f478c6
   RNCMaskedView: 949696f25ec596bfc697fc88e6f95cf0c79669b6
-  RNCPicker: 32ca102146bc7d34a8b93a998d9938d9f9ec7898
+  RNCPicker: 529d564911e93598cc399b56cc0769ce3675f8c8
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
-  RNGestureHandler: c0d04458598fcb26052494ae23dda8f8f5162b13
-  RNReanimated: bdd760df59b9a87e44484b9c07b54bdcb671786a
+  RNGestureHandler: 38aa38413896620338948fbb5c90579a7b1c3fde
+  RNReanimated: bdadbf5322d7894bb6016985d8ae5c9ed5fc83d0
   RNScreens: 85d3880b52d34db7b8eeebe2f1a0e807c05e69fa
   SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
   SDWebImageAVIFCoder: 8348fef6d0ec69e129c66c9fe4d74fbfbf366112
