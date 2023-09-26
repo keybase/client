@@ -7,8 +7,6 @@ type SentProps = {
 export const Sent = React.memo(function Sent(p: SentProps) {
   const {children} = p
   const [done, setDone] = React.useState(false)
-  // const translateY = React.useRef(new Animated.Value(0 /*999*/)).current
-  // const opacity = React.useRef(new Animated.Value(1 /*0*/)).current
   const translateY = React.useRef(new Animated.Value(999)).current
   const opacity = React.useRef(new Animated.Value(0)).current
   // only animate up once
@@ -18,13 +16,10 @@ export const Sent = React.memo(function Sent(p: SentProps) {
     return <>{children}</>
   }
 
-  // console.log('aaa render <<<<<<', Date.now(), children)
-
   return (
     <Animated.View
       style={{opacity, overflow: 'hidden', transform: [{translateY}], width: '100%'}}
       onLayout={(e: any) => {
-        // console.log('aaa onlayout <<<<<<', e.nativeEvent, Date.now())
         if (onceRef.current) {
           return
         }
