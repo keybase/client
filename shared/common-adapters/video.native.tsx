@@ -21,7 +21,15 @@ const DelayMount = ({children}: any) => {
 }
 
 const Video = (props: Props) => {
+  const {url, allowFile} = props
   const [videoSize, setContainerSize, setVideoNaturalSize] = useVideoSizer()
+  const source = React.useMemo(() => {
+    if (allowFile) {
+      return {uri: Styles.normalizePath(url)}
+    }
+    return {uri: url}
+  }, [url, allowFile])
+
   return (
     <CheckURL url={props.url} allowFile={props.allowFile}>
       <DelayMount>
@@ -34,7 +42,7 @@ const Video = (props: Props) => {
         >
           <AVVideo
             isMuted={props.muted}
-            source={{uri: props.url}}
+            source={source}
             onError={e => {
               props.onUrlError && props.onUrlError(JSON.stringify(e))
             }}

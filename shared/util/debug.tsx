@@ -24,3 +24,39 @@ export const useDebugLayout = __DEV__
   : () => {
       return undefined
     }
+
+// helper to debug method calls into an object
+export function createLoggingProxy<T extends object>(
+  obj: T,
+  logMethods: boolean = true,
+  logProps: boolean = false
+): T {
+  console.log('[PROXY] installed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+  const proxy = new Proxy(obj, {
+    get(target, propKey) {
+      // @ts-ignore
+      const originalMethod = target[propKey] as any
+      if (typeof originalMethod === 'function') {
+        return function (...args: any[]) {
+          if (logMethods) {
+            console.log(`[PROXY] Calling method: ${String(propKey)}`)
+            console.log('[PROXY] Arguments:', args)
+          }
+          // @ts-ignore
+          const result = originalMethod.apply(this, args)
+          if (logMethods) {
+            console.log('[PROXY] Result:', result)
+          }
+          return result
+        }
+      } else {
+        if (logProps) {
+          console.log(`[PROXY] props access: ${String(propKey)}`)
+        }
+        return originalMethod
+      }
+    },
+  })
+
+  return proxy as T
+}

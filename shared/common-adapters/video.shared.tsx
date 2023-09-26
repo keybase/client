@@ -103,11 +103,13 @@ type CheckURLProps = {
   allowFile?: boolean
 }
 
-export const CheckURL = (props: CheckURLProps) =>
-  urlIsOK(props.url, props.allowFile) ? (
+export const CheckURL = (props: CheckURLProps) => {
+  const ok = urlIsOK(props.url, props.allowFile)
+  return ok ? (
     props.children
   ) : (
     <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} centerChildren={true}>
       <Kb.Text type="BodySmall">Invalid URL: {props.url}</Kb.Text>
     </Kb.Box2>
   )
+}

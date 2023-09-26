@@ -11,8 +11,18 @@ export const useRedux = () => {
   return C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const message = m?.type === 'attachment' ? m : missingMessage
-    const {previewURL, previewHeight, previewWidth} = message
-    const {height, width} = Constants.clampImageSize(previewWidth, previewHeight, maxWidth, maxHeight)
+    const {fileURL, previewHeight, previewWidth} = message
+    let {previewURL} = message
+    let {height, width} = Constants.clampImageSize(previewWidth, previewHeight, maxWidth, maxHeight)
+    // This is mostly a sanity check and also allows us to handle HEIC even though the go side doesn't
+    // understand
+    if (height === 0 || width == 0) {
+      height = 320
+      width = 320
+    }
+    if (!previewURL) {
+      previewURL = fileURL
+    }
     return {height, previewURL, width}
   }, C.shallowEqual)
 }
