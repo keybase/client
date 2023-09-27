@@ -87,14 +87,20 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
           <TextView url={url} onUrlError={onUrlError} />
         </>
       )
-    case T.RPCGen.GUIViewType.image:
+    case T.RPCGen.GUIViewType.image: {
+      // no webp
+      if (fileContext.contentType === 'image/webp') {
+        return <DefaultView path={path} />
+      }
+
       return (
         <>
           {reloadBanner}
           <Kb.ZoomableImage src={url} style={styles.zoomableBox} />
         </>
       )
-    case T.RPCGen.GUIViewType.audio:
+    }
+    case T.RPCGen.GUIViewType.audio: // fallthrough
     case T.RPCGen.GUIViewType.video:
       return (
         <>
