@@ -6,7 +6,7 @@ import useData from './hook'
 const GlobalError = () => {
   const d = useData()
   const {daemonError, error, onDismiss, onFeedback} = d
-  const {cachedDetails, cachedSummary, size, onExpandClick} = d
+  const {cachedDetails, size, onExpandClick} = d
 
   if (size === 'Closed') {
     return null
