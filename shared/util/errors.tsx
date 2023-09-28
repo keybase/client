@@ -27,7 +27,11 @@ export function convertToError(err: any, method?: string): Error | RPCError {
     }
   }
 
-  return new Error(`Unknown error: ${JSON.stringify(err)}`)
+  try {
+    return new Error(`Unknown error: ${JSON.stringify(err)}`)
+  } catch {
+    return new Error(`Unknown error`)
+  }
 }
 
 type RPCErrorLike = {

@@ -2,106 +2,36 @@ import * as React from 'react'
 import logger from '../../logger'
 import * as Kb from '../../common-adapters'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop'
-import type {RPCError} from '../../util/errors'
-import type {Props} from './index'
+import useData, {type Size} from './hook'
 
-type Size = 'Closed' | 'Small' | 'Big'
-
-type State = {
-  size: Size
-  cachedSummary?: string
-  cachedDetails?: string
+const maxHeightForSize = (size: Size) => {
+  return {
+    Big: 900,
+    Closed: 0,
+    Small: 35,
+  }[size]
 }
 
-class GlobalError extends React.Component<Props, State> {
-  state: State
-  private timerID?: ReturnType<typeof setInterval>
-  private mounted: boolean = false
+const GlobalError = () => {
+  const d = useData()
+  const {daemonError, error, onDismiss, onFeedback} = d
+  const {cachedDetails, cachedSummary, size, onExpandClick} = d
 
-  constructor(props: Props) {
-    super(props)
-
-    this.state = {
-      cachedDetails: this.detailsForError(props.error),
-      cachedSummary: this.summaryForError(props.error),
-      size: 'Closed',
-    }
+  if (size === 'Closed') {
+    return null
   }
 
-  componentWillUnmount() {
-    this.mounted = false
-    this.clearCountdown()
+  if (!daemonError && !error) {
+    return null
   }
 
-  componentDidMount() {
-    this.mounted = true
-    this.resetError(!!this.props.error)
-  }
-
-  private onExpandClick = () => {
-    this.setState({size: 'Big'})
-    this.clearCountdown()
-  }
-
-  private clearCountdown() {
-    if (this.timerID) {
-      clearTimeout(this.timerID)
-    }
-    this.timerID = undefined
-  }
-
-  private resetError(newError: boolean) {
-    this.clearCountdown()
-    this.setState({size: newError ? 'Small' : 'Closed'})
-
-    if (newError) {
-      this.timerID = setTimeout(() => {
-        this.props.onDismiss()
-      }, 10000)
-    }
-  }
-
-  private summaryForError(err?: Error | RPCError) {
-    return err?.message
-  }
-
-  private detailsForError(err?: Error | RPCError) {
-    return err?.stack
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.error !== this.props.error) {
-      setTimeout(
-        () => {
-          if (this.mounted) {
-            this.setState({
-              cachedDetails: this.detailsForError(this.props.error),
-              cachedSummary: this.summaryForError(this.props.error),
-            })
-          }
-        },
-        this.props.error ? 0 : 7000
-      ) // if it's set, do it immediately, if it's cleared set it in a bit
-      this.resetError(!!this.props.error)
-    }
-  }
-
-  static maxHeightForSize(size: Size) {
-    return {
-      Big: 900,
-      Closed: 0,
-      Small: 35,
-    }[size]
-  }
-
-  private renderDaemonError() {
+  if (daemonError) {
     if (ignoreDisconnectOverlay) {
       logger.warn('Ignoring disconnect overlay')
       return null
     }
 
-    const message =
-      this.props.daemonError?.message || 'Keybase is currently unreachable. Trying to reconnect you…'
+    const message = daemonError?.message || 'Keybase is currently unreachable. Trying to reconnect you…'
     return (
       <Kb.Box style={styles.containerOverlay}>
         <Kb.Box style={styles.overlayRow}>
@@ -114,20 +44,14 @@ class GlobalError extends React.Component<Props, State> {
         </Kb.Box>
       </Kb.Box>
     )
-  }
-
-  private renderError() {
-    const {onDismiss} = this.props
-    const summary = this.state.cachedSummary
-    const details = this.state.cachedDetails
+  } else {
+    const summary = cachedSummary
+    const details = cachedDetails
 
     let stylesContainer: Kb.Styles.StylesCrossPlatform
-    switch (this.state.size) {
+    switch (size) {
       case 'Big':
         stylesContainer = styles.containerBig
-        break
-      case 'Closed':
-        stylesContainer = styles.containerClosed
         break
       case 'Small':
         stylesContainer = styles.containerSmall
@@ -135,14 +59,14 @@ class GlobalError extends React.Component<Props, State> {
     }
 
     return (
-      <Kb.Box style={stylesContainer} onClick={this.onExpandClick}>
+      <Kb.Box style={stylesContainer} onClick={onExpandClick}>
         <Kb.Box style={styles.innerContainer}>
           <Kb.Text center={true} type="BodyBig" style={styles.summary}>
             {summary}
           </Kb.Text>
           <Kb.Button
             label="Please tell us"
-            onClick={this.props.onFeedback}
+            onClick={onFeedback}
             small={true}
             type="Dim"
             style={styles.feedbackButton}
@@ -165,13 +89,6 @@ class GlobalError extends React.Component<Props, State> {
       </Kb.Box>
     )
   }
-
-  render() {
-    if (this.props.daemonError) {
-      return this.renderDaemonError()
-    }
-    return this.renderError()
-  }
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => {
@@ -181,7 +98,7 @@ const styles = Kb.Styles.styleSheetCreate(() => {
     overflow: 'hidden',
     position: 'absolute',
     right: 0,
-    top: 0,
+    top: 40,
     zIndex: 1000,
     ...Kb.Styles.transition('max-height'),
   } as const
@@ -193,10 +110,10 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       top: 10,
     },
     containerBig: Kb.Styles.platformStyles({
-      isElectron: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Big')},
+      isElectron: {...containerBase, maxHeight: maxHeightForSize('Big')},
     }),
     containerClosed: Kb.Styles.platformStyles({
-      isElectron: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Closed')},
+      isElectron: {...containerBase, maxHeight: maxHeightForSize('Closed')},
     }),
     containerOverlay: {
       ...Kb.Styles.globalStyles.flexBoxColumn,
@@ -208,7 +125,7 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       zIndex: 1000,
     },
     containerSmall: Kb.Styles.platformStyles({
-      isElectron: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Small')},
+      isElectron: {...containerBase, maxHeight: maxHeightForSize('Small')},
     }),
     details: {
       backgroundColor: Kb.Styles.globalColors.black,
@@ -226,7 +143,7 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       backgroundColor: Kb.Styles.globalColors.black,
       flex: 1,
       justifyContent: 'center',
-      minHeight: GlobalError.maxHeightForSize('Small'),
+      minHeight: maxHeightForSize('Small'),
       padding: Kb.Styles.globalMargins.xtiny,
       position: 'relative',
     },
@@ -261,7 +178,7 @@ const styles = Kb.Styles.styleSheetCreate(() => {
     },
     summaryRowError: {
       backgroundColor: Kb.Styles.globalColors.black,
-      minHeight: GlobalError.maxHeightForSize('Small'),
+      minHeight: maxHeightForSize('Small'),
     },
   } as const
 })

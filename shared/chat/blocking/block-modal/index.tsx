@@ -157,11 +157,7 @@ class BlockModal extends React.PureComponent<Props, State> {
         report: this.props.reportsUserByDefault
           ? {
               ...defaultReport,
-              ...(this.props.flagUserByDefault
-                ? {
-                    reason: reasons[reasons.length - 2],
-                  }
-                : {}),
+              ...(this.props.flagUserByDefault ? {reason: reasons[reasons.length - 2]} : {}),
             }
           : undefined,
       })
