@@ -317,7 +317,7 @@ const MainWindow = () => {
     width: windowState.width,
     x: windowState.x,
     y: windowState.y,
-    ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
+    ...(isDarwin ? {titleBarOverlay: false, titleBarStyle: 'hidden'} : {}),
   })
   if (__DEV__ || __PROFILE__) {
     setupDevToolsExtensions()

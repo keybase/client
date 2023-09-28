@@ -936,8 +936,9 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       })
     },
     setGlobalError: _e => {
-      const e = convertToError(_e)
-      if (e) {
+      let e = _e
+      if (_e) {
+        e = convertToError(_e)
         logger.error('Error (global):', e)
         if (isEOFError(e)) {
           Stats.gotEOF()

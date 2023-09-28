@@ -24,19 +24,23 @@ const GlobalError = () => {
   const [size, setSize] = React.useState<Size>('Closed')
   const [cachedSummary, setSummary] = React.useState(summaryForError(error))
   const [cachedDetails, setDetails] = React.useState(detailsForError(error))
-  const timerRef = React.useRef<any>(0)
+  const countdownTimerRef = React.useRef<any>(0)
+  const newErrorTimerRef = React.useRef<any>(0)
 
   const clearCountdown = React.useCallback(() => {
-    timerRef.current && clearTimeout(timerRef.current)
-    timerRef.current = 0
-  }, [timerRef])
+    countdownTimerRef.current && clearTimeout(countdownTimerRef.current)
+    countdownTimerRef.current = 0
+  }, [countdownTimerRef])
 
   const onExpandClick = React.useCallback(() => {
     setSize('Big')
     clearCountdown()
   }, [clearCountdown])
 
-  C.useOnUnMountOnce(clearCountdown)
+  C.useOnUnMountOnce(() => {
+    clearCountdown()
+    newErrorTimerRef.current && clearTimeout(newErrorTimerRef.current)
+  })
 
   C.useOnMountOnce(() => {
     resetError(!!error)
@@ -47,7 +51,7 @@ const GlobalError = () => {
       clearCountdown()
       setSize(newError ? 'Small' : 'Closed')
       if (newError) {
-        timerRef.current = setTimeout(() => {
+        countdownTimerRef.current = setTimeout(() => {
           onDismiss()
         }, 10000)
       }
@@ -59,7 +63,7 @@ const GlobalError = () => {
 
   if (lastError !== error) {
     setLastError(error)
-    timerRef.current = setTimeout(
+    newErrorTimerRef.current = setTimeout(
       () => {
         setDetails(detailsForError(error))
         setSummary(summaryForError(error))
@@ -151,7 +155,7 @@ const styles = Kb.Styles.styleSheetCreate(() => {
     overflow: 'hidden',
     position: 'absolute',
     right: 0,
-    top: 0,
+    top: 40,
     zIndex: 1000,
     ...Kb.Styles.transition('max-height'),
   } as const
