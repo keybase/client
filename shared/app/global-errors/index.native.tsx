@@ -1,51 +1,12 @@
 import * as React from 'react'
-import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as KbMobile from '../../common-adapters/mobile.native'
-import type {RPCError} from '../../util/errors'
 import useData from './hook'
 
-type Size = 'Closed' | 'Small' | 'Big'
-
-const detailsForError = (err?: Error | RPCError) => (err ? err.stack : undefined)
-
 const GlobalError = () => {
-  const {daemonError, error, onDismiss, onFeedback} = useData()
-  const [cachedDetails, setDetails] = React.useState(detailsForError(error))
-  const [size, setSize] = React.useState<Size>('Closed')
-  const timerRef = React.useRef<any>(0)
-
-  const onExpandClick = React.useCallback(() => {
-    setSize('Big')
-  }, [])
-
-  const resetError = React.useCallback((newError: boolean) => {
-    const nsize = newError ? 'Small' : 'Closed'
-    setSize(nsize)
-  }, [])
-
-  C.useOnMountOnce(() => {
-    resetError(!!error)
-  })
-
-  C.useOnUnMountOnce(() => {
-    timerRef.current && clearTimeout(timerRef.current)
-    timerRef.current = 0
-  })
-
-  const [lastError, setLastError] = React.useState(error)
-
-  if (lastError !== error) {
-    setLastError(error)
-
-    timerRef.current = setTimeout(
-      () => {
-        setDetails(detailsForError(error))
-      },
-      error ? 0 : 7000
-    ) // if it's set, do it immediately, if it's cleared set it in a bit
-    resetError(!!error)
-  }
+  const d = useData()
+  const {daemonError, error, onDismiss, onFeedback} = d
+  const {cachedDetails, cachedSummary, size, onExpandClick} = d
 
   if (size === 'Closed') {
     return null

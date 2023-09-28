@@ -1,15 +1,8 @@
 import * as React from 'react'
 import logger from '../../logger'
 import * as Kb from '../../common-adapters'
-import * as C from '../../constants'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop'
-import type {RPCError} from '../../util/errors'
-import useData from './hook'
-
-type Size = 'Closed' | 'Small' | 'Big'
-
-const summaryForError = (err?: Error | RPCError) => err?.message ?? ''
-const detailsForError = (err?: Error | RPCError) => err?.stack ?? ''
+import useData, {type Size} from './hook'
 
 const maxHeightForSize = (size: Size) => {
   return {
@@ -20,57 +13,12 @@ const maxHeightForSize = (size: Size) => {
 }
 
 const GlobalError = () => {
-  const {daemonError, error, onDismiss, onFeedback} = useData()
-  const [size, setSize] = React.useState<Size>('Closed')
-  const [cachedSummary, setSummary] = React.useState(summaryForError(error))
-  const [cachedDetails, setDetails] = React.useState(detailsForError(error))
-  const countdownTimerRef = React.useRef<any>(0)
-  const newErrorTimerRef = React.useRef<any>(0)
+  const d = useData()
+  const {daemonError, error, onDismiss, onFeedback} = d
+  const {cachedDetails, cachedSummary, size, onExpandClick} = d
 
-  const clearCountdown = React.useCallback(() => {
-    countdownTimerRef.current && clearTimeout(countdownTimerRef.current)
-    countdownTimerRef.current = 0
-  }, [countdownTimerRef])
-
-  const onExpandClick = React.useCallback(() => {
-    setSize('Big')
-    clearCountdown()
-  }, [clearCountdown])
-
-  C.useOnUnMountOnce(() => {
-    clearCountdown()
-    newErrorTimerRef.current && clearTimeout(newErrorTimerRef.current)
-  })
-
-  C.useOnMountOnce(() => {
-    resetError(!!error)
-  })
-
-  const resetError = React.useCallback(
-    (newError: boolean) => {
-      clearCountdown()
-      setSize(newError ? 'Small' : 'Closed')
-      if (newError) {
-        countdownTimerRef.current = setTimeout(() => {
-          onDismiss()
-        }, 10000)
-      }
-    },
-    [clearCountdown, onDismiss]
-  )
-
-  const [lastError, setLastError] = React.useState(error)
-
-  if (lastError !== error) {
-    setLastError(error)
-    newErrorTimerRef.current = setTimeout(
-      () => {
-        setDetails(detailsForError(error))
-        setSummary(summaryForError(error))
-      },
-      error ? 0 : 7000
-    ) // if it's set, do it immediately, if it's cleared set it in a bit
-    resetError(!!error)
+  if (size === 'Closed') {
+    return null
   }
 
   if (!daemonError && !error) {
@@ -100,15 +48,10 @@ const GlobalError = () => {
     const summary = cachedSummary
     const details = cachedDetails
 
-    console.log('aaa', summary, details)
-
     let stylesContainer: Kb.Styles.StylesCrossPlatform
     switch (size) {
       case 'Big':
         stylesContainer = styles.containerBig
-        break
-      case 'Closed':
-        stylesContainer = styles.containerClosed
         break
       case 'Small':
         stylesContainer = styles.containerSmall
