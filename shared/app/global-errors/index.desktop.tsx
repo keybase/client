@@ -22,8 +22,8 @@ const maxHeightForSize = (size: Size) => {
 const GlobalError = () => {
   const {daemonError, error, onDismiss, onFeedback} = useData()
   const [size, setSize] = React.useState<Size>('Closed')
-  const [cachedSummary, setSummary] = React.useState('')
-  const [cachedDetails, setDetails] = React.useState('')
+  const [cachedSummary, setSummary] = React.useState(summaryForError(error))
+  const [cachedDetails, setDetails] = React.useState(detailsForError(error))
   const timerRef = React.useRef<any>(0)
 
   const clearCountdown = React.useCallback(() => {
@@ -95,6 +95,8 @@ const GlobalError = () => {
   } else {
     const summary = cachedSummary
     const details = cachedDetails
+
+    console.log('aaa', summary, details)
 
     let stylesContainer: Kb.Styles.StylesCrossPlatform
     switch (size) {
