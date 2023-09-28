@@ -25,13 +25,9 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       arrowBox: Kb.Styles.platformStyles({
-        isElectron: {
-          display: 'inline',
-        },
+        isElectron: {display: 'inline'},
       }),
-      arrowText: {
-        paddingRight: Kb.Styles.globalMargins.tiny,
-      },
+      arrowText: {paddingRight: Kb.Styles.globalMargins.tiny},
       outerContainer: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
@@ -41,9 +37,7 @@ const styles = Kb.Styles.styleSheetCreate(
           position: 'absolute',
           width: '100%',
         },
-        isElectron: {
-          backgroundImage: `linear-gradient(transparent, ${Kb.Styles.globalColors.white} 75%)`,
-        },
+        isElectron: {backgroundImage: `linear-gradient(transparent, ${Kb.Styles.globalColors.white} 75%)`},
       }),
     }) as const
 )

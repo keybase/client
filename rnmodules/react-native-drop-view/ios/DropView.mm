@@ -51,8 +51,7 @@
   __weak __typeof(self) weakSelf = self;
   self.iph = [[ItemProviderHelper alloc]
            initForShare:false
-              withItems:items
-             attrString:@""
+              withItems:@[items]
       completionHandler:^{
         if (weakSelf.onDropped != nil) {
           weakSelf.onDropped(@{@"manifest" : weakSelf.iph.manifest});

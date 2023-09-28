@@ -1,3 +1,4 @@
+// @ts-ignore
 import {rimrafSync} from 'rimraf'
 import fs from 'fs-extra'
 import os from 'os'
@@ -14,12 +15,12 @@ const TEMP_SKIP_BUILD: boolean = false
 
 // prettier-ignore
 const electronChecksums = {
-  ['electron-v26.2.0-darwin-arm64.zip']: '1bb9f1f9d26b045ffa695ed0e73d5e92b0bbbe7adb9c0565585a5c4cd3bc6720',
-  ['electron-v26.2.0-darwin-x64.zip']: '148c1d94598064ce2ded5a639891af6b2222af87ee5c23b1d66bc9e29d45d90e',
-  ['electron-v26.2.0-linux-arm64.zip']: '427b0122b86d199693f36b25e695b1d430b6adcdeeb2d1483c99191c23b636ac',
-  ['electron-v26.2.0-linux-x64.zip']: '7210684574309df90f90d54c9f013fb690a9edf46c80e264ba67a4b7d50ca856',
-  ['electron-v26.2.0-win32-x64.zip']: 'bee71e4fe599db6f7400f33d3d1b60123ee808867e32dee2134fefd32e135fbf',
-  ['hunspell_dictionaries.zip']: 'd887dc2bee9b2ed0aa8b9f89317c592d1f65452f78dbdee90a125c5542b2726e',
+  ['electron-v26.2.3-darwin-arm64.zip']: 'a98d048154c09bacc52f9e8e7eda9265b79da7b1b692e23d15d9448f40b1e74c',
+  ['electron-v26.2.3-darwin-x64.zip']: 'd9d87ddcd8ea3a1ae6ff3da79c3a01a6abe4fc7eac1db36ed7ac6dd40c39ae39',
+  ['electron-v26.2.3-linux-arm64.zip']: '506403f02bf9495b6a9ece01af585989ecaa2bf346d56ecbd60c9b48f174d9c7',
+  ['electron-v26.2.3-linux-x64.zip']: '52d91766e08018e200c6843a501b02639a4e7ea6f742312b61cdbc189adf8f85',
+  ['electron-v26.2.3-win32-x64.zip']: '8438aa60732b329bb7f91ed680b8aa19875a6b1fd7c10b9aa795339700df4c51',
+  ['hunspell_dictionaries.zip']: 'a3f6154e389cf78b10a2966b318e9dcc72dbfa65d361ff6a112d134a86f26c50',
 }
 
 // absolute path relative to this script

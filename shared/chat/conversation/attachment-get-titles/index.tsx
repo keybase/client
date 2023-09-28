@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import * as C from '../../../constants'
 import type * as T from '../../../constants/types'
 
 export type Info = {
@@ -89,12 +90,17 @@ class GetTitles extends React.Component<Props, State> {
       case 'video':
         preview = path ? <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} /> : null
         break
-      default:
-        preview = (
-          <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-            <Kb.Icon type="icon-file-uploading-48" />
-          </Kb.Box2>
-        )
+      default: {
+        if (C.isMobile && path?.toLowerCase().endsWith('.heic')) {
+          preview = <Kb.ZoomableImage src={path} style={styles.image} />
+        } else {
+          preview = (
+            <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+              <Kb.Icon type="icon-file-uploading-48" />
+            </Kb.Box2>
+          )
+        }
+      }
     }
 
     return (

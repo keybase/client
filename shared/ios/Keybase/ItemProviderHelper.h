@@ -11,9 +11,9 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface ItemProviderHelper : NSObject
--(id) initForShare: (BOOL) isShare withItems: (NSArray*) items attrString: (NSString *) ats completionHandler:(void (^)(void))handler;
+-(id) initForShare: (BOOL) isShare withItems: (NSArray*) itemArrs completionHandler:(void (^)(void))handler;
 -(void) startProcessing;
-@property (nonatomic, strong) NSMutableArray * manifest;
+@property (nonatomic, strong) NSArray *manifest;
 @end
 
 NS_ASSUME_NONNULL_END

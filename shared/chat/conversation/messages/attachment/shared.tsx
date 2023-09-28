@@ -176,14 +176,13 @@ export const useAttachmentRedux = () => {
     attachmentPreviewSelect(ordinal)
   }, [attachmentPreviewSelect, ordinal])
 
-  const editInfo = C.useChatContext(s => s.getEditInfo())
   const {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState} =
     C.useChatContext(s => {
       const m = s.messageMap.get(ordinal)
       const message = m?.type === 'attachment' ? m : missingMessage
       const {isCollapsed, title, fileName: fileNameRaw, transferProgress} = message
       const {deviceType, inlineVideoPlayable, transferState, submitState} = message
-      const isEditing = !!(editInfo && editInfo.ordinal === ordinal)
+      const isEditing = s.editing === ordinal
       const showTitle = !!title
       const fileName =
         deviceType === 'desktop' ? fileNameRaw : `${inlineVideoPlayable ? 'Video' : 'Image'} from mobile`
