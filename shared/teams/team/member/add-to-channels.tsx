@@ -73,6 +73,14 @@ const AddToChannels = (props: Props) => {
       }
     }),
   ]
+
+  const [forceLayout, setForceLayout] = React.useState(0)
+  const [numItems, setNumItems] = React.useState(0)
+  if (numItems !== items.length) {
+    setNumItems(items.length)
+    setForceLayout(s => s + 1)
+  }
+
   const [selected, setSelected] = React.useState(new Set<T.Chat.ConversationIDKey>())
   const onSelect = (convIDKey: T.Chat.ConversationIDKey) => {
     if (convIDKey === channelMetaGeneral.conversationIDKey) return
@@ -113,21 +121,22 @@ const AddToChannels = (props: Props) => {
 
   const numSelected = selected.size
 
-  const getItemLayout = React.useCallback(
-    (index: number, item?: T.Unpacked<typeof items>) =>
-      item && item.type === 'header'
-        ? {
-            index,
-            length: Kb.Styles.isMobile ? 48 : 40,
-            offset: 0,
-          }
+  const itemHeight = React.useMemo(() => {
+    const rowHeight = mode === 'self' ? 72 : 56
+    const headerHeight = filtering ? 0 : Kb.Styles.isMobile ? 48 : 40
+    const getItemLayout = (index: number, item?: T.Unpacked<typeof items>) => {
+      console.log('aaa gitemlayout', {rowHeight, headerHeight})
+      return item && item.type === 'header'
+        ? {index, length: headerHeight, offset: 0}
         : {
             index,
-            length: mode === 'self' ? 72 : 56,
-            offset: 48 + (index > 0 ? index - 1 : index) * (mode === 'self' ? 72 : 56),
-          },
-    [mode]
-  )
+            length: rowHeight,
+            offset: headerHeight + (index > 0 ? index - 1 : index) * rowHeight,
+          }
+    }
+    return {getItemLayout, type: 'variable'} as const
+  }, [mode, filtering])
+
   const renderItem = (_: unknown, item: T.Unpacked<typeof items>) => {
     switch (item.type) {
       case 'header': {
@@ -162,8 +171,6 @@ const AddToChannels = (props: Props) => {
 
   // channel rows use activity levels
   Common.useActivityLevels()
-
-  console.log('aaaa', {mode})
 
   // TODO: alternate title when there aren't channels yet?
   const title =
@@ -236,12 +243,23 @@ const AddToChannels = (props: Props) => {
               onChange={setFilter}
               size="full-width"
               hotkey="f"
-              onFocus={() => setFiltering(true)}
-              onBlur={() => setFiltering(false)}
+              onFocus={() => {
+                setFiltering(true)
+                setForceLayout(s => s + 1)
+              }}
+              onBlur={() => {
+                setFiltering(false)
+                setForceLayout(s => s + 1)
+              }}
             />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true}>
-            <Kb.List2 items={items} renderItem={renderItem} itemHeight={{getItemLayout, type: 'variable'}} />
+            <Kb.List2
+              items={items}
+              renderItem={renderItem}
+              itemHeight={itemHeight}
+              forceLayout={forceLayout}
+            />
           </Kb.Box2>
         </Kb.Box2>
       )}
@@ -548,28 +566,16 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   channelText: {flexShrink: 1},
   disabled: {opacity: 0.4},
   headerItem: Kb.Styles.platformStyles({
-    common: {
-      backgroundColor: Kb.Styles.globalColors.blueGrey,
-    },
-    isElectron: {
-      height: 40,
-    },
-    isMobile: {
-      height: 48,
-    },
+    common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+    isElectron: {height: 40},
+    isMobile: {height: 48},
   }),
   item: Kb.Styles.platformStyles({
     common: {justifyContent: 'space-between'},
-    isElectron: {
-      ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
-    },
-    isMobile: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-    },
+    isElectron: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.small)},
+    isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.small)},
   }),
-  joinLeaveButton: {
-    width: 63,
-  },
+  joinLeaveButton: {width: 63},
   searchFilterContainer: Kb.Styles.platformStyles({
     isElectron: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
   }),
