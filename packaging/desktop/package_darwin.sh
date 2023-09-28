@@ -297,26 +297,8 @@ notarize_dmg() {(
     return
   fi
   echo "Uploading $dmg_name to notarization service in $out_dir"
-  uuid=$(xcrun notarytool submit --notarize-app --apple-id "apple-dev@keyba.se" --password "@keychain:notarization" "$dmg_name" 2>&1 | grep 'RequestUUID' | awk '{ print $3 }')
-  echo "Successfully uploaded to notarization service, polling for result: $uuid"
-  sleep 15
-  while :
-  do
-    fullstatus=$(xcrun notarytool info --apple-id "apple-dev@keyba.se" --password "@keychain:notarization" "$uuid" 2>&1)
-    status=$(echo "$fullstatus" | grep 'Status\:' | awk '{ print $2 }')
-    if [ "$status" = "success" ]; then
-      echo "Notarization success"
-      xcrun stapler staple "$dmg_name"
-      return
-    elif [ "$status" = "in" ]; then
-      echo "Notarization still in progress, sleeping for 15 seconds and trying again"
-      sleep 15
-    else
-      echo "Notarization failed fullstatus below"
-      echo "$fullstatus"
-      exit 1
-    fi
-  done
+  $(xcrun notarytool submit "$out_dir/$dmg_name" --apple-id "apple-dev@keyba.se" --password "@keychain:notarization" --team-id "99229SGT5K" --wait 2>&1)
+  echo "Successfully uploaded to notarization service"
 )}
 
 create_sourcemap_zip() {(
