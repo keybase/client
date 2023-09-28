@@ -297,7 +297,8 @@ notarize_dmg() {(
     return
   fi
   echo "Uploading $dmg_name to notarization service in $out_dir"
-  $(xcrun notarytool submit "$out_dir/$dmg_name" --apple-id "apple-dev@keyba.se" --password "@keychain:notarization" --team-id "99229SGT5K" --wait 2>&1)
+  $(xcrun notarytool submit "$out_dir/$dmg_name" --apple-id "apple-dev@keyba.se" --password "@keychain:notarization" --team-id "99229SGT5K" --wait 2>&1) > temp.txt
+  cat temp.txt
   echo "Successfully uploaded to notarization service"
 )}
 
