@@ -73,6 +73,14 @@ const AddToChannels = (props: Props) => {
       }
     }),
   ]
+
+  const [forceLayout, setForceLayout] = React.useState(0)
+  const [numItems, setNumItems] = React.useState(0)
+  if (numItems !== items.length) {
+    setNumItems(items.length)
+    setForceLayout(s => s + 1)
+  }
+
   const [selected, setSelected] = React.useState(new Set<T.Chat.ConversationIDKey>())
   const onSelect = (convIDKey: T.Chat.ConversationIDKey) => {
     if (convIDKey === channelMetaGeneral.conversationIDKey) return
@@ -113,21 +121,21 @@ const AddToChannels = (props: Props) => {
 
   const numSelected = selected.size
 
-  const getItemLayout = React.useCallback(
-    (index: number, item?: T.Unpacked<typeof items>) =>
-      item && item.type === 'header'
-        ? {
-            index,
-            length: Kb.Styles.isMobile ? 48 : 40,
-            offset: 0,
-          }
+  const itemHeight = React.useMemo(() => {
+    const rowHeight = mode === 'self' ? 72 : 56
+    const headerHeight = filtering ? 0 : Kb.Styles.isMobile ? 48 : 40
+    const getItemLayout = (index: number, item?: T.Unpacked<typeof items>) => {
+      return item && item.type === 'header'
+        ? {index, length: headerHeight, offset: 0}
         : {
             index,
-            length: mode === 'self' ? 72 : 56,
-            offset: 48 + (index > 0 ? index - 1 : index) * (mode === 'self' ? 72 : 56),
-          },
-    [mode]
-  )
+            length: rowHeight,
+            offset: headerHeight + (index > 0 ? index - 1 : index) * rowHeight,
+          }
+    }
+    return {getItemLayout, type: 'variable'} as const
+  }, [mode, filtering])
+
   const renderItem = (_: unknown, item: T.Unpacked<typeof items>) => {
     switch (item.type) {
       case 'header': {
@@ -151,7 +159,7 @@ const AddToChannels = (props: Props) => {
               selected.has(item.channelMeta.conversationIDKey) ||
               item.channelMeta.conversationIDKey === channelMetaGeneral.conversationIDKey
             }
-            onSelect={() => onSelect(item.channelMeta.conversationIDKey)}
+            onSelect={onSelect}
             mode={mode}
             reloadChannels={reloadChannels}
             usernames={usernames}
@@ -234,12 +242,23 @@ const AddToChannels = (props: Props) => {
               onChange={setFilter}
               size="full-width"
               hotkey="f"
-              onFocus={() => setFiltering(true)}
-              onBlur={() => setFiltering(false)}
+              onFocus={() => {
+                setFiltering(true)
+                setForceLayout(s => s + 1)
+              }}
+              onBlur={() => {
+                setFiltering(false)
+                setForceLayout(s => s + 1)
+              }}
             />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true}>
-            <Kb.List2 items={items} renderItem={renderItem} itemHeight={{getItemLayout, type: 'variable'}} />
+            <Kb.List2
+              items={items}
+              renderItem={renderItem}
+              itemHeight={itemHeight}
+              forceLayout={forceLayout}
+            />
           </Kb.Box2>
         </Kb.Box2>
       )}
@@ -247,33 +266,31 @@ const AddToChannels = (props: Props) => {
   )
 }
 
-const HeaderRow = ({
-  mode,
-  onCreate,
-  onSelectAll,
-  onSelectNone,
-}: {
-  mode: any
-  onCreate: any
-  onSelectAll: any
-  onSelectNone: any
-}) => (
-  <Kb.Box2
-    direction="horizontal"
-    alignItems="center"
-    fullWidth={true}
-    style={Kb.Styles.collapseStyles([styles.item, styles.headerItem])}
-  >
-    <Kb.Button label="Create channel" small={true} mode="Secondary" onClick={onCreate} />
-    {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
-      <Kb.Box /> // box so that the other item aligns to the left
-    ) : (
-      <Kb.Text type="BodyPrimaryLink" onClick={onSelectAll || onSelectNone}>
-        {onSelectAll ? 'Select all' : 'Clear'}
-      </Kb.Text>
-    )}
-  </Kb.Box2>
-)
+const HeaderRow = React.memo(function HeaderRow(p: {
+  mode: 'others' | 'self'
+  onCreate: () => false | void
+  onSelectAll?: () => void
+  onSelectNone?: () => void
+}) {
+  const {mode, onCreate, onSelectAll, onSelectNone} = p
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      alignItems="center"
+      fullWidth={true}
+      style={Kb.Styles.collapseStyles([styles.item, styles.headerItem])}
+    >
+      <Kb.Button label="Create channel" small={true} mode="Secondary" onClick={onCreate} />
+      {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
+        <Kb.Box /> // box so that the other item aligns to the left
+      ) : (
+        <Kb.Text type="BodyPrimaryLink" onClick={onSelectAll || onSelectNone}>
+          {onSelectAll ? 'Select all' : 'Clear'}
+        </Kb.Text>
+      )}
+    </Kb.Box2>
+  )
+})
 
 const SelfChannelActions = ({
   meta,
@@ -437,14 +454,16 @@ const SelfChannelActions = ({
 type ChannelRowProps = {
   channelMeta: T.Chat.ConversationMeta
   selected: boolean
-  onSelect: () => void
+  onSelect: (conviID: T.Chat.ConversationIDKey) => void
   mode: 'self' | 'others'
   reloadChannels: () => Promise<void>
   usernames: string[]
 }
-const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, usernames}: ChannelRowProps) => {
+const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
+  const {channelMeta, mode, selected, onSelect: _onSelect, reloadChannels, usernames} = p
+  const {conversationIDKey} = channelMeta
   const selfMode = mode === 'self'
-  const info = C.useConvoState(channelMeta.conversationIDKey, s => s.participants)
+  const info = C.useConvoState(conversationIDKey, s => s.participants)
   const participants = info.name.length ? info.name : info.all
   const activityLevel = C.useTeamsState(
     s => s.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
@@ -456,6 +475,11 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, user
       conversationIDKey: channelMeta.conversationIDKey,
       reason: 'manageView',
     })
+
+  const onSelect = React.useCallback(() => {
+    _onSelect(conversationIDKey)
+  }, [_onSelect, conversationIDKey])
+
   return Kb.Styles.isMobile ? (
     <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">
@@ -540,7 +564,7 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, user
       ])}
     />
   )
-}
+})
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   channelRowContainer: {marginLeft: 16, marginRight: 8},
@@ -548,28 +572,16 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   channelText: {flexShrink: 1},
   disabled: {opacity: 0.4},
   headerItem: Kb.Styles.platformStyles({
-    common: {
-      backgroundColor: Kb.Styles.globalColors.blueGrey,
-    },
-    isElectron: {
-      height: 40,
-    },
-    isMobile: {
-      height: 48,
-    },
+    common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
+    isElectron: {height: 40},
+    isMobile: {height: 48},
   }),
   item: Kb.Styles.platformStyles({
     common: {justifyContent: 'space-between'},
-    isElectron: {
-      ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
-    },
-    isMobile: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-    },
+    isElectron: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.small)},
+    isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.small)},
   }),
-  joinLeaveButton: {
-    width: 63,
-  },
+  joinLeaveButton: {width: 63},
   searchFilterContainer: Kb.Styles.platformStyles({
     isElectron: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
   }),
