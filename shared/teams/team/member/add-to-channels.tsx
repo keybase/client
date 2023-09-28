@@ -125,7 +125,6 @@ const AddToChannels = (props: Props) => {
     const rowHeight = mode === 'self' ? 72 : 56
     const headerHeight = filtering ? 0 : Kb.Styles.isMobile ? 48 : 40
     const getItemLayout = (index: number, item?: T.Unpacked<typeof items>) => {
-      console.log('aaa gitemlayout', {rowHeight, headerHeight})
       return item && item.type === 'header'
         ? {index, length: headerHeight, offset: 0}
         : {
@@ -160,7 +159,7 @@ const AddToChannels = (props: Props) => {
               selected.has(item.channelMeta.conversationIDKey) ||
               item.channelMeta.conversationIDKey === channelMetaGeneral.conversationIDKey
             }
-            onSelect={() => onSelect(item.channelMeta.conversationIDKey)}
+            onSelect={onSelect}
             mode={mode}
             reloadChannels={reloadChannels}
             usernames={usernames}
@@ -267,12 +266,12 @@ const AddToChannels = (props: Props) => {
   )
 }
 
-const HeaderRow = (p: {
+const HeaderRow = React.memo(function HeaderRow(p: {
   mode: 'others' | 'self'
   onCreate: () => false | void
   onSelectAll?: () => void
   onSelectNone?: () => void
-}) => {
+}) {
   const {mode, onCreate, onSelectAll, onSelectNone} = p
   return (
     <Kb.Box2
@@ -291,7 +290,7 @@ const HeaderRow = (p: {
       )}
     </Kb.Box2>
   )
-}
+})
 
 const SelfChannelActions = ({
   meta,
@@ -455,14 +454,16 @@ const SelfChannelActions = ({
 type ChannelRowProps = {
   channelMeta: T.Chat.ConversationMeta
   selected: boolean
-  onSelect: () => void
+  onSelect: (conviID: T.Chat.ConversationIDKey) => void
   mode: 'self' | 'others'
   reloadChannels: () => Promise<void>
   usernames: string[]
 }
-const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, usernames}: ChannelRowProps) => {
+const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
+  const {channelMeta, mode, selected, onSelect: _onSelect, reloadChannels, usernames} = p
+  const {conversationIDKey} = channelMeta
   const selfMode = mode === 'self'
-  const info = C.useConvoState(channelMeta.conversationIDKey, s => s.participants)
+  const info = C.useConvoState(conversationIDKey, s => s.participants)
   const participants = info.name.length ? info.name : info.all
   const activityLevel = C.useTeamsState(
     s => s.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
@@ -474,6 +475,11 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, user
       conversationIDKey: channelMeta.conversationIDKey,
       reason: 'manageView',
     })
+
+  const onSelect = React.useCallback(() => {
+    _onSelect(conversationIDKey)
+  }, [_onSelect, conversationIDKey])
+
   return Kb.Styles.isMobile ? (
     <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect}>
       <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">
@@ -558,7 +564,7 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, user
       ])}
     />
   )
-}
+})
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   channelRowContainer: {marginLeft: 16, marginRight: 8},
