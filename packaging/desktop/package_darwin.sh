@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e -u -o pipefail # Fail on error
+#set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
@@ -299,6 +299,7 @@ notarize_dmg() {(
   echo "Uploading $dmg_name to notarization service in $out_dir"
   $(xcrun notarytool submit "$out_dir/$dmg_name" --apple-id "apple-dev@keyba.se" --password "@keychain:notarization" --team-id "99229SGT5K" --wait 2>&1) > temp.txt
   cat temp.txt
+  exit 1
   echo "Successfully uploaded to notarization service"
 )}
 
