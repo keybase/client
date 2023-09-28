@@ -1,3 +1,5 @@
+import type * as Types from '../constants/types/wallets'
+/*
 import type {TeamBuilderProps} from '../team-building/container'
 import {isPhone} from '../constants/platform'
 import type CreateNewAccount from './create-account/container'
@@ -113,6 +115,65 @@ export type RootParamListWallets = {
   }
   reallyRemoveAccount: {accountID: Types.AccountID}
   renameAccount: {accountID: Types.AccountID}
+  settings: undefined
+  qrScan: undefined
+  confirmForm: undefined
+  chooseAssetForm: undefined
+  sep7Confirm: undefined
+}
+*/
+
+const Keep = {getOptions: () => ({title: 'Wallet'}), getScreen: () => require('./keep').default}
+
+export const sharedRoutes = {
+  settings: Keep,
+  transactionDetails: Keep,
+}
+
+export const newRoutes = {
+  walletsRoot: Keep,
+  ...sharedRoutes, // these are valid inside AND outside the subnav
+  ///
+  //// were modal
+  ...require('./routes-send-request-form').newModalRoutes,
+  createNewAccount: Keep,
+  keybaseLinkError: Keep,
+  linkExisting: Keep,
+  receive: Keep,
+  renameAccount: Keep,
+  sep7Confirm: Keep,
+  setDefaultAccount: Keep,
+  trustline: Keep,
+  walletOnboarding: Keep,
+  walletTeamBuilder: Keep,
+  whatIsStellarModal: Keep,
+}
+
+export const newModalRoutes = {
+  reallyRemoveAccount: {
+    getScreen: () => require('./wallet/settings/popups').ReallyRemoveAccountPopup,
+  },
+  removeAccount: {
+    getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup,
+  },
+}
+
+export type RootParamListWallets = {
+  removeAccount: {accountID: Types.AccountID}
+  reallyRemoveAccount: {accountID: Types.AccountID}
+  whatIsStellarModal: undefined
+  walletTeamBuilder: undefined
+  keybaseLinkError: undefined
+  setDefaultAccount: undefined
+  walletOnboarding: undefined
+  transactionDetails: undefined
+  sendReceiveForm: undefined
+  pickAssetForm: undefined
+  createNewAccount: undefined
+  trustline: undefined
+  receive: undefined
+  linkExisting: undefined
+  renameAccount: undefined
   settings: undefined
   qrScan: undefined
   confirmForm: undefined

@@ -77,13 +77,19 @@ const FilePreviewView = ({path, onUrlError}: Props) => {
           <TextView url={url} onUrlError={onUrlError} />
         </>
       )
-    case RPCTypes.GUIViewType.image:
+    case RPCTypes.GUIViewType.image: {
+      // no webp
+      if (fileContext.contentType === 'image/webp') {
+        return <DefaultView path={path} />
+      }
+
       return (
         <>
           {reloadBanner}
           <ImageView url={url} onUrlError={onUrlError} />
         </>
       )
+    }
     case RPCTypes.GUIViewType.audio:
     case RPCTypes.GUIViewType.video:
       return (
@@ -122,5 +128,5 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
         zIndex: 200, // needed for mobile
       },
-    } as const)
+    }) as const
 )

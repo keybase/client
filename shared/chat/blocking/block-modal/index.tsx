@@ -26,6 +26,9 @@ type State = {
 export type Props = {
   adderUsername?: string
   blockUserByDefault?: boolean
+  filterUserByDefault?: boolean
+  flagUserByDefault?: boolean
+  reportsUserByDefault?: boolean
   convID?: string
   context?: BlockModalContext
   finishWaiting: boolean
@@ -106,6 +109,9 @@ const ReportOptions = (props: ReportOptionsProps) => {
           !showIncludeTranscript && styles.feedbackPaddingBottom,
         ])}
       >
+        <Kb.Text type="BodySmall" style={{marginLeft: 4}}>
+          We will review this report within 24 hours and take an action
+        </Kb.Text>
         <Kb.NewInput
           multiline={true}
           placeholder="Extra notes"
@@ -145,7 +151,20 @@ class BlockModal extends React.PureComponent<Props, State> {
     // are already blocked, setting a block is idempotent.
     if (this.props.blockUserByDefault && this.props.adderUsername) {
       const map = this.state.newBlocks
-      map.set(this.props.adderUsername, {chatBlocked: true, followBlocked: true})
+      map.set(this.props.adderUsername, {
+        chatBlocked: true,
+        followBlocked: true,
+        report: this.props.reportsUserByDefault
+          ? {
+              ...defaultReport,
+              ...(this.props.flagUserByDefault
+                ? {
+                    reason: reasons[reasons.length - 2],
+                  }
+                : {}),
+            }
+          : undefined,
+      })
       this.setState({newBlocks: new Map(map)})
     }
     if (this.props.context === 'message-popup') {
@@ -258,7 +277,11 @@ class BlockModal extends React.PureComponent<Props, State> {
   renderRowsForUsername = (username: string, last: boolean, teamLabel?: boolean): React.ReactElement => (
     <>
       <CheckboxRow
-        text={!teamLabel ? `Block ${username}` : `Block ${username} from messaging me directly`}
+        text={
+          !teamLabel
+            ? `${this.props.filterUserByDefault ? 'Filter' : 'Block'} ${username}`
+            : `${this.props.filterUserByDefault ? 'Filter' : 'Block'} ${username} from messaging me directly`
+        }
         onCheck={checked => this.setBlockFor(username, 'chatBlocked', checked)}
         checked={this.getBlockFor(username, 'chatBlocked')}
         info={`${username} won't be able to start any new conversations with you, and they won't be able to add you to any teams.`}

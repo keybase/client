@@ -141,6 +141,7 @@ build_one_architecture() {
     yarn run package -- --platform linux --arch "$electron_arch" --appVersion "$version" --network-concurrency 8
     rsync -a "desktop/release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" \
       "$layout_dir/opt/keybase"
+    chmod 755 "$layout_dir/opt/keybase"
     chmod 4755 "$layout_dir/opt/keybase/chrome-sandbox"
   )
 

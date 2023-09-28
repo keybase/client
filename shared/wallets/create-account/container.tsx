@@ -15,17 +15,17 @@ export default Container.connect(
     nameValidationState: state.wallets.accountNameValidationState,
     waiting: anyWaiting(state, Constants.createNewAccountWaitingKey, Constants.validateAccountNameWaitingKey),
   }),
-  (dispatch, ownProps: OwnProps) => ({
+  (dispatch /*, ownProps: OwnProps*/) => ({
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
     onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
-    onCreateAccount: (name: string) => {
-      dispatch(
-        WalletsGen.createCreateNewAccount({
-          name,
-          setBuildingTo: ownProps.route.params?.fromSendForm,
-          showOnCreation: ownProps.route.params?.showOnCreation,
-        })
-      )
+    onCreateAccount: (/*name: string*/) => {
+      // dispatch(
+      //   WalletsGen.createCreateNewAccount({
+      //     name,
+      //     setBuildingTo: ownProps.route.params?.fromSendForm,
+      //     showOnCreation: ownProps.route.params?.showOnCreation,
+      //   })
+      // )
       dispatch(RouteTreeGen.createNavigateUp())
     },
     onDone: (name: string) => {

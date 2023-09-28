@@ -8,8 +8,8 @@ import Receive from '.'
 export type OwnProps = Container.RouteProps<'receive'>
 
 export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
+  (state /*, ownProps: OwnProps*/) => {
+    const accountID = /*ownProps.route.params?.accountID ?? */ Types.noAccountID
     const account = Constants.getAccount(state, accountID)
     return {
       accountName: account.name,
@@ -18,10 +18,10 @@ export default Container.connect(
       stellarAddress: accountID,
     }
   },
-  (dispatch, ownProps: OwnProps) => ({
+  (dispatch /*, ownProps: OwnProps*/) => ({
     navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
     onRequest: () => {
-      const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
+      const accountID = /*ownProps.route.params?.accountID ?? */ Types.noAccountID
       dispatch(RouteTreeGen.createNavigateUp())
       dispatch(
         WalletsGen.createOpenSendRequestForm({

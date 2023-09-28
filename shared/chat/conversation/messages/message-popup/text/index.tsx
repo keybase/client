@@ -30,6 +30,9 @@ type Props = {
   onViewProfile?: () => void
   onViewMap?: () => void
   onUserBlock?: () => void
+  onUserFilter?: () => void
+  onUserReport?: () => void
+  onUserFlag?: () => void
   isLocation?: boolean
   position: Position
   showDivider: boolean
@@ -130,6 +133,36 @@ const TextPopupMenu = (props: Props) => {
             icon: 'iconfont-user-block',
             onClick: props.onUserBlock,
             title: props.isTeam ? 'Report user' : 'Block user',
+          },
+        ]
+      : []),
+    ...(!props.yourMessage && props.onUserFilter
+      ? [
+          {
+            danger: true,
+            icon: 'iconfont-user-block',
+            onClick: props.onUserFilter,
+            title: 'Filter user',
+          },
+        ]
+      : []),
+    ...(!props.yourMessage && !props.isTeam && props.onUserReport
+      ? [
+          {
+            danger: true,
+            icon: 'iconfont-user-block',
+            onClick: props.onUserReport,
+            title: 'Report user',
+          },
+        ]
+      : []),
+    ...(!props.yourMessage && props.onUserFlag
+      ? [
+          {
+            danger: true,
+            icon: 'iconfont-user-block',
+            onClick: props.onUserFlag,
+            title: 'Flag content',
           },
         ]
       : []),

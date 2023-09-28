@@ -352,7 +352,7 @@ const commonLabel = () =>
       color: Styles.globalColors.whiteOrWhite,
       textAlign: 'center',
     },
-    isElectron: {whiteSpace: 'pre'},
+    isElectron: {whiteSpace: 'pre', userSelect: 'none'},
     isMobile: {lineHeight: undefined},
   })
 

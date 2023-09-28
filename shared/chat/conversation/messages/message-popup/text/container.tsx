@@ -13,6 +13,7 @@ import type {Position, StylesCrossPlatform} from '../../../../../styles'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {getCanPerformByID} from '../../../../../constants/teams'
 import {makeMessageText} from '../../../../../constants/chat2/message'
+import {isIOS} from '../../../../../constants/platform'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -195,6 +196,61 @@ export default Container.connect(
         })
       )
     },
+    _onUserFilter: (message: Types.Message, isSingle: boolean) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {
+                blockUserByDefault: true,
+                context: isSingle ? 'message-popup-single' : 'message-popup',
+                convID: message.conversationIDKey,
+                filterUserByDefault: true,
+                username: message.author,
+              },
+              selected: 'chatBlockingModal',
+            },
+          ],
+        })
+      )
+    },
+    _onUserFlag: (message: Types.Message, isSingle: boolean) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {
+                blockUserByDefault: true,
+                context: isSingle ? 'message-popup-single' : 'message-popup',
+                convID: message.conversationIDKey,
+                flagUserByDefault: true,
+                reportUserByDefault: true,
+                username: message.author,
+              },
+              selected: 'chatBlockingModal',
+            },
+          ],
+        })
+      )
+    },
+    _onUserReport: (message: Types.Message, isSingle: boolean) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {
+                blockUserByDefault: true,
+                context: isSingle ? 'message-popup-single' : 'message-popup',
+                convID: message.conversationIDKey,
+                reportUserByDefault: true,
+                username: message.author,
+              },
+              selected: 'chatBlockingModal',
+            },
+          ],
+        })
+      )
+    },
     _onViewProfile: (username: string) => dispatch(createShowUserProfile({username})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -246,6 +302,18 @@ export default Container.connect(
       onUserBlock:
         message.author && !yourMessage
           ? () => dispatchProps._onUserBlock(message, blockModalSingle)
+          : undefined,
+      onUserFilter:
+        isIOS && message.author && !yourMessage
+          ? () => dispatchProps._onUserFilter(message, blockModalSingle)
+          : undefined,
+      onUserFlag:
+        isIOS && message.author && !yourMessage
+          ? () => dispatchProps._onUserFlag(message, blockModalSingle)
+          : undefined,
+      onUserReport:
+        isIOS && message.author && !yourMessage
+          ? () => dispatchProps._onUserReport(message, blockModalSingle)
           : undefined,
       onViewMap,
       onViewProfile:

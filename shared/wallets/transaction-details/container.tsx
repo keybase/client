@@ -10,14 +10,14 @@ import openURL from '../../util/open-url'
 import TransactionDetails, {type NotLoadingProps} from '.'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<'transactionDetails'>
+// type OwnProps = Container.RouteProps<'transactionDetails'>
 
 export default Container.connect(
-  (state, ownProps: OwnProps) => {
+  (state /*, ownProps: OwnProps*/) => {
     const you = state.config.username
-    const {params} = ownProps.route
-    const accountID = params?.accountID ?? Types.noAccountID
-    const paymentID = params?.paymentID ?? Types.noPaymentID
+    // const {params} = ownProps.route
+    const accountID = /*params?.accountID ?? */ Types.noAccountID
+    const paymentID = /*params?.paymentID ?? */ Types.noPaymentID
     const _transaction = Constants.getPayment(state, accountID, paymentID)
     const yourInfoAndCounterparty = Constants.paymentToYourInfoAndCounterparty(_transaction)
     // Transaction can briefly be empty when status changes
@@ -39,27 +39,28 @@ export default Container.connect(
       yourInfoAndCounterparty,
     }
   },
-  (dispatch, ownProps) => ({
+  (dispatch /*, ownProps*/) => ({
     navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
     onCancelPayment: () =>
       dispatch(
         WalletsGen.createCancelPayment({
-          paymentID: ownProps.route.params?.paymentID ?? Types.noPaymentID,
+          paymentID: /*ownProps.route.params?.paymentID ?? */ Types.noPaymentID,
           showAccount: true,
         })
       ),
     onChat: (username: string) =>
       dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'})),
-    onLoadPaymentDetail: () =>
-      dispatch(
-        WalletsGen.createLoadPaymentDetail({
-          accountID: ownProps.route.params?.accountID ?? Types.noAccountID,
-          paymentID: ownProps.route.params?.paymentID ?? Types.noPaymentID,
-        })
-      ),
+    onLoadPaymentDetail: () => {
+      // dispatch(
+      //   WalletsGen.createLoadPaymentDetail({
+      //     accountID: ownProps.route.params?.accountID ?? Types.noAccountID,
+      //     paymentID: ownProps.route.params?.paymentID ?? Types.noPaymentID,
+      //   })
+      // ),
+    },
     onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   }),
-  (stateProps, dispatchProps, _: OwnProps) => {
+  (stateProps, dispatchProps) => {
     const tx = stateProps._transaction
     if (stateProps.loading) {
       return {
