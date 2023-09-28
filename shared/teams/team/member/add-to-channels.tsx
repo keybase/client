@@ -163,6 +163,8 @@ const AddToChannels = (props: Props) => {
   // channel rows use activity levels
   Common.useActivityLevels()
 
+  console.log('aaaa', {mode})
+
   // TODO: alternate title when there aren't channels yet?
   const title =
     mode === 'self' ? 'Browse all channels' : `Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`
@@ -247,33 +249,31 @@ const AddToChannels = (props: Props) => {
   )
 }
 
-const HeaderRow = ({
-  mode,
-  onCreate,
-  onSelectAll,
-  onSelectNone,
-}: {
-  mode: any
-  onCreate: any
-  onSelectAll: any
-  onSelectNone: any
-}) => (
-  <Kb.Box2
-    direction="horizontal"
-    alignItems="center"
-    fullWidth={true}
-    style={Kb.Styles.collapseStyles([styles.item, styles.headerItem])}
-  >
-    <Kb.Button label="Create channel" small={true} mode="Secondary" onClick={onCreate} />
-    {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
-      <Kb.Box /> // box so that the other item aligns to the left
-    ) : (
-      <Kb.Text type="BodyPrimaryLink" onClick={onSelectAll || onSelectNone}>
-        {onSelectAll ? 'Select all' : 'Clear'}
-      </Kb.Text>
-    )}
-  </Kb.Box2>
-)
+const HeaderRow = (p: {
+  mode: 'others' | 'self'
+  onCreate: () => false | void
+  onSelectAll?: () => void
+  onSelectNone?: () => void
+}) => {
+  const {mode, onCreate, onSelectAll, onSelectNone} = p
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      alignItems="center"
+      fullWidth={true}
+      style={Kb.Styles.collapseStyles([styles.item, styles.headerItem])}
+    >
+      <Kb.Button label="Create channel" small={true} mode="Secondary" onClick={onCreate} />
+      {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
+        <Kb.Box /> // box so that the other item aligns to the left
+      ) : (
+        <Kb.Text type="BodyPrimaryLink" onClick={onSelectAll || onSelectNone}>
+          {onSelectAll ? 'Select all' : 'Clear'}
+        </Kb.Text>
+      )}
+    </Kb.Box2>
+  )
+}
 
 const SelfChannelActions = ({
   meta,
