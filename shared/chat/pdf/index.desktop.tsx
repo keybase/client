@@ -4,7 +4,8 @@ import * as Kb from '../../common-adapters'
 import type {Props} from '.'
 
 const ChatPDF = (props: Props) => {
-  const {message} = props
+  const {ordinal} = props
+  const message = C.useChatContext(s => s.messageMap.get(ordinal))
   const title = message?.title || message?.fileName || 'PDF'
   const url = message?.fileURL
   const openLocalPathInSystemFileManagerDesktop = C.useFSState(

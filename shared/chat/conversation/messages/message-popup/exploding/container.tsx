@@ -123,7 +123,7 @@ export default (ownProps: OwnProps) => {
     messageAttachmentNativeSave(message)
   }
   const _onShareAttachment = (message: T.Chat.Message) => {
-    messageAttachmentNativeShare(message)
+    messageAttachmentNativeShare(message.ordinal)
   }
   const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop

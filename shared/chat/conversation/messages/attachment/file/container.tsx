@@ -16,6 +16,7 @@ const missingMessage = Constants.makeMessageAttachment({})
 const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const ordinal = React.useContext(OrdinalContext)
   const isEditing = C.useChatContext(s => !!s.editing)
+  const conversationIDKey = C.useChatContext(s => s.id)
 
   const {fileType, downloadPath, transferState, transferErrMsg, fileName} = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal) ?? missingMessage
@@ -23,10 +24,16 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     return {downloadPath, fileName, fileType, transferErrMsg, transferState}
   }, C.shallowEqual)
 
-  // TODO not message
-  const message = C.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    return m?.type === 'attachment' ? m : missingMessage
+  const title = C.useChatContext(s => {
+    const _m = s.messageMap.get(ordinal)
+    const m = _m?.type === 'attachment' ? _m : missingMessage
+    return m.decoratedText?.stringValue() || m.title || m.fileName
+  })
+
+  const progress = C.useChatContext(s => {
+    const _m = s.messageMap.get(ordinal)
+    const m = _m?.type === 'attachment' ? _m : missingMessage
+    return m.transferProgress
   })
 
   const saltpackOpenFile = C.useCryptoState(s => s.dispatch.onSaltpackOpenFile)
@@ -50,11 +57,14 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
   const onDownload = React.useCallback(() => {
     if (C.isMobile) {
-      message && messageAttachmentNativeShare(message)
+      messageAttachmentNativeShare(ordinal)
     } else {
       if (!downloadPath) {
         if (fileType === 'application/pdf') {
-          navigateAppend({props: {message}, selected: 'chatPDF'})
+          navigateAppend({
+            props: {conversationIDKey, ordinal},
+            selected: 'chatPDF',
+          })
         } else {
           switch (transferState) {
             case 'uploading':
@@ -63,18 +73,19 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
               return
             default:
           }
-          message && attachmentDownload(message.ordinal)
+          attachmentDownload(ordinal)
         }
       }
     }
   }, [
+    ordinal,
+    conversationIDKey,
     navigateAppend,
     attachmentDownload,
     messageAttachmentNativeShare,
     downloadPath,
     transferState,
     fileType,
-    message,
   ])
 
   const arrowColor = C.isMobile
@@ -94,12 +105,11 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     hasProgress,
     isEditing,
     isSaltpackFile: !!fileName && isPathSaltpack(fileName),
-    message,
     onDownload,
     onSaltpackFileOpen,
     onShowInFinder: !C.isMobile && downloadPath ? onShowInFinder : undefined,
-    progress: message.transferProgress,
-    title: message.decoratedText?.stringValue() || message.title || message.fileName,
+    progress,
+    title,
     toggleMessageMenu: p.toggleMessageMenu,
     transferState,
   }
