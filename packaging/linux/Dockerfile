@@ -1,6 +1,11 @@
 FROM debian:stretch
 LABEL maintainer="Keybase <admin@keybase.io>"
 
+# Update stretch repositories
+RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' \
+           -e 's|security.debian.org|archive.debian.org/|g' \
+           -e '/stretch-updates/d' /etc/apt/sources.list
+
 # Install dependencies from the standard repos.
 #   - Debian build requires 'fakeroot' and 'reprepro' (and 'dpkg-deb', but
 #     that's installed by default).
