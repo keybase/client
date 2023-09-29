@@ -1,8 +1,5 @@
-FROM debian:bookworm
+FROM debian:bullseye
 LABEL maintainer="Keybase <admin@keybase.io>"
-
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9
 
 # Install dependencies from the standard repos.
 #   - Debian build requires 'fakeroot' and 'reprepro' (and 'dpkg-deb', but
