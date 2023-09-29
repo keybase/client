@@ -3,7 +3,7 @@ LABEL maintainer="Keybase <admin@keybase.io>"
 
 
 RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' \
-           -e 's|security.debian.org|archive.debian.org/debian-security|g' \
+           -e 's|security.debian.org|archive.debian.org/|g' \
            -e '/stretch-updates/d' /etc/apt/sources.list
 # RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list.d/backports.list
 
