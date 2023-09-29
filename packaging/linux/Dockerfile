@@ -1,10 +1,10 @@
-FROM debian:stretch
+FROM debian:buster
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 
-RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' \
-           -e 's|security.debian.org|archive.debian.org/|g' \
-           -e '/stretch-updates/d' /etc/apt/sources.list
+# RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' \
+#            -e 's|security.debian.org|archive.debian.org/|g' \
+#            -e '/stretch-updates/d' /etc/apt/sources.list
 # RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list.d/backports.list
 
 # Install dependencies from the standard repos.
@@ -30,7 +30,6 @@ RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb http://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
 RUN apt-get update
-RUN apt -o Acquire::https::No-Cache=True -o Acquire::http::No-Cache=True update
 RUN apt-get install -y nodejs yarn
 
 # Install Go directly from Google, because the Debian repos tend to be behind.
