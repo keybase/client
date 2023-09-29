@@ -87,7 +87,7 @@ const EnterUsername = (props: Props) => {
         },
       ]}
       onBack={props.onBack}
-      title={Kb.Styles.isMobile ? 'Create account' : 'Create an account'}
+      title="Create account"
     >
       <Kb.ScrollView>
         <Kb.Box2

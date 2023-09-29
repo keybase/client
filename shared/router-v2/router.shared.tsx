@@ -28,6 +28,7 @@ const useConnectNavToRedux = () => {
           window.DEBUGNavigator = RouterConstants.navigationRef_.current
           // @ts-ignore
           window.DEBUGRouter2 = RouterConstants
+          window.KBCONSTANTS = require('../constants')
         }
       }
     }
