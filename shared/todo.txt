@@ -1,2 +1,2 @@
 Some short term todos:
-pdf view no context
+desktop image zoom broken
