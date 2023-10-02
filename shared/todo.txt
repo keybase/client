@@ -1,2 +1,1 @@
 Some short term todos:
-desktop image zoom broken
