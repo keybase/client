@@ -14,7 +14,6 @@ import * as ConfigConstants from '../config'
 import HiddenString from '../../util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '../../logger'
-import sortedIndexOf from 'lodash/sortedIndexOf'
 import throttle from 'lodash/throttle'
 import {RPCError} from '../../util/errors'
 import {findLast} from '../../util/arrays'
@@ -1529,7 +1528,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         ordinals = [],
         upToMessageID = null,
       } = p
-      const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+      const {pendingOutboxToOrdinal, messageMap} = get()
 
       const upToOrdinals: Array<T.Chat.Ordinal> = []
       if (upToMessageID) {
@@ -1553,29 +1552,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return arr
         }, [])
       )
-      allOrdinals.forEach(ordinal => {
-        const m = messageMap.get(ordinal)
-        if (m) {
-          dispatch.updateMessage(
-            ordinal,
-            Message.makeMessageDeleted({
-              author: m.author,
-              conversationIDKey: m.conversationIDKey,
-              id: m.id,
-              ordinal: m.ordinal,
-              timestamp: m.timestamp,
-            })
-          )
-        }
-      })
 
       set(s => {
-        const os = s.messageOrdinals
-        if (!os) return
-        allOrdinals.forEach(o => {
-          const idx = sortedIndexOf(os, o)
-          if (idx !== -1) os.splice(idx, 1)
+        allOrdinals.forEach(ordinal => {
+          s.messageMap.delete(ordinal)
         })
+        s.messageOrdinals = [...s.messageMap.keys()].sort((a, b) => a - b)
       })
     },
     metaReceivedError: (error, username) => {
