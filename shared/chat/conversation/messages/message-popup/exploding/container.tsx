@@ -10,6 +10,7 @@ import type {Position} from '../../../../../styles'
 import type {StylesCrossPlatform} from '../../../../../styles/css'
 import {makeMessageText} from '../../../../../constants/chat2/message'
 import type HiddenString from '../../../../../util/hidden-string'
+import {useData} from '../hooks'
 
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -23,16 +24,17 @@ export type OwnProps = {
 const emptyMessage = makeMessageText({})
 
 export default (ownProps: OwnProps) => {
-  const {ordinal} = ownProps
-  // TODO remove
+  const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
   const m = C.useChatContext(s => s.messageMap.get(ordinal))
+  const d = useData(ordinal, false)
+  const {yourMessage, teamID, deviceType, onReact, onPinMessage, onInstallBot} = d
+  const {onEdit, onAddReaction, deviceRevokedAt, deviceName, author, botUsername} = d
+  const {timestamp} = d
   const message = m?.type === 'text' || m?.type === 'attachment' ? m : emptyMessage
-  const you = C.useCurrentUserState(s => s.username)
-  const yourMessage = message.author === you
   const meta = C.useChatContext(s => s.meta)
   const participantInfo = C.useChatContext(s => s.participants)
   const _canDeleteHistory = C.useTeamsState(
-    s => meta.teamType === 'adhoc' || C.getCanPerformByID(s, meta.teamID).deleteChatHistory
+    s => meta.teamType === 'adhoc' || C.getCanPerformByID(s, teamID).deleteChatHistory
   )
   const _canExplodeNow = (yourMessage || _canDeleteHistory) && message.isDeleteable
   const _canEdit = yourMessage && message.isEditable
@@ -42,32 +44,12 @@ export default (ownProps: OwnProps) => {
     !yourMessage &&
     message.type === 'text' &&
     (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
-  const authorIsBot = C.useTeamsState(s => Constants.messageAuthorIsBot(s, meta, message, participantInfo))
-  const _teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(meta.teamID))
-
-  const _authorIsBot = authorIsBot
+  const _teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const _participants = participantInfo.all
-  const _teamID = meta.teamID
   const _teamname = meta.teamname
-  const author = message.author
-  const botUsername = message.type === 'text' ? message.botUsername : undefined
-  const deviceName = message.deviceName
-  const deviceRevokedAt = message.deviceRevokedAt
-  const deviceType = message.deviceType
   const explodesAt = message.explodingTime
   const hideTimer = message.submitState === 'pending' || message.submitState === 'failed'
-  const timestamp = message.timestamp
   const navigateAppend = C.useChatNavigateAppend()
-  const _onAddReaction = () => {
-    navigateAppend(conversationIDKey => ({
-      props: {
-        conversationIDKey,
-        onPickAddToMessageOrdinal: ownProps.ordinal,
-        pickKey: 'reaction',
-      },
-      selected: 'chatChooseEmoji',
-    }))
-  }
   const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const _onAllMedia = () => {
     showInfoPanel(true, 'attachments')
@@ -80,10 +62,6 @@ export default (ownProps: OwnProps) => {
   const _onDownload = (message: T.Chat.Message) => {
     attachmentDownload(message.id)
   }
-  const setEditing = C.useChatContext(s => s.dispatch.setEditing)
-  const _onEdit = () => {
-    setEditing(ownProps.ordinal)
-  }
   const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
   const _onExplodeNow = () => {
     messageDelete(ownProps.ordinal)
@@ -94,20 +72,12 @@ export default (ownProps: OwnProps) => {
       selected: 'chatForwardMsgPick',
     }))
   }
-  const _onInstallBot = (author: string) => {
-    navigateAppend(() => ({props: {botUsername: author}, selected: 'chatInstallBotPick'}))
-  }
   const _onKick = (teamID: T.Teams.TeamID, username: string) => {
     navigateAppend(() => ({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}))
   }
   const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
   const _onMarkAsUnread = (id: number) => {
     setMarkAsUnread(id)
-  }
-  const _onPinMessage = C.useChatContext(s => s.dispatch.pinMessage)
-  const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
-  const _onReact = (emoji: string) => {
-    toggleMessageReaction(ownProps.ordinal, emoji)
   }
   const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
   const _onReply = () => {
@@ -147,12 +117,12 @@ export default (ownProps: OwnProps) => {
 
   const authorInTeam = _teamMembers?.has(message.author) ?? true
   const items: MenuItems = []
-  if (C.isMobile) {
+  if (C.isMobile && onAddReaction) {
     // 'Add a reaction' is an option on mobile
     items.push({
       title: 'Reactions',
       unWrapped: true,
-      view: <ReactionItem onHidden={ownProps.onHidden} onReact={_onReact} showPicker={_onAddReaction} />,
+      view: <ReactionItem onHidden={ownProps.onHidden} onReact={onReact} showPicker={onAddReaction} />,
     })
     items.push('Divider')
   }
@@ -187,10 +157,10 @@ export default (ownProps: OwnProps) => {
             }
       )
     }
-    if (_authorIsBot) {
+    if (onInstallBot) {
       items.push({
         icon: 'iconfont-nav-2-robot',
-        onClick: () => _onInstallBot(message.author),
+        onClick: onInstallBot,
         title: 'Install bot in another team or chat',
       })
     }
@@ -199,7 +169,7 @@ export default (ownProps: OwnProps) => {
     items.push({icon: 'iconfont-forward', onClick: _onForward, title: 'Forward'})
     items.push({
       icon: 'iconfont-pin',
-      onClick: () => _onPinMessage(message.id),
+      onClick: onPinMessage,
       title: 'Pin message',
     })
     items.push({
@@ -213,12 +183,12 @@ export default (ownProps: OwnProps) => {
       items.push({icon: 'iconfont-location', onClick: () => openURL(url), title: 'View on Google Maps'})
     }
     if (_canEdit) {
-      items.push({icon: 'iconfont-edit', onClick: _onEdit, title: 'Edit'})
+      items.push({icon: 'iconfont-edit', onClick: onEdit, title: 'Edit'})
     }
-    if (_authorIsBot) {
+    if (onInstallBot) {
       items.push({
         icon: 'iconfont-nav-2-robot',
-        onClick: () => _onInstallBot(message.author),
+        onClick: onInstallBot,
         title: 'Install bot in another team or chat',
       })
     }
@@ -240,7 +210,7 @@ export default (ownProps: OwnProps) => {
     }
     items.push({
       icon: 'iconfont-pin',
-      onClick: () => _onPinMessage(message.id),
+      onClick: onPinMessage,
       title: 'Pin message',
     })
     items.push({
@@ -261,7 +231,7 @@ export default (ownProps: OwnProps) => {
     items.push({
       danger: true,
       icon: 'iconfont-user-block',
-      onClick: () => _onKick(_teamID, author),
+      onClick: () => _onKick(teamID, author),
       title: 'Kick user',
     })
   }
@@ -275,7 +245,7 @@ export default (ownProps: OwnProps) => {
     })
   }
   const props = {
-    attachTo: ownProps.attachTo,
+    attachTo,
     author,
     botUsername,
     deviceName,
@@ -283,13 +253,12 @@ export default (ownProps: OwnProps) => {
     deviceType,
     explodesAt,
     hideTimer,
-    isTeam: !!_teamname,
-    items,
-    onHidden: ownProps.onHidden,
-    position: ownProps.position,
-    style: ownProps.style,
+    items, // TODO
+    onHidden,
+    position,
+    style,
     timestamp,
-    visible: ownProps.visible,
+    visible,
     yourMessage,
   }
   return <Exploding {...props} />

@@ -21,7 +21,7 @@ type Props = {
   onForward?: () => void
   onHidden: () => void
   onInstallBot?: () => void
-  onKick: () => void
+  onKick?: () => void
   onPinMessage?: () => void
   onMarkAsUnread: () => void
   onReact: (emoji: string) => void
@@ -40,9 +40,7 @@ type Props = {
   timestamp: number
   visible: boolean
   yourMessage: boolean
-  isDeleteable: boolean
   isEditable: boolean
-  isKickable: boolean
   isTeam: boolean
 }
 
@@ -94,7 +92,7 @@ const TextPopupMenu = (props: Props) => {
     ...(props.onReplyPrivately
       ? [{icon: 'iconfont-reply', onClick: props.onReplyPrivately, title: 'Reply privately'}]
       : []),
-    ...(props.isDeleteable
+    ...(props.onDelete
       ? [
           {
             danger: true,
@@ -110,11 +108,11 @@ const TextPopupMenu = (props: Props) => {
       ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]
       : []),
     ...[{icon: 'iconfont-envelope-solid', onClick: props.onMarkAsUnread, title: 'Mark as unread'}],
-    ...(props.onViewProfile || props.isKickable || !props.yourMessage ? ['Divider' as const] : []),
+    ...(props.onViewProfile || props.onKick || !props.yourMessage ? ['Divider' as const] : []),
     ...(props.onViewProfile
       ? [{icon: 'iconfont-person', onClick: props.onViewProfile, title: 'View profile'}]
       : []),
-    ...(props.isKickable
+    ...(props.onKick
       ? [
           {
             danger: true,

@@ -16,11 +16,11 @@ type Props = {
   onCopyLink?: () => void
   onDelete?: () => void
   onDownload?: () => void
-  onEdit: () => void
+  onEdit?: () => void
   onForward: () => void
   onHidden: () => void
   onInstallBot?: () => void
-  onKick: () => void
+  onKick?: () => void
   onPinMessage?: () => void
   onMarkAsUnread: () => void
   onReact: (emoji: string) => void
@@ -34,9 +34,6 @@ type Props = {
   timestamp: number
   visible: boolean
   yourMessage: boolean
-  isDeleteable: boolean
-  isEditable: boolean
-  isKickable: boolean
 }
 
 const AttachmentPopupMenu = (props: Props) => {
@@ -91,8 +88,7 @@ const AttachmentPopupMenu = (props: Props) => {
       ? [{icon: 'iconfont-link', onClick: props.onCopyLink, title: 'Copy a link to this message'}]
       : []),
     ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
-    //@ts-ignore
-    ...(props.onEdit && props.isEditable
+    ...(props.onEdit
       ? [
           {
             icon: 'iconfont-edit',
@@ -108,7 +104,7 @@ const AttachmentPopupMenu = (props: Props) => {
     ...(props.onMarkAsUnread
       ? [{icon: 'iconfont-envelope-solid', onClick: props.onMarkAsUnread, title: 'Mark as unread'}]
       : []),
-    ...(props.isDeleteable
+    ...(props.onDelete
       ? ([
           {
             danger: true,
@@ -120,7 +116,7 @@ const AttachmentPopupMenu = (props: Props) => {
           },
         ] as const)
       : []),
-    ...(props.isKickable
+    ...(props.onKick
       ? ([
           'Divider' as const,
           {
