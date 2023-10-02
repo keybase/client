@@ -4,7 +4,8 @@ import * as Kb from '../../common-adapters'
 import type {Props} from '.'
 
 const ChatPDF = (props: Props) => {
-  const {message, url} = props
+  const {ordinal, url} = props
+  const message = C.useChatContext(s => s.messageMap.get(ordinal))
   const title = message?.title || message?.fileName || 'PDF'
   const [error, setError] = React.useState('')
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)

@@ -52,8 +52,8 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
 
     const containerRect = containerRef.current.getBoundingClientRect()
     const imgRect = imgRef.current.getBoundingClientRect()
-    const xPercent = (e.clientX - containerRect.left) / containerRect.width
-    const yPercent = (e.clientY - containerRect.top) / containerRect.height
+    const xPercent = Math.min(1, Math.max(0, (e.clientX - containerRect.left) / containerRect.width))
+    const yPercent = Math.min(1, Math.max(0, (e.clientY - containerRect.top) / containerRect.height))
 
     const x = Math.min(
       0,
@@ -95,6 +95,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   }
 
   let style: React.CSSProperties = {
+    display: 'flex',
     height: '100%',
     overflow: 'hidden',
     position: 'relative',
@@ -114,7 +115,11 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       cursor: isZoomed ? 'zoom-out' : 'zoom-in',
       ...(isZoomed ? {} : {display: 'flex'}),
     }
-    imgStyle = isZoomed ? {} : {margin: 'auto', maxHeight: '100%', maxWidth: '100%'}
+    imgStyle = isZoomed
+      ? {
+          ...imgStyle,
+        }
+      : {margin: 'auto', maxHeight: '100%', maxWidth: '100%'}
   }
 
   return (

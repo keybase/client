@@ -7,9 +7,9 @@ type OwnProps = C.ViewPropsToPageProps<typeof Pdf>
 const getOptions = () => (C.isMobile ? undefined : {modal2: true, modal2Type: 'SuperWide'})
 
 const Screen = (p: OwnProps) => (
-  <React.Suspense>
+  <C.ProviderScreen rp={p}>
     <Pdf {...p.route.params} />
-  </React.Suspense>
+  </C.ProviderScreen>
 )
 
 export default {getOptions, getScreen: () => Screen}

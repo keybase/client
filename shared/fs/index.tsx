@@ -31,7 +31,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   const softError = Kbfs.useFsSoftError(props.path)
 
   if (props.kbfsDaemonStatus.rpcStatus !== T.FS.KbfsDaemonRpcStatus.Connected) {
-    return <SimpleScreens.Loading />
+    return <SimpleScreens.Loading why="(Kbfs not running?)" />
   }
 
   if (softError) {

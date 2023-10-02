@@ -1,6 +1,6 @@
 import * as Kb from '../../common-adapters'
 
-const LoadingScreen = () => (
+const LoadingScreen = (p: {why?: string}) => (
   <Kb.Box2
     direction="vertical"
     centerChildren={true}
@@ -10,7 +10,7 @@ const LoadingScreen = () => (
     gap="small"
   >
     <Kb.ProgressIndicator type="Large" />
-    <Kb.Text type="BodySmall">Loading ...</Kb.Text>
+    <Kb.Text type="BodySmall">Loading ...{p.why ?? ''}</Kb.Text>
   </Kb.Box2>
 )
 export default LoadingScreen

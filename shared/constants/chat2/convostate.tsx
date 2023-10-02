@@ -208,7 +208,7 @@ export type ConvoState = ConvoStore & {
     markThreadAsRead: (unreadLineMessageID?: number) => void
     markTeamAsRead: (teamID: T.Teams.TeamID) => void
     messageAttachmentNativeSave: (message: T.Chat.Message) => void
-    messageAttachmentNativeShare: (message: T.Chat.Message) => void
+    messageAttachmentNativeShare: (ordinal: T.Chat.Ordinal) => void
     messageDelete: (ordinal: T.Chat.Ordinal) => void
     messageDeleteHistory: () => void
     messageEdit: (ordinal: T.Chat.Ordinal, text: string) => void
@@ -1167,7 +1167,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
-    messageAttachmentNativeShare: message => {
+    messageAttachmentNativeShare: ordinal => {
+      const message = get().messageMap.get(ordinal)
       if (!message || message.type !== 'attachment') {
         throw new Error('Invalid share message')
       }
@@ -1182,7 +1183,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (C.isIOS && message.fileName.endsWith('.pdf')) {
           C.useRouterState.getState().dispatch.navigateAppend({
             props: {
-              message,
+              conversationIDKey: get().id,
+              ordinal,
               // Prepend the 'file://' prefix here. Otherwise when webview
               // automatically does that, it triggers onNavigationStateChange
               // with the new address and we'd call stoploading().

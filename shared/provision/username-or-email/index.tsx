@@ -18,33 +18,39 @@ type Props = {
 }
 
 const Username = (props: Props) => {
-  const [username, setUsername] = React.useState(props.initialUsername)
-  const _onSubmit = props.onSubmit
+  const {initialUsername, onSubmit: _onSubmit, onGoToSignup: _onGoToSignup, waiting} = props
+  const {resetBannerUser, inlineSignUpLink, error, onBack, onForgotUsername} = props
+  const [username, setUsername] = React.useState(initialUsername)
   const onSubmit = React.useCallback(() => {
     _onSubmit(username)
   }, [_onSubmit, username])
+  const onGoToSignup = React.useCallback(() => {
+    _onGoToSignup(username)
+  }, [_onGoToSignup, username])
 
   return (
     <SignupScreen
+      onRightAction={onGoToSignup}
+      rightActionLabel="Create an account"
       banners={
         <>
-          {props.resetBannerUser ? (
+          {resetBannerUser ? (
             <Kb.Banner color="green" key="resetBanner">
               <Kb.BannerParagraph
                 bannerColor="green"
-                content={`You have successfully reset your account, ${props.resetBannerUser}. You can now log in as usual.`}
+                content={`You have successfully reset your account, ${resetBannerUser}. You can now log in as usual.`}
               />
             </Kb.Banner>
           ) : null}
-          {errorBanner(props.error)}
-          {props.inlineSignUpLink ? (
+          {errorBanner(error)}
+          {inlineSignUpLink ? (
             <Kb.Banner key="usernameTaken" color="blue">
               <Kb.BannerParagraph
                 bannerColor="blue"
                 content={[
                   "This username doesn't exist. Did you mean to ",
                   {
-                    onClick: () => props.onGoToSignup(username),
+                    onClick: onGoToSignup,
                     text: 'create a new account',
                   },
                   '?',
@@ -60,10 +66,10 @@ const Username = (props: Props) => {
           label: 'Log in',
           onClick: onSubmit,
           type: 'Default',
-          waiting: props.waiting,
+          waiting: waiting,
         },
       ]}
-      onBack={props.onBack}
+      onBack={onBack}
       title="Log in"
       contentContainerStyle={styles.contentContainer}
     >
@@ -89,11 +95,7 @@ const Username = (props: Props) => {
               value={username}
               textType="BodySemibold"
             />
-            <Kb.Text
-              style={styles.forgotUsername}
-              type="BodySmallSecondaryLink"
-              onClick={props.onForgotUsername}
-            >
+            <Kb.Text style={styles.forgotUsername} type="BodySmallSecondaryLink" onClick={onForgotUsername}>
               Forgot username?
             </Kb.Text>
           </Kb.Box2>
