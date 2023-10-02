@@ -572,7 +572,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         if (clearExistingMessages) {
           for (const [, cs] of C.chatStores) {
-            cs.getState().dispatch.setMessageOrdinals()
             cs.getState().dispatch.replaceMessageMap(new Map())
           }
         }
@@ -1043,7 +1042,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
             conversationIDKeys.forEach(convID =>
               C.getConvoState(convID).dispatch.replaceMessageMap(new Map())
             )
-            conversationIDKeys.forEach(convID => C.getConvoState(convID).dispatch.setMessageOrdinals())
           }
         }
       })
