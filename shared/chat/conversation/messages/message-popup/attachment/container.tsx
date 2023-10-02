@@ -19,32 +19,39 @@ type OwnProps = {
 const emptyMessage = makeMessageAttachment({})
 
 export default (ownProps: OwnProps) => {
-  const {ordinal} = ownProps
+  const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
   const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const message = m?.type === 'attachment' ? m : emptyMessage
+  const {author, deviceName, downloadPath, deviceType, id, attachmentType, timestamp} = message
   const meta = C.useChatContext(s => s.meta)
-  const isTeam = !!meta.teamname
+  const {teamID, teamname} = meta
+  const isTeam = !!teamname
   const participantInfo = C.useChatContext(s => s.participants)
-  const yourOperations = C.useTeamsState(s => C.getCanPerformByID(s, meta.teamID))
-  const _canAdminDelete = yourOperations.deleteOtherMessages
-  const _canPinMessage = !isTeam || yourOperations.pinMessage
-  const _authorIsBot = C.useTeamsState(s => Constants.messageAuthorIsBot(s, meta, message, participantInfo))
-  const _teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(meta.teamID))
-  const _label = Constants.getConversationLabel(participantInfo, meta, true)
-  const _teamID = meta.teamID
-  const _you = C.useCurrentUserState(s => s.username)
+  const yourOperations = C.useTeamsState(s => C.getCanPerformByID(s, teamID))
+  const canAdminDelete = yourOperations.deleteOtherMessages
+  const authorIsBot = C.useTeamsState(s => Constants.messageAuthorIsBot(s, meta, message, participantInfo))
+  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
+  const label = Constants.getConversationLabel(participantInfo, meta, true)
+  const you = C.useCurrentUserState(s => s.username)
+  const yourMessage = author === you
+  const isDeleteable = yourMessage || canAdminDelete
+  const isEditable = !!(message.isEditable && yourMessage)
+  const authorInTeam = teamMembers?.has(author) ?? true
+  const isKickable = isDeleteable && !!teamID && !yourMessage && authorInTeam
+  const deviceRevokedAt = message.deviceRevokedAt || undefined
   const pending = !!message.transferState
   const navigateAppend = C.useChatNavigateAppend()
-  const _onAddReaction = (message: T.Chat.Message) => {
+  const _onAddReaction = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({
       props: {
         conversationIDKey,
-        onPickAddToMessageOrdinal: message.ordinal,
+        onPickAddToMessageOrdinal: ordinal,
         pickKey: 'reaction',
       },
       selected: 'chatChooseEmoji',
     }))
-  }
+  }, [navigateAppend, ordinal])
+  const onAddReaction = C.isMobile ? () => _onAddReaction : undefined
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const onAllMedia = () => {
@@ -52,103 +59,115 @@ export default (ownProps: OwnProps) => {
     showInfoPanel(true, 'attachments')
   }
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-  const _onCopyLink = (label: string, message: T.Chat.Message) => {
-    copyToClipboard(linkFromConvAndMessage(label, message.id))
-  }
+  const onCopyLink = React.useCallback(() => {
+    copyToClipboard(linkFromConvAndMessage(label, id))
+  }, [copyToClipboard, id, label])
   const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
-  const _onDelete = (message: T.Chat.Message) => {
-    messageDelete(message.ordinal)
+  const _onDelete = React.useCallback(() => {
+    messageDelete(ordinal)
     clearModals()
-  }
+  }, [messageDelete, clearModals, ordinal])
+  const onDelete = isDeleteable ? _onDelete : undefined
   const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
-  const _onDownload = (message: T.Chat.MessageAttachment) => {
-    attachmentDownload(message.id)
-  }
+  const _onDownload = React.useCallback(() => {
+    attachmentDownload(id)
+  }, [attachmentDownload, id])
+  const onDownload = !C.isMobile && !message.downloadPath ? _onDownload : undefined
   const setEditing = C.useChatContext(s => s.dispatch.setEditing)
-  const _onEdit = (message: T.Chat.Message) => {
-    setEditing(message.ordinal)
-  }
-  const _onForward = (message: T.Chat.Message) => {
+  const onEdit = React.useCallback(() => {
+    setEditing(ordinal)
+  }, [setEditing, ordinal])
+  const onForward = React.useCallback(() => {
     navigateAppend(conversationIDKey => ({
-      props: {conversationIDKey, ordinal: message.ordinal},
+      props: {conversationIDKey, ordinal},
       selected: 'chatForwardMsgPick',
     }))
-  }
-  const _onInstallBot = (message: T.Chat.Message) => {
-    navigateAppend(() => ({props: {botUsername: message.author}, selected: 'chatInstallBotPick'}))
-  }
-  const _onKick = (teamID: T.Teams.TeamID, username: string) => {
-    navigateAppend(() => ({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}))
-  }
-  const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
-  const _onMarkAsUnread = (message: T.Chat.Message) => {
-    setMarkAsUnread(message.id)
-  }
-  const pinMessage = C.useChatContext(s => s.dispatch.pinMessage)
+  }, [navigateAppend, ordinal])
 
-  const _onPinMessage = (message: T.Chat.Message) => {
-    pinMessage(message.id)
-  }
+  const _onInstallBot = React.useCallback(() => {
+    navigateAppend(() => ({props: {botUsername: author}, selected: 'chatInstallBotPick'}))
+  }, [navigateAppend, author])
+  const onInstallBot = authorIsBot ? _onInstallBot : undefined
+
+  const onKick = React.useCallback(() => {
+    navigateAppend(() => ({props: {members: [author], teamID}, selected: 'teamReallyRemoveMember'}))
+  }, [navigateAppend, author, teamID])
+  const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
+  const onMarkAsUnread = React.useCallback(() => {
+    setMarkAsUnread(id)
+  }, [setMarkAsUnread, id])
+
+  const canPinMessage = !isTeam || yourOperations.pinMessage
+  const pinMessage = C.useChatContext(s => s.dispatch.pinMessage)
+  const _onPinMessage = React.useCallback(() => {
+    pinMessage(id)
+  }, [pinMessage, id])
+  const onPinMessage = canPinMessage ? _onPinMessage : undefined
+
   const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
-  const _onReact = (message: T.Chat.Message, emoji: string) => {
-    toggleMessageReaction(message.ordinal, emoji)
-  }
+  const onReact = React.useCallback(
+    (emoji: string) => {
+      toggleMessageReaction(ordinal, emoji)
+    },
+    [toggleMessageReaction, ordinal]
+  )
 
   const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
-  const _onReply = (message: T.Chat.Message) => {
-    setReplyTo(message.ordinal)
-  }
+  const onReply = React.useCallback(() => {
+    setReplyTo(ordinal)
+  }, [setReplyTo, ordinal])
 
   const messageAttachmentNativeSave = C.useChatContext(s => s.dispatch.messageAttachmentNativeSave)
   const messageAttachmentNativeShare = C.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
-  const _onSaveAttachment = (message: T.Chat.MessageAttachment) => {
+  const _onSaveAttachment = React.useCallback(() => {
     messageAttachmentNativeSave(message)
-  }
-  const _onShareAttachment = (message: T.Chat.MessageAttachment) => {
-    messageAttachmentNativeShare(message.ordinal)
-  }
+  }, [messageAttachmentNativeSave, message])
+  const onSaveAttachment = C.isMobile && attachmentType === 'image' ? _onSaveAttachment : undefined
+
+  const _onShareAttachment = React.useCallback(() => {
+    messageAttachmentNativeShare(ordinal)
+  }, [messageAttachmentNativeShare, ordinal])
+  const onShareAttachment = C.isIOS ? _onShareAttachment : undefined
+
   const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
-  const _onShowInFinder = (message: T.Chat.MessageAttachment) => {
-    message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
-  }
-  const yourMessage = message.author === _you
-  const isDeleteable = yourMessage || _canAdminDelete
-  const isEditable = !!(message.isEditable && yourMessage)
-  const authorInTeam = _teamMembers?.has(message.author) ?? true
+  const _onShowInFinder = React.useCallback(() => {
+    downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)
+  }, [downloadPath, openLocalPathInSystemFileManagerDesktop])
+  const onShowInFinder = !C.isMobile && message.downloadPath ? _onShowInFinder : undefined
+
   const props = {
-    attachTo: ownProps.attachTo,
-    author: message.author,
-    deviceName: message.deviceName,
-    deviceRevokedAt: message.deviceRevokedAt || undefined,
-    deviceType: message.deviceType,
+    attachTo,
+    author,
+    deviceName,
+    deviceRevokedAt,
+    deviceType,
     isDeleteable,
     isEditable,
-    isKickable: isDeleteable && !!_teamID && !yourMessage && authorInTeam,
-    onAddReaction: C.isMobile ? () => _onAddReaction(message) : undefined,
+    isKickable,
+    onAddReaction,
     onAllMedia,
-    onCopyLink: () => _onCopyLink(_label, message),
-    onDelete: isDeleteable ? () => _onDelete(message) : undefined,
-    onDownload: !C.isMobile && !message.downloadPath ? () => _onDownload(message) : undefined,
-    onEdit: () => _onEdit(message),
-    onForward: () => _onForward(message),
-    onHidden: () => ownProps.onHidden(),
-    onInstallBot: _authorIsBot ? () => _onInstallBot(message) : undefined,
-    onKick: () => _onKick(_teamID, message.author),
-    onMarkAsUnread: () => _onMarkAsUnread(message),
-    onPinMessage: _canPinMessage ? () => _onPinMessage(message) : undefined,
-    onReact: (emoji: string) => _onReact(message, emoji),
-    onReply: () => _onReply(message),
-    onSaveAttachment:
-      C.isMobile && message.attachmentType === 'image' ? () => _onSaveAttachment(message) : undefined,
-    onShareAttachment: C.isIOS ? () => _onShareAttachment(message) : undefined,
-    onShowInFinder: !C.isMobile && message.downloadPath ? () => _onShowInFinder(message) : undefined,
+    onCopyLink,
+    onDelete,
+    onDownload,
+    onEdit,
+    onForward,
+    onHidden,
+    onInstallBot,
+    onKick,
+    onMarkAsUnread,
+    onPinMessage,
+    onReact,
+    onReply,
+    onSaveAttachment,
+    onShareAttachment,
+    onShowInFinder,
     pending,
-    position: ownProps.position,
-    style: ownProps.style,
-    timestamp: message.timestamp,
-    visible: ownProps.visible,
+    position,
+    style,
+    timestamp,
+    visible,
     yourMessage,
   }
   return <Attachment {...props} />
