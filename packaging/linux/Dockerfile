@@ -21,9 +21,6 @@ RUN apt-get update
 RUN apt-get install -y fakeroot reprepro rpm createrepo git wget \
   build-essential curl python python-pip gnupg1 unzip rsync
 
-# Newer Debian gnupg1 provide `gpg1` only
-RUN ln -sf /usr/bin/gpg1 /usr/bin/gpg
-
 # Install s3cmd. See this issue for why we need a version newer than what's in
 # the Debian repos: https://github.com/s3tools/s3cmd/issues/437
 RUN pip install s3cmd
@@ -47,3 +44,6 @@ RUN echo "$GOLANG_DOWNLOAD_SHA256 /root/go.tar.gz" | sha256sum --check --status 
 RUN tar -C /usr/local -xzf /root/go.tar.gz
 RUN rm /root/go.tar.gz
 ENV PATH "$PATH:/usr/local/go/bin"
+
+# Newer Debian gnupg1 provide `gpg1` only
+RUN ln -sf /usr/bin/gpg1 /usr/bin/gpg
