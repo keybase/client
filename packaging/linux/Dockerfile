@@ -44,3 +44,6 @@ RUN echo "$GOLANG_DOWNLOAD_SHA256 /root/go.tar.gz" | sha256sum --check --status 
 RUN tar -C /usr/local -xzf /root/go.tar.gz
 RUN rm /root/go.tar.gz
 ENV PATH "$PATH:/usr/local/go/bin"
+
+# Newer Debian gnupg1 provide `gpg1` only
+RUN ln -sf /usr/bin/gpg1 /usr/bin/gpg
