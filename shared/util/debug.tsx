@@ -33,31 +33,44 @@ export function createLoggingProxy<T extends object>(
   logProps: boolean = false
 ): T {
   console.log('[PROXY] installed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-  const proxy = new Proxy(obj, {
-    get(target, propKey) {
-      // @ts-ignore
-      const originalMethod = target[propKey] as any
-      if (typeof originalMethod === 'function') {
-        return function (...args: any[]) {
-          if (logMethods) {
-            console.log(`[PROXY] Calling method: ${String(propKey)}`)
-            console.log('[PROXY] Arguments:', args)
-          }
-          // @ts-ignore
-          const result = originalMethod.apply(this, args)
-          if (logMethods) {
-            console.log('[PROXY] Result:', result)
-          }
-          return result
+  const cache = new Map()
+  const proxy = new Proxy(
+    {},
+    {
+      get(_target, propKey) {
+        if (cache.get(propKey)) {
+          return cache.get(propKey)
         }
-      } else {
-        if (logProps) {
-          console.log(`[PROXY] props access: ${String(propKey)}`)
+        // @ts-ignore
+        const originalMethod = obj[propKey] as any
+        if (typeof originalMethod === 'function') {
+          if (logMethods) {
+            const ret = function (...args: any[]) {
+              if (logMethods) {
+                console.log(`[PROXY] Calling method: ${String(propKey)}`)
+                console.log('[PROXY] Arguments:', args)
+              }
+              // @ts-ignore
+              const result = originalMethod.apply(this, args)
+              if (logMethods) {
+                console.log('[PROXY] Result:', result)
+              }
+              return result
+            }
+            cache.set(propKey, ret)
+            return ret
+          } else {
+            return originalMethod
+          }
+        } else {
+          if (logProps) {
+            console.log(`[PROXY] props access: ${String(propKey)}`)
+          }
+          return originalMethod
         }
-        return originalMethod
-      }
-    },
-  })
+      },
+    }
+  )
 
   return proxy as T
 }
