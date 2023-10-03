@@ -245,7 +245,7 @@ function computePopupStyle(
   matchDimension: boolean,
   offset?: number,
   // When specified, will only use the fallbacks regardless of visibility
-  positionFallbacks?: Styles.Position[]
+  positionFallbacks?: ReadonlyArray<Styles.Position>
 ): ComputedStyle {
   let style = _computePopupStyle(position, coords, popupCoords, matchDimension, offset)
 
@@ -262,7 +262,7 @@ function computePopupStyle(
 type ModalPositionRelativeProps = {
   targetRect?: ClientRect
   position: Styles.Position
-  positionFallbacks?: Styles.Position[]
+  positionFallbacks?: ReadonlyArray<Styles.Position>
   matchDimension?: boolean
   onClosePopup: () => void
   propagateOutsideClicks?: boolean

@@ -2,10 +2,9 @@ import * as C from '../../../../constants'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import AttachmentMessage from './attachment/container'
-import ExplodingMessage from './exploding/container'
-import JourneycardMessage from './journeycard/container'
-import TextMessage from './text/container'
+import AttachmentMessage from './attachment'
+import JourneycardMessage from './journeycard'
+import TextMessage from './text'
 import type * as T from '../../../../constants/types'
 
 type Props = {
@@ -19,32 +18,9 @@ type Props = {
 
 const MessagePopup = React.memo(function MessagePopup(p: Props) {
   const {ordinal, attachTo, onHidden, position, style, visible} = p
-  const exploding = C.useChatContext(s => s.messageMap.get(ordinal)?.exploding)
   const type = C.useChatContext(s => s.messageMap.get(ordinal)?.type)
   switch (type) {
     case 'text':
-      if (exploding) {
-        return (
-          <ExplodingMessage
-            ordinal={ordinal}
-            attachTo={attachTo}
-            onHidden={onHidden}
-            position={position}
-            style={style}
-            visible={visible}
-          />
-        )
-      }
-      return (
-        <TextMessage
-          ordinal={ordinal}
-          attachTo={attachTo}
-          onHidden={onHidden}
-          position={position}
-          style={style}
-          visible={visible}
-        />
-      )
     case 'setChannelname':
     case 'setDescription':
     case 'pin':
@@ -60,8 +36,8 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
     case 'systemUsersAddedToConversation':
       return (
         <TextMessage
-          attachTo={attachTo}
           ordinal={ordinal}
+          attachTo={attachTo}
           onHidden={onHidden}
           position={position}
           style={style}
@@ -80,18 +56,6 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
         />
       )
     case 'attachment':
-      if (exploding) {
-        return (
-          <ExplodingMessage
-            attachTo={attachTo}
-            ordinal={ordinal}
-            onHidden={onHidden}
-            position={position}
-            style={style}
-            visible={visible}
-          />
-        )
-      }
       return (
         <AttachmentMessage
           attachTo={attachTo}
@@ -102,8 +66,9 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
           visible={visible}
         />
       )
+    default:
+      return null
   }
-  return null
 })
 
 export default MessagePopup

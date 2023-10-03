@@ -21,7 +21,7 @@ export type Props = {
   matchDimension?: boolean
   onHidden: () => void
   position?: Position
-  positionFallbacks?: Position[]
+  positionFallbacks?: ReadonlyArray<Position>
   propagateOutsideClicks?: boolean
   remeasureHint?: number
   style?: StylesCrossPlatform

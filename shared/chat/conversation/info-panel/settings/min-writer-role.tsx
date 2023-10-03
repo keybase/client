@@ -7,6 +7,8 @@ import type * as T from '../../../../constants/types'
 import upperFirst from 'lodash/upperFirst'
 import {indefiniteArticle} from '../../../../util/string'
 
+const positionFallbacks = ['bottom center'] as const
+
 const MinWriterRole = () => {
   const meta = C.useChatContext(s => s.meta)
   const {teamname} = meta
@@ -81,7 +83,7 @@ const Dropdown = (p: DropdownProps) => {
           items={items}
           onHidden={toggleShowingPopup}
           position="top center"
-          positionFallbacks={['bottom center']}
+          positionFallbacks={positionFallbacks}
         />
       )
     },

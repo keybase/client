@@ -32,9 +32,9 @@ const iconNameForDeviceType = Kb.Styles.isMobile
       }
     }
 
-const headerIconHeight = Kb.Styles.isMobile ? 96 : 72
+const headerIconHeight = Kb.Styles.isMobile ? 96 : 48
 
-const MessagePopupHeader = (props: {
+type Props = {
   author: string
   botUsername?: string
   deviceName: string
@@ -44,23 +44,15 @@ const MessagePopupHeader = (props: {
   isLocation: boolean
   timestamp: number
   yourMessage: boolean
-}) => {
-  const {
-    author,
-    botUsername,
-    deviceName,
-    deviceRevokedAt,
-    deviceType,
-    isLast,
-    isLocation,
-    timestamp,
-    yourMessage,
-  } = props
+}
+const MessagePopupHeader = (props: Props) => {
+  const {author, botUsername, deviceName, deviceRevokedAt, deviceType} = props
+  const {isLast, isLocation, timestamp, yourMessage} = props
   const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt, isLocation)
   const whoRevoked = yourMessage ? 'You' : author
   return (
     <Kb.Box style={styles.headerContainer}>
-      <Kb.Icon type={iconName} style={styles.headerIcon} />
+      {Kb.Styles.isMobile ? null : <Kb.Icon type={iconName} style={styles.headerIcon} />}
       <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
         <Kb.Text
           type="BodySmall"
@@ -68,21 +60,10 @@ const MessagePopupHeader = (props: {
             color: deviceRevokedAt ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.greenDark,
           }}
         >
-          ENCRYPTED
-        </Kb.Text>
-        <Kb.Text
-          type="BodySmall"
-          style={{
-            color: deviceRevokedAt ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.greenDark,
-          }}
-        >
-          &nbsp;& SIGNED
+          ENCRYPTED & SIGNED
         </Kb.Text>
       </Kb.Box>
       <Kb.Box2 direction="horizontal">
-        <Kb.Text type="BodySmall" style={styles.colorBlack40}>
-          by
-        </Kb.Text>
         <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
           <Kb.Avatar username={author} size={16} onClick="profile" />
           <Kb.ConnectedUsernames
@@ -93,14 +74,9 @@ const MessagePopupHeader = (props: {
             underline={true}
             type="BodySmallBold"
           />
+          <Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.Box style={styles.headerDetailsContainer}>
-        <Kb.Text center={true} type="BodySmall">
-          from device&nbsp;
-          <Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
-        </Kb.Text>
-      </Kb.Box>
       {botUsername && (
         <Kb.Box2 direction="horizontal">
           <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
@@ -136,6 +112,7 @@ const MessagePopupHeader = (props: {
           </Kb.PopupHeaderText>
         </Kb.Box2>
       )}
+      <Kb.Divider style={{width: '100%'}} />
     </Kb.Box>
   )
 }
@@ -154,12 +131,12 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {
           maxWidth: 240,
           minWidth: 200,
-          paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingTop: Kb.Styles.globalMargins.small,
+          // paddingBottom: Kb.Styles.globalMargins.tiny,
+          paddingTop: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          paddingBottom: Kb.Styles.globalMargins.medium,
-          paddingTop: Kb.Styles.globalMargins.medium,
+          // paddingBottom: Kb.Styles.globalMargins.medium,
+          // paddingTop: Kb.Styles.globalMargins.medium,
         },
       }),
       headerDetailsContainer: {
@@ -170,10 +147,10 @@ const styles = Kb.Styles.styleSheetCreate(
       headerIcon: Kb.Styles.platformStyles({
         common: {
           height: headerIconHeight,
-          marginBottom: Kb.Styles.globalMargins.small,
-          marginTop: Kb.Styles.globalMargins.small,
+          marginBottom: Kb.Styles.globalMargins.tiny,
+          marginTop: Kb.Styles.globalMargins.tiny,
         },
-        isElectron: {marginTop: Kb.Styles.globalMargins.tiny},
+        isElectron: {marginTop: 0},
         isMobile: {
           marginTop: Kb.Styles.globalMargins.small,
         },
