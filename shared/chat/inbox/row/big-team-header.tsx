@@ -93,8 +93,8 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.globalStyles.flexBoxRow,
         },
         isElectron: {
+          alignSelf: 'center',
           position: 'relative',
-          top: Kb.Styles.globalMargins.xxtiny,
         },
         isMobile: {
           marginRight: -6,
