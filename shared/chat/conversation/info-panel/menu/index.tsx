@@ -371,6 +371,11 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {wordBreak: 'break-all'},
       }),
       headerContainer: Kb.Styles.platformStyles({
+        common: {
+          borderBottomColor: Kb.Styles.globalColors.black_10,
+          borderBottomWidth: 1,
+          borderStyle: 'solid',
+        },
         isElectron: {
           ...Kb.Styles.padding(
             Kb.Styles.globalMargins.small,
