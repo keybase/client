@@ -19,6 +19,8 @@ import DelayedMounting from './delayed-mounting'
 import {type default as FollowButtonType} from '../profile/user/actions/follow-button'
 import ChatButton from '../chat/chat-button'
 
+const positionFallbacks = ['top center', 'bottom center'] as const
+
 const Kb = {
   Box,
   Box2,
@@ -266,7 +268,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
         closeOnSelect={true}
         onHidden={() => setShowing(false)}
         position="top center"
-        positionFallbacks={['top center', 'bottom center']}
+        positionFallbacks={positionFallbacks}
         propagateOutsideClicks={!Styles.isMobile}
         remeasureHint={remeasureHint}
         visible={showing}

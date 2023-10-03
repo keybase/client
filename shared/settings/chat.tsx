@@ -188,9 +188,6 @@ class Chat extends React.Component<Props, State> {
 
   componentDidMount() {
     this.props.onRefresh()
-    // If we're in storybook, trigger componentDidUpdate manually, otherwise it
-    // won't run to copy props into state.
-    __STORYBOOK__ && this.setState({contactSettingsEnabled: this.props.contactSettingsEnabled})
   }
 
   componentDidUpdate(prevProps: Props) {

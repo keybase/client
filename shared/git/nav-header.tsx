@@ -47,7 +47,6 @@ export const HeaderRightActions = () => {
           visible={true}
           onHidden={toggleShowingPopup}
           position="bottom center"
-          positionFallbacks={[]}
           items={[
             {icon: 'iconfont-person', onClick: onAddPersonal, title: 'New personal repository'},
             {icon: 'iconfont-people', onClick: onAddTeam, title: 'New team repository'},

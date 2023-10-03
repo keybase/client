@@ -4,6 +4,8 @@ import type {IconStyle} from '../../common-adapters/icon'
 import {keybaseFM} from '../../constants/whats-new'
 import Popup from '../popup'
 
+const positionFallbacks = ['bottom right', 'bottom center'] as const
+
 type Props = {
   color?: string
   badgeColor?: string
@@ -120,7 +122,7 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
         <Popup
           attachTo={() => attachToRef.current}
           position="bottom right"
-          positionFallbacks={['bottom right', 'bottom center']}
+          positionFallbacks={positionFallbacks}
           onHidden={() => {
             setPopupVisible(false)
           }}

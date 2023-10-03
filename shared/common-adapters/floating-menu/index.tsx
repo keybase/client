@@ -22,7 +22,7 @@ export type Props = {
   listStyle?: Object
   onHidden: () => void
   position?: Styles.Position
-  positionFallbacks?: Styles.Position[]
+  positionFallbacks?: ReadonlyArray<Styles.Position>
   propagateOutsideClicks?: boolean
   remeasureHint?: number
   textColor?: Styles.Color

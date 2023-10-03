@@ -14,37 +14,32 @@ const FilesContainer = () => {
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   return (
     <FilesPreview
-      userTlfUpdates={
-        __STORYBOOK__
-          ? []
-          : remoteTlfUpdates.map(c => {
-              const tlf = T.FS.pathToString(c.tlf)
-              const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
-              const tlfType = T.FS.getPathVisibility(c.tlf) || T.FS.TlfType.Private
-              return {
-                onClickAvatar: () => showUserProfile(c.writer),
-                onSelectPath: () =>
-                  c.tlf && R.remoteDispatch(RemoteGen.createOpenFilesFromWidget({path: c.tlf})),
-                participants: participants || [],
-                path: c.tlf,
-                teamname: teamname || '',
-                timestamp: TimestampUtil.formatTimeForConversationList(c.timestamp),
-                tlf,
-                // Default to private visibility--this should never happen though.
-                tlfType,
-                updates: c.updates.map(({path, uploading}) => {
-                  return {
-                    onClick: () => path && R.remoteDispatch(RemoteGen.createOpenFilesFromWidget({path})),
-                    path,
-                    tlfType,
-                    uploading,
-                  }
-                }),
-                username,
-                writer: c.writer,
-              }
-            })
-      }
+      userTlfUpdates={remoteTlfUpdates.map(c => {
+        const tlf = T.FS.pathToString(c.tlf)
+        const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
+        const tlfType = T.FS.getPathVisibility(c.tlf) || T.FS.TlfType.Private
+        return {
+          onClickAvatar: () => showUserProfile(c.writer),
+          onSelectPath: () => c.tlf && R.remoteDispatch(RemoteGen.createOpenFilesFromWidget({path: c.tlf})),
+          participants: participants || [],
+          path: c.tlf,
+          teamname: teamname || '',
+          timestamp: TimestampUtil.formatTimeForConversationList(c.timestamp),
+          tlf,
+          // Default to private visibility--this should never happen though.
+          tlfType,
+          updates: c.updates.map(({path, uploading}) => {
+            return {
+              onClick: () => path && R.remoteDispatch(RemoteGen.createOpenFilesFromWidget({path})),
+              path,
+              tlfType,
+              uploading,
+            }
+          }),
+          username,
+          writer: c.writer,
+        }
+      })}
     />
   )
 }

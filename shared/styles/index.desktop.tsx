@@ -243,15 +243,7 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
   }
 
   // jenkins doesn't support flat yet
-  let s: Object
-  if (__STORYSHOT__) {
-    const flat = styles.reduce((a: Array<CollapsibleStyle>, e: CollapsibleStyle) => a.concat(e), []) as Array<
-      Object | null | false
-    >
-    s = Object.assign({}, ...flat)
-  } else {
-    s = Object.assign({}, ...styles.flat())
-  }
+  const s = Object.assign({}, ...styles.flat())
   return Object.keys(s).length ? s : undefined
 }
 export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '../constants/platform'

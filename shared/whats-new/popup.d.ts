@@ -6,7 +6,7 @@ export type Props = {
   attachTo: () => Box2 | null
   onHidden: () => void
   position: Position
-  positionFallbacks?: Position[]
+  positionFallbacks?: ReadonlyArray<Position>
 }
 
 export default class extends React.PureComponent<Props> {}

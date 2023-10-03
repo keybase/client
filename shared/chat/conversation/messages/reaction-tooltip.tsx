@@ -6,6 +6,8 @@ import ReactButton from './react-button/container'
 import type * as T from '../../../constants/types'
 import {OrdinalContext} from './ids-context'
 
+const positionFallbacks = ['bottom center', 'left center'] as const
+
 export type Props = {
   attachmentRef?: () => React.Component<any> | null
   onAddReaction: () => void
@@ -121,7 +123,7 @@ const ReactionTooltipImpl = (props: Props) => {
       attachTo={props.attachmentRef}
       onHidden={props.onHidden}
       position="top center"
-      positionFallbacks={['bottom center', 'left center']}
+      positionFallbacks={positionFallbacks}
       propagateOutsideClicks={true}
       style={styles.overlay}
     >

@@ -79,6 +79,10 @@ const TeamPicker = (props: Props) => {
     event?.preventDefault()
     event?.stopPropagation()
     if (!dstConvIDRef.current || !message) return
+    previewConversation({
+      conversationIDKey: T.Chat.conversationIDToKey(dstConvIDRef.current),
+      reason: 'forward',
+    })
     fwdMsg(
       [
         {
@@ -99,10 +103,6 @@ const TeamPicker = (props: Props) => {
       }
     )
     clearModals()
-    previewConversation({
-      conversationIDKey: T.Chat.conversationIDToKey(dstConvIDRef.current),
-      reason: 'forward',
-    })
   }
 
   const onSelect = (dstConvID: T.RPCChat.ConversationID) => {

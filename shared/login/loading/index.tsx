@@ -29,9 +29,7 @@ const Splash = (props: Props) => {
   const [showFeedback, setShowFeedback] = React.useState(false)
   const setShowFeedbackTrueLater = Kb.useTimeout(() => setShowFeedback(true), 7000)
   React.useEffect(() => {
-    if (!__STORYBOOK__) {
-      setShowFeedbackTrueLater()
-    }
+    setShowFeedbackTrueLater()
   }, [setShowFeedbackTrueLater])
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container} gap="small">

@@ -8,6 +8,8 @@ import * as Users from './users'
 import type * as Common from './common'
 import type {Props} from '../normal/platform-input'
 
+const positionFallbacks = ['bottom center'] as const
+
 type MatchesMarkerType = {
   marker: string
   matches: boolean
@@ -370,7 +372,7 @@ const Popup = (p: PopupProps) => {
       attachTo={getAttachmentRef}
       matchDimension={true}
       position="top center"
-      positionFallbacks={['bottom center']}
+      positionFallbacks={positionFallbacks}
       visible={true}
       propagateOutsideClicks={false}
       onHidden={setInactive}

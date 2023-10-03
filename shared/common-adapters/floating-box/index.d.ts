@@ -19,7 +19,7 @@ export type Props = {
   matchDimension?: boolean
   remeasureHint?: number
   position?: Position
-  positionFallbacks?: Position[]
+  positionFallbacks?: ReadonlyArray<Position>
   hideKeyboard?: boolean // if true, hide the keyboard on mount
 }
 declare class FloatingBox extends React.Component<Props> {}

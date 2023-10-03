@@ -6,6 +6,8 @@ import {FloatingRolePicker} from '../../../../role-picker'
 import {formatTimeRelativeToNow} from '../../../../../util/timestamp'
 import MenuHeader from '../../menu-header.new'
 
+const positionFallbacks = ['left center', 'top left'] as const
+
 export type RowProps = {
   ctime: number
   disabledReasonsForRolePicker: T.Teams.DisabledReasonsForRolePicker
@@ -68,7 +70,7 @@ export const TeamRequestRow = (props: Props) => {
           closeOnSelect={true}
           attachTo={attachTo}
           position="bottom left"
-          positionFallbacks={['left center' as const, 'top left' as const]}
+          positionFallbacks={positionFallbacks}
         />
       )
     },

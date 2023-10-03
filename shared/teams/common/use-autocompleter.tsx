@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 
+const positionFallbacks = ['bottom center'] as const
+
 function useAutocompleter<U>(
   items: Array<{label: string; value: U}>,
   onSelect: (value: U) => void,
@@ -32,7 +34,7 @@ function useAutocompleter<U>(
           onHidden={toggleShowingPopup}
           matchDimension={true}
           position="top center"
-          positionFallbacks={['bottom center']}
+          positionFallbacks={positionFallbacks}
         >
           {itemsFiltered.map((item, idx) => (
             <Kb.ClickableBox

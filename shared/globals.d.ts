@@ -27,8 +27,6 @@ declare global {
   var __VERSION__: string
   var __FILE_SUFFIX__: string
   var __PROFILE__: boolean
-  var __STORYBOOK__: boolean
-  var __STORYSHOT__: boolean
   var rpcOnGo: undefined | ((b: any) => void)
   var rpcOnJs: undefined | ((b: any) => void)
 }

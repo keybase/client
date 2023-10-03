@@ -245,7 +245,7 @@ function computePopupStyle(
   matchDimension: boolean,
   offset?: number,
   // When specified, will only use the fallbacks regardless of visibility
-  positionFallbacks?: Styles.Position[]
+  positionFallbacks?: ReadonlyArray<Styles.Position>
 ): ComputedStyle {
   let style = _computePopupStyle(position, coords, popupCoords, matchDimension, offset)
 
@@ -262,7 +262,7 @@ function computePopupStyle(
 type ModalPositionRelativeProps = {
   targetRect?: ClientRect
   position: Styles.Position
-  positionFallbacks?: Styles.Position[]
+  positionFallbacks?: ReadonlyArray<Styles.Position>
   matchDimension?: boolean
   onClosePopup: () => void
   propagateOutsideClicks?: boolean
@@ -373,7 +373,7 @@ export class RelativeFloatingBox extends React.PureComponent<
 
   componentDidMount() {
     const node = document.body
-    if (!__STORYBOOK__ && node) {
+    if (node) {
       node.addEventListener('mousedown', this._handleDown, false)
       node.addEventListener('mouseup', this._handleUp, false)
     }
@@ -381,7 +381,7 @@ export class RelativeFloatingBox extends React.PureComponent<
 
   componentWillUnmount() {
     const node = document.body
-    if (!__STORYBOOK__ && node) {
+    if (node) {
       node.removeEventListener('mousedown', this._handleDown, false)
       node.removeEventListener('mouseup', this._handleUp, false)
     }

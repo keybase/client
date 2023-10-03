@@ -33,12 +33,12 @@ export const realDeviceName = ''
 export const defaultUseNativeFrame = isDarwin || isLinux
 
 // For storyshots, we only want to test macOS
-export const fileUIName = isDarwin || __STORYBOOK__ ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer'
+export const fileUIName = isDarwin ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer'
 
 const runMode = env.KEYBASE_RUN_MODE
 const homeEnv = env.HOME
 
-if (__DEV__ && !__STORYBOOK__) {
+if (__DEV__) {
   console.log(`Run mode: ${runMode}`)
 }
 
@@ -118,7 +118,7 @@ if (!paths) {
 export const {dataRoot, cacheRoot, socketPath, jsonDebugFileName, serverConfigFileName, guiConfigFilename} =
   paths
 
-export const downloadFolder = __STORYBOOK__ ? '' : env.XDG_DOWNLOAD_DIR || KB2.constants.downloadFolder
+export const downloadFolder = env.XDG_DOWNLOAD_DIR || KB2.constants.downloadFolder
 
 // Empty string means let the service figure out the right directory.
 export const pprofDir = ''

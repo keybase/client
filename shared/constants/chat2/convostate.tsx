@@ -14,7 +14,6 @@ import * as ConfigConstants from '../config'
 import HiddenString from '../../util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '../../logger'
-import sortedIndexOf from 'lodash/sortedIndexOf'
 import throttle from 'lodash/throttle'
 import {RPCError} from '../../util/errors'
 import {findLast} from '../../util/arrays'
@@ -164,7 +163,6 @@ export type ConvoState = ConvoStore & {
     botCommandsUpdateStatus: (b: T.RPCChat.UIBotCommandsUpdateStatus) => void
     channelSuggestionsTriggered: () => void
     clearAttachmentView: () => void
-    clearMessageTypeMap: () => void
     dismissBottomBanner: () => void
     dismissBlockButtons: (teamID: T.RPCGen.TeamID) => void
     dismissJourneycard: (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => void
@@ -262,7 +260,6 @@ export type ConvoState = ConvoStore & {
     // false to clear
     setMarkAsUnread: (readMsgID?: T.RPCChat.MessageID | false) => void
     setMessageCenterOrdinal: (m?: T.Chat.CenterOrdinal) => void
-    setMessageOrdinals: (os?: Array<T.Chat.Ordinal>) => void
     setMessageTypeMap: (o: T.Chat.Ordinal, t?: T.Chat.RenderMessageType) => void
     setMeta: (m?: T.Chat.ConversationMeta) => void
     setMinWriterRole: (role: T.Teams.TeamRoleType) => void
@@ -439,6 +436,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     }
 
     return clientPrev || 0
+  }
+
+  const syncOrdinals = (s: ConvoState) => {
+    s.messageOrdinals = [...s.messageMap.keys()].sort((a, b) => a - b)
   }
 
   const dispatch: ConvoState['dispatch'] = {
@@ -620,11 +621,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     clearAttachmentView: () => {
       set(s => {
         s.attachmentViewMap = new Map()
-      })
-    },
-    clearMessageTypeMap: () => {
-      set(s => {
-        s.messageTypeMap.clear()
       })
     },
     desktopNotification: (author, body) => {
@@ -839,6 +835,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                     info.messages.forEach(m => {
                       s.messageMap.set(m.id, m)
                     })
+                    syncOrdinals(s)
                   })
                 }
               },
@@ -1491,7 +1488,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             }
           }
         }
-        s.messageOrdinals = [...s.messageMap.keys()].sort((a, b) => a - b)
+        syncOrdinals(s)
       })
       get().dispatch.markThreadAsRead()
     },
@@ -1499,9 +1496,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.pendingOutboxToOrdinal.clear()
         s.messageMap.clear()
+        syncOrdinals(s)
+        s.messageTypeMap.clear()
       })
-      get().dispatch.clearMessageTypeMap()
-      get().dispatch.setMessageOrdinals()
     },
     messagesExploded: (messageIDs, explodedBy) => {
       const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
@@ -1529,7 +1526,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         ordinals = [],
         upToMessageID = null,
       } = p
-      const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+      const {pendingOutboxToOrdinal, messageMap} = get()
 
       const upToOrdinals: Array<T.Chat.Ordinal> = []
       if (upToMessageID) {
@@ -1553,29 +1550,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return arr
         }, [])
       )
-      allOrdinals.forEach(ordinal => {
-        const m = messageMap.get(ordinal)
-        if (m) {
-          dispatch.updateMessage(
-            ordinal,
-            Message.makeMessageDeleted({
-              author: m.author,
-              conversationIDKey: m.conversationIDKey,
-              id: m.id,
-              ordinal: m.ordinal,
-              timestamp: m.timestamp,
-            })
-          )
-        }
-      })
 
       set(s => {
-        const os = s.messageOrdinals
-        if (!os) return
-        allOrdinals.forEach(o => {
-          const idx = sortedIndexOf(os, o)
-          if (idx !== -1) os.splice(idx, 1)
+        allOrdinals.forEach(ordinal => {
+          s.messageMap.delete(ordinal)
         })
+        syncOrdinals(s)
       })
     },
     metaReceivedError: (error, username) => {
@@ -2164,6 +2144,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     replaceMessageMap: mm => {
       set(s => {
         s.messageMap = mm
+        syncOrdinals(s)
       })
     },
     replyJump: messageID => {
@@ -2544,13 +2525,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMessageCenterOrdinal: m => {
       set(s => {
         s.messageCenterOrdinal = m
-      })
-    },
-    setMessageOrdinals: os => {
-      set(s => {
-        if (!C.shallowEqual(s.messageOrdinals, os)) {
-          s.messageOrdinals = os
-        }
       })
     },
     setMessageTypeMap: (o, t) => {
