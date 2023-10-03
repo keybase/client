@@ -94,22 +94,22 @@ const TeamHeader = (props: TeamHeaderProps) => {
         isHovered={false}
         size={32}
       />
-      <Kb.Box2 direction="horizontal" style={styles.teamText}>
-        <Kb.Text type="BodySemibold" style={styles.maybeLongText} onClick={props.onViewTeam}>
-          {props.teamname}
-        </Kb.Text>
-        {teamHumanCount ? (
-          <Kb.Meta
-            backgroundColor={Kb.Styles.globalColors.blueGrey}
-            color={Kb.Styles.globalColors.black_50}
-            icon="iconfont-people-solid"
-            iconColor={Kb.Styles.globalColors.black_20}
-            title={teamHumanCount}
-          />
-        ) : (
-          <Kb.ProgressIndicator type="Small" />
-        )}
-      </Kb.Box2>
+      <Kb.Text type="BodySemibold" style={styles.maybeLongText} onClick={props.onViewTeam}>
+        {props.teamname}
+      </Kb.Text>
+      <Kb.BoxGrow2 />
+      {teamHumanCount ? (
+        <Kb.Meta
+          style={{alignSelf: 'center'}}
+          backgroundColor={Kb.Styles.globalColors.blueGrey}
+          color={Kb.Styles.globalColors.black_50}
+          icon="iconfont-people-solid"
+          iconColor={Kb.Styles.globalColors.black_20}
+          title={teamHumanCount}
+        />
+      ) : (
+        <Kb.ProgressIndicator type="Small" />
+      )}
     </Kb.Box2>
   )
 }
@@ -122,16 +122,16 @@ const InfoPanelMenu = (p: Props) => {
   const {onLeaveTeam, onLeaveChannel, onMarkAsRead, onMarkAsUnread, canAddPeople} = p
   const isGeneralChannel = !!(channelname && channelname === 'general')
   const hasChannelSection = !isSmallTeam && !hasHeader
-  const addPeopleItems: Kb.MenuItems = [
+  const addPeopleItems = [
     {
       icon: 'iconfont-new',
       iconIsVisible: false,
       onClick: onAddPeople,
       title: hasChannelSection ? 'Add/Invite people to team' : 'Add/invite people',
     },
-  ]
+  ] as const
 
-  const channelHeader: Kb.MenuItem = {
+  const channelHeader = {
     title: 'channelHeader',
     unWrapped: true,
     view: (
@@ -147,23 +147,23 @@ const InfoPanelMenu = (p: Props) => {
         </Kb.Text>
       </Kb.Box2>
     ),
-  }
-  const channelItem: Kb.MenuItem = isSmallTeam
-    ? {
+  } as const
+  const channelItem = isSmallTeam
+    ? ({
         icon: 'iconfont-hash',
         iconIsVisible: false,
         onClick: onManageChannels,
         subTitle: manageChannelsSubtitle,
         title: manageChannelsTitle,
-      }
-    : {
+      } as const)
+    : ({
         icon: 'iconfont-hash',
         iconIsVisible: false,
         isBadged: badgeSubscribe,
         onClick: onManageChannels,
         title: manageChannelsTitle,
-      }
-  const teamHeader: Kb.MenuItem = {
+      } as const)
+  const teamHeader = {
     title: 'teamHeader',
     unWrapped: true,
     view: (
@@ -180,7 +180,7 @@ const InfoPanelMenu = (p: Props) => {
         </Kb.Box2>
       </Kb.Box2>
     ),
-  }
+  } as const
 
   const conversationIDKey = C.useChatContext(s => s.id)
   const hideItem = (() => {
@@ -195,7 +195,7 @@ const InfoPanelMenu = (p: Props) => {
           onClick: onUnhideConv,
           style: {borderTopWidth: 0},
           title: 'Unhide conversation',
-        }
+        } as const
       } else {
         return {
           icon: 'iconfont-hide',
@@ -203,7 +203,7 @@ const InfoPanelMenu = (p: Props) => {
           onClick: onHideConv,
           style: {borderTopWidth: 0},
           title: 'Hide until next message',
-        }
+        } as const
       }
     } else {
       return null
@@ -220,7 +220,7 @@ const InfoPanelMenu = (p: Props) => {
       iconIsVisible: false,
       onClick: () => onMuteConv(!isMuted),
       title,
-    }
+    } as const
   })()
   const markAsUnread = (() => {
     if (!conversationIDKey) {
@@ -231,20 +231,20 @@ const InfoPanelMenu = (p: Props) => {
       iconIsVisible: false,
       onClick: onMarkAsUnread,
       title: 'Mark as unread',
-    }
+    } as const
   })()
 
   const isAdhoc = (isSmallTeam && !conversationIDKey) || !!(teamType === 'adhoc')
   const items: Kb.MenuItems = []
   if (isAdhoc) {
     if (markAsUnread) {
-      items.push(markAsUnread as Kb.MenuItem)
+      items.push(markAsUnread)
     }
     if (muteItem) {
-      items.push(muteItem as Kb.MenuItem)
+      items.push(muteItem)
     }
     if (hideItem) {
-      items.push(hideItem as Kb.MenuItem)
+      items.push(hideItem)
     }
     items.push({
       danger: true,
@@ -252,19 +252,19 @@ const InfoPanelMenu = (p: Props) => {
       iconIsVisible: false,
       onClick: onBlockConv,
       title: 'Block',
-    })
+    } as const)
   } else {
     if (hasChannelSection) {
       items.push(channelHeader)
     }
     if (markAsUnread) {
-      items.push(markAsUnread as Kb.MenuItem)
+      items.push(markAsUnread)
     }
     if (muteItem) {
-      items.push(muteItem as Kb.MenuItem)
+      items.push(muteItem)
     }
     if (hideItem) {
-      items.push(hideItem as Kb.MenuItem)
+      items.push(hideItem)
     }
     if (!isSmallTeam && !isInChannel && !isGeneralChannel && !hasHeader) {
       items.push({
@@ -272,7 +272,7 @@ const InfoPanelMenu = (p: Props) => {
         iconIsVisible: false,
         onClick: onJoinChannel,
         title: 'Join channel',
-      })
+      } as const)
     }
     if (!isSmallTeam && isInChannel && !isGeneralChannel && !hasHeader) {
       items.push({
@@ -280,7 +280,7 @@ const InfoPanelMenu = (p: Props) => {
         iconIsVisible: false,
         onClick: onLeaveChannel,
         title: 'Leave channel',
-      })
+      } as const)
     }
     if (hasChannelSection) {
       items.push(teamHeader)
@@ -292,14 +292,14 @@ const InfoPanelMenu = (p: Props) => {
         iconIsVisible: false,
         onClick: onMarkAsRead,
         title: 'Mark all as read',
-      })
+      } as const)
     }
     items.push(channelItem, {
       icon: 'iconfont-info',
       iconIsVisible: false,
       onClick: onViewTeam,
       title: 'Team info',
-    })
+    } as const)
     if (canAddPeople) {
       addPeopleItems.forEach(item => items.push(item))
     }
@@ -308,7 +308,7 @@ const InfoPanelMenu = (p: Props) => {
       iconIsVisible: false,
       onClick: onLeaveTeam,
       title: 'Leave team',
-    })
+    } as const)
   }
 
   const header = hasHeader ? (
