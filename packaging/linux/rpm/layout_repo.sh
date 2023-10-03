@@ -77,9 +77,11 @@ for arch in x86_64 ; do
    --define '__gpg_sign_cmd %{__gpg} gpg --batch --no-verbose --no-armor --use-agent --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}' \
    --addsign "$rpmcopy" < /dev/null
 
+  echo "Signing '$rpmcopy'...2"
+  echo "Signing '$rpmcopy'...2.. $(which gpg) $(which gpg1)"
   # Add a standalone signature file, for user convenience. Other packaging
   # steps will pick this up and copy it around.
-  gpg --detach-sign --armor --use-agent --local-user "$code_signing_fingerprint" \
+  /usr/bin/gpg --detach-sign --armor --use-agent --local-user "$code_signing_fingerprint" \
       -o "$rpmcopy.sig" "$rpmcopy"
 
   # Update the latest pointer. Even though the RPM repo is split by
@@ -88,12 +90,15 @@ for arch in x86_64 ; do
   ln -sf "repo/$arch/$rpmname" "$repo_root/$binary_name-latest-$arch.rpm"
   ln -sf "repo/$arch/$rpmname.sig" "$repo_root/$binary_name-latest-$arch.rpm.sig"
 
+  echo "Signing '$rpmcopy'...3"
   # Run createrepo to update the database files.
   "$CREATEREPO" "$repo_root/repo/$arch"
 
-  gpg --detach-sign --armor --use-agent --local-user "$code_signing_fingerprint" \
+  /usr/bin/gpg --detach-sign --armor --use-agent --local-user "$code_signing_fingerprint" \
       -o "$repo_root/repo/$arch/repodata/repomd.xml.asc" "$repo_root/repo/$arch/repodata/repomd.xml"
 
+  echo "Signing '$rpmcopy'...4"
   # Add updateinfo.xml changelog to the repo
   "$MODIFYREPO" "$here/updateinfo.xml" "$repo_root/repo/$arch/repodata"
+  echo "Signing '$rpmcopy'...5"
 done
