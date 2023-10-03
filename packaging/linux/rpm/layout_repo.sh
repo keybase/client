@@ -70,15 +70,16 @@ for arch in x86_64 ; do
   # The `setsid` and `/dev/null` bits are both required to suppress the no-op
   # password prompt that appears despite the agent configs.
   echo "Signing '$rpmcopy'..."
+  echo "Signing '$rpmcopy'...1.. $(which gpg) $(which gpg1)"
   setsid -w rpm \
    --define "_gpg_name $code_signing_fingerprint"  \
    --define '_signature gpg' \
+   --define '_gpgbin /usr/bin/gpg1' \
    --define '__gpg_check_password_cmd /bin/true' \
    --define '__gpg_sign_cmd %{__gpg} gpg --batch --no-verbose --no-armor --use-agent --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}' \
    --addsign "$rpmcopy" < /dev/null
 
   echo "Signing '$rpmcopy'...2"
-  echo "Signing '$rpmcopy'...2.. $(which gpg) $(which gpg1)"
   # Add a standalone signature file, for user convenience. Other packaging
   # steps will pick this up and copy it around.
   /usr/bin/gpg --detach-sign --armor --use-agent --local-user "$code_signing_fingerprint" \
