@@ -71,13 +71,15 @@ for arch in x86_64 ; do
   # password prompt that appears despite the agent configs.
   echo "Signing '$rpmcopy'..."
   echo "Signing '$rpmcopy'...1.. $(which gpg) $(which gpg1)"
-  setsid -w rpm \
+  # setsid -w rpm \
+  rpm \
    --define "_gpg_name $code_signing_fingerprint"  \
    --define '_signature gpg' \
    --define '_gpgbin /usr/bin/gpg1' \
    --define '__gpg_check_password_cmd /bin/true' \
    --define '__gpg_sign_cmd %{__gpg} /usr/bin/gpg1 --batch --no-verbose --no-armor --use-agent --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}' \
-   --addsign "$rpmcopy" < /dev/null
+   --addsign "$rpmcopy"
+   # --addsign "$rpmcopy" < /dev/null
 
   echo "Signing '$rpmcopy'...2"
   # Add a standalone signature file, for user convenience. Other packaging
