@@ -12,7 +12,7 @@ let config = {
   ignoreDisconnectOverlay: false, // Let you use the app even in a disconnected state
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false,
-  isTesting: __STORYBOOK__, // Is running a unit test
+  isTesting: false, // Is running a unit test
   partyMode: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock

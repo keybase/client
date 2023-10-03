@@ -13,20 +13,14 @@ type Props = {
   timestamp: number
   yourMessage: boolean
 }
-type State = {
-  secondsLeft: number
-}
+type State = {secondsLeft: number}
 
 class ExplodingPopupHeader extends React.Component<Props, State> {
   timer?: TickerID
-  state = {
-    secondsLeft: this.secondsLeft(),
-  }
+  state = {secondsLeft: this.secondsLeft()}
 
   componentDidMount() {
-    if (!__STORYBOOK__) {
-      this.timer = addTicker(this.tick)
-    }
+    this.timer = addTicker(this.tick)
   }
 
   componentWillUnmount() {
@@ -34,7 +28,7 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
   }
 
   secondsLeft() {
-    const now = __STORYBOOK__ ? 1999999999000 : Date.now()
+    const now = Date.now()
     let secondsLeft = Math.floor((this.props.explodesAt - now) / 1000)
     if (secondsLeft < 0) {
       secondsLeft = 0

@@ -4,7 +4,7 @@ import type * as T from '../../../../constants/types'
 import {type Position, fileUIName, type StylesCrossPlatform} from '../../../../styles'
 import {makeMessageAttachment} from '../../../../constants/chat2/message'
 import {useItems, useHeader} from './hooks'
-import {FloatingMenu, type MenuItem, type MenuItems} from '../../../../common-adapters'
+import {FloatingMenu} from '../../../../common-adapters'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -63,14 +63,14 @@ export default (ownProps: OwnProps) => {
     ? ([{icon: 'iconfont-finder', onClick: onShowInFinder, title: `Show in ${fileUIName}`}] as const)
     : []
   const itemSave = onSaveAttachment
-    ? [
+    ? ([
         {
           disabled: pending,
           icon: 'iconfont-download-2',
           onClick: onSaveAttachment,
           title: 'Save',
         },
-      ]
+      ] as const)
     : []
   const itemDownload = onDownload
     ? ([{disabled: pending, icon: 'iconfont-download-2', onClick: onDownload, title: 'Download'}] as const)
@@ -78,7 +78,7 @@ export default (ownProps: OwnProps) => {
   const itemShare = onShareAttachment
     ? ([{disabled: pending, icon: 'iconfont-share', onClick: onShareAttachment, title: 'Share'}] as const)
     : []
-  const itemMedia = [{icon: 'iconfont-camera', onClick: onAllMedia, title: 'All media'}]
+  const itemMedia = [{icon: 'iconfont-camera', onClick: onAllMedia, title: 'All media'}] as const
 
   const items = [
     ...itemReaction,

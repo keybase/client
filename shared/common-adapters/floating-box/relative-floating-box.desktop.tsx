@@ -373,7 +373,7 @@ export class RelativeFloatingBox extends React.PureComponent<
 
   componentDidMount() {
     const node = document.body
-    if (!__STORYBOOK__ && node) {
+    if (node) {
       node.addEventListener('mousedown', this._handleDown, false)
       node.addEventListener('mouseup', this._handleUp, false)
     }
@@ -381,7 +381,7 @@ export class RelativeFloatingBox extends React.PureComponent<
 
   componentWillUnmount() {
     const node = document.body
-    if (!__STORYBOOK__ && node) {
+    if (node) {
       node.removeEventListener('mousedown', this._handleDown, false)
       node.removeEventListener('mouseup', this._handleUp, false)
     }

@@ -37,7 +37,7 @@ class CodePage2 extends React.Component<Props, State> {
     super(props)
     this.state = {
       code: '',
-      tab: (__STORYBOOK__ && this.props.tabOverride) || this._defaultTab(this.props),
+      tab: this._defaultTab(this.props),
       troubleshooting: false,
     }
   }

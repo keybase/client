@@ -131,12 +131,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {
           maxWidth: 240,
           minWidth: 200,
-          // paddingBottom: Kb.Styles.globalMargins.tiny,
           paddingTop: Kb.Styles.globalMargins.tiny,
-        },
-        isMobile: {
-          // paddingBottom: Kb.Styles.globalMargins.medium,
-          // paddingTop: Kb.Styles.globalMargins.medium,
         },
       }),
       headerDetailsContainer: {
@@ -151,9 +146,7 @@ const styles = Kb.Styles.styleSheetCreate(
           marginTop: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {marginTop: 0},
-        isMobile: {
-          marginTop: Kb.Styles.globalMargins.small,
-        },
+        isMobile: {marginTop: Kb.Styles.globalMargins.small},
       }),
       revokedAtContainerLast: {
         borderBottomLeftRadius: 3,

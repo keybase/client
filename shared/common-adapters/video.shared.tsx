@@ -82,9 +82,6 @@ const urlIsOK = (url: string, allowFile?: boolean) => {
 
   // This should be as limited as possible, to avoid injections.
   if (/^[a-zA-Z0-9=.%:?/&-_]*$/.test(url)) {
-    if (__STORYBOOK__ || __STORYSHOT__) {
-      return true
-    }
     const u = new URL(url)
     if (allowedHosts.includes(u.hostname)) {
       return true
