@@ -7,10 +7,7 @@ import * as EngineGen from '../../actions/engine-gen-gen'
 import * as Message from './message'
 import * as Meta from './meta'
 import * as React from 'react'
-import * as Router2 from '../router2'
-import * as TeamsConstants from '../teams'
 import * as Z from '../../util/zustand'
-import * as ConfigConstants from '../config'
 import HiddenString from '../../util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '../../logger'
@@ -21,7 +18,6 @@ import {mapGetEnsureValue} from '../../util/map'
 import {noConversationIDKey} from '../types/chat2/common'
 import {type StoreApi, type UseBoundStore} from 'zustand'
 import {useStoreWithEqualityFn} from 'zustand/traditional'
-import {saveAttachmentToCameraRoll, showShareActionSheet} from '../../constants/platform-specific'
 import * as Platform from '../platform'
 import KB2 from '../../util/electron'
 import NotifyPopup from '../../util/notify-popup'
@@ -1146,7 +1142,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             })
           }
           logger.info('Trying to save chat attachment to camera roll')
-          await saveAttachmentToCameraRoll(fileName, fileType)
+          await C.PlatformSpecific.saveAttachmentToCameraRoll(fileName, fileType)
           if (m?.type === 'attachment') {
             dispatch.updateMessage(ordinal, {
               transferErrMsg: undefined,
@@ -1189,7 +1185,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
 
         try {
-          await showShareActionSheet({filePath, mimeType: message.fileType})
+          await C.PlatformSpecific.showShareActionSheet({filePath, mimeType: message.fileType})
         } catch (e) {
           logger.error('Failed to share attachment: ' + JSON.stringify(e))
         }
@@ -1838,7 +1834,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         case EngineGen.chat1NotifyChatChatSetConvSettings: {
           const {conv} = action.payload.params
           const newRole = conv?.convSettings?.minWriterRoleInfo?.role
-          const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
+          const role = newRole && C.Teams.teamRoleByEnum[newRole]
           const conversationIDKey = get().id
           const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite
           logger.info(
@@ -2036,8 +2032,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const participantInfo = get().participants
       const path = T.FS.stringToPath(
         meta.teamType !== 'adhoc'
-          ? ConfigConstants.teamFolder(meta.teamname)
-          : ConfigConstants.privateFolderWithUsers(participantInfo.name)
+          ? C.Config.teamFolder(meta.teamname)
+          : C.Config.privateFolderWithUsers(participantInfo.name)
       )
       C.makeActionForOpenPathInFilesTab(path)
     },
@@ -2078,7 +2074,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           return
         }
-        const trole = TeamsConstants.teamRoleByEnum[role]
+        const trole = C.Teams.teamRoleByEnum[role]
         const r = !trole || trole === 'none' ? undefined : trole
         set(s => {
           const roles = s.botTeamRoleMap
@@ -2292,7 +2288,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const convID = T.Chat.keyToConversationID(get().id)
         let policy: T.RPCChat.RetentionPolicy | undefined
         try {
-          policy = TeamsConstants.retentionPolicyToServiceRetentionPolicy(_policy)
+          policy = C.Teams.retentionPolicyToServiceRetentionPolicy(_policy)
           if (policy) {
             await T.RPCChat.localSetConvRetentionLocalRpcPromise({convID, policy})
           }
@@ -2587,7 +2583,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.useChatState.getState().dispatch.updateInfoPanel(show, tab)
       const conversationIDKey = get().id
       if (Platform.isPhone) {
-        const visibleScreen = Router2.getVisibleScreen()
+        const visibleScreen = C.Router2.getVisibleScreen()
         if ((visibleScreen?.name === 'chatInfoPanel') !== show) {
           if (show) {
             C.useRouterState

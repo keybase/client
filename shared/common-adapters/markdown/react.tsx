@@ -1,12 +1,17 @@
 import * as React from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import * as Styles from '../../styles'
-import Text, {type LineClampType} from '../text'
+import Text from '../text'
 import Box from '../box'
-import Markdown from '../markdown'
-import Emoji, {type Props as EmojiProps} from '../emoji'
-import {emojiIndexByName} from './emoji-gen'
-import ServiceDecoration from './service-decoration'
+import Emoji from '../emoji'
+import type {default as ServiceDecorationType} from './service-decoration'
+
+let ServiceDecoration: typeof ServiceDecorationType = () => {
+  throw new Error('Failed to init markdown')
+}
+export const setServiceDecoration = (SDT: typeof ServiceDecorationType) => {
+  ServiceDecoration = SDT
+}
 
 const electronWrapStyle = {
   whiteSpace: 'pre-wrap',
@@ -123,33 +128,6 @@ const markdownStyles = Styles.styleSheetCreate(
       } as const),
       wrapStyle: Styles.platformStyles({isElectron: electronWrapStyle}),
     }) as const
-)
-
-// TODO kill this when we remove the old markdown parser. This check is done at the parsing level.
-const EmojiIfExists = React.memo(
-  (
-    props: EmojiProps & {
-      paragraphTextClassName?: string
-      style?: Styles.StylesCrossPlatform
-      allowFontScaling?: boolean
-      lineClamp?: LineClampType
-    }
-  ) => {
-    const emojiNameLower = props.emojiName.toLowerCase()
-    const exists = !!emojiIndexByName[emojiNameLower]
-    return exists ? (
-      <Emoji emojiName={emojiNameLower} size={props.size} allowFontScaling={props.allowFontScaling} />
-    ) : (
-      <Markdown
-        paragraphTextClassName={props.paragraphTextClassName}
-        style={props.style}
-        lineClamp={props.lineClamp}
-        allowFontScaling={props.allowFontScaling}
-      >
-        {props.emojiName}
-      </Markdown>
-    )
-  }
 )
 
 const reactComponentsForMarkdownType = {
@@ -519,4 +497,4 @@ const reactOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
   'react'
 )
 
-export {EmojiIfExists, bigEmojiOutput, markdownStyles, previewOutput, reactOutput, serviceOnlyOutput}
+export {bigEmojiOutput, markdownStyles, previewOutput, reactOutput, serviceOnlyOutput}

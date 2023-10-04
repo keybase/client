@@ -1,9 +1,11 @@
-import * as Kb from '../common-adapters'
+import Emoji from '../common-adapters/emoji'
 import emojidata from 'emoji-datasource-apple'
 import groupBy from 'lodash/groupBy'
 import type * as Styles from '../styles'
 import * as T from '../constants/types'
 import CustomEmoji from './custom-emoji'
+import {type EmojiData, emojiNameMap} from '../util/emoji-shared'
+export {type EmojiData, emojiNameMap, skinTones} from '../util/emoji-shared'
 
 const categorized = groupBy(emojidata, 'category')
 const sorted: typeof categorized = {}
@@ -36,11 +38,6 @@ export const categories = categoryOrder.map(category => ({
   category,
   emojis: sorted[category] as any as Array<EmojiData>,
 }))
-
-export const emojiNameMap = Object.values(emojidata).reduce((res: {[K in string]: EmojiData}, emoji: any) => {
-  res[emoji.short_name] = emoji
-  return res
-}, {})
 
 export const emojiSearch = (filter: string, maxResults: number) => {
   const parts = filter.toLowerCase().split(/[\s|,|\-|_]+/)
@@ -77,25 +74,7 @@ export const emojiSearch = (filter: string, maxResults: number) => {
   return res.map(r => r.emoji)
 }
 
-export const skinTones = ['1F3FA', '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF'] as const
-
 export const defaultHoverEmoji = emojiNameMap['potato'] || emojidata[0]
-
-export type EmojiData = {
-  category: string
-  name?: string
-  obsoleted_by?: string
-  short_name: string
-  short_names: Array<string>
-  sort_order?: number
-  skin_variations?: {[K in T.Chat.EmojiSkinTone]: Object}
-  teamname?: string
-  unified: string
-  userEmojiRenderStock?: string
-  userEmojiRenderUrl?: string
-  sheet_x: number
-  sheet_y: number
-}
 
 export const getEmojiStr = (emoji: EmojiData, skinToneModifier?: string) => {
   if (emoji.userEmojiRenderUrl || emoji.userEmojiRenderStock) {
@@ -134,7 +113,7 @@ export const renderEmoji = (opts: {
   }
 
   if (emoji.renderStock) {
-    return <Kb.Emoji size={size} emojiName={emoji.renderStock} disableSelecting={virtualText} style={style} />
+    return <Emoji size={size} emojiName={emoji.renderStock} disableSelecting={virtualText} style={style} />
   }
 
   return null

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as C from '../constants'
+import {_useState as useDarkModeState} from '../constants/darkmode'
 
 // Individual components can then call Styles.isDarkMode() to get the value. Problem is they need to know that
 // that value has changed.
@@ -19,5 +19,5 @@ import * as C from '../constants'
 // the explicit colors/darkColors and not this magic wrapper
 //
 
-export const isDarkMode = () => C.useDarkModeState.getState().isDarkMode()
+export const isDarkMode = () => useDarkModeState.getState().isDarkMode()
 export const DarkModeContext = React.createContext(isDarkMode())

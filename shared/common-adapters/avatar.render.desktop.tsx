@@ -1,7 +1,7 @@
 import Icon, {type IconType} from './icon'
 import * as Styles from '../styles'
 import type {Props, AvatarSize} from './avatar.render'
-import {AVATAR_SIZE} from '../common-adapters/avatar'
+import {AVATAR_SIZE} from '../common-adapters/avatar-size'
 
 const avatarSizeToPoopIconType = (s: AvatarSize): IconType | undefined =>
   s === 128
@@ -138,7 +138,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         zIndex: 1,
       },
-    } as const)
+    }) as const
 )
 
 export default Avatar

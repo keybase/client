@@ -1,7 +1,7 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as T from '../../../constants/types'
-import type {StylesTextCrossPlatform} from '../../../common-adapters/text'
+import type {StylesTextCrossPlatform} from '../../text'
 import TeamMention from './team'
 
 type OwnProps = {

@@ -4,8 +4,6 @@ import * as Kb from '../../common-adapters'
 import * as T from '../../constants/types'
 import * as Constants from '../../constants/teams'
 
-type Props = {title: string; teamID: T.Teams.TeamID}
-
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
   active: 'iconfont-campfire-burning',
   recently: 'iconfont-campfire-out',
@@ -14,8 +12,15 @@ const activityToLabel = {
   active: 'Active',
   recently: 'Recently active',
 }
-const Activity = ({level, style}: {level: T.Teams.ActivityLevel; style?: Kb.Styles.StylesCrossPlatform}) =>
-  level === 'none' ? null : (
+
+type Props = {
+  level: T.Teams.ActivityLevel
+  style?: Kb.Styles.StylesCrossPlatform
+  iconOnly?: boolean
+}
+const Activity = (p: Props) => {
+  const {level, style, iconOnly = false} = p
+  return level === 'none' ? null : (
     <Kb.Box2
       direction="horizontal"
       gap="xtiny"
@@ -28,13 +33,17 @@ const Activity = ({level, style}: {level: T.Teams.ActivityLevel; style?: Kb.Styl
         color={level === 'active' ? Kb.Styles.globalColors.greenDark : Kb.Styles.globalColors.black_50}
         sizeType="Small"
       />
-      <Kb.Text type="BodySmall" style={level === 'active' ? styles.activityActive : undefined}>
-        {activityToLabel[level]}
-      </Kb.Text>
+      {iconOnly ? null : (
+        <Kb.Text type="BodySmall" style={level === 'active' ? styles.activityActive : undefined}>
+          {activityToLabel[level]}
+        </Kb.Text>
+      )}
     </Kb.Box2>
   )
+}
 
-export const ModalTitle = ({title, teamID}: Props) => {
+type MTProps = {title: string; teamID: T.Teams.TeamID}
+export const ModalTitle = ({title, teamID}: MTProps) => {
   const teamname = C.useTeamsState(state => Constants.getTeamMeta(state, teamID).teamname)
   const avatarFilepath = C.useTeamsState(state => state.newTeamWizard.avatarFilename)
   const avatarCrop = C.useTeamsState(state => state.newTeamWizard.avatarCrop)

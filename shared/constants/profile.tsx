@@ -1,6 +1,5 @@
 import * as C from '.'
 import * as T from './types'
-import * as TrackerConstants from './tracker2'
 import * as Validators from '../util/simple-validators'
 import * as Z from '../util/zustand'
 import logger from '../logger'
@@ -270,7 +269,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const loadAfter = () =>
           C.useTrackerState.getState().dispatch.load({
             assertion: C.useCurrentUserState.getState().username,
-            guiID: TrackerConstants.generateGUIID(),
+            guiID: C.Tracker.generateGUIID(),
             inTracker: false,
             reason: '',
           })
@@ -511,7 +510,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     editProfile: (bio, fullName, location) => {
       const f = async () => {
-        await T.RPCGen.userProfileEditRpcPromise({bio, fullName, location}, TrackerConstants.waitingKey)
+        await T.RPCGen.userProfileEditRpcPromise({bio, fullName, location}, C.Tracker.waitingKey)
         get().dispatch.showUserProfile(C.useCurrentUserState.getState().username)
       }
       Z.ignorePromise(f())
@@ -521,7 +520,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       get().dispatch.showUserProfile(username)
       C.useTrackerState.getState().dispatch.load({
         assertion: C.useCurrentUserState.getState().username,
-        guiID: TrackerConstants.generateGUIID(),
+        guiID: C.Tracker.generateGUIID(),
         inTracker: false,
         reason: '',
       })
@@ -600,7 +599,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               args: [{key: 'hidden', value: hidden ? '1' : '0'}],
               endpoint: 'stellar/hidden',
             },
-            TrackerConstants.waitingKey
+            C.Tracker.waitingKey
           )
         } catch (e) {
           logger.warn('Error setting Stellar hidden:', e)
@@ -647,7 +646,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
           C.useTrackerState.getState().dispatch.load({
             assertion: username,
-            guiID: TrackerConstants.generateGUIID(),
+            guiID: C.Tracker.generateGUIID(),
             inTracker: false,
             reason: '',
           })
@@ -666,7 +665,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     submitRevokeProof: proofId => {
       const f = async () => {
-        const you = TrackerConstants.getDetails(
+        const you = C.Tracker.getDetails(
           C.useTrackerState.getState(),
           C.useCurrentUserState.getState().username
         )
@@ -703,7 +702,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.userUnblockUserRpcPromise({username}, blockUserWaitingKey)
           C.useTrackerState.getState().dispatch.load({
             assertion: username,
-            guiID: TrackerConstants.generateGUIID(),
+            guiID: C.Tracker.generateGUIID(),
             inTracker: false,
             reason: '',
           })

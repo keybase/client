@@ -1,4 +1,5 @@
-import {Box2, FloatingBox} from '..'
+import {Box2} from '../box'
+import FloatingBox from '../floating-box'
 import type {Props} from '.'
 import * as Styles from '../../styles'
 

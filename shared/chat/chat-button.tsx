@@ -1,7 +1,14 @@
 import * as C from '../constants'
 import * as ChatConstants from '../constants/chat2'
 import * as Styles from '../styles'
-import * as Kb from '../common-adapters'
+import WaitingButton from '../common-adapters/waiting-button'
+import Icon from '../common-adapters/icon'
+
+// pulled in from common-adapters/profile-card
+const Kb = {
+  Icon,
+  WaitingButton,
+}
 
 type Props = {
   small?: boolean

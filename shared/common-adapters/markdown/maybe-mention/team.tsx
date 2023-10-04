@@ -1,6 +1,6 @@
 import * as React from 'react'
-import Text, {type StylesTextCrossPlatform} from '../../../common-adapters/text'
-import {Box2} from '../../../common-adapters/box'
+import Text, {type StylesTextCrossPlatform} from '../../text'
+import {Box2} from '../../box'
 import * as Styles from '../../../styles'
 import TeamInfo from '../../../profile/user/teams/teaminfo'
 

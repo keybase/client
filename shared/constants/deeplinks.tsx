@@ -1,5 +1,4 @@
 import * as C from '.'
-import * as CryptoConstants from './crypto'
 import * as Tabs from './tabs'
 import * as Z from '../util/zustand'
 import * as EngineGen from '../actions/engine-gen-gen'
@@ -259,10 +258,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
         return
       }
       let operation: T.Crypto.Operations | undefined
-      if (CryptoConstants.isPathSaltpackEncrypted(path)) {
-        operation = CryptoConstants.Operations.Decrypt
-      } else if (CryptoConstants.isPathSaltpackSigned(path)) {
-        operation = CryptoConstants.Operations.Verify
+      if (C.Crypto.isPathSaltpackEncrypted(path)) {
+        operation = C.Crypto.Operations.Decrypt
+      } else if (C.Crypto.isPathSaltpackSigned(path)) {
+        operation = C.Crypto.Operations.Verify
       } else {
         logger.warn(
           'Deeplink received saltpack file path not ending in ".encrypted.saltpack" or ".signed.saltpack"'
