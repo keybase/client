@@ -8,9 +8,11 @@ import path from 'path'
 import webpack from 'webpack'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin')
+const CircularDependencyPlugin = require('circular-dependency-plugin')
 
 // why did you render
 const enableWDYR = false
+const enableCircularDepCheck = false
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
 const config = (_, {mode}) => {
@@ -157,6 +159,23 @@ const config = (_, {mode}) => {
         new webpack.DefinePlugin(defines), // Inject some defines
         new webpack.IgnorePlugin({resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/}), // Skip a bunch of crap moment pulls in
         ...(enableWDYR ? [] : [new webpack.IgnorePlugin({resourceRegExp: /^lodash$/})]), // Disallow entire lodash, but needed by why did
+        ...(isDev && enableCircularDepCheck
+          ? [
+              new CircularDependencyPlugin({
+                // exclude detection of files based on a RegExp
+                exclude: /node_modules/,
+                // include specific files based on a RegExp
+                // include: /dir/,
+                // add errors to webpack instead of warnings
+                failOnError: true,
+                // allow import cycles that include an asyncronous import,
+                // e.g. via import(/* webpackMode: "weak" */ './file.js')
+                allowAsyncCycles: false,
+                // set the current working directory for displaying module paths
+                cwd: process.cwd(),
+              }),
+            ]
+          : []),
       ],
       resolve: {
         alias,

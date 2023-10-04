@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import {useIsMounted} from '../constants/react'
 import * as React from 'react'
 import type {RPCError} from './errors'
 
@@ -16,7 +16,7 @@ function useRPC<
   RET = RPCPromiseType<C>,
   ARGS extends Array<any> = Parameters<C>,
 >(call: C) {
-  const isMounted = C.useIsMounted()
+  const isMounted = useIsMounted()
   const submit = React.useMemo(
     () => (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
       call(...args)

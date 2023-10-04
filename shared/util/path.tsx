@@ -5,8 +5,6 @@ export const join = (...args: Array<string>) => {
   return [...args].join(pathSep).replace(new RegExp(`${pathSep}+`, 'g'), pathSep)
 }
 
-export const joinAddSep = (...args: Array<string>) => join(...args) + pathSep
-
 export const extname = (path: string) => {
   const parts = path.split(pathSep)
   const last = parts.at(-1)

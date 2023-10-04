@@ -17,7 +17,7 @@ import Text from './text'
 import WithTooltip from './with-tooltip'
 import DelayedMounting from './delayed-mounting'
 import {type default as FollowButtonType} from '../profile/user/actions/follow-button'
-import ChatButton from '../chat/chat-button'
+import type ChatButtonType from '../chat/chat-button'
 
 const positionFallbacks = ['top center', 'bottom center'] as const
 
@@ -130,6 +130,7 @@ const ProfileCard = ({
   onLayoutChange,
   username,
 }: Props) => {
+  const ChatButton = require('../chat/chat-button').default as typeof ChatButtonType
   const userDetails = C.useTrackerState(s => TrackerConstants.getDetails(s, username))
   const followThem = C.useFollowerState(s => s.following.has(username))
   const followsYou = C.useFollowerState(s => s.followers.has(username))

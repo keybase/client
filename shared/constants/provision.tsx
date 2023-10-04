@@ -1,6 +1,5 @@
 import * as C from '.'
 import * as T from './types'
-import * as ConfigConstants from './config'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
 import {isMobile} from './platform'
@@ -478,9 +477,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 // Service asking us again due to an error?
                 set(s => {
                   s.error =
-                    retryLabel === ConfigConstants.invalidPasswordErrorString
-                      ? 'Incorrect password.'
-                      : retryLabel
+                    retryLabel === C.Config.invalidPasswordErrorString ? 'Incorrect password.' : retryLabel
                   s.dispatch.dynamic.setPassphrase = (passphrase: string) => {
                     set(s => {
                       s.dispatch.dynamic.setPassphrase = _setPassphrase
@@ -571,7 +568,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         if (C.useConfigState.getState().loggedIn) {
           await T.RPCGen.loginLogoutRpcPromise(
             {force: false, keepSecrets: true},
-            ConfigConstants.loginAsOtherUserWaitingKey
+            C.Config.loginAsOtherUserWaitingKey
           )
         }
         C.useRouterState.getState().dispatch.navigateAppend({props: {fromReset}, selected: 'username'})

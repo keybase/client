@@ -1,8 +1,6 @@
 // Message related constants
 import * as T from '../types'
 import * as C from '..'
-import * as TeamConstants from '../teams'
-import * as WalletConstants from '../wallets'
 import type * as ConvoConstants from './convostate'
 import HiddenString from '../../util/hidden-string'
 import invert from 'lodash/invert'
@@ -283,7 +281,7 @@ export const makeChatPaymentInfo = (
   paymentID: T.Wallets.noPaymentID,
   showCancel: false,
   sourceAmount: '',
-  sourceAsset: WalletConstants.emptyAssetDescription,
+  sourceAsset: C.Wallets.emptyAssetDescription,
   status: 'none',
   statusDescription: '',
   statusDetail: '',
@@ -500,7 +498,7 @@ export const uiRequestInfoToChatRequestInfo = (
     return
   } else if (r.asset && r.asset.type !== 'native') {
     const assetResult = r.asset
-    asset = WalletConstants.makeAssetDescription({
+    asset = C.Wallets.makeAssetDescription({
       code: assetResult.code,
       issuerAccountID: assetResult.issuer,
       issuerName: assetResult.issuerName,
@@ -528,18 +526,18 @@ export const uiPaymentInfoToChatPaymentInfo = (
     return undefined
   }
   const p = ps[0]!
-  const serviceStatus = WalletConstants.statusSimplifiedToString[p.status]
+  const serviceStatus = C.Wallets.statusSimplifiedToString[p.status]
   return makeChatPaymentInfo({
     accountID: p.accountID ?? T.Wallets.noAccountID,
     amountDescription: p.amountDescription,
-    delta: WalletConstants.balanceDeltaToString[p.delta],
+    delta: C.Wallets.balanceDeltaToString[p.delta],
     fromUsername: p.fromUsername,
     issuerDescription: p.issuerDescription,
     note: new HiddenString(p.note),
     paymentID: p.paymentID,
     showCancel: p.showCancel,
     sourceAmount: p.sourceAmount,
-    sourceAsset: WalletConstants.makeAssetDescription({
+    sourceAsset: C.Wallets.makeAssetDescription({
       code: p.sourceAsset.code,
       issuerAccountID: p.sourceAsset.issuer,
       issuerName: p.sourceAsset.issuerName,
@@ -616,7 +614,7 @@ const uiMessageToSystemMessage = (
     case T.RPCChat.MessageSystemType.addedtoteam: {
       const {adder = '', addee = '', team = ''} = body.addedtoteam || {}
       const roleEnum = body.addedtoteam ? body.addedtoteam.role : undefined
-      const role = roleEnum ? TeamConstants.teamRoleByEnum[roleEnum] : 'none'
+      const role = roleEnum ? C.teamRoleByEnum[roleEnum] : 'none'
       const bulkAdds = body.addedtoteam.bulkAdds || []
       return makeMessageSystemAddedToTeam({
         ...minimum,
@@ -631,7 +629,7 @@ const uiMessageToSystemMessage = (
     case T.RPCChat.MessageSystemType.inviteaddedtoteam: {
       const inviteaddedtoteam = body.inviteaddedtoteam || ({} as T.RPCChat.MessageSystemInviteAddedToTeam)
       const invitee = inviteaddedtoteam.invitee || 'someone'
-      const role = TeamConstants.teamRoleByEnum[inviteaddedtoteam.role] || 'none'
+      const role = C.teamRoleByEnum[inviteaddedtoteam.role] || 'none'
       const adder = inviteaddedtoteam.adder || 'someone'
       const inviter = inviteaddedtoteam.inviter || 'someone'
       const team = inviteaddedtoteam.team || '???'

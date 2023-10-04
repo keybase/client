@@ -1,7 +1,6 @@
 // Meta manages the metadata about a conversation. Participants, isMuted, reset people, etc. Things that drive the inbox
 import * as C from '..'
 import * as T from '../types'
-import * as TeamConstants from '../teams'
 import * as Message from './message'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
@@ -208,17 +207,17 @@ const UIItemToRetentionPolicies = (
   // default inherit for teams, retain for ad-hoc
   // TODO remove these hard-coded defaults if core starts sending the defaults instead of nil to represent 'unset'
   let retentionPolicy = isTeam
-    ? TeamConstants.makeRetentionPolicy({type: 'inherit'})
-    : TeamConstants.makeRetentionPolicy()
+    ? C.Teams.makeRetentionPolicy({type: 'inherit'})
+    : C.Teams.makeRetentionPolicy()
   if (i.convRetention) {
     // it has been set for this conversation
-    retentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.convRetention)
+    retentionPolicy = C.Teams.serviceRetentionPolicyToRetentionPolicy(i.convRetention)
   }
 
   // default for team-wide policy is 'retain'
-  let teamRetentionPolicy = TeamConstants.makeRetentionPolicy()
+  let teamRetentionPolicy = C.Teams.makeRetentionPolicy()
   if (i.teamRetention) {
-    teamRetentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.teamRetention)
+    teamRetentionPolicy = C.Teams.serviceRetentionPolicyToRetentionPolicy(i.teamRetention)
   }
   return {retentionPolicy, teamRetentionPolicy}
 }
@@ -255,7 +254,7 @@ export const inboxUIItemToConversationMeta = (
 
   const minWriterRoleEnum =
     i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.role : undefined
-  let minWriterRole = (minWriterRoleEnum && TeamConstants.teamRoleByEnum[minWriterRoleEnum]) || 'reader'
+  let minWriterRole = (minWriterRoleEnum && C.Teams.teamRoleByEnum[minWriterRoleEnum]) || 'reader'
   if (minWriterRole === 'none') {
     // means nothing. set it to reader.
     minWriterRole = 'reader'
@@ -354,7 +353,7 @@ export const makeConversationMeta = (): T.Chat.ConversationMeta => ({
   readMsgID: -1,
   rekeyers: new Set(),
   resetParticipants: new Set(),
-  retentionPolicy: TeamConstants.makeRetentionPolicy(),
+  retentionPolicy: C.Teams.makeRetentionPolicy(),
   snippet: '',
   snippetDecorated: '',
   snippetDecoration: T.RPCChat.SnippetDecoration.none as T.RPCChat.SnippetDecoration,
@@ -362,7 +361,7 @@ export const makeConversationMeta = (): T.Chat.ConversationMeta => ({
   supersededBy: T.Chat.noConversationIDKey,
   supersedes: T.Chat.noConversationIDKey,
   teamID: '',
-  teamRetentionPolicy: TeamConstants.makeRetentionPolicy(),
+  teamRetentionPolicy: C.Teams.makeRetentionPolicy(),
   teamType: 'adhoc' as T.Chat.TeamType,
   teamname: '',
   timestamp: 0,

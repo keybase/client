@@ -1,6 +1,16 @@
-import * as Kb from '../../common-adapters'
+import Meta from '../../common-adapters/meta'
+import Text from '../../common-adapters/text'
+import {Box2} from '../../common-adapters/box'
+import * as Styles from '../../styles'
 import type * as T from '../../constants/types'
 import {formatTimeForFS} from '../../util/timestamp'
+
+const Kb = {
+  Box2,
+  Meta,
+  Styles,
+  Text,
+}
 
 export type Props = {
   isNew: boolean

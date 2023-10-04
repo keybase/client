@@ -13,7 +13,6 @@ import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from 
 import {defaultUseNativeFrame, runMode, isMobile} from './platform'
 import {type CommonResponseHandler} from '../engine/types'
 import {useAvatarState} from '../common-adapters/avatar-zus'
-import {initPlatformListener} from '../constants/platform-specific'
 import {mapGetEnsureValue} from '../util/map'
 
 const ignorePromise = (f: Promise<void>) => {
@@ -1118,7 +1117,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
     },
     setupSubscriptions: () => {
       // Kick off platform specific stuff
-      initPlatformListener()
+      C.PlatformSpecific.initPlatformListener()
     },
     showMain: () => {
       get().dispatch.dynamic.showMainNative?.()

@@ -1,4 +1,5 @@
-import * as C from '..'
+import {pathSep} from '../../constants/platform'
+import {_useState as useCurrentUserState} from '../../constants/current-user'
 import capitalize from 'lodash/capitalize'
 import * as T from '../../constants/types'
 import {parseFolderNameToUsers} from '../../util/kbfs'
@@ -11,7 +12,7 @@ type DecodedKBFSError = {
 function usernamesForNotification(notification: T.RPCGen.FSNotification) {
   return parseFolderNameToUsers(
     undefined,
-    notification.filename.split(C.pathSep)[3] || notification.filename
+    notification.filename.split(pathSep)[3] || notification.filename
   ).map(i => i.username)
 }
 
@@ -19,7 +20,7 @@ function tlfForNotification(notification: T.RPCGen.FSNotification): string {
   // The notification.filename is canonical platform independent path.
   // To get the TLF we can look at the first 3 directories.
   // /keybase/private/gabrielh/foo.txt => /keybase/private/gabrielh
-  return notification.filename.split(C.pathSep).slice(0, 4).join(C.pathSep)
+  return notification.filename.split(pathSep).slice(0, 4).join(pathSep)
 }
 
 function decodeKBFSError(user: string, notification: T.RPCGen.FSNotification): DecodedKBFSError {
@@ -190,7 +191,7 @@ export function kbfsNotification(notification: T.RPCGen.FSNotification, notify: 
 
   let title = `KBFS: ${action}`
   let body = `Chat or files with ${usernames} ${notification.status}`
-  const user = C.useCurrentUserState.getState().username
+  const user = useCurrentUserState.getState().username
   let rateLimitKey
 
   const isError = notification.statusCode === T.RPCGen.FSStatusCode.error

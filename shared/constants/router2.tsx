@@ -2,7 +2,7 @@ import * as C from '.'
 import type * as T from './types'
 import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
 import * as Z from '../util/zustand'
-import * as Container from '../util/container'
+import {produce} from 'immer'
 import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
@@ -155,7 +155,7 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
     return
   }
 
-  const nextState = Container.produce(rs, draft => {
+  const nextState = produce(rs, draft => {
     const loggedInRoute = draft.routes[0]
     const loggedInTabs = loggedInRoute?.state?.routes
     if (!loggedInTabs) {
@@ -287,7 +287,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         return
       }
 
-      const nextState = Container.produce(ns, draft => {
+      const nextState = produce(ns, draft => {
         navUpHelper(draft as DeepWriteable<NavState>, name)
       })
       n.dispatch(CommonActions.reset(nextState))

@@ -9,7 +9,11 @@ import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
 import {enableFreeze} from 'react-native-screens'
 import {setKeyboardUp} from '../styles/keyboard-state'
+import {setServiceDecoration} from '../common-adapters/markdown/react'
+import ServiceDecoration from '../common-adapters/markdown/service-decoration'
 enableFreeze(true)
+
+setServiceDecoration(ServiceDecoration)
 
 module.hot?.accept(() => {
   console.log('accepted update in shared/index.native')

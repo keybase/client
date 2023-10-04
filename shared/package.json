@@ -136,6 +136,7 @@
     "zustand": "4.4.1"
   },
   "devDependencies": {
+    "circular-dependency-plugin": "5.2.2",
     "@babel/core": "7.23.0",
     "@babel/node": "7.22.19",
     "@babel/preset-env": "7.22.20",

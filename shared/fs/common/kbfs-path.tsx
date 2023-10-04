@@ -1,9 +1,22 @@
 import * as React from 'react'
 import type * as T from '../../constants/types'
 import * as C from '../../constants'
-import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import {Box, Box2} from '../../common-adapters/box'
+import FloatingMenu from '../../common-adapters/floating-menu'
+import Text from '../../common-adapters/text'
+import Divider from '../../common-adapters/divider'
 import PathInfo from './path-info'
 import PathItemInfo from './path-item-info'
+
+const Kb = {
+  Box,
+  Box2,
+  Divider,
+  FloatingMenu,
+  Styles,
+  Text,
+}
 
 type Props = {
   knownPathInfo?: T.FS.PathInfo
@@ -12,7 +25,7 @@ type Props = {
 }
 
 type PopupProps = Props & {
-  attachRef: React.RefObject<Kb.Text>
+  attachRef: React.RefObject<Text>
   onHidden: () => void
   visible: boolean
 }
@@ -65,7 +78,7 @@ const KbfsPathPopup = (props: PopupProps) => {
 
 const KbfsPath = (props: Props) => {
   const [showing, setShowing] = React.useState(false)
-  const textRef = React.useRef<Kb.Text>(null)
+  const textRef = React.useRef<Text>(null)
   const openInFilesTab = useOpenInFilesTab(props.standardPath)
   const text = (
     <Kb.Text

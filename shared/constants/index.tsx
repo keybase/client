@@ -1,10 +1,11 @@
 // Used to avoid circular dependencies, keep orders
-import * as React from 'react'
 export * from './platform'
 export {_useState as useDarkModeState} from './darkmode'
 export {_useState as useRouterState, getModalStack, getTab} from './router2'
 export {_getNavigator as getNavigator, navigationRef_, getVisibleScreen} from './router2'
 export {getVisiblePath, navToThread, type PathParam} from './router2'
+import * as Router2 from './router2'
+export {Router2}
 export {_useState as useDeepLinksState, linkFromConvAndMessage} from './deeplinks'
 export {_Provider as TBProvider, _stores as TBstores, _useContext as useTBContext} from './team-building'
 export {searchWaitingKey as tbSearchWaitingKey} from './team-building'
@@ -20,6 +21,8 @@ export {actuallyResetWaitingKey, cancelResetWaitingKey} from './autoreset'
 export {_useState as useBotsState, getFeaturedSorted} from './bots'
 export {waitingKeyBotSearchUsers, waitingKeyBotSearchFeatured} from './bots'
 export {_useState as useCryptoState} from './crypto'
+import * as Crypto from './crypto'
+export {Crypto}
 export {_useState as useCurrentUserState} from './current-user'
 export {_useState as useDaemonState, maxHandshakeTries} from './daemon'
 export {_useState as useDevicesState, waitingKey as devicesWaitingKey} from './devices'
@@ -54,11 +57,18 @@ export {_useState as useSettingsNotifState, refreshNotificationsWaitingKey} from
 export {_useState as useSettingsContactsState, importContactsWaitingKey} from './settings-contacts'
 export {_useState as useSignupState, waitingKey as signupWaitingKey} from './signup'
 export {maxUsernameLength, defaultDevicename} from './signup'
-export {_useState as useTeamsState, teamWaitingKey, getCanPerformByID, getTeamNameFromID} from './teams'
+export {_useState as useTeamsState, teamWaitingKey} from './teams'
+export {getCanPerformByID, getTeamNameFromID, teamRoleByEnum} from './teams'
+import * as Teams from './teams'
+export {Teams}
 export {_useState as useTrackerState} from './tracker2'
+import * as Tracker from './tracker2'
+export {Tracker}
 export {_useState as useUFState} from './unlock-folders'
 export {_useState as useUsersState} from './users'
 export {_useState as useWaitingState, useAnyWaiting, useAnyErrors, useDispatchClearWaiting} from './waiting'
+import * as Wallets from './wallets'
+export {Wallets}
 export {_useState as useWalletsState} from './wallets'
 export {_useState as useWNState} from './whats-new'
 export {getSelectedConversation, _useState as useChatState} from './chat2'
@@ -67,10 +77,16 @@ export {noConversationIDKey, _getConvoState as getConvoState, _useContext as use
 export {dummyConversationIDKey, pendingWaitingConversationIDKey, pendingErrorConversationIDKey} from './chat2'
 export {useChatNavigateAppend, ProviderScreen, useCIDChanged, clearChatStores} from './chat2'
 export {_useConfigState as useConfigState, type Store as ConfigStore} from './config'
+import * as Config from './config'
+export {Config}
 export {createOtherAccountWaitingKey} from './config'
 export {default as shallowEqual} from 'shallowequal'
 import {_useState as useFSState} from './fs'
 import {_useConfigState as useConfigState} from './config'
+
+import * as PlatformSpecific from './platform-specific'
+export {PlatformSpecific}
+
 export const initListeners = () => {
   useFSState.getState().dispatch.setupSubscriptions()
   useConfigState.getState().dispatch.setupSubscriptions()
@@ -128,37 +144,5 @@ export const useNav = () => {
   }
 }
 
-// Get the mounted state of a component
-export const useIsMounted = () => {
-  const mounted = React.useRef(true)
-  React.useEffect(() => {
-    return () => {
-      mounted.current = false
-    }
-  }, [])
-  const isMounted = React.useCallback(() => mounted.current, [])
-  return isMounted
-}
-
-// Run a function on mount once
-export const useOnMountOnce = (f: () => void) => {
-  const onceRef = React.useRef(true)
-  if (onceRef.current) {
-    onceRef.current = false
-    // defer a frame so you don't get react issues
-    setTimeout(f, 1)
-  }
-}
-
-// Run a function on unmount, doesn't rerun if the function changes
-export const useOnUnMountOnce = (f: () => void) => {
-  const ref = React.useRef(f)
-  ref.current = f
-  React.useEffect(() => {
-    return () => {
-      ref.current()
-    }
-  }, [])
-}
-
+export {useIsMounted, useOnMountOnce, useOnUnMountOnce} from './react'
 export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'

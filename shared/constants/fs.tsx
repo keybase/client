@@ -3,7 +3,6 @@ import * as EngineGen from '../actions/engine-gen-gen'
 import * as Tabs from './tabs'
 import * as T from './types'
 import * as Z from '../util/zustand'
-import {requestPermissionsToWrite} from '../constants/platform-specific'
 import NotifyPopup from '../util/notify-popup'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
@@ -1458,7 +1457,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     download: (path, type) => {
       const f = async () => {
-        await requestPermissionsToWrite()
+        await C.PlatformSpecific.requestPermissionsToWrite()
         const downloadID = await T.RPCGen.SimpleFSSimpleFSStartDownloadRpcPromise({
           isRegularDownload: type === 'download',
           path: pathToRPCPath(path).kbfs,

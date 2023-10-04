@@ -104,7 +104,7 @@ module.exports = {
     return require('./emoji').default
   },
   get EmojiIfExists() {
-    return require('./markdown/react').EmojiIfExists
+    return require('./markdown').EmojiIfExists
   },
   get ErrorBoundary() {
     return require('./error-boundary').default
