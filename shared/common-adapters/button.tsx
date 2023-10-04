@@ -67,6 +67,7 @@ type DefaultProps = {
   tooltip?: string
   type?: ButtonType
   waiting?: boolean
+  disabledStopClick?: boolean // if disabled it'll by default let clicks bleed through
 }
 
 export type Props = DefaultProps & WithIconProps
@@ -81,6 +82,10 @@ const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
       />
     </Kb.Box>
   )
+}
+
+const stopClick = (e: React.BaseSyntheticEvent) => {
+  e.stopPropagation()
 }
 
 const Button = React.forwardRef<ClickableBox, Props>(function ButtonInner(
@@ -129,7 +134,7 @@ const Button = React.forwardRef<ClickableBox, Props>(function ButtonInner(
     },
     [ponClick]
   )
-  const onClick = !unclickable && props.onClick ? _onClick : undefined
+  const onClick = !unclickable && props.onClick ? _onClick : props.disabledStopClick ? stopClick : undefined
   const whiteSpinner =
     (mode === 'Primary' && !(props.backgroundColor || type === 'Dim')) ||
     (mode === 'Secondary' && !!props.backgroundColor)
@@ -352,6 +357,7 @@ const commonLabel = () =>
     common: {
       color: Styles.globalColors.whiteOrWhite,
       textAlign: 'center',
+      display: 'flex',
     },
     isElectron: {whiteSpace: 'pre', userSelect: 'none'},
     isMobile: {lineHeight: undefined},
