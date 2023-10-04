@@ -87,7 +87,6 @@ type ConvoStore = {
   giphyResult?: T.RPCChat.GiphySearchResults
   giphyWindow: boolean
   markedAsUnread: boolean // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
-  // TODO update this!
   maxMsgIDSeen: number // max id weve seen so far, we do delete things
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
@@ -2583,9 +2582,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       })
     }, 1000),
-    setupSubscriptions: () => {
-      // TODO
-    },
+    setupSubscriptions: () => {},
     showInfoPanel: (show, tab) => {
       C.useChatState.getState().dispatch.updateInfoPanel(show, tab)
       const conversationIDKey = get().id
