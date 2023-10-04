@@ -121,8 +121,9 @@ const AddToChannels = (props: Props) => {
 
   const numSelected = selected.size
 
+  const rowHeight = Kb.Styles.isMobile ? (mode === 'self' ? 56 : 56) : mode === 'self' ? 48 : 48
+
   const itemHeight = React.useMemo(() => {
-    const rowHeight = mode === 'self' ? 72 : 56
     const headerHeight = filtering ? 0 : Kb.Styles.isMobile ? 48 : 40
     const getItemLayout = (index: number, item?: T.Unpacked<typeof items>) => {
       return item && item.type === 'header'
@@ -134,7 +135,7 @@ const AddToChannels = (props: Props) => {
           }
     }
     return {getItemLayout, type: 'variable'} as const
-  }, [mode, filtering])
+  }, [rowHeight, filtering])
 
   const renderItem = (_: unknown, item: T.Unpacked<typeof items>) => {
     switch (item.type) {
@@ -153,6 +154,7 @@ const AddToChannels = (props: Props) => {
       case 'channel':
         return (
           <ChannelRow
+            rowHeight={rowHeight}
             key={item.channelMeta.channelname}
             channelMeta={item.channelMeta}
             selected={
@@ -278,9 +280,17 @@ const HeaderRow = React.memo(function HeaderRow(p: {
       direction="horizontal"
       alignItems="center"
       fullWidth={true}
+      gap="tiny"
       style={Kb.Styles.collapseStyles([styles.item, styles.headerItem])}
     >
-      <Kb.Button label="Create channel" small={true} mode="Secondary" onClick={onCreate} />
+      <Kb.BoxGrow2 />
+      <Kb.Button
+        label="Create channel"
+        small={true}
+        mode="Secondary"
+        onClick={onCreate}
+        icon="iconfont-new"
+      />
       {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
         <Kb.Box /> // box so that the other item aligns to the left
       ) : (
@@ -292,15 +302,12 @@ const HeaderRow = React.memo(function HeaderRow(p: {
   )
 })
 
-const SelfChannelActions = ({
-  meta,
-  reloadChannels,
-  selfMode,
-}: {
+const SelfChannelActions = (p: {
   meta: T.Chat.ConversationMeta
   reloadChannels: () => Promise<void>
   selfMode: boolean
 }) => {
+  const {meta, reloadChannels, selfMode} = p
   const nav = Container.useSafeNavigation()
   const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, meta.teamID))
   const isAdmin = yourOperations.deleteChannel
@@ -413,8 +420,10 @@ const SelfChannelActions = ({
       style={Kb.Styles.collapseStyles([selfMode && !Kb.Styles.isMobile && styles.channelRowSelfMode])}
     >
       {popup}
-      {meta.channelname !== 'general' && (
+      {
         <Kb.Button
+          disabled={meta.channelname === 'general'}
+          disabledStopClick={true}
           type={buttonMousedOver && inChannel ? 'Default' : 'Success'}
           mode={inChannel ? 'Secondary' : 'Primary'}
           label={inChannel ? (buttonMousedOver ? 'Leave' : 'In') : 'Join'}
@@ -422,21 +431,12 @@ const SelfChannelActions = ({
           iconSizeType={inChannel && !buttonMousedOver ? 'Tiny' : undefined}
           onMouseEnter={Kb.Styles.isMobile ? undefined : () => setMouseover(true)}
           onMouseLeave={Kb.Styles.isMobile ? undefined : () => setMouseover(false)}
-          onMouseDown={
-            Kb.Styles.isMobile
-              ? undefined
-              : evt => {
-                  // using onMouseDown so we can prevent blurring the search filter
-                  evt.preventDefault()
-                  inChannel ? onLeave() : onJoin()
-                }
-          }
-          onClick={Kb.Styles.isMobile ? (inChannel ? onLeave : onJoin) : undefined}
+          onClick={inChannel ? onLeave : onJoin}
           small={true}
           style={styles.joinLeaveButton}
           waiting={waiting}
         />
-      )}
+      }
       {canEdit && (
         <Kb.Button
           icon="iconfont-ellipsis"
@@ -458,9 +458,10 @@ type ChannelRowProps = {
   mode: 'self' | 'others'
   reloadChannels: () => Promise<void>
   usernames: string[]
+  rowHeight: number
 }
 const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
-  const {channelMeta, mode, selected, onSelect: _onSelect, reloadChannels, usernames} = p
+  const {channelMeta, mode, selected, onSelect: _onSelect, reloadChannels, usernames, rowHeight} = p
   const {conversationIDKey} = channelMeta
   const selfMode = mode === 'self'
   const info = C.useConvoState(conversationIDKey, s => s.participants)
@@ -481,17 +482,15 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
   }, [_onSelect, conversationIDKey])
 
   return Kb.Styles.isMobile ? (
-    <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect}>
-      <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">
-        <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
-          <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
-            <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
-              #{channelMeta.channelname}
-            </Kb.Text>
-            <Common.ParticipantMeta numParticipants={participants.length} />
-          </Kb.Box2>
-          <Common.Activity level={activityLevel} />
+    <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect} style={{height: rowHeight}}>
+      <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="tiny">
+        <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
+          #{channelMeta.channelname}
+        </Kb.Text>
+        <Kb.Box2 direction="vertical">
+          <Common.Activity level={activityLevel} iconOnly={true} />
         </Kb.Box2>
+        <Common.ParticipantMeta numParticipants={participants.length} />
         {selfMode ? (
           <SelfChannelActions selfMode={selfMode} meta={channelMeta} reloadChannels={reloadChannels} />
         ) : (
@@ -510,6 +509,7 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
     </Kb.ClickableBox>
   ) : (
     <Kb.ListItem2
+      fullDivider={true}
       onMouseDown={
         selfMode || channelMeta.channelname === 'general' || allInChannel
           ? undefined
@@ -520,10 +520,18 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
             }
       }
       onClick={selfMode ? onPreviewChannel : undefined}
-      type="Large"
+      type="Small"
       action={
         selfMode ? (
-          <SelfChannelActions selfMode={selfMode} meta={channelMeta} reloadChannels={reloadChannels} />
+          <Kb.Box2 direction="horizontal" gap="tiny" fullHeight={true}>
+            <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="xxtiny">
+              <Common.Activity level={activityLevel} />
+            </Kb.Box2>
+            <Kb.Box2 direction="horizontal">
+              <Common.ParticipantMeta numParticipants={participants.length} />
+            </Kb.Box2>
+            <SelfChannelActions selfMode={selfMode} meta={channelMeta} reloadChannels={reloadChannels} />
+          </Kb.Box2>
         ) : (
           <Kb.CheckCircle
             checked={selected || allInChannel}
@@ -539,20 +547,21 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
           />
         )
       }
-      firstItem={true}
+      firstItem={false}
       body={
         <Kb.Box2 direction="vertical" alignItems="stretch">
           <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start">
             <Kb.Text type="BodySemibold" lineClamp={1}>
               #{channelMeta.channelname}
             </Kb.Text>
-            <Common.ParticipantMeta numParticipants={participants.length} />
-          </Kb.Box2>
-          <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="xxtiny">
-            <Common.Activity level={activityLevel} />
           </Kb.Box2>
           {selfMode && !Kb.Styles.isMobile && (
-            <Kb.Text type="BodySmall" lineClamp={1}>
+            <Kb.Text
+              type="BodySmall"
+              lineClamp={1}
+              style={styles.description}
+              title={channelMeta.description}
+            >
               {channelMeta.description}
             </Kb.Text>
           )}
@@ -568,8 +577,14 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   channelRowContainer: {marginLeft: 16, marginRight: 8},
-  channelRowSelfMode: {minHeight: 72},
-  channelText: {flexShrink: 1},
+  channelRowSelfMode: {},
+  channelText: {flexGrow: 1, flexShrink: 1},
+  description: Kb.Styles.platformStyles({
+    common: {},
+    electron: {
+      wordBreak: 'break-all',
+    },
+  }),
   disabled: {opacity: 0.4},
   headerItem: Kb.Styles.platformStyles({
     common: {backgroundColor: Kb.Styles.globalColors.blueGrey},
@@ -579,7 +594,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   item: Kb.Styles.platformStyles({
     common: {justifyContent: 'space-between'},
     isElectron: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.small)},
-    isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.small)},
+    isMobile: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+    },
   }),
   joinLeaveButton: {width: 63},
   searchFilterContainer: Kb.Styles.platformStyles({
