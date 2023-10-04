@@ -173,7 +173,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
 
       injectText('')
 
-      const containsLatestMessage = cs.containsLatestMessage
+      const containsLatestMessage = cs.isCaughtUp()
       if (containsLatestMessage) {
         onRequestScrollToBottom()
       } else {

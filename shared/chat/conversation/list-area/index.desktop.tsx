@@ -522,7 +522,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
   const {requestScrollDownRef, requestScrollToBottomRef, requestScrollUpRef} = p
   const editingOrdinal = C.useChatContext(s => s.editing)
   const centeredOrdinal = C.useChatContext(s => s.messageCenterOrdinal)?.ordinal
-  const containsLatestMessage = C.useChatContext(s => s.containsLatestMessage) ?? false
+  const containsLatestMessage = C.useChatContext(s => s.isCaughtUp())
   const messageTypeMap = C.useChatContext(s => s.messageTypeMap)
   const messageOrdinals = C.useChatContext(s => s.messageOrdinals) ?? []
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)

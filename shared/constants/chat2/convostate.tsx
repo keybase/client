@@ -80,7 +80,6 @@ type ConvoStore = {
   botTeamRoleMap: Map<string, T.Teams.TeamRoleType | undefined>
   commandMarkdown?: T.RPCChat.UICommandMarkdown
   commandStatus?: T.Chat.CommandStatusInfo
-  containsLatestMessage?: boolean
   dismissedInviteBanners: boolean
   editing: T.Chat.Ordinal // current message being edited,
   explodingMode: number // seconds to exploding message expiration,
@@ -88,6 +87,7 @@ type ConvoStore = {
   giphyResult?: T.RPCChat.GiphySearchResults
   giphyWindow: boolean
   markedAsUnread: boolean // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
+  maxMsgIDSeen: number // max id weve seen so far, we do delete things
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
   messageOrdinals?: Array<T.Chat.Ordinal> // ordered ordinals in a thread,
@@ -116,7 +116,6 @@ const initialConvoStore: ConvoStore = {
   botTeamRoleMap: new Map(),
   commandMarkdown: undefined,
   commandStatus: undefined,
-  containsLatestMessage: undefined,
   dismissedInviteBanners: false,
   editing: 0,
   explodingMode: 0,
@@ -125,6 +124,7 @@ const initialConvoStore: ConvoStore = {
   giphyWindow: false,
   id: noConversationIDKey,
   markedAsUnread: false,
+  maxMsgIDSeen: -1,
   messageCenterOrdinal: undefined,
   messageMap: new Map(),
   messageOrdinals: undefined,
@@ -239,7 +239,6 @@ export type ConvoState = ConvoStore & {
     refreshBotSettings: (username: string) => void
     refreshMutualTeamsInConv: () => void
     removeBotMember: (username: string) => void
-    replaceMessageMap: (mm: ConvoStore['messageMap']) => void
     replyJump: (messageID: T.Chat.MessageID) => void
     requestInfoReceived: (messageID: T.RPCChat.MessageID, requestInfo: T.Chat.ChatRequestInfo) => void
     resetChatWithoutThem: () => void
@@ -252,7 +251,6 @@ export type ConvoState = ConvoStore & {
     sendTyping: (typing: boolean) => void
     setCommandMarkdown: (md?: T.RPCChat.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
-    setContainsLatestMessage: (c: boolean) => void
     setConvRetentionPolicy: (policy: T.Retention.RetentionPolicy) => void
     setEditing: (ordinal: T.Chat.Ordinal | boolean) => void // true is last, false is clear
     setExplodingMode: (seconds: number, incoming?: boolean) => void
@@ -291,7 +289,6 @@ export type ConvoState = ConvoStore & {
     ) => void
     unfurlRemove: (messageID: T.Chat.MessageID) => void
     updateDraft: (text: string) => void
-    updateContainsLatestMessage: (force: boolean) => void
     updateFromUIInboxLayout: (l: {isMuted: boolean; draft?: string | null}) => void
     unfurlTogglePrompt: (messageID: T.Chat.MessageID, domain: string, show: boolean) => void
     unreadUpdated: (unread: number) => void
@@ -308,6 +305,7 @@ export type ConvoState = ConvoStore & {
   }
   getExplodingMode: () => number
   isMetaGood: () => boolean
+  isCaughtUp: () => boolean
 }
 
 // don't bug the users with black bars for network errors. chat isn't going to work in general
@@ -438,8 +436,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     return clientPrev || 0
   }
 
-  const syncOrdinals = (s: ConvoState) => {
-    s.messageOrdinals = [...s.messageMap.keys()].sort((a, b) => a - b)
+  // things that depend on messageMap, like the ordinals and the maxMsgIDSeen
+  const syncMessageDerived = (s: ConvoState) => {
+    const mo = [...s.messageMap.keys()].sort((a, b) => a - b)
+    s.messageOrdinals = mo
+    const last = mo.at(-1)
+    if (last && last > s.maxMsgIDSeen) {
+      s.maxMsgIDSeen = last
+    }
   }
 
   const dispatch: ConvoState['dispatch'] = {
@@ -835,7 +839,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                     info.messages.forEach(m => {
                       s.messageMap.set(m.id, m)
                     })
-                    syncOrdinals(s)
+                    syncMessageDerived(s)
                   })
                 }
               },
@@ -888,7 +892,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         messageIDControl,
         knownRemotes,
         forceClear = false,
-        forceContainsLatestCalc = false,
         centeredMessageID,
         scrollDirection: sd = 'none',
         numberOfMessagesToLoad = numMessagesOnInitialLoad,
@@ -966,13 +969,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               dispatch.messagesClear()
             }
             dispatch.messagesAdd(messages)
-            if (forceContainsLatestCalc) {
-              dispatch.updateContainsLatestMessage(forceContainsLatestCalc)
-            } else {
-              if (forceClear && sd === 'none') {
-                dispatch.updateContainsLatestMessage(true)
-              }
-            }
             if (centeredMessageID) {
               const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
               dispatch.setMessageCenterOrdinal({
@@ -1091,7 +1087,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
         // Check to see if we do not have the latest message, and don't mark anything as read in that case
         // If we have no information at all, then just mark as read
-        if (!get().containsLatestMessage) {
+        if (!get().isCaughtUp()) {
           logger.info('bail on not containing latest message')
           return
         }
@@ -1460,6 +1456,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     messagesAdd: messages => {
       set(s => {
         for (const m of messages) {
+          // we capture the highest one, cause sometimes we'll not track it in the map
+          // aka for deleted or placeholders
+          if (m.id > s.maxMsgIDSeen) {
+            s.maxMsgIDSeen = m.id
+          }
           if (m.type === 'deleted') {
             s.messageMap.delete(m.ordinal)
             s.messageTypeMap.delete(m.ordinal)
@@ -1488,7 +1489,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             }
           }
         }
-        syncOrdinals(s)
+        syncMessageDerived(s)
       })
       get().dispatch.markThreadAsRead()
     },
@@ -1496,7 +1497,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.pendingOutboxToOrdinal.clear()
         s.messageMap.clear()
-        syncOrdinals(s)
+        s.maxMsgIDSeen = -1
+        syncMessageDerived(s)
         s.messageTypeMap.clear()
       })
     },
@@ -1555,7 +1557,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         allOrdinals.forEach(ordinal => {
           s.messageMap.delete(ordinal)
         })
-        syncOrdinals(s)
+        syncMessageDerived(s)
       })
     },
     metaReceivedError: (error, username) => {
@@ -1909,7 +1911,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const {modifiedMessage, displayDesktopNotification, desktopNotificationSnippet} = incoming
       const conversationIDKey = get().id
-      const shouldAddMessage = get().containsLatestMessage ?? false
+      const shouldAddMessage = get().isCaughtUp() ?? false
       const devicename = C.useCurrentUserState.getState().deviceName
       const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
       const message = Message.uiMessageToMessage(
@@ -2141,12 +2143,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
-    replaceMessageMap: mm => {
-      set(s => {
-        s.messageMap = mm
-        syncOrdinals(s)
-      })
-    },
     replyJump: messageID => {
       get().dispatch.setMessageCenterOrdinal()
       get().dispatch.loadMessagesCentered(messageID, 'flash')
@@ -2228,7 +2224,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.useChatState.getState().dispatch.unboxRows([conversationIDKey], force)
       get().dispatch.setThreadLoadStatus(T.RPCChat.UIChatThreadStatusTyp.none)
       get().dispatch.setMessageCenterOrdinal()
-      get().dispatch.setContainsLatestMessage(true)
       fetchConversationBio()
       C.useChatState.getState().dispatch.resetConversationErrored()
     },
@@ -2290,11 +2285,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setCommandStatusInfo: info => {
       set(s => {
         s.commandStatus = info
-      })
-    },
-    setContainsLatestMessage: c => {
-      set(s => {
-        s.containsLatestMessage = c
       })
     },
     setConvRetentionPolicy: _policy => {
@@ -2592,9 +2582,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       })
     }, 1000),
-    setupSubscriptions: () => {
-      // TODO
-    },
+    setupSubscriptions: () => {},
     showInfoPanel: (show, tab) => {
       C.useChatState.getState().dispatch.updateInfoPanel(show, tab)
       const conversationIDKey = get().id
@@ -2908,15 +2896,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       })
     },
-    updateContainsLatestMessage: force => {
-      // already good
-      if (!force && get().containsLatestMessage) return
-      if (!get().isMetaGood()) return
-      const {meta, messageMap, messageOrdinals} = get()
-      const lastOrdinalWithID = findLast(messageOrdinals ?? [], o => (messageMap.get(o)?.id ?? 0) > 0)
-      const maxMsgID = lastOrdinalWithID ? messageMap.get(lastOrdinalWithID)?.id ?? 0 : 0
-      dispatch.setContainsLatestMessage(maxMsgID >= meta.maxVisibleMsgID)
-    },
     updateDraft: throttle(text => {
       const f = async () => {
         const meta = get().meta
@@ -3025,6 +3004,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const meta = get().meta
       const convRetention = Meta.getEffectiveRetentionPolicy(meta)
       return convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
+    },
+    isCaughtUp: () => {
+      return get().maxMsgIDSeen >= get().meta.maxVisibleMsgID
     },
     isMetaGood: () => {
       // fake meta doesn't have our actual id in it

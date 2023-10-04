@@ -572,7 +572,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         if (clearExistingMessages) {
           for (const [, cs] of C.chatStores) {
-            cs.getState().dispatch.replaceMessageMap(new Map())
+            cs.getState().dispatch.messagesClear()
           }
         }
       }
@@ -1039,9 +1039,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           )
           get().dispatch.unboxRows(conversationIDKeys, true)
           if (T.RPCChat.StaleUpdateType[key] === T.RPCChat.StaleUpdateType.clear) {
-            conversationIDKeys.forEach(convID =>
-              C.getConvoState(convID).dispatch.replaceMessageMap(new Map())
-            )
+            conversationIDKeys.forEach(convID => C.getConvoState(convID).dispatch.messagesClear())
           }
         }
       })
@@ -1432,7 +1430,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         // same? ignore
         if (wasChat && isChat && wasID === isID) {
           // if we've never loaded anything, keep going so we load it
-          if (!isID || C.getConvoState(isID).containsLatestMessage !== undefined) {
+          if (!isID || C.getConvoState(isID).maxMsgIDSeen !== -1) {
             return
           }
         }
