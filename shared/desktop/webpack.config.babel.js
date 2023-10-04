@@ -12,7 +12,7 @@ const CircularDependencyPlugin = require('circular-dependency-plugin')
 
 // why did you render
 const enableWDYR = false
-const enableCircularDepCheck = false
+const enableCircularDepCheck = true
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
 const config = (_, {mode}) => {

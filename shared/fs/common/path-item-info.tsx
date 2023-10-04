@@ -9,21 +9,6 @@ import CommaSeparatedName from './comma-separated-name'
 import {pluralize} from '../../util/string'
 import {useFsChildren, useFsPathMetadata, useFsOnlineStatus, useFsSoftError} from './hooks'
 
-// import * as Styles from '../../styles'
-// import ProgressIndicator from '../../common-adapters/progress-indicator'
-// import Text from '../../common-adapters/text'
-// import {Box, Box2} from '../../common-adapters/box'
-// import {Banner} from '../../common-adapters/banner'
-
-// const Kb = {
-//   Banner,
-//   Box,
-//   Box2,
-//   ProgressIndicator,
-//   Styles,
-//   Text,
-// }
-
 type Props = {
   containerStyle?: Kb.Styles.StylesCrossPlatform
   path: T.FS.Path
