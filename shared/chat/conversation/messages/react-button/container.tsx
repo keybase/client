@@ -19,16 +19,18 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   const {emoji, className} = p
   const {getAttachmentRef, onLongPress, onShowPicker, showBorder, style} = p
   const me = C.useCurrentUserState(s => s.username)
-  const {active, count, decorated} = C.useChatContext(s => {
-    const message = s.messageMap.get(ordinal)
-    const reaction = message?.reactions?.get(emoji || '')
-    const active = [...(reaction?.users ?? [])].some(r => r.username === me)
-    return {
-      active,
-      count: reaction?.users.size ?? 0,
-      decorated: reaction?.decorated ?? '',
-    }
-  }, C.shallowEqual)
+  const {active, count, decorated} = C.useChatContext(
+    C.useShallow(s => {
+      const message = s.messageMap.get(ordinal)
+      const reaction = message?.reactions?.get(emoji || '')
+      const active = [...(reaction?.users ?? [])].some(r => r.username === me)
+      return {
+        active,
+        count: reaction?.users.size ?? 0,
+        decorated: reaction?.decorated ?? '',
+      }
+    })
+  )
 
   const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const onAddReaction = React.useCallback(

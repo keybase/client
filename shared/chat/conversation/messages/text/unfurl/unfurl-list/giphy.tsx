@@ -10,25 +10,27 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
   const {idx} = p
   const ordinal = React.useContext(OrdinalContext)
 
-  const data = C.useChatContext(s => {
-    const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(s, ordinal, idx)
-    if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.giphy) {
-      return null
-    }
-    const {giphy} = unfurl
-    const {favicon, video} = giphy
-    const {height, url, width} = video || {height: 0, url: '', width: 0}
+  const data = C.useChatContext(
+    C.useShallow(s => {
+      const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(s, ordinal, idx)
+      if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.giphy) {
+        return null
+      }
+      const {giphy} = unfurl
+      const {favicon, video} = giphy
+      const {height, url, width} = video || {height: 0, url: '', width: 0}
 
-    return {
-      favicon: favicon?.url,
-      height,
-      isCollapsed,
-      unfurlMessageID,
-      url,
-      width,
-      youAreAuthor,
-    }
-  }, C.shallowEqual)
+      return {
+        favicon: favicon?.url,
+        height,
+        isCollapsed,
+        unfurlMessageID,
+        url,
+        width,
+        youAreAuthor,
+      }
+    })
+  )
 
   const {onClose, onToggleCollapse} = useActions(
     data?.youAreAuthor ?? false,

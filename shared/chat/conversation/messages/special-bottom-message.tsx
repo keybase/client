@@ -4,12 +4,14 @@ import OldProfileReset from './system-old-profile-reset-notice/container'
 import ResetUser from './reset-user/container'
 
 const BottomMessageContainer = React.memo(function BottomMessageContainer() {
-  const {showSuperseded, showResetParticipants} = C.useChatContext(s => {
-    const meta = s.meta
-    const showResetParticipants = meta.resetParticipants.size !== 0
-    const showSuperseded = !!meta.wasFinalizedBy || meta.supersededBy !== C.noConversationIDKey
-    return {showResetParticipants, showSuperseded}
-  }, C.shallowEqual)
+  const {showSuperseded, showResetParticipants} = C.useChatContext(
+    C.useShallow(s => {
+      const meta = s.meta
+      const showResetParticipants = meta.resetParticipants.size !== 0
+      const showSuperseded = !!meta.wasFinalizedBy || meta.supersededBy !== C.noConversationIDKey
+      return {showResetParticipants, showSuperseded}
+    })
+  )
 
   if (showResetParticipants) {
     return <ResetUser />

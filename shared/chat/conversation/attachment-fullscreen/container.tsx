@@ -20,26 +20,29 @@ const Connected = (props: OwnProps) => {
   const currentDeviceName = C.useCurrentUserState(s => s.deviceName)
   const username = C.useCurrentUserState(s => s.username)
   const ordinals = C.useChatContext(s => s.messageOrdinals)
-  const data = C.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    const lastOrdinal = ordinals?.at(-1) ?? 0
-    const message = m?.type === 'attachment' ? m : blankMessage
-    const {previewHeight, previewWidth, title, fileURL, previewURL, downloadPath, transferProgress} = message
-    const {id} = message
-    return {
-      downloadPath,
-      fileURL,
-      id,
-      lastOrdinal,
-      // TODO dont send entire message
-      message,
-      previewHeight,
-      previewURL,
-      previewWidth,
-      title,
-      transferProgress,
-    }
-  }, C.shallowEqual)
+  const data = C.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal)
+      const lastOrdinal = ordinals?.at(-1) ?? 0
+      const message = m?.type === 'attachment' ? m : blankMessage
+      const {previewHeight, previewWidth, title, fileURL, previewURL, downloadPath, transferProgress} =
+        message
+      const {id} = message
+      return {
+        downloadPath,
+        fileURL,
+        id,
+        lastOrdinal,
+        // TODO dont send entire message
+        message,
+        previewHeight,
+        previewURL,
+        previewWidth,
+        title,
+        transferProgress,
+      }
+    })
+  )
   const {downloadPath, fileURL, id, lastOrdinal} = data
   const {message, previewHeight, previewURL, previewWidth, title, transferProgress} = data
   const getLastOrdinal = () => lastOrdinal

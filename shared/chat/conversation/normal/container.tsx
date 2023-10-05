@@ -81,15 +81,17 @@ const NormalWrapper = React.memo(function NormalWrapper() {
   }, [])
 
   const showThreadSearch = C.useChatContext(s => s.threadSearchInfo.visible)
-  const {cannotWrite, minWriterReason, threadLoadedOffline} = C.useChatContext(s => {
-    const meta = s.meta
-    const {cannotWrite, offline, minWriterRole} = meta
-    const threadLoadedOffline = offline
-    const minWriterReason = `You must be at least ${indefiniteArticle(
-      minWriterRole
-    )} ${minWriterRole} to post.`
-    return {cannotWrite, minWriterReason, threadLoadedOffline}
-  }, C.shallowEqual)
+  const {cannotWrite, minWriterReason, threadLoadedOffline} = C.useChatContext(
+    C.useShallow(s => {
+      const meta = s.meta
+      const {cannotWrite, offline, minWriterRole} = meta
+      const threadLoadedOffline = offline
+      const minWriterReason = `You must be at least ${indefiniteArticle(
+        minWriterRole
+      )} ${minWriterRole} to post.`
+      return {cannotWrite, minWriterReason, threadLoadedOffline}
+    })
+  )
 
   const dragAndDropRejectReason = cannotWrite ? minWriterReason : undefined
 

@@ -190,43 +190,47 @@ const useReduxFast = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordinal)
   }
   const you = C.useCurrentUserState(s => s.username)
   const orangeOrdinal = React.useContext(OrangeLineContext)
-  return C.useChatContext(s => {
-    const ordinal = trailingItem
-    const previous = leadingItem
-    const pmessage = s.messageMap.get(previous)
-    const m = s.messageMap.get(ordinal) ?? missingMessage
-    const showUsername = m && getUsernameToShow(m, pmessage, you)
-    const orangeLineAbove = orangeOrdinal == previous && previous > 0
-    return {orangeLineAbove, ordinal, showUsername}
-  }, C.shallowEqual)
+  return C.useChatContext(
+    C.useShallow(s => {
+      const ordinal = trailingItem
+      const previous = leadingItem
+      const pmessage = s.messageMap.get(previous)
+      const m = s.messageMap.get(ordinal) ?? missingMessage
+      const showUsername = m && getUsernameToShow(m, pmessage, you)
+      const orangeLineAbove = orangeOrdinal == previous && previous > 0
+      return {orangeLineAbove, ordinal, showUsername}
+    })
+  )
 }
 
 const useRedux = (ordinal: T.Chat.Ordinal) => {
   const participantInfoNames = C.useChatContext(s => s.participants.name)
   const meta = C.useChatContext(s => s.meta)
-  const d = C.useChatContext(s => {
-    const m = s.messageMap.get(ordinal) ?? missingMessage
-    const {author, timestamp} = m
-    const {teamID, botAliases, teamType} = meta
-    // TODO not reactive
-    const authorRoleInTeam = C.useTeamsState
-      .getState()
-      .teamIDToMembers.get(teamID ?? '')
-      ?.get(author)?.type
-    const botAlias = botAliases[author] ?? ''
-    const authorIsBot = meta.teamname
-      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
-      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
-      ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
-      : false
-    return {
-      authorIsBot,
-      authorRoleInTeam,
-      botAlias,
-      teamType,
-      timestamp,
-    }
-  }, C.shallowEqual)
+  const d = C.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal) ?? missingMessage
+      const {author, timestamp} = m
+      const {teamID, botAliases, teamType} = meta
+      // TODO not reactive
+      const authorRoleInTeam = C.useTeamsState
+        .getState()
+        .teamIDToMembers.get(teamID ?? '')
+        ?.get(author)?.type
+      const botAlias = botAliases[author] ?? ''
+      const authorIsBot = meta.teamname
+        ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+        : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
+        ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
+        : false
+      return {
+        authorIsBot,
+        authorRoleInTeam,
+        botAlias,
+        teamType,
+        timestamp,
+      }
+    })
+  )
   return {...d, participantInfoNames}
 }
 

@@ -18,11 +18,13 @@ const spinnerItem = 'spinner item'
 const MembersTab = (props: Props) => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const infoMap = C.useUsersState(s => s.infoMap)
-  const {channelname, teamID, teamname} = C.useChatContext(s => {
-    const {meta} = s
-    const {teamID, channelname, teamname} = meta
-    return {channelname, teamID, teamname}
-  }, C.shallowEqual)
+  const {channelname, teamID, teamname} = C.useChatContext(
+    C.useShallow(s => {
+      const {meta} = s
+      const {teamID, channelname, teamname} = meta
+      return {channelname, teamID, teamname}
+    })
+  )
 
   const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const isGeneral = channelname === 'general'

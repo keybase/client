@@ -4,11 +4,10 @@ import EnterUsername from '.'
 
 const ConnectedEnterUsername = () => {
   const {platformGenericChecking, platformGenericParams, platformGenericURL, username} = C.useProfileState(
-    s => {
+    C.useShallow(s => {
       const {platformGenericChecking, platformGenericParams, platformGenericURL, username} = s
       return {platformGenericChecking, platformGenericParams, platformGenericURL, username}
-    },
-    C.shallowEqual
+    })
   )
   const errorText = C.useProfileState(s => s.errorText)
   const _platformURL = platformGenericURL

@@ -13,34 +13,36 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const ordinal = React.useContext(OrdinalContext)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
-  const data = C.useChatContext(s => {
-    const {unfurl, youAreAuthor, author} = getUnfurlInfo(s, ordinal, idx)
-    if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.generic) {
-      return null
-    }
-    const {generic} = unfurl
-    const {mapInfo, media, url} = generic
-    const {coord, isLiveLocationDone, liveLocationEndTime, time} = mapInfo || {
-      coord: {accuracy: 0, lat: 0, lon: 0},
-      isLiveLocationDone: false,
-      liveLocationEndTime: 0,
-      time: 0,
-    }
-    const {height, width, url: imageURL} = media || {height: 0, url: '', width: 0}
+  const data = C.useChatContext(
+    C.useShallow(s => {
+      const {unfurl, youAreAuthor, author} = getUnfurlInfo(s, ordinal, idx)
+      if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.generic) {
+        return null
+      }
+      const {generic} = unfurl
+      const {mapInfo, media, url} = generic
+      const {coord, isLiveLocationDone, liveLocationEndTime, time} = mapInfo || {
+        coord: {accuracy: 0, lat: 0, lon: 0},
+        isLiveLocationDone: false,
+        liveLocationEndTime: 0,
+        time: 0,
+      }
+      const {height, width, url: imageURL} = media || {height: 0, url: '', width: 0}
 
-    return {
-      author,
-      coord,
-      height,
-      imageURL,
-      isLiveLocationDone,
-      liveLocationEndTime,
-      time,
-      url,
-      width,
-      youAreAuthor,
-    }
-  }, C.shallowEqual)
+      return {
+        author,
+        coord,
+        height,
+        imageURL,
+        isLiveLocationDone,
+        liveLocationEndTime,
+        time,
+        url,
+        width,
+        youAreAuthor,
+      }
+    })
+  )
 
   if (!data) {
     return null

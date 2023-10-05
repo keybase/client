@@ -15,14 +15,16 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
   const {className, onShowingEmojiPicker, style, tooltipPosition} = p
   const ordinal = React.useContext(OrdinalContext)
 
-  const {hasUnfurls, type} = C.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    const hasUnfurls = (m?.unfurls?.size ?? 0) > 0
-    const type = m?.type
-    return {hasUnfurls, type}
-  }, C.shallowEqual)
+  const {hasUnfurls, type} = C.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal)
+      const hasUnfurls = (m?.unfurls?.size ?? 0) > 0
+      const type = m?.type
+      return {hasUnfurls, type}
+    })
+  )
 
-  const emojis = C.useChatState(s => s.userReacjis.topReacjis.slice(0, 5), C.shallowEqual)
+  const emojis = C.useChatState(C.useShallow(s => s.userReacjis.topReacjis.slice(0, 5)))
   const navigateAppend = C.useChatNavigateAppend()
   const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
   const onForward = React.useCallback(() => {

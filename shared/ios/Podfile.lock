@@ -29,7 +29,7 @@ PODS:
     - ExpoModulesCore
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
-  - Expo (49.0.11):
+  - Expo (49.0.13):
     - ExpoModulesCore
   - ExpoClipboard (4.5.0):
     - ExpoModulesCore
@@ -148,7 +148,7 @@ PODS:
   - libwebp/sharpyuv (1.3.2)
   - libwebp/webp (1.3.2):
     - libwebp/sharpyuv
-  - lottie-ios (4.3.1)
+  - lottie-ios (4.3.3)
   - lottie-react-native (6.3.1):
     - lottie-ios (~> 4.3.0)
     - React-Core
@@ -900,7 +900,7 @@ SPEC CHECKSUMS:
   EXImageLoader: 03063370bc06ea1825713d3f55fe0455f7c88d04
   EXLocation: e5dd52bdf61ccb6153c9e46ad4cb2686c96a35f9
   EXMediaLibrary: 802eee8ef888ee16ef80f1b79005d3d611793e14
-  Expo: 8a2d2c235bcbe4f41774562a0635bd74c174858c
+  Expo: e7d2116b947e2e6fdeb09ee4f2754f819426d1b6
   ExpoClipboard: d2f0e44d50e5ba07b02f5fb7bd280178b420e24e
   ExpoHaptics: 604aca02e942d1d43c139cae7cf397b26f85476f
   ExpoImage: bbd451559f49f78d858592fe1d4d74aedb3d900b
@@ -927,7 +927,7 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   libvmaf: 27f523f1e63c694d14d534cd0fddd2fab0ae8711
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
-  lottie-ios: 6279047f1cc31b395e11f1fc24f3dab68cbf0df2
+  lottie-ios: 25e7b2675dad5c3ddad369ac9baab03560c5bfdd
   lottie-react-native: c9f1db4f4124dcce9f8159e65d8dc6e8bcb11fb4
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1

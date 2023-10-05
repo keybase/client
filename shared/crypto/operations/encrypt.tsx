@@ -10,13 +10,15 @@ import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from 
 const operation = Constants.Operations.Encrypt
 
 const EncryptOptions = React.memo(function EncryptOptions() {
-  const {hasSBS, hasRecipients, hideIncludeSelf, includeSelf, inProgress, sign} = C.useCryptoState(s => {
-    const o = s[operation]
-    const {inProgress} = o
-    const {hasRecipients, hideIncludeSelf, hasSBS} = o.meta
-    const {includeSelf, sign} = o.options
-    return {hasRecipients, hasSBS, hideIncludeSelf, inProgress, includeSelf, sign}
-  }, C.shallowEqual)
+  const {hasSBS, hasRecipients, hideIncludeSelf, includeSelf, inProgress, sign} = C.useCryptoState(
+    C.useShallow(s => {
+      const o = s[operation]
+      const {inProgress} = o
+      const {hasRecipients, hideIncludeSelf, hasSBS} = o.meta
+      const {includeSelf, sign} = o.options
+      return {hasRecipients, hasSBS, hideIncludeSelf, inProgress, includeSelf, sign}
+    })
+  )
 
   const setEncryptOptions = C.useCryptoState(s => s.dispatch.setEncryptOptions)
 
@@ -55,13 +57,15 @@ const EncryptOptions = React.memo(function EncryptOptions() {
 })
 
 const EncryptOutputBanner = () => {
-  const {hasRecipients, includeSelf, recipients, outputType} = C.useCryptoState(s => {
-    const o = s[operation]
-    const {recipients, outputType} = o
-    const {hasRecipients} = o.meta
-    const {includeSelf} = o.options
-    return {hasRecipients, includeSelf, outputType, recipients}
-  }, C.shallowEqual)
+  const {hasRecipients, includeSelf, recipients, outputType} = C.useCryptoState(
+    C.useShallow(s => {
+      const o = s[operation]
+      const {recipients, outputType} = o
+      const {hasRecipients} = o.meta
+      const {includeSelf} = o.options
+      return {hasRecipients, includeSelf, outputType, recipients}
+    })
+  )
 
   const youAnd = (who: string) => (includeSelf ? `you and ${who}` : who)
   const whoCanRead = hasRecipients

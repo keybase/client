@@ -40,36 +40,40 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       : 'Multiple people typing...'
   })
 
-  const {snippet, snippetDecoration} = C.useChatContext(s => {
-    const {meta} = s
-    // only use layout if we don't have the meta at all
-    const maybeLayoutSnippet = meta.conversationIDKey === C.noConversationIDKey ? layoutSnippet : undefined
-    const snippet = typingSnippet ?? meta.snippetDecorated ?? maybeLayoutSnippet ?? ''
-    const snippetDecoration = meta?.snippetDecoration ?? T.RPCChat.SnippetDecoration.none
-    return {snippet, snippetDecoration}
-  }, C.shallowEqual)
+  const {snippet, snippetDecoration} = C.useChatContext(
+    C.useShallow(s => {
+      const {meta} = s
+      // only use layout if we don't have the meta at all
+      const maybeLayoutSnippet = meta.conversationIDKey === C.noConversationIDKey ? layoutSnippet : undefined
+      const snippet = typingSnippet ?? meta.snippetDecorated ?? maybeLayoutSnippet ?? ''
+      const snippetDecoration = meta?.snippetDecoration ?? T.RPCChat.SnippetDecoration.none
+      return {snippet, snippetDecoration}
+    })
+  )
 
   const you = C.useCurrentUserState(s => s.username)
   const participantInfo = C.useChatContext(s => s.participants)
   const navigateToThread = C.useChatContext(s => s.dispatch.navigateToThread)
-  const participants = C.useChatContext(s => {
-    const {meta} = s
-    const teamname = (meta.teamname || layoutIsTeam ? layoutName : '') || ''
-    const channelname = isInWidget ? meta.channelname ?? '' : ''
-    if (teamname && channelname) {
-      return `${teamname}#${channelname}`
-    }
-    if (participantInfo?.name.length) {
-      // Filter out ourselves unless it's our 1:1 conversation
-      return participantInfo.name.filter((participant, _, list) =>
-        list.length === 1 ? true : participant !== you
-      )
-    }
-    if (layoutIsTeam && layoutName) {
-      return [layoutName]
-    }
-    return layoutName?.split(',') ?? []
-  }, C.shallowEqual)
+  const participants = C.useChatContext(
+    C.useShallow(s => {
+      const {meta} = s
+      const teamname = (meta.teamname || layoutIsTeam ? layoutName : '') || ''
+      const channelname = isInWidget ? meta.channelname ?? '' : ''
+      if (teamname && channelname) {
+        return `${teamname}#${channelname}`
+      }
+      if (participantInfo?.name.length) {
+        // Filter out ourselves unless it's our 1:1 conversation
+        return participantInfo.name.filter((participant, _, list) =>
+          list.length === 1 ? true : participant !== you
+        )
+      }
+      if (layoutIsTeam && layoutName) {
+        return [layoutName]
+      }
+      return layoutName?.split(',') ?? []
+    })
+  )
 
   const _onSelectConversation = React.useCallback(() => {
     navigateToThread('inboxSmall')

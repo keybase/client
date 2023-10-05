@@ -61,18 +61,20 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   const bottomChildren = useBottom(ordinal, toggleShowingPopup)
   const reply = useReply(ordinal)
 
-  const {isEditing, textType, hasReactions} = C.useChatContext(s => {
-    const isEditing = s.editing === ordinal
-    const m = s.messageMap.get(ordinal)
-    const errorReason = m?.errorReason
-    const textType = errorReason
-      ? ('error' as const)
-      : !m?.submitState
-      ? ('sent' as const)
-      : ('pending' as const)
-    const hasReactions = (m?.reactions?.size ?? 0) > 0
-    return {hasReactions, isEditing, textType}
-  }, C.shallowEqual)
+  const {isEditing, textType, hasReactions} = C.useChatContext(
+    C.useShallow(s => {
+      const isEditing = s.editing === ordinal
+      const m = s.messageMap.get(ordinal)
+      const errorReason = m?.errorReason
+      const textType = errorReason
+        ? ('error' as const)
+        : !m?.submitState
+        ? ('sent' as const)
+        : ('pending' as const)
+      const hasReactions = (m?.reactions?.size ?? 0) > 0
+      return {hasReactions, isEditing, textType}
+    })
+  )
 
   const setRecycleType = React.useContext(SetRecycleTypeContext)
   let subType = ''

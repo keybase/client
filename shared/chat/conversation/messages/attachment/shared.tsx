@@ -177,18 +177,20 @@ export const useAttachmentRedux = () => {
   }, [attachmentPreviewSelect, ordinal])
 
   const {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState} =
-    C.useChatContext(s => {
-      const m = s.messageMap.get(ordinal)
-      const message = m?.type === 'attachment' ? m : missingMessage
-      const {isCollapsed, title, fileName: fileNameRaw, transferProgress} = message
-      const {deviceType, inlineVideoPlayable, transferState, submitState} = message
-      const isEditing = s.editing === ordinal
-      const showTitle = !!title
-      const fileName =
-        deviceType === 'desktop' ? fileNameRaw : `${inlineVideoPlayable ? 'Video' : 'Image'} from mobile`
+    C.useChatContext(
+      C.useShallow(s => {
+        const m = s.messageMap.get(ordinal)
+        const message = m?.type === 'attachment' ? m : missingMessage
+        const {isCollapsed, title, fileName: fileNameRaw, transferProgress} = message
+        const {deviceType, inlineVideoPlayable, transferState, submitState} = message
+        const isEditing = s.editing === ordinal
+        const showTitle = !!title
+        const fileName =
+          deviceType === 'desktop' ? fileNameRaw : `${inlineVideoPlayable ? 'Video' : 'Image'} from mobile`
 
-      return {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState}
-    }, C.shallowEqual)
+        return {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState}
+      })
+    )
 
   return {
     fileName,

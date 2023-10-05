@@ -33,8 +33,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const resetBannerUser = op.fromReset ? _resetBannerUser : undefined
   const _error = C.useProvisionState(s => s.error)
   const {inlineError, inlineSignUpLink} = C.useProvisionState(
-    s => decodeInlineError(s.inlineError),
-    C.shallowEqual
+    C.useShallow(s => decodeInlineError(s.inlineError))
   )
   const error = _error ? _error : inlineError && !inlineSignUpLink ? inlineError : ''
   // So we can clear the error if the name is changed

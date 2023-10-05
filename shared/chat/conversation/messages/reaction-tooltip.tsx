@@ -44,14 +44,16 @@ const ReactionTooltip = (p: OwnProps) => {
   const {ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
 
   const infoMap = C.useUsersState(s => s.infoMap)
-  const {_reactions, good} = C.useChatContext(s => {
-    const message = s.messageMap.get(ordinal)
-    if (message && Constants.isMessageWithReactions(message)) {
-      const _reactions = message.reactions
-      return {_reactions, good: true}
-    }
-    return {...emptyStateProps, good: false}
-  }, C.shallowEqual)
+  const {_reactions, good} = C.useChatContext(
+    C.useShallow(s => {
+      const message = s.messageMap.get(ordinal)
+      if (message && Constants.isMessageWithReactions(message)) {
+        const _reactions = message.reactions
+        return {_reactions, good: true}
+      }
+      return {...emptyStateProps, good: false}
+    })
+  )
   const _usersInfo = good ? infoMap : emptyStateProps._usersInfo
 
   const navigateAppend = C.useChatNavigateAppend()
