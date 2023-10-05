@@ -5,7 +5,6 @@ import * as Constants from '../../../../constants/chat2'
 import * as TeamsConstants from '../../../../constants/teams'
 import * as Common from './common'
 import * as Kb from '../../../../common-adapters'
-import isEqual from 'lodash/isEqual'
 
 export const transformer = (
   {channelname, teamname}: {channelname: string; teamname?: string},
@@ -95,18 +94,20 @@ export const useDataSource = (filter: string) => {
     Constants.waitingKeyMutualTeams(conversationIDKey),
   ])
   const teamMeta = C.useTeamsState(s => s.teamMeta)
-  return C.useChatContext(s => {
-    const fil = filter.toLowerCase()
-    // don't include 'small' here to ditch the single #general suggestion
-    const teamname = meta.teamType === 'big' ? meta.teamname : ''
-    const suggestChannels = getChannelSuggestions(s, teamname, teamMeta)
+  return C.useChatContext(
+    C.useDeep(s => {
+      const fil = filter.toLowerCase()
+      // don't include 'small' here to ditch the single #general suggestion
+      const teamname = meta.teamType === 'big' ? meta.teamname : ''
+      const suggestChannels = getChannelSuggestions(s, teamname, teamMeta)
 
-    // TODO this will thrash always
-    return {
-      items: suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)).sort(),
-      loading: suggestChannelsLoading,
-    }
-  }, isEqual)
+      // TODO this will thrash always
+      return {
+        items: suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)).sort(),
+        loading: suggestChannelsLoading,
+      }
+    })
+  )
 }
 type ChannelType = {
   channelname: string
