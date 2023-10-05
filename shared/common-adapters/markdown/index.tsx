@@ -81,10 +81,10 @@ export type Props = {
   virtualText?: boolean // desktop only, see text.desktop
 }
 
-const serviceBeginDecorationTag = '\\$\\>kb\\$'
-const serviceEndDecorationTag = '\\$\\<kb\\$'
+const serviceBeginDecorationTag = /\$>kb\$/
+const serviceEndDecorationTag = /\$<kb\$/
 const serviceDecorationRegex = new RegExp(
-  `^${serviceBeginDecorationTag}(((?!${serviceEndDecorationTag}).)*)${serviceEndDecorationTag}`
+  `^${serviceBeginDecorationTag.source}(((?!${serviceEndDecorationTag.source}).)*)${serviceEndDecorationTag.source}`
 )
 
 const serviceDecorationMatcher = SimpleMarkdown.inlineRegex(serviceDecorationRegex)
