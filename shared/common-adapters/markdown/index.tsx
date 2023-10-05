@@ -121,24 +121,7 @@ const makeTextRegexp = () => {
   )
 }
 // Only allow a small set of characters before a url
-const textMatch = SimpleMarkdown.anyScopeRegex(
-  makeTextRegexp()
-  // new RegExp(
-  //   // [\s\S]+? any char, at least 1 - lazy
-  //   // (?= // Positive look ahead. It should have these chars ahead
-  //   //     // This is kinda weird, but for the regex to terminate it should have these cases be true ahead of its termination
-  //   //   [^0-9A-Za-z\s] not a character in this set. So don't terminate if there is still more normal chars to eat
-  //   //   | [\u00c0-\uffff] OR any unicode char. If there is a weird unicode ahead, we terminate
-  //   //   | [\w-_.]+@ // OR something that looks like it starts an email. If there is an email looking thing ahead stop here.
-  //   //   | (\w+\.)+(${commonTlds.join('|')}) // OR there is a url with a common tld ahead. Stop if there's a common url ahead
-  //   //   | \w+:\S // OR there's letters before a : so stop here.
-  //   //   | $ // OR we reach the end of the line
-  //   // )
-  //   `^[\\s\\S]+?(?=[^0-9A-Za-z\\s]|[\\u00c0-\\uffff]|[\\w-_.]+@|(\\w+\\.)+(${commonTlds.join(
-  //     '|'
-  //   )})|\\n|\\w+:\\S|$)`
-  // )
-)
+const textMatch = SimpleMarkdown.anyScopeRegex(makeTextRegexp())
 
 const wrapInParagraph = (
   parse: SimpleMarkdown.Parser,
