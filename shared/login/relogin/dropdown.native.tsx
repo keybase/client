@@ -9,7 +9,7 @@ type Props = {
   type: 'Username'
   options: Array<T.Config.ConfiguredAccount>
   onClick: (option: string, index: number) => void
-  onPress?: void
+  onPress?: () => void
   onOther?: () => void
   value?: string
   style?: Object
@@ -77,7 +77,7 @@ class Dropdown extends React.Component<Props, State> {
   }
 
   _ensureSelected() {
-    if (!this.state.value && this.props.options && this.props.options.length) {
+    if (!this.state.value && this.props.options?.length) {
       this.setState({value: (this.props.options[0] || {username: ''}).username})
     }
   }

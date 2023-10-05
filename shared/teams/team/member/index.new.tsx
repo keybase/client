@@ -138,7 +138,7 @@ const TeamMember = (props: OwnProps) => {
   const isMe = username === C.useCurrentUserState(s => s.username)
   const loading = C.useTeamsState(s => {
     const memberships = s.teamMemberToTreeMemberships.get(teamID)?.get(username)
-    if (!memberships || !memberships.expectedCount) {
+    if (!memberships?.expectedCount) {
       return true
     }
     const got = memberships.memberships.length

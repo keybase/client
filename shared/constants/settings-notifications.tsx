@@ -239,7 +239,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           settingsWaitingKey
         )
 
-        if (!result || !result.body || JSON.parse(result.body)?.status?.code !== 0) {
+        if (!result?.body || JSON.parse(result.body)?.status?.code !== 0) {
           throw new Error(`Invalid response ${result?.body || '(no result)'}`)
         }
         set(s => {

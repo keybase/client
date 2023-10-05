@@ -127,7 +127,7 @@ export type KB2 = {
 const kb2Waiters = new Array<() => void>()
 
 export const injectPreload = (kb2: KB2) => {
-  if (!kb2 || !kb2?.constants?.assetRoot) {
+  if (!kb2?.constants?.assetRoot) {
     throw new Error('Invalid kb2 injected')
   }
 

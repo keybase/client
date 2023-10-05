@@ -165,7 +165,7 @@ export default (ownProps: OwnProps) => {
   const stateProps = {
     _loggedIn,
     needsReload: !!error,
-    reason: (error && error.message) || '',
+    reason: error?.message || '',
   }
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

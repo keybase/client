@@ -135,7 +135,7 @@ const render = (Component = Main) => {
 }
 
 const setupHMR = () => {
-  const accept = module.hot && module.hot.accept
+  const accept = module.hot?.accept
   if (!accept) {
     return
   }

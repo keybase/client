@@ -173,7 +173,7 @@ class Engine {
         } else {
           // Not a custom response so we auto handle it
           // @ts-ignore
-          response && response.result()
+          response?.result?.()
         }
         const type = method
           .replace(/'/g, '')

@@ -85,8 +85,7 @@ const expensiveDeriveResults = (
   followingState: Set<string>,
   preExistingTeamMembers: Map<string, T.Teams.MemberInfo>
 ) =>
-  searchResults &&
-  searchResults.map(info => {
+  searchResults?.map(info => {
     const label = info.label || ''
     return {
       contact: !!info.contact,
@@ -169,7 +168,7 @@ const sortAndSplitRecommendations = memoize(
         // Use the first letter of the name we will display, but first normalize out
         // any diacritics.
         const decodedLetter = /*unidecode*/ rec.prettyName || rec.displayLabel
-        if (decodedLetter && decodedLetter[0]) {
+        if (decodedLetter?.[0]) {
           const letter = decodedLetter[0].toLowerCase()
           if (isAlpha(letter)) {
             // offset 1 to skip recommendations
@@ -202,7 +201,7 @@ const sortAndSplitRecommendations = memoize(
         shortcut: false,
       })
     }
-    return sections.filter(s => s && s.data && s.data.length > 0)
+    return sections.filter(s => s?.data && s.data.length > 0)
   }
 )
 

@@ -76,6 +76,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
       const input = inputRef.current
       const selection = input.getSelection()
       const text = lastTextRef.current
+      // eslint-disable-next-line
       if (!selection || selection.start === null) {
         return null
       }

@@ -1575,7 +1575,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           const rekeyers = new Set<string>(
             error.typ === T.RPCChat.ConversationErrorType.selfrekeyneeded
               ? [username || '']
-              : (rekeyInfo && rekeyInfo.rekeyers) || []
+              : rekeyInfo?.rekeyers || []
           )
           const newMeta = Meta.unverifiedInboxUIItemToConversationMeta(error.remoteConv)
           if (!newMeta) {

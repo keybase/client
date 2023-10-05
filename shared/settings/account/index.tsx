@@ -56,7 +56,7 @@ export default () => {
     clearAddedPhone()
   }
   const supersededPhoneNumber = _phones && [..._phones.values()].find(p => p.superseded)
-  const supersededKey = supersededPhoneNumber && supersededPhoneNumber.e164
+  const supersededKey = supersededPhoneNumber?.e164
   const props = {
     addedEmail: addedEmail,
     addedPhone: addedPhone,

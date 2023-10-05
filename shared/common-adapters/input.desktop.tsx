@@ -93,7 +93,7 @@ class Input extends React.PureComponent<Props, State> {
     }
 
     const n = this._input
-    if (!n || !n.style) {
+    if (!n?.style) {
       return
     }
 

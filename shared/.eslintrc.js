@@ -206,7 +206,7 @@ module.exports = {
     '@typescript-eslint/prefer-literal-enum-member': 'error',
     '@typescript-eslint/prefer-namespace-keyword': 'error',
     '@typescript-eslint/prefer-nullish-coalescing': 'off',
-    '@typescript-eslint/prefer-optional-chain': 'warn',
+    '@typescript-eslint/prefer-optional-chain': 'error',
     '@typescript-eslint/prefer-readonly': 'off',
     '@typescript-eslint/prefer-readonly-parameter-types': 'off',
     '@typescript-eslint/prefer-reduce-type-parameter': 'warn',

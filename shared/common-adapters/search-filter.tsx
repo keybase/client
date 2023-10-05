@@ -97,10 +97,10 @@ class SearchFilter extends React.PureComponent<Props, State> {
     if (this.state.focused && !this.props.focusOnMount) {
       return
     }
-    this.inputRef.current && this.inputRef.current.focus()
+    this.inputRef.current?.focus()
   }
   blur = () => {
-    this.inputRef.current && this.inputRef.current.blur()
+    this.inputRef.current?.blur()
   }
   private clear = () => {
     this.update('')
@@ -108,7 +108,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   private cancel = (e?: any) => {
     this.blur()
     this.props.onCancel ? this.props.onCancel() : this.clear()
-    e && e.stopPropagation()
+    e?.stopPropagation()
   }
   private update = (text: string) => {
     this.setState({text})

@@ -37,11 +37,7 @@ const empty = {
 }
 
 const isMyOwn = (parsedPath: T.FS.ParsedPathGroupTlf, me: string) =>
-  !me
-    ? false
-    : (!parsedPath.readers || !parsedPath.readers.length) &&
-      parsedPath.writers.length === 1 &&
-      parsedPath.writers[0] === me
+  !me ? false : !parsedPath.readers?.length && parsedPath.writers.length === 1 && parsedPath.writers[0] === me
 
 const getRawLayout = (
   mode: 'row' | 'screen',

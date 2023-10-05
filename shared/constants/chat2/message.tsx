@@ -747,7 +747,7 @@ const uiMessageToSystemMessage = (
       })
     }
     case T.RPCChat.MessageSystemType.bulkaddtoconv: {
-      if (!body.bulkaddtoconv || !body.bulkaddtoconv.usernames) {
+      if (!body.bulkaddtoconv?.usernames) {
         return undefined
       }
       return makeMessageSystemUsersAddedToConversation({

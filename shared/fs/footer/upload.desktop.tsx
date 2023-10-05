@@ -72,7 +72,7 @@ const Upload = React.memo(function Upload(props: UploadProps) {
                   ? 'Encrypting and updating items...'
                   : 'Done!'}
               </Kb.Text>
-              {!!(timeLeft && timeLeft.length) && (
+              {!!timeLeft?.length && (
                 <Kb.Text key="left" type="BodySmall" style={styles.stylesText}>{`${timeLeft} left`}</Kb.Text>
               )}
             </>

@@ -182,7 +182,7 @@ class Input extends React.Component<Props, State> {
       return Styles.globalColors.transparent
     }
 
-    if (this.props.errorText && this.props.errorText.length) {
+    if (this.props.errorText?.length) {
       return Styles.globalColors.red
     }
 

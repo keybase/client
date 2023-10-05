@@ -81,9 +81,7 @@ export const TextInput = (props: TextProps) => {
   // (despite the input being one line tall)
   const inputRef = React.useRef<Kb.PlainInput>(null)
   const onFocusInput = () => {
-    if (inputRef && inputRef.current) {
-      inputRef.current.focus()
-    }
+    inputRef.current?.focus()
   }
 
   const onOpenFile = async () => {

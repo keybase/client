@@ -18,7 +18,7 @@ function NotifyPopup(
   onClick?: () => void,
   onClose?: () => void
 ): void {
-  const sound = opts && opts.sound
+  const sound = opts?.sound
   if (rateLimitSeconds > 0) {
     const key = rateLimitKey || title
 

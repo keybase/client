@@ -880,7 +880,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     maybeChangeSelectedConv: () => {
       const selectedConversation = C.getSelectedConversation()
       const {inboxLayout} = get()
-      if (!inboxLayout || !inboxLayout.reselectInfo) {
+      if (!inboxLayout?.reselectInfo) {
         return
       }
       const {reselectInfo} = inboxLayout

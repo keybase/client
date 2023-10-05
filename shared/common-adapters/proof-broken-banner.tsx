@@ -55,6 +55,6 @@ const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
 
 // Skip hooks if `users` is empty.
 const ProofBrokenBanner = (props: Props) =>
-  props.users && props.users.length ? <ProofBrokenBannerNonEmpty users={props.users} /> : null
+  props.users?.length ? <ProofBrokenBannerNonEmpty users={props.users} /> : null
 
 export default ProofBrokenBanner

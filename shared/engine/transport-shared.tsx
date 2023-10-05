@@ -126,11 +126,11 @@ class TransportShared extends RobustTransport {
 
   // add logging / multiple call checking
   _injectInstrumentedResponse(payload: any) {
-    if (!payload || !payload.response) {
+    if (!payload?.response) {
       return
     }
 
-    const oldResponse = payload && payload.response
+    const oldResponse = payload?.response
 
     if (payload && oldResponse) {
       const calls = ['cancel', 'error', 'result']
