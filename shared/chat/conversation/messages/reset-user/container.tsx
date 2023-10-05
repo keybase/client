@@ -10,7 +10,7 @@ export default () => {
   const _resetParticipants = meta.resetParticipants
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const _viewProfile = showUserProfile
-  const username = (_resetParticipants && [..._resetParticipants][0]) || ''
+  const username = [..._resetParticipants][0] || ''
   const nonResetUsers = new Set(_participants)
   _resetParticipants.forEach(r => nonResetUsers.delete(r))
   const allowChatWithoutThem = nonResetUsers.size > 1

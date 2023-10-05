@@ -28,7 +28,7 @@ const Header2 = (props: Props) => {
   const first: string = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
   const otherInfo = C.useUsersState(s => s.infoMap.get(first))
   // If it's a one-on-one chat, use the user's fullname as the description
-  const desc = (otherInfo?.bio && otherInfo.bio.replace(/(\r\n|\n|\r)/gm, ' ')) || descriptionDecorated
+  const desc = otherInfo?.bio?.replace(/(\r\n|\n|\r)/gm, ' ') || descriptionDecorated
   const fullName = otherInfo?.fullname
 
   const onOpenFolder = C.useChatContext(s => s.dispatch.openFolder)

@@ -41,7 +41,7 @@ export default (ownProps: OwnProps) => {
     })),
     initialText,
     loadSearchHit: (index: number) => {
-      const message = _hits?.[index] || Constants.makeMessageText()
+      const message = _hits[index] || Constants.makeMessageText()
       if (message.id > 0) {
         _loadSearchHit(message.id)
       }

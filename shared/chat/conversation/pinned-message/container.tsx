@@ -27,7 +27,7 @@ const PinnedMessageContainer = React.memo(function PinnedMessageContainer() {
     return null
   }
 
-  const canAdminDelete = !!yourOperations?.deleteOtherMessages
+  const canAdminDelete = !!yourOperations.deleteOtherMessages
   const attachment: T.Chat.MessageAttachment | undefined =
     message.type === 'attachment' && message.attachmentType === 'image' ? message : undefined
   const pinnerUsername = pinnedMsg.pinnerUsername

@@ -116,28 +116,33 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
   const hasUnread = C.useChatContext(s => s.unread > 0)
   const _draft = C.useChatContext(s => s.meta.draft)
   const {hasResetUsers, isDecryptingSnippet, participantNeedToRekey, youAreReset, youNeedToRekey} =
-    C.useChatContext(C.useShallow(s => {
-      const {membershipType, rekeyers, resetParticipants, trustedState, conversationIDKey, snippetDecorated} =
-        s.meta
-      const youAreReset = membershipType === 'youAreReset'
-      const participantNeedToRekey = rekeyers.size > 0
-      const youNeedToRekey = rekeyers.has(you)
-      const hasResetUsers = resetParticipants.size > 0
+    C.useChatContext(
+      C.useShallow(s => {
+        const {
+          membershipType,
+          rekeyers,
+          resetParticipants,
+          trustedState,
+          conversationIDKey,
+          snippetDecorated,
+        } = s.meta
+        const youAreReset = membershipType === 'youAreReset'
+        const participantNeedToRekey = rekeyers.size > 0
+        const youNeedToRekey = rekeyers.has(you)
+        const hasResetUsers = resetParticipants.size > 0
 
-      // only use layout if we don't have the meta at all
-      //
-      const typers = !isInWidget ? s.typing : undefined
-      const typingSnippet = (typers?.size ?? 0) > 0 ? 't' : undefined
-      const maybeLayoutSnippet = conversationIDKey === C.noConversationIDKey ? layoutSnippet : undefined
+        // only use layout if we don't have the meta at all
+        const typers = !isInWidget ? s.typing : undefined
+        const typingSnippet = (typers?.size ?? 0) > 0 ? 't' : undefined
+        const maybeLayoutSnippet = conversationIDKey === C.noConversationIDKey ? layoutSnippet : undefined
 
-      const snippet = typingSnippet ?? snippetDecorated ?? maybeLayoutSnippet ?? ''
-      const isDecryptingSnippet =
-        s.id && !snippet
-          ? !trustedState || trustedState === 'requesting' || trustedState === 'untrusted'
-          : false
+        const snippet = typingSnippet ?? snippetDecorated ?? maybeLayoutSnippet ?? ''
+        const isDecryptingSnippet =
+          s.id && !snippet ? trustedState === 'requesting' || trustedState === 'untrusted' : false
 
-      return {hasResetUsers, isDecryptingSnippet, participantNeedToRekey, youAreReset, youNeedToRekey}
-    }))
+        return {hasResetUsers, isDecryptingSnippet, participantNeedToRekey, youAreReset, youNeedToRekey}
+      })
+    )
   const draft = (!isSelected && !hasUnread && _draft) || ''
 
   const props = {

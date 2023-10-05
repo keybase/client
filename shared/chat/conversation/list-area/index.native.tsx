@@ -137,13 +137,12 @@ const ConversationList = React.memo(function ConversationList(p: {
 
   const renderItem = React.useCallback(
     (info: /*ListRenderItemInfo<ItemType>*/ any) => {
-      const index = info?.index ?? 0
+      const index: number = info?.index ?? 0
       const ordinal = messageOrdinals[index]
       if (!ordinal) {
         return null
       }
       const type = messageTypeMap?.get(ordinal) ?? 'text'
-      if (!type) return null
       const Clazz = getMessageRender(type)
       if (!Clazz) return null
       return <Clazz ordinal={ordinal} />
@@ -169,7 +168,7 @@ const ConversationList = React.memo(function ConversationList(p: {
     if (numOrdinals - 1 === idx) {
       return 'sent'
     }
-    return recycleTypeRef.current.get(ordinal) ?? messageTypeMap?.get(ordinal) ?? 'text'
+    return recycleTypeRef.current.get(ordinal) ?? messageTypeMap.get(ordinal) ?? 'text'
   })
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({

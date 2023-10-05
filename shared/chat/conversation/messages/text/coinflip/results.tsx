@@ -11,7 +11,7 @@ const CoinFlipResult = (props: Props) => {
     case T.RPCChat.UICoinFlipResultTyp.shuffle:
       return <CoinFlipResultShuffle shuffle={props.result.shuffle} />
     case T.RPCChat.UICoinFlipResultTyp.deck:
-      return <CoinFlipResultDeck deck={props.result.deck || undefined} />
+      return <CoinFlipResultDeck deck={props.result.deck} />
     case T.RPCChat.UICoinFlipResultTyp.hands:
       return <CoinFlipResultHands hands={props.result.hands} />
     case T.RPCChat.UICoinFlipResultTyp.coin:
@@ -235,7 +235,7 @@ const CoinFlipResultShuffle = (props: ShuffleType) => (
         <Kb.Text selectable={true} type="BodySmallBold" style={styles.listFull}>
           Full shuffle:{' '}
           <Kb.Text selectable={true} type="BodySmall" style={styles.listFull}>
-            {props.shuffle?.join(', ')}
+            {props.shuffle.join(', ')}
           </Kb.Text>
         </Kb.Text>
       </Kb.Box2>

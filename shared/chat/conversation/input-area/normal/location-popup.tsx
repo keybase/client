@@ -8,7 +8,7 @@ import {watchPositionForMap} from '../../../../constants/platform-specific'
 type Props = {conversationIDKey: T.Chat.ConversationIDKey}
 
 const LocationPopup = (props: Props) => {
-  const conversationIDKey = props.conversationIDKey ?? C.noConversationIDKey
+  const conversationIDKey = props.conversationIDKey
   const username = C.useCurrentUserState(s => s.username)
   const httpSrv = C.useConfigState(s => s.httpSrv)
   const location = C.useChatState(s => s.lastCoord)

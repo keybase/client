@@ -330,7 +330,7 @@ class Inbox extends React.Component<TInbox.Props, State> {
     const dragHeight = 76 // grabbed from inspector
     const currentScrollTop = this.scrollDiv.current.scrollTop
     if (boundingHeight + currentScrollTop < top + dragHeight) {
-      this.scrollDiv.current && this.scrollDiv.current.scrollBy({behavior: 'smooth', top})
+      this.scrollDiv.current.scrollBy({behavior: 'smooth', top})
     }
   }
 

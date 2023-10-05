@@ -24,6 +24,7 @@ const AvatarLine = (props: Props) => {
   const usernamesToShow = props.usernames.slice(0, props.maxShown)
   const extra = props.usernames.length - usernamesToShow.length
   const reverse = {horizontal: 'horizontalReverse', vertical: 'verticalReverse'} as const
+  // TODO get rid of !
   const styles = styleMap.get(props.size)![props.layout] ?? {}
   return (
     <Kb.Box2 direction={reverse[props.layout]} style={styles.container} alignSelf={props.alignSelf}>

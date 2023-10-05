@@ -59,7 +59,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
         }, new Set())
         .values(),
     ])
-    return !botRestrictMap?.get(command.username ?? '') ?? true
+    return !botRestrictMap.get(command.username ?? '')
   })
   return (
     <Kb.Box2
@@ -109,7 +109,7 @@ const getMaxCmdLength = memoize(
     suggestCommands: Array<T.RPCChat.ConversationCommand>
   ) =>
     suggestCommands
-      .concat(suggestBotCommands || [])
+      .concat(suggestBotCommands)
       .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
 )
 
@@ -132,7 +132,7 @@ export const useDataSource = (p: UseDataSourceProps) => {
       const suggestCommands =
         commands.typ === T.RPCChat.ConversationCommandGroupsTyp.builtin
           ? staticConfig
-            ? staticConfig.builtinCommands[commands.builtin] || blankCommands
+            ? staticConfig.builtinCommands[commands.builtin]
             : blankCommands
           : blankCommands
 
@@ -152,7 +152,7 @@ export const useDataSource = (p: UseDataSourceProps) => {
         }
       }
       const fil = filter.toLowerCase()
-      const data = (lastTextRef.current?.startsWith('!') ? suggestBotCommands : suggestCommands).filter(c =>
+      const data = (lastTextRef.current.startsWith('!') ? suggestBotCommands : suggestCommands).filter(c =>
         c.name.includes(fil)
       )
       return data

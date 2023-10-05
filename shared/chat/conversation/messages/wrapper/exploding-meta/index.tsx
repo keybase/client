@@ -197,10 +197,14 @@ class ExplodingMeta2 extends React.Component<Props2> {
             className="explodingTimeIcon"
             type="iconfont-boom"
             color={
-              this.props.isParentHighlighted ? Kb.Styles.globalColors.blackOrBlack : Kb.Styles.globalColors.black
+              this.props.isParentHighlighted
+                ? Kb.Styles.globalColors.blackOrBlack
+                : Kb.Styles.globalColors.black
             }
           />
         )
+        break
+      default:
     }
 
     return (

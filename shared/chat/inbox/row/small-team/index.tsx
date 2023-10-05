@@ -46,7 +46,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       // only use layout if we don't have the meta at all
       const maybeLayoutSnippet = meta.conversationIDKey === C.noConversationIDKey ? layoutSnippet : undefined
       const snippet = typingSnippet ?? meta.snippetDecorated ?? maybeLayoutSnippet ?? ''
-      const snippetDecoration = meta?.snippetDecoration ?? T.RPCChat.SnippetDecoration.none
+      const snippetDecoration = meta.snippetDecoration
       return {snippet, snippetDecoration}
     })
   )
@@ -58,11 +58,11 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
     C.useShallow(s => {
       const {meta} = s
       const teamname = (meta.teamname || layoutIsTeam ? layoutName : '') || ''
-      const channelname = isInWidget ? meta.channelname ?? '' : ''
+      const channelname = isInWidget ? meta.channelname : ''
       if (teamname && channelname) {
         return `${teamname}#${channelname}`
       }
-      if (participantInfo?.name.length) {
+      if (participantInfo.name.length) {
         // Filter out ourselves unless it's our 1:1 conversation
         return participantInfo.name.filter((participant, _, list) =>
           list.length === 1 ? true : participant !== you

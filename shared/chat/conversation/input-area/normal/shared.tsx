@@ -34,6 +34,7 @@ export const BotCommandUpdateStatus = (props: BotCommandUpdateStatusProps) => {
     case T.RPCChat.UIBotCommandsUpdateStatusTyp.updating:
       statusText = 'Updating bot commands...'
       break
+    default:
   }
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.botCommandContainer}>

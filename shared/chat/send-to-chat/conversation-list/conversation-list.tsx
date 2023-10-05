@@ -130,7 +130,7 @@ export const ConversationListRender = (props: ConversationListRenderProps) => {
                 if (props.results.length > 0) {
                   const result = props.results[props.selected]
                   props.onSelect(
-                    result?.convID ? T.Chat.conversationIDToKey(result?.convID) : '',
+                    result?.convID ? T.Chat.conversationIDToKey(result.convID) : '',
                     result?.name ?? ''
                   )
                 }

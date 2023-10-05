@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as C from '../../../../../constants'
 import * as Kb from '../../../../../common-adapters'
 import {useRedux} from './use-redux'
 import {ShowToastAfterSaving} from '../shared'
@@ -24,14 +25,17 @@ const VideoImpl = (p: Props) => {
     setShowPoster(false)
   }, [])
 
-  const onPlaybackStatusUpdate = React.useCallback(async (status: AVPlaybackStatus) => {
-    if (!status.isLoaded) {
-      return
-    }
+  const onPlaybackStatusUpdate = React.useCallback((status: AVPlaybackStatus) => {
+    const f = async () => {
+      if (!status.isLoaded) {
+        return
+      }
 
-    if (status.didJustFinish) {
-      await ref.current?.setPositionAsync(0)
+      if (status.didJustFinish) {
+        await ref.current?.setPositionAsync(0)
+      }
     }
+    C.ignorePromise(f())
   }, [])
 
   return (

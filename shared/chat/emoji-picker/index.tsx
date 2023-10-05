@@ -28,7 +28,7 @@ const _getData = () => {
 const chunkEmojis = (emojis: Array<EmojiData>, emojisPerLine: number): Array<Row> =>
   chunk(emojis, emojisPerLine).map((c: any, idx: number) => ({
     emojis: c,
-    key: (c && c.length && c[0] && c[0].short_name) || String(idx),
+    key: c?.[0]?.short_name || String(idx),
   }))
 
 // Remove those that have been obsolete and have a replacement. But it doens't
@@ -125,7 +125,7 @@ const getCustomEmojiSections = memoize(
       data: chunkEmojis(group.emojis, emojisPerLine),
       key: group.name,
       title: group.name,
-    })) || []
+    }))
 )
 
 const getCustomEmojiIndex = memoize((emojiGroups: Array<T.RPCChat.EmojiGroup>) => {
@@ -396,7 +396,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
 
     // !this.state.sections means we haven't cached any sections yet
     // i.e. we haven't rendered before. let sections be calculated first
-    return sections ? (
+    return (
       <>
         {this.getBookmarkBar(bookmarks)}
         <Kb.Box2
@@ -419,7 +419,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
           />
         </Kb.Box2>
       </>
-    ) : null
+    )
   }
 }
 

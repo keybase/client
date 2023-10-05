@@ -116,7 +116,7 @@ const Connected = (props: OwnProps) => {
       onShowInFinder={
         downloadPath ? () => openLocalPathInSystemFileManagerDesktop?.(downloadPath) : undefined
       }
-      path={fileURL ?? previewURL}
+      path={fileURL || previewURL}
       previewHeight={clampedHeight}
       previewWidth={clampedWidth}
       progress={transferProgress}

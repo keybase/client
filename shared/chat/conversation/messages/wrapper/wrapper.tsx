@@ -107,14 +107,14 @@ const useRedux = (ordinal: T.Chat.Ordinal) => {
     if (hasReactions) {
       return 'none' as const
     }
-    const validMessage = message && Constants.isMessageWithReactions(message)
+    const validMessage = Constants.isMessageWithReactions(message)
     if (!validMessage) return 'none' as const
 
     return ordinals.at(-1) === ordinal ? ('last' as const) : ('middle' as const)
   }
 
   const getEcrType = (message: T.Chat.Message, you: string) => {
-    if (!message || !you) {
+    if (!you) {
       return EditCancelRetryType.NONE
     }
     const {errorReason, type, submitState} = message
@@ -136,6 +136,7 @@ const useRedux = (ordinal: T.Chat.Ordinal) => {
         case T.RPCChat.OutboxErrorType.minwriter:
         case T.RPCChat.OutboxErrorType.restrictedbot:
           return EditCancelRetryType.CANCEL
+        default:
       }
     }
     return EditCancelRetryType.RETRY_CANCEL
@@ -158,7 +159,7 @@ const useRedux = (ordinal: T.Chat.Ordinal) => {
       const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable
       const showSendIndicator =
         !!submitState && !exploded && you === author && id !== ordinal && !isShowingUploadProgressBar
-      const showRevoked = !!m?.deviceRevokedAt
+      const showRevoked = !!m.deviceRevokedAt
       const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
       const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
       const hasReactions = (m.reactions?.size ?? 0) > 0
@@ -239,7 +240,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         className: Kb.Styles.classNames({
           TextAndSiblings: true,
           noOverflow: isPendingPayment,
-          systemMessage: type?.startsWith('system'),
+          systemMessage: type.startsWith('system'),
           // eslint-disable-next-line
           active: showingPopup || showingPicker,
         }),
@@ -250,7 +251,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
 
   const Background = isPendingPayment ? PendingPaymentBackground : NormalWrapper
 
-  let content = exploding ? (
+  const content = exploding ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <ExplodingHeightRetainer>{children}</ExplodingHeightRetainer>
     </Kb.Box2>
@@ -353,7 +354,7 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
       <Kb.Text type="BodySmall"> or </Kb.Text>
     ) : null
 
-  let action: React.ReactNode =
+  const action: React.ReactNode =
     ecrType === EditCancelRetryType.EDIT_CANCEL || ecrType === EditCancelRetryType.RETRY_CANCEL ? (
       <Kb.Text
         type="BodySmall"

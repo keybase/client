@@ -11,11 +11,10 @@ const positionFallbacks = ['bottom center'] as const
 
 const MinWriterRole = () => {
   const meta = C.useChatContext(s => s.meta)
-  const {teamname} = meta
+  const {teamname, minWriterRole} = meta
 
   const canPerform = C.useTeamsState(s => (teamname ? TeamConstants.getCanPerform(s, teamname) : undefined))
   const canSetMinWriterRole = canPerform ? canPerform.setMinWriterRole : false
-  const minWriterRole = meta.minWriterRole ?? 'reader'
 
   const [saving, setSaving] = React.useState(false)
   const [selected, setSelected] = React.useState(minWriterRole)

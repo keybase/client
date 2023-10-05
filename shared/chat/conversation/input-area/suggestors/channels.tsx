@@ -50,7 +50,7 @@ const getChannelSuggestions = (
   if (!teamname) {
     // this is an impteam, so get mutual teams from state
     const mutualTeams = s.mutualTeams.map(teamID => teamMeta.get(teamID)?.teamname)
-    if (!mutualTeams?.length) {
+    if (!mutualTeams.length) {
       return noChannel
     }
     // TODO not reactive

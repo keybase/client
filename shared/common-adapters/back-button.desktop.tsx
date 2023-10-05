@@ -31,7 +31,7 @@ const BackButton = React.memo(function BackButton(props: Props) {
         style={props.disabled ? styles.disabledIcon : styles.icon}
         color={props.iconColor}
       />
-      {props.title !== null && !props.hideBackLabel && (
+      {props.title !== undefined && !props.hideBackLabel && (
         <Kb.Text
           type={props.onClick ? 'BodyPrimaryLink' : 'Body'}
           style={Styles.collapseStyles([props.disabled && styles.disabledText, props.textStyle])}
