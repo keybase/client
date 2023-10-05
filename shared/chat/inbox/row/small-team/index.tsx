@@ -5,7 +5,7 @@ import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
-import * as T from '../../../../constants/types'
+import type * as T from '../../../../constants/types'
 import SwipeConvActions from './swipe-conv-actions'
 import './small-team.css'
 import {

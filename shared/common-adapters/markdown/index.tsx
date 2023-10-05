@@ -8,7 +8,7 @@ import Emoji, {type Props as EmojiProps} from '../emoji'
 import {emojiIndexByName, emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
 import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles, serviceOnlyOutput} from './react'
 import type * as T from '../../constants/types'
-import {StylesTextCrossPlatform, LineClampType} from '../../common-adapters/text'
+import type {StylesTextCrossPlatform, LineClampType} from '../../common-adapters/text'
 
 type MarkdownComponentType =
   | 'inline-code'
