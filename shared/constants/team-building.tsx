@@ -493,11 +493,8 @@ export function _Provider({children, ...props}: TBProviderProps) {
   return <Context.Provider value={storeRef.current}>{children}</Context.Provider>
 }
 
-export function _useContext<T>(
-  selector: (state: State) => T,
-  equalityFn?: (left: T, right: T) => boolean
-): T {
+export function _useContext<T>(selector: (state: State) => T): T {
   const store = React.useContext(Context)
   if (!store) throw new Error('Missing TeambuildingContext.Provider in the tree')
-  return useStore(store, selector, equalityFn)
+  return useStore(store, selector)
 }

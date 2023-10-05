@@ -50,12 +50,14 @@ export const useCommon = (ordinal: T.Chat.Ordinal) => {
   const showCenteredHighlight = useHighlightMode(ordinal)
 
   const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
-  const {type, shouldShowPopup} = C.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    const type = m?.type
-    const shouldShowPopup = Constants.shouldShowPopup(accountsInfoMap, m ?? undefined)
-    return {shouldShowPopup, type}
-  }, C.shallowEqual)
+  const {type, shouldShowPopup} = C.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal)
+      const type = m?.type
+      const shouldShowPopup = Constants.shouldShowPopup(accountsInfoMap, m ?? undefined)
+      return {shouldShowPopup, type}
+    })
+  )
 
   const shouldShow = React.useCallback(() => {
     return messageShowsPopup(type) && shouldShowPopup
@@ -144,42 +146,44 @@ const useRedux = (ordinal: T.Chat.Ordinal) => {
   const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
   const ordinals = C.useChatContext(s => s.messageOrdinals)
   const isEditing = C.useChatContext(s => s.editing === ordinal)
-  const d = C.useChatContext(s => {
-    const m = s.messageMap.get(ordinal) ?? missingMessage
-    const {exploded, submitState, author, id, botUsername} = m
-    const youSent = m.author === you && m.ordinal !== m.id
-    const exploding = !!m.exploding
-    const isPendingPayment = Constants.isPendingPaymentMessage(accountsInfoMap, m)
-    const decorate = !exploded && !m.errorReason
-    const type = m.type
-    const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable
-    const showSendIndicator =
-      !!submitState && !exploded && you === author && id !== ordinal && !isShowingUploadProgressBar
-    const showRevoked = !!m?.deviceRevokedAt
-    const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
-    const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
-    const hasReactions = (m.reactions?.size ?? 0) > 0
-    // hide if the bot is writing to itself
-    const botname = botUsername === author ? '' : botUsername ?? ''
-    const reactionsPopupPosition = getReactionsPopupPosition(ordinals ?? [], hasReactions, m)
-    const ecrType = getEcrType(m, you)
-    return {
-      botname,
-      decorate,
-      ecrType,
-      exploding,
-      hasReactions,
-      isPendingPayment,
-      reactionsPopupPosition,
-      showCoinsIcon,
-      showExplodingCountdown,
-      showRevoked,
-      showSendIndicator,
-      type,
-      you,
-      youSent,
-    }
-  }, C.shallowEqual)
+  const d = C.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal) ?? missingMessage
+      const {exploded, submitState, author, id, botUsername} = m
+      const youSent = m.author === you && m.ordinal !== m.id
+      const exploding = !!m.exploding
+      const isPendingPayment = Constants.isPendingPaymentMessage(accountsInfoMap, m)
+      const decorate = !exploded && !m.errorReason
+      const type = m.type
+      const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable
+      const showSendIndicator =
+        !!submitState && !exploded && you === author && id !== ordinal && !isShowingUploadProgressBar
+      const showRevoked = !!m?.deviceRevokedAt
+      const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
+      const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
+      const hasReactions = (m.reactions?.size ?? 0) > 0
+      // hide if the bot is writing to itself
+      const botname = botUsername === author ? '' : botUsername ?? ''
+      const reactionsPopupPosition = getReactionsPopupPosition(ordinals ?? [], hasReactions, m)
+      const ecrType = getEcrType(m, you)
+      return {
+        botname,
+        decorate,
+        ecrType,
+        exploding,
+        hasReactions,
+        isPendingPayment,
+        reactionsPopupPosition,
+        showCoinsIcon,
+        showExplodingCountdown,
+        showRevoked,
+        showSendIndicator,
+        type,
+        you,
+        youSent,
+      }
+    })
+  )
   return {...d, isEditing}
 }
 
@@ -316,13 +320,15 @@ enum EditCancelRetryType {
 const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
   const {ecrType} = p
   const ordinal = React.useContext(OrdinalContext)
-  const {failureDescription, outboxID} = C.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    const outboxID = m?.outboxID
-    const reason = m?.errorReason ?? ''
-    const failureDescription = `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`
-    return {failureDescription, outboxID}
-  }, C.shallowEqual)
+  const {failureDescription, outboxID} = C.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal)
+      const outboxID = m?.outboxID
+      const reason = m?.errorReason ?? ''
+      const failureDescription = `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`
+      return {failureDescription, outboxID}
+    })
+  )
   const messageDelete = C.useChatContext(s => s.dispatch.messageDelete)
   const onCancel = React.useCallback(() => {
     messageDelete(ordinal)

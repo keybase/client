@@ -9,34 +9,36 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {inTracker, username} = ownProps
-  const stateProps = C.useTrackerState(s => {
-    const d = Constants.getDetails(s, username)
-    const common = {
-      blocked: d.blocked,
-      hidFromFollowers: d.hidFromFollowers,
-    }
+  const stateProps = C.useTrackerState(
+    C.useShallow(s => {
+      const d = Constants.getDetails(s, username)
+      const common = {
+        blocked: d.blocked,
+        hidFromFollowers: d.hidFromFollowers,
+      }
 
-    if (d.state === 'notAUserYet') {
-      const nonUser = Constants.getNonUserDetails(s, username)
-      return {
-        ...common,
-        bio: nonUser.bio,
-        followThem: false,
-        followsYou: false,
-        fullname: nonUser.fullName,
-        sbsDescription: nonUser.description,
+      if (d.state === 'notAUserYet') {
+        const nonUser = Constants.getNonUserDetails(s, username)
+        return {
+          ...common,
+          bio: nonUser.bio,
+          followThem: false,
+          followsYou: false,
+          fullname: nonUser.fullName,
+          sbsDescription: nonUser.description,
+        }
+      } else {
+        return {
+          ...common,
+          bio: d.bio,
+          followersCount: d.followersCount,
+          followingCount: d.followingCount,
+          fullname: d.fullname,
+          location: d.location,
+        }
       }
-    } else {
-      return {
-        ...common,
-        bio: d.bio,
-        followersCount: d.followersCount,
-        followingCount: d.followingCount,
-        fullname: d.fullname,
-        location: d.location,
-      }
-    }
-  }, C.shallowEqual)
+    })
+  )
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()

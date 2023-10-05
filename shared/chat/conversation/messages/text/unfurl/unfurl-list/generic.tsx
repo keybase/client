@@ -11,41 +11,43 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const {idx} = p
   const ordinal = React.useContext(OrdinalContext)
 
-  const data = C.useChatContext(s => {
-    const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(s, ordinal, idx)
-    if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.generic) {
-      return null
-    }
-    const {generic} = unfurl
-    const {description, publishTime, favicon, media, siteName, title, url} = generic
-    const {height, width, isVideo, url: mediaUrl} = media || {height: 0, isVideo: false, url: '', width: 0}
-    const showImageOnSide =
-      !Kb.Styles.isMobile && height >= width && !isVideo && (title.length > 0 || !!description)
-    const imageLocation = isCollapsed
-      ? 'collapsed'
-      : showImageOnSide
-      ? 'side'
-      : width > 0 && height > 0
-      ? 'bottom'
-      : 'none'
+  const data = C.useChatContext(
+    C.useShallow(s => {
+      const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(s, ordinal, idx)
+      if (unfurl?.unfurlType !== T.RPCChat.UnfurlType.generic) {
+        return null
+      }
+      const {generic} = unfurl
+      const {description, publishTime, favicon, media, siteName, title, url} = generic
+      const {height, width, isVideo, url: mediaUrl} = media || {height: 0, isVideo: false, url: '', width: 0}
+      const showImageOnSide =
+        !Kb.Styles.isMobile && height >= width && !isVideo && (title.length > 0 || !!description)
+      const imageLocation = isCollapsed
+        ? 'collapsed'
+        : showImageOnSide
+        ? 'side'
+        : width > 0 && height > 0
+        ? 'bottom'
+        : 'none'
 
-    return {
-      description: description || undefined,
-      favicon: favicon?.url,
-      height,
-      imageLocation,
-      isCollapsed,
-      isVideo,
-      mediaUrl,
-      publishTime: publishTime ? publishTime * 1000 : 0,
-      siteName,
-      title,
-      unfurlMessageID,
-      url,
-      width,
-      youAreAuthor,
-    }
-  }, C.shallowEqual)
+      return {
+        description: description || undefined,
+        favicon: favicon?.url,
+        height,
+        imageLocation,
+        isCollapsed,
+        isVideo,
+        mediaUrl,
+        publishTime: publishTime ? publishTime * 1000 : 0,
+        siteName,
+        title,
+        unfurlMessageID,
+        url,
+        width,
+        youAreAuthor,
+      }
+    })
+  )
 
   const {onClose, onToggleCollapse} = useActions(
     data?.youAreAuthor ?? false,

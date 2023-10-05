@@ -116,7 +116,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
   const hasUnread = C.useChatContext(s => s.unread > 0)
   const _draft = C.useChatContext(s => s.meta.draft)
   const {hasResetUsers, isDecryptingSnippet, participantNeedToRekey, youAreReset, youNeedToRekey} =
-    C.useChatContext(s => {
+    C.useChatContext(C.useShallow(s => {
       const {membershipType, rekeyers, resetParticipants, trustedState, conversationIDKey, snippetDecorated} =
         s.meta
       const youAreReset = membershipType === 'youAreReset'
@@ -137,7 +137,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
           : false
 
       return {hasResetUsers, isDecryptingSnippet, participantNeedToRekey, youAreReset, youNeedToRekey}
-    }, C.shallowEqual)
+    }))
   const draft = (!isSelected && !hasUnread && _draft) || ''
 
   const props = {

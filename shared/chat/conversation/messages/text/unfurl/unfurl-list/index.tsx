@@ -57,7 +57,7 @@ const renderTypeToClass = new Map<UnfurlRenderType, React.ExoticComponent<{idx: 
 const UnfurlListContainer = React.memo(function UnfurlListContainer() {
   const ordinal = React.useContext(OrdinalContext)
   const unfurlTypes: Array<UnfurlRenderType | 'none'> = C.useChatContext(
-    s =>
+    C.useShallow(s =>
       [...(s.messageMap.get(ordinal)?.unfurls?.values() ?? [])].map(u => {
         const ut = u.unfurl.unfurlType
         switch (ut) {
@@ -68,8 +68,8 @@ const UnfurlListContainer = React.memo(function UnfurlListContainer() {
           default:
             return 'none'
         }
-      }),
-    C.shallowEqual
+      })
+    )
   )
   return (
     <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>

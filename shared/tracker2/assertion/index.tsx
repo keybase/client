@@ -182,7 +182,7 @@ const StellarValue = (p: Props) => {
 }
 
 const Value = (p: Props) => {
-  let content: JSX.Element | null = null
+  let content: React.JSX.Element | null = null
   if (p.type === 'stellar' && !p.isSuggestion) {
     content = <StellarValue {...p} />
   } else {
@@ -192,8 +192,11 @@ const Value = (p: Props) => {
     if (!p.isSuggestion) {
       switch (p.type) {
         case 'pgp': {
-          const last = p.value.substr(p.value.length - 16).toUpperCase()
-          str = `${last.substr(0, 4)} ${last.substr(4, 4)} ${last.substr(8, 4)} ${last.substr(12, 4)}`
+          const last = p.value.substring(p.value.length - 16).toUpperCase()
+          str = `${last.substring(0, 4)} ${last.substring(4, 4)} ${last.substring(8, 4)} ${last.substring(
+            12,
+            4
+          )}`
           break
         }
         case 'btc': // fallthrough

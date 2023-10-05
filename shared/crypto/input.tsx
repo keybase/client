@@ -207,11 +207,13 @@ export const FileInput = (props: FileProps) => {
 export const Input = (props: CommonProps) => {
   const {operation} = props
 
-  const {input: _input, inputType} = C.useCryptoState(s => {
-    const o = s[operation]
-    const {input, inputType} = o
-    return {input, inputType}
-  }, C.shallowEqual)
+  const {input: _input, inputType} = C.useCryptoState(
+    C.useShallow(s => {
+      const o = s[operation]
+      const {input, inputType} = o
+      return {input, inputType}
+    })
+  )
   const input = _input.stringValue()
 
   const [inputValue, setInputValue] = React.useState(input)
@@ -289,10 +291,12 @@ export const OperationBanner = (props: CommonProps) => {
   const {operation} = props
   const infoMessage = Constants.infoMessage[operation]
 
-  const {errorMessage: _errorMessage, warningMessage: _warningMessage} = C.useCryptoState(s => {
-    const {errorMessage, warningMessage} = s[operation]
-    return {errorMessage, warningMessage}
-  }, C.shallowEqual)
+  const {errorMessage: _errorMessage, warningMessage: _warningMessage} = C.useCryptoState(
+    C.useShallow(s => {
+      const {errorMessage, warningMessage} = s[operation]
+      return {errorMessage, warningMessage}
+    })
+  )
   const errorMessage = _errorMessage.stringValue()
   const warningMessage = _warningMessage.stringValue()
 

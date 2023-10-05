@@ -108,24 +108,24 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const username = C.useCurrentUserState(s => s.username)
   const loadMoreType = C.useChatContext(s => (s.moreToLoad ? 'moreToLoad' : 'noMoreToLoad'))
   const ordinals = C.useChatContext(s => s.messageOrdinals)
-  const data = C.useChatContext(s => {
-    const hasLoadedEver = ordinals !== undefined
-    const ordinal = ordinals?.[0] ?? 0
-
-    const meta = s.meta
-    const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
-
-    return {
-      hasLoadedEver,
-      loadMoreType,
-      ordinal,
-      retentionPolicy,
-      supersedes,
-      teamRetentionPolicy,
-      teamType,
-      username,
-    }
-  }, C.shallowEqual)
+  const data = C.useChatContext(
+    C.useShallow(s => {
+      const hasLoadedEver = ordinals !== undefined
+      const ordinal = ordinals?.[0] ?? 0
+      const meta = s.meta
+      const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
+      return {
+        hasLoadedEver,
+        loadMoreType,
+        ordinal,
+        retentionPolicy,
+        supersedes,
+        teamRetentionPolicy,
+        teamType,
+        username,
+      }
+    })
+  )
   const {hasLoadedEver, ordinal, retentionPolicy} = data
   const {supersedes, teamType, teamRetentionPolicy} = data
   // we defer showing this so it doesn't flash so much

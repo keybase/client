@@ -11,15 +11,17 @@ type OwnProps = {
 const ExplodingHeightRetainerContainer = React.memo(function ExplodingHeightRetainerContainer(p: OwnProps) {
   const ordinal = React.useContext(OrdinalContext)
   const {children} = p
-  const {forceAsh, exploding, exploded, explodedBy, messageKey} = C.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    const forceAsh = !!m?.explodingUnreadable
-    const exploding = !!m?.exploding
-    const exploded = !!m?.exploded
-    const explodedBy = m?.explodedBy
-    const messageKey = m ? Constants.getMessageKey(m) : ''
-    return {exploded, explodedBy, exploding, forceAsh, messageKey}
-  }, C.shallowEqual)
+  const {forceAsh, exploding, exploded, explodedBy, messageKey} = C.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal)
+      const forceAsh = !!m?.explodingUnreadable
+      const exploding = !!m?.exploding
+      const exploded = !!m?.exploded
+      const explodedBy = m?.explodedBy
+      const messageKey = m ? Constants.getMessageKey(m) : ''
+      return {exploded, explodedBy, exploding, forceAsh, messageKey}
+    })
+  )
 
   const retainHeight = forceAsh || exploded
 

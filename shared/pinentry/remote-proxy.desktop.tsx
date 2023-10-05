@@ -27,7 +27,7 @@ const PinentryMemo = React.memo(Pinentry)
 
 const PinentryProxy = () => {
   const {cancelLabel, prompt, retryLabel, showTyping, submitLabel, type, windowTitle} = C.usePinentryState(
-    s => {
+    C.useShallow(s => {
       const {cancelLabel, prompt, retryLabel, showTyping, submitLabel, type, windowTitle} = s
       return {
         cancelLabel,
@@ -38,8 +38,7 @@ const PinentryProxy = () => {
         type,
         windowTitle,
       }
-    },
-    C.shallowEqual
+    })
   )
   const show = type !== T.RPCGen.PassphraseType.none && !!showTyping
   const darkMode = C.useDarkModeState(s => s.isDarkMode())

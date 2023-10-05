@@ -74,7 +74,7 @@ const GitPushDefault = (props: PushDefaultProps) => {
                   style={styles.commitHash}
                   onClick={() => onClickCommit(commit.commitHash)}
                 >
-                  {commit.commitHash.substr(0, 8)}
+                  {commit.commitHash.substring(0, 8)}
                 </Kb.Text>
               </Kb.Box2>
               <Kb.Box2 direction="vertical">

@@ -6,7 +6,7 @@ import type * as ImagePicker from 'expo-image-picker'
 import EditAvatar from '.'
 
 type OwnProps = {
-  image?: ImagePicker.ImageInfo
+  image?: ImagePicker.ImagePickerAsset
   sendChatNotification?: boolean
   showBack?: boolean
   teamID?: string

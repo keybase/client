@@ -10,7 +10,7 @@ import {renderElementOrComponentOrNot} from '../util/util'
 
 class List extends React.PureComponent<Props<any>> {
   _list: RL | null = null
-  _itemRender = (index: number, _: number | string): JSX.Element => {
+  _itemRender = (index: number, _: number | string): React.JSX.Element => {
     // ReactList has an issue where it caches the list length into its own state so can ask
     // for indices outside of the items...
     if (index >= this.props.items.length) {

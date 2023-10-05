@@ -327,9 +327,9 @@ class _PhoneInput extends React.Component<OldProps> {
           // At this point we're certain we're in the special scenario.
 
           // Take everything BUT the different character, make it all numbers
-          const beforeDiff = filterNumeric(newText.substr(0, diffIndex))
+          const beforeDiff = filterNumeric(newText.substring(0, diffIndex))
           // We don't care about what's in the section that includes the difference
-          const afterDiff = newText.substr(diffIndex)
+          const afterDiff = newText.substring(diffIndex)
 
           // Combine it back into a newText, slicing off the last character of beforeDiff
           newText = beforeDiff.slice(0, -1).concat(afterDiff)

@@ -118,44 +118,46 @@ export const useDataSource = (p: UseDataSourceProps) => {
   const staticConfig = C.useChatState(s => s.staticConfig)
   const showGiphySearch = C.useChatContext(s => s.giphyWindow)
   const showCommandMarkdown = C.useChatContext(s => !!s.commandMarkdown)
-  return C.useChatContext(s => {
-    if (showCommandMarkdown || showGiphySearch) {
-      return []
-    }
-
-    const {botCommands, commands} = s.meta
-    const suggestBotCommands =
-      botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
-        ? botCommands.custom.commands || blankCommands
-        : blankCommands
-    const suggestCommands =
-      commands.typ === T.RPCChat.ConversationCommandGroupsTyp.builtin
-        ? staticConfig
-          ? staticConfig.builtinCommands[commands.builtin] || blankCommands
-          : blankCommands
-        : blankCommands
-
-    const sel = inputRef.current?.getSelection()
-    if (sel && lastTextRef.current) {
-      const maxCmdLength = getMaxCmdLength(suggestBotCommands, suggestCommands)
-
-      // a little messy. Check if the message starts with '/' and that the cursor is
-      // within maxCmdLength chars away from it. This happens before `onChangeText`, so
-      // we can't do a more robust check on `lastTextRef.current` because it's out of date.
-      if (
-        !(lastTextRef.current.startsWith('/') || lastTextRef.current.startsWith('!')) ||
-        (sel.start || 0) > maxCmdLength
-      ) {
-        // not at beginning of message
+  return C.useChatContext(
+    C.useShallow(s => {
+      if (showCommandMarkdown || showGiphySearch) {
         return []
       }
-    }
-    const fil = filter.toLowerCase()
-    const data = (lastTextRef.current?.startsWith('!') ? suggestBotCommands : suggestCommands).filter(c =>
-      c.name.includes(fil)
-    )
-    return data
-  }, C.shallowEqual)
+
+      const {botCommands, commands} = s.meta
+      const suggestBotCommands =
+        botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
+          ? botCommands.custom.commands || blankCommands
+          : blankCommands
+      const suggestCommands =
+        commands.typ === T.RPCChat.ConversationCommandGroupsTyp.builtin
+          ? staticConfig
+            ? staticConfig.builtinCommands[commands.builtin] || blankCommands
+            : blankCommands
+          : blankCommands
+
+      const sel = inputRef.current?.getSelection()
+      if (sel && lastTextRef.current) {
+        const maxCmdLength = getMaxCmdLength(suggestBotCommands, suggestCommands)
+
+        // a little messy. Check if the message starts with '/' and that the cursor is
+        // within maxCmdLength chars away from it. This happens before `onChangeText`, so
+        // we can't do a more robust check on `lastTextRef.current` because it's out of date.
+        if (
+          !(lastTextRef.current.startsWith('/') || lastTextRef.current.startsWith('!')) ||
+          (sel.start || 0) > maxCmdLength
+        ) {
+          // not at beginning of message
+          return []
+        }
+      }
+      const fil = filter.toLowerCase()
+      const data = (lastTextRef.current?.startsWith('!') ? suggestBotCommands : suggestCommands).filter(c =>
+        c.name.includes(fil)
+      )
+      return data
+    })
+  )
 }
 
 type CommandType = T.RPCChat.ConversationCommand

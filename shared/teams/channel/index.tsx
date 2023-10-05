@@ -13,7 +13,6 @@ import ChannelMemberRow from './rows/member-row'
 import BotRow from '../team/rows/bot-row/bot/container'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
-import isEqual from 'lodash/isEqual'
 import {createAnimatedComponent} from '../../common-adapters/reanimated'
 import type {Props as SectionListProps, Section as SectionType} from '../../common-adapters/section-list'
 
@@ -114,8 +113,7 @@ const Channel = (props: OwnProps) => {
   const meta = C.useConvoState(conversationIDKey, s => s.meta)
   const {bots, participants: _participants} = C.useConvoState(
     conversationIDKey,
-    s => ChatConstants.getBotsAndParticipants(meta, s.participants, true /* sort */),
-    isEqual // do a deep comparison so as to not render thrash
+    C.useDeep(s => ChatConstants.getBotsAndParticipants(meta, s.participants, true /* sort */))
   )
   const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'

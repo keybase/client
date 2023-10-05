@@ -34,11 +34,13 @@ export const SignedSender = (props: SignedSenderProps) => {
     outputSenderUsername: signedByUsername,
     outputSenderFullname: signedByFullname,
     outputStatus,
-  } = C.useCryptoState(s => {
-    const o = s[operation]
-    const {outputSigned, outputSenderUsername, outputSenderFullname, outputStatus} = o
-    return {outputSenderFullname, outputSenderUsername, outputSigned, outputStatus}
-  }, C.shallowEqual)
+  } = C.useCryptoState(
+    C.useShallow(s => {
+      const o = s[operation]
+      const {outputSigned, outputSenderUsername, outputSenderFullname, outputStatus} = o
+      return {outputSenderFullname, outputSenderUsername, outputSigned, outputStatus}
+    })
+  )
 
   const isSelfSigned = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
   const avatarSize = isSelfSigned ? 16 : Kb.Styles.isMobile ? 32 : 48
@@ -125,11 +127,13 @@ export const SignedSender = (props: SignedSenderProps) => {
 export const OutputProgress = (props: OutputProgressProps) => {
   const {operation} = props
 
-  const {bytesComplete, bytesTotal, inProgress} = C.useCryptoState(s => {
-    const o = s[operation]
-    const {bytesComplete, bytesTotal, inProgress} = o
-    return {bytesComplete, bytesTotal, inProgress}
-  }, C.shallowEqual)
+  const {bytesComplete, bytesTotal, inProgress} = C.useCryptoState(
+    C.useShallow(s => {
+      const o = s[operation]
+      const {bytesComplete, bytesTotal, inProgress} = o
+      return {bytesComplete, bytesTotal, inProgress}
+    })
+  )
 
   const ratio = bytesComplete === 0 ? 0 : bytesComplete / bytesTotal
 
@@ -172,11 +176,13 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     outputType,
     outputSigned: signed,
     outputSenderUsername: signedByUsername,
-  } = C.useCryptoState(s => {
-    const o = s[operation]
-    const {output, outputValid, outputStatus, outputType, outputSigned, outputSenderUsername} = o
-    return {output, outputSenderUsername, outputSigned, outputStatus, outputType, outputValid}
-  }, C.shallowEqual)
+  } = C.useCryptoState(
+    C.useShallow(s => {
+      const o = s[operation]
+      const {output, outputValid, outputStatus, outputType, outputSigned, outputSenderUsername} = o
+      return {output, outputSenderUsername, outputSigned, outputStatus, outputType, outputValid}
+    })
+  )
 
   const actionsDisabled = waiting || !outputValid
 
@@ -359,11 +365,13 @@ export const OperationOutput = (props: OutputProps) => {
     outputValid,
     outputStatus,
     outputType,
-  } = C.useCryptoState(s => {
-    const o = s[operation]
-    const {inProgress, inputType, output, outputValid, outputStatus, outputType} = o
-    return {inProgress, inputType, output, outputStatus, outputType, outputValid}
-  }, C.shallowEqual)
+  } = C.useCryptoState(
+    C.useShallow(s => {
+      const o = s[operation]
+      const {inProgress, inputType, output, outputValid, outputStatus, outputType} = o
+      return {inProgress, inputType, output, outputStatus, outputType, outputValid}
+    })
+  )
   const output = _output.stringValue()
 
   const openLocalPathInSystemFileManagerDesktop = C.useFSState(

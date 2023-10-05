@@ -5,20 +5,22 @@ import Modal from '../../modal'
 const Info = () => {
   const updatePgpInfo = C.useProfileState(s => s.dispatch.updatePgpInfo)
   const generatePgp = C.useProfileState(s => s.dispatch.generatePgp)
-  const data = C.useProfileState(s => {
-    const {pgpEmail1, pgpEmail2, pgpEmail3, pgpErrorText, pgpFullName} = s
-    const {pgpErrorEmail1, pgpErrorEmail2, pgpErrorEmail3} = s
-    return {
-      pgpEmail1,
-      pgpEmail2,
-      pgpEmail3,
-      pgpErrorEmail1,
-      pgpErrorEmail2,
-      pgpErrorEmail3,
-      pgpErrorText,
-      pgpFullName,
-    }
-  }, C.shallowEqual)
+  const data = C.useProfileState(
+    C.useShallow(s => {
+      const {pgpEmail1, pgpEmail2, pgpEmail3, pgpErrorText, pgpFullName} = s
+      const {pgpErrorEmail1, pgpErrorEmail2, pgpErrorEmail3} = s
+      return {
+        pgpEmail1,
+        pgpEmail2,
+        pgpEmail3,
+        pgpErrorEmail1,
+        pgpErrorEmail2,
+        pgpErrorEmail3,
+        pgpErrorText,
+        pgpFullName,
+      }
+    })
+  )
 
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => navigateUp()

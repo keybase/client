@@ -54,7 +54,7 @@ export type ListProps<L> = {
   onSelected: (item: L, final: boolean) => void
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
   onSubmitRef: React.MutableRefObject<(() => boolean) | undefined>
-  ItemRenderer: (p: ItemRendererProps<L>) => JSX.Element
+  ItemRenderer: (p: ItemRendererProps<L>) => React.JSX.Element
 }
 
 export function List<T>(p: ListProps<T>) {

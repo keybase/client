@@ -25,12 +25,14 @@ const ShhIcon = React.memo(function ShhIcon() {
 })
 
 const ChannelHeader = () => {
-  const {channelname, smallTeam, teamname, teamID} = C.useChatContext(s => {
-    const meta = s.meta
-    const {channelname, teamname, teamType, teamID} = meta
-    const smallTeam = teamType !== 'big'
-    return {channelname, smallTeam, teamID, teamname}
-  }, C.shallowEqual)
+  const {channelname, smallTeam, teamname, teamID} = C.useChatContext(
+    C.useShallow(s => {
+      const meta = s.meta
+      const {channelname, teamname, teamType, teamID} = meta
+      const smallTeam = teamType !== 'big'
+      return {channelname, smallTeam, teamID, teamname}
+    })
+  )
   const textType = smallTeam ? 'BodyBig' : Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = React.useCallback(() => {
@@ -70,18 +72,19 @@ const UsernameHeader = () => {
   const you = C.useCurrentUserState(s => s.username)
   const infoMap = C.useUsersState(s => s.infoMap)
   const participantInfo = C.useChatContext(s => s.participants)
-  const {participants, theirFullname} = C.useChatContext(s => {
-    const meta = s.meta
-    const participants = meta.teamname ? emptyArray : participantInfo.name
-    const theirFullname =
-      participants.length === 2
-        ? participants
-            .filter(username => username !== you)
-            .map(username => infoMap.get(username)?.fullname)[0]
-        : undefined
-
-    return {participants, theirFullname}
-  }, C.shallowEqual)
+  const {participants, theirFullname} = C.useChatContext(
+    C.useShallow(s => {
+      const meta = s.meta
+      const participants = meta.teamname ? emptyArray : participantInfo.name
+      const theirFullname =
+        participants.length === 2
+          ? participants
+              .filter(username => username !== you)
+              .map(username => infoMap.get(username)?.fullname)[0]
+          : undefined
+      return {participants, theirFullname}
+    })
+  )
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onShowProfile = React.useCallback(
     (username: string) => {

@@ -18,11 +18,13 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const isEditing = C.useChatContext(s => !!s.editing)
   const conversationIDKey = C.useChatContext(s => s.id)
 
-  const {fileType, downloadPath, transferState, transferErrMsg, fileName} = C.useChatContext(s => {
-    const m = s.messageMap.get(ordinal) ?? missingMessage
-    const {downloadPath, fileName, fileType, transferErrMsg, transferState} = m
-    return {downloadPath, fileName, fileType, transferErrMsg, transferState}
-  }, C.shallowEqual)
+  const {fileType, downloadPath, transferState, transferErrMsg, fileName} = C.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal) ?? missingMessage
+      const {downloadPath, fileName, fileType, transferErrMsg, transferState} = m
+      return {downloadPath, fileName, fileType, transferErrMsg, transferState}
+    })
+  )
 
   const title = C.useChatContext(s => {
     const _m = s.messageMap.get(ordinal)

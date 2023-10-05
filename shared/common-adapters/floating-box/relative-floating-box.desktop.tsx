@@ -69,8 +69,8 @@ const positions: Array<Styles.Position> = [
 // Modified from https://github.com/Semantic-Org/Semantic-UI-React/blob/454daaab6e31459741e1cbce1b0c9a1a5f07bd2e/src/modules/Popup/Popup.js#L150
 function _computePopupStyle(
   position: Styles.Position,
-  coords: ClientRect,
-  popupCoords: ClientRect,
+  coords: DOMRect,
+  popupCoords: DOMRect,
   matchDimension: boolean,
   offset?: number
 ): ComputedStyle {
@@ -135,7 +135,7 @@ function _computePopupStyle(
   return style
 }
 
-function isStyleInViewport(style: ComputedStyle, popupCoords: ClientRect): boolean {
+function isStyleInViewport(style: ComputedStyle, popupCoords: DOMRect): boolean {
   const {
     pageYOffset,
     pageXOffset,
@@ -172,7 +172,7 @@ function isStyleInViewport(style: ComputedStyle, popupCoords: ClientRect): boole
   return true
 }
 
-function pushStyleIntoViewport(style: ComputedStyle, popupCoords: ClientRect) {
+function pushStyleIntoViewport(style: ComputedStyle, popupCoords: DOMRect) {
   const {
     pageYOffset,
     pageXOffset,
@@ -240,8 +240,8 @@ function pushStyleIntoViewport(style: ComputedStyle, popupCoords: ClientRect) {
 
 function computePopupStyle(
   position: Styles.Position,
-  coords: ClientRect,
-  popupCoords: ClientRect,
+  coords: DOMRect,
+  popupCoords: DOMRect,
   matchDimension: boolean,
   offset?: number,
   // When specified, will only use the fallbacks regardless of visibility
@@ -260,7 +260,7 @@ function computePopupStyle(
 }
 
 type ModalPositionRelativeProps = {
-  targetRect?: ClientRect
+  targetRect?: DOMRect
   position: Styles.Position
   positionFallbacks?: ReadonlyArray<Styles.Position>
   matchDimension?: boolean
@@ -285,7 +285,7 @@ export class RelativeFloatingBox extends React.PureComponent<
     this.state = {style: {}}
   }
 
-  _computeStyle = (targetRect: ClientRect | undefined) => {
+  _computeStyle = (targetRect: DOMRect | undefined) => {
     if (!targetRect) return
     const popupNode = this.popupNode
     if (!(popupNode instanceof HTMLElement)) {
