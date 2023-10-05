@@ -163,12 +163,9 @@ const handleCrashes = () => {
     })
 
     if (win.webContents) {
-      win.webContents.on('crashed', (_, killed) => {
-        if (killed) {
-          console.log('browser window killed')
-        } else {
-          console.log('browser window crashed')
-        }
+      win.webContents.on('render-process-gone', (_, details) => {
+        if (details.reason === 'clean-exit') return
+        console.log('browser window killed', details)
         win.reload()
       })
     }

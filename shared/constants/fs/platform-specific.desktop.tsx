@@ -23,7 +23,7 @@ const escapeBackslash = isWindows
   ? (pathElem: string): string =>
       pathElem
         .replace(/‰/g, '‰2030')
-        .replace(/([<>:"/\\|?*])/g, (_, c) => '‰' + new Buffer(c).toString('hex'))
+        .replace(/([<>:"/\\|?*])/g, (_, c) => '‰' + Buffer.from(c).toString('hex'))
   : (pathElem: string): string => pathElem
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: T.FS.Path, mountLocation: string) =>

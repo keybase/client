@@ -62,6 +62,7 @@ class RemoteStore {
     gotPropsCallback: () => void
     deserialize: (arg0: any, arg1: any) => any
   }) {
+    // eslint-disable-next-line
     this._store = createStore(
       this._reducer,
       props.deserialize(undefined, undefined),

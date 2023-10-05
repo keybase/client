@@ -6,7 +6,6 @@ import * as Kb from '../../../common-adapters'
 import * as T from '../../../constants/types'
 import * as React from 'react'
 import RoleButton from '../../role-button'
-import isEqual from 'lodash/isEqual'
 import logger from '../../../logger'
 import {FloatingRolePicker} from '../../role-picker'
 import {formatTimeForTeamMember, formatTimeRelativeToNow} from '../../../util/timestamp'
@@ -69,10 +68,7 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
     memberships?.memberships
       .filter(m => m.result.s === T.RPCGen.TeamTreeMembershipStatus.ok)
       .map(m => (m.result as TreeMembershipOK).ok.teamID) ?? []
-  const upToDateSparseMemberInfos = C.useTeamsState(
-    s => getMemberships(s, teamIDs, username),
-    isEqual // Since this makes a new map every time, do a deep equality comparison to see if it actually changed
-  )
+  const upToDateSparseMemberInfos = C.useTeamsState(C.useDeep(s => getMemberships(s, teamIDs, username)))
 
   if (!memberships) {
     return {errors, nodesIn, nodesNotIn}

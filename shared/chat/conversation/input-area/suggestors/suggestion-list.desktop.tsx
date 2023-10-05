@@ -21,7 +21,7 @@ class SuggestionList extends React.Component<Props> {
   }
 
   private itemRenderer = (index: number) =>
-    this.props.renderItem(index, this.props.items[index]) as JSX.Element
+    this.props.renderItem(index, this.props.items[index]) as React.JSX.Element
 
   render() {
     return (

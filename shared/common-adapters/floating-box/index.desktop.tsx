@@ -5,7 +5,7 @@ import logger from '../../logger'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
 
 type State = {
-  targetRect?: ClientRect
+  targetRect?: DOMRect
 }
 
 class FloatingBox extends React.PureComponent<Props, State> {
@@ -17,7 +17,7 @@ class FloatingBox extends React.PureComponent<Props, State> {
   }
 
   _getTargetRect = () => {
-    let targetRect: ClientRect | undefined
+    let targetRect: DOMRect | undefined
     if (this.props.attachTo) {
       const attachTo = this.props.attachTo()
       if (attachTo instanceof HTMLElement) {

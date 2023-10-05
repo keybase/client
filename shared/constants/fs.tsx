@@ -464,7 +464,7 @@ export const showIgnoreFolder = (path: T.FS.Path, username?: string): boolean =>
   return ['public', 'private'].includes(elems[1]!) && elems[2]! !== username
 }
 
-export const syntheticEventToTargetRect = (evt?: React.SyntheticEvent): ClientRect | undefined =>
+export const syntheticEventToTargetRect = (evt?: React.SyntheticEvent): DOMRect | undefined =>
   isMobile ? undefined : evt ? (evt.target as HTMLElement).getBoundingClientRect() : undefined
 
 export const invalidTokenError = new Error('invalid token')

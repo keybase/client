@@ -149,7 +149,6 @@ export const initDesktopStyles = () => {
     return
   }
   const style = document.createElement('style')
-  style.type = 'text/css'
   const colorNames = Object.keys(colors) as Array<keyof typeof colors>
   const colorVars = `
         :root { ${colorNames

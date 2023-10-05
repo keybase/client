@@ -20,7 +20,6 @@ import {
   useEmojiSections,
   type Section,
 } from './rows'
-import isEqual from 'lodash/isEqual'
 import {createAnimatedComponent} from '../../common-adapters/reanimated'
 import type {Props as SectionListProps, Section as SectionType} from '../../common-adapters/section-list'
 
@@ -93,7 +92,7 @@ const Team = (props: Props) => {
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
 
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
-  const teamMeta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID), isEqual)
+  const teamMeta = C.useTeamsState(C.useDeep(s => Constants.getTeamMeta(s, teamID)))
   const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
   const teamSeen = C.useTeamsState(s => s.dispatch.teamSeen)
 

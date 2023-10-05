@@ -16,8 +16,8 @@ const TeamInfo = (props: Props) => {
   const teamname = teamMeta.teamname
   const lastDot = teamname.lastIndexOf('.')
   const isSubteam = lastDot !== -1
-  const _leafName = isSubteam ? teamname.substr(lastDot + 1) : teamname
-  const parentTeamNameWithDot = isSubteam ? teamname.substr(0, lastDot + 1) : undefined
+  const _leafName = isSubteam ? teamname.substring(lastDot + 1) : teamname
+  const parentTeamNameWithDot = isSubteam ? teamname.substring(0, lastDot + 1) : undefined
 
   const [newName, _setName] = React.useState(_leafName)
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))

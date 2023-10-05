@@ -16,8 +16,7 @@ import {RPCError} from '../../util/errors'
 import {findLast} from '../../util/arrays'
 import {mapGetEnsureValue} from '../../util/map'
 import {noConversationIDKey} from '../types/chat2/common'
-import {type StoreApi, type UseBoundStore} from 'zustand'
-import {useStoreWithEqualityFn} from 'zustand/traditional'
+import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import * as Platform from '../platform'
 import KB2 from '../../util/electron'
 import NotifyPopup from '../../util/notify-popup'
@@ -3049,23 +3048,16 @@ export function _Provider({canBeNull, children, ...props}: ConvoProviderProps) {
 }
 
 // use this if in doubt
-export function _useContext<T>(
-  selector: (state: ConvoState) => T,
-  equalityFn?: (left: T, right: T) => boolean
-): T {
+export function _useContext<T>(selector: (state: ConvoState) => T): T {
   const store = React.useContext(Context)
   if (!store) throw new Error('Missing ConvoContext.Provider in the tree')
-  return useStoreWithEqualityFn(store, selector, equalityFn)
+  return useStore(store, selector)
 }
 
 // unusual, usually you useContext, but maybe in teams
-export function _useConvoState<T>(
-  id: T.Chat.ConversationIDKey,
-  selector: (state: ConvoState) => T,
-  equalityFn?: (left: T, right: T) => boolean
-): T {
+export function _useConvoState<T>(id: T.Chat.ConversationIDKey, selector: (state: ConvoState) => T): T {
   const store = createConvoStore(id)
-  return useStoreWithEqualityFn(store, selector, equalityFn)
+  return useStore(store, selector)
 }
 
 type RouteParams = {
