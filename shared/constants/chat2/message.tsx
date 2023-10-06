@@ -43,11 +43,11 @@ export const isMessageWithReactions = (message: T.Chat.Message): message is T.Ch
 export const getMessageID = (m: T.RPCChat.UIMessage) => {
   switch (m.state) {
     case T.RPCChat.MessageUnboxedState.valid:
-      return m.valid ? m.valid.messageID : null
+      return m.valid.messageID
     case T.RPCChat.MessageUnboxedState.error:
-      return m.error ? m.error.messageID : null
+      return m.error.messageID
     case T.RPCChat.MessageUnboxedState.placeholder:
-      return m.placeholder ? m.placeholder.messageID : null
+      return m.placeholder.messageID
     default:
       return null
   }
@@ -554,7 +554,7 @@ export const uiPaymentInfoToChatPaymentInfo = (
 
 export const reactionMapToReactions = (r: T.RPCChat.UIReactionMap): MessageTypes.Reactions =>
   new Map(
-    Object.keys(r.reactions || {}).reduce((arr: Array<[string, MessageTypes.ReactionDesc]>, emoji) => {
+    Object.keys(r.reactions).reduce((arr: Array<[string, MessageTypes.ReactionDesc]>, emoji) => {
       if (r.reactions[emoji]) {
         arr.push([
           emoji,
@@ -612,8 +612,8 @@ const uiMessageToSystemMessage = (
 ): T.Chat.Message | undefined => {
   switch (body.systemType) {
     case T.RPCChat.MessageSystemType.addedtoteam: {
-      const {adder = '', addee = '', team = ''} = body.addedtoteam || {}
-      const roleEnum = body.addedtoteam ? body.addedtoteam.role : undefined
+      const {adder = '', addee = '', team = ''} = body.addedtoteam
+      const roleEnum = body.addedtoteam.role
       const role = roleEnum ? C.teamRoleByEnum[roleEnum] : 'none'
       const bulkAdds = body.addedtoteam.bulkAdds || []
       return makeMessageSystemAddedToTeam({
@@ -627,7 +627,7 @@ const uiMessageToSystemMessage = (
       })
     }
     case T.RPCChat.MessageSystemType.inviteaddedtoteam: {
-      const inviteaddedtoteam = body.inviteaddedtoteam || ({} as T.RPCChat.MessageSystemInviteAddedToTeam)
+      const inviteaddedtoteam = body.inviteaddedtoteam
       const invitee = inviteaddedtoteam.invitee || 'someone'
       const role = C.teamRoleByEnum[inviteaddedtoteam.role] || 'none'
       const adder = inviteaddedtoteam.adder || 'someone'
@@ -667,7 +667,7 @@ const uiMessageToSystemMessage = (
       })
     }
     case T.RPCChat.MessageSystemType.complexteam: {
-      const {team = ''} = body.complexteam || {}
+      const {team = ''} = body.complexteam
       return makeMessageSystemSimpleToComplex({
         ...minimum,
         reactions,
@@ -675,8 +675,8 @@ const uiMessageToSystemMessage = (
       })
     }
     case T.RPCChat.MessageSystemType.sbsresolve: {
-      const {prover = '???', assertionUsername = '???'} = body.sbsresolve || {}
-      const assertionService = body.sbsresolve && (body.sbsresolve.assertionService as ServiceId)
+      const {prover = '???', assertionUsername = '???'} = body.sbsresolve
+      const assertionService = body.sbsresolve.assertionService as ServiceId
       return makeMessageSystemSBSResolved({
         ...minimum,
         assertionService,
@@ -686,7 +686,7 @@ const uiMessageToSystemMessage = (
       })
     }
     case T.RPCChat.MessageSystemType.createteam: {
-      const {team = '???', creator = '????'} = body.createteam || {}
+      const {team = '???', creator = '????'} = body.createteam
       return makeMessageSystemCreateTeam({
         creator,
         reactions,
@@ -702,7 +702,7 @@ const uiMessageToSystemMessage = (
         repoName: repo = '???',
         repoID = '???',
         refs = [],
-      } = body.gitpush || {}
+      } = body.gitpush
       return makeMessageSystemGitPush({
         ...minimum,
         pushType,
@@ -715,7 +715,7 @@ const uiMessageToSystemMessage = (
       })
     }
     case T.RPCChat.MessageSystemType.changeavatar: {
-      const {user = '???', team = '???'} = body.changeavatar || {}
+      const {user = '???', team = '???'} = body.changeavatar
       return makeMessageSystemChangeAvatar({
         ...minimum,
         reactions,
@@ -733,9 +733,6 @@ const uiMessageToSystemMessage = (
         : undefined
     }
     case T.RPCChat.MessageSystemType.changeretention: {
-      if (!body.changeretention) {
-        return undefined
-      }
       return makeMessageSystemChangeRetention({
         ...minimum,
         isInherit: body.changeretention.isInherit,
@@ -747,7 +744,7 @@ const uiMessageToSystemMessage = (
       })
     }
     case T.RPCChat.MessageSystemType.bulkaddtoconv: {
-      if (!body.bulkaddtoconv || !body.bulkaddtoconv.usernames) {
+      if (!body.bulkaddtoconv.usernames) {
         return undefined
       }
       return makeMessageSystemUsersAddedToConversation({
@@ -777,10 +774,10 @@ export const previewSpecs = (preview?: T.RPCChat.AssetMetadata, full?: T.RPCChat
   if (!preview) {
     return res
   }
-  if (preview.assetType === T.RPCChat.AssetMetadataType.image && preview.image) {
+  if (preview.assetType === T.RPCChat.AssetMetadataType.image) {
     res.height = preview.image.height
     res.width = preview.image.width
-    if (full && full.assetType === T.RPCChat.AssetMetadataType.video && full.video && full.video.isAudio) {
+    if (full && full.assetType === T.RPCChat.AssetMetadataType.video && full.video.isAudio) {
       res.attachmentType = 'audio'
       res.audioDuration = full.video.durationMs
     } else {
@@ -792,7 +789,7 @@ export const previewSpecs = (preview?: T.RPCChat.AssetMetadata, full?: T.RPCChat
     }
     res.audioAmps = preview.image.audioAmps || []
     res.audioAmps.length = Math.min(res.audioAmps.length, maxAmpsLength)
-  } else if (preview.assetType === T.RPCChat.AssetMetadataType.video && preview.video) {
+  } else if (preview.assetType === T.RPCChat.AssetMetadataType.video) {
     res.height = preview.video.height
     res.width = preview.video.width
     res.attachmentType = 'image'
@@ -925,17 +922,17 @@ const validUIMessagetoMessage = (
         if (!attachment.uploaded) {
           transferState = 'remoteUploading' as const
         }
-      } else if (m.messageBody.messageType === T.RPCChat.MessageType.attachmentuploaded) {
+      } else {
         attachment = m.messageBody.attachmentuploaded
         preview = attachment.previews?.[0]
         full = attachment.object
         transferState = undefined
       }
 
-      const a = attachment || {object: {filename: undefined, size: undefined, title: undefined}}
+      const a = attachment
       const {filename, title, size} = a.object
 
-      const pre = previewSpecs(preview?.metadata, full?.metadata)
+      const pre = previewSpecs(preview?.metadata, full.metadata)
       let previewURL = ''
       let fileURL = ''
       let fileType = ''
@@ -992,9 +989,7 @@ const validUIMessagetoMessage = (
         ...common,
       })
     case T.RPCChat.MessageType.system:
-      return m.messageBody.system
-        ? uiMessageToSystemMessage(common, m.messageBody.system, common.reactions, m)
-        : undefined
+      return uiMessageToSystemMessage(common, m.messageBody.system, common.reactions, m)
     case T.RPCChat.MessageType.headline:
       return makeMessageSetDescription({
         ...common,
@@ -1064,9 +1059,8 @@ const outboxUIMessagetoMessage = (
   currentDeviceName: string
 ): MessageTypes.Message | undefined => {
   const errorReason =
-    o.state && o.state.state === T.RPCChat.OutboxStateType.error ? rpcErrorToString(o.state.error) : undefined
-  const errorTyp =
-    o.state && o.state.state === T.RPCChat.OutboxStateType.error ? o.state.error.typ : undefined
+    o.state.state === T.RPCChat.OutboxStateType.error ? rpcErrorToString(o.state.error) : undefined
+  const errorTyp = o.state.state === T.RPCChat.OutboxStateType.error ? o.state.error.typ : undefined
 
   switch (o.messageType) {
     case T.RPCChat.MessageType.attachment: {
@@ -1079,8 +1073,8 @@ const outboxUIMessagetoMessage = (
           o.preview.location && o.preview.location.ltyp === T.RPCChat.PreviewLocationTyp.url
             ? o.preview.location.url
             : ''
-        const md = o.preview?.metadata ?? undefined
-        const baseMd = o.preview?.baseMetadata ?? undefined
+        const md = o.preview.metadata ?? undefined
+        const baseMd = o.preview.baseMetadata ?? undefined
         pre = previewSpecs(md, baseMd)
       } else {
         pre = previewSpecs()
@@ -1329,7 +1323,7 @@ export const mergeMessage = (old: T.Chat.Message | undefined, m: T.Chat.Message)
   let toRet: any = {...m}
 
   // if all props are the same then just use old
-  let allSame = true
+  let allSame = true as boolean
   Object.keys(old).forEach(key => {
     switch (key) {
       case 'mentionsChannelName':

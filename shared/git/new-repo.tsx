@@ -132,7 +132,7 @@ class NewRepo extends React.Component<Props, State> {
   }
 
   _dropdownChanged = (node: React.ReactElement) => {
-    if (node && node.key === NewTeamSentry) {
+    if (node.key === NewTeamSentry) {
       this.props.onNewTeam()
     } else {
       // @ts-ignore doesn't understand key will be string

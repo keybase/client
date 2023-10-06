@@ -94,9 +94,7 @@ export const isUserActivelyLookingAtThisThread = (conversationIDKey: T.Chat.Conv
   } else {
     const maybeVisibleScreen = Router2.getVisibleScreen()
     chatThreadSelected =
-      (maybeVisibleScreen === null || maybeVisibleScreen === undefined
-        ? undefined
-        : maybeVisibleScreen.name) === threadRouteName
+      (maybeVisibleScreen === undefined ? undefined : maybeVisibleScreen.name) === threadRouteName
   }
 
   const {appFocused} = C.useConfigState.getState()

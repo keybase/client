@@ -56,13 +56,13 @@ export default () => {
     clearAddedPhone()
   }
   const supersededPhoneNumber = _phones && [..._phones.values()].find(p => p.superseded)
-  const supersededKey = supersededPhoneNumber && supersededPhoneNumber.e164
+  const supersededKey = supersededPhoneNumber?.e164
   const props = {
     addedEmail: addedEmail,
     addedPhone: addedPhone,
-    contactKeys: [...(_emails ? _emails.keys() : []), ...(_phones ? _phones.keys() : [])],
+    contactKeys: [..._emails.keys(), ...(_phones ? _phones.keys() : [])],
     hasPassword: hasPassword,
-    moreThanOneEmail: _emails ? _emails.size > 1 : false,
+    moreThanOneEmail: _emails.size > 1,
     onAddEmail,
     onAddPhone,
     onBack,
@@ -74,7 +74,7 @@ export default () => {
     onSetPassword,
     onStartPhoneConversation,
     supersededPhoneNumber: supersededPhoneNumber ? supersededPhoneNumber.displayNumber : undefined,
-    tooManyEmails: !!_emails && _emails.size >= 10, // If you change this, also change in keybase/config/prod/email.iced
+    tooManyEmails: _emails.size >= 10, // If you change this, also change in keybase/config/prod/email.iced
     tooManyPhones: !!_phones && _phones.size >= 10, // If you change this, also change in keybase/config/prod/phone_numbers.iced
     waiting: waiting,
   }

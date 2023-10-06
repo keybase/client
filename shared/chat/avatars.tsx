@@ -97,7 +97,7 @@ const Avatars = React.memo(function Avatars(p: Props) {
     return (
       <Kb.Box style={containerStyle}>
         <Kb.Box style={styles.outerBox}>
-          <Kb.Avatar username={participantOne} size={singleSize || 48} style={{backgroundColor, opacity}} />
+          <Kb.Avatar username={participantOne} size={singleSize} style={{backgroundColor, opacity}} />
           <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
         </Kb.Box>
       </Kb.Box>

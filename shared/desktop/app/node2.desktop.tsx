@@ -73,7 +73,7 @@ const appShouldDieOnStartup = () => {
     // Release numbers for OS versions can be looked up here: https://en.wikipedia.org/wiki/Darwin_%28operating_system%29#Release_history
     // 14.0.0 == 10.10.0
     // 15.0.0 == 10.11.0
-    if (parseInt(os.release().split('.')?.[0] ?? '', 10) < 14) {
+    if (parseInt(os.release().split('.')[0] ?? '', 10) < 14) {
       Electron.dialog.showErrorBox('Keybase Error', "This version of macOS isn't currently supported.")
       return true
     }
@@ -88,7 +88,7 @@ const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
 
   mainWindow.show()
   if (isWindows || isLinux) {
-    mainWindow?.focus()
+    mainWindow.focus()
   }
 
   // The new instance might be due to a URL schema handler launch.
@@ -153,22 +153,16 @@ const handleCrashes = () => {
   }
 
   Electron.app.on('browser-window-created', (_, win) => {
-    if (!win) {
-      return
-    }
-
     win.on('unresponsive', (e: Electron.Event) => {
       console.log('Browser window unresponsive: ', e)
       win.reload()
     })
 
-    if (win.webContents) {
-      win.webContents.on('render-process-gone', (_, details) => {
-        if (details.reason === 'clean-exit') return
-        console.log('browser window killed', details)
-        win.reload()
-      })
-    }
+    win.webContents.on('render-process-gone', (_, details) => {
+      if (details.reason === 'clean-exit') return
+      console.log('browser window killed', details)
+      win.reload()
+    })
   })
 }
 
@@ -259,7 +253,7 @@ const findRemoteComponent = (windowComponent: string, windowParam: string) => {
   const url = remoteURL(windowComponent, windowParam)
   return Electron.BrowserWindow.getAllWindows().find(w => {
     const wc = w.webContents
-    return wc?.getURL() === url
+    return wc.getURL() === url
   })
 }
 
@@ -312,7 +306,6 @@ const showOpenDialog = async (opts: OpenDialogOptions) => {
     const mw = getMainWindow()
     if (!mw) return []
     const result = await Electron.dialog.showOpenDialog(mw, allowedOptions)
-    if (!result) return []
     if (result.canceled) return []
     return result.filePaths
   } catch (err) {
@@ -335,7 +328,6 @@ const showSaveDialog = async (opts: SaveDialogOptions) => {
     const mw = getMainWindow()
     if (!mw) return []
     const result = await Electron.dialog.showSaveDialog(mw, allowedOptions)
-    if (!result) return []
     if (result.canceled) return []
     return result.filePath
   } catch (err) {
@@ -485,10 +477,6 @@ const plumbEvents = () => {
       }
       case 'readImageFromClipboard': {
         const image = Electron.clipboard.readImage()
-        if (!image) {
-          // Nothing to read
-          return null
-        }
         return image.toPNG()
       }
       case 'copyToClipboard': {
@@ -805,7 +793,7 @@ const plumbEvents = () => {
           R.remoteDispatch(RemoteGen.createUpdateWindowShown({component: action.payload.windowComponent}))
         })
 
-        if (action.payload.windowPositionBottomRight && Electron.screen.getPrimaryDisplay()) {
+        if (action.payload.windowPositionBottomRight) {
           const {width, height} = Electron.screen.getPrimaryDisplay().workAreaSize
           remoteWindow.setPosition(
             width - action.payload.windowOpts.width - 100,
@@ -823,7 +811,7 @@ const plumbEvents = () => {
           menuHelper(remoteWindow)
         }
 
-        if (showDevTools && remoteWindow.webContents && !skipSecondaryDevtools) {
+        if (showDevTools && !skipSecondaryDevtools) {
           remoteWindow.webContents.openDevTools({mode: 'detach'})
         }
 

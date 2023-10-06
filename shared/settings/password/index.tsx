@@ -105,7 +105,7 @@ class UpdatePassword extends React.Component<Props, State> {
                 <Kb.BannerParagraph bannerColor="red" content={this.props.newPasswordError} />
               </Kb.Banner>
             ) : null}
-            {this.props.hasPGPKeyOnServer === null ? (
+            {this.props.hasPGPKeyOnServer === undefined ? (
               <Kb.Banner color="red">
                 <Kb.BannerParagraph
                   bannerColor="red"

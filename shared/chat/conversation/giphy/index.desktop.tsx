@@ -49,7 +49,7 @@ const GiphySearch = (props: Props) => {
         {width &&
           (props.previews ? (
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-              {props.previews?.map((p, index) => {
+              {props.previews.map((p, index) => {
                 const margin = -margins[index]! / 2 - 1
                 return p.targetUrl ? (
                   <Kb.Box2 key={String(index)} direction="horizontal" style={styles.imageContainer}>

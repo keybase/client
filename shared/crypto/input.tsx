@@ -81,9 +81,7 @@ export const TextInput = (props: TextProps) => {
   // (despite the input being one line tall)
   const inputRef = React.useRef<Kb.PlainInput>(null)
   const onFocusInput = () => {
-    if (inputRef && inputRef.current) {
-      inputRef.current.focus()
-    }
+    inputRef.current?.focus()
   }
 
   const onOpenFile = async () => {
@@ -300,7 +298,7 @@ export const OperationBanner = (props: CommonProps) => {
   const errorMessage = _errorMessage.stringValue()
   const warningMessage = _warningMessage.stringValue()
 
-  if (!errorMessage && !warningMessage && infoMessage) {
+  if (!errorMessage && !warningMessage) {
     return (
       <Kb.Banner color="grey">
         <Kb.BannerParagraph bannerColor="grey" content={infoMessage} />

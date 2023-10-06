@@ -51,7 +51,7 @@ const Header = () => {
       if (isLinux) {
         stop(T.RPCGen.ExitCode.ok)
       } else {
-        C.ignorePromise(dumpLogs?.('quitting through menu') ?? Promise.resolve())
+        C.ignorePromise(dumpLogs('quitting through menu'))
       }
     }
     // In case dump log doesn't exit for us

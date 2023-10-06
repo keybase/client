@@ -12,15 +12,10 @@ const invertedLight = invert(colors)
 const invertedDark = invert(darkColors)
 
 const Icon = React.memo<Props>(
-  // @ts-ignore
   React.forwardRef<HTMLDivElement | HTMLImageElement, Props>(function Icon(props, ref) {
     const {type, inheritColor, opacity, fontSize, noContainer, onMouseEnter, onMouseLeave, style} = props
     const {className, hint, colorOverride, padding, boxStyle, allowLazy = true} = props
-    const iconType = Shared.typeToIconMapper(type)
-    if (!iconType) {
-      logger.warn('Null iconType passed')
-      return null
-    }
+    const iconType = type
 
     if (!Shared.isValidIconType(iconType)) {
       logger.warn('Unknown icontype passed', iconType)
@@ -53,11 +48,11 @@ const Icon = React.memo<Props>(
     // explicit
     if (fontSize) {
       fontSizeHint = {fontSize: fontSize}
-    } else if (sizeType) {
+    } else {
       fontSizeHint = {fontSize: Shared.typeToFontSize(sizeType)}
     }
     // in style sheet, so don't apply
-    if (fontSizeHint && fontSizeHint.fontSize === 16) {
+    if (fontSizeHint.fontSize === 16) {
       fontSizeHint = undefined
     }
     const hasContainer = !noContainer && ((onClick && style) || isFontIcon)

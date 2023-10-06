@@ -12,7 +12,7 @@ type State = {
 }
 
 export default class ChannelPreview extends React.Component<Props, State> {
-  state = {clicked: undefined}
+  state: State = {clicked: undefined}
   _onClick = (join: boolean) =>
     this.setState(
       {clicked: join ? 'join' : 'leave'},

@@ -26,8 +26,8 @@ const BackButton = React.memo(function BackButton(props: Props) {
   return (
     <TouchableWithoutFeedback
       onPress={(event: React.BaseSyntheticEvent) => {
-        event?.preventDefault?.()
-        event?.stopPropagation?.()
+        event.preventDefault()
+        event.stopPropagation()
         onBack()
       }}
     >

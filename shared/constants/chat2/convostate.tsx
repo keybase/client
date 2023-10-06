@@ -329,7 +329,7 @@ const messageIDToOrdinal = (
   }
   // Search through our sent messages
   const pendingOrdinal = [...(pendingOutboxToOrdinal?.values() ?? [])].find(o => {
-    m = map?.get(o)
+    m = map.get(o)
     if (m?.id !== 0 && m?.id === messageID) {
       return true
     }
@@ -415,19 +415,16 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     let clientPrev: undefined | T.Chat.MessageID
     const {messageMap, messageOrdinals} = get()
     const mm = messageMap
-    if (mm) {
-      // find last valid messageid we know about
-      const goodOrdinal = findLast(messageOrdinals ?? [], o => {
-        const m = mm.get(o)
-        return !!m?.id
-      })
+    // find last valid messageid we know about
+    const goodOrdinal = findLast(messageOrdinals ?? [], o => {
+      const m = mm.get(o)
+      return !!m?.id
+    })
 
-      if (goodOrdinal) {
-        const message = mm.get(goodOrdinal)
-        clientPrev = message && message.id
-      }
+    if (goodOrdinal) {
+      const message = mm.get(goodOrdinal)
+      clientPrev = message && message.id
     }
-
     return clientPrev || 0
   }
 
@@ -980,8 +977,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           let validated = false
           const results = await T.RPCChat.localGetThreadNonblockRpcListener({
             incomingCallMap: {
-              'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
-              'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
+              'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || ''),
+              'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || ''),
               'chat.1.chatUi.chatThreadStatus': p => {
                 // if we're validated, never undo that
                 if (p.status.typ === T.RPCChat.UIChatThreadStatusTyp.validated) {
@@ -989,9 +986,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 } else if (validated) {
                   return
                 }
-                if (p) {
-                  get().dispatch.setThreadLoadStatus(p.status.typ)
-                }
+                get().dispatch.setThreadLoadStatus(p.status.typ)
               },
             },
             params: {
@@ -1119,7 +1114,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     messageAttachmentNativeSave: message => {
       if (!C.isMobile) return
-      if (!message || message.type !== 'attachment') {
+      if (message.type !== 'attachment') {
         throw new Error('Invalid share message')
       }
 
@@ -1556,53 +1551,49 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     metaReceivedError: (error, username) => {
-      if (error) {
-        if (
-          error.typ === T.RPCChat.ConversationErrorType.otherrekeyneeded ||
-          error.typ === T.RPCChat.ConversationErrorType.selfrekeyneeded
-        ) {
-          const {rekeyInfo} = error
-          const participants = [
-            ...(rekeyInfo
-              ? new Set<string>(
-                  ([] as Array<string>)
-                    .concat(rekeyInfo.writerNames || [], rekeyInfo.readerNames || [])
-                    .filter(Boolean)
-                )
-              : new Set<string>(error.unverifiedTLFName.split(','))),
-          ]
+      if (
+        error.typ === T.RPCChat.ConversationErrorType.otherrekeyneeded ||
+        error.typ === T.RPCChat.ConversationErrorType.selfrekeyneeded
+      ) {
+        const {rekeyInfo} = error
+        const participants = [
+          ...(rekeyInfo
+            ? new Set<string>(
+                ([] as Array<string>)
+                  .concat(rekeyInfo.writerNames || [], rekeyInfo.readerNames || [])
+                  .filter(Boolean)
+              )
+            : new Set<string>(error.unverifiedTLFName.split(','))),
+        ]
 
-          const rekeyers = new Set<string>(
-            error.typ === T.RPCChat.ConversationErrorType.selfrekeyneeded
-              ? [username || '']
-              : (rekeyInfo && rekeyInfo.rekeyers) || []
-          )
-          const newMeta = Meta.unverifiedInboxUIItemToConversationMeta(error.remoteConv)
-          if (!newMeta) {
-            // public conversation, do nothing
-            return
-          }
-          get().dispatch.setMeta({
-            ...newMeta,
-            rekeyers,
-            snippet: error.message,
-            snippetDecoration: T.RPCChat.SnippetDecoration.none,
-            trustedState: 'error' as const,
-          })
-          get().dispatch.setParticipants({
-            all: participants,
-            contactName: noParticipantInfo.contactName,
-            name: participants,
-          })
-        } else {
-          get().dispatch.updateMeta({
-            snippet: error.message,
-            snippetDecoration: T.RPCChat.SnippetDecoration.none,
-            trustedState: 'error',
-          })
+        const rekeyers = new Set<string>(
+          error.typ === T.RPCChat.ConversationErrorType.selfrekeyneeded
+            ? [username || '']
+            : rekeyInfo?.rekeyers || []
+        )
+        const newMeta = Meta.unverifiedInboxUIItemToConversationMeta(error.remoteConv)
+        if (!newMeta) {
+          // public conversation, do nothing
+          return
         }
+        get().dispatch.setMeta({
+          ...newMeta,
+          rekeyers,
+          snippet: error.message,
+          snippetDecoration: T.RPCChat.SnippetDecoration.none,
+          trustedState: 'error' as const,
+        })
+        get().dispatch.setParticipants({
+          all: participants,
+          contactName: noParticipantInfo.contactName,
+          name: participants,
+        })
       } else {
-        get().dispatch.setMeta()
+        get().dispatch.updateMeta({
+          snippet: error.message,
+          snippetDecoration: T.RPCChat.SnippetDecoration.none,
+          trustedState: 'error',
+        })
       }
     },
     mute: m => {
@@ -1620,7 +1611,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const loadMessages = () => {
         const {dispatch} = get()
-        let reason: string = _reason || 'navigated'
+        let reason: string = _reason
         let forceClear = true
         let forceContainsLatestCalc = false
         let messageIDControl: T.RPCChat.MessageIDControl | undefined = undefined
@@ -1703,7 +1694,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     onChatPaymentInfo: (action: EngineGen.Chat1NotifyChatChatPaymentInfoPayload) => {
       const {convID, info, msgID} = action.payload.params
-      const conversationIDKey = convID ? T.Chat.conversationIDToKey(convID) : C.noConversationIDKey
+      const conversationIDKey = T.Chat.conversationIDToKey(convID)
       const paymentInfo = Message.uiPaymentInfoToChatPaymentInfo([info])
       if (!paymentInfo) {
         // This should never happen
@@ -1731,7 +1722,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             )
             return
           }
-          if (message?.type === 'attachment') {
+          if (message.type === 'attachment') {
             dispatch.updateMessage(ordinal, {
               transferProgress: 0,
               transferState: undefined,
@@ -1888,7 +1879,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     onIncomingMessage: incoming => {
       const {message: cMsg} = incoming
-      if (!cMsg) return
       const username = C.useCurrentUserState.getState().username
       // check for a reaction outbox notification before doing anything
       if (
@@ -1906,7 +1896,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const {modifiedMessage, displayDesktopNotification, desktopNotificationSnippet} = incoming
       const conversationIDKey = get().id
-      const shouldAddMessage = get().isCaughtUp() ?? false
+      const shouldAddMessage = get().isCaughtUp()
       const devicename = C.useCurrentUserState.getState().deviceName
       const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
       const message = Message.uiMessageToMessage(
@@ -1964,7 +1954,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               const isExplodeNow = messageIDs.some(_id => {
                 const id = T.Chat.numberToOrdinal(_id)
                 const message = messages.get(id) ?? [...messages.values()].find(msg => msg.id === id)
-                if ((message?.type === 'text' || message?.type === 'attachment') && message?.exploding) {
+                if ((message?.type === 'text' || message?.type === 'attachment') && message.exploding) {
                   return true
                 }
                 return false
@@ -2234,10 +2224,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
 
-        let callerPreview: T.RPCChat.MakePreviewRes | undefined
-        if (amps) {
-          callerPreview = await T.RPCChat.localMakeAudioPreviewRpcPromise({amps, duration})
-        }
+        const callerPreview = await T.RPCChat.localMakeAudioPreviewRpcPromise({amps, duration})
         const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
         try {
           await T.RPCChat.localPostFileAttachmentLocalNonblockRpcPromise({
@@ -2288,9 +2275,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         let policy: T.RPCChat.RetentionPolicy | undefined
         try {
           policy = C.Teams.retentionPolicyToServiceRetentionPolicy(_policy)
-          if (policy) {
-            await T.RPCChat.localSetConvRetentionLocalRpcPromise({convID, policy})
-          }
+          await T.RPCChat.localSetConvRetentionLocalRpcPromise({convID, policy})
         } catch (error) {
           if (error instanceof RPCError) {
             // should never happen
@@ -2346,7 +2331,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
         if (message.type === 'text') {
           get().dispatch.injectIntoInput(message.text.stringValue())
-        } else if (message.type === 'attachment') {
+        } else {
           get().dispatch.injectIntoInput(message.title)
         }
       }
@@ -2425,14 +2410,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
         const meta = get().meta
-        const unreadLineID = readMsgID ? readMsgID : meta ? meta.maxVisibleMsgID : 0
+        const unreadLineID = readMsgID ? readMsgID : meta.maxVisibleMsgID
         let msgID = unreadLineID
 
         // Find first visible message prior to what we have marked as unread. The
         // server will use this value to calculate our badge state.
         const messageMap = get().messageMap
 
-        if (messageMap) {
+        if (messageMap.size) {
           const ordinals = get().messageOrdinals
           const ord =
             ordinals &&
@@ -2462,8 +2447,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               }
               T.RPCChat.localGetThreadNonblockRpcListener({
                 incomingCallMap: {
-                  'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
-                  'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
+                  'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || ''),
+                  'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || ''),
                 },
                 params: {
                   cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,

@@ -286,7 +286,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
       <Kb.ScrollView style={styles.innerScroll}>
         {roles.map(role => {
           const disabled = props.disabledRoles ? props.disabledRoles[role] : undefined
-          if (disabled === null) {
+          if (disabled === undefined) {
             return null
           }
           const onSelect = disabled ? undefined : () => setSelectedRole(role)
@@ -308,14 +308,10 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
         <Kb.ButtonBar direction="row" fullWidth={true} style={styles.footerButtonBar}>
           <Kb.Button
             fullWidth={true}
-            disabled={!selectedRole || selectedRole === props.presetRole}
+            disabled={selectedRole === props.presetRole}
             waiting={props.waiting}
             label={selectedRole === 'setIndividually' ? 'Set Individually' : `Save`}
-            onClick={
-              selectedRole === props.presetRole || !selectedRole
-                ? () => {}
-                : () => props.onConfirm(selectedRole)
-            }
+            onClick={selectedRole === props.presetRole ? () => {} : () => props.onConfirm(selectedRole)}
           />
         </Kb.ButtonBar>
       </Kb.Box2>

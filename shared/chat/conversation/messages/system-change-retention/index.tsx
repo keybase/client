@@ -26,7 +26,7 @@ const getPolicySummary = (props: Props) => {
       return 'be retained indefinitely'
     case T.RPCChat.RetentionPolicyType.expire:
       {
-        const expireDuration = dateFns.formatDistanceStrict(0, props.policy.expire?.age * 1000)
+        const expireDuration = dateFns.formatDistanceStrict(0, props.policy.expire.age * 1000)
         if (expireDuration !== '') {
           return `expire after ${expireDuration}`
         }
@@ -36,14 +36,15 @@ const getPolicySummary = (props: Props) => {
       {
         const ephemeralDuration =
           // date-fns writes 30 seconds as 1 minute
-          props.policy.ephemeral?.age === 30
+          props.policy.ephemeral.age === 30
             ? '30 seconds'
-            : dateFns.formatDistanceStrict(0, props.policy.ephemeral?.age * 1000)
+            : dateFns.formatDistanceStrict(0, props.policy.ephemeral.age * 1000)
         if (ephemeralDuration !== '') {
           return `explode after ${ephemeralDuration} by default`
         }
       }
       break
+    default:
   }
   return ''
 }

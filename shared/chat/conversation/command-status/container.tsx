@@ -18,7 +18,7 @@ export default () => {
     setCommandStatusInfo()
   }
   const props = {
-    actions: (_info.actions || []).map((a: T.RPCChat.UICommandStatusActionTyp) => {
+    actions: _info.actions.map((a: T.RPCChat.UICommandStatusActionTyp) => {
       switch (a) {
         case T.RPCChat.UICommandStatusActionTyp.appsettings:
           return {

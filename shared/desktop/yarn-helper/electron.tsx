@@ -59,7 +59,7 @@ function startHot() {
     ? {
         KEYBASE_DEV_TOOL_EXTENSIONS: devToolRoots
           .split(',')
-          .map(root => path.join(root, fs.readdirSync(root)?.[0] ?? ''))
+          .map(root => path.join(root, fs.readdirSync(root)[0] ?? ''))
           .join(','),
       }
     : null

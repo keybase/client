@@ -163,13 +163,6 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
     showCoinsIcon: stateProps.showCoinsIcon,
     sourceAmount: stateProps.sourceAmount,
   }
-  if (
-    !stateProps.loading &&
-    ownProps.message.type !== 'sendPayment' &&
-    ownProps.message.type !== 'requestPayment'
-  ) {
-    return null
-  }
   return <AccountPayment {...props} />
 }
 export default ConnectedAccountPayment

@@ -163,7 +163,7 @@ function setupContextMenu(window: Electron.BrowserWindow) {
                 s =>
                   new Electron.MenuItem({
                     click(_, w) {
-                      w?.webContents?.replaceMisspelling(s)
+                      w?.webContents.replaceMisspelling(s)
                     },
                     label: s,
                   })

@@ -95,11 +95,7 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
           </Kb.Text>
         </Kb.Box2>
       ) : (
-        <Kb.Icon
-          color={isExploding ? Kb.Styles.globalColors.black : undefined}
-          type="iconfont-timer"
-          fixOverdraw={true}
-        />
+        <Kb.Icon color={undefined} type="iconfont-timer" fixOverdraw={true} />
       )}
     </Kb.ClickableBox>
   )
@@ -208,7 +204,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
   const launchNativeImagePicker = React.useCallback(
     (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
       const handleSelection = (result: ImagePicker.ImagePickerResult) => {
-        if (result.canceled || (result.assets.length ?? 0) == 0 || !conversationIDKey) {
+        if (result.canceled || result.assets.length == 0 || !conversationIDKey) {
           return
         }
         const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
@@ -432,7 +428,7 @@ const PlatformInput = (p: Props) => {
               onPasteImage={onPasteImage}
               autoCorrect={true}
               autoCapitalize="sentences"
-              disabled={cannotWrite ?? false}
+              disabled={cannotWrite}
               placeholder={hintText}
               multiline={true}
               onBlur={onBlur}

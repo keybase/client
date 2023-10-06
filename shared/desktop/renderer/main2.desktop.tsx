@@ -135,7 +135,7 @@ const render = (Component = Main) => {
 }
 
 const setupHMR = () => {
-  const accept = module.hot && module.hot.accept
+  const accept = module.hot?.accept
   if (!accept) {
     return
   }
@@ -164,7 +164,7 @@ const load = () => {
 
   if (__DEV__) {
     // let us load devtools first
-    const DEBUG_DEFER = false
+    const DEBUG_DEFER = false as boolean
     if (DEBUG_DEFER) {
       for (let i = 0; i < 10; ++i) {
         console.log('DEBUG_DEFER on!!!')

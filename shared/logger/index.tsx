@@ -1,7 +1,7 @@
 import * as T from '../constants/types'
 import Logger from './ring-logger'
 import noop from 'lodash/noop'
-import {getEngine} from '../engine/require'
+import {hasEngine} from '../engine/require'
 import {isMobile} from '../constants/platform'
 import {requestIdleCallback} from '../util/idle-callback'
 
@@ -115,7 +115,7 @@ class AggregateLoggerImpl {
     if (!isMobile) {
       // don't want main node thread making these calls
       try {
-        if (!getEngine()) {
+        if (!hasEngine()) {
           return Promise.resolve()
         }
       } catch (_) {

@@ -40,18 +40,14 @@ const PathItemActionConfirm = (props: Props) => (
     onHidden={props.floatingMenuProps.hide}
     position="bottom right"
     header={<ConfirmHeader {...props} />}
-    items={
-      props.confirm
-        ? [
-            {
-              disabled: props.confirm === 'disabled',
-              icon: 'iconfont-check',
-              onClick: props.confirm !== 'disabled' ? props.confirm : undefined,
-              title: 'Yes, continue',
-            },
-          ]
-        : []
-    }
+    items={[
+      {
+        disabled: props.confirm === 'disabled',
+        icon: 'iconfont-check',
+        onClick: props.confirm !== 'disabled' ? props.confirm : undefined,
+        title: 'Yes, continue',
+      },
+    ]}
   />
 )
 export default PathItemActionConfirm

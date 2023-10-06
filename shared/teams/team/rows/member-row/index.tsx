@@ -46,7 +46,7 @@ export const TeamMemberRow = (props: Props) => {
   const active = props.status === 'active'
   const crown = React.useMemo(
     () =>
-      active && roleType && showCrown[roleType] ? (
+      active && showCrown[roleType] ? (
         <Kb.Icon
           type={('iconfont-crown-' + roleType) as Kb.IconType}
           style={styles.crownIcon}
@@ -75,7 +75,7 @@ export const TeamMemberRow = (props: Props) => {
     resetLabel = ' • Needs to update Keybase'
   }
 
-  const roleLabel = !!active && !!roleType && typeToLabel[roleType]
+  const roleLabel = !!active && typeToLabel[roleType]
   const isYou = props.you === props.username
   const teamID = props.teamID
 
@@ -133,7 +133,7 @@ export const TeamMemberRow = (props: Props) => {
             />
           )}
           <Kb.Text type="BodySmall">
-            {!!active && !!roleType && typeToLabel[roleType]}
+            {!!active && typeToLabel[roleType]}
             {resetLabel}
           </Kb.Text>
         </Kb.Box2>

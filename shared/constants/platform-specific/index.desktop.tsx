@@ -84,7 +84,7 @@ export const initPlatformListener = () => {
             try {
               await dumpLogs()
             } finally {
-              response?.result()
+              response.result()
             }
           }
           Z.ignorePromise(f())

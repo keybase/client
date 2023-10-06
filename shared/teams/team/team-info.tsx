@@ -3,14 +3,14 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as T from '../../constants/types'
+import type * as T from '../../constants/types'
 import {ModalTitle} from '../common'
 
 type Props = {teamID: T.Teams.TeamID}
 
 const TeamInfo = (props: Props) => {
   const nav = Container.useSafeNavigation()
-  const teamID = props.teamID ?? T.Teams.noTeamID
+  const {teamID} = props
   const teamMeta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const teamname = teamMeta.teamname

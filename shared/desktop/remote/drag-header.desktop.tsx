@@ -72,10 +72,8 @@ class DragHeader extends React.Component<Props> {
   render() {
     if (this.props.type === 'Default') {
       return this.renderDefault()
-    } else if (this.props.type === 'Strong') {
-      return this.renderStrong()
     } else {
-      return <div />
+      return this.renderStrong()
     }
   }
 }

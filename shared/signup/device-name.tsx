@@ -120,7 +120,7 @@ const EnterDevicename = (props: Props) => {
             onChangeText={_setDeviceName}
             onEnterKeyDown={onContinue}
           />
-          {showDisabled && readyToShowError ? (
+          {showDisabled ? (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>
               {Constants.deviceNameInstructions}
             </Kb.Text>

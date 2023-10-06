@@ -22,7 +22,7 @@ type State = {
 const clickThreshold = 7
 
 class Feedback extends React.Component<Props, State> {
-  state = {
+  state: State = {
     clickCount: 0,
     email: undefined,
     feedback: this.props.feedback || '',

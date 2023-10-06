@@ -30,9 +30,7 @@ const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) 
         <Kb.Icon
           fontSize={48}
           type={Shared.serviceIdToIconFont(selectedService)}
-          style={Kb.Styles.collapseStyles([
-            !!selectedService && {color: Shared.serviceIdToAccentColor(selectedService)},
-          ])}
+          style={Kb.Styles.collapseStyles([{color: Shared.serviceIdToAccentColor(selectedService)}])}
         />
       )}
       {namespace === 'people' ? (
@@ -85,8 +83,7 @@ const expensiveDeriveResults = (
   followingState: Set<string>,
   preExistingTeamMembers: Map<string, T.Teams.MemberInfo>
 ) =>
-  searchResults &&
-  searchResults.map(info => {
+  searchResults?.map(info => {
     const label = info.label || ''
     return {
       contact: !!info.contact,
@@ -169,7 +166,7 @@ const sortAndSplitRecommendations = memoize(
         // Use the first letter of the name we will display, but first normalize out
         // any diacritics.
         const decodedLetter = /*unidecode*/ rec.prettyName || rec.displayLabel
-        if (decodedLetter && decodedLetter[0]) {
+        if (decodedLetter[0]) {
           const letter = decodedLetter[0].toLowerCase()
           if (isAlpha(letter)) {
             // offset 1 to skip recommendations
@@ -202,7 +199,7 @@ const sortAndSplitRecommendations = memoize(
         shortcut: false,
       })
     }
-    return sections.filter(s => s && s.data && s.data.length > 0)
+    return sections.filter(s => s.data.length > 0)
   }
 )
 
@@ -321,7 +318,7 @@ export const ListBody = (
       </Kb.Box2>
     )
   }
-  if (!showRecs && !showResults && !!selectedService) {
+  if (!showRecs && !showResults) {
     return <Suggestions namespace={namespace} selectedService={selectedService} />
   }
 
@@ -349,10 +346,10 @@ export const ListBody = (
 
   return (
     <>
-      {searchResults === undefined || searchResults?.length ? (
+      {searchResults?.length ? (
         <Kb.List
           reAnimated={true}
-          items={searchResults || []}
+          items={searchResults}
           onScroll={onScroll}
           selectedIndex={highlightedIndex || 0}
           style={styles.list}

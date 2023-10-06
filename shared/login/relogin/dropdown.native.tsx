@@ -9,7 +9,7 @@ type Props = {
   type: 'Username'
   options: Array<T.Config.ConfiguredAccount>
   onClick: (option: string, index: number) => void
-  onPress?: void
+  onPress?: () => void
   onOther?: () => void
   value?: string
   style?: Object
@@ -58,10 +58,10 @@ class Dropdown extends React.Component<Props, State> {
         logger.warn('otherValue selected, yet no onOther handler')
       }
       this.setState({value: (this.props.options[0] || {username: ''}).username})
-    } else if (this.props.onClick) {
+    } else {
       this.props.onClick(
         this.state.value || '',
-        (this.props.options || []).findIndex(u => u.username === this.state.value)
+        this.props.options.findIndex(u => u.username === this.state.value)
       )
     }
   }
@@ -77,7 +77,7 @@ class Dropdown extends React.Component<Props, State> {
   }
 
   _ensureSelected() {
-    if (!this.state.value && this.props.options && this.props.options.length) {
+    if (!this.state.value && this.props.options.length) {
       this.setState({value: (this.props.options[0] || {username: ''}).username})
     }
   }
@@ -113,7 +113,7 @@ class Dropdown extends React.Component<Props, State> {
       ? [{key: pickItemValue, label: this._label(pickItemValue), value: pickItemValue}]
       : []
 
-    const actualItems = (this.props.options || []).map(o => ({
+    const actualItems = this.props.options.map(o => ({
       key: o.username,
       label: o.hasStoredSecret ? `${o.username} (Signed in)` : o.username,
       value: o.username,

@@ -23,7 +23,7 @@ const TLFContainer = (p: OwnProps) => {
     destinationPickerIndex,
     disabled,
     isIgnored: tlf.isIgnored,
-    loadPathMetadata: tlf.syncConfig && tlf.syncConfig.mode !== T.FS.TlfSyncMode.Disabled,
+    loadPathMetadata: tlf.syncConfig.mode !== T.FS.TlfSyncMode.Disabled,
     mixedMode,
     name,
     onOpen,

@@ -42,7 +42,7 @@ const getChannelsForList = memoize(
 )
 
 const AddToChannels = (props: Props) => {
-  const teamID = props.teamID ?? T.Teams.noTeamID
+  const teamID = props.teamID
   const myUsername = C.useCurrentUserState(s => s.username)
   const usernames = props.usernames ?? [myUsername]
   const mode = props.usernames ? 'others' : 'self'
@@ -68,7 +68,7 @@ const AddToChannels = (props: Props) => {
       const p = C.getConvoState(c.conversationIDKey).participants
       return {
         channelMeta: c,
-        numMembers: p.name?.length ?? p.all?.length ?? 0,
+        numMembers: p.name.length || p.all.length || 0,
         type: 'channel' as const,
       }
     }),
@@ -228,7 +228,7 @@ const AddToChannels = (props: Props) => {
       noScrollView={true}
       onClose={onCancel}
     >
-      {loadingChannels && !channelMetas?.size ? (
+      {loadingChannels && !channelMetas.size ? (
         <Kb.Box style={Kb.Styles.globalStyles.flexOne}>
           <Kb.ProgressIndicator type="Large" />
         </Kb.Box>
@@ -555,7 +555,7 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
               #{channelMeta.channelname}
             </Kb.Text>
           </Kb.Box2>
-          {selfMode && !Kb.Styles.isMobile && (
+          {selfMode && (
             <Kb.Text
               type="BodySmall"
               lineClamp={1}
@@ -569,7 +569,7 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
       }
       containerStyleOverride={Kb.Styles.collapseStyles([
         styles.channelRowContainer,
-        selfMode && !Kb.Styles.isMobile && styles.channelRowSelfMode,
+        selfMode && styles.channelRowSelfMode,
       ])}
     />
   )

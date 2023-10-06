@@ -35,7 +35,9 @@ const DeviceList = (props: Props) => (
       please turn on one of the devices below:
     </Kb.Text>
     <div style={styles.devicesContainer as any}>
-      {props.devices?.map(d => <DeviceRow key={d.deviceID} device={d} />)}
+      {props.devices.map(d => (
+        <DeviceRow key={d.deviceID} device={d} />
+      ))}
     </div>
     <div style={styles.buttonsContainer}>
       <Kb.Button

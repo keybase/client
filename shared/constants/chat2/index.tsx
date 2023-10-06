@@ -57,10 +57,7 @@ export const getInboxSearchSelected = (inboxSearch: T.Chat.InboxSearchInfo) => {
 
   if (selectedIndex < firstOpenTeamResultIdx) {
     const maybeNameResults = nameResults[selectedIndex]
-    const conversationIDKey =
-      maybeNameResults === null || maybeNameResults === undefined
-        ? undefined
-        : maybeNameResults.conversationIDKey
+    const conversationIDKey = maybeNameResults === undefined ? undefined : maybeNameResults.conversationIDKey
     if (conversationIDKey) {
       return {
         conversationIDKey,
@@ -112,7 +109,7 @@ export const getBotsAndParticipants = (
       .sort((l, r) => l.localeCompare(r))
   }
   let participants: Array<string> = participantInfo.all
-  if (teamMembers && meta.channelname === 'general') {
+  if (meta.channelname === 'general') {
     participants = [...teamMembers.values()].reduce<Array<string>>((l, mi) => {
       l.push(mi.username)
       return l
@@ -483,7 +480,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               const {value} = errUsernames[0] ?? {value: ''}
               disallowedUsers = value.split(',')
             }
-            const allowedUsers = participants.filter(x => !disallowedUsers?.includes(x))
+            const allowedUsers = participants.filter(x => !disallowedUsers.includes(x))
             get().dispatch.conversationErrored(allowedUsers, disallowedUsers, error.code, error.desc)
             C.getConvoState(C.pendingErrorConversationIDKey).dispatch.navigateToThread(
               'justCreated',
@@ -836,9 +833,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce<Array<T.Chat.MessageType>>(
             (res, type) => {
               const ourTypes = Message.serviceMessageTypeToMessageTypes(type)
-              if (ourTypes) {
-                res.push(...ourTypes)
-              }
+              res.push(...ourTypes)
               return res
             },
             []
@@ -880,7 +875,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     maybeChangeSelectedConv: () => {
       const selectedConversation = C.getSelectedConversation()
       const {inboxLayout} = get()
-      if (!inboxLayout || !inboxLayout.reselectInfo) {
+      if (!inboxLayout?.reselectInfo) {
         return
       }
       const {reselectInfo} = inboxLayout
@@ -980,7 +975,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         case T.RPCChat.SyncInboxResType.incremental: {
           const items = syncRes.incremental.items || []
           const selectedConversation = C.getSelectedConversation()
-          let loadMore = false
+          let loadMore = false as boolean
           const metas = items.reduce<Array<T.Chat.ConversationMeta>>((arr, i) => {
             const meta = Meta.unverifiedInboxUIItemToConversationMeta(i.conv)
             if (meta) {
@@ -1018,7 +1013,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           throw new Error('onChatThreadStale invalid enum')
         }
       }
-      let loadMore = false
+      let loadMore = false as boolean
       const selectedConversation = C.getSelectedConversation()
       keys.forEach(key => {
         const conversationIDKeys = (updates || []).reduce<Array<string>>((arr, u) => {
@@ -1335,7 +1330,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const {convs} = action.payload.params
       const inboxUIItems = JSON.parse(convs) as Array<T.RPCChat.InboxUIItem>
       const metas: Array<T.Chat.ConversationMeta> = []
-      let added = false
+      let added = false as boolean
       const usernameToFullname: {[username: string]: string} = {}
       inboxUIItems.forEach(inboxUIItem => {
         const meta = Meta.inboxUIItemToConversationMeta(inboxUIItem)
@@ -1623,7 +1618,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     queueMetaToRequest: ids => {
-      let added = false
+      let added = false as boolean
       untrustedConversationIDKeys(ids).forEach(k => {
         if (!metaQueue.has(k)) {
           added = true

@@ -38,7 +38,7 @@ const MessageMarkdown = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
     if (m?.type !== 'text') return ''
     const decoratedText = m.decoratedText
     const text = m.text
-    return decoratedText ? decoratedText.stringValue() : text ? text.stringValue() : ''
+    return decoratedText ? decoratedText.stringValue() : text.stringValue()
   })
 
   const styleOverride = React.useMemo(

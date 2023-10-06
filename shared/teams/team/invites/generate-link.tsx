@@ -62,7 +62,7 @@ const validityValuesMap = {
 }
 
 const GenerateLinkModal = (props: Props) => {
-  const teamID = props.teamID ?? T.Teams.noTeamID
+  const teamID = props.teamID
   const [validity, setValidity] = React.useState(validityOneYear)
   const [isRolePickerOpen, setRolePickerOpen] = React.useState(false)
   const [teamRole, setTeamRole] = React.useState<T.Teams.TeamRoleType>('reader')
@@ -101,7 +101,7 @@ const GenerateLinkModal = (props: Props) => {
   const generateLinkRPC = Container.useRPC(T.RPCGen.teamsTeamCreateSeitanInvitelinkWithDurationRpcPromise)
   const onGenerate = () => {
     const expireAfter = validityValuesMap[validity as keyof typeof validityValuesMap] ?? ''
-    const maxUses = expireAfter == null ? 1 : -1
+    const maxUses = !expireAfter ? 1 : -1
 
     generateLinkRPC(
       [
@@ -133,7 +133,7 @@ const GenerateLinkModal = (props: Props) => {
     teamRole: teamRole,
   }
 
-  if (inviteLink != null || inviteLink != undefined) {
+  if (inviteLink != undefined) {
     return (
       <Kb.Modal
         onClose={onClose}

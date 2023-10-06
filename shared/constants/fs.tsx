@@ -39,18 +39,17 @@ export const rpcConflictStateToConflictState = (
     if (rpcConflictState.conflictStateType === T.RPCGen.ConflictStateType.normalview) {
       const nv = rpcConflictState.normalview
       return makeConflictStateNormalView({
-        localViewTlfPaths: (nv?.localViews || []).reduce<Array<T.FS.Path>>((arr, p) => {
+        localViewTlfPaths: (nv.localViews || []).reduce<Array<T.FS.Path>>((arr, p) => {
           p.PathType === T.RPCGen.PathType.kbfs && arr.push(rpcPathToPath(p.kbfs))
           return arr
         }, []),
-        resolvingConflict: !!nv && nv.resolvingConflict,
-        stuckInConflict: !!nv && nv.stuckInConflict,
+        resolvingConflict: nv.resolvingConflict,
+        stuckInConflict: nv.stuckInConflict,
       })
     } else {
-      const nv = rpcConflictState?.manualresolvinglocalview.normalView
+      const nv = rpcConflictState.manualresolvinglocalview.normalView
       return makeConflictStateManualResolvingLocalView({
-        normalViewTlfPath:
-          nv && nv.PathType === T.RPCGen.PathType.kbfs ? rpcPathToPath(nv.kbfs) : defaultPath,
+        normalViewTlfPath: nv.PathType === T.RPCGen.PathType.kbfs ? rpcPathToPath(nv.kbfs) : defaultPath,
       })
     }
   } else {
@@ -837,6 +836,7 @@ export const getPathStatusIconInMergeProps = (
 
   // uploading state has higher priority
   if (uploadingPaths.has(path)) {
+    // eslint-disable-next-line
     return tlf.conflictState.type === T.FS.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
       ? T.FS.UploadIcon.UploadingStuck
       : kbfsDaemonStatus.onlineStatus === T.FS.KbfsDaemonOnlineStatus.Offline
@@ -847,10 +847,7 @@ export const getPathStatusIconInMergeProps = (
     return T.FS.NonUploadStaticSyncStatus.OnlineOnly
   }
 
-  if (
-    !tlf.syncConfig ||
-    (pathItem === unknownPathItem && tlf.syncConfig.mode !== T.FS.TlfSyncMode.Disabled)
-  ) {
+  if (pathItem === unknownPathItem && tlf.syncConfig.mode !== T.FS.TlfSyncMode.Disabled) {
     return T.FS.NonUploadStaticSyncStatus.Unknown
   }
 
@@ -1775,7 +1772,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
             ? T.FS.KbfsDaemonOnlineStatus.Offline
             : onlineStatus === T.RPCGen.KbfsOnlineStatus.trying
             ? T.FS.KbfsDaemonOnlineStatus.Trying
-            : onlineStatus === T.RPCGen.KbfsOnlineStatus.online
+            : // eslint-disable-next-line
+            onlineStatus === T.RPCGen.KbfsOnlineStatus.online
             ? T.FS.KbfsDaemonOnlineStatus.Online
             : T.FS.KbfsDaemonOnlineStatus.Unknown
       })

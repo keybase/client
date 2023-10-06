@@ -28,7 +28,7 @@ const AddMembersConfirm = () => {
   const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = C.useTeamsState(
     s => s.addMembersWizard
   )
-  const isSubteam = C.useTeamsState(s => Constants.getTeamMeta(s, teamID)?.teamname.includes('.'))
+  const isSubteam = C.useTeamsState(s => Constants.getTeamMeta(s, teamID).teamname.includes('.'))
   const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
   const isBigTeam = C.useChatState(s => (fromNewTeamWizard ? false : ChatConstants.isBigTeam(s, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'

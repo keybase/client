@@ -424,8 +424,8 @@ export const getDisabledReasonsForRolePicker = (
     }
     const modifyingSelf =
       membersToModify === myUsername ||
-      (Array.isArray(membersToModify) && membersToModify?.includes(myUsername))
-    let noOtherOwners = true
+      (Array.isArray(membersToModify) && membersToModify.includes(myUsername))
+    let noOtherOwners = true as boolean
     members.forEach(({type}, name) => {
       if (name !== myUsername && type === 'owner') {
         if (typeof membersToModify === 'string' || !membersToModify?.includes(name)) {
@@ -546,9 +546,6 @@ export const serviceRetentionPolicyToRetentionPolicy = (
         retentionPolicy = makeRetentionPolicy({title: 'Never auto-delete', type: 'retain'})
         break
       case T.RPCChat.RetentionPolicyType.expire: {
-        if (!policy.expire) {
-          throw new Error(`RPC returned retention policy of type 'expire' with no expire data`)
-        }
         const {expire} = policy
         retentionPolicy = makeRetentionPolicy({
           seconds: expire.age,
@@ -558,9 +555,6 @@ export const serviceRetentionPolicyToRetentionPolicy = (
         break
       }
       case T.RPCChat.RetentionPolicyType.ephemeral: {
-        if (!policy.ephemeral) {
-          throw new Error(`RPC returned retention policy of type 'ephemeral' with no ephemeral data`)
-        }
         const {ephemeral} = policy
         retentionPolicy = makeRetentionPolicy({
           seconds: ephemeral.age,
@@ -579,25 +573,16 @@ export const serviceRetentionPolicyToRetentionPolicy = (
 export const retentionPolicyToServiceRetentionPolicy = (
   policy: T.Retention.RetentionPolicy
 ): T.RPCChat.RetentionPolicy => {
-  let res: T.RPCChat.RetentionPolicy | null = null
   switch (policy.type) {
     case 'retain':
-      res = {retain: {}, typ: T.RPCChat.RetentionPolicyType.retain}
-      break
+      return {retain: {}, typ: T.RPCChat.RetentionPolicyType.retain}
     case 'expire':
-      res = {expire: {age: policy.seconds}, typ: T.RPCChat.RetentionPolicyType.expire}
-      break
+      return {expire: {age: policy.seconds}, typ: T.RPCChat.RetentionPolicyType.expire}
     case 'explode':
-      res = {ephemeral: {age: policy.seconds}, typ: T.RPCChat.RetentionPolicyType.ephemeral}
-      break
+      return {ephemeral: {age: policy.seconds}, typ: T.RPCChat.RetentionPolicyType.ephemeral}
     case 'inherit':
-      res = {inherit: {}, typ: T.RPCChat.RetentionPolicyType.inherit}
-      break
+      return {inherit: {}, typ: T.RPCChat.RetentionPolicyType.inherit}
   }
-  if (!res) {
-    throw new Error(`Unable to convert retention policy of unknown type: ${policy.type}`)
-  }
-  return res
 }
 
 // How many public admins should we display on a showcased team card at once?
@@ -628,7 +613,7 @@ export const emptyTeamMeta = Object.freeze<T.Teams.TeamMeta>({
 })
 
 export const makeTeamMeta = (td: Partial<T.Teams.TeamMeta>): T.Teams.TeamMeta =>
-  td ? Object.assign({...emptyTeamMeta}, td) : emptyTeamMeta
+  Object.assign({...emptyTeamMeta}, td)
 
 export const getTeamMeta = (state: State, teamID: T.Teams.TeamID) =>
   teamID === T.Teams.newTeamWizardTeamID
@@ -686,7 +671,7 @@ const annotatedInvitesToInviteDetails = (
       if (annotatedInvite.inviteExt.c === T.RPCGen.TeamInviteCategory.invitelink) {
         const ext = annotatedInvite.inviteExt.invitelink
         const annotatedUsedInvites = ext.annotatedUsedInvites ?? []
-        const lastJoinedUsername = annotatedUsedInvites ? annotatedUsedInvites.at(-1)?.username : undefined
+        const lastJoinedUsername = annotatedUsedInvites.at(-1)?.username
         inviteLinks.push({
           creatorUsername: annotatedInvite.inviterUsername,
           id: teamInvite.id,
@@ -761,7 +746,7 @@ export const annotatedTeamToDetails = (t: T.RPCGen.AnnotatedTeam): T.Teams.TeamD
       tarsDisabled: t.tarsDisabled,
       teamShowcased: t.showcase.isShowcased,
     },
-    subteams: new Set(t.transitiveSubteamsUnverified?.entries?.map(e => e.teamID) ?? []),
+    subteams: new Set(t.transitiveSubteamsUnverified.entries?.map(e => e.teamID) ?? []),
   }
 }
 
@@ -1319,7 +1304,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
         try {
           const pushState = await T.RPCGen.gregorGetStateRpcPromise(undefined, teamWaitingKey(teamID))
-          const item = pushState?.items?.find(i => i.item?.category === chosenChannelsGregorKey)
+          const item = pushState.items?.find(i => i.item?.category === chosenChannelsGregorKey)
           let teams: Array<string> = []
           let msgID: Buffer | undefined
           if (item?.item?.body) {
@@ -1563,7 +1548,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             createChannelWaitingKey(teamID)
           )
           // No error if we get here.
-          const newConversationIDKey = result ? T.Chat.conversationIDToKey(result.conv.info.id) : null
+          const newConversationIDKey = T.Chat.conversationIDToKey(result.conv.info.id)
           if (!newConversationIDKey) {
             logger.warn('No convoid from newConvoRPC')
             return
@@ -1576,7 +1561,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 conversationID: result.conv.info.id,
                 headline: description,
                 identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-                tlfName: teamname ?? '',
+                tlfName: teamname,
                 tlfPublic: false,
               },
               createChannelWaitingKey(teamID)
@@ -1614,7 +1599,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         const teamname = getTeamNameFromID(get(), teamID)
-        if (teamname === null) {
+        if (!teamname) {
           get().dispatch.setChannelCreationError('Invalid team name')
           return
         }
@@ -1624,7 +1609,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             await T.RPCChat.localNewConversationLocalRpcPromise({
               identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
               membersType: T.RPCChat.ConversationMembersType.team,
-              tlfName: teamname ?? '',
+              tlfName: teamname,
               tlfVisibility: T.RPCGen.TLFVisibility.private,
               topicName: c,
               topicType: T.RPCChat.TopicType.chat,
@@ -1913,11 +1898,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     getTeamProfileAddList: username => {
       const f = async () => {
-        const r = await T.RPCGen.teamsTeamProfileAddListRpcPromise({username}, teamProfileAddListWaitingKey)
-        const res = (r || []).reduce<Array<T.RPCGen.TeamProfileAddEntry>>((arr, t) => {
-          t && arr.push(t)
-          return arr
-        }, [])
+        const res =
+          (await T.RPCGen.teamsTeamProfileAddListRpcPromise({username}, teamProfileAddListWaitingKey)) ?? []
         const teamlist = res.map(team => ({
           disabledReason: team.disabledReason,
           open: team.open,
@@ -2025,7 +2007,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             {
               emails: invitees,
               name: teamname,
-              role: role ? T.RPCGen.TeamRole[role] : T.RPCGen.TeamRole.none,
+              role: T.RPCGen.TeamRole[role],
             },
             [teamWaitingKey(teamID), addToTeamByEmailWaitingKey(teamname)]
           )
@@ -2090,7 +2072,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           const seitan = await T.RPCGen.teamsTeamCreateSeitanTokenV2RpcPromise(
             {
               label: {sms: {f: fullName || '', n: phoneNumber} as T.RPCGen.SeitanKeyLabelSms, t: 1},
-              role: (!!role && T.RPCGen.TeamRole[role]) || T.RPCGen.TeamRole.none,
+              role: T.RPCGen.TeamRole[role],
               teamname,
             },
             teamWaitingKey(teamID)
@@ -2151,8 +2133,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
           set(s => {
             s.teamJoinSuccess = true
-            s.teamJoinSuccessOpen = result?.wasOpenTeam ?? false
-            s.teamJoinSuccessTeamName = result?.wasTeamName ? teamname : ''
+            s.teamJoinSuccessOpen = result.wasOpenTeam
+            s.teamJoinSuccessTeamName = result.wasTeamName ? teamname : ''
           })
         } catch (error) {
           if (error instanceof RPCError) {
@@ -2472,8 +2454,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
     },
     onGregorPushState: items => {
-      let sawChatBanner = false
-      let sawSubteamsBanner = false
+      let sawChatBanner = false as boolean
+      let sawSubteamsBanner = false as boolean
       let chosenChannels: undefined | (typeof items)[0]
       const newTeamRequests = new Map<T.Teams.TeamID, Set<string>>()
       items.forEach(i => {

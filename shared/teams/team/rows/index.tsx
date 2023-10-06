@@ -86,9 +86,9 @@ export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.Team
   const onToggleCollapsed = () => toggleInvitesCollapsed(teamID)
 
   const sections: Array<Section> = []
-  const resetMembers = [...(details.members?.values() ?? [])].filter(m => m.status === 'reset')
+  const resetMembers = [...details.members.values()].filter(m => m.status === 'reset')
 
-  if (details.requests?.size || resetMembers.length) {
+  if (details.requests.size || resetMembers.length) {
     const requestsSection: _Section<
       Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'teamID'>,
       SectionExtras
@@ -114,7 +114,7 @@ export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.Team
     }
     sections.push(requestsSection)
   }
-  if (details.invites?.size) {
+  if (details.invites.size) {
     sections.push({
       collapsed,
       data: collapsed ? [] : [...details.invites].sort(sortInvites),

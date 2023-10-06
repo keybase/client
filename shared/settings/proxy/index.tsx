@@ -28,7 +28,7 @@ type Props = {
 }
 
 class ProxySettings extends React.Component<Props, State> {
-  state = {
+  state: State = {
     address: '',
     port: '',
     proxyType: 'noProxy' as const,
@@ -40,7 +40,6 @@ class ProxySettings extends React.Component<Props, State> {
         return
       }
       const addressPort = this.props.proxyData.addressWithPort.split(':')
-      if (!addressPort) return
       const address = addressPort.slice(0, addressPort.length - 1).join(':')
       let port = '8080'
       if (addressPort.length >= 2) {
@@ -109,7 +108,7 @@ class ProxySettings extends React.Component<Props, State> {
             onSelect={() => this.proxyTypeSelected(proxyType)}
             selected={this.state.proxyType === proxyType}
             key={proxyType}
-            label={proxyTypeToDisplayName[proxyType] ?? ''}
+            label={proxyTypeToDisplayName[proxyType]}
             style={styles.radioButton}
           />
         ))}

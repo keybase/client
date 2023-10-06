@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as T from '../../constants/types'
+import type * as T from '../../constants/types'
 import CreateChannel from '.'
 import upperFirst from 'lodash/upperFirst'
 
@@ -10,7 +10,7 @@ type OwnProps = {
 }
 
 const Wrapped = (p: OwnProps) => {
-  const teamID = p.teamID ?? T.Teams.noTeamID
+  const teamID = p.teamID
   const navToChatOnSuccess = p.navToChatOnSuccess ?? true
   const errorText = C.useTeamsState(s => upperFirst(s.errorInChannelCreation))
   const teamname = C.useTeamsState(s => C.getTeamNameFromID(s, teamID) ?? '')

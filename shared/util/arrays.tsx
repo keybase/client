@@ -1,6 +1,6 @@
 export function findLast<T>(arr: Array<T>, cb: (t: T) => boolean): T | undefined {
   // @ts-ignore this exists
-  if (arr.findLast) return arr.findLast(cb)
+  if (arr.findLast) return arr.findLast(cb) // eslint-disable-line
   const last = arr.length - 1
   for (let i = last; i >= 0; --i) {
     if (cb(arr[i]!)) {

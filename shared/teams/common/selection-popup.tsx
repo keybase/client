@@ -308,7 +308,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
   const {channelname} = channelInfo
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 
-  if (!membersSet) {
+  if (!membersSet.size) {
     // we shouldn't be rendered
     return null
   }

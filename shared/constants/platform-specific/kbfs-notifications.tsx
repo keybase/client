@@ -143,7 +143,7 @@ function decodeKBFSError(user: string, notification: T.RPCGen.FSNotification): D
 }
 
 export function kbfsNotification(notification: T.RPCGen.FSNotification, notify: any) {
-  const action: string | undefined = (
+  const action = (
     {
       // For now, disable file notifications because they're really annoying and
       // we now have the syncing indicator.
@@ -158,7 +158,7 @@ export function kbfsNotification(notification: T.RPCGen.FSNotification, notify: 
       [T.RPCGen.FSNotificationType.connection]: '',
       // [FSNotificationType.syncConfigChanged]: 'Synchronization config changed',
     } as any
-  )[notification.notificationType] as string
+  )[notification.notificationType] as string | undefined
 
   if (action === undefined && notification.statusCode !== T.RPCGen.FSStatusCode.error) {
     // Ignore notification types we don't care about.

@@ -33,7 +33,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
   }
 
   const askNativeIfSystemPushPromptHasBeenShown = async () =>
-    isIOS ? iosGetHasShownPushPrompt() ?? Promise.resolve(false) : Promise.resolve(false)
+    isIOS ? await iosGetHasShownPushPrompt() : Promise.resolve(false)
 
   const checkPermissionsFromNative = async () =>
     new Promise<{alert?: boolean; badge?: boolean; sound?: boolean}>((resolve, reject) => {
@@ -245,7 +245,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           await requestPermissionsFromNative()
           const permissions = await checkPermissionsFromNative()
           logger.info('[PushRequesting] after prompt:', permissions)
-          if (permissions && (permissions.alert || permissions.badge)) {
+          if (permissions.alert || permissions.badge) {
             logger.info('[PushRequesting] enabled')
             set(s => {
               s.hasPermissions = true

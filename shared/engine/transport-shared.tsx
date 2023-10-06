@@ -23,8 +23,8 @@ function _wrap(options: {
   let once = false
 
   const wrapped = (...args: Array<any>): void => {
-    const m = typeof method === 'string' ? method : method?.(...args)
-    const e = typeof extra === 'object' ? extra : extra?.(...args)
+    const m = typeof method === 'string' ? method : method(...args)
+    const e = typeof extra === 'object' ? extra : extra(...args)
 
     if (enforceOnlyOnce && once) {
       rpcLog({method: m || 'unknown', reason: 'ignoring multiple result calls', type: 'engineInternal'})
@@ -32,7 +32,7 @@ function _wrap(options: {
       once = true
 
       if (printRPC) {
-        rpcLog({extra: e || {}, method: m || 'unknown', reason, type})
+        rpcLog({extra: e, method: m || 'unknown', reason, type})
       }
 
       // always capture stats
@@ -126,11 +126,11 @@ class TransportShared extends RobustTransport {
 
   // add logging / multiple call checking
   _injectInstrumentedResponse(payload: any) {
-    if (!payload || !payload.response) {
+    if (!payload?.response) {
       return
     }
 
-    const oldResponse = payload && payload.response
+    const oldResponse = payload?.response
 
     if (payload && oldResponse) {
       const calls = ['cancel', 'error', 'result']

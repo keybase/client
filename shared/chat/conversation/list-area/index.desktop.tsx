@@ -50,15 +50,11 @@ const useIntersectionObserver = () => {
         )
       }
       const ro = intersectionObserverRef.current
-      if (ro) {
-        listenersRef.current.set(e, cb)
-        ro.observe(e)
-        return () => {
-          listenersRef.current.delete(e)
-          ro.unobserve(e)
-        }
-      } else {
-        throw new Error('no io?')
+      listenersRef.current.set(e, cb)
+      ro.observe(e)
+      return () => {
+        listenersRef.current.delete(e)
+        ro.unobserve(e)
       }
     },
     [intersectionObserverRef]
@@ -419,7 +415,6 @@ const useItems = (p: {
   const rowRenderer = React.useCallback(
     (ordinal: T.Chat.Ordinal, previous?: T.Chat.Ordinal) => {
       const type = messageTypeMap?.get(ordinal) ?? 'text'
-      if (!type) return null
       const Clazz = getMessageRender(type)
       if (!Clazz) return null
       return (
@@ -631,7 +626,7 @@ type OrdinalWaypointProps = {
   intersectionObserve: ReturnType<typeof useIntersectionObserver>
 }
 
-const colorWaypoints = __DEV__ && false
+const colorWaypoints = __DEV__ && (false as boolean)
 const colors = new Array<string>()
 if (colorWaypoints) {
   for (let i = 0; i < 10; ++i) {

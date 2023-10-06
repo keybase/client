@@ -14,7 +14,7 @@ export type Props = {
 
 export const TeamInviteRow = (props: Props) => {
   const {onCancelInvite, role, label, firstItem, subLabel, isKeybaseUser} = props
-  const text2 = subLabel ? (role ? `${subLabel} · ${typeToLabel[role]}` : subLabel) : typeToLabel[role]
+  const text2 = subLabel ? `${subLabel} · ${typeToLabel[role]}` : typeToLabel[role]
   return (
     <Kb.ListItem2
       type="Small"

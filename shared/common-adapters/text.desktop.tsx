@@ -76,16 +76,12 @@ class Text extends React.Component<Props> {
   }
 
   render() {
-    if (!this.props.type) {
-      throw new Error('Missing type on Text')
-    }
-
     return (
       <span
         title={this.props.title || undefined}
         ref={this.props.allowHighlightText ? this._spanRef : null}
         className={this._className(this.props)}
-        onClick={this.props.onClick || (this.props.onClickURL && this._urlClick) || undefined}
+        onClick={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined) || undefined}
         onContextMenuCapture={this.props.onClickURL ? this.onContextMenu : undefined}
         style={Styles.collapseStyles([this.props.style])}
         data-virtual-text={this.props.virtualText ? this.props.children : undefined}

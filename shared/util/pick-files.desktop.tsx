@@ -9,13 +9,13 @@ export const pickImages = async (title: string) => {
     filters: [{extensions: ['jpg', 'png', 'gif'], name: 'Images'}],
     title,
   })
-  return filePaths ?? []
+  return filePaths
 }
 
 export const pickFiles = async (options: OpenDialogOptions) => {
   if (!showOpenDialog) return []
   const filePaths = await showOpenDialog(options)
-  return filePaths ?? []
+  return filePaths
 }
 
 export const pickSave = async (options: SaveDialogOptions) => {

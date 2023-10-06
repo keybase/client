@@ -57,7 +57,7 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
   const mapped = contacts.data.reduce<Array<Contact>>((ret, contact) => {
     const {name = '', phoneNumbers = [], emails = []} = contact
     let pictureUri: string | undefined
-    if (contact.imageAvailable && contact.image && contact.image.uri) {
+    if (contact.imageAvailable && contact.image?.uri) {
       pictureUri = contact.image.uri
     }
     phoneNumbers.forEach(pn => {

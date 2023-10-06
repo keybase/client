@@ -113,7 +113,7 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
     showFollowingStatus && username ? s.followers.has(username) : false
   )
   const httpSrv = C.useConfigState(s => s.httpSrv)
-  const blocked = C.useUsersState(s => s.blockMap?.get(username || teamname || '')?.chatBlocked)
+  const blocked = C.useUsersState(s => s.blockMap.get(username || teamname || '')?.chatBlocked)
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const goToProfile = React.useCallback(
     () => username && showUserProfile(username),

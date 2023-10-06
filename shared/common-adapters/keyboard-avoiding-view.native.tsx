@@ -63,7 +63,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
 
   async _relativeKeyboardHeight(keyboardFrame: KeyboardMetrics): Promise<number> {
     const frame = this._frame
-    if (!frame || !keyboardFrame) {
+    if (!frame) {
       return 0
     }
 
@@ -146,13 +146,13 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
       return
     }
 
-    if (duration && easing) {
+    if (duration) {
       LayoutAnimation.configureNext({
         // We have to pass the duration equal to minimal accepted duration defined here: RCTLayoutAnimation.m
         duration: duration > 10 ? duration : 10,
         update: {
           duration: duration > 10 ? duration : 10,
-          type: LayoutAnimation.Types[easing] || 'keyboard',
+          type: LayoutAnimation.Types[easing],
         },
       })
     }
@@ -256,7 +256,7 @@ const styles = Styles.styleSheetCreate(
         maxHeight: '100%',
         position: 'relative',
       },
-    } as const)
+    }) as const
 )
 
 export const KeyboardAvoidingView2 = (p: KAVProps) => {

@@ -16,7 +16,7 @@ export default (ownProps: OwnProps) => {
   const publicityAnyMember = teamMeta.allowPromote
   const publicityMember = teamMeta.showcasing
   const publicityTeam = teamDetails.settings.teamShowcased
-  const settings = teamDetails.settings || Constants.initialTeamSettings
+  const settings = teamDetails.settings
   const welcomeMessage = C.useTeamsState(s => s.teamIDToWelcomeMessage.get(teamID))
   const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
   const error = C.useTeamsState(s => s.errorInSettings)

@@ -196,11 +196,11 @@ class AddToTeam extends React.Component<Props> {
       ...(Kb.Styles.isMobile
         ? {
             header: {
-              leftButton: Kb.Styles.isMobile ? (
+              leftButton: (
                 <Kb.Text type="BodyBigLink" onClick={this.props.onBack}>
                   Cancel
                 </Kb.Text>
-              ) : undefined,
+              ),
             },
           }
         : {}),

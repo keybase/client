@@ -113,8 +113,8 @@ function Dropdown<N>(p: Props<N>) {
               <Kb.ClickableBox
                 key={idx}
                 onClick={evt => {
-                  evt?.stopPropagation?.()
-                  evt?.preventDefault?.()
+                  evt.stopPropagation()
+                  evt.preventDefault()
                   // Bug in flow that doesn't let us just call this function
                   // onSelect(i)
                   onChanged?.(i)
@@ -141,8 +141,8 @@ function Dropdown<N>(p: Props<N>) {
 
   const toggleOpen = React.useCallback(
     (evt?: React.BaseSyntheticEvent) => {
-      evt?.stopPropagation?.()
-      evt?.preventDefault?.()
+      evt?.stopPropagation()
+      evt?.preventDefault()
       toggleShowingPopup()
     },
     [toggleShowingPopup]
@@ -194,8 +194,8 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
       loading={props.loading}
       style={Styles.collapseStyles([styles.inlineDropdown, props.containerStyle])}
       toggleOpen={e => {
-        e.stopPropagation && e.stopPropagation()
-        props.onPress && props.onPress()
+        e.stopPropagation()
+        props.onPress()
       }}
       selectedBoxStyle={Styles.collapseStyles([styles.inlineDropdownSelected, props.style])}
       selected={selected}

@@ -244,7 +244,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const AddEmojiAliasWrapper = (p: Props) => {
-  const conversationIDKey = p.conversationIDKey ?? C.noConversationIDKey
+  const conversationIDKey = p.conversationIDKey
   const defaultSelected = p.defaultSelected
   return <AddAliasModal conversationIDKey={conversationIDKey} defaultSelected={defaultSelected} />
 }

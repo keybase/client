@@ -555,7 +555,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     },
     onTeamBuildingFinished: (_users: Set<T.TB.User>) => {
       const users = [..._users]
-      let hasSBS = false
+      let hasSBS = false as boolean
       const usernames = users.map(user => {
         // If we're encrypting to service account that is not proven on keybase set
         // (SBS) then we *must* encrypt to ourselves

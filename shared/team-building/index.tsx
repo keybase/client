@@ -55,7 +55,7 @@ type OwnProps = {
 }
 
 const TeamBuilding = (p: OwnProps) => {
-  const namespace = p.namespace ?? 'chat2'
+  const namespace = p.namespace
   const teamID = p.teamID
   const filterServices = p.filterServices
   const goButtonLabel = p.goButtonLabel ?? 'Start'

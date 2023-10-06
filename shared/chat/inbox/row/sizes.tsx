@@ -31,8 +31,9 @@ export const getRowHeight = (type: T.Chat.ChatInboxRowType, showingDividerButton
       case 'divider':
         return dividerHeight(showingDividerButton)
       case 'teamBuilder':
+      default:
         return 0
     }
   }
-  return exhaustive(type, showingDividerButton) ?? 0
+  return exhaustive(type, showingDividerButton)
 }

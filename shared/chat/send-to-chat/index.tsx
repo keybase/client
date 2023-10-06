@@ -89,7 +89,7 @@ const DesktopSendToChat = (props: Props) => {
   }
   const attachmentsUpload = C.useChatContext(s => s.dispatch.attachmentsUpload)
   const onSend = () => {
-    sendPaths?.forEach(path =>
+    sendPaths.forEach(path =>
       attachmentsUpload([{path: T.FS.pathToString(path)}], [title], `${username},${convName.split('#')[0]}`)
     )
     clearModals()

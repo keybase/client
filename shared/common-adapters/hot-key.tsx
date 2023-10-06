@@ -33,7 +33,7 @@ export function useHotKey(keys: Array<string> | string, cb: (key: string) => voi
       keysArr.forEach(key => {
         const cbs = keyToCBStack.get(key)
         if (!cbs) return
-        const idx = cbs.indexOf(cb) ?? -1
+        const idx = cbs.indexOf(cb)
         if (idx !== -1) {
           cbs.splice(idx, 1)
           // mousetrap will remove existing bindings. if there is an older one turn it back on

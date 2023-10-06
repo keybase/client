@@ -13,8 +13,8 @@ type Props = {
 
 const ConfirmRemoveFromChannel = (props: Props) => {
   const members = props.members
-  const teamID = props.teamID ?? T.Teams.noTeamID
-  const conversationIDKey = props.conversationIDKey ?? C.noConversationIDKey
+  const teamID = props.teamID
+  const conversationIDKey = props.conversationIDKey
 
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')

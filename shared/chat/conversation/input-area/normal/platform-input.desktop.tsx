@@ -389,7 +389,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
             <Kb.Box2 direction="horizontal" style={styles.inputBox}>
               <Kb.PlainInput
                 allowKeyboardEvents={true}
-                disabled={cannotWrite ?? false}
+                disabled={cannotWrite}
                 autoFocus={false}
                 ref={(ref: null | Kb.PlainInput) => {
                   // from normal/index

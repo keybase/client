@@ -6,7 +6,7 @@ let config = {
   PERF: false,
   allowMultipleInstances: false, // let more run
   debugFullLogs: false, // only for getting full action logs in debug mode
-  featureFlagsOverride: '', // Override feature flags
+  featureFlagsOverride: '' as string | undefined, // Override feature flags
   filterActionLogs: null, // Filter actions in log
   forceImmediateLogging: false, // Don't wait for idle to log
   ignoreDisconnectOverlay: false, // Let you use the app even in a disconnected state

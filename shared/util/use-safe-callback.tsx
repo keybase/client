@@ -25,7 +25,7 @@ function useSafeCallback<C extends (...args: Array<any>) => void>(cb: C, options
 
   React.useEffect(() => {
     if (typeof onlyOnce === 'function') {
-      onlyOnce?.(clearOnlyOnce)
+      onlyOnce(clearOnlyOnce)
     }
   }, [onlyOnce, clearOnlyOnce])
 

@@ -8,11 +8,8 @@ type OwnProps = {
   platformHandle: string
   proofId: string
 }
-const noIcon: T.Tracker.SiteIconSet = []
-
 export default (ownProps: OwnProps) => {
-  const {platformHandle, platform, proofId} = ownProps
-  const icon = ownProps.icon ?? noIcon
+  const {platformHandle, platform, proofId, icon} = ownProps
   const errorMessage = C.useProfileState(s => s.revokeError)
   const finishRevoking = C.useProfileState(s => s.dispatch.finishRevoking)
   const submitRevokeProof = C.useProfileState(s => s.dispatch.submitRevokeProof)

@@ -315,9 +315,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
           break
         case RemoteGen.openChatFromWidget: {
           C.useConfigState.getState().dispatch.showMain()
-          C.getConvoState(
-            action.payload.conversationIDKey ?? C.noConversationIDKey
-          ).dispatch.navigateToThread('inboxSmall')
+          C.getConvoState(action.payload.conversationIDKey).dispatch.navigateToThread('inboxSmall')
           break
         }
         case RemoteGen.inboxRefresh: {
@@ -560,7 +558,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
             inboxRefresh('bootstrap')
           }
           const rows = await T.RPCGen.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
-          const ri = rows?.i ?? -1
+          const ri = rows.i ?? -1
           if (ri > 0) {
             C.useChatState.getState().dispatch.setInboxNumSmallRows(ri, true)
           }

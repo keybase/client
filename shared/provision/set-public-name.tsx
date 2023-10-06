@@ -110,7 +110,7 @@ const SetPublicName = (props: Props) => {
             value={cleanDeviceName}
             style={styles.nameInput}
           />
-          {showDisabled && readyToShowError ? (
+          {showDisabled ? (
             <Kb.Text type="BodySmall" style={styles.deviceNameError}>
               {Constants.deviceNameInstructions}
             </Kb.Text>

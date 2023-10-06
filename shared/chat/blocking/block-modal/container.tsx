@@ -111,7 +111,7 @@ export default (ownProps: OwnProps) => {
           leaveTeamAndBlock(teamname)
         } else if (stateProps.conversationIDKey) {
           takingAction = true
-          const anyReported = [...newBlocks.values()].some(v => v?.report !== undefined)
+          const anyReported = [...newBlocks.values()].some(v => v.report !== undefined)
           setConversationStatus(anyReported)
         }
       }

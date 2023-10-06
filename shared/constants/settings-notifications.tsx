@@ -81,9 +81,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             undefined,
             refreshNotificationsWaitingKey
           )
-          if (json) {
-            body = json.body
-          }
+          body = json.body
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return
@@ -182,10 +180,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
 
       const {settings, unsub} = groupMap
-      if (!settings) {
-        logger.warn('Trying to toggle unknown settings')
-        return
-      }
 
       set(s => {
         s.allowEdit = false
@@ -239,8 +233,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
           settingsWaitingKey
         )
 
-        if (!result || !result.body || JSON.parse(result.body)?.status?.code !== 0) {
-          throw new Error(`Invalid response ${result?.body || '(no result)'}`)
+        if (!result.body || JSON.parse(result.body)?.status?.code !== 0) {
+          throw new Error(`Invalid response ${result.body || '(no result)'}`)
         }
         set(s => {
           s.allowEdit = true

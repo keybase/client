@@ -17,12 +17,11 @@ export function parseFolderNameToUsers(yourUsername: string | undefined, folderN
       you: yourUsername === u,
     })) ?? []
 
-  const readersParsed =
-    readers?.split(',').map(u => ({
-      readOnly: true,
-      username: u,
-      you: yourUsername === u,
-    })) ?? []
+  const readersParsed = readers.split(',').map(u => ({
+    readOnly: true,
+    username: u,
+    you: yourUsername === u,
+  }))
 
   return writersParsed.concat(readersParsed).filter(u => !!u.username)
 }
@@ -65,7 +64,7 @@ export const tlfToPreferredOrder = (tlf: string, me: string): string => {
   const [writers, readers = undefined] = splitByFirstOccurrenceOf(userList ?? '', '#')
 
   let writerNames = writers?.split(',') ?? []
-  let readerNames = (readers?.length && readers.split(',')) || []
+  let readerNames = (readers?.length ? readers.split(',') : undefined) || []
   let whereAmI = writerNames.indexOf(me)
   if (whereAmI === -1) {
     whereAmI = readerNames.indexOf(me)

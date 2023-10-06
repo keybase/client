@@ -166,7 +166,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           if (enabled && !perm) {
             logger.info('contact import enabled but no contact permissions')
           }
-          if (enabled === null) {
+          if (enabled === undefined) {
             logger.info("haven't loaded contact import enabled")
           }
           return

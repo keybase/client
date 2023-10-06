@@ -3,7 +3,7 @@ import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timesta
 import type * as T from '../../../../constants/types'
 
 const iconNameForDeviceType = Kb.Styles.isMobile
-  ? (deviceType: string, isRevoked: boolean, isLocation: Boolean): Kb.IconType => {
+  ? (deviceType: string, isRevoked: boolean, isLocation: boolean): Kb.IconType => {
       switch (deviceType) {
         case 'mobile':
           return isRevoked

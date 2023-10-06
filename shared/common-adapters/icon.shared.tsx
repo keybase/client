@@ -33,9 +33,6 @@ export function defaultHoverColor(type: IconType): string {
 }
 
 // Some types are the same underlying icon.
-export function typeToIconMapper(type: IconType): IconType {
-  return type
-}
 
 export function typeExtension(type: IconType): string {
   return iconMeta[type].extension || 'png'
@@ -47,10 +44,6 @@ export function getImagesDir(type: IconType): string {
 
 export function fontSize(type: IconType): {fontSize: number} | undefined {
   const meta = iconMeta[type]
-  if (!meta) {
-    throw new Error('Invalid icon type: ' + type)
-  }
-
   const fontSize: number = meta.gridSize || 0
 
   if (fontSize) {
@@ -61,9 +54,9 @@ export function fontSize(type: IconType): {fontSize: number} | undefined {
 }
 
 export function isValidIconType(inputType: string): inputType is IconType {
-  // @ts-ignore this type is what we're checking
-  const iconType = typeToIconMapper(inputType)
-  return !!iconType && !!iconMeta[iconType]
+  if (!inputType) return false
+  const iconType = inputType as IconType
+  return !!iconMeta[iconType]
 }
 
 export function typeToFontSize(sizeType: SizeType) {

@@ -2,7 +2,7 @@ import * as C from '../../../constants'
 import * as React from 'react'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
-import * as T from '../../../constants/types'
+import type * as T from '../../../constants/types'
 import ReallyLeaveTeam from '.'
 import LastOwnerDialog from './last-owner'
 import {useTeamDetailsSubscribeMountOnly} from '../../subscriber'
@@ -10,7 +10,7 @@ import {useTeamDetailsSubscribeMountOnly} from '../../subscriber'
 type OwnProps = {teamID: T.Teams.TeamID}
 
 const ReallyLeaveTeamContainer = (op: OwnProps) => {
-  const teamID = op.teamID ?? T.Teams.noTeamID
+  const teamID = op.teamID
   const {teamname} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
   const {settings, members} = C.useTeamsState(s => s.teamDetails.get(teamID) ?? Constants.emptyTeamDetails)
   const open = settings.open

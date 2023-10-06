@@ -128,7 +128,7 @@ type State = {
 }
 
 class ErrorBoundary extends React.PureComponent<Props, State> {
-  state = {info: undefined}
+  state: State = {info: undefined}
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.children !== prevProps.children && this.state.info) {

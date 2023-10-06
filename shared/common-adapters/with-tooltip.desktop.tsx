@@ -5,7 +5,7 @@ import Toast from './toast'
 import Text from './text'
 import type {Props} from './with-tooltip'
 
-const IGNORE_FOR_PROFILING = false
+const IGNORE_FOR_PROFILING = false as boolean
 
 const Kb = {
   Box2,

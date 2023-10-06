@@ -5,7 +5,7 @@ export default () => {
   const errorText = C.useProfileState(s =>
     s.errorCode !== undefined ? s.errorText || 'Failed to verify proof' : ''
   )
-  const proofUsername = C.useProfileState(s => s.username + s.platformGenericParams?.suffix ?? '@unknown')
+  const proofUsername = C.useProfileState(s => s.username + (s.platformGenericParams?.suffix ?? '@unknown'))
   const serviceIcon = C.useProfileState(s => s.platformGenericParams?.logoFull ?? [])
   const backToProfile = C.useProfileState(s => s.dispatch.backToProfile)
   const clearPlatformGeneric = C.useProfileState(s => s.dispatch.clearPlatformGeneric)

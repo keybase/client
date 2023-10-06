@@ -18,7 +18,7 @@ import {makeRow} from './row'
 
 type RowItem = T.Chat.ChatInboxRowItem
 
-const usingFlashList = false
+const usingFlashList = false as boolean
 const List = /*usingFlashList ? FlashList :*/ FlatList
 
 const NoChats = (props: {onNewChat: () => void}) => (
@@ -130,9 +130,6 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
   }
 
   private onViewChanged = (data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
-    if (!data) {
-      return
-    }
     this.onScrollUnbox(data)
 
     this.lastVisibleIdx = data.viewableItems.at(-1)?.index ?? -1
@@ -187,7 +184,7 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
       return
     }
 
-    if (!row || row.type !== 'small') {
+    if (row.type !== 'small') {
       showFloating = false
     }
 
@@ -198,7 +195,7 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
 
   private onScrollUnbox = debounce((data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
     const {viewableItems} = data
-    const item = viewableItems?.[0]
+    const item = viewableItems[0]
     if (item && Object.prototype.hasOwnProperty.call(item, 'index')) {
       this.askForUnboxing(viewableItems.map(i => i.item))
     }

@@ -64,8 +64,8 @@ export const unverifiedInboxUIItemToConversationMeta = (
     channelname,
     commands: i.commands,
     conversationIDKey: T.Chat.stringToConversationIDKey(i.convID),
-    description: (i.localMetadata && i.localMetadata.headline) || '',
-    descriptionDecorated: (i.localMetadata && i.localMetadata.headlineDecorated) || '',
+    description: i.localMetadata?.headline || '',
+    descriptionDecorated: i.localMetadata?.headlineDecorated || '',
     draft: i.draft || '',
     inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
@@ -177,22 +177,20 @@ export const parseNotificationSettings = (
   if (notifications) {
     notificationsGlobalIgnoreMentions = notifications.channelWide
     const s = notifications.settings
-    if (s) {
-      const desktop = s[String(T.RPCGen.DeviceType.desktop)]
-      if (desktop) {
-        if (desktop[String(T.RPCChat.NotificationKind.generic)]) {
-          notificationsDesktop = 'onAnyActivity'
-        } else if (desktop[String(T.RPCChat.NotificationKind.atmention)]) {
-          notificationsDesktop = 'onWhenAtMentioned'
-        }
+    const desktop = s[String(T.RPCGen.DeviceType.desktop)]
+    if (desktop) {
+      if (desktop[String(T.RPCChat.NotificationKind.generic)]) {
+        notificationsDesktop = 'onAnyActivity'
+      } else if (desktop[String(T.RPCChat.NotificationKind.atmention)]) {
+        notificationsDesktop = 'onWhenAtMentioned'
       }
-      const mobile = s[String(T.RPCGen.DeviceType.mobile)]
-      if (mobile) {
-        if (mobile[String(T.RPCChat.NotificationKind.generic)]) {
-          notificationsMobile = 'onAnyActivity'
-        } else if (mobile[String(T.RPCChat.NotificationKind.atmention)]) {
-          notificationsMobile = 'onWhenAtMentioned'
-        }
+    }
+    const mobile = s[String(T.RPCGen.DeviceType.mobile)]
+    if (mobile) {
+      if (mobile[String(T.RPCChat.NotificationKind.generic)]) {
+        notificationsMobile = 'onAnyActivity'
+      } else if (mobile[String(T.RPCChat.NotificationKind.atmention)]) {
+        notificationsMobile = 'onWhenAtMentioned'
       }
     }
   }
@@ -252,16 +250,16 @@ export const inboxUIItemToConversationMeta = (
 
   const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 
-  const minWriterRoleEnum =
-    i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.role : undefined
+  const minWriterRoleEnum = i.convSettings?.minWriterRoleInfo
+    ? i.convSettings.minWriterRoleInfo.role
+    : undefined
   let minWriterRole = (minWriterRoleEnum && C.Teams.teamRoleByEnum[minWriterRoleEnum]) || 'reader'
   if (minWriterRole === 'none') {
     // means nothing. set it to reader.
     minWriterRole = 'reader'
   }
 
-  const cannotWrite =
-    i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.cannotWrite : false
+  const cannotWrite = i.convSettings?.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.cannotWrite : false
   const conversationIDKey = T.Chat.stringToConversationIDKey(i.convID)
   let pinnedMsg: T.Chat.PinnedMessageInfo | undefined
   if (i.pinnedMsg) {

@@ -216,8 +216,8 @@ const iosListenForPushNotificationsFromJS = () => {
 
 const getStartupDetailsFromInitialShare = async () => {
   if (isAndroid) {
-    const fileUrl = await (androidGetInitialShareFileUrl() ?? Promise.resolve(''))
-    const text = await (androidGetInitialShareText() ?? Promise.resolve(''))
+    const fileUrl = await androidGetInitialShareFileUrl()
+    const text = await androidGetInitialShareText()
     return {fileUrl, text}
   } else {
     return Promise.resolve(undefined)
@@ -250,7 +250,7 @@ const getStartupDetailsFromInitialPush = async () => {
 }
 
 const getInitialPushAndroid = async () => {
-  const n = await (androidGetInitialBundleFromNotification() ?? Promise.resolve({}))
+  const n = await androidGetInitialBundleFromNotification()
   return n ? normalizePush(n) : undefined
 }
 

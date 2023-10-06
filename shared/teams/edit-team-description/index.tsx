@@ -8,7 +8,7 @@ import {ModalTitle} from '../common'
 type Props = {teamID: T.Teams.TeamID}
 
 const EditTeamDescription = (props: Props) => {
-  const teamID = props.teamID ?? T.Teams.noTeamID
+  const teamID = props.teamID
 
   const teamname = C.useTeamsState(s => C.getTeamNameFromID(s, teamID))
   const waitingKey = C.teamWaitingKey(teamID)
@@ -16,7 +16,7 @@ const EditTeamDescription = (props: Props) => {
   const error = C.useTeamsState(s => s.errorInEditDescription)
   const origDescription = C.useTeamsState(s => s.teamDetails.get(teamID))?.description ?? ''
 
-  if (teamID === T.Teams.noTeamID || teamname === null) {
+  if (teamID === T.Teams.noTeamID || teamname === undefined) {
     throw new Error(
       `There was a problem loading the description page, please report this error (teamID: ${teamID}, teamname: ${teamname}).`
     )

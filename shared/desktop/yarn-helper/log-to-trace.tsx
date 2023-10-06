@@ -35,7 +35,7 @@ if (!['gui', 'core'].includes(guiOrCore ?? '') || !logfile || !outfile) {
   process.exit(1)
 }
 
-const swimlanesReg = (_swimlanes || []).map(swim => new RegExp(swim))
+const swimlanesReg = _swimlanes.map(swim => new RegExp(swim))
 const isGUI = guiOrCore === 'gui'
 
 // core regs
@@ -51,7 +51,7 @@ const actionPayloadReg = /\\"/g
 
 const getSwimlane = (line: string) => {
   const matched = swimlanesReg.find(s => s.exec(line) && !!s.toString())
-  return matched && matched.toString()
+  return matched?.toString()
 }
 
 // Handle a single line from a gui log
@@ -119,7 +119,7 @@ const convertCoreLine = (line: string): Info | undefined => {
   let tags = 'NO_TAG'
   if (_tags) {
     const match = tagsReg.exec(_tags)
-    if (match && match[1]) {
+    if (match?.[1]) {
       tags = match[1].split(',').sort().join(',')
     }
   }
@@ -128,7 +128,7 @@ const convertCoreLine = (line: string): Info | undefined => {
 
   let type = ''
   const _type = typeAndMethodReg.exec(typeAndMethod)
-  if (_type && _type[1]) {
+  if (_type?.[1]) {
     type = _type[1].trim()
   }
 

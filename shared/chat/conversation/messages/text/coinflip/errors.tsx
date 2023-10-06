@@ -7,25 +7,24 @@ type Props = {
 }
 
 const CoinFlipError = (props: Props) => {
-  if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.generic) {
-    return <CoinFlipGenericError />
-  } else if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.absentee) {
-    return <CoinFlipAbsenteeError error={props.error.absentee} />
-  } else if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.timeout) {
-    return <CoinFlipTimeoutError />
-  } else if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.aborted) {
-    return <CoinFlipAbortedError />
-  } else if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.dupreg) {
-    return <CoinFlipDupError offender={props.error.dupreg} desc="registration" />
-  } else if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.dupcommitcomplete) {
-    return <CoinFlipDupError offender={props.error.dupcommitcomplete} desc="commitment list" />
-  } else if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.dupreveal) {
-    return <CoinFlipDupError offender={props.error.dupreveal} desc="secret reveal" />
-  } else if (props.error.typ === T.RPCChat.UICoinFlipErrorTyp.commitmismatch) {
-    return <CoinFlipCommitMismatchError offender={props.error.commitmismatch} />
+  switch (props.error.typ) {
+    case T.RPCChat.UICoinFlipErrorTyp.generic:
+      return <CoinFlipGenericError />
+    case T.RPCChat.UICoinFlipErrorTyp.absentee:
+      return <CoinFlipAbsenteeError error={props.error.absentee} />
+    case T.RPCChat.UICoinFlipErrorTyp.timeout:
+      return <CoinFlipTimeoutError />
+    case T.RPCChat.UICoinFlipErrorTyp.aborted:
+      return <CoinFlipAbortedError />
+    case T.RPCChat.UICoinFlipErrorTyp.dupreg:
+      return <CoinFlipDupError offender={props.error.dupreg} desc="registration" />
+    case T.RPCChat.UICoinFlipErrorTyp.dupcommitcomplete:
+      return <CoinFlipDupError offender={props.error.dupcommitcomplete} desc="commitment list" />
+    case T.RPCChat.UICoinFlipErrorTyp.dupreveal:
+      return <CoinFlipDupError offender={props.error.dupreveal} desc="secret reveal" />
+    case T.RPCChat.UICoinFlipErrorTyp.commitmismatch:
+      return <CoinFlipCommitMismatchError offender={props.error.commitmismatch} />
   }
-
-  return <CoinFlipGenericError />
 }
 
 const CoinFlipGenericError = () => {

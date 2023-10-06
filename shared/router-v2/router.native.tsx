@@ -311,7 +311,7 @@ const useBarStyle = () => {
   const darkModePreference = C.useDarkModeState(s => s.darkModePreference)
   const isDarkMode = C.useDarkModeState(s => s.isDarkMode())
 
-  if (!darkModePreference || darkModePreference === 'system') {
+  if (darkModePreference === 'system') {
     return 'default'
   }
   return isDarkMode ? 'light-content' : 'dark-content'
@@ -329,7 +329,7 @@ const RNApp = React.memo(function RNApp() {
 
   const onReady = useInitialStateChangeAfterLinking(goodLinking, onStateChange, loggedIn)
 
-  const DEBUG_RNAPP_RENDER = __DEV__ && false
+  const DEBUG_RNAPP_RENDER = __DEV__ && (false as boolean)
   if (DEBUG_RNAPP_RENDER) {
     console.log('DEBUG RNApp render', {
       appState,

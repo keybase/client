@@ -49,15 +49,11 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
   }, [setReplyTo, toggleThreadSearch, ordinal])
 
   // Only swipeable if there is an onSwipeLeft handler
-  if (onSwipeLeft) {
-    return (
-      <SwipeTrigger actionWidth={100} onSwiped={onSwipeLeft} makeAction={makeAction}>
-        {inner}
-      </SwipeTrigger>
-    )
-  } else {
-    return inner
-  }
+  return (
+    <SwipeTrigger actionWidth={100} onSwiped={onSwipeLeft} makeAction={makeAction}>
+      {inner}
+    </SwipeTrigger>
+  )
 })
 
 const styles = Kb.Styles.styleSheetCreate(

@@ -45,7 +45,6 @@ const getUsernameToShow = (message: T.Chat.Message, pMessage: T.Chat.Message | u
   if (!pMessage) return message.author
 
   if (
-    !pMessage.type ||
     pMessage.author !== message.author ||
     pMessage.botUsername !== message.botUsername ||
     !authorIsCollapsible(message.type) ||
@@ -196,7 +195,7 @@ const useReduxFast = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordinal)
       const previous = leadingItem
       const pmessage = s.messageMap.get(previous)
       const m = s.messageMap.get(ordinal) ?? missingMessage
-      const showUsername = m && getUsernameToShow(m, pmessage, you)
+      const showUsername = getUsernameToShow(m, pmessage, you)
       const orangeLineAbove = orangeOrdinal == previous && previous > 0
       return {orangeLineAbove, ordinal, showUsername}
     })
@@ -212,10 +211,7 @@ const useRedux = (ordinal: T.Chat.Ordinal) => {
       const {author, timestamp} = m
       const {teamID, botAliases, teamType} = meta
       // TODO not reactive
-      const authorRoleInTeam = C.useTeamsState
-        .getState()
-        .teamIDToMembers.get(teamID ?? '')
-        ?.get(author)?.type
+      const authorRoleInTeam = C.useTeamsState.getState().teamIDToMembers.get(teamID)?.get(author)?.type
       const botAlias = botAliases[author] ?? ''
       const authorIsBot = meta.teamname
         ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
@@ -275,7 +271,7 @@ type Props = {
 
 const SeparatorConnector = React.memo(function SeparatorConnector(p: Props) {
   const {leadingItem, trailingItem} = p
-  const {ordinal, showUsername, orangeLineAbove} = useReduxFast(trailingItem ?? 0, leadingItem ?? 0)
+  const {ordinal, showUsername, orangeLineAbove} = useReduxFast(trailingItem, leadingItem ?? 0)
   return ordinal && (showUsername || orangeLineAbove) ? (
     <Separator ordinal={ordinal} showUsername={showUsername} orangeLineAbove={orangeLineAbove} />
   ) : null

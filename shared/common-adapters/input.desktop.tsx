@@ -12,7 +12,7 @@ type State = {
 
 class Input extends React.PureComponent<Props, State> {
   _input: HTMLTextAreaElement | HTMLInputElement | null = null
-  _isComposingIME = false
+  _isComposingIME: boolean = false
 
   state = {
     focused: false,
@@ -93,7 +93,7 @@ class Input extends React.PureComponent<Props, State> {
     }
 
     const n = this._input
-    if (!n || !n.style) {
+    if (!n?.style) {
       return
     }
 
@@ -190,7 +190,7 @@ class Input extends React.PureComponent<Props, State> {
     if (this.props.onKeyDown) {
       this.props.onKeyDown(e)
     }
-    if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
+    if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey) {
       if (e.altKey || e.ctrlKey) {
         // If multiline, inject a newline.
         if (this.props.multiline) {

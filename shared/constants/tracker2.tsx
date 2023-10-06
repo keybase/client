@@ -522,14 +522,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         const {blocker, blocks} = b
         const d = getDetails(s, blocker)
-        const toProcess = Object.entries(blocks ?? {}).map(
+        const toProcess = Object.entries(blocks).map(
           ([username, userBlocks]) => [username, getDetails(s, username), userBlocks || []] as const
         )
         toProcess.forEach(([username, det, userBlocks]) => {
           userBlocks.forEach(blockState => {
             if (blockState.blockType === T.RPCGen.UserBlockType.chat) {
               det.blocked = blockState.blocked
-            } else if (blockState.blockType === T.RPCGen.UserBlockType.follow) {
+            } else {
               det.hidFromFollowers = blockState.blocked
               blockState.blocked && d.followers && d.followers.delete(username)
             }

@@ -31,7 +31,7 @@ const GlobalError = () => {
       return null
     }
 
-    const message = daemonError?.message || 'Keybase is currently unreachable. Trying to reconnect you…'
+    const message = daemonError.message || 'Keybase is currently unreachable. Trying to reconnect you…'
     return (
       <Kb.Box style={styles.containerOverlay}>
         <Kb.Box style={styles.overlayRow}>

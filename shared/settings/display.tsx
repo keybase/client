@@ -29,7 +29,7 @@ const Display = () => {
             {supported && (
               <Kb.RadioButton
                 label="Respect system settings"
-                selected={darkModePreference === 'system' || darkModePreference === undefined}
+                selected={darkModePreference === 'system'}
                 onSelect={() => onSetDarkModePreference('system')}
               />
             )}

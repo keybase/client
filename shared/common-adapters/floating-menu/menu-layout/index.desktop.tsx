@@ -34,7 +34,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
         style={Styles.collapseStyles([styles.itemContainer, styleClickable])}
         onClick={() => {
           item.onClick?.()
-          if (this.props.closeOnClick && this.props.onHidden) {
+          if (this.props.closeOnClick) {
             this.props.onHidden()
           }
         }}

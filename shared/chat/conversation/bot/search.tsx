@@ -11,7 +11,7 @@ type Props = {
   teamID?: T.Teams.TeamID
 }
 
-const renderSectionHeader = ({section}: any) => {
+const renderSectionHeader = ({section}: {section: {title: string}}) => {
   return <Kb.SectionDivider label={section.title} />
 }
 
@@ -57,7 +57,7 @@ const SearchBotPopup = (props: Props) => {
 
   const botData: Array<T.RPCGen.FeaturedBot | string> =
     lastQuery.length > 0
-      ? botSearchResults?.get(lastQuery)?.bots.slice() ?? []
+      ? botSearchResults.get(lastQuery)?.bots.slice() ?? []
       : C.getFeaturedSorted(featuredBotsMap)
   if (!botData.length && !waiting) {
     botData.push(resultEmptyPlaceholder)

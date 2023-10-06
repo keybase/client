@@ -44,8 +44,8 @@ type UseSuggestorsProps = Pick<
   Props,
   'onChangeText' | 'suggestBotCommandsUpdateStatus' | 'suggestionOverlayStyle'
 > & {
-  suggestionListStyle: any
-  suggestionSpinnerStyle: any
+  suggestionListStyle: Kb.Styles.StylesCrossPlatform
+  suggestionSpinnerStyle: Kb.Styles.StylesCrossPlatform
   expanded: boolean
   inputRef: React.MutableRefObject<Kb.PlainInput | null>
   onKeyDown?: (evt: React.KeyboardEvent) => void
@@ -76,7 +76,8 @@ export const useSyncInput = (p: UseSyncInputProps) => {
       const input = inputRef.current
       const selection = input.getSelection()
       const text = lastTextRef.current
-      if (!selection || selection.start === null || text === undefined) {
+      // eslint-disable-next-line
+      if (!selection || selection.start === null) {
         return null
       }
       const upToCursor = text.substring(0, selection.start)
@@ -147,7 +148,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
 
   const triggerTransform = React.useCallback(
     (maybeValue: any, final = true) => {
-      if (!inputRef?.current || !active) {
+      if (!inputRef.current || !active) {
         return
       }
       const value = maybeValue ?? selectedItemRef.current
@@ -281,7 +282,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const onChangeText = React.useCallback(
     (text: string) => {
       lastTextRef.current = text
-      onChangeTextProps?.(text)
+      onChangeTextProps(text)
       checkTrigger()
     },
     [onChangeTextProps, checkTrigger]
@@ -331,6 +332,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     case 'users':
       content = <Users.UsersList {...listProps} />
       break
+    default:
   }
   const popup = !!content && (
     <Popup suggestionOverlayStyle={suggestionOverlayStyle} setInactive={setInactive} inputRef={inputRef}>

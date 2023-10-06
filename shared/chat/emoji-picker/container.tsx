@@ -116,10 +116,7 @@ const WrapperMobile = (props: Props) => {
   const setFilterTextChangedThrottled = Container.useThrottledCallback(setFilter, 200)
   const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const [width, setWidth] = React.useState(0)
-  const onLayout = React.useCallback(
-    (evt: LayoutEvent) => evt.nativeEvent && setWidth(evt.nativeEvent.layout.width),
-    [setWidth]
-  )
+  const onLayout = React.useCallback((evt: LayoutEvent) => setWidth(evt.nativeEvent.layout.width), [setWidth])
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -270,10 +267,10 @@ export const EmojiPickerDesktop = (props: Props) => {
           ) : (
             <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
               <Kb.Text type="BodyBig" lineClamp={1}>
-                {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name ?? '')}
+                {startCase(hoveredEmoji.name?.toLowerCase() ?? hoveredEmoji.short_name)}
               </Kb.Text>
               <Kb.Text type="BodySmall" lineClamp={1}>
-                {hoveredEmoji.short_names?.map(sn => `:${sn}:`).join('  ')}
+                {hoveredEmoji.short_names.map(sn => `:${sn}:`).join('  ')}
               </Kb.Text>
             </Kb.Box2>
           )}
@@ -356,9 +353,6 @@ const Routable = (props: RoutableProps) => {
   const updatePickerMap = usePickerState(s => s.dispatch.updatePickerMap)
   const onPickAction = React.useCallback(
     (emojiStr: string, renderableEmoji: RenderableEmoji) => {
-      if (!pickKey) {
-        throw new Error('Missing pickKey')
-      }
       updatePickerMap(pickKey, {emojiStr, renderableEmoji})
     },
     [updatePickerMap, pickKey]

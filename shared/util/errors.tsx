@@ -50,10 +50,6 @@ export function logError(error: any) {
 }
 
 export const niceError = (e: RPCError) => {
-  if (!e) {
-    return ''
-  }
-
   switch (e.code) {
     case T.RPCGen.StatusCode.scnotfound:
       return "Sorry, can't find that username"
@@ -94,7 +90,7 @@ export const niceError = (e: RPCError) => {
 }
 
 function isRPCError(error: RPCError | Error): error is RPCError {
-  return error && typeof (error as RPCError).code === 'number'
+  return typeof (error as RPCError).code === 'number'
 }
 
 export function isEOFError(error: RPCError | Error) {

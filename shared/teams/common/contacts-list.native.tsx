@@ -75,7 +75,7 @@ type ContactRowProps = {
 }
 const ContactRow = React.memo(
   ({item, disabled, disabledTooltip, index, onSelect, selected}: ContactRowProps) => {
-    const topText = item.name ?? item.valueFormatted ?? item.value
+    const topText = item.name || item.valueFormatted || item.value
     const bottomText = item.name ? item.valueFormatted ?? item.value : undefined
     const onCheck = (check: boolean) => onSelect(item, check)
     const listItem = (

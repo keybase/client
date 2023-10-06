@@ -20,7 +20,7 @@ const AvatarUploadWrapper = (props: Props) => {
   const onChooseNewAvatar = React.useCallback(async () => {
     try {
       const result = await launchImageLibraryAsync('photo')
-      if (!result.canceled && (result.assets?.length ?? 0) > 0) {
+      if (!result.canceled && result.assets.length > 0) {
         setSelectedImage(result.assets[0])
       } else if (!props.wizard) {
         navUp()

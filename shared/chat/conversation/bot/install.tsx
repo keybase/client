@@ -86,12 +86,12 @@ const InstallBotPopup = (props: Props) => {
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
 
   const readOnly = C.useTeamsState(s =>
-    meta?.teamname ? !C.getCanPerformByID(s, meta.teamID).manageBots : false
+    meta.teamname ? !C.getCanPerformByID(s, meta.teamID).manageBots : false
   )
   const settings = C.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
   let teamname: string | undefined
   let teamID: T.Teams.TeamID = T.Teams.noTeamID
-  if (meta?.teamname) {
+  if (meta.teamname) {
     teamID = meta.teamID
     teamname = meta.teamname
   }
@@ -266,7 +266,7 @@ const InstallBotPopup = (props: Props) => {
               onCheck={() => setInstallWithMentions(!installWithMentions)}
             />
           </Kb.Box2>
-          {teamID && teamname && channelMetas && (
+          {teamID && teamname && (
             <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
               <Kb.Text type="BodyBig">In these channels:</Kb.Text>
               <Kb.DropdownButton
@@ -280,8 +280,7 @@ const InstallBotPopup = (props: Props) => {
                     <Kb.Text type="BodySemibold">
                       {teamname}{' '}
                       {installInConvs.length === 1
-                        ? // @ts-ignore
-                          `(#${channelMetas.get(installInConvs[0])?.channelname ?? ''})`
+                        ? `(#${channelMetas.get(installInConvs[0] ?? '')?.channelname ?? ''})`
                         : `(${installInConvs.length > 0 ? installInConvs.length : 'all'} channels)`}
                     </Kb.Text>
                   </Kb.Box2>
@@ -311,7 +310,7 @@ const InstallBotPopup = (props: Props) => {
     </Kb.Box2>
   )
 
-  const channelPickerContent = channelPickerScreen && teamID && teamname && channelMetas && (
+  const channelPickerContent = channelPickerScreen && teamID && teamname && (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <ChannelPicker
         channelMetas={channelMetas}
@@ -532,7 +531,7 @@ const CommandsLabel = (props: CommandsLabelProps) => {
       )
     })
   }
-  const punct = (props.commands?.commands?.length ?? 0) > 0 ? ':' : '.'
+  const punct = (props.commands?.commands.length ?? 0) > 0 ? ':' : '.'
   return (
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
       <Kb.Text type="Body">{`messages that begin with bot commands${punct}`}</Kb.Text>
@@ -573,7 +572,7 @@ const PermsList = (props: PermsListProps) => {
           {props.settings.convs && props.channelMetas && (
             <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
               <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
-              {props.settings.convs?.map(convID => (
+              {props.settings.convs.map(convID => (
                 <Kb.Text type="Body" key={convID}>{`• #${
                   props.channelMetas?.get(convID)?.channelname ?? ''
                 }`}</Kb.Text>

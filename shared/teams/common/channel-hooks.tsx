@@ -58,7 +58,7 @@ export const useAllChannelMetas = (
               setChannelMetas(
                 new Map(
                   convs
-                    ?.map(conv => ChatConstants.inboxUIItemToConversationMeta(conv))
+                    .map(conv => ChatConstants.inboxUIItemToConversationMeta(conv))
                     .reduce((arr, a) => {
                       if (a) {
                         arr.push([a.conversationIDKey, a])

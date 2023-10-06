@@ -2,7 +2,7 @@ import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
-import * as T from '../../../constants/types'
+import type * as T from '../../../constants/types'
 import {memoize} from '../../../util/memoize'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import {ModalTitle} from '../../common'
@@ -24,7 +24,7 @@ const splitInviteLinks = memoize(
 )
 
 const InviteHistory = (props: Props) => {
-  const teamID = props.teamID ?? T.Teams.noTeamID
+  const teamID = props.teamID
   useTeamDetailsSubscribe(teamID)
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const loading = !teamDetails

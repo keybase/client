@@ -18,9 +18,7 @@ const Avatar = (props: Props) => {
   const avatarSizeClasName = `avatar-${props.isTeam ? 'team' : 'user'}-size-${props.size}`
 
   const scaledAvatarRatio = props.size / AVATAR_SIZE
-  const avatarScaledWidth =
-    props.crop && props.crop.scaledWidth ? props.crop.scaledWidth * scaledAvatarRatio : null
-
+  const avatarScaledWidth = props.crop?.scaledWidth ? props.crop.scaledWidth * scaledAvatarRatio : null
   return (
     <div
       className={Styles.classNames('avatar', avatarSizeClasName)}
@@ -54,27 +52,24 @@ const Avatar = (props: Props) => {
           }}
         />
       )}
-      {!!props.url &&
-        props.crop &&
-        props.crop?.offsetLeft !== undefined &&
-        props.crop?.offsetTop !== undefined && (
-          <img
-            loading="lazy"
-            className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
-            style={{
-              backgroundImage: props.url,
-              backgroundPositionX: props.crop?.offsetLeft * scaledAvatarRatio,
-              backgroundPositionY: props.crop?.offsetTop * scaledAvatarRatio,
-              backgroundSize: `${avatarScaledWidth}px auto`,
-              opacity:
-                props.opacity === undefined || props.opacity === 1
-                  ? props.blocked
-                    ? 0.1
-                    : undefined
-                  : props.opacity,
-            }}
-          />
-        )}
+      {!!props.url && props.crop?.offsetLeft !== undefined && props.crop.offsetTop !== undefined && (
+        <img
+          loading="lazy"
+          className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
+          style={{
+            backgroundImage: props.url,
+            backgroundPositionX: props.crop.offsetLeft * scaledAvatarRatio,
+            backgroundPositionY: props.crop.offsetTop * scaledAvatarRatio,
+            backgroundSize: `${avatarScaledWidth}px auto`,
+            opacity:
+              props.opacity === undefined || props.opacity === 1
+                ? props.blocked
+                  ? 0.1
+                  : undefined
+                : props.opacity,
+          }}
+        />
+      )}
       {(!!props.borderColor || props.isTeam) && (
         <div
           style={Styles.collapseStyles([

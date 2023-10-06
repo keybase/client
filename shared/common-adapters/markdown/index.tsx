@@ -8,7 +8,7 @@ import Emoji, {type Props as EmojiProps} from '../emoji'
 import {emojiIndexByName, emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
 import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles, serviceOnlyOutput} from './react'
 import type * as T from '../../constants/types'
-import {StylesTextCrossPlatform, LineClampType} from '../../common-adapters/text'
+import type {StylesTextCrossPlatform, LineClampType} from '../../common-adapters/text'
 
 type MarkdownComponentType =
   | 'inline-code'
@@ -81,32 +81,47 @@ export type Props = {
   virtualText?: boolean // desktop only, see text.desktop
 }
 
-const serviceBeginDecorationTag = '\\$\\>kb\\$'
-const serviceEndDecorationTag = '\\$\\<kb\\$'
+const serviceBeginDecorationTag = /\$>kb\$/
+const serviceEndDecorationTag = /\$<kb\$/
 const serviceDecorationRegex = new RegExp(
-  `^${serviceBeginDecorationTag}(((?!${serviceEndDecorationTag}).)*)${serviceEndDecorationTag}`
+  `^${serviceBeginDecorationTag.source}(((?!${serviceEndDecorationTag.source}).)*)${serviceEndDecorationTag.source}`
 )
 
 const serviceDecorationMatcher = SimpleMarkdown.inlineRegex(serviceDecorationRegex)
 
-// Only allow a small set of characters before a url
-const textMatch = SimpleMarkdown.anyScopeRegex(
-  new RegExp(
-    // [\s\S]+? any char, at least 1 - lazy
-    // (?= // Positive look ahead. It should have these chars ahead
-    //     // This is kinda weird, but for the regex to terminate it should have these cases be true ahead of its termination
-    //   [^0-9A-Za-z\s] not a character in this set. So don't terminate if there is still more normal chars to eat
-    //   | [\u00c0-\uffff] OR any unicode char. If there is a weird unicode ahead, we terminate
-    //   | [\w-_.]+@ // OR something that looks like it starts an email. If there is an email looking thing ahead stop here.
-    //   | (\w+\.)+(${commonTlds.join('|')}) // OR there is a url with a common tld ahead. Stop if there's a common url ahead
-    //   | \w+:\S // OR there's letters before a : so stop here.
-    //   | $ // OR we reach the end of the line
-    // )
-    `^[\\s\\S]+?(?=[^0-9A-Za-z\\s]|[\\u00c0-\\uffff]|[\\w-_.]+@|(\\w+\\.)+(${commonTlds.join(
-      '|'
-    )})|\\n|\\w+:\\S|$)`
+const makeTextRegexp = () => {
+  const anyCharOne = /^[\s\S]+?/ // [\s\S]+? any char, at least 1 - lazy
+  // (?= // Positive look ahead. It should have these chars ahead
+  // This is kinda weird, but for the regex to terminate it should have these cases be true ahead of its termination
+
+  // [^0-9A-Za-z\s] not a character in this set. So don't terminate if there is still more normal chars to eat
+  const notNormal = /[^0-9A-Za-z\s]/
+  // [\u00c0-\uffff] OR any unicode char. If there is a weird unicode ahead, we terminate
+  const anyUnicode = /[\u00c0-\uffff]/
+  // [\w-_.]+@ // OR something that looks like it starts an email. If there is an email looking thing ahead stop here.
+  const emaily = /[\w-_.]+@/
+  // (\w+\.)+(${commonTlds.join('|')}) // OR there is a url with a common tld ahead. Stop if there's a common url ahead
+  const tldsPrefix = /(\w+\.)+/
+  const tldsPosfix = new RegExp(`(${commonTlds.join('|')})`)
+  const tlds = new RegExp([tldsPrefix.source, tldsPosfix.source].join(''))
+  const newline = /\n/
+  // | \w+:\S // OR there's letters before a : so stop here.
+  const lettersColon = /\w+:\S/
+  const end = /$/ //   | $ // OR we reach the end of the line
+  return new RegExp(
+    `${anyCharOne.source}(?=${[
+      notNormal.source,
+      anyUnicode.source,
+      emaily.source,
+      tlds.source,
+      newline.source,
+      lettersColon.source,
+      end.source,
+    ].join('|')})`
   )
-)
+}
+// Only allow a small set of characters before a url
+const textMatch = SimpleMarkdown.anyScopeRegex(makeTextRegexp())
 
 const wrapInParagraph = (
   parse: SimpleMarkdown.Parser,
@@ -375,7 +390,7 @@ const isAllEmoji = (ast: Array<SimpleMarkdown.SingleASTNode>) => {
   const trimmed = ast.filter(n => n.type !== 'newline')
   // Only 1 paragraph
   // @ts-ignore
-  if (trimmed.length === 1 && trimmed[0]?.content && trimmed[0]?.content?.some) {
+  if (trimmed.length === 1 && trimmed[0]?.content?.some) {
     // Is something in the content not an emoji?
     // @ts-ignore
     return !trimmed[0]?.content?.some(n => n.type !== 'emoji' && n.type !== 'newline')

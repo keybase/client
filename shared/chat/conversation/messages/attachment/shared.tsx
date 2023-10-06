@@ -77,7 +77,7 @@ export const Title = () => {
   const ordinal = React.useContext(OrdinalContext)
   const title = C.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
-    return m?.type === 'attachment' ? m.decoratedText?.stringValue() ?? m.title ?? '' : ''
+    return m?.type === 'attachment' ? m.decoratedText?.stringValue() ?? m.title : ''
   })
 
   const styleOverride = React.useMemo(

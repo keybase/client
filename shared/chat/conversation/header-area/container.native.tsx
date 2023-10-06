@@ -85,7 +85,7 @@ export default HeaderBranchContainer
 
 const BadgeHeaderLeftArray = ({...rest}: any) => {
   const visiblePath = C.getVisiblePath()
-  const onTopOfInbox = visiblePath?.[(visiblePath.length ?? 0) - 2]?.name === 'chatRoot'
+  const onTopOfInbox = visiblePath[visiblePath.length - 2]?.name === 'chatRoot'
   const badgeCountsChanged = C.useChatState(s => s.badgeCountsChanged)
   const conversationIDKey = C.useChatContext(s => s.id)
   const badgeNumber = React.useMemo(() => {

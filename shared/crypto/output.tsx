@@ -49,7 +49,7 @@ export const SignedSender = (props: SignedSenderProps) => {
   const space = Kb.Styles.isMobile ? '' : ' '
   const signedByText = `Signed by ${isSelfSigned ? `${space}you` : ''}`
 
-  if (!outputStatus || (outputStatus && outputStatus === 'error')) {
+  if (!outputStatus || outputStatus === 'error') {
     return null
   }
 
@@ -75,11 +75,7 @@ export const SignedSender = (props: SignedSenderProps) => {
             <Kb.Avatar key="avatar" size={avatarSize} username={signedByUsername.stringValue()} />
 
             {isSelfSigned ? (
-              <Kb.Box2
-                direction="horizontal"
-                gap={isSelfSigned ? 'xtiny' : 'xsmall'}
-                style={styles.signedByText}
-              >
+              <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.signedByText}>
                 <Kb.Text key="signedByUsername" type="BodySmall">
                   {signedByText}
                 </Kb.Text>
@@ -100,7 +96,7 @@ export const SignedSender = (props: SignedSenderProps) => {
                   colorYou={true}
                 />
                 {signedByFullname?.stringValue() ? (
-                  <Kb.Text type="BodySmall">{signedByFullname?.stringValue()}</Kb.Text>
+                  <Kb.Text type="BodySmall">{signedByFullname.stringValue()}</Kb.Text>
                 ) : null}
               </Kb.Box2>
             )}
@@ -226,7 +222,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const setHideToastTimeout = Kb.useTimeout(() => setShowingToast(false), 1500)
 
   const copy = () => {
-    if (!output) return
+    if (!output.stringValue()) return
     setShowingToast(true)
     onCopyOutput()
   }

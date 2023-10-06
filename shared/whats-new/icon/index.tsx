@@ -92,7 +92,7 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
   const iconColor = color ? color : baseColor
   const popupVisibleColor = color || Kb.Styles.globalColors.black
   const onClick = React.useCallback(() => {
-    popupVisible ? setPopupVisible(false) : !!attachToRef && setPopupVisible(true)
+    popupVisible ? setPopupVisible(false) : !!attachToRef.current && setPopupVisible(true)
   }, [popupVisible, setPopupVisible, attachToRef])
   return (
     <>
