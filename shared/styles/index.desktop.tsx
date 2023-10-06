@@ -9,7 +9,7 @@ import * as Path from '../util/path'
 import isArray from 'lodash/isArray'
 import shallowEqual from 'shallowequal'
 
-type _Elem = Object | null | false | void
+type _Elem = Object | null | false
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
 // slightly extended to support "isFoo && myStyle".
 type CollapsibleStyle = _Elem | ReadonlyArray<_Elem>
@@ -103,21 +103,14 @@ export const transitionColor = () => ({
   transition: 'background 0.2s linear',
 })
 
-export const backgroundURL = (...to: Array<string>) => {
-  const goodPath = [...to]
-
-  if (goodPath.length) {
-    const last = goodPath.at(-1) ?? ''
-    const ext = Path.extname(last)
-    goodPath[goodPath.length - 1] = Path.basename(last, ext) ?? ''
-    const guiModePath = `${isDarkMode() ? 'dark-' : ''}${goodPath}`
-    const images = [1, 2, 3].map(
-      mult => `url('${getAssetPath('images', guiModePath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
-    )
-    return `-webkit-image-set(${images.join(', ')})`
-  }
-
-  return ''
+export const backgroundURL = (url: string) => {
+  const ext = Path.extname(url)
+  const goodPath = Path.basename(url, ext) ?? ''
+  const guiModePath = `${isDarkMode() ? 'dark-' : ''}${goodPath}`
+  const images = [1, 2, 3].map(
+    mult => `url('${getAssetPath('images', guiModePath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
+  )
+  return `-webkit-image-set(${images.join(', ')})`
 }
 
 const fixScrollbars = () => {

@@ -70,7 +70,6 @@ export declare const mobileStyles: {}
 export declare const fileUIName: string
 export declare const borderRadius: number
 export declare const hairlineWidth: number
-export declare function backgroundURL(...path: Array<string>): string
 
 type NamedStyles = {[key: string]: CSS._StylesCrossPlatform}
 // order important!

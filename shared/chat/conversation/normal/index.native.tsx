@@ -68,7 +68,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
   const injectIntoInput = C.useChatContext(s => s.dispatch.injectIntoInput)
   const onDropped = React.useCallback(
     (items: DropItems) => {
-      let {attach, texts} = items.reduce(
+      const {attach: _attach, texts} = items.reduce(
         (obj, i) => {
           const {texts, attach} = obj
           if (i.content) {
@@ -80,6 +80,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
         },
         {attach: new Array<{path: string}>(), texts: new Array<string>()}
       )
+      let attach = _attach
 
       // special case of one text and attachment, if its not a url
       if (texts.length === 1 && attach.length === 1) {

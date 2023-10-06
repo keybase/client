@@ -84,16 +84,19 @@ export const TextInput = (props: TextProps) => {
     inputRef.current?.focus()
   }
 
-  const onOpenFile = async () => {
-    // On Windows and Linux only files will be able to be selected. Their native pickers don't allow for selecting both directories and files at once.
-    // To set a directory as input, a user will need to drag the directory into Keybase.
-    const filePaths = await pickFiles({
-      allowDirectories: C.isDarwin,
-      buttonLabel: 'Select',
-    })
-    if (!filePaths.length) return
-    const path = filePaths[0]!
-    onSetFile(path)
+  const onOpenFile = () => {
+    const f = async () => {
+      // On Windows and Linux only files will be able to be selected. Their native pickers don't allow for selecting both directories and files at once.
+      // To set a directory as input, a user will need to drag the directory into Keybase.
+      const filePaths = await pickFiles({
+        allowDirectories: C.isDarwin,
+        buttonLabel: 'Select',
+      })
+      if (!filePaths.length) return
+      const path = filePaths[0]!
+      onSetFile(path)
+    }
+    C.ignorePromise(f())
   }
 
   // Styling

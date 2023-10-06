@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as C from '../../constants'
 import clamp from 'lodash/clamp'
 import type {Props} from '.'
 import {ModalTitle} from '../../teams/common'
@@ -89,16 +90,19 @@ const EditAvatar = (p: Props) => {
   const filePickerOpen = () => {
     fileRef.current?.click()
   }
-  const pickFile = async () => {
-    setSerror(false)
-    setLoading('loading')
-    const img = await getFile(fileRef.current?.files ?? undefined)
-    if (img) {
-      setImageSource(img)
+  const pickFile = () => {
+    const f = async () => {
+      setSerror(false)
+      setLoading('loading')
+      const img = await getFile(fileRef.current?.files ?? undefined)
+      if (img) {
+        setImageSource(img)
+      }
+      if (fileRef.current) {
+        fileRef.current.value = ''
+      }
     }
-    if (fileRef.current) {
-      fileRef.current.value = ''
-    }
+    C.ignorePromise(f())
   }
 
   return (

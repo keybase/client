@@ -1,8 +1,9 @@
 import './pending-background.css'
 import * as Kb from '../../../../../common-adapters'
 import type {Props} from '.'
+import {backgroundURL} from '../../../../../styles/index.desktop'
 
-const patternImage = Kb.Styles.backgroundURL('payment-pattern-80.png')
+const patternImage = backgroundURL('payment-pattern-80.png')
 
 const PendingBackground = (p: Props) => {
   const {children, style} = p

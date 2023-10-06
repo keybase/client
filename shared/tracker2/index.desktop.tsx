@@ -98,6 +98,8 @@ const getButtons = (props: Props) => {
           onClick={props.onReload}
         />,
       ]
+    default:
+      break
   }
   return []
 }

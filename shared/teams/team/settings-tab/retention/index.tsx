@@ -150,6 +150,7 @@ const RetentionPicker = (p: Props) => {
                   case 'explode':
                     title = `Team default (${teamPolicy.title})`
                     break
+                  default:
                 }
                 return [
                   {
@@ -335,6 +336,7 @@ const policyToLabel = (p?: T.Retention.RetentionPolicy, parent?: T.Retention.Ret
             text = `Team default (${parent.title})`
             timer = parent.type === 'explode'
             break
+          default:
         }
     }
   } else {
@@ -408,8 +410,6 @@ const policyToExplanation = (
           case 'explode':
             behavior = `explode after ${parent.title}`
             break
-          default:
-            throw new Error(`Impossible policy type encountered: ${parent.type}`)
         }
         exp = `Messages in this ${convType} will ${behavior}, which is the team default.`
       }
@@ -423,8 +423,6 @@ const policyToExplanation = (
     case 'explode':
       exp = `Admins have set messages in this ${convType} to explode after ${p.title}.`
       break
-    default:
-      throw new Error(`Impossible policy type encountered: ${p.type}`)
   }
   return exp
 }

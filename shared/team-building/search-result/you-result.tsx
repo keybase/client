@@ -29,6 +29,7 @@ const YouResult = React.memo(function YouResult(props: ResultProps) {
       bottomRow = <Kb.Text type="BodySmall">Write secure notes to yourself</Kb.Text>
       onAddOverride.onAdd = onSelfChat
       break
+    default:
   }
 
   return <CommonResult {...props} {...onAddOverride} rowStyle={styles.rowContainer} bottomRow={bottomRow} />

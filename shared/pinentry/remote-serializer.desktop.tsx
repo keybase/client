@@ -24,9 +24,12 @@ const initialState: DeserializeProps = {
 export const serialize = (p: ProxyProps): Partial<SerializeProps> => p
 
 export const deserialize = (
-  state: DeserializeProps = initialState,
+  _state: DeserializeProps | undefined,
   props: SerializeProps
-): DeserializeProps => ({
-  ...state,
-  ...props,
-})
+): DeserializeProps => {
+  const state = _state ?? initialState
+  return {
+    ...state,
+    ...props,
+  }
+}

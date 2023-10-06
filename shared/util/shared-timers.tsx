@@ -71,7 +71,7 @@ class Timers {
       if (i >= 0) {
         this._refs[key]!.splice(i, 1)
         if (!this._refs[key]!.length) {
-          delete this._refs[key]
+          delete this._refs[key] // eslint-disable-line
           this._removeTimer(key)
         }
       }
@@ -93,7 +93,7 @@ class Timers {
     }
     const refs = this._refs[key]!
     refs.forEach(r => r.fn())
-    delete this._refs[key]
+    delete this._refs[key] // eslint-disable-line
     this._removeTimer(key)
   }
 }

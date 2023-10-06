@@ -219,8 +219,6 @@ const rolesMetaInfo = (infoForRole: Role<true>): RolesMetaInfo => {
         cants: [],
         icon: null,
       }
-    default:
-      throw new Error(`Unexpected role: ${infoForRole}`)
   }
 }
 

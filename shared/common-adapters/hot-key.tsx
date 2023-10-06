@@ -22,7 +22,7 @@ export function useHotKey(keys: Array<string> | string, cb: (key: string) => voi
     // actually bind
     bind(
       keys,
-      (e: React.BaseSyntheticEvent, key: string) => {
+      (e: {stopPropagation: () => void}, key: string) => {
         e.stopPropagation()
         key && cb(key)
       },
@@ -41,9 +41,9 @@ export function useHotKey(keys: Array<string> | string, cb: (key: string) => voi
           if (last) {
             bind(
               key,
-              (e: React.BaseSyntheticEvent, k: string) => {
+              (e: {stopPropagation: () => void}, key: string) => {
                 e.stopPropagation()
-                k && last(k)
+                key && last(key)
               },
               'keydown'
             )

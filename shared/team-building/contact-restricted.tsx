@@ -38,6 +38,7 @@ export const ContactRestricted = (props: Props) => {
       description =
         'Their contact restrictions prevent you from adding them. Contact them outside Keybase to proceed.'
       break
+    default:
   }
   return (
     <Kb.Modal

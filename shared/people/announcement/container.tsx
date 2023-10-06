@@ -62,6 +62,7 @@ export default (ownProps: OwnProps) => {
       case T.RPCGen.AppLinkType.teams:
         switchTab(C.teamsTab)
         break
+      default:
     }
     dismissAnnouncement(id)
     loadPeople(true, 10)

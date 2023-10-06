@@ -16,12 +16,15 @@ const Screenprotector = () => {
       .catch(() => {})
   })
 
-  const changeSecureFlagOption = async (nextValue: boolean) => {
-    setSecureFlag(nextValue)
-    const success = await setSecureFlagSetting(nextValue)
-    if (success && isMounted()) {
+  const changeSecureFlagOption = (nextValue: boolean) => {
+    const f = async () => {
       setSecureFlag(nextValue)
+      const success = await setSecureFlagSetting(nextValue)
+      if (success && isMounted()) {
+        setSecureFlag(nextValue)
+      }
     }
+    C.ignorePromise(f())
   }
 
   if (!isAndroid) {

@@ -34,6 +34,7 @@ export const isValidLink = (link: string) => {
           return argArrayGood(parts, 2) || argArrayGood(parts, 3)
         case 'show':
           return argArrayGood(parts, 2)
+        default:
       }
       return false
     case 'private':
@@ -54,9 +55,9 @@ export const isValidLink = (link: string) => {
       return argArrayGood(parts, 1)
     case 'settingsPushPrompt':
       return true
+    default:
+      return false
   }
-
-  return false
 }
 
 type OptionsType = {

@@ -338,13 +338,13 @@ const getAdapterProps = (
         metaOneType: 'BodySemibold',
         titleType: 'HeaderBig',
       }
-  }
-  // default
-  return {
-    iconSize: 64,
-    metaMargin: Styles.globalMargins.tiny,
-    metaOneType: 'BodySemibold',
-    titleType: 'BodyBold',
+    default:
+      return {
+        iconSize: 64,
+        metaMargin: Styles.globalMargins.tiny,
+        metaOneType: 'BodySemibold',
+        titleType: 'BodyBold',
+      }
   }
 }
 

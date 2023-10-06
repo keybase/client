@@ -269,7 +269,9 @@ ${Object.keys(rules)
 
 const fontsGeneratedError = (error: unknown) => {
   console.log(
-    `webfonts-generator failed to generate ttf iconfont file. Check that all svgs exist and the destination directory exits. ${error}`
+    `webfonts-generator failed to generate ttf iconfont file. Check that all svgs exist and the destination directory exits. ${String(
+      error
+    )}`
   )
   process.exit(1)
 }

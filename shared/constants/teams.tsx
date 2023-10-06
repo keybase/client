@@ -565,6 +565,8 @@ export const serviceRetentionPolicyToRetentionPolicy = (
       }
       case T.RPCChat.RetentionPolicyType.inherit:
         retentionPolicy = makeRetentionPolicy({type: 'inherit'})
+        break
+      default:
     }
   }
   return retentionPolicy
@@ -2048,7 +2050,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    inviteToTeamByPhone: (teamID, teamname, role, phoneNumber, fullName = '', loadingKey) => {
+    inviteToTeamByPhone: (teamID, teamname, role, phoneNumber, fullName, loadingKey) => {
       const f = async () => {
         const generateSMSBody = (teamname: string, seitan: string): string => {
           // seitan is 18chars

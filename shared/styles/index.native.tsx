@@ -7,7 +7,7 @@ import {isDarkMode} from './dark-mode'
 import {isIOS, isTablet} from '../constants/platform'
 import type {StylesCrossPlatform} from './css'
 
-type _Elem = Object | null | false | void
+type _Elem = Object | null | false
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
 // slightly extended to support "isFoo && myStyle".
 export type CollapsibleStyle = _Elem | ReadonlyArray<_Elem>
@@ -152,7 +152,6 @@ export const collapseStyles = (
   return styles as any
 }
 export const transition = () => ({})
-export const backgroundURL = () => ({})
 
 export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '../constants/platform'
 export * from './shared'

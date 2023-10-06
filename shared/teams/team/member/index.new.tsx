@@ -429,9 +429,8 @@ const NodeInRow = (props: NodeInRowProps) => {
   )
 
   const isSmallTeam = !C.useChatState(s => ChatConstants.isBigTeam(s, props.node.teamID))
-
   const channelsJoined = isSmallTeam
-    ? []
+    ? ''
     : Array.from(channelMetas)
         .map(([_, {channelname}]) => channelname)
         .join(', #')

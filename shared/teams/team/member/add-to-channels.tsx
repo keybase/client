@@ -270,7 +270,7 @@ const AddToChannels = (props: Props) => {
 
 const HeaderRow = React.memo(function HeaderRow(p: {
   mode: 'others' | 'self'
-  onCreate: () => false | void
+  onCreate: () => void
   onSelectAll?: () => void
   onSelectNone?: () => void
 }) {

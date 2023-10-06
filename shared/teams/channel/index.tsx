@@ -221,6 +221,8 @@ const Channel = (props: OwnProps) => {
           <SettingsList isPreview={isPreview} renderTabs={() => undefined} commonSections={[]} />
         ))
       )
+      break
+    default:
   }
 
   const renderSectionHeader = ({section}: {section: {title?: string}}) =>

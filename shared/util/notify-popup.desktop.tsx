@@ -3,11 +3,13 @@ import debounce from 'lodash/debounce'
 
 const rateLimit: {[K in string]: () => void} = {}
 const rateLimitPayloads: {
-  [K in string]: {
-    title: string
-    opts?: Object
-    onClick?: () => void
-  }
+  [K in string]:
+    | {
+        title: string
+        opts?: Object
+        onClick?: () => void
+      }
+    | undefined
 } = {}
 
 function NotifyPopup(
@@ -32,7 +34,7 @@ function NotifyPopup(
       rateLimit[key] = debounce(() => {
         if (rateLimitPayloads[key]) {
           const {title, opts, onClick} = rateLimitPayloads[key] ?? {}
-          delete rateLimitPayloads[key]
+          rateLimitPayloads[key] = undefined
           const notification = new Notification(title ?? '', {...opts, silent: !sound})
           notification.onclick = onClick ?? null
           notification.onclose = onClose ?? null
