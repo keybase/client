@@ -5,7 +5,7 @@ import {CanFixOverdrawContext, DarkModeContext} from '../../styles'
 import './style.css'
 
 // if we want to load the read profiler before the app is loaded
-const deferLoadingApp = __DEV__ && false
+const deferLoadingApp = __DEV__ && (false as boolean)
 
 const Root = ({children}: any) => {
   const darkMode = C.useDarkModeState(s => s.isDarkMode())
@@ -32,5 +32,4 @@ const WaitingRoot = (props: any) => {
 
   return <Root {...props} />
 }
-// eslint-disable-next-line
 export default deferLoadingApp ? WaitingRoot : Root
