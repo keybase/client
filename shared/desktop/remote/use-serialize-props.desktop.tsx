@@ -36,7 +36,7 @@ export default function useSerializeProps<ProxyProps extends {}, SerializeProps 
           // @ts-ignore
           if (toSend[k] === undefined || JSON.stringify(toSend[k]) === JSON.stringify(lastToSend[k])) {
             // @ts-ignore
-            delete toSend[k]
+            delete toSend[k] // eslint-disable-line
           }
         })
 

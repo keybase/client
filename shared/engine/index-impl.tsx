@@ -264,7 +264,7 @@ class Engine {
       reason: '[-session]',
       type: 'engineInternal',
     })
-    delete this._sessionsMap[String(session.getId())]
+    delete this._sessionsMap[String(session.getId())] // eslint-disable-line
     this._deadSessionsMap[String(session.getId())] = true
   }
 

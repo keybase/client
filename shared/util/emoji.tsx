@@ -10,9 +10,10 @@ export {type EmojiData, emojiNameMap, skinTones} from '../util/emoji-shared'
 const categorized = groupBy(emojidata, 'category')
 const sorted: typeof categorized = {}
 for (const cat in categorized) {
-  sorted[cat] = categorized[cat]!.sort((a, b) => a.sort_order - b.sort_order)
+  if (cat && cat !== 'undefined') {
+    sorted[cat] = categorized[cat]!.sort((a, b) => a.sort_order - b.sort_order)
+  }
 }
-delete sorted['undefined']
 export const categoryOrder = [
   'Smileys & Emotion',
   'Animals & Nature',
