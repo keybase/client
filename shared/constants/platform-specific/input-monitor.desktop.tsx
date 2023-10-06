@@ -47,6 +47,7 @@ class InputMonitor {
       case 'appInactive':
         this.unlistenForMouseKeyboard()
         break
+      default:
     }
   }
   private enterState = (next: State) => {

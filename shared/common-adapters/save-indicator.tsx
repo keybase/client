@@ -66,44 +66,32 @@ const computeNextState = (props: Props, state: State, now: Date): null | SaveSta
       if (state.saving) {
         return 'saving'
       }
-
       return null
-
     case 'saving':
       if (state.saving) {
         return null
       }
-
       return 'savingHysteresis'
-
     case 'savingHysteresis': {
       if (state.saving) {
         return 'saving'
       }
-
       const timeToJustSaved = state.lastSave.getTime() + props.minSavingTimeMs - now.getTime()
       if (timeToJustSaved > 0) {
         return timeToJustSaved
       }
-
       return 'justSaved'
     }
-
     case 'justSaved': {
       if (state.saving) {
         return 'saving'
       }
-
       const timeToSteady = state.lastJustSaved.getTime() + props.savedTimeoutMs - now.getTime()
       if (timeToSteady > 0) {
         return timeToSteady
       }
-
       return 'steady'
     }
-
-    default:
-      throw new Error(`Unexpected state ${saveState}`)
   }
 }
 
@@ -196,8 +184,6 @@ class SaveIndicator extends React.Component<Props, State> {
             </Kb.Text>
           </>
         )
-      default:
-        throw new Error(`Unexpected state ${saveState}`)
     }
   }
 

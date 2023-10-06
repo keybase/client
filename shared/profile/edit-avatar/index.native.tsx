@@ -17,26 +17,27 @@ const AvatarUploadWrapper = (props: Props) => {
   const nav = Container.useSafeNavigation()
   const navUp = React.useCallback(() => nav.safeNavigateUp(), [nav])
 
-  const onChooseNewAvatar = React.useCallback(async () => {
-    try {
-      const result = await launchImageLibraryAsync('photo')
-      if (!result.canceled && result.assets.length > 0) {
-        setSelectedImage(result.assets[0])
-      } else if (!props.wizard) {
-        navUp()
+  const onChooseNewAvatar = React.useCallback(() => {
+    const f = async () => {
+      try {
+        const result = await launchImageLibraryAsync('photo')
+        if (!result.canceled && result.assets.length > 0) {
+          setSelectedImage(result.assets[0])
+        } else if (!props.wizard) {
+          navUp()
+        }
+      } catch (error_) {
+        const error = error_ as any
+        setImageError(String(error))
       }
-    } catch (error_) {
-      const error = error_ as any
-      setImageError(String(error))
     }
+    C.ignorePromise(f())
   }, [setImageError, setSelectedImage, navUp, props.wizard])
 
   const noImage = !image
   React.useEffect(() => {
     if (!props.wizard && noImage) {
       onChooseNewAvatar()
-        .then(() => {})
-        .catch(() => {})
     }
   }, [noImage, props.wizard, onChooseNewAvatar])
 

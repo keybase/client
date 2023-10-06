@@ -49,6 +49,8 @@ const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, ref: React.Re
       break
     case 'stretch':
       alignSelfStyle = styles.alignSelfStretch
+      break
+    default:
   }
   let alignItemsStyle: Styles.StylesCrossPlatform = null
   switch (alignItems) {
@@ -64,6 +66,7 @@ const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, ref: React.Re
     case 'stretch':
       alignItemsStyle = styles.alignItemsStretch
       break
+    default:
   }
 
   return (

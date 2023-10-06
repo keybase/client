@@ -1094,7 +1094,7 @@ const outboxUIMessagetoMessage = (
         o.isEphemeral
       )
     }
-    case T.RPCChat.MessageType.flip:
+    case T.RPCChat.MessageType.flip: // fallthrough
     case T.RPCChat.MessageType.text:
       return makeMessageText({
         author: currentUsername,
@@ -1112,6 +1112,7 @@ const outboxUIMessagetoMessage = (
         text: new HiddenString(o.body),
         timestamp: o.ctime,
       })
+    default:
   }
   return
 }

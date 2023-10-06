@@ -33,6 +33,8 @@ if (darkModeFromNode) {
     case 'alwaysDark':
     case 'system':
       setDarkModePreference(dm)
+      break
+    default:
   }
 }
 
@@ -135,7 +137,7 @@ const render = (Component = Main) => {
 }
 
 const setupHMR = () => {
-  const accept = module.hot?.accept
+  const accept = module.hot?.accept // eslint-disable-line
   if (!accept) {
     return
   }

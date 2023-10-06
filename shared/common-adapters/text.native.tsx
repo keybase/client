@@ -88,13 +88,7 @@ class Text extends React.Component<Props> {
   render() {
     const baseStyle = styles[`${this.props.type}:${this.props.negative ? 'negative' : 'positive'}`]
     const dynamicStyle = this.props.negative
-      ? _getStyle(
-          this.props.type,
-          this.props.negative,
-          this.props.lineClamp,
-          !!this.props.onClick,
-          !!this.props.underline
-        )
+      ? _getStyle(this.props.type, this.props.negative, !!this.props.underline)
       : {}
 
     let style
@@ -140,15 +134,7 @@ class Text extends React.Component<Props> {
 }
 
 // external things call this so leave the original alone
-function _getStyle(
-  type: TextType,
-  negative?: boolean,
-  _?: number,
-  __?: boolean,
-  // @ts-ignore the order of these parameters because this is used in a lot
-  // of places
-  forceUnderline: boolean
-) {
+function _getStyle(type: TextType, negative?: boolean, forceUnderline?: boolean) {
   if (!negative) {
     return forceUnderline ? {textDecorationLine: 'underline'} : {}
   }
@@ -162,7 +148,7 @@ function _getStyle(
     ...textDecoration,
   }
 }
-function getStyle(type: TextType, negative?: boolean, _?: number, __?: boolean) {
+function getStyle(type: TextType, negative?: boolean) {
   const meta = metaData()[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}

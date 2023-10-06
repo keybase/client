@@ -119,7 +119,7 @@ const Icon = React.memo<Props>(
     const isDarkMode = React.useContext(Styles.DarkModeContext)
 
     if (!Shared.isValidIconType(iconType)) {
-      logger.warn(`Invalid icon type passed in: ${iconType}`)
+      logger.warn(`Invalid icon type passed in: ${String(iconType)}`)
       return null
     }
 

@@ -55,6 +55,8 @@ const ChangeRetention = (props: Props) => {
   switch (props.membersType) {
     case T.RPCChat.ConversationMembersType.team:
       convType = props.isTeam ? 'team' : 'channel'
+      break
+    default:
   }
   const inheritDescription = props.isInherit ? ' to inherit from the team policy' : ''
   const policySummary = getPolicySummary(props)

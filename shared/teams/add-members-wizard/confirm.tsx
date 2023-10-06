@@ -189,6 +189,7 @@ const AlreadyInTeam = ({assertions}: {assertions: string[]}) => {
           return 'emails'
         case 'phone':
           return 'phone numbers'
+        default:
       }
     }
     return 'people'

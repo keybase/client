@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import type {UploadProps} from './upload'
 import capitalize from 'lodash/capitalize'
+import {backgroundURL} from '../../styles/index.desktop'
 import './upload.css'
 
 type DrawState = 'showing' | 'hiding' | 'hidden'
@@ -88,7 +89,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       stylesBox: Kb.Styles.platformStyles({
         isElectron: {
-          backgroundImage: Kb.Styles.backgroundURL('upload-pattern-80.png'),
+          backgroundImage: backgroundURL('upload-pattern-80.png'),
           flexShrink: 0, // need this to be whole in menubar
           paddingLeft: Kb.Styles.globalMargins.medium,
           paddingRight: Kb.Styles.globalMargins.medium,

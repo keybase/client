@@ -152,7 +152,6 @@ export const collapseStyles = (
   return styles as any
 }
 export const transition = () => ({})
-export const backgroundURL = () => ({})
 
 export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '../constants/platform'
 export * from './shared'
