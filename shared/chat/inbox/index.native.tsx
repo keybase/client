@@ -18,7 +18,7 @@ import {makeRow} from './row'
 
 type RowItem = T.Chat.ChatInboxRowItem
 
-const usingFlashList = false
+const usingFlashList = false as boolean
 const List = /*usingFlashList ? FlashList :*/ FlatList
 
 const NoChats = (props: {onNewChat: () => void}) => (

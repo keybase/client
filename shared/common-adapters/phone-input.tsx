@@ -44,7 +44,7 @@ const getCountryEmoji = (countryCode: string) => (
   <Kb.Emoji size={16} emojiName={countryData()[normalizeCountryCode(countryCode)]?.emojiText ?? ''} />
 )
 const getPlaceholder = (countryCode: string) =>
-  countryCode !== '' ? 'Ex: ' + countryData()[normalizeCountryCode(countryCode)]?.example ?? 'N/A' : 'N/A'
+  countryCode !== '' ? 'Ex: ' + (countryData()[normalizeCountryCode(countryCode)]?.example ?? 'N/A') : 'N/A'
 const filterNumeric = (text: string) => text.replace(/[^\d]/g, '')
 const prioritizedCountries = ['US', 'CA', 'GB']
 

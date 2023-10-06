@@ -56,7 +56,7 @@ const Text = React.forwardRef<RNText, TextProps>(function Text(p, ref) {
     style.fontSize = p.fontSize || pStyle.width
   }
 
-  const temp = Shared.fontSize(Shared.typeToIconMapper(p.type))
+  const temp = Shared.fontSize(p.type)
   if (temp) {
     style.fontSize = temp.fontSize
   }
@@ -115,14 +115,9 @@ const Icon = React.memo<Props>(
     const sizeType = p.sizeType || 'Default'
     // Only apply props.style to icon if there is no onClick
     const hasContainer = p.onClick && p.style
-    const iconType = Shared.typeToIconMapper(p.type)
-
+    const iconType = p.type
     const isDarkMode = React.useContext(Styles.DarkModeContext)
 
-    if (!iconType) {
-      logger.warn('Null iconType passed')
-      return null
-    }
     if (!Shared.isValidIconType(iconType)) {
       logger.warn(`Invalid icon type passed in: ${iconType}`)
       return null

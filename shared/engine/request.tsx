@@ -95,7 +95,7 @@ class OutgoingRequest extends Request {
 
   _sendCallback(err: any, data: any) {
     this.updateWaiting(false, err)
-    this._callback && this._callback(err, data)
+    this._callback(err, data)
   }
 }
 

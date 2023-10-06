@@ -32,5 +32,5 @@ const WaitingRoot = (props: any) => {
 
   return <Root {...props} />
 }
-
+// eslint-disable-next-line
 export default deferLoadingApp ? WaitingRoot : Root

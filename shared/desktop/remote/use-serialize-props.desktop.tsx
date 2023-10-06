@@ -9,7 +9,7 @@ import KB2 from '../../util/electron.desktop'
 const {rendererNewProps} = KB2.functions
 
 // set this to true to see details of the serialization process
-const debugSerializer = __DEV__ && false
+const debugSerializer: boolean = __DEV__ && (false as boolean)
 if (debugSerializer) {
   console.log('\n\n\n\n\n\nDEBUGGING REMOTE SERIALIZER')
 }
@@ -34,7 +34,7 @@ export default function useSerializeProps<ProxyProps extends {}, SerializeProps 
         // clear undefineds / exact dupes
         Object.keys(toSend).forEach(k => {
           // @ts-ignore
-          if (toSend[k] === undefined || JSON.stringify(toSend[k]) === JSON.stringify(lastToSend?.[k])) {
+          if (toSend[k] === undefined || JSON.stringify(toSend[k]) === JSON.stringify(lastToSend[k])) {
             // @ts-ignore
             delete toSend[k]
           }

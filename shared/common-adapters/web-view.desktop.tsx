@@ -13,17 +13,14 @@ class WebView extends React.PureComponent<WebViewProps> {
     if (!css && !javaScript) {
       return
     }
-    if (!this._webviewRef) {
-      return
-    }
     const ref = this._webviewRef.current
     ref?.addEventListener('dom-ready', () => {
       ref
-        ?.insertCSS(css)
+        .insertCSS(css)
         .then(() => {})
         .catch(() => {})
       ref
-        ?.executeJavaScript(javaScript)
+        .executeJavaScript(javaScript)
         .then(() => {})
         .catch(() => {})
     })

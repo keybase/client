@@ -14,7 +14,7 @@ import {assetRoot, htmlPrefix} from './html-root.desktop'
 const htmlFile = `${htmlPrefix}${assetRoot}menubar${__FILE_SUFFIX__}.html?param=menubar`
 
 // support dynamic dark mode system bar in big sur
-const useImageTemplate = os.platform() === 'darwin' && parseInt(os.release().split('.')?.[0] ?? '', 10) >= 20
+const useImageTemplate = os.platform() === 'darwin' && parseInt(os.release().split('.')[0] ?? '', 10) >= 20
 
 let iconPath = getIcons('regular', false, Electron.nativeTheme.shouldUseDarkColors)
 // only use imageTemplate if its not badged, else we lose the orange
@@ -91,7 +91,7 @@ const MenuBar = () => {
         iconPathIsBadged = action.payload.desktopAppBadgeCount > 0
         updateIcon()
         const dock = Electron.app.dock
-        if (dock?.isVisible()) {
+        if (dock.isVisible()) {
           Electron.app.badgeCount = action.payload.desktopAppBadgeCount
         }
 
@@ -130,12 +130,12 @@ const MenuBar = () => {
     // Hack: open widget when left/right/double clicked
     mb.tray.on('right-click', (e: Electron.KeyboardEvent, bounds: Bounds) => {
       // @ts-ignore
-      e?.preventDefault()
+      e.preventDefault()
       setTimeout(() => mb.tray.emit('click', {...e}, {...bounds}), 0)
     })
     mb.tray.on('double-click', (e: Electron.KeyboardEvent) => {
       // @ts-ignore
-      e?.preventDefault()
+      e.preventDefault()
     })
 
     // prevent the menubar's window from dying when we quit

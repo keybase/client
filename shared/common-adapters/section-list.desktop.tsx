@@ -79,7 +79,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
       // @ts-ignore
       return null
     }
-    const section = this._flat[item.flatSectionIndex] as HeaderFlatListElement<T>
+    const section = this._flat[item.flatSectionIndex] as HeaderFlatListElement<T> | undefined
     if (!section) {
       // data is switching out from under us. let things settle
       // @ts-ignore
@@ -197,7 +197,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
 
   _flatten = memoize((sections: ReadonlyArray<T>) => {
     this._sectionIndexToFlatIndex = []
-    this._flat = (sections || []).reduce<Array<FlatListElement<T>>>((arr, section, sectionIndex) => {
+    this._flat = sections.reduce<Array<FlatListElement<T>>>((arr, section, sectionIndex) => {
       const flatSectionIndex = arr.length
       this._sectionIndexToFlatIndex.push(flatSectionIndex)
       arr.push({
@@ -352,7 +352,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         top: 0,
       },
-    } as const)
+    }) as const
 )
 
 export default SectionList

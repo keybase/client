@@ -69,7 +69,7 @@ export const LeftAction = ({
           }
           style={styles.action}
           textStyle={disabled ? styles.disabledText : undefined}
-          onClick={disabled ? undefined : onLeftAction ?? undefined}
+          onClick={disabled ? undefined : onLeftAction}
         />
       ))
     )}

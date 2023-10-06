@@ -34,7 +34,7 @@ const ForgotUsername = () => {
   }, [forgotUsername, email, phoneNumber, emailSelected])
 
   const error = forgotUsernameResult !== 'success' ? forgotUsernameResult : ''
-  const disabled = (!emailSelected && phoneNumber === null) || (emailSelected && !email)
+  const disabled = (!emailSelected && phoneNumber === undefined) || (emailSelected && !email)
 
   return (
     <SignupScreen

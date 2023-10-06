@@ -38,7 +38,7 @@ const Recipients = () => {
             />
           </>
         )}
-        {recipients?.length ? (
+        {recipients.length ? (
           <Kb.Icon
             type="iconfont-remove"
             boxStyle={styles.removeRecipients}

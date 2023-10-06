@@ -14,7 +14,7 @@ export const FilteredServiceTabBar = (
   const services = React.useMemo(
     () =>
       filterServices
-        ? Constants.allServices.filter(serviceId => filterServices?.includes(serviceId))
+        ? Constants.allServices.filter(serviceId => filterServices.includes(serviceId))
         : Constants.allServices,
     [filterServices]
   )

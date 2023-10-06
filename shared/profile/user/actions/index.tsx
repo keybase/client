@@ -65,7 +65,7 @@ const Actions = (p: Props) => {
 
   const dropdown = (
     <DropdownButton
-      blockedOrHidFromFollowers={p.blocked || p.hidFromFollowers}
+      blockedOrHidFromFollowers={p.hidFromFollowers}
       key="dropdown"
       isBot={p.isBot}
       onAddToTeam={p.onAddToTeam}

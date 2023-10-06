@@ -95,7 +95,7 @@ const parseRawResultToUser = (
   result: T.RPCGen.APIUserSearchResult,
   service: T.TB.ServiceIdWithContact
 ): T.TB.User | undefined => {
-  const serviceMap = Object.keys(result.servicesSummary || {}).reduce<{[key: string]: string}>(
+  const serviceMap = Object.keys(result.servicesSummary).reduce<{[key: string]: string}>(
     (acc, service_name) => {
       acc[service_name] = result.servicesSummary[service_name]?.username ?? ''
       return acc
@@ -147,7 +147,7 @@ const parseRawResultToUser = (
     }
     const kbPrettyName = result.keybase && (result.keybase.fullName || result.keybase.username)
     const prettyName = result.service.fullName || kbPrettyName || ''
-    const pictureUrl = result.keybase?.pictureUrl || result.service?.pictureUrl
+    const pictureUrl = result.keybase?.pictureUrl || result.service.pictureUrl
     let id = `${result.service.username}@${result.service.serviceName}`
     if (result.keybase) {
       // If it's also a keybase user, make a compound assertion.
@@ -235,7 +235,7 @@ type HasServiceMap = {
 }
 
 const pluckServiceMap = (contact: HasServiceMap) =>
-  Object.entries(contact.serviceMap || {})
+  Object.entries(contact.serviceMap)
     .concat([['keybase', contact.username]])
     .reduce<T.TB.ServiceMap>((acc, [service, username]) => {
       if (serviceIdFromString(service) === service) {

@@ -1,5 +1,4 @@
 import {isDebuggingInChrome, isMobile} from '../constants/platform'
-// @ts-ignore
 import skipAnimations from './skip-animations'
 import type {
   default as ReAnimatedType,

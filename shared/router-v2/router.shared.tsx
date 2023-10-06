@@ -71,7 +71,7 @@ const useIsDarkChanged = () => {
 const useInitialState = () => {
   const darkChanged = useIsDarkChanged()
   return darkChanged
-    ? RouterConstants.navigationRef_?.isReady()
+    ? RouterConstants.navigationRef_.isReady()
       ? RouterConstants.navigationRef_.getRootState()
       : undefined
     : undefined

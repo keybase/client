@@ -137,6 +137,8 @@ export function ZoomableBox(props: Props) {
             offsetScale.value = scale.value
           }
 
+          // maybe this is always true... but not changing this now
+          // eslint-disable-next-line
           if (isPinching.value) {
             // translate the image to the focal point as we're zooming
             translationX.value =

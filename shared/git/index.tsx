@@ -113,7 +113,7 @@ export default (ownProps: OwnProps) => {
               type="iconfont-new"
               style={{marginRight: Kb.Styles.globalMargins.tiny}}
               color={Kb.Styles.globalColors.blue}
-              fontSize={Kb.Styles.isMobile ? 20 : 16}
+              fontSize={20}
             />
             <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
           </Kb.ClickableBox>

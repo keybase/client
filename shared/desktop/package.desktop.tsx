@@ -290,7 +290,7 @@ async function pack(plat: string, arch: string) {
 }
 
 function postPack(appPaths: Array<string>, plat: string, arch: string) {
-  if (!appPaths || appPaths.length === 0) {
+  if (appPaths.length === 0) {
     console.log(`${plat}-${arch} finished with no app bundles`)
     return
   }

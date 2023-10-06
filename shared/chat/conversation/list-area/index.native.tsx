@@ -142,7 +142,7 @@ const ConversationList = React.memo(function ConversationList(p: {
       if (!ordinal) {
         return null
       }
-      const type = messageTypeMap?.get(ordinal) ?? 'text'
+      const type = messageTypeMap.get(ordinal) ?? 'text'
       const Clazz = getMessageRender(type)
       if (!Clazz) return null
       return <Clazz ordinal={ordinal} />

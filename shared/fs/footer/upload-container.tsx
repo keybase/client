@@ -4,7 +4,7 @@ import {useUploadCountdown} from './use-upload-countdown'
 import * as C from '../../constants'
 
 // NOTE flip this to show a button to debug the upload banner animations.
-const enableDebugUploadBanner = false
+const enableDebugUploadBanner = false as boolean
 
 const getDebugToggleShow = () => {
   if (!(__DEV__ && enableDebugUploadBanner)) {

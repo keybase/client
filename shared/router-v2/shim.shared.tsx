@@ -6,7 +6,7 @@ export const getRenderDebug = () => _renderDebug
 
 // TODO better types
 export const getOptions = (route: {getOptions?: (o: any) => any}): any => {
-  const no = route?.getOptions
+  const no = route.getOptions
   return no
 }
 

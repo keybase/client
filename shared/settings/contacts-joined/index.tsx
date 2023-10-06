@@ -8,7 +8,7 @@ const renderItem = (_: number, item: T.RPCGen.ProcessedContact) => <Item item={i
 
 const Item = ({item}: {item: T.RPCGen.ProcessedContact}) => {
   const username = item.username
-  const label = item.contactName || item.component?.phoneNumber || item.component?.email || ''
+  const label = item.contactName || item.component.phoneNumber || item.component.email || ''
 
   const followThem = C.useFollowerState(s => s.following.has(username))
   if (followThem) {

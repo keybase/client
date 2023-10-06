@@ -177,22 +177,20 @@ export const parseNotificationSettings = (
   if (notifications) {
     notificationsGlobalIgnoreMentions = notifications.channelWide
     const s = notifications.settings
-    if (s) {
-      const desktop = s[String(T.RPCGen.DeviceType.desktop)]
-      if (desktop) {
-        if (desktop[String(T.RPCChat.NotificationKind.generic)]) {
-          notificationsDesktop = 'onAnyActivity'
-        } else if (desktop[String(T.RPCChat.NotificationKind.atmention)]) {
-          notificationsDesktop = 'onWhenAtMentioned'
-        }
+    const desktop = s[String(T.RPCGen.DeviceType.desktop)]
+    if (desktop) {
+      if (desktop[String(T.RPCChat.NotificationKind.generic)]) {
+        notificationsDesktop = 'onAnyActivity'
+      } else if (desktop[String(T.RPCChat.NotificationKind.atmention)]) {
+        notificationsDesktop = 'onWhenAtMentioned'
       }
-      const mobile = s[String(T.RPCGen.DeviceType.mobile)]
-      if (mobile) {
-        if (mobile[String(T.RPCChat.NotificationKind.generic)]) {
-          notificationsMobile = 'onAnyActivity'
-        } else if (mobile[String(T.RPCChat.NotificationKind.atmention)]) {
-          notificationsMobile = 'onWhenAtMentioned'
-        }
+    }
+    const mobile = s[String(T.RPCGen.DeviceType.mobile)]
+    if (mobile) {
+      if (mobile[String(T.RPCChat.NotificationKind.generic)]) {
+        notificationsMobile = 'onAnyActivity'
+      } else if (mobile[String(T.RPCChat.NotificationKind.atmention)]) {
+        notificationsMobile = 'onWhenAtMentioned'
       }
     }
   }

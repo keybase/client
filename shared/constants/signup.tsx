@@ -15,11 +15,11 @@ export const noEmail = 'NOEMAIL'
 export const waitingKey = 'signup:waiting'
 
 export const defaultDevicename =
-  (Platforms.isAndroid && 'Android Device') ||
-  (Platforms.isIOS && 'iOS Device') ||
-  (Platforms.isDarwin && 'Mac Device') ||
-  (Platforms.isWindows && 'Windows Device') ||
-  (Platforms.isLinux && 'Linux Device') ||
+  (Platforms.isAndroid ? 'Android Device' : undefined) ||
+  (Platforms.isIOS ? 'iOS Device' : undefined) ||
+  (Platforms.isDarwin ? 'Mac Device' : undefined) ||
+  (Platforms.isWindows ? 'Windows Device' : undefined) ||
+  (Platforms.isLinux ? 'Linux Device' : undefined) ||
   (Platforms.isMobile ? 'Mobile Device' : 'Home Computer')
 
 type Store = {

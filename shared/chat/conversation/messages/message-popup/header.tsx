@@ -8,7 +8,8 @@ const iconNameForDeviceType = Kb.Styles.isMobile
         case 'mobile':
           return isRevoked
             ? 'icon-fancy-revoked-phone-mobile-226-96'
-            : isLocation
+            : // eslint-disable-next-line unclear why this claims its a fixed value
+            isLocation
             ? 'icon-fancy-location-phone-mobile-226-96'
             : 'icon-fancy-encrypted-phone-mobile-226-96'
         default:

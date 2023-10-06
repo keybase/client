@@ -70,7 +70,7 @@ const EncryptOutputBanner = () => {
   const youAnd = (who: string) => (includeSelf ? `you and ${who}` : who)
   const whoCanRead = hasRecipients
     ? ` Only ${
-        recipients?.length > 1 ? youAnd('your recipients') : youAnd(recipients[0] ?? '')
+        recipients.length > 1 ? youAnd('your recipients') : youAnd(recipients[0] ?? '')
       } can decipher it.`
     : ''
 
@@ -95,7 +95,7 @@ const EncryptOutputBanner = () => {
       <Kb.BannerParagraph
         key="whoCanRead"
         bannerColor="grey"
-        content={[hasRecipients ? ' Share it however you like.' : undefined, whoCanRead]}
+        content={[' Share it however you like.', whoCanRead]}
       />
     )
   }

@@ -127,7 +127,7 @@ type State = {
 }
 
 class Chat extends React.Component<Props, State> {
-  state = {
+  state: State = {
     contactSettingsEnabled: undefined,
     contactSettingsIndirectFollowees: undefined,
     contactSettingsSelectedTeams: {},

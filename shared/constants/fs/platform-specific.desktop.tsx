@@ -31,7 +31,7 @@ const _rebaseKbfsPathToMountLocation = (kbfsPath: T.FS.Path, mountLocation: stri
 
 const fuseStatusToUninstallExecPath = isWindows
   ? (status: T.RPCGen.FuseStatus) => {
-      const field = status?.status?.fields?.find(({key}) => key === 'uninstallString')
+      const field = status.status.fields?.find(({key}) => key === 'uninstallString')
       return field?.value
     }
   : () => undefined
@@ -61,7 +61,7 @@ const fuseStatusToActions =
   }
 
 const fuseInstallResultIsKextPermissionError = (result: T.RPCGen.InstallResult): boolean =>
-  result?.componentResults?.findIndex(
+  result.componentResults?.findIndex(
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
 

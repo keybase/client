@@ -298,7 +298,7 @@ export const OperationBanner = (props: CommonProps) => {
   const errorMessage = _errorMessage.stringValue()
   const warningMessage = _warningMessage.stringValue()
 
-  if (!errorMessage && !warningMessage && infoMessage) {
+  if (!errorMessage && !warningMessage) {
     return (
       <Kb.Banner color="grey">
         <Kb.BannerParagraph bannerColor="grey" content={infoMessage} />

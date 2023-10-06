@@ -50,11 +50,11 @@ const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
   const deletedTeams = bs.deletedTeams ?? []
   const newDevices = bs.newDevices ?? []
   const newGitRepoGlobalUniqueIDs = bs.newGitRepoGlobalUniqueIDs ?? []
-  const newTeamAccessRequestCount = bs.newTeamAccessRequestCount ?? 0
+  const newTeamAccessRequestCount = bs.newTeamAccessRequestCount
   const newTeams = bs.newTeams ?? []
   const revokedDevices = bs.revokedDevices ?? []
   const teamsWithResetUsers = bs.teamsWithResetUsers ?? []
-  const wotUpdates = bs.wotUpdates ?? new Map<string, T.RPCGen.WotUpdate>()
+  const wotUpdates = /*bs.wotUpdates ?? */ new Map<string, T.RPCGen.WotUpdate>()
 
   if (_useState.getState().badgeVersion >= inboxVers) {
     return undefined

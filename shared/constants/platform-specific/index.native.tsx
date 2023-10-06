@@ -521,7 +521,7 @@ export const initPlatformListener = () => {
     C.useDarkModeState.subscribe((s, old) => {
       if (s.darkModePreference === old.darkModePreference) return
       const {darkModePreference} = C.useDarkModeState.getState()
-      androidAppColorSchemeChanged?.(darkModePreference)
+      androidAppColorSchemeChanged(darkModePreference)
     })
   }
 

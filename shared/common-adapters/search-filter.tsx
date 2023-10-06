@@ -242,10 +242,10 @@ class SearchFilter extends React.PureComponent<Props, State> {
     } else {
       return (
         <Kb.ClickableBox
-          onClick={Styles.isMobile ? this.cancel : () => {}}
+          onClick={() => {}}
           // use onMouseDown to work around input's onBlur disappearing the "x" button prior to onClick firing.
           // https://stackoverflow.com/questions/9335325/blur-event-stops-click-event-from-working
-          onMouseDown={Styles.isMobile ? undefined : this.cancel}
+          onMouseDown={this.cancel}
           style={
             this.props.size === 'full-width' ? styles.removeIconFullWidth : styles.removeIconNonFullWidth
           }

@@ -69,15 +69,6 @@ const Avatar = React.memo(function Avatar(props: Props) {
             ])}
           />
         )}
-        {(!!props.borderColor || props.isTeam) &&
-          false && ( // looks better off i think
-            <Kb.Box
-              style={[
-                styles.borderBase,
-                {borderColor: props.borderColor || Styles.globalColors.black_10, borderRadius},
-              ]}
-            />
-          )}
         {props.followIconType && (
           <Kb.Icon
             type={props.followIconType}
@@ -131,7 +122,7 @@ const makeImageStyle = (size: AvatarSize) =>
     right: 0,
     top: 0,
     width: size,
-  } as const)
+  }) as const
 const imageStyles = Styles.styleSheetCreate(() => ({
   [128]: makeImageStyle(128),
   [16]: makeImageStyle(16),
@@ -177,7 +168,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: -6,
       } as const,
-    } as const)
+    }) as const
 )
 
 export default Avatar

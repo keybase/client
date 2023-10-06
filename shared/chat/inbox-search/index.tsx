@@ -240,7 +240,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     }
 
     const {item, section, index} = h
-    const numHits = (item as TextResult)?.numHits || undefined
+    const numHits = item.numHits || undefined
     const realIndex = index + section.indexOffset
     return item.type === 'big' ? (
       <C.ChatProvider id={item.conversationIDKey}>
@@ -308,6 +308,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     onCollapse: toggleCollapseName,
     onSelect: selectName,
     renderHeader: renderNameHeader,
+    // @ts-ignore better typing
     renderItem: renderHit,
     status: nameStatus,
     title: nameResultsUnread ? 'Unread' : 'Chats',
@@ -373,6 +374,7 @@ type NameResult = {
   conversationIDKey: T.Chat.ConversationIDKey
   name: string
   type: 'big' | 'small'
+  numHits?: undefined
 }
 
 type TextResult = {
@@ -411,7 +413,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
       return (
         <TeamInfo
           attachTo={attachTo}
-          description={description ?? ''}
+          description={description}
           inTeam={inTeam}
           isOpen={true}
           name={name}
@@ -424,7 +426,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
             clearModals()
             showTeamByName(name)
           }}
-          publicAdmins={publicAdmins ?? []}
+          publicAdmins={publicAdmins}
           visible={true}
         />
       )

@@ -25,7 +25,7 @@ class EnterUsername extends React.Component<Props, State> {
   _onChangeUsername = (username: string) => this.setState({canSubmit: !!username.length, username})
   render() {
     const pt = platformText[this.props.platform]
-    if (!pt?.headerText) {
+    if (!pt.headerText) {
       // TODO support generic proofs
       throw new Error(`Proofs for platform ${this.props.platform} are unsupported.`)
     }

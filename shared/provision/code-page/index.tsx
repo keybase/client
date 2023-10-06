@@ -65,13 +65,12 @@ class CodePage2 extends React.Component<Props, State> {
       // @ts-ignore
       props.currentDeviceAlreadyProvisioned ? oppositeTabMap[tabToShowToNew] : tabToShowToNew
 
-    if (currentDeviceType === 'mobile') {
-      return getTabOrOpposite('QR')
-    } else if (currentDeviceType === 'desktop') {
-      return props.otherDevice.type === 'desktop' ? getTabOrOpposite('viewText') : getTabOrOpposite('QR')
+    switch (currentDeviceType) {
+      case 'mobile':
+        return getTabOrOpposite('QR')
+      case 'desktop':
+        return props.otherDevice.type === 'desktop' ? getTabOrOpposite('viewText') : getTabOrOpposite('QR')
     }
-
-    throw new Error('Impossible defaultTab')
   }
 
   _tabBackground = () =>
@@ -427,17 +426,13 @@ const Instructions = (p: Props) => {
               gap="xtiny"
               style={Kb.Styles.globalStyles.flexWrap}
             >
-              {p.otherDevice.type === 'mobile' && (
-                <>
-                  <Kb.Icon
-                    type="iconfont-nav-2-hamburger"
-                    color={Kb.Styles.globalColors.white}
-                    sizeType="Default"
-                    style={styles.hamburger}
-                  />
-                  <Kb.Icon type="iconfont-arrow-right" color={Kb.Styles.globalColors.white} sizeType="Tiny" />
-                </>
-              )}
+              <Kb.Icon
+                type="iconfont-nav-2-hamburger"
+                color={Kb.Styles.globalColors.white}
+                sizeType="Default"
+                style={styles.hamburger}
+              />
+              <Kb.Icon type="iconfont-arrow-right" color={Kb.Styles.globalColors.white} sizeType="Tiny" />
               <Kb.Text type={textType} style={styles.instructions}>
                 Devices
               </Kb.Text>

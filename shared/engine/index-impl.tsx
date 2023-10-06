@@ -15,6 +15,7 @@ import type * as EngineGen from '../actions/engine-gen-gen'
 // delay incoming to stop react from queueing too many setState calls and stopping rendering
 // only while debugging for now
 const DEFER_INCOMING_DURING_DEBUG = __DEV__ && false
+// eslint-disable-next-line
 if (DEFER_INCOMING_DURING_DEBUG) {
   console.log(new Array(1000).fill('DEFER_INCOMING_DURING_DEBUG is On!!!!!!!!!!!!!!!!!!!!!').join('\n'))
 }
@@ -154,7 +155,7 @@ class Engine {
   // An incoming rpc call
   _rpcIncoming(payload: {method: MethodKey; param: Array<Object>; response?: any}) {
     const {method, param: incomingParam, response} = payload
-    const param: any = incomingParam?.length ? incomingParam[0] || {} : {}
+    const param: any = incomingParam.length ? incomingParam[0] || {} : {}
     const {seqid, cancelled} = response || {cancelled: false, seqid: 0}
     const {sessionID} = param
 
@@ -322,7 +323,7 @@ export class FakeEngine {
 }
 
 // don't overwrite this on HMR
-let engine: Engine
+let engine: Engine | undefined
 if (__DEV__) {
   engine = global.DEBUGEngine
 }
@@ -344,7 +345,7 @@ const makeEngine = (emitWaiting: (b: BatchParams) => void, onConnected: (c: bool
 }
 
 const getEngine = (): Engine | FakeEngine => {
-  if (__DEV__ && !engine) {
+  if (!engine) {
     throw new Error('Engine needs to be initialized first')
   }
   return engine

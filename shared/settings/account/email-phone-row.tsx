@@ -42,7 +42,7 @@ const EmailPhoneRow = (props: Props) => {
     const menuItems: Kb.MenuItems = []
     if (!verified) {
       menuItems.push({
-        decoration: verified ? undefined : badge(Kb.Styles.globalColors.orange, true),
+        decoration: badge(Kb.Styles.globalColors.orange, true),
         icon: 'iconfont-lock',
         onClick: onVerify,
         title: 'Verify',

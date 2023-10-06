@@ -39,7 +39,7 @@ const AlphabetIndex = (props: Props) => {
   const {labels, onScroll, showNumSection} = props
   const handleTouch = React.useCallback(
     (evt: NativeSyntheticEvent<NativeTouchEvent>) => {
-      if (sectionMeasureRef.current && isValidMeasure(sectionMeasureRef.current)) {
+      if (isValidMeasure(sectionMeasureRef.current)) {
         const measure = sectionMeasureRef.current
         const touch = evt.nativeEvent.touches[0]
         if (!touch) return

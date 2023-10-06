@@ -16,8 +16,8 @@ const SelectChannel = (ownProps: OwnProps) => {
   const _selected = ownProps.selected
   const teamname = C.useTeamsState(s => C.getTeamNameFromID(s, teamID) ?? '')
   const {channelMetas} = useAllChannelMetas(teamID)
-  const waiting = channelMetas === null
-  const channelNames = channelMetas ? [...channelMetas.values()].map(info => info.channelname) : []
+  const waiting = channelMetas.size === 0 // TODO fix this?
+  const channelNames = [...channelMetas.values()].map(info => info.channelname)
   const [selected, setSelected] = React.useState(_selected)
   const nav = Container.useSafeNavigation()
   const setTeamRepoSettings = C.useGitState(s => s.dispatch.setTeamRepoSettings)

@@ -75,7 +75,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             uid: string
             username: string
           }>
-        } = JSON.parse(json?.body ?? '')
+        } = JSON.parse(json.body)
 
         const acceptedInvites: Array<Invitation> = []
         const pendingInvites: Array<Invitation> = []
@@ -148,19 +148,15 @@ export const _useState = Z.createZustand<State>((set, get) => {
             {args, endpoint: 'send_invitation'},
             settingsWaitingKey
           )
-          if (response) {
-            const parsedBody = JSON.parse(response.body) as undefined | Partial<{invitation_id: string}>
-            const invitationId = parsedBody?.invitation_id?.slice(0, 10) ?? ''
-            if (!invitationId) return
-            const link = 'keybase.io/inv/' + invitationId
-            set(s => {
-              s.error = ''
-            })
-            get().dispatch.loadInvites()
-            C.useRouterState
-              .getState()
-              .dispatch.navigateAppend({props: {email, link}, selected: 'inviteSent'})
-          }
+          const parsedBody = JSON.parse(response.body) as undefined | Partial<{invitation_id: string}>
+          const invitationId = parsedBody?.invitation_id?.slice(0, 10) ?? ''
+          if (!invitationId) return
+          const link = 'keybase.io/inv/' + invitationId
+          set(s => {
+            s.error = ''
+          })
+          get().dispatch.loadInvites()
+          C.useRouterState.getState().dispatch.navigateAppend({props: {email, link}, selected: 'inviteSent'})
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return

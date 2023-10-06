@@ -35,7 +35,7 @@ if (!['gui', 'core'].includes(guiOrCore ?? '') || !logfile || !outfile) {
   process.exit(1)
 }
 
-const swimlanesReg = (_swimlanes || []).map(swim => new RegExp(swim))
+const swimlanesReg = _swimlanes.map(swim => new RegExp(swim))
 const isGUI = guiOrCore === 'gui'
 
 // core regs

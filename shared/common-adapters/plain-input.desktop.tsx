@@ -271,9 +271,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   _registerBodyEvents = (add: boolean) => {
     const body = document.body
-    if (!body) {
-      return
-    }
     if (add) {
       body.addEventListener('keydown', this._globalKeyDownHandler)
       body.addEventListener('keypress', this._globalKeyDownHandler)

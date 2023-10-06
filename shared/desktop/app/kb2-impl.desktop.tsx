@@ -10,6 +10,7 @@ if (platform !== 'win32' && platform !== 'darwin' && platform !== 'linux') {
   throw new Error('Invalid platform: ' + platform)
 }
 const pathSep = path.sep
+// eslint-disable-next-line
 if (pathSep !== '/' && pathSep !== '\\') {
   throw new Error('Invalid path sep:' + pathSep)
 }

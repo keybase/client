@@ -18,7 +18,7 @@ LogBox.ignoreAllLogs()
 // require('react-native/Libraries/Interaction/InteractionStallDebugger').install({thresholdMS: 100})
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+const PERF = false as boolean
 
 const config = {
   allowMultipleInstances: false,

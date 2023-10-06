@@ -10,9 +10,10 @@ import type {NavigationState} from '@react-navigation/core'
 import type {NavigateAppendType} from '../router-v2/route-params'
 export type PathParam = NavigateAppendType
 type Route = NavigationState['routes'][0]
-export type NavState = Route['state']
+// still a little paranoid about some things being missing in this type
+export type NavState = Partial<Route['state']>
 
-const DEBUG_NAV = __DEV__ && false
+const DEBUG_NAV = __DEV__ && (false as boolean)
 
 export const navigationRef_ = createNavigationContainerRef()
 export const _getNavigator = () => {
@@ -28,7 +29,7 @@ const _isLoggedIn = (s: NavState) => {
   if (!s) {
     return false
   }
-  return s?.routes?.[0]?.name === 'loggedIn'
+  return s.routes?.[0]?.name === 'loggedIn'
 }
 
 // Public API
@@ -37,10 +38,10 @@ export const getVisiblePath = (navState?: NavState) => {
   const rs = navState || getRootState()
 
   const findVisibleRoute = (arr: Array<Route>, s: NavState, depth: number): Array<Route> => {
-    if (!s || !s.routes || s.index === undefined) {
+    if (!s?.routes || s.index === undefined) {
       return arr
     }
-    let childRoute: Route = s.routes[s.index] as Route
+    let childRoute = s.routes[s.index] as Route | undefined
     if (!childRoute) {
       return arr
     }
@@ -90,7 +91,7 @@ export const getVisibleScreen = (navState?: NavState) => {
 type DeepWriteable<T> = {-readonly [P in keyof T]: DeepWriteable<T[P]>}
 
 const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
-  const route = s?.routes[s?.index ?? -1] as DeepWriteable<Route>
+  const route = s?.routes?.[s.index ?? -1] as DeepWriteable<Route> | undefined
   if (!route) {
     return
   }
@@ -120,9 +121,9 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
   }
   // try the incoming s
   if (s?.type === 'stack') {
-    const idx = s.routes.findIndex(r => r.name === name)
+    const idx = s.routes?.findIndex(r => r.name === name) ?? -1
     // found
-    if (idx !== -1) {
+    if (idx !== -1 && s.routes) {
       s.index = idx
       s.routes.length = idx + 1
       return
@@ -134,9 +135,10 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
 
 export const getTab = (navState?: NavState) => {
   const s = navState || getRootState()
-  const loggedInRoute = s?.routes[0]
+  const loggedInRoute = s?.routes?.[0]
   if (loggedInRoute?.name === 'loggedIn') {
-    return loggedInRoute.state?.routes?.[loggedInRoute.state?.index ?? 0]?.name
+    // eslint-disable-next-line
+    return loggedInRoute.state?.routes?.[loggedInRoute.state.index ?? 0]?.name
   }
   return undefined
 }
@@ -156,7 +158,7 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   }
 
   const nextState = produce(rs, draft => {
-    const loggedInRoute = draft.routes[0]
+    const loggedInRoute = draft.routes?.[0]
     const loggedInTabs = loggedInRoute?.state?.routes
     if (!loggedInTabs) {
       return
@@ -171,7 +173,9 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
     // select tabs
     draft.index = 0
     // remove modals
-    draft.routes.length = 1
+    if (draft.routes) {
+      draft.routes.length = 1
+    }
 
     // select chat tab
     if (loggedInRoute.state) {
@@ -183,7 +187,7 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
       chatStack.state = chatStack.state ?? {index: 0, routes: []}
       chatStack.state.index = 0
 
-      let chatRoot = chatStack.state?.routes?.[0]
+      let chatRoot = chatStack.state.routes[0]
       // key is required or you'll run into issues w/ the nav
       chatRoot = {
         key: chatRoot?.key || `chatRoot-${conversationIDKey}`,
@@ -203,7 +207,7 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
         params: {conversationIDKey},
       }
       // reuse visible route if it's the same
-      const visible = chatStack.state?.routes?.at(-1)
+      const visible = chatStack.state.routes.at(-1)
       if (visible) {
         // @ts-ignore TODO better route types
         if (visible.name === 'chatConversation' && visible.params?.conversationIDKey === conversationIDKey) {
@@ -211,13 +215,13 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
         }
       }
 
-      const chatRoot = chatStack.state.routes?.[0]
+      const chatRoot = chatStack.state.routes[0]
       chatStack.state.routes = [chatRoot, convoRoute]
     }
   })
 
   if (!isEqual(rs, nextState)) {
-    rs.key && _getNavigator()?.dispatch({...CommonActions.reset(nextState), target: rs.key})
+    rs.key && _getNavigator()?.dispatch({...CommonActions.reset(nextState as any), target: rs.key})
   }
 }
 
@@ -290,7 +294,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const nextState = produce(ns, draft => {
         navUpHelper(draft as DeepWriteable<NavState>, name)
       })
-      n.dispatch(CommonActions.reset(nextState))
+      n.dispatch(CommonActions.reset(nextState as any))
     },
     navigateAppend: (path, replace, fromKey) => {
       DEBUG_NAV && console.log('[Nav] navigateAppend', {path})
@@ -451,7 +455,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       if (!ns) return
       n.dispatch({
         ...CommonActions.navigate({name}),
-        target: ns.routes[0]?.state?.key,
+        target: ns.routes?.[0]?.state?.key,
       })
     },
   }

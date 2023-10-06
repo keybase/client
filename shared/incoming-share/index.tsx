@@ -297,7 +297,7 @@ const IncomingShareMain = () => {
   const {incomingShareError, incomingShareItems} = useIncomingShareItems()
   return incomingShareError ? (
     <IncomingShareError />
-  ) : incomingShareItems?.length ? (
+  ) : incomingShareItems.length ? (
     <IncomingShare incomingShareItems={incomingShareItems} />
   ) : (
     <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>

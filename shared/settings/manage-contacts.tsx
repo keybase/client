@@ -13,7 +13,7 @@ const ManageContacts = () => {
 
   const loadContactImportEnabled = C.useSettingsContactsState(s => s.dispatch.loadContactImportEnabled)
 
-  if (contactsImported === null) {
+  if (contactsImported === undefined) {
     loadContactImportEnabled()
   }
 

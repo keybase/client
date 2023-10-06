@@ -626,7 +626,7 @@ type OrdinalWaypointProps = {
   intersectionObserve: ReturnType<typeof useIntersectionObserver>
 }
 
-const colorWaypoints = __DEV__ && false
+const colorWaypoints = __DEV__ && (false as boolean)
 const colors = new Array<string>()
 if (colorWaypoints) {
   for (let i = 0; i < 10; ++i) {

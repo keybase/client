@@ -168,7 +168,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           const {defaultUsername} = C.useConfigState.getState()
           const {setAccounts, setDefaultUsername} = C.useConfigState.getState().dispatch
 
-          let existingDefaultFound = false
+          let existingDefaultFound = false as boolean
           let currentName = ''
           const nextConfiguredAccounts: Array<T.Config.ConfiguredAccount> = []
           const usernameToFullname: {[username: string]: string} = {}

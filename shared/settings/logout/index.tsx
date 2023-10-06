@@ -42,7 +42,7 @@ class LogOut extends React.Component<Props, State> {
   render() {
     const inputType = this.state.showTyping ? 'text' : 'password'
     const keyboardType = this.state.showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
-    return this.props.hasRandomPW === null ? (
+    return this.props.hasRandomPW === undefined ? (
       <Kb.Modal onClose={this.props.onCancel}>
         <Kb.ProgressIndicator style={styles.progress} type="Huge" />
       </Kb.Modal>
@@ -74,9 +74,7 @@ class LogOut extends React.Component<Props, State> {
               <Kb.WaitingButton
                 fullWidth={true}
                 waitingKey={Constants.checkPasswordWaitingKey}
-                disabled={
-                  !!this.props.checkPasswordIsCorrect || !this.state.password || this.state.loggingOut
-                }
+                disabled={!this.state.password || this.state.loggingOut}
                 label="Test password"
                 onClick={() => {
                   this.props.onCheckPassword(this.state.password)

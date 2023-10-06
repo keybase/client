@@ -4,7 +4,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 // import {isIPhoneX} from '../constants/platform'
 import * as T from '../constants/types'
-const isIPhoneX = false
+const isIPhoneX = false as boolean
 // import lagRadar from 'lag-radar'
 
 type Props = {

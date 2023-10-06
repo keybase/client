@@ -13,15 +13,13 @@ type StateProps = {view: T.FS.PathItemActionMenuView}
 type Props = OwnProps & StateProps
 
 const ChooseView = (props: Props) => {
-  if (props.view === T.FS.PathItemActionMenuView.Root || props.view === T.FS.PathItemActionMenuView.Share) {
-    return <Menu path={props.path} mode={props.mode} floatingMenuProps={props.floatingMenuProps} />
-  } else if (
-    props.view === T.FS.PathItemActionMenuView.ConfirmSaveMedia ||
-    props.view === T.FS.PathItemActionMenuView.ConfirmSendToOtherApp
-  ) {
-    return <Confirm path={props.path} floatingMenuProps={props.floatingMenuProps} />
-  } else {
-    return null
+  switch (props.view) {
+    case T.FS.PathItemActionMenuView.Root: // fallthrough
+    case T.FS.PathItemActionMenuView.Share:
+      return <Menu path={props.path} mode={props.mode} floatingMenuProps={props.floatingMenuProps} />
+    case T.FS.PathItemActionMenuView.ConfirmSaveMedia: // fallthrough
+    case T.FS.PathItemActionMenuView.ConfirmSendToOtherApp:
+      return <Confirm path={props.path} floatingMenuProps={props.floatingMenuProps} />
   }
 }
 

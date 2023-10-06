@@ -24,7 +24,7 @@ const SpaceWarning = (props: Props) => {
           props.diskSpaceStatus === 'warning'
             ? 'You have less than 1 GB of storage space. Make some space, or unsync some folders. '
             : 'You are out of storage space. Unsync some folders, or make some space then ',
-          !!props.onRetry && {onClick: props.onRetry, text: 'retry the sync'},
+          {onClick: props.onRetry, text: 'retry the sync'},
           '.',
         ]}
       />

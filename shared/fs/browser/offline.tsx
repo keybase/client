@@ -49,7 +49,7 @@ export default (ownProps: OwnProps) => {
   const syncConfig = C.useFSState(s => C.getTlfFromPath(s.tlfs, path).syncConfig)
   const props = {
     ...ownProps,
-    syncEnabled: !!syncConfig && syncConfig.mode === T.FS.TlfSyncMode.Enabled,
+    syncEnabled: syncConfig.mode === T.FS.TlfSyncMode.Enabled,
   }
   return <OfflineFolder {...props} />
 }

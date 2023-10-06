@@ -144,10 +144,6 @@ const fixScrollbars = () => {
 
 export const initDesktopStyles = () => {
   const head = document.head
-  if (!head) {
-    console.error('initDesktopStyles failed')
-    return
-  }
   const style = document.createElement('style')
   const colorNames = Object.keys(colors) as Array<keyof typeof colors>
   const colorVars = `

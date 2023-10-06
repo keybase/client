@@ -83,7 +83,7 @@ function _computePopupStyle(
     pageYOffset: number
     pageXOffset: number
   } = window
-  const {clientWidth, clientHeight} = document.documentElement || {clientHeight: 800, clientWidth: 800}
+  const {clientWidth, clientHeight} = document.documentElement
 
   if (includes(position, 'right')) {
     style.right = Math.round(clientWidth - (coords.right + pageXOffset))
@@ -143,7 +143,7 @@ function isStyleInViewport(style: ComputedStyle, popupCoords: DOMRect): boolean 
     pageYOffset: number
     pageXOffset: number
   } = window
-  const {clientWidth, clientHeight} = document.documentElement || {clientHeight: 800, clientWidth: 800}
+  const {clientWidth, clientHeight} = document.documentElement
 
   const element = {
     height: popupCoords.height,
@@ -180,7 +180,7 @@ function pushStyleIntoViewport(style: ComputedStyle, popupCoords: DOMRect) {
     pageYOffset: number
     pageXOffset: number
   } = window
-  const {clientWidth, clientHeight} = document.documentElement || {clientHeight: 800, clientWidth: 800}
+  const {clientWidth, clientHeight} = document.documentElement
 
   const element = {
     height: popupCoords.height,
@@ -373,18 +373,14 @@ export class RelativeFloatingBox extends React.PureComponent<
 
   componentDidMount() {
     const node = document.body
-    if (node) {
-      node.addEventListener('mousedown', this._handleDown, false)
-      node.addEventListener('mouseup', this._handleUp, false)
-    }
+    node.addEventListener('mousedown', this._handleDown, false)
+    node.addEventListener('mouseup', this._handleUp, false)
   }
 
   componentWillUnmount() {
     const node = document.body
-    if (node) {
-      node.removeEventListener('mousedown', this._handleDown, false)
-      node.removeEventListener('mouseup', this._handleUp, false)
-    }
+    node.removeEventListener('mousedown', this._handleDown, false)
+    node.removeEventListener('mouseup', this._handleUp, false)
   }
 
   _setRef = (r: HTMLElement | null) => {
@@ -397,12 +393,11 @@ export class RelativeFloatingBox extends React.PureComponent<
     return (
       <Modal setNode={this._setRef}>
         <Kb.Box style={this.state.style}>
-          {this.props.onClosePopup && (
+          {
             <EscapeHandler onESC={this.props.onClosePopup}>
               <Kb.Box> {this.props.children} </Kb.Box>
             </EscapeHandler>
-          )}
-          {!this.props.onClosePopup && <Kb.Box>{this.props.children}</Kb.Box>}
+          }
         </Kb.Box>
       </Modal>
     )

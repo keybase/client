@@ -53,18 +53,12 @@ class GlobalKeyEventHandler extends React.Component<GlobalProps> {
 
   componentDidMount() {
     const body = document.body
-    if (!body) {
-      return
-    }
     body.addEventListener('keydown', this._handleKeyDown)
     body.addEventListener('keypress', this._handleKeyPress)
   }
 
   componentWillUnmount() {
     const body = document.body
-    if (!body) {
-      return
-    }
     body.removeEventListener('keydown', this._handleKeyDown)
     body.removeEventListener('keypress', this._handleKeyPress)
   }

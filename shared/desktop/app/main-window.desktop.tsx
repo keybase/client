@@ -18,9 +18,6 @@ let htmlFile = `${htmlPrefix}${assetRoot}main${__FILE_SUFFIX__}.html`
 
 const setupDefaultSession = () => {
   const ds = Electron.session.defaultSession
-  if (!ds) {
-    throw new Error('No default Session? Should be impossible')
-  }
 
   // We are not using partitions on webviews, so this essentially disables
   // download for webviews. If we decide to start using partitions for
@@ -90,8 +87,6 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
 
 const changeDock = (show: boolean) => {
   const dock = Electron.app.dock
-  if (!dock) return
-
   if (show) {
     dock
       .show()
@@ -339,7 +334,7 @@ const MainWindow = () => {
 
   menuHelper(win)
 
-  if (showDevTools && win.webContents) {
+  if (showDevTools) {
     win.webContents.openDevTools({mode: 'detach'})
   }
 

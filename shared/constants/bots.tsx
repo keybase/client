@@ -92,7 +92,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           {
             const {bots, limit, offset} = action.payload.params
             const loadedAllBots = !bots || bots.length < pageSize
-            const page = offset / (limit ?? pageSize)
+            const page = offset / limit
             get().dispatch.updateFeaturedBots(bots ?? [], page)
             get().dispatch.setLoadedAllBots(loadedAllBots)
           }
@@ -129,9 +129,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
         get().dispatch.setSearchFeaturedAndUsersResults(query, {
-          bots: botRes?.bots || [],
+          bots: botRes.bots || [],
           users: (userRes ?? []).reduce<Array<string>>((l, r) => {
-            const username = r?.keybase?.username
+            const username = r.keybase?.username
             if (username) {
               l.push(username)
             }

@@ -572,7 +572,7 @@ const PermsList = (props: PermsListProps) => {
           {props.settings.convs && props.channelMetas && (
             <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
               <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
-              {props.settings.convs?.map(convID => (
+              {props.settings.convs.map(convID => (
                 <Kb.Text type="Body" key={convID}>{`• #${
                   props.channelMetas?.get(convID)?.channelname ?? ''
                 }`}</Kb.Text>

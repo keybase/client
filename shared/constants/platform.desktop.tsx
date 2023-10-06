@@ -115,7 +115,9 @@ const getDarwinPaths = () => {
 }
 
 const paths =
-  (isLinux && getLinuxPaths()) || (isWindows && getWindowsPaths()) || (isDarwin && getDarwinPaths())
+  (isLinux ? getLinuxPaths() : undefined) ||
+  (isWindows ? getWindowsPaths() : undefined) ||
+  (isDarwin ? getDarwinPaths() : undefined)
 if (!paths) {
   throw new Error('Unknown OS')
 }
