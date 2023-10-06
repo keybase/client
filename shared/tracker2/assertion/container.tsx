@@ -32,7 +32,7 @@ const notAUserAssertion = {
 
 export default (ownProps: OwnProps) => {
   let a = Constants.noAssertion
-  let notAUser = false
+  let notAUser = false as boolean
   let stellarHidden = false
   const isYours = C.useCurrentUserState(s => ownProps.username === s.username)
   a = C.useTrackerState(s => {
@@ -109,7 +109,7 @@ export default (ownProps: OwnProps) => {
     onHideStellar: (hidden: boolean) => _onHideStellar(hidden),
     onRecheck: () => _onRecheck(_sigID),
     onRevoke: () => {
-      if (siteIconFull) _onRevokeProof(type as T.More.PlatformsExpandedType, value, _sigID, siteIconFull)
+      _onRevokeProof(type as T.More.PlatformsExpandedType, value, _sigID, siteIconFull)
     },
     onShowProof: notAUser || !proofURL ? undefined : () => openUrl(proofURL),
     onShowSite: notAUser || !siteURL ? undefined : () => openUrl(siteURL),

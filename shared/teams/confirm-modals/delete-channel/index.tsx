@@ -1,8 +1,8 @@
-import * as T from '../../../constants/types'
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
+import type * as T from '../../../constants/types'
 import {pluralize} from '../../../util/string'
 import {useAllChannelMetas} from '../../common/channel-hooks'
 
@@ -20,7 +20,7 @@ const Header = () => (
 )
 
 const DeleteChannel = (props: Props) => {
-  const teamID = props.teamID ?? T.Teams.noTeamID
+  const teamID = props.teamID
   const routePropChannel = props.conversationIDKey
   const storeSelectedChannels = C.useTeamsState(s => s.teamSelectedChannels.get(teamID))
 
@@ -33,7 +33,7 @@ const DeleteChannel = (props: Props) => {
   const channelnames: string[] = []
 
   channelIDs.forEach(channelID => {
-    const conversationMeta = channelMetas?.get(channelID)
+    const conversationMeta = channelMetas.get(channelID)
     const channelname = conversationMeta ? conversationMeta.channelname : ''
     channelnames.push(channelname)
   })

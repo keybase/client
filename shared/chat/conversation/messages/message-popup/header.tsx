@@ -3,13 +3,12 @@ import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timesta
 import type * as T from '../../../../constants/types'
 
 const iconNameForDeviceType = Kb.Styles.isMobile
-  ? (deviceType: string, isRevoked: boolean, isLocation: Boolean): Kb.IconType => {
+  ? (deviceType: string, isRevoked: boolean, isLocation: boolean): Kb.IconType => {
       switch (deviceType) {
         case 'mobile':
           return isRevoked
             ? 'icon-fancy-revoked-phone-mobile-226-96'
-            : // eslint-disable-next-line unclear why this claims its a fixed value
-            isLocation
+            : isLocation
             ? 'icon-fancy-location-phone-mobile-226-96'
             : 'icon-fancy-encrypted-phone-mobile-226-96'
         default:

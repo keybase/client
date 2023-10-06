@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
-import * as T from '../../constants/types'
+import type * as T from '../../constants/types'
 import {useFocusEffect} from '@react-navigation/core'
 import {memoize} from '../../util/memoize'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
@@ -87,7 +87,7 @@ const useLoadFeaturedBots = (teamDetails: T.Teams.TeamDetails, shouldLoad: boole
 const SectionList = createAnimatedComponent<SectionListProps<SectionType<Section>>>(Kb.SectionList as any)
 
 const Team = (props: Props) => {
-  const teamID = props.teamID ?? T.Teams.noTeamID
+  const teamID = props.teamID
   const initialTab = props.initialTab
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
 

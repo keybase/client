@@ -24,9 +24,9 @@ export default (ownProps: OwnProps) => {
     Constants.teamTarsWaitingKey(teamMeta.teamname),
   ])
   const newTeamRequests = C.useTeamsState(s => s.newTeamRequests)
-  const numInvites = teamDetails?.invites?.size ?? 0
-  const numRequests = teamDetails?.requests?.size ?? 0
-  const numSubteams = teamDetails?.subteams?.size ?? 0
+  const numInvites = teamDetails?.invites.size ?? 0
+  const numRequests = teamDetails?.requests.size ?? 0
+  const numSubteams = teamDetails?.subteams.size ?? 0
   const resetUserCount = C.useTeamsState(s => Constants.getTeamResetUsers(s, teamMeta.teamname).size)
   const showSubteams = yourOperations.manageSubteams
   const props = {

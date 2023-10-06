@@ -31,7 +31,7 @@ const ChannelMemberRow = (props: Props) => {
   const infoMap = C.useUsersState(s => s.infoMap)
   const participantInfo = C.useConvoState(conversationIDKey, s => s.participants)
   const teamMemberInfo = C.useTeamsState(
-    s => s.teamDetails.get(teamID)?.members?.get(username) ?? Constants.initialMemberInfo
+    s => s.teamDetails.get(teamID)?.members.get(username) ?? Constants.initialMemberInfo
   )
   const you = C.useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
@@ -39,7 +39,7 @@ const ChannelMemberRow = (props: Props) => {
   const roleType = teamMemberInfo.type
   const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
   const crown = React.useMemo(() => {
-    return active && roleType && showCrown[roleType] ? (
+    return active && showCrown[roleType] ? (
       <Kb.Icon
         type={('iconfont-crown-' + teamMemberInfo.type) as any}
         style={styles.crownIcon}
@@ -61,7 +61,7 @@ const ChannelMemberRow = (props: Props) => {
       : 'Has reset their account; admins can re-invite'
     : null
 
-  const roleLabel = !!active && !!teamMemberInfo.type && Constants.typeToLabel[teamMemberInfo.type]
+  const roleLabel = !!active && Constants.typeToLabel[teamMemberInfo.type]
   const isYou = you === username
 
   const channelSelectedMembers = C.useTeamsState(s => s.channelSelectedMembers.get(conversationIDKey))
@@ -111,7 +111,7 @@ const ChannelMemberRow = (props: Props) => {
             />
           )}
           <Kb.Text type="BodySmall" style={styles.marginRight}>
-            {!!active && !!teamMemberInfo.type && Constants.typeToLabel[teamMemberInfo.type]}
+            {!!active && Constants.typeToLabel[teamMemberInfo.type]}
             {resetLabel}
           </Kb.Text>
         </Kb.Box>

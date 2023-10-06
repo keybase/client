@@ -29,7 +29,7 @@ const Row = (p: {account: Constants.Account}) => {
         setSK(r)
       },
       e => {
-        setErr(e?.desc)
+        setErr(e.desc)
       }
     )
   }, [getSecretKey, accountID])

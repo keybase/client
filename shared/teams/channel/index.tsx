@@ -1,10 +1,10 @@
-import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat2'
+import type * as T from '../../constants/types'
 import {useAttachmentSections} from '../../chat/conversation/info-panel/attachments'
 import {SelectionPopup, useChannelParticipants} from '../common'
 import ChannelTabs, {type TabKey} from './tabs'
@@ -106,7 +106,7 @@ const SectionList = createAnimatedComponent<SectionListProps<SectionType<string,
 
 const emptyMapForUseSelector = new Map<string, T.Teams.MemberInfo>()
 const Channel = (props: OwnProps) => {
-  const teamID = props.teamID ?? T.Teams.noTeamID
+  const teamID = props.teamID
   const conversationIDKey = props.conversationIDKey
   const providedTab = props.selectedTab
 

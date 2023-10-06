@@ -28,6 +28,7 @@ function timeoutFallback(cb: (info: TimeoutInfo) => void): number {
 
 const useFallback =
   typeof window === 'undefined' ||
+  // eslint-disable-next-line
   !window.requestIdleCallback ||
   // Timers in RN in chrome are super problematic. https://github.com/facebook/react-native/issues/4470
   (isMobile && isDebuggingInChrome) ||

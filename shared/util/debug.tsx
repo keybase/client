@@ -46,15 +46,11 @@ export function createLoggingProxy<T extends object>(
         if (typeof originalMethod === 'function') {
           if (logMethods) {
             const ret = function (...args: any[]) {
-              if (logMethods) {
-                console.log(`[PROXY] Calling method: ${String(propKey)}`)
-                console.log('[PROXY] Arguments:', args)
-              }
+              console.log(`[PROXY] Calling method: ${String(propKey)}`)
+              console.log('[PROXY] Arguments:', args)
               // @ts-ignore
               const result = originalMethod.apply(this, args)
-              if (logMethods) {
-                console.log('[PROXY] Result:', result)
-              }
+              console.log('[PROXY] Result:', result)
               return result
             }
             cache.set(propKey, ret)

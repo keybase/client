@@ -1,14 +1,14 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as T from '../../constants/types'
 import * as Container from '../../util/container'
+import type * as T from '../../constants/types'
 import CreateChannelsModal from '../new-team/wizard/create-channels'
 
 type Props = {teamID: T.Teams.TeamID}
 
 const CreateChannels = (props: Props) => {
-  const teamID = props.teamID ?? T.Teams.noTeamID
+  const teamID = props.teamID
   const setChannelCreationError = C.useTeamsState(s => s.dispatch.setChannelCreationError)
   React.useEffect(
     () => () => {

@@ -38,7 +38,7 @@ const Bio = (p: Props) => (
       </Kb.Text>
     </Kb.Box2>
     <FollowText followThem={p.followThem} followsYou={p.followsYou} />
-    {p.followersCount !== null && (
+    {p.followersCount !== undefined && (
       <Kb.Text type="BodySmall">
         <Kb.Text type="BodySmall">
           <Kb.Text type="BodySmall" style={styles.bold}>

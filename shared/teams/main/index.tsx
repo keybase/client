@@ -85,7 +85,7 @@ export const TeamRow = React.memo<RowProps>(function TeamRow(props: RowProps) {
       action={
         Kb.Styles.isMobile ? null : (
           <Kb.Box2 direction="horizontal" gap="small" gapEnd={true} gapStart={true}>
-            {props.onOpenFolder && <Kb.Icon type="iconfont-folder-private" onClick={props.onOpenFolder} />}
+            <Kb.Icon type="iconfont-folder-private" onClick={props.onOpenFolder} />
             {props.onManageChat ? (
               <ChatIcon />
             ) : (

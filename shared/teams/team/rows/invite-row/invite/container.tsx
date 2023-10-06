@@ -27,32 +27,27 @@ export default (ownProps: OwnProps) => {
     removePendingInvite(teamID, inviteID)
   }
 
-  const user: T.Teams.InviteInfo | undefined =
-    [...(_invites ?? [])].find(invite => invite.id === ownProps.id) || Constants.emptyInviteInfo
+  const user = [...(_invites ?? [])].find(invite => invite.id === ownProps.id) || Constants.emptyInviteInfo
 
   let label: string = ''
   let subLabel: undefined | string
   let role: T.Teams.TeamRoleType = 'reader'
   let isKeybaseUser = false
 
-  let onCancelInvite = () => {}
-
-  if (user) {
-    onCancelInvite = () => _onCancelInvite(ownProps.id)
-    label = user.username || user.name || user.email || user.phone
-    subLabel = user.name ? user.phone || user.email : undefined
-    role = user.role
-    isKeybaseUser = !!user.username
-    if (!subLabel && labelledInviteRegex.test(label)) {
-      const match = labelledInviteRegex.exec(label)!
-      label = match[1] ?? ''
-      subLabel = match[2]
-    }
-    try {
-      label = label === user.phone ? formatPhoneNumber('+' + label) : label
-      subLabel = subLabel === user.phone ? formatPhoneNumber('+' + subLabel) : subLabel
-    } catch {}
+  const onCancelInvite = () => _onCancelInvite(ownProps.id)
+  label = user.username || user.name || user.email || user.phone
+  subLabel = user.name ? user.phone || user.email : undefined
+  role = user.role
+  isKeybaseUser = !!user.username
+  if (!subLabel && labelledInviteRegex.test(label)) {
+    const match = labelledInviteRegex.exec(label)!
+    label = match[1] ?? ''
+    subLabel = match[2]
   }
+  try {
+    label = label === user.phone ? formatPhoneNumber('+' + label) : label
+    subLabel = subLabel === user.phone ? formatPhoneNumber('+' + subLabel) : subLabel
+  } catch {}
   const props = {
     firstItem: ownProps.firstItem,
     isKeybaseUser,

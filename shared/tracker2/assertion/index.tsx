@@ -167,7 +167,7 @@ const StellarValue = (p: Props) => {
     </Kb.Text>
   ) : (
     <Kb.Box ref={popupAnchor} style={styles.tooltip}>
-      <Kb.WithTooltip tooltip={Kb.Styles.isMobile || showingPopup ? '' : 'Stellar Federation Address'}>
+      <Kb.WithTooltip tooltip={showingPopup ? '' : 'Stellar Federation Address'}>
         <Kb.Text
           type="BodyPrimaryLink"
           onClick={toggleShowingPopup}

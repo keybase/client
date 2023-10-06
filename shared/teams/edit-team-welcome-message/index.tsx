@@ -13,7 +13,7 @@ type Props = {teamID: T.Teams.TeamID}
 const welcomeMessageMaxLen = 400
 
 const EditTeamWelcomeMessage = (props: Props) => {
-  const teamID = props.teamID ?? T.Teams.noTeamID
+  const teamID = props.teamID
 
   if (teamID === T.Teams.noTeamID) {
     throw new Error(`There was a problem loading the welcome message page, please report this error.`)

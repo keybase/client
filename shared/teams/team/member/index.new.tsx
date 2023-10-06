@@ -75,7 +75,7 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
   }
 
   for (const membership of memberships.memberships) {
-    const teamname = membership?.teamName
+    const teamname = membership.teamName
 
     if (T.RPCGen.TeamTreeMembershipStatus.ok === membership.result.s) {
       const teamID = membership.result.ok.teamID
@@ -134,7 +134,7 @@ const SectionList = createAnimatedComponent<SectionListProps<Section>>(Kb.Sectio
 
 const TeamMember = (props: OwnProps) => {
   const username = props.username
-  const teamID = props.teamID ?? T.Teams.noTeamID
+  const teamID = props.teamID
   const isMe = username === C.useCurrentUserState(s => s.username)
   const loading = C.useTeamsState(s => {
     const memberships = s.teamMemberToTreeMemberships.get(teamID)?.get(username)

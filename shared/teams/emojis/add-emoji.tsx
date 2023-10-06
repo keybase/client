@@ -60,7 +60,7 @@ const useDoAddEmojis = (
                 onChange?.()
                 removeFilePath(new Set(res.successFilenames))
               }
-              const failedFilenamesKeys = Object.keys(res.failedFilenames || {})
+              const failedFilenamesKeys = Object.keys(res.failedFilenames)
               !failedFilenamesKeys.length && clearModals()
               setErrors(
                 new Map(failedFilenamesKeys.map(key => [key, res.failedFilenames[key]?.uidisplay ?? '']))
@@ -199,7 +199,7 @@ export const AddEmojiModal = (props: Props) => {
 
 const AddEmojiModalWrapper = (routableProps: RoutableProps) => {
   const conversationIDKey = routableProps.conversationIDKey
-  const teamID = routableProps.teamID ?? T.Teams.noTeamID
+  const teamID = routableProps.teamID
   return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} />
 }
 export default AddEmojiModalWrapper

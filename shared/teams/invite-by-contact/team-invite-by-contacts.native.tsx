@@ -23,7 +23,7 @@ const mapExistingInvitesToValues = (
   region: string
 ): Map<string, string> => {
   const ret = new Map<string, string>()
-  invites?.forEach(invite => {
+  invites.forEach(invite => {
     if (invite.email) {
       // Email invite - just use email as the key.
       ret.set(invite.email, invite.id)
@@ -74,17 +74,20 @@ const TeamInviteByContact = (props: Props) => {
   const onInviteContact = React.useCallback(
     (contact: Contact) => {
       resetErrorInEmailInvite()
-      if (contact.type === 'email') {
-        inviteToTeamByEmail(contact.value, selectedRole, teamID, teamname, contact.value)
-      } else if (contact.type === 'phone') {
-        inviteToTeamByPhone(
-          teamID,
-          teamname,
-          selectedRole,
-          contact.valueFormatted || contact.value,
-          contact.name,
-          contact.value
-        )
+      switch (contact.type) {
+        case 'email':
+          inviteToTeamByEmail(contact.value, selectedRole, teamID, teamname, contact.value)
+          break
+        case 'phone':
+          inviteToTeamByPhone(
+            teamID,
+            teamname,
+            selectedRole,
+            contact.valueFormatted || contact.value,
+            contact.name,
+            contact.value
+          )
+          break
       }
     },
     [inviteToTeamByPhone, inviteToTeamByEmail, resetErrorInEmailInvite, selectedRole, teamID, teamname]

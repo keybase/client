@@ -122,10 +122,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     <Kb.Box2
       direction="horizontal"
       gap="tiny"
-      style={Kb.Styles.collapseStyles([
-        styles.actionButtons,
-        canPerform.deleteChannel ? styles.mobileMarginsHack : undefined,
-      ])}
+      style={Kb.Styles.collapseStyles([styles.actionButtons, styles.mobileMarginsHack])}
       alignSelf="flex-start"
     >
       {popup}

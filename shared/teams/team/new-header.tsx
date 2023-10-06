@@ -5,7 +5,6 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import TeamMenu from './menu-container'
 import {pluralize} from '../../util/string'
-import capitalize from 'lodash/capitalize'
 import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import type * as T from '../../constants/types'
 
@@ -92,7 +91,6 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const justFinishedAddWizard = C.useTeamsState(s => s.addMembersWizard.justFinished)
   useActivityLevels()
   const activityLevel = C.useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
-  const newMemberCount = 0 // TODO plumbing
 
   const callbacks = useHeaderCallbacks(teamID)
   const makePopup = React.useCallback(
@@ -142,7 +140,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           <Kb.Meta title="open" backgroundColor={Kb.Styles.globalColors.green} style={styles.openMeta} />
         )}
       </Kb.Box2>
-      {!!meta.role && (
+      {
         <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-start">
           {(meta.role === 'admin' || meta.role === 'owner') && (
             <Kb.Icon
@@ -153,12 +151,10 @@ const HeaderTitle = (props: HeaderTitleProps) => {
               type={meta.role === 'owner' ? 'iconfont-crown-owner' : 'iconfont-crown-admin'}
             />
           )}
-          {(!Kb.Styles.isPhone || !!meta.role) && (
+          {!Kb.Styles.isPhone && (
             <>
               <Kb.Text type="BodySmall">
-                {Kb.Styles.isPhone
-                  ? capitalize(meta.role)
-                  : `You are ${roleDisplay[meta.role] || 'a member of'} this team. `}
+                {`You are ${roleDisplay[meta.role] || 'a member of'} this team. `}
               </Kb.Text>
               {meta.role === 'none' && (
                 <Kb.Text
@@ -172,7 +168,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             </>
           )}
         </Kb.Box2>
-      )}
+      }
     </Kb.Box2>
   )
 
@@ -195,7 +191,6 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         {meta.memberCount !== -1 && (
           <Kb.Text type="BodySmall">
             {meta.memberCount.toLocaleString()} {pluralize('member', meta.memberCount)}
-            {!!newMemberCount && ` · ${newMemberCount} new this week`}
           </Kb.Text>
         )}
         <Activity level={activityLevel} style={styles.activity} />
