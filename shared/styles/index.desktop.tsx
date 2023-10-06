@@ -9,7 +9,7 @@ import * as Path from '../util/path'
 import isArray from 'lodash/isArray'
 import shallowEqual from 'shallowequal'
 
-type _Elem = Object | null | false | void
+type _Elem = Object | null | false
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
 // slightly extended to support "isFoo && myStyle".
 type CollapsibleStyle = _Elem | ReadonlyArray<_Elem>
