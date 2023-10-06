@@ -205,7 +205,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   _getProps = () => {
-    let common = {
+    const common = {
       ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
       allowFontScaling: this.props.allowFontScaling,
       autoCapitalize: this.props.autoCapitalize || 'none',

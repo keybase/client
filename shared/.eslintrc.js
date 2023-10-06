@@ -53,7 +53,7 @@ module.exports = {
     'no-useless-return': 'off',
     'object-curly-even-spacing': 'off',
     'object-curly-spacing': 'off',
-    'prefer-const': 'warn',
+    'prefer-const': 'error',
     'quote-props': 'off',
     quotes: 'off',
     'react-hooks/exhaustive-deps': 'error',
