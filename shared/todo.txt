@@ -1,2 +1,8 @@
 Some short term todos:
+check zoomable image desktop
+popups on desktop and mobile
 
+input not hooked up >>>>
+plaininput not hooked up >>>>
+
+emoji picker desktop

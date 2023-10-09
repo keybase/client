@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {Box2} from '../../../common-adapters/box'
+import type {MeasureRef} from '../../../common-adapters/measure-ref'
 import Divider from '../../../common-adapters/divider'
 import Text from '../../../common-adapters/text'
 import * as Styles from '../../../styles'
@@ -15,7 +16,7 @@ const Kb = {
 }
 
 type Props = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<MeasureRef>
   onHidden: () => void
   error: string
   visible: boolean

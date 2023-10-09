@@ -1,8 +1,9 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type {CustomStyles, _CustomStyles, StylesCrossPlatform} from '../styles/css'
 import {allTextTypes} from './text.shared'
 import type * as CSS from '../styles/css'
 import type colors from '../styles/colors'
+import type {MeasureRef} from './measure-ref'
 
 type Background =
   | 'Announcements'
@@ -63,7 +64,7 @@ type Props = {
   onClickURL?: string
   onLongPress?: () => void
   onLongPressURL?: string
-  onPress?: void
+  onPress?: never
   fixOverdraw?: boolean // use fastBlank to fix overdraw issues TODO support auto when this is a function
   plainText?: boolean
   selectable?: boolean
@@ -87,9 +88,11 @@ type MetaType = {
   isTerminal?: true
 }
 
-declare class Text extends React.Component<Props> {
+export type TextMeasureRef = {
   highlightText: () => void
-}
+} & MeasureRef
+
+export declare const Text: ReturnType<typeof React.forwardRef<TextMeasureRef | MeasureRef, Props>>
 
 type TextStyle = {
   fontSize: number
@@ -113,5 +116,5 @@ declare function getStyle(
 ): TextStyle
 
 export {getStyle, allTextTypes}
-export {Background, MetaType, Props, TextType, TextTypeBold}
+export type {Background, MetaType, Props, TextType, TextTypeBold}
 export default Text

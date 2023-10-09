@@ -1,5 +1,6 @@
 import * as React from 'react'
 import type {Position} from '../../styles'
+import type {MeasureRef} from '../measure-ref'
 import type {StylesCrossPlatform} from '../../styles/css'
 
 /**
@@ -15,7 +16,7 @@ import type {StylesCrossPlatform} from '../../styles/css'
  */
 
 export type Props = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<MeasureRef>
   children: React.ReactNode
   color?: string
   matchDimension?: boolean

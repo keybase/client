@@ -4,10 +4,10 @@ import type * as T from '../../../../constants/types'
 import {type Position, fileUIName, type StylesCrossPlatform} from '../../../../styles'
 import {makeMessageAttachment} from '../../../../constants/chat2/message'
 import {useItems, useHeader} from './hooks'
-import {FloatingMenu} from '../../../../common-adapters'
+import {FloatingMenu, type MeasureRef} from '../../../../common-adapters'
 
 type OwnProps = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<MeasureRef>
   ordinal: T.Chat.Ordinal
   onHidden: () => void
   position: Position

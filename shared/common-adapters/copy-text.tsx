@@ -3,11 +3,12 @@ import * as React from 'react'
 import {Box2} from './box'
 import Icon from './icon'
 import Button, {type Props as ButtonProps} from './button'
-import Text, {type LineClampType, type TextType} from './text'
+import Text, {type TextMeasureRef, type LineClampType, type TextType} from './text'
 import Toast from './toast'
 import {useTimeout} from './use-timers'
 import * as Styles from '../styles'
 import logger from '../logger'
+import type {MeasureRef} from './measure-ref'
 
 type Props = {
   buttonType?: ButtonProps['type']
@@ -50,8 +51,8 @@ const CopyText = (props: Props) => {
     }
   }, [withReveal, text, loadText])
 
-  const attachmentRef = React.useRef<Box2>(null)
-  const textRef = React.useRef<Text>(null)
+  const attachmentRef = React.useRef<MeasureRef>(null)
+  const textRef = React.useRef<TextMeasureRef>(null)
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const showShareActionSheet = C.useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
   const copy = React.useCallback(() => {
@@ -66,7 +67,7 @@ const CopyText = (props: Props) => {
         showShareActionSheet?.('', text, 'text/plain')
       } else {
         setShowingToast(true)
-        textRef.current && textRef.current.highlightText()
+        textRef.current?.highlightText()
         copyToClipboard(text)
       }
       onCopy && onCopy()
@@ -118,7 +119,7 @@ const CopyText = (props: Props) => {
         props.containerStyle,
       ])}
     >
-      <Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
+      <Toast position="top center" attachTo={attachmentRef} visible={showingToast}>
         {Styles.isMobile && <Icon type="iconfont-clipboard" color={Styles.globalColors.whiteOrWhite} />}
         <Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
           Copied to clipboard

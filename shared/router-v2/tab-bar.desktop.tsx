@@ -28,8 +28,7 @@ const FilesTabBadge = () => {
 
 const Header = () => {
   const [showingMenu, setShowingMenu] = React.useState(false)
-  const attachmentRef = React.useRef<Kb.Box2>(null)
-  const getAttachmentRef = () => attachmentRef.current
+  const attachmentRef = React.useRef<Kb.MeasureRef>(null)
   const username = C.useCurrentUserState(s => s.username)
   const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, username).fullname || '')
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
@@ -134,7 +133,7 @@ const Header = () => {
         header={menuHeader()}
         closeOnSelect={true}
         visible={showingMenu}
-        attachTo={getAttachmentRef}
+        attachTo={attachmentRef}
         items={menuItems()}
         onHidden={() => setShowingMenu(false)}
       />

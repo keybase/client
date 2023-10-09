@@ -2,6 +2,7 @@ import * as React from 'react'
 import Text from '../../text'
 import Button from '../../button'
 import {Box2} from '../../box'
+import type {MeasureRef} from '../../measure-ref'
 import type {MenuItems} from '../../floating-menu/menu-layout'
 import FloatingMenu from '../../floating-menu'
 import * as Styles from '../../../styles'
@@ -9,7 +10,7 @@ import * as Styles from '../../../styles'
 const Kb = {Box2, Button, FloatingMenu, Styles, Text}
 
 type PopupProps = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<MeasureRef>
   onHidden: () => void
   onResolve: () => void
   text: string
@@ -53,11 +54,8 @@ type State = {
 }
 
 class UnknownMention extends React.Component<Props, State> {
-  _mentionRef = React.createRef<Text>()
+  _mentionRef = React.createRef<MeasureRef>()
   state = {showPopup: false}
-  _getAttachmentRef = () => {
-    return this._mentionRef.current
-  }
   _onMouseOver = () => {
     this.setState({showPopup: true})
   }
@@ -89,7 +87,7 @@ class UnknownMention extends React.Component<Props, State> {
     )
     const popups = (
       <UnknownMentionPopup
-        attachTo={this._getAttachmentRef}
+        attachTo={this._mentionRef}
         onHidden={this._onMouseLeave}
         onResolve={this.props.onResolve}
         text={text}

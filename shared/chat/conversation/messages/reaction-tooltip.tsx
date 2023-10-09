@@ -9,7 +9,7 @@ import {OrdinalContext} from './ids-context'
 const positionFallbacks = ['bottom center', 'left center'] as const
 
 export type Props = {
-  attachmentRef?: () => React.Component<any> | null
+  attachmentRef?: React.RefObject<Kb.MeasureRef>
   onAddReaction: () => void
   onHidden: () => void
   onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void

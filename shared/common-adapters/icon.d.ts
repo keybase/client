@@ -1,6 +1,7 @@
-import * as React from 'react'
-import {IconType} from './icon.constants-gen'
-import {StylesCrossPlatform, Color, globalMargins, CustomStyles} from '../styles'
+import type * as React from 'react'
+import type {IconType} from './icon.constants-gen'
+import type {StylesCrossPlatform, Color, globalMargins, CustomStyles} from '../styles'
+import type {MeasureRef} from './measure-ref'
 
 export type SizeType = 'Huge' | 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'
 
@@ -17,7 +18,7 @@ export type Props = {
   hint?: string
   noContainer?: boolean
   onClick?: (event: React.BaseSyntheticEvent) => void
-  onPress?: void // Use onClick, not onPress.,,
+  onPress?: never // Use onClick, not onPress.,,
   onLongPress?: () => void // mobile only, rarely used just for debug currently
   onMouseEnter?: () => void
   onMouseLeave?: () => void
@@ -40,16 +41,9 @@ export type Props = {
   allowLazy?: boolean // desktop only
 }
 
-declare class Icon extends React.Component<Props> {
-  defaultProps: {
-    sizeType: 'Default'
-  }
-}
-
+export declare const Icon: ReturnType<typeof React.forwardRef<MeasureRef, Props>>
 export default Icon
 
 export declare function iconTypeToImgSet(imgMap: {[K in string]: IconType}, targetSize: number): string
-
 export declare function urlsToImgSet(imgMap: {[K in string]: string}, size: number): string | null
-
-export {IconType} from './icon.constants-gen'
+export type {IconType} from './icon.constants-gen'

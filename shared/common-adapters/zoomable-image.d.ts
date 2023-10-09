@@ -1,5 +1,5 @@
-import * as React from 'react'
-import * as Styles from '../styles'
+import type * as React from 'react'
+import type * as Styles from '../styles'
 
 export type Props = {
   src: string
@@ -11,4 +11,5 @@ export type Props = {
   onChanged?: (e: {height: number; width: number; x: number; y: number; scale: number}) => void
 }
 
-export default class ZoomableImage extends React.Component<Props> {}
+export declare const ZoomableImage: (p: Props) => React.ReactNode
+export default ZoomableImage

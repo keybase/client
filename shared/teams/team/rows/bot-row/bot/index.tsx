@@ -25,10 +25,9 @@ export type Props = {
 
 export const TeamBotRow = (props: Props) => {
   let descriptionLabel
-  const menuRef = React.useRef<Kb.Box>(null)
+  const menuRef = React.useRef<Kb.MeasureRef>(null)
   const [showMenu, setShowMenu] = React.useState(false)
 
-  const _getAttachmentRef = () => menuRef.current
   const _onShowMenu = () => setShowMenu(true)
   const _onHideMenu = () => setShowMenu(false)
   const active = props.status === 'active'
@@ -80,7 +79,7 @@ export const TeamBotRow = (props: Props) => {
             <Kb.Box style={styles.nameContainerInner}>{descriptionLabel}</Kb.Box>
           </Kb.Box>
         </Kb.Box>
-        <Kb.Box style={styles.menuIconContainer} ref={menuRef}>
+        <Kb.Box2 direction="vertical" style={styles.menuIconContainer} ref={menuRef}>
           {(active || C.isLargeScreen) && (
             // Desktop & mobile large screen - display on the far right of the first row
             // Also when user is active
@@ -96,14 +95,14 @@ export const TeamBotRow = (props: Props) => {
             />
           )}
           <BotMenu
-            attachTo={_getAttachmentRef}
+            attachTo={menuRef}
             canManageBots={props.canManageBots}
             visible={showMenu}
             onEdit={props.onEdit}
             onRemove={props.onRemove}
             onHidden={_onHideMenu}
           />
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.Box>
     </Kb.Box>
   )

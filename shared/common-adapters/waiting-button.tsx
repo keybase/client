@@ -1,7 +1,7 @@
 import * as C from '../constants'
 import * as React from 'react'
 import {default as Button, type Props as ButtonProps} from './button'
-import type ClickableBox from './clickable-box'
+import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Button,
@@ -24,7 +24,7 @@ export type Props = {
  *  waiting store (store.waiting), which will be set by a saga somewhere.
  */
 
-const WaitingButton = React.forwardRef<ClickableBox, Props>(function WaitingButton(props, ref) {
+const WaitingButton = React.forwardRef<MeasureRef, Props>(function WaitingButton(props, ref) {
   const {onlyDisable, waitingKey, ...buttonProps} = props
   const storeWaiting = C.useAnyWaiting(waitingKey)
 

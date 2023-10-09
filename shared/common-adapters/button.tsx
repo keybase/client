@@ -9,6 +9,7 @@ import Text, {type StylesTextCrossPlatform} from './text'
 import WithTooltip from './with-tooltip'
 import type {IconType} from './icon.constants-gen'
 import {Box, Box2} from './box'
+import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Badge,
@@ -88,9 +89,9 @@ const stopClick = (e: React.BaseSyntheticEvent) => {
   e.stopPropagation()
 }
 
-const Button = React.forwardRef<ClickableBox, Props>(function ButtonInner(
+const Button = React.forwardRef<MeasureRef, Props>(function ButtonInner(
   props: Props,
-  ref: React.Ref<ClickableBox>
+  ref: React.Ref<MeasureRef>
 ) {
   const {mode = 'Primary', type = 'Default'} = props
   let containerStyle: Styles.StylesCrossPlatform = props.backgroundColor

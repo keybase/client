@@ -426,12 +426,13 @@ export type FloatingProps<T extends boolean> = {
 } & Props<T>
 
 export class FloatingRolePicker<IncludeSetIndividually extends boolean = false> extends React.Component<
-  FloatingProps<IncludeSetIndividually>,
-  {ref: Kb.Box | null}
+  FloatingProps<IncludeSetIndividually> //,
+  // {ref: Kb.MeasureRef | null}
 > {
-  state = {ref: null}
-  _returnRef = () => this.state.ref
-  _setRef = (ref: Kb.Box | null) => this.setState({ref})
+  ref = React.createRef<Kb.MeasureRef>()
+  // state = {ref: null}
+  // _returnRef = () => this.state.ref
+  // _setRef = (ref: Kb.Box | null) => this.setState({ref})
   render() {
     const {position, children, open, floatingContainerStyle, onCancel, ...props} = this.props
     const picker = (
@@ -440,10 +441,10 @@ export class FloatingRolePicker<IncludeSetIndividually extends boolean = false> 
     return (
       <>
         {children}
-        <Kb.Box ref={this._setRef} />
+        <Kb.Box2 direction="vertical" ref={this.ref} />
         {open && (
           <Kb.FloatingBox
-            attachTo={this._returnRef}
+            attachTo={this.ref}
             position={position || 'top center'}
             onHidden={onCancel}
             hideKeyboard={true}

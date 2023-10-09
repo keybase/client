@@ -9,7 +9,7 @@ import {useItems, useHeader} from './hooks'
 import * as Kb from '../../../../common-adapters'
 
 type OwnProps = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<Kb.MeasureRef>
   ordinal: T.Chat.Ordinal
   onHidden: () => void
   position: Position

@@ -101,13 +101,13 @@ const EmojiButton = (p: EmojiButtonProps) => {
   return (
     <>
       <Kb.WithTooltip tooltip="Emoji">
-        <Kb.Box style={styles.icon} ref={popupAnchor}>
+        <Kb.Box2 direction="vertical" style={styles.icon} ref={popupAnchor}>
           <Kb.Icon
             color={showingPopup ? Kb.Styles.globalColors.black : undefined}
             onClick={toggleShowingPopup}
             type="iconfont-emoji"
           />
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.WithTooltip>
       {popup}
     </>

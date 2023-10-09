@@ -148,7 +148,7 @@ const DesktopHeader = React.memo(
       ? Kb.Styles.globalColors.black_10
       : Kb.Styles.globalColors.transparent
 
-    const whatsNewAttachToRef = React.createRef<Kb.Box2>()
+    const whatsNewAttachToRef = React.createRef<Kb.MeasureRef>()
 
     return (
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>

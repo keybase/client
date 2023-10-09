@@ -73,7 +73,7 @@ const RowItem = React.memo(function RowItem(p: IProps) {
   const ordinal = React.useContext(OrdinalContext)
   const {emoji} = p
 
-  const popupAnchor = React.useRef<Kb.Box2 | null>(null)
+  const popupAnchor = React.useRef<Kb.MeasureRef>(null)
   const [showingPopup, setShowingPopup] = React.useState(false)
 
   const showPopup = React.useCallback(() => {

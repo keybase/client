@@ -46,8 +46,8 @@ const DefaultView = (props: DefaultViewProps) => {
               <Kb.Box2 direction="vertical" gap="medium" gapStart={true} />
               <PathItemAction
                 clickable={{
-                  component: ({onClick, setRef}) => (
-                    <Kb.Button key="share" label="Share" onClick={onClick} ref={setRef} />
+                  component: ({onClick, ref}) => (
+                    <Kb.Button key="share" label="Share" onClick={onClick} ref={ref} />
                   ),
                   type: 'component',
                 }}

@@ -77,7 +77,7 @@ type WMProps = {
   toggleShowingPopup: () => void
   showingPopup: boolean
   popup: React.ReactNode
-  popupAnchor: React.MutableRefObject<React.Component | null>
+  popupAnchor: React.RefObject<Kb.MeasureRef>
 } & Props
 
 const successfulInlinePaymentStatuses = ['completed', 'claimable']
@@ -198,7 +198,7 @@ type TSProps = {
   hasReactions: boolean
   isPendingPayment: boolean
   isHighlighted: boolean
-  popupAnchor: React.MutableRefObject<React.Component | null>
+  popupAnchor: React.RefObject<Kb.MeasureRef>
   reactionsPopupPosition: 'none' | 'last' | 'middle'
   setShowingPicker: (s: boolean) => void
   showCoinsIcon: boolean

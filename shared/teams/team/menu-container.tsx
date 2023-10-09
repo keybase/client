@@ -7,14 +7,14 @@ import * as T from '../../constants/types'
 import {pluralize} from '../../util/string'
 
 type OwnProps = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<Kb.MeasureRef>
   onHidden: () => void
   teamID: T.Teams.TeamID
   visible: boolean
 }
 
 type Props = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<Kb.MeasureRef>
   items: Kb.MenuItems
   teamname: string
   memberCount: number

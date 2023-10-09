@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import {View} from 'react-native'
 import type {Box2Props} from './box'
+import type {MeasureRef} from './measure-ref'
 
 const Box = View
 
@@ -15,7 +16,7 @@ const vgapStartStyles = new Map(marginKeys.map(gap => [gap, {paddingTop: Styles.
 const hgapEndStyles = new Map(marginKeys.map(gap => [gap, {paddingRight: Styles.globalMargins[gap]}]))
 const vgapEndStyles = new Map(marginKeys.map(gap => [gap, {paddingBottom: Styles.globalMargins[gap]}]))
 
-const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, ref: React.Ref<View>) {
+const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, _ref: React.Ref<MeasureRef>) {
   const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = props
   const {collapsable = true} = props
   const {style, onLayout, pointerEvents, children, gap, gapStart, gapEnd} = props
@@ -69,9 +70,15 @@ const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, ref: React.Re
     default:
   }
 
+  const viewRef = React.useRef<View>(null)
+  React.useImperativeHandle(_ref, () => {
+    // we don't use this in mobile for now, and likely never
+    return {}
+  })
+
   return (
     <View
-      ref={ref}
+      ref={viewRef}
       collapsable={collapsable}
       style={Styles.collapseStyles([
         directionStyle,

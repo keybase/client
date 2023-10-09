@@ -1,5 +1,5 @@
-import * as React from 'react'
-import {StylesCrossPlatform, Position} from '../styles'
+import type * as React from 'react'
+import type {StylesCrossPlatform, Position} from '../styles'
 
 export type Props = {
   backgroundColor?: string
@@ -16,5 +16,5 @@ export type Props = {
   showOnPressMobile?: boolean
 }
 
-declare class WithTooltip extends React.Component<Props> {}
+export declare const WithTooltip: (p: Props) => React.ReactNode
 export default WithTooltip

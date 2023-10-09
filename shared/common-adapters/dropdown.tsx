@@ -10,6 +10,7 @@ import {smallHeight, regularHeight} from './button'
 import {usePopup2, type Popup2Parms} from './use-popup'
 import * as Styles from '../styles'
 import './dropdown.css'
+import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Box,
@@ -28,7 +29,7 @@ type DropdownButtonProps = {
   selected?: React.ReactNode
   selectedBoxStyle?: Styles.StylesCrossPlatform
   style?: Styles.StylesCrossPlatform
-  popupAnchor?: React.MutableRefObject<Box | null>
+  popupAnchor?: React.MutableRefObject<MeasureRef | null>
   toggleOpen: (e: React.BaseSyntheticEvent) => void
   inline?: boolean
   loading?: boolean
@@ -92,7 +93,7 @@ type Props<N> = {
   style?: Styles.StylesCrossPlatform
 }
 
-function Dropdown<N>(p: Props<N>) {
+function Dropdown<N extends React.ReactNode>(p: Props<N>) {
   const disabled = p.disabled ?? false
   const {style, onChanged, onChangedIdx, overlayStyle, selectedBoxStyle} = p
   const {position, itemBoxStyle, items, selected} = p

@@ -13,7 +13,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const waiting = C.useAnyWaiting(Constants.loadAccountsWaitingKey)
   const name = C.useWalletsState(s => s.accountMap.get(accountID)?.name) ?? ''
   const [showingToast, setShowToast] = React.useState(false)
-  const attachmentRef = React.useRef<Kb.ClickableBox>(null)
+  const attachmentRef = React.useRef<Kb.MeasureRef>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
 
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
@@ -98,7 +98,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
           If you save this secret key, you can use it in other wallets outside Keybase
         </Kb.Text>
 
-        <Kb.Toast visible={showingToast} attachTo={() => attachmentRef.current} position="top center">
+        <Kb.Toast visible={showingToast} attachTo={attachmentRef} position="top center">
           {Kb.Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color="white" />}
           <Kb.Text center={true} type="BodySmall" style={styles.toastText}>
             Copied to clipboard

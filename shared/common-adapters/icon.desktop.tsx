@@ -5,14 +5,15 @@ import * as React from 'react'
 import logger from '../logger'
 import {iconMeta} from './icon.constants-gen'
 import invert from 'lodash/invert'
-import type {Props, IconType} from './icon'
 import {getAssetPath} from '../constants/platform.desktop'
+import type {Props, IconType} from './icon'
+import type {MeasureRef} from './measure-ref'
 
 const invertedLight = invert(colors)
 const invertedDark = invert(darkColors)
 
 const Icon = React.memo<Props>(
-  React.forwardRef<HTMLDivElement | HTMLImageElement, Props>(function Icon(props, ref) {
+  React.forwardRef<MeasureRef, Props>(function Icon(props, ref) {
     const {type, inheritColor, opacity, fontSize, noContainer, onMouseEnter, onMouseLeave, style} = props
     const {className, hint, colorOverride, padding, boxStyle, allowLazy = true} = props
     const iconType = type
@@ -33,6 +34,17 @@ const Icon = React.memo<Props>(
 
     let color = Shared.defaultColor(type)
     let hoverColor = Shared.defaultHoverColor(type)
+
+    const divRef = React.useRef<HTMLDivElement>(null)
+    const imgRef = React.useRef<HTMLImageElement>(null)
+
+    React.useImperativeHandle(ref, () => {
+      return {
+        measure() {
+          return divRef.current?.getBoundingClientRect() ?? imgRef.current?.getBoundingClientRect()
+        },
+      }
+    })
 
     if (inheritColor) {
       color = 'inherit'
@@ -75,7 +87,7 @@ const Icon = React.memo<Props>(
           loading={allowLazy ? 'lazy' : undefined}
           className={className}
           draggable={false}
-          ref={hasContainer ? undefined : (ref as any)}
+          ref={hasContainer ? undefined : imgRef}
           title={hint}
           style={imgStyle}
           onClick={onClick || undefined}
@@ -115,7 +127,7 @@ const Icon = React.memo<Props>(
 
       return (
         <div
-          ref={ref}
+          ref={divRef}
           style={Styles.collapseStyles([
             // This breaks a couple existing uses. So only apply it when padding
             // is provided for now. Eventually after we know all uses are fine,

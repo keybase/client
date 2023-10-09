@@ -1,14 +1,14 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-
+import type {MeasureRef} from './measure-ref'
 import type {Props as _Props, Props2} from './clickable-box'
 import type {_StylesCrossPlatform} from '../styles/css'
 
 type Props = _Props & {children: React.ReactNode}
 
-const ClickableBox = React.forwardRef<HTMLDivElement, Props>(function ClickableBox(
+const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
   props: Props,
-  forwardedRef: React.Ref<HTMLDivElement>
+  ref: React.Ref<MeasureRef>
 ) {
   const [mouseDown, setMouseDown] = React.useState(false)
   const [mouseIn, setMouseIn] = React.useState(false)
@@ -78,9 +78,19 @@ const ClickableBox = React.forwardRef<HTMLDivElement, Props>(function ClickableB
     )
   }
 
+  const divRef = React.useRef<HTMLDivElement>(null)
+
+  React.useImperativeHandle(ref, () => {
+    return {
+      measure() {
+        return divRef.current?.getBoundingClientRect()
+      },
+    }
+  })
+
   return (
     <div
-      ref={forwardedRef}
+      ref={divRef}
       {...passThroughProps}
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
@@ -116,15 +126,27 @@ const _containerStyle = {
 
 export default ClickableBox
 
-export const ClickableBox2 = React.forwardRef(function ClickableBox2(p: Props2, ref: any) {
+export const ClickableBox2 = React.forwardRef<MeasureRef, Props2>(function ClickableBox2(
+  p: Props2,
+  ref: React.Ref<MeasureRef>
+) {
   const {onClick, children, style, className, onMouseOver} = p
   const collapsed = Styles.useCollapseStyles(style, true)
+  const divRef = React.useRef<HTMLDivElement>(null)
+
+  React.useImperativeHandle(ref, () => {
+    return {
+      measure() {
+        return divRef.current?.getBoundingClientRect()
+      },
+    }
+  })
   return (
     <div
       onClick={onClick}
       onMouseOver={onMouseOver}
       style={collapsed as any}
-      ref={ref}
+      ref={divRef}
       className={Styles.classNames('clickable-box2', className)}
     >
       {children}

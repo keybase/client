@@ -12,7 +12,7 @@ type Props = {
 }
 
 type PopupProps = Props & {
-  attachRef: React.RefObject<Kb.Text>
+  attachRef: React.RefObject<Kb.MeasureRef>
   onHidden: () => void
   visible: boolean
 }
@@ -41,7 +41,7 @@ const KbfsPathPopup = (props: PopupProps) => {
   return (
     <Kb.FloatingMenu
       closeOnSelect={true}
-      attachTo={() => props.attachRef.current}
+      attachTo={props.attachRef}
       onHidden={props.onHidden}
       position="top center"
       propagateOutsideClicks={!Kb.Styles.isMobile}
@@ -65,7 +65,7 @@ const KbfsPathPopup = (props: PopupProps) => {
 
 const KbfsPath = (props: Props) => {
   const [showing, setShowing] = React.useState(false)
-  const textRef = React.useRef<Kb.Text>(null)
+  const textRef = React.useRef<Kb.MeasureRef>(null)
   const openInFilesTab = useOpenInFilesTab(props.standardPath)
   const text = (
     <Kb.Text

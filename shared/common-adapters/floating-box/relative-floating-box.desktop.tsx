@@ -8,6 +8,7 @@ import Box from '../box'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../key-event-handler.desktop'
 import isEqual from 'lodash/isEqual'
+import type {MeasureDesktop} from '../measure-ref'
 
 const Kb = {
   Box,
@@ -69,8 +70,8 @@ const positions: Array<Styles.Position> = [
 // Modified from https://github.com/Semantic-Org/Semantic-UI-React/blob/454daaab6e31459741e1cbce1b0c9a1a5f07bd2e/src/modules/Popup/Popup.js#L150
 function _computePopupStyle(
   position: Styles.Position,
-  coords: DOMRect,
-  popupCoords: DOMRect,
+  coords: MeasureDesktop,
+  popupCoords: MeasureDesktop,
   matchDimension: boolean,
   offset?: number
 ): ComputedStyle {
@@ -135,7 +136,7 @@ function _computePopupStyle(
   return style
 }
 
-function isStyleInViewport(style: ComputedStyle, popupCoords: DOMRect): boolean {
+function isStyleInViewport(style: ComputedStyle, popupCoords: MeasureDesktop): boolean {
   const {
     pageYOffset,
     pageXOffset,
@@ -172,7 +173,7 @@ function isStyleInViewport(style: ComputedStyle, popupCoords: DOMRect): boolean 
   return true
 }
 
-function pushStyleIntoViewport(style: ComputedStyle, popupCoords: DOMRect) {
+function pushStyleIntoViewport(style: ComputedStyle, popupCoords: MeasureDesktop) {
   const {
     pageYOffset,
     pageXOffset,
@@ -240,7 +241,7 @@ function pushStyleIntoViewport(style: ComputedStyle, popupCoords: DOMRect) {
 
 function computePopupStyle(
   position: Styles.Position,
-  coords: DOMRect,
+  coords: MeasureDesktop,
   popupCoords: DOMRect,
   matchDimension: boolean,
   offset?: number,
@@ -260,7 +261,7 @@ function computePopupStyle(
 }
 
 type ModalPositionRelativeProps = {
-  targetRect?: DOMRect
+  targetRect?: MeasureDesktop
   position: Styles.Position
   positionFallbacks?: ReadonlyArray<Styles.Position>
   matchDimension?: boolean
@@ -285,7 +286,7 @@ export class RelativeFloatingBox extends React.PureComponent<
     this.state = {style: {}}
   }
 
-  _computeStyle = (targetRect: DOMRect | undefined) => {
+  _computeStyle = (targetRect: MeasureDesktop | undefined) => {
     if (!targetRect) return
     const popupNode = this.popupNode
     if (!(popupNode instanceof HTMLElement)) {

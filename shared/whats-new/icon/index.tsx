@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import type {IconStyle} from '../../common-adapters/icon'
 import {keybaseFM} from '../../constants/whats-new'
-import Popup from '../popup'
+import Popup from './popup'
 
 const positionFallbacks = ['bottom right', 'bottom center'] as const
 
@@ -17,7 +17,7 @@ type Props = {
 
 type PopupProps = Props & {
   // Desktop only
-  attachToRef: React.RefObject<Kb.Box2>
+  attachToRef: React.RefObject<Kb.MeasureRef>
 }
 
 const realCSS = `
@@ -120,7 +120,7 @@ export const IconWithPopup = React.memo(function IconWithPopup(props: PopupProps
       </Kb.Box>
       {!Kb.Styles.isMobile && popupVisible && (
         <Popup
-          attachTo={() => attachToRef.current}
+          attachTo={attachToRef}
           position="bottom right"
           positionFallbacks={positionFallbacks}
           onHidden={() => {

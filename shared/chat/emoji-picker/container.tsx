@@ -201,13 +201,13 @@ export const EmojiPickerDesktop = (props: Props) => {
   }
 
   return (
-    <Kb.Box
+    <Kb.Box2
+      direction="vertical"
       style={Kb.Styles.collapseStyles([
         styles.containerDesktop,
         styles.contain,
         props.small && styles.containerDesktopSmall,
       ])}
-      onClick={(e: any) => e.stopPropagation()}
       gap="tiny"
     >
       <Kb.Box2
@@ -279,7 +279,7 @@ export const EmojiPickerDesktop = (props: Props) => {
           )}
         </Kb.Box2>
       )}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 

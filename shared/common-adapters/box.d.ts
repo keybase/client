@@ -1,6 +1,23 @@
-import * as React from 'react'
-import {StylesCrossPlatform, globalMargins} from '../styles'
-export type Props = any
+import type * as React from 'react'
+import type {StylesCrossPlatform, globalMargins} from '../styles'
+import type {MeasureRef} from './measure-ref'
+
+export type Props = {
+  onMoveShouldSetResponder?: any
+  onMouseDown?: (syntheticEvent: React.MouseEvent) => void // desktop only
+  onMouseLeave?: (syntheticEvent: React.MouseEvent) => void // desktop only
+  onMouseUp?: (syntheticEvent: React.MouseEvent) => void // desktop only
+  onMouseOver?: (syntheticEvent: React.MouseEvent) => void // desktop only
+  onStartShouldSetResponder?: any
+  pointerEvents?: 'none' | 'box-none'
+  onLayout?: (evt: LayoutEvent) => void // mobile only
+  onClick?: (event: React.MouseEvent) => void
+  children?: React.ReactNode
+  collapsable?: boolean
+  className?: string
+  style?: any
+  ref?: React.Ref<typeof Box>
+}
 
 export type LayoutEvent = {
   nativeEvent: {
@@ -24,15 +41,15 @@ export type Box2Props = {
   fullHeight?: boolean
   fullWidth?: boolean
   noShrink?: boolean
-  onDragLeave?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop only
-  onDragOver?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop only
-  onDrop?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop
-  // only
+  onDragLeave?: (syntheticDragEvent: React.DragEvent) => void // desktop only
+  onDragOver?: (syntheticDragEvent: React.DragEvent) => void // desktop only
+  onDrop?: (syntheticDragEvent: React.DragEvent) => void // desktop only
   onLayout?: (evt: LayoutEvent) => void // mobile only
-  onMouseDown?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
-  onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
-  onMouseUp?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
-  onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
+  onMouseDown?: (syntheticEvent: React.MouseEvent) => void // desktop only
+  onMouseMove?: (syntheticEvent: React.MouseEvent) => void // desktop only
+  onMouseLeave?: (syntheticEvent: React.MouseEvent) => void // desktop only
+  onMouseUp?: (syntheticEvent: React.MouseEvent) => void // desktop only
+  onMouseOver?: (syntheticEvent: React.MouseEvent) => void // desktop only
   onCopyCapture?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
   onContextMenu?: () => void // desktop only
   pointerEvents?: 'none' | 'box-none'
@@ -40,12 +57,11 @@ export type Box2Props = {
   gap?: keyof typeof globalMargins
   gapStart?: boolean
   gapEnd?: boolean
-  ref?: any
 }
 
 /**
  * Box is deprecated, use Box2 instead
  **/
-export declare class Box extends React.Component<Props> {}
-export declare class Box2 extends React.Component<Box2Props> {}
+export declare const Box: (p: Props) => React.ReactNode
+export declare const Box2: ReturnType<typeof React.forwardRef<MeasureRef, Box2Props>>
 export default Box

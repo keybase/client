@@ -4,6 +4,7 @@ import {Box2} from './box'
 import Toast from './toast'
 import Text from './text'
 import type {Props} from './with-tooltip'
+import type {MeasureRef} from './measure-ref'
 
 const IGNORE_FOR_PROFILING = false as boolean
 
@@ -16,7 +17,7 @@ const Kb = {
 const WithTooltip = React.memo(function WithTooltip(p: Props) {
   const {containerStyle, className, multiline, backgroundColor, toastStyle} = p
   const {disabled, toastClassName, children, position, textStyle, tooltip} = p
-  const attachmentRef = React.useRef(null)
+  const attachmentRef = React.useRef<MeasureRef>(null)
   const [visible, setVisible] = React.useState(false)
 
   const onMouseEnter = React.useCallback(() => {
@@ -26,11 +27,6 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
     setVisible(false)
   }, [])
 
-  const setAttachmentRef = React.useCallback((ref: any) => {
-    attachmentRef.current = ref
-  }, [])
-  const getAttachmentRef = React.useCallback(() => attachmentRef.current, [])
-
   return (
     <>
       <Kb.Box2
@@ -38,7 +34,7 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
         alignSelf="stretch"
         alignItems="center"
         style={containerStyle}
-        ref={setAttachmentRef}
+        ref={attachmentRef}
         onMouseOver={IGNORE_FOR_PROFILING ? undefined : onMouseEnter}
         onMouseLeave={IGNORE_FOR_PROFILING ? undefined : onMouseLeave}
         className={className}
@@ -54,7 +50,7 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
             toastStyle,
           ])}
           visible={!!tooltip && visible}
-          attachTo={getAttachmentRef}
+          attachTo={attachmentRef}
           position={position || 'top center'}
           className={toastClassName}
         >

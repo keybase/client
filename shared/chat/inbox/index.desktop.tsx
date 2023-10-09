@@ -141,18 +141,18 @@ class Inbox extends React.Component<TInbox.Props, State> {
         <div style={{...divStyle, position: 'relative'}}>
           {row.showButton && !this.props.smallTeamsExpanded && (
             <>
-              <Kb.Box
+              <div
                 className="grabLinesContainer"
                 draggable={row.showButton}
                 onDragStart={this.onDragStart}
-                style={styles.grabber}
+                style={styles.grabber as any}
               >
                 <Kb.Box2 className="grabLines" direction="vertical" style={styles.grabberLineContainer}>
                   <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
                   <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
                   <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
                 </Kb.Box2>
-              </Kb.Box>
+              </div>
               <Kb.Box style={styles.spacer} />
             </>
           )}

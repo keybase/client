@@ -1,6 +1,7 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
+import type * as Kb from '../../../../common-adapters'
 import type * as T from '../../../../constants/types'
 import SetExplodeTime from '.'
 
@@ -16,7 +17,7 @@ const makeItems = (meta: T.Chat.ConversationMeta) => {
 }
 
 type OwnProps = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<Kb.MeasureRef>
   onAfterSelect?: (s: number) => void
   onHidden: () => void
   visible: boolean

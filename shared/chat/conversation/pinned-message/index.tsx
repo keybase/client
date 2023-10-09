@@ -15,7 +15,7 @@ type Props = {
 }
 
 const PinnedMessage = (props: Props) => {
-  const closeref = React.useRef<Kb.Icon>(null)
+  const closeref = React.useRef<Kb.MeasureRef>(null)
   const [showPopup, setShowPopup] = React.useState(false)
   if (!props.text) {
     return null
@@ -77,9 +77,7 @@ const PinnedMessage = (props: Props) => {
   )
   const popup = (
     <UnpinPrompt
-      attachTo={() => {
-        return closeref.current
-      }}
+      attachTo={closeref}
       onHidden={() => setShowPopup(false)}
       onUnpin={onDismiss}
       visible={showPopup}
@@ -94,7 +92,7 @@ const PinnedMessage = (props: Props) => {
 }
 
 type UnpinProps = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<Kb.MeasureRef>
   onHidden: () => void
   onUnpin: () => void
   visible: boolean

@@ -1,6 +1,7 @@
 import * as React from 'react'
-import type {NativeSyntheticEvent, NativeTouchEvent} from 'react-native'
+import {View, type NativeSyntheticEvent, type NativeTouchEvent} from 'react-native'
 import * as Kb from '../common-adapters'
+import type {Props} from './alphabet-index'
 
 const stubTrue = () => true
 const initMeasureRef = {height: -1, pageY: -1}
@@ -8,30 +9,17 @@ const isValidMeasure = (m: typeof initMeasureRef) => m.height >= 0 && m.pageY >=
 const updateMeasure = (m: typeof initMeasureRef, newM: typeof initMeasureRef) =>
   isValidMeasure(newM) ? newM : m
 
-type Props = {
-  labels: Array<string>
-  showNumSection: boolean
-  measureKey?: any // change this when the position of AlphabetIndex on the screen changes
-  onScroll: (label: string) => void
-  style?: Kb.Styles.StylesCrossPlatform
-}
-
 const AlphabetIndex = (props: Props) => {
-  const topSectionRef = React.useRef<Kb.Box>(null)
+  const topSectionRef = React.useRef<View>(null)
   const sectionMeasureRef = React.useRef<{height: number; pageY: number}>(initMeasureRef)
   const currIndex = React.useRef<number>(-1)
 
   // This timeout is long because our ref is set before the screen transition
   // finishes. Transition must be finished so we get accurate coords.
   const storeMeasure = Kb.useTimeout(() => {
-    if (topSectionRef.current && Kb.Styles.isMobile) {
-      // @ts-ignore measure exists on mobile
-      topSectionRef.current.measure(
-        (_1: unknown, _2: unknown, _3: unknown, height: number, _4: unknown, pageY: number) => {
-          sectionMeasureRef.current = updateMeasure(sectionMeasureRef.current, {height, pageY})
-        }
-      )
-    }
+    topSectionRef.current?.measure((_x, _y, _width, height, _pageX, pageY) => {
+      sectionMeasureRef.current = updateMeasure(sectionMeasureRef.current, {height, pageY})
+    })
   }, 200)
   // eslint-disable-next-line
   React.useEffect(storeMeasure, [props.measureKey])
@@ -62,7 +50,7 @@ const AlphabetIndex = (props: Props) => {
   }, [])
 
   return (
-    <Kb.Box
+    <View
       style={Kb.Styles.collapseStyles([styles.container, props.style])}
       onStartShouldSetResponder={stubTrue}
       onMoveShouldSetResponder={stubTrue}
@@ -72,22 +60,22 @@ const AlphabetIndex = (props: Props) => {
     >
       {/* It's assumed that every row is the same height */}
       {labels.map((label, index) => (
-        <Kb.Box
+        <View
           key={label}
           style={styles.gap}
           {...(index === 0 ? {ref: topSectionRef} : {})}
           collapsable={false}
         >
           <Kb.Text type="BodyTiny">{label}</Kb.Text>
-        </Kb.Box>
+        </View>
       ))}
       {props.showNumSection &&
         ['0', '•', '9'].map(label => (
-          <Kb.Box key={label} style={styles.gap}>
+          <View key={label} style={styles.gap}>
             <Kb.Text type="BodyTiny">{label}</Kb.Text>
-          </Kb.Box>
+          </View>
         ))}
-    </Kb.Box>
+    </View>
   )
 }
 

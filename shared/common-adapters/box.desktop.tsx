@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import type {Box2Props} from './box'
+import type {MeasureRef} from './measure-ref'
 import './box.css'
 
 export const Box = React.forwardRef<HTMLDivElement, any>(function Box(
@@ -11,12 +12,10 @@ export const Box = React.forwardRef<HTMLDivElement, any>(function Box(
   return <div {...rest} ref={ref} />
 })
 
-export const Box2 = React.forwardRef<HTMLDivElement, Box2Props>(function Box2(
-  props: Box2Props,
-  ref: React.Ref<HTMLDivElement>
-) {
+export const Box2 = React.forwardRef<MeasureRef, Box2Props>(function Box2(props, ref) {
   const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = props
-  const {onMouseDown, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture, children, style} = props
+  const {onMouseMove, onMouseDown, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture, children, style} =
+    props
   const {gap, gapStart, gapEnd, pointerEvents, onDragLeave, onDragOver, onDrop, className} = props
   const {onContextMenu} = props
   const horizontal = direction === 'horizontal' || direction === 'horizontalReverse'
@@ -31,12 +30,23 @@ export const Box2 = React.forwardRef<HTMLDivElement, Box2Props>(function Box2(
 
   const collapsedStyle = Styles.collapseStyles([style]) as unknown as React.CSSProperties
 
+  const divRef = React.useRef<HTMLDivElement>(null)
+
+  React.useImperativeHandle(ref, () => {
+    return {
+      measure() {
+        return divRef.current?.getBoundingClientRect()
+      },
+    }
+  })
+
   return (
     <div
-      ref={ref}
+      ref={divRef}
       onDragLeave={onDragLeave}
       onDragOver={onDragOver}
       onDrop={onDrop}
+      onMouseMove={onMouseMove}
       onMouseDown={onMouseDown}
       onMouseLeave={onMouseLeave}
       onMouseUp={onMouseUp}

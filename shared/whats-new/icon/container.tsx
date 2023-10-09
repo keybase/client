@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import IconComponent, {IconWithPopup as IconWithPopupComponent} from './index'
+import IconComponent, {IconWithPopup as IconWithPopupComponent} from '.'
 import type * as Kb from '../../common-adapters'
 import type {IconStyle} from '../../common-adapters/icon'
 
@@ -11,7 +11,7 @@ type OwnProps = {
 }
 
 type PopupOwnProps = OwnProps & {
-  attachToRef: React.RefObject<Kb.Box2>
+  attachToRef: React.RefObject<Kb.MeasureRef>
 }
 
 // Just Whats New Icon connected for badge state

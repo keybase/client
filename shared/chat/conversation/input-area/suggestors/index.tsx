@@ -359,8 +359,6 @@ type PopupProps = {
 }
 const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, inputRef} = p
-  // @ts-ignore hacky but we want the actual input
-  const getAttachmentRef = React.useCallback(() => inputRef.current?._input.current, [inputRef])
   const conversationIdKey = C.useChatContext(s => s.id)
 
   return Kb.Styles.isMobile ? (
@@ -371,7 +369,7 @@ const Popup = (p: PopupProps) => {
     </Kb.FloatingBox>
   ) : (
     <Kb.Overlay
-      attachTo={getAttachmentRef}
+      attachTo={inputRef}
       matchDimension={true}
       position="top center"
       positionFallbacks={positionFallbacks}

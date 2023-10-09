@@ -9,7 +9,7 @@ import type * as T from '../../../../constants/types'
 
 type Props = {
   ordinal: T.Chat.Ordinal
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<Kb.MeasureRef>
   onHidden: () => void
   position: Kb.Styles.Position
   style?: Kb.Styles.StylesCrossPlatform
@@ -139,13 +139,13 @@ export const useMessagePopup = (p: {
   const navigateAppend = C.useChatNavigateAppend()
   const mobilePopup: {
     popup: React.ReactNode
-    popupAnchor: React.MutableRefObject<React.Component | null>
+    popupAnchor: React.RefObject<Kb.MeasureRef>
     setShowingPopup: React.Dispatch<React.SetStateAction<boolean>>
     showingPopup: boolean
     toggleShowingPopup: () => void
   } = {
     popup: null,
-    popupAnchor: React.useRef<React.Component>(null),
+    popupAnchor: React.useRef<Kb.MeasureRef>(null),
     setShowingPopup: () => {},
     showingPopup: true,
     toggleShowingPopup: Container.useEvent(() => {
