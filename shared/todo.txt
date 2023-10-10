@@ -6,3 +6,5 @@ input not hooked up >>>>
 plaininput not hooked up >>>>
 
 emoji picker desktop
+
+add back d.ts eslint into sep pr

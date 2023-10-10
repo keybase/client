@@ -1,3 +1,4 @@
+*.d.ts
 babel.config.js
 coverage
 desktop/build/**

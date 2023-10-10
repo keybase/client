@@ -26,7 +26,7 @@ export type Props = {
 }
 
 type OwnProps = {
-  attachmentRef?: any
+  attachmentRef?: React.RefObject<Kb.MeasureRef>
   emoji?: string
   onHidden: () => void
   onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void

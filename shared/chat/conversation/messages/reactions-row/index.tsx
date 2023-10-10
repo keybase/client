@@ -85,7 +85,7 @@ const RowItem = React.memo(function RowItem(p: IProps) {
 
   const popup = showingPopup ? (
     <ReactionTooltip
-      attachmentRef={() => popupAnchor.current}
+      attachmentRef={popupAnchor}
       emoji={emoji}
       onHidden={hidePopup}
       ordinal={ordinal}

@@ -362,6 +362,16 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
     showReplyPreview,
   })
 
+  const setRefs = React.useCallback(
+    (ref: null | Kb.PlainInput) => {
+      // from normal/index
+      inputSetRef.current = ref
+      // from suggestors/index
+      inputRef.current = ref
+    },
+    [inputRef, inputSetRef]
+  )
+
   return (
     <>
       {popup}
@@ -391,12 +401,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
                 allowKeyboardEvents={true}
                 disabled={cannotWrite}
                 autoFocus={false}
-                ref={(ref: null | Kb.PlainInput) => {
-                  // from normal/index
-                  inputSetRef.current = ref
-                  // from suggestors/index
-                  inputRef.current = ref
-                }}
+                ref={setRefs}
                 placeholder={hintText}
                 style={Kb.Styles.collapseStyles([styles.input, isEditing && styles.inputEditing])}
                 onChangeText={onChangeText}
