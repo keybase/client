@@ -23,6 +23,7 @@ export type KeyboardType =
   | 'visible-password'
 
 export type Props = {
+  ref?: never
   // if true we use a smarter algorithm to decide when we need to recalculate our height
   // might be safe to use this everywhere but I wanted to limit it to just chat short term
   smartAutoresize?: boolean
