@@ -75,9 +75,9 @@ for arch in x86_64 ; do
   rpm \
    --define "_gpg_name $code_signing_fingerprint"  \
    --define '_signature gpg' \
-   --define '_gpgbin /usr/bin/gpg1' \
+   --define '_gpgbin /usr/bin/gpg' \
    --define '__gpg_check_password_cmd /bin/true' \
-   --define '__gpg_sign_cmd %{__gpg} /usr/bin/gpg1 --batch --no-verbose --no-armor --use-agent --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}' \
+   --define '__gpg_sign_cmd %{__gpg} /usr/bin/gpg --batch --no-verbose --no-armor --use-agent --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}' \
    --addsign "$rpmcopy"
    # --addsign "$rpmcopy" < /dev/null
 

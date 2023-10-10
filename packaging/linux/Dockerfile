@@ -46,4 +46,4 @@ RUN rm /root/go.tar.gz
 ENV PATH "$PATH:/usr/local/go/bin"
 
 # Newer Debian gnupg1 provide `gpg1` only
-RUN ln -sf /usr/bin/gpg1 /usr/bin/gpg
+# RUN ln -sf /usr/bin/gpg1 /usr/bin/gpg

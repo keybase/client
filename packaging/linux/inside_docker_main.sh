@@ -32,7 +32,7 @@ code_signing_fingerprint="$(/CLIENT/packaging/linux/fingerprint.sh)"
 # decryption password here, for some stupid reason, totally duplicative of the
 # password they'll need again below when we load the key into the agent.
 echo hi0
-gpg1 --import < /GPG/code_signing_key || echo already
+gpg --import < /GPG/code_signing_key || echo already
 true > /GPG/code_signing_key  # truncate it, just in case
 # Use very long lifetimes for the key in memory, so that we don't forget it in
 # the middle of a nightly loop.
