@@ -16,12 +16,12 @@ client_clone="/root/client"
 build_dir="/root/build"
 
 # Copy the s3cmd config to root's home dir.
-cp /S3CMD/.s3cfg ~
+# cp /S3CMD/.s3cfg ~
 
 # Copy the SSH configs to the home dir. We copy instead of sharing directly
 # from the host, because SSH complains if ~/.ssh/config is owned by anyone
 # other than the current user. Cloning repos below will test these credentials.
-cp -r /SSH ~/.ssh
+# cp -r /SSH ~/.ssh
 
 # Import the code signing key, kick off the gpg agent, and sign an empty
 # message with it. This makes the password prompt happen now, so that we don't
@@ -31,13 +31,16 @@ code_signing_fingerprint="$(/CLIENT/packaging/linux/fingerprint.sh)"
 # Specifically use GnuPG v1 for the import, because modern versions need the
 # decryption password here, for some stupid reason, totally duplicative of the
 # password they'll need again below when we load the key into the agent.
-gpg1 --import < /GPG/code_signing_key
+echo hi0
+gpg1 --import < /GPG/code_signing_key || echo already
 true > /GPG/code_signing_key  # truncate it, just in case
 # Use very long lifetimes for the key in memory, so that we don't forget it in
 # the middle of a nightly loop.
 eval "$(gpg-agent --daemon --max-cache-ttl 315360000 --default-cache-ttl 315360000)"
 gpg --sign --use-agent --local-user "$code_signing_fingerprint" \
   --output /dev/null /dev/null
+
+echo hi1
 
 # Clone all the repos we'll use in the build. The --reference flag makes this
 # pretty cheap. (The shared repos we're referencing were just updated by

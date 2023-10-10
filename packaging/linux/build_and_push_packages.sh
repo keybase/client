@@ -56,96 +56,96 @@ echo "$(go version)"
 # Build all the packages!
 "$here/build_binaries.sh" "$mode" "$build_dir"
 version="$(cat "$build_dir/VERSION")"
-"$here/deb/layout_repo.sh" "$build_dir"
+# "$here/deb/layout_repo.sh" "$build_dir"
 "$here/rpm/layout_repo.sh" "$build_dir"
 
-# Short-circuit devel mode.
-if [ "$mode" = "devel" ] ; then
-  echo "Devel mode does not push. Quitting."
-  exit
-elif [ "$mode" != "prerelease" ] ; then
-  echo "Only the 'prerelease' mode is supported now."
-  exit 1
-fi
+# # Short-circuit devel mode.
+# if [ "$mode" = "devel" ] ; then
+#   echo "Devel mode does not push. Quitting."
+#   exit
+# elif [ "$mode" != "prerelease" ] ; then
+#   echo "Only the 'prerelease' mode is supported now."
+#   exit 1
+# fi
 
-echo Doing a prerelease push to S3...
+# echo Doing a prerelease push to S3...
 
-# Parse the shared .s3cfg file and export the keys as environment variables.
-# (Our s3cmd commands would be happy to read that file directly if we put it
-# in /root, but the s3_index.sh script ends up running Go code that depends
-# on the variables.)
-set +x
-AWS_ACCESS_KEY="$(grep access_key ~/.s3cfg | awk '{print $3}')"
-export AWS_ACCESS_KEY
-AWS_SECRET_KEY="$(grep secret_key ~/.s3cfg | awk '{print $3}')"
-export AWS_SECRET_KEY
-set -x
+# # Parse the shared .s3cfg file and export the keys as environment variables.
+# # (Our s3cmd commands would be happy to read that file directly if we put it
+# # in /root, but the s3_index.sh script ends up running Go code that depends
+# # on the variables.)
+# set +x
+# AWS_ACCESS_KEY="$(grep access_key ~/.s3cfg | awk '{print $3}')"
+# export AWS_ACCESS_KEY
+# AWS_SECRET_KEY="$(grep secret_key ~/.s3cfg | awk '{print $3}')"
+# export AWS_SECRET_KEY
+# set -x
 
-# Upload both repos to S3.
-echo Syncing the deb repo...
-s3cmd sync --add-header="Cache-Control:max-age=60" --delete-removed "$build_dir/deb_repo/repo/" "s3://$BUCKET_NAME/deb/"
-echo Syncing the rpm repo...
-s3cmd sync --add-header="Cache-Control:max-age=60" --delete-removed "$build_dir/rpm_repo/repo/" "s3://$BUCKET_NAME/rpm/"
+# # Upload both repos to S3.
+# echo Syncing the deb repo...
+# s3cmd sync --add-header="Cache-Control:max-age=60" --delete-removed "$build_dir/deb_repo/repo/" "s3://$BUCKET_NAME/deb/"
+# echo Syncing the rpm repo...
+# s3cmd sync --add-header="Cache-Control:max-age=60" --delete-removed "$build_dir/rpm_repo/repo/" "s3://$BUCKET_NAME/rpm/"
 
-# For each .deb and .rpm file we just uploaded, unset the Cache-Control
-# header (because these files are large, and they have versioned names), and
-# also make a copy in /linux_binaries/{deb,rpm}.
-echo Unsetting .deb Cache-Control headers...
-dot_deb_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/deb" | awk '{print $4}' | grep '\.deb$')"
-for blob in $dot_deb_blobs ; do
-  s3cmd modify --remove-header "Cache-Control" "$blob"
-  s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/deb/"
-  s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/deb/"
-done
-echo Unsetting .rpm Cache-Control headers...
-dot_rpm_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/rpm" | awk '{print $4}' | grep '\.rpm$')"
-for blob in $dot_rpm_blobs ; do
-  s3cmd modify --remove-header "Cache-Control" "$blob"
-  s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/rpm/"
-  s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/rpm/"
-done
+# # For each .deb and .rpm file we just uploaded, unset the Cache-Control
+# # header (because these files are large, and they have versioned names), and
+# # also make a copy in /linux_binaries/{deb,rpm}.
+# echo Unsetting .deb Cache-Control headers...
+# dot_deb_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/deb" | awk '{print $4}' | grep '\.deb$')"
+# for blob in $dot_deb_blobs ; do
+#   s3cmd modify --remove-header "Cache-Control" "$blob"
+#   s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/deb/"
+#   s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/deb/"
+# done
+# echo Unsetting .rpm Cache-Control headers...
+# dot_rpm_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/rpm" | awk '{print $4}' | grep '\.rpm$')"
+# for blob in $dot_rpm_blobs ; do
+#   s3cmd modify --remove-header "Cache-Control" "$blob"
+#   s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/rpm/"
+#   s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/rpm/"
+# done
 
-# Make yet another copy of the .deb and .rpm packages we just made, in a
-# constant location for the friend-of-keybase instructions. Also make a
-# detached signature for each package, to make it easy to verify them by hand.
-# Note that these files have slightly different names on the server than they
-# do here in the build (x86_64 vs amd64).
-another_copy() {
-  s3cmd put --follow-symlinks "$1" "$2"
-  s3cmd put --follow-symlinks "$1.sig" "$2.sig"
-}
-copy_bins() {
-    another_copy "$build_dir/deb_repo/keybase-latest-amd64.deb" "s3://$1/keybase_amd64.deb"
-    another_copy "$build_dir/rpm_repo/keybase-latest-x86_64.rpm" "s3://$1/keybase_amd64.rpm"
-}
-if [ -n "$KEYBASE_RELEASE" ]; then
-    copy_bins "$BUCKET_NAME"
-fi
+# # Make yet another copy of the .deb and .rpm packages we just made, in a
+# # constant location for the friend-of-keybase instructions. Also make a
+# # detached signature for each package, to make it easy to verify them by hand.
+# # Note that these files have slightly different names on the server than they
+# # do here in the build (x86_64 vs amd64).
+# another_copy() {
+#   s3cmd put --follow-symlinks "$1" "$2"
+#   s3cmd put --follow-symlinks "$1.sig" "$2.sig"
+# }
+# copy_bins() {
+#     another_copy "$build_dir/deb_repo/keybase-latest-amd64.deb" "s3://$1/keybase_amd64.deb"
+#     another_copy "$build_dir/rpm_repo/keybase-latest-x86_64.rpm" "s3://$1/keybase_amd64.rpm"
+# }
+# if [ -n "$KEYBASE_RELEASE" ]; then
+#     copy_bins "$BUCKET_NAME"
+# fi
 
-json_tmp=$(mktemp)
-echo "Writing version into JSON to $json_tmp"
+# json_tmp=$(mktemp)
+# echo "Writing version into JSON to $json_tmp"
 
-"$release_bin" update-json --version="$version" > "$json_tmp"
+# "$release_bin" update-json --version="$version" > "$json_tmp"
 
-copy_metadata() {
-    s3cmd put --mime-type application/json "$json_tmp" "s3://$1/update-linux-prod.json"
-}
-copy_metadata "$BUCKET_NAME"
+# copy_metadata() {
+#     s3cmd put --mime-type application/json "$json_tmp" "s3://$1/update-linux-prod.json"
+# }
+# copy_metadata "$BUCKET_NAME"
 
-# Generate and push the index.html file. S3 pushes in this script can be
-# flakey, and on the Linux side of things all this does is update our internal
-# pages, so we suppress errors here. Note that this script respects
-# the BUCKET_NAME env var.
-GOPATH="$release_gopath" PLATFORM="linux" "$here/../prerelease/s3_index.sh" || \
-  echo "ERROR in s3_index.sh. Internal pages might not be updated. Build continuing..."
+# # Generate and push the index.html file. S3 pushes in this script can be
+# # flakey, and on the Linux side of things all this does is update our internal
+# # pages, so we suppress errors here. Note that this script respects
+# # the BUCKET_NAME env var.
+# GOPATH="$release_gopath" PLATFORM="linux" "$here/../prerelease/s3_index.sh" || \
+#   echo "ERROR in s3_index.sh. Internal pages might not be updated. Build continuing..."
 
-NIGHTLY_DIR="prerelease.keybase.io/nightly" # No trailing slash! AWS doesn't respect POSIX standards w.r.t double slashes
-if [ -n "$KEYBASE_NIGHTLY" ] ; then
-    copy_bins "$NIGHTLY_DIR"
-    copy_metadata "$NIGHTLY_DIR"
-fi
+# NIGHTLY_DIR="prerelease.keybase.io/nightly" # No trailing slash! AWS doesn't respect POSIX standards w.r.t double slashes
+# if [ -n "$KEYBASE_NIGHTLY" ] ; then
+#     copy_bins "$NIGHTLY_DIR"
+#     copy_metadata "$NIGHTLY_DIR"
+# fi
 
-if [ -n "$KEYBASE_RELEASE" ] ; then
-    echo "Updating AUR packages"
-    "$here/arch/update_aur_packages.sh" "$build_dir"
-fi
+# if [ -n "$KEYBASE_RELEASE" ] ; then
+#     echo "Updating AUR packages"
+#     "$here/arch/update_aur_packages.sh" "$build_dir"
+# fi
