@@ -1,7 +1,6 @@
 import * as React from 'react'
 import type {globalMargins, CustomStyles} from '../styles'
 import type {TextType} from './text'
-// import type {MeasureRef} from './measure-ref'
 
 export type KeyboardType =
   | 'default'
@@ -147,32 +146,6 @@ export type TextInfo = {
 }
 
 export type InternalProps = {} & DefaultProps & Props
-
-// export type PlainInputMeasureRef = {
-//   blur: () => void
-//   clear: () => void
-//   focus: () => void
-//   isFocused: () => boolean
-//   getSelection: () => Selection | undefined
-//   get value(): string
-//   /**
-//    *  This can only be used when the input is controlled. Use `transformText` if
-//    *  you want to do this on an uncontrolled input. Make sure the Selection is
-//    *  valid against the `value` prop. Avoid changing `value` and calling this at
-//    *  the same time if you don't want bad things to happen. Note that a
-//    *  selection will only appear when the input is focused. Call `focus()`
-//    *  before this if you want to be sure the user will see the selection.
-//    **/
-//   setSelection: (selection: Selection) => void
-//   /**
-//    *  This can only be used when the input is uncontrolled. Like `setSelection`,
-//    *  if you want to be sure the user will see a selection use `focus()` before
-//    *  calling this.
-//    **/
-//   transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => void
-// } & MeasureRef
-
-// export declare const PlainInput: ReturnType<typeof React.forwardRef<PlainInputMeasureRef | MeasureRef, Props>>
 
 declare class PlainInput extends React.Component<Props> {
   static defaultProps: DefaultProps
