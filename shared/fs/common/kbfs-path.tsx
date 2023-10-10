@@ -73,7 +73,7 @@ const KbfsPath = (props: Props) => {
       onClick={openInFilesTab}
       onLongPress={() => setShowing(true)}
       allowFontScaling={true}
-      ref={textRef}
+      textRef={textRef}
     >
       {props.rawPath}
     </Kb.Text>

@@ -74,7 +74,7 @@ class PaymentStatus extends React.Component<Props, State> {
   render() {
     const text = (
       <Kb.Text
-        ref={this.statusRef}
+        textRef={this.statusRef}
         type="BodyExtrabold"
         allowFontScaling={!!this.props.allowFontScaling}
         onClick={this._showPopup}

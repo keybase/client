@@ -140,7 +140,7 @@ const CopyText = (props: Props) => {
         center={true}
         style={Styles.collapseStyles([styles.text, props.disabled && styles.textDisabled])}
         allowHighlightText={true}
-        ref={textRef}
+        textRef={textRef}
       >
         {isRevealed && (props.text || props.placeholderText)
           ? props.text || props.placeholderText

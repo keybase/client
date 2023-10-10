@@ -69,7 +69,7 @@ class UnknownMention extends React.Component<Props, State> {
     }
     const content = (
       <Kb.Text
-        ref={this._mentionRef}
+        textRef={this._mentionRef}
         type="BodySemibold"
         className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
         allowFontScaling={this.props.allowFontScaling}

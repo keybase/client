@@ -49,9 +49,10 @@ class TeamMention extends React.Component<Props, State> {
     if (this.props.channel.length > 0) {
       text += `#${this.props.channel}`
     }
+
     const content = (
       <Kb.Text
-        ref={this._mentionRef}
+        textRef={this._mentionRef as React.MutableRefObject<MeasureRef>}
         type="BodyBold"
         className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
         style={Kb.Styles.collapseStyles([this.props.style, styles.text])}

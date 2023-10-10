@@ -1,7 +1,6 @@
 import * as React from 'react'
 import type {StylesCrossPlatform} from '../styles'
 import type {TextContentType} from './plain-input'
-// import type {MeasureRef} from './measure-ref'
 
 /**
  * DEPRECATED
@@ -86,21 +85,6 @@ export type TextInfo = {
   text: string
   selection: Selection
 }
-
-// export type InputMeasureRef = {
-//   blur: () => void
-//   focus: () => void
-//   select: () => void
-//   getValue: () => string
-//   selection: () => Selection
-//   // transformText must be called only on uncontrolled Input
-//   // components. The transformation may be done asynchronously.
-//   // @param reflectChange: desktop only. If true, `onChangeText`
-//   // will be called after the transform
-//   transformText: (fn: (t: TextInfo) => TextInfo, reflectChange?: boolean) => void
-// } & MeasureRef
-
-// export declare const Input: ReturnType<typeof React.forwardRef<InputMeasureRef | MeasureRef, Props>>
 
 declare class Input extends React.Component<Props> {
   blur: () => void

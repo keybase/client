@@ -66,7 +66,7 @@ export const TeamWithPopup = (props: Props) => {
       onMouseLeave={onHidePopup}
       style={inline && styles.inlineStyle}
     >
-      <Kb.Text type={type} ref={popupRef}>
+      <Kb.Text type={type} textRef={popupRef}>
         <Kb.Text type={type}>{prefix}</Kb.Text>
         <Kb.Text type={type} className={Styles.classNames({'hover-underline': props.underline ?? true})}>
           {teamName}

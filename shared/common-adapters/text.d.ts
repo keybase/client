@@ -52,6 +52,9 @@ export type StylesTextCrossPlatform = CustomStyles<'color', {color?: AllowedColo
 export type LineClampType = 1 | 2 | 3 | 4 | 5
 
 type Props = {
+  ref?: never
+  // TODO could make this ref if we make this a function component
+  textRef?: React.RefObject<TextMeasureRef | MeasureRef>
   allowFontScaling?: boolean
   allowHighlightText?: boolean // if true, highlighttext through refs works,,
   center?: boolean
@@ -92,7 +95,9 @@ export type TextMeasureRef = {
   highlightText: () => void
 } & MeasureRef
 
-export declare const Text: ReturnType<typeof React.forwardRef<TextMeasureRef | MeasureRef, Props>>
+// if we fix the ref thing
+// export declare const Text: ReturnType<typeof React.forwardRef<TextMeasureRef | MeasureRef, Props>>
+export declare const Text: (p: Props) => React.ReactNode
 
 type TextStyle = {
   fontSize: number
