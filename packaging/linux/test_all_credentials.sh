@@ -16,9 +16,9 @@ bucket="${BUCKET_NAME:-prerelease.keybase.io}"
 echo "Checking credentials for s3://$bucket..."
 # s3cmd ls "s3://$bucket" > /dev/null
 
-echo 'Checking Arch AUR credentials... (uses ssh_config)'
-git ls-remote aur@aur.archlinux.org:keybase-git > /dev/null
-git ls-remote aur@aur.archlinux.org:keybase-bin > /dev/null
+# echo 'Checking Arch AUR credentials... (uses ssh_config)'
+# git ls-remote aur@aur.archlinux.org:keybase-git > /dev/null
+# git ls-remote aur@aur.archlinux.org:keybase-bin > /dev/null
 
 echo 'Checking the GPG code signing key...'
 fingerprint="$("$here/fingerprint.sh")"

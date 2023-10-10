@@ -42,6 +42,10 @@ gpg --sign --use-agent --local-user "$code_signing_fingerprint" \
 
 echo hi1
 
+
+rm -rf /root/client
+mkdir /root/client
+
 # Clone all the repos we'll use in the build. The --reference flag makes this
 # pretty cheap. (The shared repos we're referencing were just updated by
 # docker_build.sh, so we shouldn't need any new objects.) Configure the
@@ -50,7 +54,6 @@ git config --global user.name "Keybase Linux Build"
 git config --global user.email "example@example.com"
 echo "Cloning the client repo..."
 git clone https://github.com/keybase/client.git "$client_clone" --reference /CLIENT
-
 
 # Check out the given client commit.
 git -C "$client_clone" checkout -f "$commit"
