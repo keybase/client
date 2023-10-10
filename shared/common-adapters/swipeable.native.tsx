@@ -1,9 +1,9 @@
 import * as React from 'react'
 import {StyleSheet, View, Pressable, Animated, PanResponder} from 'react-native'
 import {
-  PanGestureHandlerEventPayload,
+  type PanGestureHandlerEventPayload,
   Gesture,
-  GestureUpdateEvent,
+  type GestureUpdateEvent,
   GestureDetector,
 } from 'react-native-gesture-handler'
 import * as Styles from '../styles'
@@ -42,8 +42,8 @@ const makeSwipeClose = (
 ) => {
   return function swipeClose() {
     tx.value = Reanimated.withSpring(0, {
-      stiffness: 300,
       damping: 30,
+      stiffness: 300,
     })
     if (swipeCloseRef) swipeCloseRef.current = null
   }
@@ -60,7 +60,7 @@ const useMakeCloseOthersAndRegisterClose = (
     if (swipeCloseRef) {
       swipeCloseRef.current = makeSwipeClose(tx, swipeCloseRef)
     }
-  }, [swipeCloseRef])
+  }, [setHasSwiped, tx, swipeCloseRef])
 }
 
 const useSyncClosing = (
@@ -70,7 +70,7 @@ const useSyncClosing = (
   const [hasSwiped, setHasSwiped] = React.useState(false)
   const closeSelf = useMakeCloseSelf(swipeCloseRef)
   const closeOthersAndRegisterClose = useMakeCloseOthersAndRegisterClose(swipeCloseRef, setHasSwiped, tx)
-  return {closeSelf, closeOthersAndRegisterClose, hasSwiped}
+  return {closeOthersAndRegisterClose, closeSelf, hasSwiped}
 }
 
 const makePanOnStart = (
@@ -112,8 +112,8 @@ const makePanOnFinalize = (
       closeSelf()
     } else {
       tx.value = Reanimated.withSpring(-actionWidth, {
-        stiffness: 100,
         damping: 30,
+        stiffness: 100,
       })
       startx.value = -actionWidth
     }
@@ -274,23 +274,22 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
   makeAction: () => React.ReactNode
   onSwiped: () => void
 }) {
+  const pan = React.useRef(new Animated.ValueXY()).current
   const [hasSwiped, setHasSwiped] = React.useState(false)
   const {children, makeAction, onSwiped} = p
   const resetPosition = React.useCallback(() => {
     setHasSwiped(false)
     Animated.timing(pan, {
-      toValue: {x: 0, y: 0},
       duration: 200,
+      toValue: {x: 0, y: 0},
       useNativeDriver: true,
     }).start()
-  }, [])
+  }, [pan])
 
   const threshold = 40
   const running = React.useRef(false)
-  const pan = React.useRef(new Animated.ValueXY()).current
   const panResponder = React.useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_, gestureState) => {
         running.current = true
         const val = -gestureState.dx > threshold
@@ -330,6 +329,7 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
         }
         resetPosition()
       },
+      onStartShouldSetPanResponder: () => false,
     })
   ).current
 
@@ -351,25 +351,25 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
 })
 
 const styles = StyleSheet.create({
+  actionContainer: {
+    alignSelf: 'flex-end',
+    height: '100%',
+    overflow: 'hidden',
+    position: 'absolute',
+  },
+  actionContainerTrigger: {
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    height: '100%',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    position: 'absolute',
+  },
   container: {
+    flexDirection: 'column',
     overflow: 'hidden',
     position: 'relative',
     width: '100%',
-    flexDirection: 'column',
   },
   rowContainer: {width: '100%'},
-  actionContainerTrigger: {
-    position: 'absolute',
-    alignSelf: 'flex-end',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    height: '100%',
-  },
-  actionContainer: {
-    position: 'absolute',
-    alignSelf: 'flex-end',
-    overflow: 'hidden',
-    height: '100%',
-  },
 })

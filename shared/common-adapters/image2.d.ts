@@ -1,5 +1,5 @@
-import * as React from 'react'
-import {StylesCrossPlatform} from '../styles'
+import type * as React from 'react'
+import type {StylesCrossPlatform} from '../styles'
 
 export type Props = {
   contentFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down'
@@ -10,4 +10,5 @@ export type Props = {
   onError?: () => void
 }
 
-export default class Image2 extends React.Component<Props> {}
+declare const Image2: (p: Props) => React.ReactNode
+export default Image2

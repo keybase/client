@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 
 export type WebViewInjections = {
   javaScript?: string
@@ -10,7 +10,7 @@ export type WebViewProps = {
   allowFileAccessFromFileURLs?: boolean
   allowFileAccess?: boolean
   originWhitelist?: Array<string>
-  renderLoading?: () => React.ReactElement<any>
+  renderLoading?: () => React.ReactElement
   url: string
   pinnedURLMode?: boolean // only tested on iOS
   injections?: WebViewInjections
@@ -18,5 +18,5 @@ export type WebViewProps = {
   showLoadingStateUntilLoaded?: boolean
   onError?: (err: string) => void
 }
-declare const toExport: React.ComponentType<WebViewProps>
-export default toExport
+declare const WebView: (p: WebViewProps) => React.ReactNode
+export default WebView

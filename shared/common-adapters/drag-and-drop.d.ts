@@ -1,5 +1,5 @@
-import * as React from 'react'
-import * as Styles from '../styles'
+import type * as React from 'react'
+import type * as Styles from '../styles'
 
 export type Props = {
   allowFolders?: boolean
@@ -13,4 +13,5 @@ export type Props = {
   rejectReason?: string
 }
 
-export default class DragAndDrop extends React.Component<Props> {}
+declare const DragAndDrop: (p: Props) => React.ReactNode
+export default DragAndDrop

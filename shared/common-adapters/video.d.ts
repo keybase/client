@@ -1,5 +1,5 @@
-import * as React from 'react'
-import * as Styles from '../styles'
+import type * as React from 'react'
+import type * as Styles from '../styles'
 
 export type Props = {
   hideControls?: boolean
@@ -19,4 +19,5 @@ export type State = {
   videoWidth: number
 }
 
-export default class extends React.Component<Props> {}
+declare const Video: (p: Props) => React.ReactNode
+export default Video

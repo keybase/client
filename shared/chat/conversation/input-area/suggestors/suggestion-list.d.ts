@@ -1,6 +1,6 @@
-import * as React from 'react'
-import * as Styles from '../../../../styles'
-import * as T from '../../../../constants/types'
+import type * as React from 'react'
+import type * as Styles from '../../../../styles'
+import type * as T from '../../../../constants/types'
 
 export type Props = {
   items: Array<any>
@@ -12,4 +12,5 @@ export type Props = {
   suggestBotCommandsUpdateStatus?: T.RPCChat.UIBotCommandsUpdateStatusTyp
 }
 
-export default class extends React.Component<Props> {}
+declare const SuggestionList: (p: Props) => React.ReactNode
+export default SuggestionList

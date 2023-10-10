@@ -197,7 +197,7 @@ function analyzeMessages(json, project) {
         }: ${rtype}`
       })
     const noParams = !arr.length
-    const inParam = noParams ? 'void' : `{${arr.join(',')}}`
+    const inParam = noParams ? 'undefined' : `{${arr.join(',')}}`
     const name = `${json.protocol}${capitalize(m)}`
     const outParam = figureType(message.response)
     const methodName = `'${json.namespace}.${json.protocol}.${m}'`
@@ -214,8 +214,8 @@ function analyzeMessages(json, project) {
       }
     }
 
-    const rpcPromise = isUIMethod ? '' : rpcPromiseGen(methodName, name, false)
-    const rpcPromiseType = isUIMethod ? '' : rpcPromiseGen(methodName, name, true)
+    const rpcPromise = isUIMethod ? '' : rpcPromiseGen(methodName, name, false, json, project)
+    const rpcPromiseType = isUIMethod ? '' : rpcPromiseGen(methodName, name, true, json, project)
     const engineListener = isUIMethod ? '' : engineListenerGen(methodName, name, false)
     const engineListenerType = isUIMethod ? '' : engineListenerGen(methodName, name, true)
 
@@ -260,13 +260,27 @@ function engineListenerGen(methodName, name, justType) {
     : `export const ${name}RpcListener = (p: {params: MessageTypes[${methodName}]['inParam'], incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: WaitingKey}):Promise<MessageTypes[${methodName}]['outParam']> => getEngineListener()({method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})`
 }
 
-function rpcPromiseGen(methodName, name, justType) {
+function rpcPromiseGen(methodName, name, justType, json, project) {
   if (!enabledCall(methodName, 'promise')) {
     return ''
   }
+
+  // if we have no params, make it optional
+  const lookupName = methodName.split('.').at(-1).replaceAll("'", '')
+  const r = json.messages[lookupName].request
+  const hasParams =
+    r !== null &&
+    (Array.isArray(r) &&
+      r.reduce((cnt, i) => {
+        if (i && i.name !== 'sessionID') {
+          cnt++
+        }
+        return cnt
+      }, 0)) > 0
+  const inParams = hasParams ? `params: MessageTypes[${methodName}]['inParam']` : 'params?: undefined'
   return justType
-    ? `declare export function ${name}RpcPromise (params: MessageTypes[${methodName}]['inParam'], waitingKey?: WaitingKey): Promise<MessageTypes[${methodName}]['outParam']>`
-    : `export const ${name}RpcPromise = (params: MessageTypes[${methodName}]['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes[${methodName}]['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: ${methodName}, params, callback: (error: SimpleError, result: MessageTypes[${methodName}]['outParam']) => error ? reject(error) : resolve(result), waitingKey}))`
+    ? `declare export function ${name}RpcPromise (${inParams}, waitingKey?: WaitingKey): Promise<MessageTypes[${methodName}]['outParam']>`
+    : `export const ${name}RpcPromise = (${inParams}, waitingKey?: WaitingKey) => new Promise<MessageTypes[${methodName}]['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: ${methodName}, params, callback: (error: SimpleError, result: MessageTypes[${methodName}]['outParam']) => error ? reject(error) : resolve(result), waitingKey}))`
 }
 
 function maybeIfNot(s) {

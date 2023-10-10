@@ -1,5 +1,5 @@
-import * as React from 'react'
-import * as T from '../constants/types'
+import type * as React from 'react'
+import type * as T from '../constants/types'
 
 export type Props = {
   oldItems: Array<T.People.PeopleScreenItem>
@@ -16,8 +16,9 @@ export type WrapProps = {
   waiting: boolean
 } & Props
 
-export default class People extends React.Component<WrapProps> {}
-export class Header extends React.Component<{
+export declare const Header: (p: {
   onClickUser: (username: string) => void
   myUsername: string
-}> {}
+}) => React.ReactNode
+declare const People: (p: WrapProps) => React.ReactNode
+export default People

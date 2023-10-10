@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Styles from '../styles'
-import * as ReactNative from 'react-native'
+import type * as Styles from '../styles'
+import type * as ReactNative from 'react-native'
 
 export type SectionListRenderItem<ItemT, ExtraT> = (info: {
   index: number
@@ -22,8 +22,11 @@ export type Section<ItemT, ExtraT = {}> = {
   // and a mobile-only situation can import the native sectionlist anyway.
 } & ExtraT
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ItemTFromSectionT<SectionT> = SectionT extends Section<infer ItemT, infer _ExtraT> ? ItemT : SectionT
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ExtraTFromSectionT<SectionT> = SectionT extends Section<infer _ItemT, infer ExtraT> ? ExtraT : SectionT
+
 // This type is missing a lot of features from the native sectionlist on purpose
 // - if you need those in a mobile-only context, you should import the
 // NativeSectionList instead. Otherwise, add them to this type.

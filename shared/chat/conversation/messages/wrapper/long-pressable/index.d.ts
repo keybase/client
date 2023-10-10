@@ -1,5 +1,5 @@
-import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
+import type * as React from 'react'
+import type * as Kb from '../../../../../common-adapters'
 
 export type Props = {
   children: React.ReactNode

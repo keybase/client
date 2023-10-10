@@ -1,5 +1,3 @@
-import * as Rect from 'react'
-
 export const bind: (
   keys: Array<string> | string,
   cb: (e: {stopPropagation: () => void}, key: string) => void,

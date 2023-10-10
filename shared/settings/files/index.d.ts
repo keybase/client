@@ -1,6 +1,6 @@
-import * as React from 'react'
-import * as T from '../../constants/types'
-import {PickerItem} from '../../common-adapters/floating-picker'
+import type * as React from 'react'
+import type * as T from '../../constants/types'
+import type {PickerItem} from '../../common-adapters/floating-picker'
 
 export type Props = {
   title?: string
@@ -18,9 +18,7 @@ export type Props = {
   onDisableSyncNotifications: () => void
   spaceAvailableNotificationThreshold: number
 }
-
 export declare const allowedNotificationThresholds: Array<number>
-
 export declare const defaultNotificationThreshold: number
-
-export default class PaymentForm extends React.Component<Props> {}
+declare const PaymentForm: (p: Props) => React.ReactNode
+export default PaymentForm

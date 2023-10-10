@@ -1,9 +1,9 @@
-import * as React from 'react'
-import {AvatarSize} from '../../common-adapters/avatar'
-import * as Kb from '../../common-adapters'
+import type * as React from 'react'
+import type {AvatarSize} from '../../common-adapters/avatar'
+import type * as Kb from '../../common-adapters'
 
 export type Props = {
-  avatarSize: AvatarSize
+  avatarSize?: AvatarSize
   avatarBackgroundStyle?: any
   lighterPlaceholders?: boolean
   onAvatarClicked?: () => void
@@ -13,7 +13,5 @@ export type Props = {
   children?: React.ReactNode
 }
 
-declare class UserCard extends React.Component<Props> {
-  static defaultProps: {avatarSize: number}
-}
+declare const UserCard: (p: Props) => React.ReactNode
 export default UserCard

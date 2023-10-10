@@ -1,6 +1,6 @@
-import * as React from 'react'
-import {ImageInfo} from '../../util/expo-image-picker.native'
-import * as T from '../../constants/types'
+import type * as React from 'react'
+import type {ImageInfo} from '../../util/expo-image-picker.native'
+import type * as T from '../../constants/types'
 
 type TeamProps = {
   createdTeam?: boolean
@@ -38,4 +38,5 @@ export type Props = {
   waitingKey: string
 } & (TeamProps | ProfileProps)
 
-export default class Render extends React.Component<Props> {}
+declare const EditAvatar: (p: Props) => React.ReactNode
+export default EditAvatar

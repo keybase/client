@@ -212,7 +212,7 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.chatUi.chatSearchInboxStart': {
-    inParam: void
+    inParam: undefined
     outParam: void
   }
   'chat.1.chatUi.chatSearchIndexStatus': {
@@ -240,7 +240,7 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.chatUi.chatStellarShowConfirm': {
-    inParam: void
+    inParam: undefined
     outParam: void
   }
   'chat.1.chatUi.chatThreadCached': {
@@ -260,7 +260,7 @@ export type MessageTypes = {
     outParam: LocationWatchID
   }
   'chat.1.chatUi.triggerContactSync': {
-    inParam: void
+    inParam: undefined
     outParam: void
   }
   'chat.1.local.CancelPost': {
@@ -312,11 +312,11 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.local.cancelActiveInboxSearch': {
-    inParam: void
+    inParam: undefined
     outParam: void
   }
   'chat.1.local.cancelActiveSearch': {
-    inParam: void
+    inParam: undefined
     outParam: void
   }
   'chat.1.local.cancelUploadTempFile': {
@@ -364,7 +364,7 @@ export type MessageTypes = {
     outParam: GetDefaultTeamChannelsLocalRes
   }
   'chat.1.local.getGlobalAppNotificationSettingsLocal': {
-    inParam: void
+    inParam: undefined
     outParam: GlobalAppNotificationSettings
   }
   'chat.1.local.getInboxAndUnboxUILocal': {
@@ -380,7 +380,7 @@ export type MessageTypes = {
     outParam: LastActiveStatus
   }
   'chat.1.local.getLastActiveForTeams': {
-    inParam: void
+    inParam: undefined
     outParam: LastActiveStatusAll
   }
   'chat.1.local.getMutualTeamsLocal': {
@@ -396,7 +396,7 @@ export type MessageTypes = {
     outParam: Int
   }
   'chat.1.local.getStaticConfig': {
-    inParam: void
+    inParam: undefined
     outParam: StaticConfig
   }
   'chat.1.local.getTLFConversationsLocal': {
@@ -420,7 +420,7 @@ export type MessageTypes = {
     outParam: NonblockFetchRes
   }
   'chat.1.local.getUnfurlSettings': {
-    inParam: void
+    inParam: undefined
     outParam: UnfurlSettingsDisplay
   }
   'chat.1.local.getUnreadline': {
@@ -556,11 +556,11 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.local.requestInboxSmallIncrease': {
-    inParam: void
+    inParam: undefined
     outParam: void
   }
   'chat.1.local.requestInboxSmallReset': {
-    inParam: void
+    inParam: undefined
     outParam: void
   }
   'chat.1.local.requestInboxUnbox': {
@@ -1677,8 +1677,8 @@ export const localAddEmojisRpcPromise = (params: MessageTypes['chat.1.local.addE
 export const localAddTeamMemberAfterResetRpcPromise = (params: MessageTypes['chat.1.local.addTeamMemberAfterReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addTeamMemberAfterReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.addTeamMemberAfterReset']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localBulkAddToConvRpcPromise = (params: MessageTypes['chat.1.local.bulkAddToConv']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.bulkAddToConv']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToConv', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.bulkAddToConv']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localBulkAddToManyConvsRpcPromise = (params: MessageTypes['chat.1.local.bulkAddToManyConvs']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.bulkAddToManyConvs']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToManyConvs', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.bulkAddToManyConvs']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const localCancelActiveInboxSearchRpcPromise = (params: MessageTypes['chat.1.local.cancelActiveInboxSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.cancelActiveInboxSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelActiveInboxSearch', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.cancelActiveInboxSearch']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const localCancelActiveSearchRpcPromise = (params: MessageTypes['chat.1.local.cancelActiveSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.cancelActiveSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelActiveSearch', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.cancelActiveSearch']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localCancelActiveInboxSearchRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.cancelActiveInboxSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelActiveInboxSearch', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.cancelActiveInboxSearch']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localCancelActiveSearchRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.cancelActiveSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelActiveSearch', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.cancelActiveSearch']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelPostRpcPromise = (params: MessageTypes['chat.1.local.CancelPost']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.CancelPost']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.CancelPost', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.CancelPost']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelUploadTempFileRpcPromise = (params: MessageTypes['chat.1.local.cancelUploadTempFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.cancelUploadTempFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelUploadTempFile', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.cancelUploadTempFile']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localConfigureFileAttachmentDownloadLocalRpcPromise = (params: MessageTypes['chat.1.local.ConfigureFileAttachmentDownloadLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.ConfigureFileAttachmentDownloadLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.ConfigureFileAttachmentDownloadLocal', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.ConfigureFileAttachmentDownloadLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1693,21 +1693,21 @@ export const localForwardMessageNonblockRpcPromise = (params: MessageTypes['chat
 export const localGetBotMemberSettingsRpcPromise = (params: MessageTypes['chat.1.local.getBotMemberSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getBotMemberSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getBotMemberSettings', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getBotMemberSettings']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetChannelMembershipsLocalRpcPromise = (params: MessageTypes['chat.1.local.getChannelMembershipsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getChannelMembershipsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getChannelMembershipsLocal', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getChannelMembershipsLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetDefaultTeamChannelsLocalRpcPromise = (params: MessageTypes['chat.1.local.getDefaultTeamChannelsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getDefaultTeamChannelsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getDefaultTeamChannelsLocal', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getDefaultTeamChannelsLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const localGetGlobalAppNotificationSettingsLocalRpcPromise = (params: MessageTypes['chat.1.local.getGlobalAppNotificationSettingsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getGlobalAppNotificationSettingsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getGlobalAppNotificationSettingsLocal', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getGlobalAppNotificationSettingsLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetGlobalAppNotificationSettingsLocalRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getGlobalAppNotificationSettingsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getGlobalAppNotificationSettingsLocal', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getGlobalAppNotificationSettingsLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetInboxAndUnboxUILocalRpcPromise = (params: MessageTypes['chat.1.local.getInboxAndUnboxUILocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getInboxAndUnboxUILocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getInboxAndUnboxUILocal', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getInboxAndUnboxUILocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetLastActiveAtMultiLocalRpcPromise = (params: MessageTypes['chat.1.local.getLastActiveAtMultiLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getLastActiveAtMultiLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getLastActiveAtMultiLocal', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getLastActiveAtMultiLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetLastActiveForTLFRpcPromise = (params: MessageTypes['chat.1.local.getLastActiveForTLF']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getLastActiveForTLF']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getLastActiveForTLF', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getLastActiveForTLF']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const localGetLastActiveForTeamsRpcPromise = (params: MessageTypes['chat.1.local.getLastActiveForTeams']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getLastActiveForTeams']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getLastActiveForTeams', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getLastActiveForTeams']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetLastActiveForTeamsRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getLastActiveForTeams']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getLastActiveForTeams', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getLastActiveForTeams']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetMutualTeamsLocalRpcPromise = (params: MessageTypes['chat.1.local.getMutualTeamsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getMutualTeamsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getMutualTeamsLocal', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getMutualTeamsLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetNextAttachmentMessageLocalRpcPromise = (params: MessageTypes['chat.1.local.getNextAttachmentMessageLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getNextAttachmentMessageLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getNextAttachmentMessageLocal', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getNextAttachmentMessageLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetRecentJoinsLocalRpcPromise = (params: MessageTypes['chat.1.local.getRecentJoinsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getRecentJoinsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getRecentJoinsLocal', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getRecentJoinsLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const localGetStaticConfigRpcPromise = (params: MessageTypes['chat.1.local.getStaticConfig']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getStaticConfig']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getStaticConfig', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getStaticConfig']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetStaticConfigRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getStaticConfig']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getStaticConfig', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getStaticConfig']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetTLFConversationsLocalRpcPromise = (params: MessageTypes['chat.1.local.getTLFConversationsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getTLFConversationsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getTLFConversationsLocal', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getTLFConversationsLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetTeamRetentionLocalRpcPromise = (params: MessageTypes['chat.1.local.getTeamRetentionLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getTeamRetentionLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getTeamRetentionLocal', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getTeamRetentionLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetTeamRoleInConversationRpcPromise = (params: MessageTypes['chat.1.local.getTeamRoleInConversation']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getTeamRoleInConversation']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getTeamRoleInConversation', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getTeamRoleInConversation']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetThreadLocalRpcPromise = (params: MessageTypes['chat.1.local.getThreadLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getThreadLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getThreadLocal', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getThreadLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetThreadNonblockRpcListener = (p: {params: MessageTypes['chat.1.local.getThreadNonblock']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}): Promise<MessageTypes['chat.1.local.getThreadNonblock']['outParam']> => getEngineListener()({method: 'chat.1.local.getThreadNonblock', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
-export const localGetUnfurlSettingsRpcPromise = (params: MessageTypes['chat.1.local.getUnfurlSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getUnfurlSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getUnfurlSettings', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getUnfurlSettings']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetUnfurlSettingsRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getUnfurlSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getUnfurlSettings', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getUnfurlSettings']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetUnreadlineRpcPromise = (params: MessageTypes['chat.1.local.getUnreadline']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getUnreadline']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getUnreadline', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getUnreadline']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetUploadTempFileRpcPromise = (params: MessageTypes['chat.1.local.getUploadTempFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getUploadTempFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getUploadTempFile', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getUploadTempFile']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetWelcomeMessageRpcPromise = (params: MessageTypes['chat.1.local.getWelcomeMessage']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getWelcomeMessage']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getWelcomeMessage', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.getWelcomeMessage']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1742,8 +1742,8 @@ export const localRemoveBotMemberRpcPromise = (params: MessageTypes['chat.1.loca
 export const localRemoveEmojiRpcPromise = (params: MessageTypes['chat.1.local.removeEmoji']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.removeEmoji']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.removeEmoji', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.removeEmoji']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRemoveFromConversationLocalRpcPromise = (params: MessageTypes['chat.1.local.removeFromConversationLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.removeFromConversationLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.removeFromConversationLocal', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.removeFromConversationLocal']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRequestInboxLayoutRpcPromise = (params: MessageTypes['chat.1.local.requestInboxLayout']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxLayout']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxLayout', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.requestInboxLayout']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const localRequestInboxSmallIncreaseRpcPromise = (params: MessageTypes['chat.1.local.requestInboxSmallIncrease']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxSmallIncrease']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxSmallIncrease', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.requestInboxSmallIncrease']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const localRequestInboxSmallResetRpcPromise = (params: MessageTypes['chat.1.local.requestInboxSmallReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxSmallReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxSmallReset', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.requestInboxSmallReset']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localRequestInboxSmallIncreaseRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxSmallIncrease']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxSmallIncrease', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.requestInboxSmallIncrease']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localRequestInboxSmallResetRpcPromise = (params?: undefined, waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxSmallReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxSmallReset', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.requestInboxSmallReset']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRequestInboxUnboxRpcPromise = (params: MessageTypes['chat.1.local.requestInboxUnbox']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxUnbox']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxUnbox', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.requestInboxUnbox']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localResolveMaybeMentionRpcPromise = (params: MessageTypes['chat.1.local.resolveMaybeMention']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.resolveMaybeMention']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.resolveMaybeMention', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.resolveMaybeMention']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localResolveUnfurlPromptRpcPromise = (params: MessageTypes['chat.1.local.resolveUnfurlPrompt']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.resolveUnfurlPrompt']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.resolveUnfurlPrompt', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.resolveUnfurlPrompt']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))

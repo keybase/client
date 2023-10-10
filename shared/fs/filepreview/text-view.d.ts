@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 
 export type Props = {
   url: string
@@ -6,5 +6,5 @@ export type Props = {
   onUrlError?: (err: string) => void
 }
 
-declare const TextView: React.ComponentType<Props>
+declare const TextView: (p: Props) => React.ReactNode
 export default TextView

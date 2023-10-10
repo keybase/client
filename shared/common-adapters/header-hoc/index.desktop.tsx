@@ -161,7 +161,7 @@ export const HeaderLeftBlank = () => (
   <LeftAction badgeNumber={0} leftAction="back" onLeftAction={noop} style={{opacity: 0}} />
 )
 
-export const HeaderLeftArrow = (hp: {canGoBack?: boolean; tintColor: string; onPress: () => void}) =>
+export const HeaderLeftArrow = (hp: {canGoBack?: boolean; tintColor?: string; onPress?: () => void}) =>
   hp.canGoBack ? (
     <LeftAction
       badgeNumber={0}
@@ -171,7 +171,7 @@ export const HeaderLeftArrow = (hp: {canGoBack?: boolean; tintColor: string; onP
     />
   ) : null
 
-export const HeaderLeftCancel = (hp: {canGoBack?: boolean; tintColor: string; onPress: () => void}) =>
+export const HeaderLeftCancel = (hp: {canGoBack?: boolean; tintColor?: string; onPress?: () => void}) =>
   hp.canGoBack ? (
     <LeftAction
       badgeNumber={0}
@@ -181,7 +181,7 @@ export const HeaderLeftCancel = (hp: {canGoBack?: boolean; tintColor: string; on
     />
   ) : null
 
-export const HeaderLeftCancel2 = (hp: {canGoBack?: boolean; tintColor: string}) => {
+export const HeaderLeftCancel2 = (hp: {canGoBack?: boolean; tintColor?: string}) => {
   const {pop} = C.useNav()
   return hp.canGoBack ?? true ? (
     <LeftAction badgeNumber={0} leftAction="cancel" customIconColor={hp.tintColor} onLeftAction={pop} />

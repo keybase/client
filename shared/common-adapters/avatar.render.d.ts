@@ -1,7 +1,7 @@
-import * as React from 'react'
-import * as T from '../constants/types'
-import {StylesCrossPlatform} from '../styles'
-import {IconType, IconStyle} from './icon'
+import type * as React from 'react'
+import type * as T from '../constants/types'
+import type {StylesCrossPlatform} from '../styles'
+import type {IconType, IconStyle} from './icon'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 
@@ -27,4 +27,5 @@ export type Props = {
   url: any
 }
 
-export default class Avatar extends React.Component<Props> {}
+declare const Avatar: (p: Props) => React.ReactNode
+export default Avatar

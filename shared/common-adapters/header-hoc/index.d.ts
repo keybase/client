@@ -1,6 +1,6 @@
-import * as React from 'react'
-import {StylesCrossPlatform} from '../../styles'
-import {IconType} from '../icon.constants-gen'
+import type * as React from 'react'
+import type {StylesCrossPlatform} from '../../styles'
+import type {IconType} from '../icon.constants-gen'
 export type Action = {
   custom?: React.ReactNode
   label?: string // TODO: make this required after updates are fully integrated,
@@ -53,15 +53,23 @@ type HeaderHocProps = Props
 /**
  * Short term use this instead of the hoc as a regular component
  */
-export declare class HeaderHocWrapper extends React.Component<
-  Props & {children: React.ReactNode; skipHeader?: boolean}
-> {}
-export declare class HeaderHocHeader extends React.Component<HeaderHocProps> {}
-export declare class LeftAction extends React.Component<LeftActionProps> {}
+export declare const HeaderHocWrapper: (
+  p: Props & {children: React.ReactNode; skipHeader?: boolean}
+) => React.ReactNode
+export declare const HeaderHocHeader: (p: HeaderHocProps) => React.ReactNode
+export declare const LeftAction: (p: LeftActionProps) => React.ReactNode
 // HeaderHoc is deprecated. navigationOptions should be used instead.
 
 // used in navigationOptions
-export declare class HeaderLeftArrow extends React.Component<any> {}
-export declare class HeaderLeftBlank extends React.Component<any> {}
-export declare class HeaderLeftCancel extends React.Component<any> {}
-export declare class HeaderLeftCancel2 extends React.Component<any> {}
+export declare const HeaderLeftArrow: (p: {
+  canGoBack?: boolean
+  tintColor?: string
+  onPress?: () => void
+}) => React.ReactNode
+export declare const HeaderLeftBlank: () => React.ReactNode
+export declare const HeaderLeftCancel: (p: {
+  canGoBack?: boolean
+  tintColor?: string
+  onPress?: () => void
+}) => React.ReactNode
+export declare const HeaderLeftCancel2: (p: {canGoBack?: boolean; tintColor?: string}) => React.ReactNode
