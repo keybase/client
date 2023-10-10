@@ -109,7 +109,9 @@ export const Box2Measure = React.forwardRef<MeasureRef, Box2Props>(function Box2
     _ref,
     () => {
       // we don't use this in mobile for now, and likely never
-      return {}
+      return {
+        divRef: {current: null},
+      }
     },
     []
   )

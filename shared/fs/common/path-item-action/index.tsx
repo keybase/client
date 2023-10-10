@@ -93,7 +93,7 @@ const PathItemAction = (props: Props) => {
   return (
     <>
       {props.clickable.type === 'component' && (
-        <props.clickable.component onClick={onClick} ref={popupAnchor as any} />
+        <props.clickable.component onClick={onClick} ref={popupAnchor} />
       )}
       {props.clickable.type === 'icon' && (
         <IconClickable

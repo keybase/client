@@ -9,12 +9,15 @@ const gridHeight = 100
 
 const GiphySearch = (props: Props) => {
   const [width, setWidth] = React.useState<number | undefined>(undefined)
-  const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const containerRef = React.useRef<Kb.MeasureRef>(null)
 
   React.useEffect(() => {
-    if (!containerRef.current) return
-    const cs = getComputedStyle(containerRef.current)
-    setWidth(containerRef.current.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight))
+    const m = containerRef.current
+    if (!m) return
+    const {divRef} = m
+    if (!divRef.current) return
+    const cs = getComputedStyle(divRef.current)
+    setWidth(divRef.current.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight))
   }, [])
 
   let margins: Array<number> = []
@@ -29,9 +32,9 @@ const GiphySearch = (props: Props) => {
   }
   return (
     <Kb.Box style={styles.outerContainer}>
-      <Kb.Box2
+      <Kb.Box2Measure
         direction="vertical"
-        ref={containerRef as any}
+        ref={containerRef}
         style={Styles.collapseStyles([styles.scrollContainer, {overflowY: width ? 'auto' : 'scroll'} as any])}
       >
         <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="xtiny">
@@ -79,7 +82,7 @@ const GiphySearch = (props: Props) => {
               <Kb.ProgressIndicator />
             </Kb.Box2>
           ))}
-      </Kb.Box2>
+      </Kb.Box2Measure>
       <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
     </Kb.Box>
   )

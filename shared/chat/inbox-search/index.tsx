@@ -447,10 +447,10 @@ const OpenTeamRow = (p: OpenTeamProps) => {
 
   return (
     <Kb.ClickableBox onClick={toggleShowingPopup} style={{width: '100%'}}>
-      <Kb.Box2
+      <Kb.Box2Measure
         direction="horizontal"
         fullWidth={true}
-        ref={popupAnchor as any}
+        ref={popupAnchor}
         centerChildren={true}
         className="hover_background_color_blueGreyDark"
         style={Kb.Styles.collapseStyles([
@@ -488,7 +488,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
             {description}
           </Kb.Text>
         </Kb.Box2>
-      </Kb.Box2>
+      </Kb.Box2Measure>
       {popup}
     </Kb.ClickableBox>
   )

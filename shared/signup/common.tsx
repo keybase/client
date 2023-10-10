@@ -42,7 +42,7 @@ export const InfoIcon = (props: InfoIconProps) => {
       <Kb.Icon
         type="iconfont-question-mark"
         onClick={props.invisible ? undefined : toggleShowingPopup}
-        ref={popupAnchor as any}
+        ref={popupAnchor}
         style={Kb.Styles.collapseStyles([
           Kb.Styles.desktopStyles.windowDraggingClickable,
           props.invisible && styles.opacityNone,

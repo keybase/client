@@ -126,6 +126,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
 
   React.useEffect(() => {
     containerRef.current = {
+      divRef,
       measure: () => {
         return divRef.current?.getBoundingClientRect()
       },

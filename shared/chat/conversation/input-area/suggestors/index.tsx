@@ -359,6 +359,7 @@ const Popup = (p: PopupProps) => {
   const conversationIdKey = C.useChatContext(s => s.id)
 
   const attachRef = React.useRef<Kb.MeasureRef | null>({
+    divRef: {current: null},
     measure: () => {
       // @ts-ignore hacky but we want the actual input TODO fix up
       const c = inputRef.current?._input.current

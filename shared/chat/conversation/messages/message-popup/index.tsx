@@ -106,9 +106,9 @@ export const MessagePopupModal = (p: ModalProps) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} ref={popupAnchor as any}>
+    <Kb.Box2Measure direction="vertical" fullWidth={true} fullHeight={true} ref={popupAnchor}>
       {popup}
-    </Kb.Box2>
+    </Kb.Box2Measure>
   )
 }
 

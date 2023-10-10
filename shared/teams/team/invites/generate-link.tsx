@@ -211,10 +211,10 @@ const GenerateLinkModal = (props: Props) => {
           Invite people to {teamname} by sharing a link:
         </Kb.Text>
 
-        <Kb.Box2
+        <Kb.Box2Measure
           direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
           fullWidth={true}
-          ref={popupAnchor as any}
+          ref={popupAnchor}
         >
           <Kb.Text type="BodySmall" style={styles.rowTitle}>
             Validity
@@ -228,7 +228,7 @@ const GenerateLinkModal = (props: Props) => {
             style={styles.dropdownStyle}
             selectedStyle={styles.inlineSelectedStyle}
           />
-        </Kb.Box2>
+        </Kb.Box2Measure>
 
         <Kb.Box2 direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'} fullWidth={true}>
           <Kb.Text type="BodySmall" style={styles.rowTitle}>

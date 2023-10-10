@@ -42,6 +42,7 @@ const Icon = React.memo<Props>(
       ref,
       () => {
         return {
+          divRef,
           measure() {
             return divRef.current?.getBoundingClientRect() ?? imgRef.current?.getBoundingClientRect()
           },

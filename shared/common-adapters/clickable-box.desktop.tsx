@@ -84,6 +84,7 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
     ref,
     () => {
       return {
+        divRef,
         measure() {
           return divRef.current?.getBoundingClientRect()
         },
@@ -140,6 +141,7 @@ export const ClickableBox2 = React.forwardRef<MeasureRef, Props2>(function Click
 
   React.useImperativeHandle(ref, () => {
     return {
+      divRef,
       measure() {
         return divRef.current?.getBoundingClientRect()
       },

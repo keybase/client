@@ -74,6 +74,7 @@ export const Box2Measure = React.forwardRef<MeasureRef, Box2Props>(function Box2
     ref,
     () => {
       return {
+        divRef,
         measure() {
           return divRef.current?.getBoundingClientRect()
         },

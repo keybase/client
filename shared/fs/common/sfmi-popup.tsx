@@ -81,7 +81,7 @@ const SFMIPopup = (props: Props) => {
             color={Kb.Styles.globalColors.black_50}
             hoverColor={Kb.Styles.globalColors.black}
             onClick={toggleShowingPopup}
-            ref={popupAnchor as any}
+            ref={popupAnchor}
           />
         </Kb.WithTooltip>
       ) : (

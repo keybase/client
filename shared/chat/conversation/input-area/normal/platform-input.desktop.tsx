@@ -37,7 +37,7 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
     <Kb.ClickableBox2
       className={Kb.Styles.classNames({expanded: showingPopup}, 'timer-icon-container')}
       onClick={toggleShowingPopup}
-      ref={popupAnchor as any}
+      ref={popupAnchor}
       style={Kb.Styles.collapseStyles([
         styles.explodingIconContainer,
         styles.explodingIconContainerClickable,
