@@ -70,7 +70,6 @@ for arch in x86_64 ; do
   # The `setsid` and `/dev/null` bits are both required to suppress the no-op
   # password prompt that appears despite the agent configs.
   echo "Signing '$rpmcopy'..."
-  echo "Signing '$rpmcopy'...1.. $(which gpg) $(which gpg1)"
   # setsid -w rpm \
   rpm \
    --define "_gpg_name $code_signing_fingerprint"  \
