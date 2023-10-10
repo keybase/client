@@ -96,57 +96,55 @@ type PushCommonProps = {
 
 const GitPushCommon = ({children}: PushCommonProps) => <UserNotice>{children}</UserNotice>
 
-class GitPush extends React.PureComponent<Props> {
-  render() {
-    const {repo, repoID, refs, pushType, pusher, team} = this.props.message
-    const gitType = T.RPCGen.GitPushType[pushType]
+const GitPush = React.memo(function GitPush(p: Props) {
+  const {repo, repoID, refs, pushType, pusher, team} = p.message
+  const gitType = T.RPCGen.GitPushType[pushType]
 
-    switch (gitType) {
-      case 'default':
-        return (
-          <>
-            {refs.map(ref => {
-              let branchName = ref.refName
-              if (branchName.startsWith(branchRefPrefix)) {
-                branchName = branchName.substring(branchRefPrefix.length)
-              } // else show full ref
-              return (
-                <GitPushCommon key={branchName}>
-                  <GitPushDefault
-                    commitRef={ref}
-                    branchName={branchName}
-                    pusher={pusher}
-                    repo={repo}
-                    repoID={repoID}
-                    team={team}
-                    onViewGitRepo={this.props.onViewGitRepo}
-                    onClickCommit={this.props.onClickCommit}
-                    you={this.props.you}
-                  />
-                </GitPushCommon>
-              )
-            })}
-          </>
-        )
-      case 'createrepo':
-        return (
-          <GitPushCommon>
-            <GitPushCreate
-              pusher={pusher}
-              repo={repo}
-              repoID={repoID}
-              team={team}
-              onViewGitRepo={this.props.onViewGitRepo}
-              you={this.props.you}
-            />
-          </GitPushCommon>
-        )
-      // FIXME: @Jacob - The service has not implemented 'renamerepo' yet, so we don't render anything
-      default:
-        return null
-    }
+  switch (gitType) {
+    case 'default':
+      return (
+        <>
+          {refs.map(ref => {
+            let branchName = ref.refName
+            if (branchName.startsWith(branchRefPrefix)) {
+              branchName = branchName.substring(branchRefPrefix.length)
+            } // else show full ref
+            return (
+              <GitPushCommon key={branchName}>
+                <GitPushDefault
+                  commitRef={ref}
+                  branchName={branchName}
+                  pusher={pusher}
+                  repo={repo}
+                  repoID={repoID}
+                  team={team}
+                  onViewGitRepo={p.onViewGitRepo}
+                  onClickCommit={p.onClickCommit}
+                  you={p.you}
+                />
+              </GitPushCommon>
+            )
+          })}
+        </>
+      )
+    case 'createrepo':
+      return (
+        <GitPushCommon>
+          <GitPushCreate
+            pusher={pusher}
+            repo={repo}
+            repoID={repoID}
+            team={team}
+            onViewGitRepo={p.onViewGitRepo}
+            you={p.you}
+          />
+        </GitPushCommon>
+      )
+    // FIXME: @Jacob - The service has not implemented 'renamerepo' yet, so we don't render anything
+    default:
+      return null
   }
-}
+})
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

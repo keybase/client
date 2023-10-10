@@ -2,48 +2,42 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import type {Props} from '.'
 
-class InviteGeneratedRender extends React.Component<Props> {
-  render() {
-    return (
-      <Kb.Box
-        style={{
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
-          flex: 1,
-          justifyContent: 'center',
-          position: 'relative',
-        }}
-      >
-        <Kb.Icon type="iconfont-close" style={styles.icon} onClick={this.props.onClose} />
-        <Kb.Icon type="icon-invite-link-48" />
-        {this.props.email ? (
-          <Kb.Text center={true} type="Body" style={styles.text}>
-            Yay! We emailed <Kb.Text type="BodySemibold">{this.props.email}</Kb.Text>, but you can also give
-            them the below link:
-          </Kb.Text>
-        ) : (
-          <Kb.Text center={true} type="Body" style={styles.text}>
-            Yay! Please share the below link with your friend. It contains signup &amp; install instructions.
-          </Kb.Text>
-        )}
-        <Kb.Box style={styles.linkContainer}>
-          <Kb.Icon
-            type="iconfont-link"
-            style={{height: 14, marginRight: Kb.Styles.globalMargins.tiny}}
-            color={Kb.Styles.globalColors.black_10}
-          />
-          <Kb.Text type="BodySemibold" selectable={true} style={{color: Kb.Styles.globalColors.greenDark}}>
-            {this.props.link}
-          </Kb.Text>
-        </Kb.Box>
-        <Kb.Button
-          style={{marginTop: Kb.Styles.globalMargins.medium}}
-          label="Close"
-          onClick={this.props.onClose}
+const InviteGeneratedRender = (p: Props) => {
+  return (
+    <Kb.Box
+      style={{
+        ...Kb.Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        position: 'relative',
+      }}
+    >
+      <Kb.Icon type="iconfont-close" style={styles.icon} onClick={p.onClose} />
+      <Kb.Icon type="icon-invite-link-48" />
+      {p.email ? (
+        <Kb.Text center={true} type="Body" style={styles.text}>
+          Yay! We emailed <Kb.Text type="BodySemibold">{p.email}</Kb.Text>, but you can also give them the
+          below link:
+        </Kb.Text>
+      ) : (
+        <Kb.Text center={true} type="Body" style={styles.text}>
+          Yay! Please share the below link with your friend. It contains signup &amp; install instructions.
+        </Kb.Text>
+      )}
+      <Kb.Box style={styles.linkContainer}>
+        <Kb.Icon
+          type="iconfont-link"
+          style={{height: 14, marginRight: Kb.Styles.globalMargins.tiny}}
+          color={Kb.Styles.globalColors.black_10}
         />
+        <Kb.Text type="BodySemibold" selectable={true} style={{color: Kb.Styles.globalColors.greenDark}}>
+          {p.link}
+        </Kb.Text>
       </Kb.Box>
-    )
-  }
+      <Kb.Button style={{marginTop: Kb.Styles.globalMargins.medium}} label="Close" onClick={p.onClose} />
+    </Kb.Box>
+  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
