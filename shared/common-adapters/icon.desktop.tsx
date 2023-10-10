@@ -38,13 +38,17 @@ const Icon = React.memo<Props>(
     const divRef = React.useRef<HTMLDivElement>(null)
     const imgRef = React.useRef<HTMLImageElement>(null)
 
-    React.useImperativeHandle(ref, () => {
-      return {
-        measure() {
-          return divRef.current?.getBoundingClientRect() ?? imgRef.current?.getBoundingClientRect()
-        },
-      }
-    })
+    React.useImperativeHandle(
+      ref,
+      () => {
+        return {
+          measure() {
+            return divRef.current?.getBoundingClientRect() ?? imgRef.current?.getBoundingClientRect()
+          },
+        }
+      },
+      []
+    )
 
     if (inheritColor) {
       color = 'inherit'

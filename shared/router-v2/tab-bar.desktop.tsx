@@ -99,7 +99,7 @@ const Header = () => {
   return (
     <>
       <Kb.ClickableBox onClick={() => setShowingMenu(true)}>
-        <Kb.Box2
+        <Kb.Box2Measure
           direction="horizontal"
           gap="tiny"
           centerChildren={true}
@@ -125,7 +125,7 @@ const Header = () => {
               style={styles.caret}
             />
           </>
-        </Kb.Box2>
+        </Kb.Box2Measure>
       </Kb.ClickableBox>
       <Kb.FloatingMenu
         position="bottom left"

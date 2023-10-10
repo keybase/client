@@ -5,7 +5,7 @@ import * as Platforms from '../util/platforms'
 import * as TrackerConstants from '../constants/tracker2'
 import type * as T from '../constants/types'
 import capitalize from 'lodash/capitalize'
-import Box, {Box2} from './box'
+import Box, {Box2, Box2Measure} from './box'
 import ClickableBox from './clickable-box'
 import ConnectedNameWithIcon from './name-with-icon/container'
 import {_setWithProfileCardPopup} from './usernames'
@@ -25,6 +25,7 @@ const positionFallbacks = ['top center', 'bottom center'] as const
 const Kb = {
   Box,
   Box2,
+  Box2Measure,
   ClickableBox,
   ConnectedNameWithIcon,
   FloatingMenu,
@@ -293,7 +294,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
       {popup}
     </>
   ) : (
-    <Kb.Box2
+    <Kb.Box2Measure
       direction="vertical"
       style={Styles.collapseStyles([styles.popupTextContainer, ellipsisStyle])}
       onMouseOver={onShow}
@@ -302,7 +303,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
     >
       {children()}
       {popup}
-    </Kb.Box2>
+    </Kb.Box2Measure>
   )
 }
 

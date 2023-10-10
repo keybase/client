@@ -20,7 +20,7 @@ type State = {
 }
 
 class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
-  _boxRef = React.createRef<HTMLDivElement>()
+  _boxRef = React.createRef<Kb.MeasureRef>()
   state = {
     animating: false,
     children: this.props.retainHeight ? null : copyChildren(this.props.children), // no children if we already exploded
@@ -51,13 +51,16 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   }
 
   private setHeight() {
-    const node = this._boxRef.current
-    if (node instanceof HTMLElement) {
-      const height = node.clientHeight
-      if (height && height !== this.state.height) {
-        retainedHeights.add(this.props.messageKey)
-        this.setState({height})
-      }
+    const measure = this._boxRef.current?.measure
+    if (!measure) return
+
+    const m = measure()
+    if (!m) return
+
+    const {height} = m
+    if (height && height !== this.state.height) {
+      retainedHeights.add(this.props.messageKey)
+      this.setState({height})
     }
   }
 
@@ -65,14 +68,14 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
     this.timerID && SharedTimer.removeObserver(this.props.messageKey, this.timerID)
   }
 
-  private _setBoxRef = (r: any) => {
+  private _setBoxRef = (r: null | Kb.MeasureRef) => {
     this._boxRef = {current: r}
     this.setHeight()
   }
 
   render() {
     return (
-      <Kb.Box2
+      <Kb.Box2Measure
         direction="vertical"
         style={Kb.Styles.collapseStyles([
           styles.container,
@@ -94,7 +97,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
           explodedBy={this.props.explodedBy}
           height={this.state.height}
         />
-      </Kb.Box2>
+      </Kb.Box2Measure>
     )
   }
 }

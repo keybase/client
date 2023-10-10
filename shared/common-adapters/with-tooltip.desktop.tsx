@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import {Box2} from './box'
+import {Box2Measure} from './box'
 import Toast from './toast'
 import Text from './text'
 import type {Props} from './with-tooltip'
@@ -9,7 +9,7 @@ import type {MeasureRef} from './measure-ref'
 const IGNORE_FOR_PROFILING = false as boolean
 
 const Kb = {
-  Box2,
+  Box2Measure,
   Text,
   Toast,
 }
@@ -29,7 +29,7 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
 
   return (
     <>
-      <Kb.Box2
+      <Kb.Box2Measure
         direction="vertical"
         alignSelf="stretch"
         alignItems="center"
@@ -40,7 +40,7 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
         className={className}
       >
         {children}
-      </Kb.Box2>
+      </Kb.Box2Measure>
       {!disabled && visible && (
         <Kb.Toast
           containerStyle={Styles.collapseStyles([

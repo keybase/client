@@ -441,7 +441,7 @@ export class FloatingRolePicker<IncludeSetIndividually extends boolean = false> 
     return (
       <>
         {children}
-        <Kb.Box2 direction="vertical" ref={this.ref} />
+        <Kb.Box2Measure direction="vertical" ref={this.ref} />
         {open && (
           <Kb.FloatingBox
             attachTo={this.ref}

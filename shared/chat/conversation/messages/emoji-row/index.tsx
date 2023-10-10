@@ -56,7 +56,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   _hidePicker = () => this._setShowingPicker(false)
   render() {
     return (
-      <Kb.Box2
+      <Kb.Box2Measure
         direction="horizontal"
         ref={this._attachmentRef}
         style={Kb.Styles.collapseStyles([styles.container, this.props.style])}
@@ -100,7 +100,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
             <EmojiPickerDesktop onPickAddToMessageOrdinal={this.props.ordinal} onDidPick={this._hidePicker} />
           </Kb.FloatingBox>
         )}
-      </Kb.Box2>
+      </Kb.Box2Measure>
     )
   }
 }

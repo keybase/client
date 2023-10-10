@@ -16,10 +16,10 @@ const vgapStartStyles = new Map(marginKeys.map(gap => [gap, {paddingTop: Styles.
 const hgapEndStyles = new Map(marginKeys.map(gap => [gap, {paddingRight: Styles.globalMargins[gap]}]))
 const vgapEndStyles = new Map(marginKeys.map(gap => [gap, {paddingBottom: Styles.globalMargins[gap]}]))
 
-const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, _ref: React.Ref<MeasureRef>) {
-  const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = props
-  const {collapsable = true} = props
-  const {style, onLayout, pointerEvents, children, gap, gapStart, gapEnd} = props
+const useBox2Shared = (p: Box2Props) => {
+  const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = p
+  const {collapsable = true, onLayout, pointerEvents, children, gap, gapStart, gapEnd} = p
+  const {style: _style} = p
   const horizontal = direction === 'horizontal' || direction === 'horizontalReverse'
   let directionStyle: Styles.StylesCrossPlatform
   switch (direction) {
@@ -70,41 +70,52 @@ const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, _ref: React.R
     default:
   }
 
-  const viewRef = React.useRef<View>(null)
-  React.useImperativeHandle(_ref, () => {
-    // we don't use this in mobile for now, and likely never
-    return {}
-  })
+  const style = Styles.collapseStyles([
+    directionStyle,
+    fullHeight && styles.fullHeight,
+    fullWidth && styles.fullWidth,
+    !fullHeight && !fullWidth && styles.centered,
+    centerChildren && styles.centeredChildren,
+    alignSelfStyle,
+    alignItemsStyle,
+    noShrink && styles.noShrink,
+    gap && horizontal && hgapStyles.get(gap),
+    gap && !horizontal && vgapStyles.get(gap),
+    gap && gapStart && horizontal && hgapStartStyles.get(gap),
+    gap && gapStart && !horizontal && vgapStartStyles.get(gap),
+    gap && gapEnd && horizontal && hgapEndStyles.get(gap),
+    gap && gapEnd && !horizontal && vgapEndStyles.get(gap),
+    // uncomment this to get debugging colors
+    // {backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`},
+    _style,
+  ])
 
-  return (
-    <View
-      ref={viewRef}
-      collapsable={collapsable}
-      style={Styles.collapseStyles([
-        directionStyle,
-        fullHeight && styles.fullHeight,
-        fullWidth && styles.fullWidth,
-        !fullHeight && !fullWidth && styles.centered,
-        centerChildren && styles.centeredChildren,
-        alignSelfStyle,
-        alignItemsStyle,
-        noShrink && styles.noShrink,
-        gap && horizontal && hgapStyles.get(gap),
-        gap && !horizontal && vgapStyles.get(gap),
-        gap && gapStart && horizontal && hgapStartStyles.get(gap),
-        gap && gapStart && !horizontal && vgapStartStyles.get(gap),
-        gap && gapEnd && horizontal && hgapEndStyles.get(gap),
-        gap && gapEnd && !horizontal && vgapEndStyles.get(gap),
-        // uncomment this to get debugging colors
-        // {backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`},
-        style,
-      ])}
-      onLayout={onLayout}
-      pointerEvents={pointerEvents}
-    >
-      {children}
-    </View>
+  return {
+    children,
+    collapsable,
+    onLayout,
+    pointerEvents,
+    style,
+  }
+}
+
+const Box2 = (p: Box2Props) => {
+  const props = useBox2Shared(p)
+  return <View {...props} />
+}
+
+export const Box2Measure = React.forwardRef<MeasureRef, Box2Props>(function Box2(p, _ref) {
+  React.useImperativeHandle(
+    _ref,
+    () => {
+      // we don't use this in mobile for now, and likely never
+      return {}
+    },
+    []
   )
+
+  const props = useBox2Shared(p)
+  return <View {...props} />
 })
 
 const common = {

@@ -166,7 +166,7 @@ const StellarValue = (p: Props) => {
       {value}
     </Kb.Text>
   ) : (
-    <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.tooltip}>
+    <Kb.Box2Measure direction="vertical" ref={popupAnchor} style={styles.tooltip}>
       <Kb.WithTooltip tooltip={showingPopup ? '' : 'Stellar Federation Address'}>
         <Kb.Text
           type="BodyPrimaryLink"
@@ -177,7 +177,7 @@ const StellarValue = (p: Props) => {
         </Kb.Text>
       </Kb.WithTooltip>
       {popup}
-    </Kb.Box2>
+    </Kb.Box2Measure>
   )
 }
 
@@ -375,7 +375,7 @@ class Assertion extends React.PureComponent<Props, State> {
     const {header, items} = this._getMenu()
 
     return (
-      <Kb.Box2
+      <Kb.Box2Measure
         className={p.notAUser ? undefined : 'hover-container'}
         ref={this._ref}
         direction="vertical"
@@ -445,7 +445,7 @@ class Assertion extends React.PureComponent<Props, State> {
             ))}
           </Kb.Box2>
         )}
-      </Kb.Box2>
+      </Kb.Box2Measure>
     )
   }
 }

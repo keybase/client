@@ -246,7 +246,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         }),
         onContextMenu: toggleShowingPopup,
         // attach popups to the message itself
-        ref: popupAnchor as any,
+        ref: popupAnchor,
       }
 
   const Background = isPendingPayment ? PendingPaymentBackground : NormalWrapper

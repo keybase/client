@@ -80,13 +80,17 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
 
   const divRef = React.useRef<HTMLDivElement>(null)
 
-  React.useImperativeHandle(ref, () => {
-    return {
-      measure() {
-        return divRef.current?.getBoundingClientRect()
-      },
-    }
-  })
+  React.useImperativeHandle(
+    ref,
+    () => {
+      return {
+        measure() {
+          return divRef.current?.getBoundingClientRect()
+        },
+      }
+    },
+    []
+  )
 
   return (
     <div

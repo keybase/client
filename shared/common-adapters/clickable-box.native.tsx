@@ -14,10 +14,14 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBoxIn
   const {feedback = true, onClick, onPressIn, onPressOut, onLongPress} = props
   const {style, activeOpacity, children, pointerEvents} = props
 
-  React.useImperativeHandle(ref, () => {
-    // we don't use this in mobile for now, and likely never
-    return {}
-  })
+  React.useImperativeHandle(
+    ref,
+    () => {
+      // we don't use this in mobile for now, and likely never
+      return {}
+    },
+    []
+  )
 
   if (onClick) {
     const clickStyle = Kb.Styles.collapseStyles([styles.box, style])

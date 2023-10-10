@@ -16,7 +16,7 @@ export type Props = {
   collapsable?: boolean
   className?: string
   style?: any
-  ref?: React.Ref<typeof Box>
+  ref?: never
 }
 
 export type LayoutEvent = {
@@ -57,11 +57,14 @@ export type Box2Props = {
   gap?: keyof typeof globalMargins
   gapStart?: boolean
   gapEnd?: boolean
+  ref?: never
 }
 
 /**
  * Box is deprecated, use Box2 instead
  **/
 export declare const Box: (p: Props) => React.ReactNode
-export declare const Box2: ReturnType<typeof React.forwardRef<MeasureRef, Box2Props>>
+export declare const Box2: (p: Box2Props) => React.ReactNode
+// Box2 but with a special ref, split in case there's overhead we barely need
+export declare const Box2Measure: ReturnType<typeof React.forwardRef<MeasureRef, Box2Props>>
 export default Box
