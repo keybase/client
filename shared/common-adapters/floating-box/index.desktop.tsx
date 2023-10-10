@@ -16,28 +16,7 @@ class FloatingBox extends React.PureComponent<Props, State> {
   }
 
   _getTargetRect = () => {
-    const targetRect = this.props.attachTo?.current?.measure?.()
-    // if (this.props.attachTo) {
-    //   const attachTo = this.props.attachTo()
-    //   if (attachTo instanceof HTMLElement) {
-    //     return attachTo.getBoundingClientRect()
-    //   }
-    //   if (attachTo) {
-    //     console.warn('Non html element passed to floating box, deprecate this soon')
-    //     let node
-    //     try {
-    //       node = findDOMNode(attachTo)
-    //     } catch (error_) {
-    //       const error = error_ as any
-    //       logger.error(`FloatingBox: unable to find rect to attach to. Error: ${error.message}`)
-    //       return undefined
-    //     }
-    //     if (node instanceof HTMLElement) {
-    //       targetRect = node.getBoundingClientRect()
-    //     }
-    //   }
-    // }
-    return targetRect
+    return this.props.attachTo?.current?.measure?.()
   }
 
   _onHidden = () => {
