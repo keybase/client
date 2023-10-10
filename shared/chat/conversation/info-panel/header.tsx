@@ -111,7 +111,7 @@ const TeamHeader = () => {
         <Kb.Icon
           type="iconfont-gear"
           onClick={toggleShowingPopup}
-          ref={popupAnchor as any}
+          ref={popupAnchor}
           style={styles.gear}
           fontSize={gearIconSize}
         />

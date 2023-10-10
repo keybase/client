@@ -1,5 +1,5 @@
-import * as Kb from '../common-adapters'
-import WhatsNew from './container'
+import * as Kb from '../../common-adapters'
+import WhatsNew from '.././container'
 import type {Props} from './popup'
 
 const Popup = (props: Props) => {

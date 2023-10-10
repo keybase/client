@@ -56,7 +56,6 @@ type ActiveType = '' | 'channels' | 'commands' | 'emoji' | 'users'
 // handles watching the input and seeing which suggestor we need to use
 type UseSyncInputProps = {
   active: ActiveType
-  filter: string
   inputRef: React.MutableRefObject<Kb.PlainInput | null>
   setActive: React.Dispatch<React.SetStateAction<ActiveType>>
   setFilter: React.Dispatch<React.SetStateAction<string>>
@@ -64,7 +63,7 @@ type UseSyncInputProps = {
   lastTextRef: React.MutableRefObject<string>
 }
 export const useSyncInput = (p: UseSyncInputProps) => {
-  const {inputRef, active, setActive, filter, setFilter, selectedItemRef, lastTextRef} = p
+  const {inputRef, active, setActive, setFilter, selectedItemRef, lastTextRef} = p
   const setInactive = React.useCallback(() => {
     setActive('')
     setFilter('')
@@ -173,7 +172,6 @@ export const useSyncInput = (p: UseSyncInputProps) => {
   return {
     active,
     checkTrigger,
-    filter,
     setActive,
     setInactive,
     triggerTransform,
@@ -184,12 +182,12 @@ type UseHandleKeyEventsProps = {
   onKeyDownProps?: (evt: React.KeyboardEvent) => void
   active: string
   checkTrigger: () => void
-  filter: string
+  filterEmpty: boolean
   onMoveRef: React.MutableRefObject<((up: boolean) => void) | undefined>
   onSubmitRef: React.MutableRefObject<(() => boolean) | undefined>
 }
 const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
-  const {onKeyDownProps, active, checkTrigger, filter, onMoveRef, onSubmitRef} = p
+  const {onKeyDownProps, active, checkTrigger, filterEmpty, onMoveRef, onSubmitRef} = p
 
   const onKeyDown = React.useCallback(
     (evt: React.KeyboardEvent) => {
@@ -224,7 +222,7 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
           break
         case 'Tab':
           evt.preventDefault()
-          if (filter.length) {
+          if (!filterEmpty) {
             onSubmitRef.current?.()
           } else {
             // shift held -> move up
@@ -237,7 +235,7 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
         onKeyDownProps?.(evt)
       }
     },
-    [onKeyDownProps, active, checkTrigger, filter, onMoveRef, onSubmitRef]
+    [onKeyDownProps, active, checkTrigger, filterEmpty, onMoveRef, onSubmitRef]
   )
 
   return {onKeyDown}
@@ -253,7 +251,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle} = p
   const {triggerTransform, checkTrigger, setInactive} = useSyncInput({
     active,
-    filter,
     inputRef,
     lastTextRef,
     selectedItemRef,
@@ -269,7 +266,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const {onKeyDown} = useHandleKeyEvents({
     active,
     checkTrigger,
-    filter,
+    filterEmpty: filter.length === 0,
     onKeyDownProps: p.onKeyDown,
     onMoveRef,
     onSubmitRef,
@@ -359,9 +356,20 @@ type PopupProps = {
 }
 const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, inputRef} = p
-  // @ts-ignore hacky but we want the actual input
-  const getAttachmentRef = React.useCallback(() => inputRef.current?._input.current, [inputRef])
   const conversationIdKey = C.useChatContext(s => s.id)
+
+  const attachRef = React.useRef<Kb.MeasureRef | null>({
+    divRef: {current: null},
+    measure: () => {
+      // @ts-ignore hacky but we want the actual input TODO fix up
+      const c = inputRef.current?._input.current
+      if (c) {
+        return c.getBoundingClientRect?.()
+      } else {
+        return undefined
+      }
+    },
+  })
 
   return Kb.Styles.isMobile ? (
     <Kb.FloatingBox containerStyle={suggestionOverlayStyle} onHidden={setInactive}>
@@ -371,7 +379,7 @@ const Popup = (p: PopupProps) => {
     </Kb.FloatingBox>
   ) : (
     <Kb.Overlay
-      attachTo={getAttachmentRef}
+      attachTo={attachRef}
       matchDimension={true}
       position="top center"
       positionFallbacks={positionFallbacks}

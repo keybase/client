@@ -1,9 +1,12 @@
 import * as React from 'react'
 import Toast from './toast.desktop'
+import {Box2} from './box'
 import Text from './text.desktop'
 import type {Props} from './zoomable-image'
+import type {MeasureRef} from './measure-ref'
 
 const Kb = {
+  Box2,
   Text,
   Toast,
 }
@@ -13,7 +16,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   const [isZoomed, setIsZoomed] = React.useState(false)
   const [allowPan, setAllowPan] = React.useState(true)
   const [showToast, setShowToast] = React.useState(false)
-  const containerRef = React.useRef<HTMLDivElement>(null)
+  const containerRef = React.useRef<MeasureRef | null>(null)
   const imgRef = React.useRef<HTMLImageElement>(null)
   const scaleRef = React.useRef(1)
   const isZoomedRef = React.useRef(isZoomed)
@@ -37,10 +40,6 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     } else return undefined
   }, [isZoomed])
 
-  const attachTo = React.useCallback(() => {
-    return containerRef.current
-  }, [containerRef])
-
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!containerRef.current || !imgRef.current) return
 
@@ -50,7 +49,8 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       return
     }
 
-    const containerRect = containerRef.current.getBoundingClientRect()
+    const containerRect = containerRef.current.measure?.()
+    if (!containerRect) return
     const imgRect = imgRef.current.getBoundingClientRect()
     const xPercent = Math.min(1, Math.max(0, (e.clientX - containerRect.left) / containerRect.width))
     const yPercent = Math.min(1, Math.max(0, (e.clientY - containerRect.top) / containerRect.height))
@@ -122,16 +122,27 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       : {margin: 'auto', maxHeight: '100%', maxWidth: '100%'}
   }
 
+  const divRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    containerRef.current = {
+      divRef,
+      measure: () => {
+        return divRef.current?.getBoundingClientRect()
+      },
+    }
+  })
+
   return (
     <div
-      ref={containerRef}
-      style={style}
+      ref={divRef}
+      style={style as any}
       onMouseMove={handleMouseMove}
       onWheel={handleWheel}
       onClick={handleClick}
     >
       <img onLoad={onLoaded} ref={imgRef} src={src} style={imgStyle} />
-      <Kb.Toast visible={showToast} attachTo={attachTo}>
+      <Kb.Toast visible={showToast} attachTo={containerRef}>
         <Kb.Text type="Body" negative={true}>
           Scroll to zoom. Move to pan
         </Kb.Text>

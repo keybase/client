@@ -8,6 +8,7 @@ import NameWithIcon from '../../../common-adapters/name-with-icon'
 import Text from '../../../common-adapters/text'
 import {Box2} from '../../../common-adapters/box'
 import WaitingButton from '../../../common-adapters/waiting-button'
+import type {MeasureRef} from '../../../common-adapters/measure-ref'
 
 const Kb = {
   Box2,
@@ -20,7 +21,7 @@ const Kb = {
 }
 
 type Props = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<MeasureRef>
   description: string
   inTeam: boolean
   isOpen: boolean

@@ -73,7 +73,7 @@ const RowItem = React.memo(function RowItem(p: IProps) {
   const ordinal = React.useContext(OrdinalContext)
   const {emoji} = p
 
-  const popupAnchor = React.useRef<Kb.Box2 | null>(null)
+  const popupAnchor = React.useRef<Kb.MeasureRef>(null)
   const [showingPopup, setShowingPopup] = React.useState(false)
 
   const showPopup = React.useCallback(() => {
@@ -85,7 +85,7 @@ const RowItem = React.memo(function RowItem(p: IProps) {
 
   const popup = showingPopup ? (
     <ReactionTooltip
-      attachmentRef={() => popupAnchor.current}
+      attachmentRef={popupAnchor}
       emoji={emoji}
       onHidden={hidePopup}
       ordinal={ordinal}
@@ -94,7 +94,7 @@ const RowItem = React.memo(function RowItem(p: IProps) {
   ) : null
 
   return (
-    <Kb.Box2 direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
+    <Kb.Box2Measure direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
       <ReactButton
         className={btnClassName}
         emoji={emoji}
@@ -102,7 +102,7 @@ const RowItem = React.memo(function RowItem(p: IProps) {
         style={styles.button}
       />
       {popup}
-    </Kb.Box2>
+    </Kb.Box2Measure>
   )
 })
 

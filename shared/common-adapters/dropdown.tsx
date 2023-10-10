@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Box, {Box2} from './box'
+import Box, {Box2, Box2Measure} from './box'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
 import Text from './text'
@@ -10,10 +10,12 @@ import {smallHeight, regularHeight} from './button'
 import {usePopup2, type Popup2Parms} from './use-popup'
 import * as Styles from '../styles'
 import './dropdown.css'
+import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Box,
   Box2,
+  Box2Measure,
   ClickableBox,
   Icon,
   Overlay,
@@ -28,7 +30,7 @@ type DropdownButtonProps = {
   selected?: React.ReactNode
   selectedBoxStyle?: Styles.StylesCrossPlatform
   style?: Styles.StylesCrossPlatform
-  popupAnchor?: React.MutableRefObject<Box | null>
+  popupAnchor?: React.MutableRefObject<MeasureRef | null>
   toggleOpen: (e: React.BaseSyntheticEvent) => void
   inline?: boolean
   loading?: boolean
@@ -38,33 +40,36 @@ export const DropdownButton = (props: DropdownButtonProps) => (
     onClick={!props.disabled ? props.toggleOpen : undefined}
     style={Styles.collapseStyles([styles.dropdownBoxContainer, props.style])}
   >
-    <Kb.Box
-      ref={props.popupAnchor as any}
+    <Kb.Box2Measure
+      direction="vertical"
+      ref={props.popupAnchor}
       className={Styles.classNames('dropdown_border', {
         hover: !props.disabled,
       })}
-      style={{
-        ...Styles.globalStyles.flexBoxRow,
-        ...(props.disabled ? {opacity: 0.3} : {}),
-        alignItems: 'center',
-        ...(Styles.isMobile
-          ? {
-              borderColor: Styles.globalColors.black_10,
-              color: Styles.globalColors.black_50,
-            }
-          : {}),
-        borderRadius: Styles.borderRadius,
-        borderStyle: 'solid',
-        borderWidth: 1,
-        cursor: !props.disabled ? 'pointer' : undefined,
-        paddingRight: props.inline
-          ? Styles.globalMargins.tiny
-          : Styles.isMobile
-          ? Styles.globalMargins.large
-          : Styles.globalMargins.small,
-        width: props.inline ? undefined : '100%',
-        ...(Styles.isTablet ? {maxWidth: 460} : {}),
-      }}
+      style={
+        {
+          ...Styles.globalStyles.flexBoxRow,
+          ...(props.disabled ? {opacity: 0.3} : {}),
+          alignItems: 'center',
+          ...(Styles.isMobile
+            ? {
+                borderColor: Styles.globalColors.black_10,
+                color: Styles.globalColors.black_50,
+              }
+            : {}),
+          borderRadius: Styles.borderRadius,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          cursor: !props.disabled ? 'pointer' : undefined,
+          paddingRight: props.inline
+            ? Styles.globalMargins.tiny
+            : Styles.isMobile
+            ? Styles.globalMargins.large
+            : Styles.globalMargins.small,
+          width: props.inline ? undefined : '100%',
+          ...(Styles.isTablet ? {maxWidth: 460} : {}),
+        } as any
+      }
     >
       <Kb.Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>
         {props.loading ? <Kb.ProgressIndicator type="Small" /> : props.selected}
@@ -75,7 +80,7 @@ export const DropdownButton = (props: DropdownButtonProps) => (
         sizeType="Tiny"
         style={{marginTop: Styles.isMobile ? 2 : -8}}
       />
-    </Kb.Box>
+    </Kb.Box2Measure>
   </Kb.ClickableBox>
 )
 
@@ -92,7 +97,7 @@ type Props<N> = {
   style?: Styles.StylesCrossPlatform
 }
 
-function Dropdown<N>(p: Props<N>) {
+function Dropdown<N extends React.ReactNode>(p: Props<N>) {
   const disabled = p.disabled ?? false
   const {style, onChanged, onChangedIdx, overlayStyle, selectedBoxStyle} = p
   const {position, itemBoxStyle, items, selected} = p

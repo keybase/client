@@ -6,13 +6,14 @@
 
 import * as React from 'react'
 import Overlay from '../overlay'
+import type {MeasureRef} from '../measure-ref'
 import MenuLayout, {type MenuItems as _MenuItems} from './menu-layout'
 import * as Styles from '../../styles'
 
 export type MenuItems = _MenuItems
 
 export type Props = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<MeasureRef>
   backgroundColor?: Styles.Color
   closeOnSelect: boolean
   closeText?: string // mobile only; default to "Close",

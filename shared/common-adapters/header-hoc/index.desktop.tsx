@@ -54,25 +54,22 @@ export const LeftAction = ({
       <Kb.Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
         {leftActionText || customCancelText || 'Cancel'}
       </Kb.Text>
-    ) : (
-      onLeftAction ||
-      (leftAction === 'back' && (
-        <Kb.BackButton
-          badgeNumber={badgeNumber}
-          hideBackLabel={hideBackLabel}
-          iconColor={
-            disabled
-              ? Styles.globalColors.black_10
-              : theme === 'dark'
-              ? Styles.globalColors.white
-              : Styles.globalColors.black_50
-          }
-          style={styles.action}
-          textStyle={disabled ? styles.disabledText : undefined}
-          onClick={disabled ? undefined : onLeftAction}
-        />
-      ))
-    )}
+    ) : onLeftAction || leftAction === 'back' ? (
+      <Kb.BackButton
+        badgeNumber={badgeNumber}
+        hideBackLabel={hideBackLabel}
+        iconColor={
+          disabled
+            ? Styles.globalColors.black_10
+            : theme === 'dark'
+            ? Styles.globalColors.white
+            : Styles.globalColors.black_50
+        }
+        style={styles.action}
+        textStyle={disabled ? styles.disabledText : undefined}
+        onClick={disabled ? undefined : onLeftAction}
+      />
+    ) : null}
   </Kb.Box>
 )
 

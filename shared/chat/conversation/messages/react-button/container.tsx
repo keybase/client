@@ -7,7 +7,6 @@ import {OrdinalContext} from '../ids-context'
 export type OwnProps = {
   className?: string
   emoji?: string
-  getAttachmentRef?: () => React.Component<any> | null
   onLongPress?: () => void
   onShowPicker?: (showing: boolean) => void
   showBorder?: boolean
@@ -17,7 +16,7 @@ export type OwnProps = {
 const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProps) {
   const ordinal = React.useContext(OrdinalContext)
   const {emoji, className} = p
-  const {getAttachmentRef, onLongPress, onShowPicker, showBorder, style} = p
+  const {onLongPress, onShowPicker, showBorder, style} = p
   const me = C.useCurrentUserState(s => s.username)
   const {active, count, decorated} = C.useChatContext(
     C.useShallow(s => {
@@ -55,7 +54,6 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
       active={active}
       className={className}
       count={count}
-      getAttachmentRef={getAttachmentRef}
       emoji={emoji}
       decorated={decorated}
       onClick={onClick}
@@ -64,7 +62,6 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
     />
   ) : (
     <NewReactionButton
-      getAttachmentRef={getAttachmentRef}
       onAddReaction={onAddReaction}
       onLongPress={onLongPress}
       onOpenEmojiPicker={onOpenEmojiPicker}

@@ -7,7 +7,7 @@ import {Avatars, TeamAvatar} from '../../../avatars'
 import {TeamsSubscriberMountOnly} from '../../../../teams/subscriber'
 
 export type Props = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<Kb.MeasureRef>
   badgeSubscribe: boolean
   canAddPeople: boolean
   channelname?: string

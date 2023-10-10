@@ -75,17 +75,20 @@ const EditAvatar = (p: Props) => {
   const onImageLoad = () => {
     setLoading('loaded')
   }
-  const onDrop = async (e: React.DragEvent<any>) => {
-    setDropping(false)
-    setSerror(false)
-    setLoading('loading')
-    if (!validDrag(e)) {
-      return
+  const onDrop = (e: React.DragEvent<any>) => {
+    const f = async () => {
+      setDropping(false)
+      setSerror(false)
+      setLoading('loading')
+      if (!validDrag(e)) {
+        return
+      }
+      const img = await getFile(e.dataTransfer.files)
+      if (img) {
+        setImageSource(img)
+      }
     }
-    const img = await getFile(e.dataTransfer.files)
-    if (img) {
-      setImageSource(img)
-    }
+    C.ignorePromise(f())
   }
   const filePickerOpen = () => {
     fileRef.current?.click()
@@ -148,7 +151,7 @@ const EditAvatar = (p: Props) => {
         </>
       }
     >
-      <Kb.Box
+      <div
         className={Kb.Styles.classNames({dropping: dropping})}
         onDrop={onDrop}
         style={Kb.Styles.collapseStyles([styles.container, createdTeam && styles.paddingTopForCreatedTeam])}
@@ -195,7 +198,7 @@ const EditAvatar = (p: Props) => {
           )}
         </Kb.Box>
         {loading === 'loaded' ? <Kb.Text type="Body">Click to select. Scroll to zoom.</Kb.Text> : null}
-      </Kb.Box>
+      </div>
     </Kb.Modal>
   )
 }

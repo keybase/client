@@ -3,6 +3,7 @@ import Text, {type StylesTextCrossPlatform} from '../../text'
 import {Box2} from '../../box'
 import * as Styles from '../../../styles'
 import TeamInfo from '../../../profile/user/teams/teaminfo'
+import type {MeasureRef} from 'common-adapters/measure-ref'
 
 const Kb = {Box2, Styles, Text}
 
@@ -28,10 +29,7 @@ type State = {
 
 class TeamMention extends React.Component<Props, State> {
   state = {showPopup: false}
-  _mentionRef = React.createRef<Text>()
-  _getAttachmentRef = () => {
-    return this._mentionRef.current
-  }
+  _mentionRef = React.createRef<MeasureRef>()
 
   _onClick = () => {
     if (this.props.onChat) {
@@ -51,9 +49,10 @@ class TeamMention extends React.Component<Props, State> {
     if (this.props.channel.length > 0) {
       text += `#${this.props.channel}`
     }
+
     const content = (
       <Kb.Text
-        ref={this._mentionRef}
+        textRef={this._mentionRef as React.MutableRefObject<MeasureRef>}
         type="BodyBold"
         className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
         style={Kb.Styles.collapseStyles([this.props.style, styles.text])}
@@ -71,7 +70,7 @@ class TeamMention extends React.Component<Props, State> {
     )
     const popups = (
       <TeamInfo
-        attachTo={this._getAttachmentRef}
+        attachTo={this._mentionRef}
         description={this.props.description}
         inTeam={this.props.inTeam}
         isOpen={this.props.isOpen}

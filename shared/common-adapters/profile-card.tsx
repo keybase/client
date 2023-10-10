@@ -5,7 +5,7 @@ import * as Platforms from '../util/platforms'
 import * as TrackerConstants from '../constants/tracker2'
 import type * as T from '../constants/types'
 import capitalize from 'lodash/capitalize'
-import Box, {Box2} from './box'
+import Box, {Box2, Box2Measure} from './box'
 import ClickableBox from './clickable-box'
 import ConnectedNameWithIcon from './name-with-icon/container'
 import {_setWithProfileCardPopup} from './usernames'
@@ -18,12 +18,14 @@ import WithTooltip from './with-tooltip'
 import DelayedMounting from './delayed-mounting'
 import {type default as FollowButtonType} from '../profile/user/actions/follow-button'
 import type ChatButtonType from '../chat/chat-button'
+import type {MeasureRef} from './measure-ref'
 
 const positionFallbacks = ['top center', 'bottom center'] as const
 
 const Kb = {
   Box,
   Box2,
+  Box2Measure,
   ClickableBox,
   ConnectedNameWithIcon,
   FloatingMenu,
@@ -247,7 +249,7 @@ type WithProfileCardPopupProps = {
 }
 
 export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithProfileCardPopupProps) => {
-  const ref = React.useRef(null)
+  const ref = React.useRef<MeasureRef>(null)
   const [showing, setShowing] = React.useState(false)
   const [remeasureHint, setRemeasureHint] = React.useState(0)
   const onLayoutChange = React.useCallback(() => setRemeasureHint(Date.now()), [setRemeasureHint])
@@ -265,7 +267,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   const popup = showing && (
     <DelayedMounting delay={Styles.isMobile ? 0 : 500}>
       <Kb.FloatingMenu
-        attachTo={() => ref.current}
+        attachTo={ref}
         closeOnSelect={true}
         onHidden={() => setShowing(false)}
         position="top center"
@@ -292,7 +294,8 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
       {popup}
     </>
   ) : (
-    <Kb.Box
+    <Kb.Box2Measure
+      direction="vertical"
       style={Styles.collapseStyles([styles.popupTextContainer, ellipsisStyle])}
       onMouseOver={onShow}
       onMouseLeave={onHide}
@@ -300,7 +303,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
     >
       {children()}
       {popup}
-    </Kb.Box>
+    </Kb.Box2Measure>
   )
 }
 

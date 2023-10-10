@@ -6,6 +6,7 @@ import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import SwitchToggle from './switch-toggle'
 import WithTooltip from './with-tooltip'
+import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Box,
@@ -50,7 +51,7 @@ const LabelContainer = (props: Props) =>
     </Kb.Box2>
   )
 
-const getContent = (props: Props, ref: React.Ref<ClickableBox>) => (
+const getContent = (props: Props, ref: React.Ref<MeasureRef>) => (
   <>
     <Kb.ClickableBox onClick={props.disabled ? undefined : props.onClick} ref={ref}>
       <SwitchToggle
@@ -89,7 +90,7 @@ const getStyle = (props: Props) =>
     props.style,
   ])
 
-const Switch = React.forwardRef<ClickableBox, Props>(function Switch(props: Props, ref) {
+const Switch = React.forwardRef<MeasureRef, Props>(function Switch(props: Props, ref) {
   return Styles.isMobile || !props.labelTooltip ? (
     <Kb.Box style={getStyle(props)}>{getContent(props, ref)}</Kb.Box>
   ) : (

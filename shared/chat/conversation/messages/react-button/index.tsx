@@ -10,7 +10,6 @@ export type Props = {
   emoji: string
   onClick: () => void
   onLongPress?: () => void
-  getAttachmentRef?: () => React.Component<any> | null
   style?: Kb.Styles.StylesCrossPlatform
 }
 
@@ -65,7 +64,6 @@ const ReactButton = React.memo(function ReactButton(p: Props) {
 
 const iconCycle = ['iconfont-reacji', 'iconfont-reacji', 'iconfont-reacji', 'iconfont-reacji'] as const
 export type NewReactionButtonProps = {
-  getAttachmentRef?: () => React.Component<any> | null
   onAddReaction: (emoji: string) => void
   onLongPress?: () => void
   onOpenEmojiPicker: () => void

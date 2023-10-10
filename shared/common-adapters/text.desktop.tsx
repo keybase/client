@@ -75,11 +75,31 @@ class Text extends React.Component<Props> {
     showContextMenu?.(url)
   }
 
+  private setRef = (r: HTMLSpanElement | null) => {
+    if (this.props.allowHighlightText) {
+      this._spanRef = {current: r}
+    }
+
+    if (this.props.textRef) {
+      // outer type isn't writable due to class components
+      const writeRef = this.props.textRef as React.MutableRefObject<any>
+      writeRef.current = {
+        divRef: {current: null},
+        highlightText: () => {
+          this.props.allowHighlightText && this.highlightText()
+        },
+        measure: () => {
+          return r?.getBoundingClientRect()
+        },
+      }
+    }
+  }
+
   render() {
     return (
       <span
         title={this.props.title || undefined}
-        ref={this.props.allowHighlightText ? this._spanRef : null}
+        ref={this.setRef}
         className={this._className(this.props)}
         onClick={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined) || undefined}
         onContextMenuCapture={this.props.onClickURL ? this.onContextMenu : undefined}

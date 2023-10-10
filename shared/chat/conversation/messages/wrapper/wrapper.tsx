@@ -77,7 +77,7 @@ type WMProps = {
   toggleShowingPopup: () => void
   showingPopup: boolean
   popup: React.ReactNode
-  popupAnchor: React.MutableRefObject<React.Component | null>
+  popupAnchor: React.RefObject<Kb.MeasureRef>
 } & Props
 
 const successfulInlinePaymentStatuses = ['completed', 'claimable']
@@ -198,7 +198,7 @@ type TSProps = {
   hasReactions: boolean
   isPendingPayment: boolean
   isHighlighted: boolean
-  popupAnchor: React.MutableRefObject<React.Component | null>
+  popupAnchor: React.RefObject<Kb.MeasureRef>
   reactionsPopupPosition: 'none' | 'last' | 'middle'
   setShowingPicker: (s: boolean) => void
   showCoinsIcon: boolean
@@ -246,7 +246,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         }),
         onContextMenu: toggleShowingPopup,
         // attach popups to the message itself
-        ref: popupAnchor as any,
+        ref: popupAnchor,
       }
 
   const Background = isPendingPayment ? PendingPaymentBackground : NormalWrapper

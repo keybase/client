@@ -206,13 +206,8 @@ function PendingURLContent({invite}: {invite: PendingInvite}) {
   )
 }
 
-function AcceptedInviteItem({
-  invite,
-  onClick,
-}: {
-  invite: AcceptedInvite
-  onClick: (username: string) => void
-}) {
+function AcceptedInviteItem(p: {invite: AcceptedInvite; onClick: () => void}) {
+  const {invite, onClick} = p
   return (
     <Kb.Box
       style={{...styles.inviteItem, ...Kb.Styles.desktopStyles.clickable, flexShrink: 0}}

@@ -8,14 +8,13 @@ import {NativeAnimated, NativeEasing} from './native-wrappers.native'
 import type {Props} from './toast'
 import {colors, darkColors} from '../styles/colors'
 import {isDarkMode} from '../styles/dark-mode'
+import noop from 'lodash/noop'
 
 const Kb = {
   Box,
   FloatingBox,
   KeyboardAvoidingView2,
 }
-
-const noop = () => {}
 
 const Toast = (props: Props) => {
   const {visible} = props

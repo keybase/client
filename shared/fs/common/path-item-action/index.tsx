@@ -10,7 +10,7 @@ type SizeType = any
 
 type ClickableProps = {
   onClick: () => void
-  setRef: (arg0: React.Component<any> | null) => void
+  ref: React.RefObject<Kb.MeasureRef>
 }
 
 type ClickableComponent = {
@@ -93,12 +93,12 @@ const PathItemAction = (props: Props) => {
   return (
     <>
       {props.clickable.type === 'component' && (
-        <props.clickable.component onClick={onClick} setRef={popupAnchor as any} />
+        <props.clickable.component onClick={onClick} ref={popupAnchor} />
       )}
       {props.clickable.type === 'icon' && (
         <IconClickable
           onClick={onClick}
-          setRef={popupAnchor}
+          ref={popupAnchor}
           sizeType={props.clickable.sizeType}
           actionIconWhite={props.clickable.actionIconWhite}
         />

@@ -98,12 +98,12 @@ const MoreNetworksButton = (props: {
   return (
     <>
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.moreNetworks0}>
-        <Kb.Box2
+        <Kb.Box2Measure
           direction="vertical"
           style={styles.moreNetworks1}
           fullHeight={true}
           centerChildren={true}
-          ref={popupAnchor as any}
+          ref={popupAnchor}
         >
           <Kb.WithTooltip tooltip="More networks" containerStyle={styles.moreNetworks2}>
             <Kb.ClickableBox onClick={toggleShowingPopup} style={styles.moreNetworks3}>
@@ -112,7 +112,7 @@ const MoreNetworksButton = (props: {
               </Kb.Text>
             </Kb.ClickableBox>
           </Kb.WithTooltip>
-        </Kb.Box2>
+        </Kb.Box2Measure>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inactiveTabBar} />
       </Kb.Box2>
       {popup}

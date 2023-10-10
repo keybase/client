@@ -13,4 +13,5 @@ export type Props = {
   onContextMenu?: () => void
   onMouseOver?: () => void
 }
-export default class LongPressable extends React.Component<Props> {}
+declare const LongPressable: ReturnType<typeof React.forwardRef<Kb.MeasureRef, Props>>
+export default LongPressable

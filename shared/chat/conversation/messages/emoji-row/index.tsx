@@ -47,17 +47,16 @@ class HoverEmoji extends React.Component<
 
 class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   state = {showingPicker: false}
-  _attachmentRef = React.createRef<Kb.Box2>()
+  _attachmentRef = React.createRef<Kb.MeasureRef>()
   _setShowingPicker = (showingPicker: boolean) => {
     this.props.onShowingEmojiPicker?.(showingPicker)
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
   }
   _showPicker = () => this._setShowingPicker(true)
   _hidePicker = () => this._setShowingPicker(false)
-  _getAttachmentRef = () => this._attachmentRef.current
   render() {
     return (
-      <Kb.Box2
+      <Kb.Box2Measure
         direction="horizontal"
         ref={this._attachmentRef}
         style={Kb.Styles.collapseStyles([styles.container, this.props.style])}
@@ -92,7 +91,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
         </Kb.Box2>
         {this.state.showingPicker && (
           <Kb.FloatingBox
-            attachTo={this._getAttachmentRef}
+            attachTo={this._attachmentRef}
             containerStyle={styles.pickerContainer}
             position="top right"
             onHidden={this._hidePicker}
@@ -101,7 +100,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
             <EmojiPickerDesktop onPickAddToMessageOrdinal={this.props.ordinal} onDidPick={this._hidePicker} />
           </Kb.FloatingBox>
         )}
-      </Kb.Box2>
+      </Kb.Box2Measure>
     )
   }
 }

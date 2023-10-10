@@ -223,7 +223,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
           onClick={toggleShowingPopup}
           type="iconfont-nav-2-hamburger"
           sizeType="Big"
-          ref={popupAnchor as any}
+          ref={popupAnchor}
         />
         {!!badgeCountInMenu && <Kb.Badge badgeNumber={badgeCountInMenu} badgeStyle={styles.badge} />}
       </Kb.Box>

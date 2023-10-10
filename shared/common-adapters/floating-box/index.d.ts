@@ -1,6 +1,7 @@
-import * as React from 'react'
-import {StylesCrossPlatform} from '../../styles/css'
-import {Position} from '../../styles'
+import type * as React from 'react'
+import type {StylesCrossPlatform} from '../../styles/css'
+import type {Position} from '../../styles'
+import type {MeasureRef} from '../measure-ref'
 
 // GatewayDests:
 // popup-root: At the root of the app. Sibling to root route renderer.
@@ -11,7 +12,7 @@ export type Props = {
   onHidden?: () => void
   // Desktop only - the node that we should aim for
   // optional because desktop only, return val nullable because refs always are
-  attachTo?: () => React.ReactInstance | null
+  attachTo?: React.RefObject<MeasureRef>
   // Desktop only - allow clicks outside the floating box to propagate. On
   // mobile you can control this by setting a margin in `containerStyle`.
   propagateOutsideClicks?: boolean
@@ -22,5 +23,5 @@ export type Props = {
   positionFallbacks?: ReadonlyArray<Position>
   hideKeyboard?: boolean // if true, hide the keyboard on mount
 }
-declare class FloatingBox extends React.Component<Props> {}
+export declare const FloatingBox: (p: Props) => React.ReactNode
 export default FloatingBox

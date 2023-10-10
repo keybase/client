@@ -192,7 +192,7 @@ const AnimatedExpand = (() => {
 })()
 
 type ChatFilePickerProps = {
-  attachTo: () => React.Component | null
+  attachTo?: React.RefObject<Kb.MeasureRef>
   showingPopup: boolean
   toggleShowingPopup: () => void
 }

@@ -216,7 +216,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     }
   }
 
-  const attachmentRef = React.useRef<Kb.Box2>(null)
+  const attachmentRef = React.useRef<Kb.MeasureRef>(null)
   const [showingToast, setShowingToast] = React.useState(false)
 
   const setHideToastTimeout = Kb.useTimeout(() => setShowingToast(false), 1500)
@@ -262,8 +262,8 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
               onClick={() => onReplyInChat(signedByUsername)}
             />
           )}
-          <Kb.Box2 direction="horizontal" ref={attachmentRef}>
-            <Kb.Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
+          <Kb.Box2Measure direction="horizontal" ref={attachmentRef}>
+            <Kb.Toast position="top center" attachTo={attachmentRef} visible={showingToast}>
               <Kb.Text type="BodySmall" style={styles.toastText}>
                 Copied to clipboard
               </Kb.Text>
@@ -277,7 +277,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
                 onClick={() => copy()}
               />
             )}
-          </Kb.Box2>
+          </Kb.Box2Measure>
           {canSaveAsText && !Kb.Styles.isMobile && (
             <Kb.Button
               mode="Secondary"

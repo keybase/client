@@ -37,7 +37,7 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
     <Kb.ClickableBox2
       className={Kb.Styles.classNames({expanded: showingPopup}, 'timer-icon-container')}
       onClick={toggleShowingPopup}
-      ref={popupAnchor as any}
+      ref={popupAnchor}
       style={Kb.Styles.collapseStyles([
         styles.explodingIconContainer,
         styles.explodingIconContainerClickable,
@@ -101,13 +101,13 @@ const EmojiButton = (p: EmojiButtonProps) => {
   return (
     <>
       <Kb.WithTooltip tooltip="Emoji">
-        <Kb.Box style={styles.icon} ref={popupAnchor}>
+        <Kb.Box2Measure direction="vertical" style={styles.icon} ref={popupAnchor}>
           <Kb.Icon
             color={showingPopup ? Kb.Styles.globalColors.black : undefined}
             onClick={toggleShowingPopup}
             type="iconfont-emoji"
           />
-        </Kb.Box>
+        </Kb.Box2Measure>
       </Kb.WithTooltip>
       {popup}
     </>
@@ -362,6 +362,16 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
     showReplyPreview,
   })
 
+  const setRefs = React.useCallback(
+    (ref: null | Kb.PlainInput) => {
+      // from normal/index
+      inputSetRef.current = ref
+      // from suggestors/index
+      inputRef.current = ref
+    },
+    [inputRef, inputSetRef]
+  )
+
   return (
     <>
       {popup}
@@ -391,12 +401,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
                 allowKeyboardEvents={true}
                 disabled={cannotWrite}
                 autoFocus={false}
-                ref={(ref: null | Kb.PlainInput) => {
-                  // from normal/index
-                  inputSetRef.current = ref
-                  // from suggestors/index
-                  inputRef.current = ref
-                }}
+                ref={setRefs}
                 placeholder={hintText}
                 style={Kb.Styles.collapseStyles([styles.input, isEditing && styles.inputEditing])}
                 onChangeText={onChangeText}

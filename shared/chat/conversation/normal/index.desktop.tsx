@@ -46,7 +46,7 @@ class Conversation extends React.PureComponent<Props> {
 
   render() {
     return (
-      <Kb.Box className="conversation" style={styles.container} onPaste={this.onPaste}>
+      <div className="conversation" style={styles.container} onPaste={this.onPaste}>
         <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKey} />
         <Kb.DragAndDrop
           onAttach={this.props.onAttach}
@@ -79,7 +79,7 @@ class Conversation extends React.PureComponent<Props> {
             onRequestScrollUp={this.props.onRequestScrollUp}
           />
         </Kb.DragAndDrop>
-      </Kb.Box>
+      </div>
     )
   }
 }

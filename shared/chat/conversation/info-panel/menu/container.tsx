@@ -7,7 +7,7 @@ import * as T from '../../../../constants/types'
 import {InfoPanelMenu} from '.'
 
 export type OwnProps = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<Kb.MeasureRef>
   onHidden: () => void
   floatingMenuContainerStyle?: Kb.Styles.StylesCrossPlatform
   hasHeader: boolean

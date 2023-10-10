@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {StylesCrossPlatform, globalMargins, CustomStyles} from '../styles'
-import {TextType} from './text'
+import type {globalMargins, CustomStyles} from '../styles'
+import type {TextType} from './text'
 
 export type KeyboardType =
   | 'default'
@@ -102,7 +102,7 @@ export type Props = {
   allowFontScaling?: boolean
   onKeyPress?: (event: {
     nativeEvent: {
-      key: 'Enter' | 'Backspace' | string
+      key: string
     }
   }) => void
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
@@ -173,5 +173,4 @@ declare class PlainInput extends React.Component<Props> {
    **/
   transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => void
 }
-
 export default PlainInput

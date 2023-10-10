@@ -3,7 +3,7 @@ import * as Kb from '../../../../../common-adapters'
 import type * as T from '../../../../../constants/types'
 
 export type Props = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<Kb.MeasureRef>
   onHidden: () => void
   participants?: Array<T.RPCChat.UICoinFlipParticipant>
   visible: boolean

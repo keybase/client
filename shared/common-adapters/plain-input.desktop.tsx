@@ -319,9 +319,9 @@ input::-webkit-outer-spin-button {-webkit-appearance: none; margin: 0;}
       <>
         <style>{realCSS}</style>
         {this.props.multiline ? (
-          <textarea {...inputProps} ref={ref as any} />
+          <textarea {...inputProps} ref={ref as any as React.RefObject<HTMLTextAreaElement>} />
         ) : (
-          <input {...inputProps} ref={ref as any} />
+          <input {...inputProps} ref={ref as any as React.RefObject<HTMLInputElement>} />
         )}
       </>
     )

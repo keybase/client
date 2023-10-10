@@ -166,7 +166,7 @@ const StellarValue = (p: Props) => {
       {value}
     </Kb.Text>
   ) : (
-    <Kb.Box ref={popupAnchor} style={styles.tooltip}>
+    <Kb.Box2Measure direction="vertical" ref={popupAnchor} style={styles.tooltip}>
       <Kb.WithTooltip tooltip={showingPopup ? '' : 'Stellar Federation Address'}>
         <Kb.Text
           type="BodyPrimaryLink"
@@ -177,7 +177,7 @@ const StellarValue = (p: Props) => {
         </Kb.Text>
       </Kb.WithTooltip>
       {popup}
-    </Kb.Box>
+    </Kb.Box2Measure>
   )
 }
 
@@ -274,8 +274,7 @@ class Assertion extends React.PureComponent<Props, State> {
   state = {showingMenu: false}
   _toggleMenu = () => this.setState(s => ({showingMenu: !s.showingMenu}))
   _hideMenu = () => this.setState({showingMenu: false})
-  _ref: React.RefObject<any> = React.createRef()
-  _getRef = () => this._ref.current
+  _ref: React.RefObject<Kb.MeasureRef> = React.createRef()
   _getMenu = () => {
     const p = this.props
     if (!p.isYours || p.isSuggestion) {
@@ -376,7 +375,7 @@ class Assertion extends React.PureComponent<Props, State> {
     const {header, items} = this._getMenu()
 
     return (
-      <Kb.Box2
+      <Kb.Box2Measure
         className={p.notAUser ? undefined : 'hover-container'}
         ref={this._ref}
         direction="vertical"
@@ -425,7 +424,7 @@ class Assertion extends React.PureComponent<Props, State> {
                       closeOnSelect={true}
                       visible={this.state.showingMenu}
                       onHidden={this._hideMenu}
-                      attachTo={this._getRef}
+                      attachTo={this._ref}
                       position="bottom right"
                       containerStyle={styles.floatingMenu}
                       header={header}
@@ -446,7 +445,7 @@ class Assertion extends React.PureComponent<Props, State> {
             ))}
           </Kb.Box2>
         )}
-      </Kb.Box2>
+      </Kb.Box2Measure>
     )
   }
 }

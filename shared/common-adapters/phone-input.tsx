@@ -21,6 +21,7 @@ import {
   type CountryData,
 } from '../util/phone-numbers'
 import {memoize} from '../util/memoize'
+import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Box2,
@@ -148,7 +149,7 @@ const MenuItem = (props: {emoji: string; text: string}) => (
 )
 
 type CountrySelectorProps = {
-  attachTo?: () => React.Component<any> | null
+  attachTo?: React.RefObject<MeasureRef>
   onSelect: (s?: string) => void
   onHidden: () => void
   selected?: string

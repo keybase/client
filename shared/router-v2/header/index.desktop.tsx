@@ -148,7 +148,7 @@ const DesktopHeader = React.memo(
       ? Kb.Styles.globalColors.black_10
       : Kb.Styles.globalColors.transparent
 
-    const whatsNewAttachToRef = React.createRef<Kb.Box2>()
+    const whatsNewAttachToRef = React.createRef<Kb.MeasureRef>()
 
     return (
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
@@ -163,7 +163,7 @@ const DesktopHeader = React.memo(
             opt.headerStyle,
           ])}
         >
-          <Kb.Box2
+          <Kb.Box2Measure
             key="topBar"
             direction="horizontal"
             fullWidth={true}
@@ -199,7 +199,7 @@ const DesktopHeader = React.memo(
               {!title && rightActions}
               {windowDecorationsAreNeeded && <SystemButtons isMaximized={isMaximized} />}
             </Kb.Box2>
-          </Kb.Box2>
+          </Kb.Box2Measure>
           <Kb.Box2
             key="bottomBar"
             direction="horizontal"

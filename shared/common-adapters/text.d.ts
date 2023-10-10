@@ -1,8 +1,9 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type {CustomStyles, _CustomStyles, StylesCrossPlatform} from '../styles/css'
 import {allTextTypes} from './text.shared'
 import type * as CSS from '../styles/css'
 import type colors from '../styles/colors'
+import type {MeasureRef} from './measure-ref'
 
 type Background =
   | 'Announcements'
@@ -51,6 +52,9 @@ export type StylesTextCrossPlatform = CustomStyles<'color', {color?: AllowedColo
 export type LineClampType = 1 | 2 | 3 | 4 | 5
 
 type Props = {
+  ref?: never
+  // TODO could make this ref if we make this a function component
+  textRef?: React.RefObject<TextMeasureRef | MeasureRef>
   allowFontScaling?: boolean
   allowHighlightText?: boolean // if true, highlighttext through refs works,,
   center?: boolean
@@ -63,7 +67,7 @@ type Props = {
   onClickURL?: string
   onLongPress?: () => void
   onLongPressURL?: string
-  onPress?: void
+  onPress?: never
   fixOverdraw?: boolean // use fastBlank to fix overdraw issues TODO support auto when this is a function
   plainText?: boolean
   selectable?: boolean
@@ -87,9 +91,13 @@ type MetaType = {
   isTerminal?: true
 }
 
-declare class Text extends React.Component<Props> {
+export type TextMeasureRef = {
   highlightText: () => void
-}
+} & MeasureRef
+
+// if we fix the ref thing
+// export declare const Text: ReturnType<typeof React.forwardRef<TextMeasureRef | MeasureRef, Props>>
+export declare const Text: (p: Props) => React.ReactNode
 
 type TextStyle = {
   fontSize: number
@@ -113,5 +121,5 @@ declare function getStyle(
 ): TextStyle
 
 export {getStyle, allTextTypes}
-export {Background, MetaType, Props, TextType, TextTypeBold}
+export type {Background, MetaType, Props, TextType, TextTypeBold}
 export default Text
