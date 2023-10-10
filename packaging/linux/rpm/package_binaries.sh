@@ -64,7 +64,7 @@ build_one_architecture() {
   # native messaging manifests under /usr/lib. Copy the manifests into both
   # places, for good measure.
   mkdir -p "$copied_binaries/usr/lib64/mozilla"
-  cp -r "$copied_binaries/usr/lib/mozilla/native-messaging-hosts" "$copied_binaries/usr/lib64/mozilla/"
+  # cp -r "$copied_binaries/usr/lib/mozilla/native-messaging-hosts" "$copied_binaries/usr/lib64/mozilla/"
 
   # We need to copy in the cron file before we collect the list of all files
   # below.
