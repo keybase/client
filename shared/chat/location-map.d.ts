@@ -1,9 +1,9 @@
-import * as React from 'react'
+import type * as React from 'react'
 type Props = {
   height: number
   mapSrc: string
   onLoad?: () => void
   width: number
 }
-export declare class LocationMap extends React.Component<Props> {}
+declare const LocationMap: (p: Props) => React.ReactNode
 export default LocationMap

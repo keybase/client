@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type * as T from '../../../constants/types'
 export type Props = {
   path: string
@@ -16,4 +16,5 @@ export type Props = {
   onShowInFinder?: () => void
   isVideo: boolean
 }
-export default class Fullscreen extends React.Component<Props> {}
+declare const Fullscreen: (p: Props) => React.ReactNode
+export default Fullscreen

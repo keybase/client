@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type {Position} from '../../styles'
 import type {MeasureRef} from '../measure-ref'
 import type {StylesCrossPlatform} from '../../styles/css'
@@ -29,4 +29,5 @@ export type Props = {
   visible?: boolean
 }
 
-export default class extends React.Component<Props> {}
+declare const Overlay: (p: Props) => React.ReactNode
+export default Overlay

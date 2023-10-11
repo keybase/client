@@ -1,3 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 type Props = {}
-export default class AddContact extends React.Component<Props> {}
+declare const AddContact: (p: Props) => React.ReactNode
+export default AddContact

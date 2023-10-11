@@ -1,3 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 export type OwnProps = {teamID: string}
-export default class InviteByContact extends React.Component<OwnProps> {}
+declare const InviteByContact: (p: OwnProps) => React.ReactNode
+export default InviteByContact

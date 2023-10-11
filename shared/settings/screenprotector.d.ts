@@ -1,5 +1,6 @@
-import * as React from 'react'
+import type * as React from 'react'
 
 export type Props = {}
 
-export default class ScreenProtector extends React.Component<Props> {}
+declare const ScreenProtector: (p: Props) => React.ReactNode
+export default ScreenProtector

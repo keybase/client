@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 
 // Mobile only. Show native dropdown UI.
 
@@ -20,5 +20,5 @@ export type Props<T> = {
   visible: boolean
 }
 
-declare class FloatingPicker<T> extends React.Component<Props<T>> {}
+declare function FloatingPicker<T>(p: Props<T>): React.ReactNode
 export default FloatingPicker

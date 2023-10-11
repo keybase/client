@@ -1,7 +1,7 @@
-import * as React from 'react'
+import type * as React from 'react'
 export type Props = {
   waiting: boolean
   onSubmitTextCode: (s: string) => void
 }
-declare class QRScan extends React.Component<Props> {}
+declare const QRScan: (p: Props) => React.ReactNode
 export default QRScan

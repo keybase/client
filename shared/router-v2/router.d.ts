@@ -1,6 +1,6 @@
-import * as React from 'react'
+import type * as React from 'react'
 
 export declare const headerDefaultStyle: any
 export type Props = {}
-declare class Router extends React.Component<Props> {}
+declare const Router: (p: Props) => React.ReactNode
 export default Router

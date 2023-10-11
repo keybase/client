@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 
 export type Props = {
   maxZoom?: number
@@ -15,4 +15,4 @@ export type Props = {
   contentContainerStyle?: any
 }
 
-export class ZoomableBox extends React.Component<Props> {}
+declare const ZoomableBox: (p: Props) => React.ReactNode

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type * as Styles from '../styles'
 
 export type Props = {
@@ -7,5 +7,5 @@ export type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-declare class SwitchToggle extends React.PureComponent<Props> {}
+declare const SwitchToggle: (p: Props) => React.ReactNode
 export default SwitchToggle

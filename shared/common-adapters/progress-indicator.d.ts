@@ -1,4 +1,4 @@
-import {Component} from 'react'
+import type * as React from 'react'
 
 export type Props = {
   style?: any
@@ -6,5 +6,5 @@ export type Props = {
   type?: 'Small' | 'Large' | 'Huge' // Huge is desktop-only
 }
 
-declare class ProgressIndicator extends Component<Props> {}
+declare const ProgressIndicator: (p: Props) => React.ReactNode
 export default ProgressIndicator

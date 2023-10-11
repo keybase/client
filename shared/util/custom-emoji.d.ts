@@ -1,4 +1,3 @@
-import {Component} from 'react'
 import type * as Styles from '../styles'
 
 export type Props = {
@@ -8,4 +7,5 @@ export type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-export default class CustomEmoji extends Component<Props> {}
+declare const CustomEmoji: (p: Props) => React.ReactNode
+export default CustomEmoji

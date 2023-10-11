@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 
 export type Props = {
   onClose?: () => void
@@ -15,4 +15,5 @@ export type Props = {
   styleClipContainer?: any
 }
 
-export default class PopupDialog extends React.Component<Props> {}
+declare const PopupDialog: (p: Props) => React.ReactNode
+export default PopupDialog

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type {PendingInvite, AcceptedInvite} from '../../constants/settings-invites'
 
 export type Props = {
@@ -17,4 +17,5 @@ export type Props = {
   waitingForResponse: boolean
 }
 
-export default class Invites extends React.Component<Props> {}
+declare const Invites: (p: Props) => React.ReactNode
+export default Invites

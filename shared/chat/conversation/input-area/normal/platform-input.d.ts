@@ -1,8 +1,8 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type * as T from '../../../../constants/types'
 import type {PlainInput} from '../../../../common-adapters'
 
-type Props = {
+export type Props = {
   cannotWrite: boolean
   explodingModeSeconds: number
   hintText: string
@@ -21,4 +21,5 @@ type Props = {
   suggestionOverlayStyle: unknown
 }
 
-export default class PlatformInput extends React.Component<Props> {}
+declare const PlatformInput: (p: Props) => React.ReactNode
+export default PlatformInput
