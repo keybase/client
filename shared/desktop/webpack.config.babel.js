@@ -7,12 +7,12 @@ import merge from 'webpack-merge'
 import path from 'path'
 import webpack from 'webpack'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin')
-const CircularDependencyPlugin = require('circular-dependency-plugin')
+import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin'
+import CircularDependencyPlugin from 'circular-dependency-plugin'
+
+const enableWDYR = require('../util/why-did-you-render-enabled')
 const elecVersion = require('../package.json').devDependencies.electron
 
-// why did you render
-const enableWDYR = false
 const enableCircularDepCheck = false
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
@@ -54,11 +54,11 @@ const config = (_, {mode}) => {
     }
 
     return [
-      ...(isDev
+      ...(isDev && enableWDYR
         ? []
         : [
             {
-              // Don't include why did you render
+              // Don't include why-did-you-render
               include: /welldone/,
               test: /\.(ts|js)x?$/,
               use: ['null-loader'],
