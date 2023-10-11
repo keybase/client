@@ -1,12 +1,6 @@
 FROM debian:buster
 LABEL maintainer="Keybase <admin@keybase.io>"
 
-
-# RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' \
-#            -e 's|security.debian.org|archive.debian.org/|g' \
-#            -e '/stretch-updates/d' /etc/apt/sources.list
-# RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list.d/backports.list
-
 # Install dependencies from the standard repos.
 #   - Debian build requires 'fakeroot' and 'reprepro' (and 'dpkg-deb', but
 #     that's installed by default).
@@ -44,6 +38,3 @@ RUN echo "$GOLANG_DOWNLOAD_SHA256 /root/go.tar.gz" | sha256sum --check --status 
 RUN tar -C /usr/local -xzf /root/go.tar.gz
 RUN rm /root/go.tar.gz
 ENV PATH "$PATH:/usr/local/go/bin"
-
-# Newer Debian gnupg1 provide `gpg1` only
-# RUN ln -sf /usr/bin/gpg1 /usr/bin/gpg

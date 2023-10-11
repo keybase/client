@@ -66,24 +66,17 @@ for arch in x86_64 ; do
   # hashes in a text file at the root of the Debian repo, RPM puts a separate
   # signature in each package file. Command copied from:
   # https://ask.fedoraproject.org/en/question/56107/can-gpg-agent-be-used-when-signing-rpm-packages/
-  #
-  # The `setsid` and `/dev/null` bits are both required to suppress the no-op
-  # password prompt that appears despite the agent configs.
-  echo "Signing '$rpmcopy'..."
-  # setsid -w rpm \
   rpm \
    --define "_gpg_name $code_signing_fingerprint"  \
    --define '_signature gpg' \
    --define '_gpgbin /usr/bin/gpg' \
    --define '__gpg_check_password_cmd /bin/true' \
-   --define '__gpg_sign_cmd %{__gpg} /usr/bin/gpg --batch --no-verbose --no-armor --use-agent --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}' \
+   --define '__gpg_sign_cmd %{__gpg} gpg --batch --no-verbose --no-armor --use-agent --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}' \
    --addsign "$rpmcopy"
-   # --addsign "$rpmcopy" < /dev/null
 
-  echo "Signing '$rpmcopy'...2"
   # Add a standalone signature file, for user convenience. Other packaging
   # steps will pick this up and copy it around.
-  /usr/bin/gpg --detach-sign --armor --use-agent --local-user "$code_signing_fingerprint" \
+  gpg --detach-sign --armor --use-agent --local-user "$code_signing_fingerprint" \
       -o "$rpmcopy.sig" "$rpmcopy"
 
   # Update the latest pointer. Even though the RPM repo is split by
@@ -92,15 +85,12 @@ for arch in x86_64 ; do
   ln -sf "repo/$arch/$rpmname" "$repo_root/$binary_name-latest-$arch.rpm"
   ln -sf "repo/$arch/$rpmname.sig" "$repo_root/$binary_name-latest-$arch.rpm.sig"
 
-  echo "Signing '$rpmcopy'...3"
   # Run createrepo to update the database files.
   "$CREATEREPO" "$repo_root/repo/$arch"
 
-  /usr/bin/gpg --detach-sign --armor --use-agent --local-user "$code_signing_fingerprint" \
+  gpg --detach-sign --armor --use-agent --local-user "$code_signing_fingerprint" \
       -o "$repo_root/repo/$arch/repodata/repomd.xml.asc" "$repo_root/repo/$arch/repodata/repomd.xml"
 
-  echo "Signing '$rpmcopy'...4"
   # Add updateinfo.xml changelog to the repo
   "$MODIFYREPO" "$here/updateinfo.xml" "$repo_root/repo/$arch/repodata"
-  echo "Signing '$rpmcopy'...5"
 done
