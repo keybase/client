@@ -20,57 +20,55 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-class FilePickerPopup extends React.Component<Props> {
-  render() {
-    const items = Kb.Styles.isIOS
-      ? ([
-          {
-            icon: 'iconfont-camera',
-            onClick: () => this.props.onSelect('mixed', 'camera'),
-            title: 'Take photo or video',
-          },
-          {
-            icon: 'iconfont-video-library',
-            onClick: () => this.props.onSelect('video', 'library'),
-            title: 'Choose video from library',
-          },
-          {
-            icon: 'iconfont-photo-library',
-            onClick: () => this.props.onSelect('photo', 'library'),
-            title: 'Choose photos from library',
-          },
-        ] as const)
-      : ([
-          {
-            icon: 'iconfont-camera',
-            onClick: () => this.props.onSelect('photo', 'camera'),
-            title: 'Take photo',
-          },
-          {icon: 'iconfont-film', onClick: () => this.props.onSelect('video', 'camera'), title: 'Take video'},
-          {
-            icon: 'iconfont-photo-library',
-            onClick: () => this.props.onSelect('photo', 'library'),
-            title: 'Photo from library',
-          },
-          {
-            icon: 'iconfont-video-library',
-            onClick: () => this.props.onSelect('video', 'library'),
-            title: 'Video from library',
-          },
-        ] as const)
+const FilePickerPopup = (p: Props) => {
+  const items = Kb.Styles.isIOS
+    ? ([
+        {
+          icon: 'iconfont-camera',
+          onClick: () => p.onSelect('mixed', 'camera'),
+          title: 'Take photo or video',
+        },
+        {
+          icon: 'iconfont-video-library',
+          onClick: () => p.onSelect('video', 'library'),
+          title: 'Choose video from library',
+        },
+        {
+          icon: 'iconfont-photo-library',
+          onClick: () => p.onSelect('photo', 'library'),
+          title: 'Choose photos from library',
+        },
+      ] as const)
+    : ([
+        {
+          icon: 'iconfont-camera',
+          onClick: () => p.onSelect('photo', 'camera'),
+          title: 'Take photo',
+        },
+        {icon: 'iconfont-film', onClick: () => p.onSelect('video', 'camera'), title: 'Take video'},
+        {
+          icon: 'iconfont-photo-library',
+          onClick: () => p.onSelect('photo', 'library'),
+          title: 'Photo from library',
+        },
+        {
+          icon: 'iconfont-video-library',
+          onClick: () => p.onSelect('video', 'library'),
+          title: 'Video from library',
+        },
+      ] as const)
 
-    const header = <Prompt />
-    return (
-      <Kb.FloatingMenu
-        header={header}
-        attachTo={this.props.attachTo}
-        items={items}
-        onHidden={this.props.onHidden}
-        visible={this.props.visible}
-        closeOnSelect={true}
-      />
-    )
-  }
+  const header = <Prompt />
+  return (
+    <Kb.FloatingMenu
+      header={header}
+      attachTo={p.attachTo}
+      items={items}
+      onHidden={p.onHidden}
+      visible={p.visible}
+      closeOnSelect={true}
+    />
+  )
 }
 
 export default FilePickerPopup

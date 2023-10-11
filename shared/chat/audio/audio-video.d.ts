@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 
 export type Props = {
   url: string
@@ -8,4 +8,5 @@ export type Props = {
   onEnded: () => void
 }
 
-export default class extends React.Component<Props> {}
+declare const AudioVideo: (p: Props) => React.ReactNode
+export default AudioVideo

@@ -5,7 +5,6 @@ module.hot?.accept(() => {
 })
 
 const NativeWrappers = require('./native-wrappers.native')
-const GPortal = require('./portal.native')
 
 module.exports = {
   get NativeAnimated() {
@@ -17,14 +16,14 @@ module.exports = {
   get NativeScrollView() {
     return NativeWrappers.NativeScrollView
   },
-  get PortalProvider() {
-    return require('./portal.native').PortalProvider
+  get Portal() {
+    return require('./portal.native').Portal
   },
   get PortalHost() {
     return require('./portal.native').PortalHost
   },
-  get Portal() {
-    return require('./portal.native').Portal
+  get PortalProvider() {
+    return require('./portal.native').PortalProvider
   },
   get ReAnimated() {
     return require('./reanimated').default

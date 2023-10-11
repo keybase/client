@@ -1,5 +1,5 @@
-import * as React from 'react'
-import * as T from '../../constants/types'
+import type * as React from 'react'
+import type * as T from '../../constants/types'
 
 export type Props = {
   allowShowFloatingButton: boolean
@@ -17,4 +17,5 @@ export type Props = {
   unreadTotal: number
 }
 
-export default class Inbox extends React.Component<Props> {}
+declare const Inbox: (p: Props) => React.ReactNode
+export default Inbox

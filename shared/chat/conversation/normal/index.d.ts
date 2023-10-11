@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 export type Props = {
   dragAndDropRejectReason?: string
   focusInputCounter: number
@@ -17,4 +17,5 @@ export type Props = {
   showThreadSearch: boolean
   threadLoadedOffline: boolean
 }
-export default class Conversation extends React.Component<Props> {}
+declare const Conversation: (p: Props) => React.ReactNode
+export default Conversation

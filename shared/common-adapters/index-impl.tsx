@@ -115,11 +115,11 @@ module.exports = {
   get FloatingBox() {
     return require('./floating-box').default
   },
-  get FloatingModalContext() {
-    return require('./floating-menu').FloatingModalContext
-  },
   get FloatingMenu() {
     return require('./floating-menu').default
+  },
+  get FloatingModalContext() {
+    return require('./floating-menu').FloatingModalContext
   },
   get FloatingPicker() {
     return require('./floating-picker').default
@@ -274,6 +274,9 @@ module.exports = {
   get SimpleToast() {
     return require('./simple-toast').default
   },
+  get Styles() {
+    return require('../styles')
+  },
   get Switch() {
     return require('./switch').default
   },
@@ -342,8 +345,5 @@ module.exports = {
   },
   get useTimeout() {
     return require('./use-timers').useTimeout
-  },
-  get Styles() {
-    return require('../styles')
   },
 }

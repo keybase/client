@@ -3,47 +3,43 @@ import Box from './box'
 import {globalStyles, desktopStyles} from '../styles'
 import type {Props} from './list-item'
 
-class ListItem extends React.Component<Props> {
-  render() {
-    const clickable = !!this.props.onClick
-    const minHeight = {Large: 56, Small: 40}[this.props.type]
-    return (
-      <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          ...containerStyle(clickable),
-          minHeight,
-          ...this.props.containerStyle,
-        }}
-      >
-        <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start'}}>
-          <Box
-            style={{
-              ...globalStyles.flexBoxColumn,
-              alignItems: 'center',
-              height: minHeight,
-              justifyContent: 'center',
-              width: minHeight,
-            }}
-          >
-            {this.props.icon}
-          </Box>
-        </Box>
-        <Box style={{...globalStyles.flexBoxColumn, ...bodyContainerStyle(this.props.type)}}>
-          {this.props.body}
-        </Box>
+const ListItem = (p: Props) => {
+  const clickable = !!p.onClick
+  const minHeight = {Large: 56, Small: 40}[p.type]
+  return (
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        ...containerStyle(clickable),
+        minHeight,
+        ...p.containerStyle,
+      }}
+    >
+      <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start'}}>
         <Box
           style={{
             ...globalStyles.flexBoxColumn,
-            ...actionStyle(!!this.props.extraRightMarginAction),
+            alignItems: 'center',
+            height: minHeight,
             justifyContent: 'center',
+            width: minHeight,
           }}
         >
-          {this.props.action}
+          {p.icon}
         </Box>
       </Box>
-    )
-  }
+      <Box style={{...globalStyles.flexBoxColumn, ...bodyContainerStyle(p.type)}}>{p.body}</Box>
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          ...actionStyle(!!p.extraRightMarginAction),
+          justifyContent: 'center',
+        }}
+      >
+        {p.action}
+      </Box>
+    </Box>
+  )
 }
 
 function containerStyle(clickable: boolean) {

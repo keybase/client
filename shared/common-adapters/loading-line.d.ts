@@ -1,5 +1,4 @@
-import {Component} from 'react'
-
+import type * as React from 'react'
 export type Props = {}
-
-export default class LoadingLine extends Component<Props> {}
+declare const LoadingLine: (p: Props) => React.ReactNode
+export default LoadingLine

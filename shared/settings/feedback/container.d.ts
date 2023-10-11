@@ -1,6 +1,7 @@
-import {Component} from 'react'
+import type * as React from 'react'
 export type Props = {
   heading?: string
   feedback?: string
 }
-export default class FeedbackContainer extends Component<Props> {}
+declare const FeedbackContainer: (p: Props) => React.ReactNode
+export default FeedbackContainer

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type {NotificationsGroupState} from '../../constants/settings-notifications'
 
 export type Props = {
@@ -14,4 +14,5 @@ export type Props = {
   onToggleSound?: (sound: boolean) => void
 }
 
-export default class Notifications extends React.Component<Props> {}
+declare const Notifications: (p: Props) => React.ReactNode
+export default Notifications

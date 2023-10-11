@@ -1,10 +1,11 @@
-import * as React from 'react'
+import type * as React from 'react'
 
-type Props = {
+export type Props = {
   dismiss: () => void
   done: boolean
   isFirst: boolean
   children: React.ReactNode
 }
 
-export default class extends React.PureComponent<Props> {}
+declare const DownloadWrapper: (p: Props) => React.ReactNode
+export default DownloadWrapper

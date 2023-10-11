@@ -1,5 +1,5 @@
 // Styles from our designers
-import * as React from 'react'
+import type * as React from 'react'
 import type * as CSS from './css'
 export {default as globalColors} from './colors'
 

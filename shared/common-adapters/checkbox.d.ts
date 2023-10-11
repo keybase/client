@@ -1,5 +1,5 @@
-import * as React from 'react'
-import {Color, StylesCrossPlatform} from '../styles'
+import type * as React from 'react'
+import type {Color, StylesCrossPlatform} from '../styles'
 
 export type Props = {
   boxBackgroundColor?: Color // desktop only
@@ -13,5 +13,5 @@ export type Props = {
   disabled?: boolean
 }
 
-declare class Checkbox extends React.Component<Props> {}
+declare const Checkbox: (p: Props) => React.ReactNode
 export default Checkbox

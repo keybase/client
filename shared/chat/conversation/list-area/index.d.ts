@@ -1,5 +1,5 @@
-import * as React from 'react'
-import * as T from '../../../constants/types'
+import type * as React from 'react'
+import type * as T from '../../../constants/types'
 
 export type ItemType = T.Chat.Ordinal
 
@@ -9,4 +9,5 @@ export type Props = {
   requestScrollUpRef: React.MutableRefObject<undefined | (() => void)>
   requestScrollDownRef: React.MutableRefObject<undefined | (() => void)>
 }
-export default class ConversationList extends React.Component<Props> {}
+declare const ConversationList: (p: Props) => React.ReactNode
+export default ConversationList

@@ -13,7 +13,7 @@ const SystemText = React.memo(function SystemText(p: Props) {
   const SystemText = require('./container').default as typeof SystemTextType
   return (
     <WrapperMessage {...p} {...common}>
-      <SystemText message={message} />
+      <SystemText text={message.text.stringValue()} />
     </WrapperMessage>
   )
 })

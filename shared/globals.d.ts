@@ -1,3 +1,4 @@
+/* eslint-disable no-var */
 export {}
 
 export type RequestIdleCallbackHandle = any

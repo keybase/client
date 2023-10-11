@@ -1,10 +1,8 @@
-import * as React from 'react'
-
+import type * as React from 'react'
 export type Props = {
   children: React.ReactNode
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
   onClick?: () => void
 }
-
-declare class SwipeConvActions extends React.Component<Props> {}
+declare const SwipeConvActions: (p: Props) => React.ReactNode
 export default SwipeConvActions

@@ -1,5 +1,5 @@
-import * as React from 'react'
-import {StylesCrossPlatform} from '../styles'
+import type * as React from 'react'
+import type {StylesCrossPlatform} from '../styles'
 
 export type Props<Item> = {
   bounces?: boolean // mobile only
@@ -24,4 +24,5 @@ export type Props<Item> = {
 /**
  * Semi deprecated. Use list2 if your items are a fixed height
  */
-export default class List<Item> extends React.Component<Props<Item>> {}
+declare function List<Item>(p: Props<Item>): React.ReactNode
+export default List

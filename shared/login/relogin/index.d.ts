@@ -1,5 +1,5 @@
-import * as React from 'react'
-import * as T from '../../constants/types'
+import type * as React from 'react'
+import type * as T from '../../constants/types'
 
 export type Props = {
   users: Array<T.Config.ConfiguredAccount>
@@ -18,5 +18,5 @@ export type Props = {
   onFeedback: () => void
   onLogin: (user: string, password: string) => void
 }
-
-export default class Login extends React.Component<Props> {}
+declare const Login: (p: Props) => React.ReactNode
+export default Login

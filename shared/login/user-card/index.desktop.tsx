@@ -1,15 +1,8 @@
 import * as Kb from '../../common-adapters'
 import type {Props} from '.'
 
-const UserCard = ({
-  avatarSize,
-  outerStyle,
-  onAvatarClicked,
-  username,
-  style,
-  children,
-  lighterPlaceholders,
-}: Props) => {
+const UserCard = (p: Props) => {
+  const {avatarSize = 128, outerStyle, onAvatarClicked, username, style, children, lighterPlaceholders} = p
   return (
     <div style={Kb.Styles.collapseStyles([styles.container, outerStyle])}>
       <Kb.Avatar
@@ -32,10 +25,6 @@ const UserCard = ({
       </div>
     </div>
   )
-}
-
-UserCard.defaultProps = {
-  avatarSize: 128,
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

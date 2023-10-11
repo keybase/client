@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 
 // splits the rendering into 3 parts like the style guide shows.
 // Part 1 Icon
@@ -12,10 +12,11 @@ export type Props = {
   action: React.ReactNode
   extraRightMarginAction?: boolean // Spacing is different if the action is just text (for example),
   onClick?: () => void
-  onPress?: void
+  onPress?: never
   containerStyle?: Object
   bodyContainerStyle?: Object
   swipeToAction?: boolean // Do you have to swipe the list item to reveal an action?
 }
 
-export default class ListItem extends React.Component<Props> {}
+declare const ListItem: (p: Props) => React.ReactNode
+export default ListItem

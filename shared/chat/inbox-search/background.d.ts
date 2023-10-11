@@ -1,2 +1,3 @@
-import * as React from 'react'
-export default class Background extends React.Component<{}> {}
+import type * as React from 'react'
+declare const Background: () => React.ReactNode
+export default Background

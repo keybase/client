@@ -1,5 +1,5 @@
-import * as React from 'react'
-import {CustomStyles} from '../styles'
+import type * as React from 'react'
+import type {CustomStyles} from '../styles'
 
 // List2 differs from list in that on desktop it uses react-window.
 // Don't use List2 if you need a list with dynamic item sizes
@@ -46,4 +46,5 @@ export type Props<Item> = {
   reAnimated?: boolean // mobile only, make list animated
 }
 
-export default class List2<Item> extends React.Component<Props<Item>> {}
+export declare function List2<Item>(p: Props<Item>): React.ReactNode
+export default List2

@@ -243,7 +243,7 @@ module.exports = {
     'react/no-will-update-set-state': 'warn',
     'react/prefer-es6-class': 'off',
     'react/prefer-read-only-props': 'off',
-    'react/prefer-stateless-function': 'warn',
+    'react/prefer-stateless-function': 'error',
     'react/prop-types': 'off',
     'react/react-in-jsx-scope': 'off',
     'react/require-default-props': 'off',

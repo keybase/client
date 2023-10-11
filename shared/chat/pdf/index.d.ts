@@ -1,9 +1,10 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type * as T from '../../constants/types'
 
-type Props = {
+export type Props = {
   conversationIDKey: T.Chat.ConversationIDKey
   ordinal: T.Chat.Ordinal
   url?: string
 }
-export default class ChatPDF extends React.Component<Props> {}
+declare const ChatPDF: (p: Props) => React.ReactNode
+export default ChatPDF

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 
 export type UploadProps = {
   showing: boolean
@@ -10,4 +10,5 @@ export type UploadProps = {
   smallMode?: boolean
 }
 
-export default class extends React.PureComponent<UploadProps> {}
+declare const Upload: (p: UploadProps) => React.ReactNode
+export default Upload

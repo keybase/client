@@ -1,3 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 export type Props = {}
-export default class GlobalError extends React.Component<Props> {}
+declare const GlobalError: () => React.ReactNode
+export default GlobalError

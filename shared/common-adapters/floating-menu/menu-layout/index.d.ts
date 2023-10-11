@@ -1,6 +1,6 @@
-import * as React from 'react'
-import * as Styles from '../../../styles'
-import {IconType, IconStyle} from '../../icon'
+import type * as React from 'react'
+import type * as Styles from '../../../styles'
+import type {IconType, IconStyle} from '../../icon'
 
 export type MenuItem = {
   backgroundColor?: Styles.Color
@@ -15,7 +15,7 @@ export type MenuItem = {
   inProgress?: boolean
   newTag?: boolean
   onClick?: (evt?: React.SyntheticEvent) => void
-  onPress?: void
+  onPress?: never
   progressIndicator?: boolean
   style?: Object
   subTitle?: string
@@ -24,7 +24,7 @@ export type MenuItem = {
   view?: React.ReactNode
 }
 
-type _InnerMenuItem = MenuItem | 'Divider' | undefined
+export type _InnerMenuItem = MenuItem | 'Divider' | undefined
 export type MenuItems = Array<_InnerMenuItem>
 
 export type MenuLayoutProps = {
@@ -41,4 +41,5 @@ export type MenuLayoutProps = {
   safeProviderStyle?: Styles.StylesCrossPlatform
 }
 
-export default class MenuLayout extends React.Component<MenuLayoutProps> {}
+declare const MenuLayout: (p: MenuLayoutProps) => React.ReactNode
+export default MenuLayout

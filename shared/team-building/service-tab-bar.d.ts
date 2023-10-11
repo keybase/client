@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import type * as T from '../constants/types'
 import type {SharedValue} from '../common-adapters/reanimated'
 
@@ -20,4 +20,5 @@ export type IconProps = {
   offset?: SharedValue<number>
 }
 
-export class ServiceTabBar extends React.Component<Props> {}
+export declare const ServiceTabBar: (p: Props) => React.ReactNode
+export default ServiceTabBar
