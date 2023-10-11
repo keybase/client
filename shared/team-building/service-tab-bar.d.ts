@@ -20,5 +20,5 @@ export type IconProps = {
   offset?: SharedValue<number>
 }
 
-declare const ServiceTabBar: (p: Props) => React.ReactNode
+export declare const ServiceTabBar: (p: Props) => React.ReactNode
 export default ServiceTabBar
