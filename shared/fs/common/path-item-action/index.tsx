@@ -33,7 +33,13 @@ export type Props = {
   initView: T.FS.PathItemActionMenuView
 }
 
-const IconClickable = (props: any) => (
+type ICProps = {
+  measureRef: React.RefObject<Kb.MeasureRef>
+  onClick: () => void
+  sizeType: SizeType
+  actionIconWhite?: boolean | undefined
+}
+const IconClickable = (props: ICProps) => (
   <Kb.WithTooltip tooltip="More actions">
     <Kb.Icon
       fixOverdraw={false}
@@ -43,7 +49,7 @@ const IconClickable = (props: any) => (
       padding="tiny"
       sizeType={props.sizeType || 'Default'}
       onClick={props.onClick}
-      ref={props.setRef}
+      ref={props.measureRef}
     />
   </Kb.WithTooltip>
 )
@@ -98,7 +104,7 @@ const PathItemAction = (props: Props) => {
       {props.clickable.type === 'icon' && (
         <IconClickable
           onClick={onClick}
-          ref={popupAnchor}
+          measureRef={popupAnchor}
           sizeType={props.clickable.sizeType}
           actionIconWhite={props.clickable.actionIconWhite}
         />

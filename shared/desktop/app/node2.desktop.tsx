@@ -812,7 +812,10 @@ const plumbEvents = () => {
         }
 
         if (showDevTools && !skipSecondaryDevtools) {
-          remoteWindow.webContents.openDevTools({mode: 'detach'})
+          remoteWindow.webContents.openDevTools({
+            mode: 'detach',
+            title: `${action.payload.windowComponent} Devtools`,
+          })
         }
 
         showDockIcon()

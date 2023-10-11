@@ -335,7 +335,7 @@ const MainWindow = () => {
   menuHelper(win)
 
   if (showDevTools) {
-    win.webContents.openDevTools({mode: 'detach'})
+    win.webContents.openDevTools({mode: 'detach', title: 'Keybase Devtools'})
   }
 
   registerForAppLinks()

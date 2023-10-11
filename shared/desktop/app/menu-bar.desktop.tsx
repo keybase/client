@@ -124,7 +124,7 @@ const MenuBar = () => {
     mb.tray.setIgnoreDoubleClickEvents(true)
 
     if (showDevTools && !skipSecondaryDevtools) {
-      mb.window?.webContents.openDevTools({mode: 'detach'})
+      mb.window?.webContents.openDevTools({mode: 'detach', title: 'Menu Devtools'})
     }
 
     // Hack: open widget when left/right/double clicked
