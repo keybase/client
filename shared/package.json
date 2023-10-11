@@ -60,7 +60,8 @@
     "android-clean": "cd android; ./gradlew clean",
     "android-debug": "react-native run-android --mode 'debug'",
     "android-unsigned": "react-native run-android --mode 'releaseUnsigned'",
-    "clean-and-install": "rm -rf node_modules ; yarn pod-clean ; yarn modules ; yarn pod-install"
+    "clean-and-install": "rm -rf node_modules ; yarn pod-clean ; yarn modules ; yarn pod-install",
+    "coverage": "npx typescript-coverage-report"
   },
   "keywords": [],
   "author": "",

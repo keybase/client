@@ -1,4 +1,8 @@
 declare module 'menubar'
+declare module 'electron-positioner' {
+  type ignore = any
+  export default ignore
+}
 declare module 'react-native/Libraries/Image/AssetRegistry' {
   type PackagerAsset = any
 }
