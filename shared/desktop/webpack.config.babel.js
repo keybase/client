@@ -7,11 +7,12 @@ import merge from 'webpack-merge'
 import path from 'path'
 import webpack from 'webpack'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin')
-const CircularDependencyPlugin = require('circular-dependency-plugin')
+import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin'
+import CircularDependencyPlugin from 'circular-dependency-plugin'
 
-// why did you render
-const enableWDYR = false
+const enableWDYR = require('../util/why-did-you-render-enabled')
+const elecVersion = require('../package.json').devDependencies.electron
+
 const enableCircularDepCheck = false
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
@@ -28,6 +29,7 @@ const config = (_, {mode}) => {
   const fileSuffix = isDev ? '.dev' : isProfile ? '.profile' : ''
 
   console.error('Flags: ', {isDev, isHot, isProfile})
+  console.error('Detected electron from package.json: ', elecVersion)
 
   const makeRules = nodeThread => {
     const babelRule = {
@@ -37,7 +39,7 @@ const config = (_, {mode}) => {
         ignore: [/\.(native|ios|android)\.(ts|js)x?$/],
         plugins: [...(isHot && !nodeThread ? ['react-refresh/babel'] : [])],
         presets: [
-          ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '25.2.0'}}],
+          ['@babel/preset-env', {debug: false, modules: false, targets: {electron: elecVersion}}],
           [
             '@babel/preset-react',
             {
@@ -52,11 +54,11 @@ const config = (_, {mode}) => {
     }
 
     return [
-      ...(isDev
+      ...(isDev && enableWDYR
         ? []
         : [
             {
-              // Don't include why did you render
+              // Don't include why-did-you-render
               include: /welldone/,
               test: /\.(ts|js)x?$/,
               use: ['null-loader'],

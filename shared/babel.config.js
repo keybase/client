@@ -1,7 +1,6 @@
 // Cache in the module. This can get called from multiple places and env vars can get lost
 const skipAnimation = require('./common-adapters/skip-animations')
-// why did you render
-const enableWDYR = false
+const enableWDYR = require('./util/why-did-you-render-enabled')
 
 let isElectron = null
 let isReactNative = null
@@ -39,22 +38,12 @@ module.exports = function (api /*: any */) {
     throw new Error('Packager is confused about babel platform')
   }
 
+  // this is used just for our node side but not any bundling
   if (isElectron) {
     // console.error('KB babel.config.js for Electron')
     return {
-      plugins: ['react-native-web'],
       presets: [
         isTest ? ['@babel/preset-env', {targets: {node: 'current'}}] : '@babel/preset-env',
-        [
-          '@babel/preset-react',
-          isDev
-            ? {
-                runtime: 'automatic',
-                development: true,
-                ...(enableWDYR ? {importSource: '@welldone-software/why-did-you-render'} : {}),
-              }
-            : {},
-        ],
         '@babel/preset-typescript',
       ],
     }

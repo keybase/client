@@ -259,6 +259,10 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
   }
 
   private HeadComponent = (<ChatInboxHeader headerContext="inbox-header" />)
+  private viewabilityConfig = {
+    minimumViewTime: 100,
+    viewAreaCoveragePercentThreshold: 30,
+  }
 
   render() {
     if (!usingFlashList) {
@@ -304,6 +308,7 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
               keyExtractor={this.keyExtractor}
               keyboardShouldPersistTaps="handled"
               onViewableItemsChanged={this.onViewChanged}
+              viewabilityConfig={this.viewabilityConfig}
               overScrollMode="never"
               overrideItemLayout={this.overrideItemLayout}
               ref={this.listRef}
