@@ -35,11 +35,12 @@ declare module 'framed-msgpack-rpc' {
     COMPRESSION_TYPE_GZIP: number
   }
 
+  export type ErrorType = {code: number; desc: string}
   export type PayloadType = {
     method: string
     param: Array<Object>
     response?: {
-      error: (e: unknown) => void
+      error: (e: ErrorType) => void
       result: (r: unknown) => void
     }
   }
@@ -61,7 +62,7 @@ declare module 'framed-msgpack-rpc' {
         connectCallback?: connectDisconnectCB,
         disconnectCallback?: connectDisconnectCB
       )
-      invoke(i: InvokeArgs, cb: (err: unknown, data: unknown) => void): void
+      invoke(i: InvokeArgs, cb: (err: ErrorType, data: {}) => void): void
       packetize_data(d: any): void
       needsConnect: boolean
       connect(b: (err?: unknown) => void): void
