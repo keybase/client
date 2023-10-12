@@ -7,7 +7,7 @@
 # Usage:
 #   ./package_binaries.sh <build_root>
 
-set -e -u -o -x pipefail
+set -e -u -o pipefail
 
 here="$(dirname "${BASH_SOURCE[0]}")"
 
@@ -52,20 +52,25 @@ build_one_architecture() {
   dest="$build_root/deb/$debian_arch"
   mkdir -p "$dest/build/DEBIAN"
 
+  echo "DEB1"
+
   # Copy the entire filesystem layout, binaries and all, into the debian build
   # folder. TODO: Something less wasteful of disk space?
   # Preserve permissions of the chrome-sandbox setuid
   cp -rp "$build_root"/binaries/"$debian_arch"/* "$dest/build"
 
+  echo "DEB2"
   # Copy changelog directly in, since this is a binary package.
   doc_dir="$dest/build/usr/share/doc/keybase"
   mkdir -p "$doc_dir"
   gzip -cn "$here/changelog" > "$doc_dir/changelog.Debian.gz"
 
+  echo "DEB3"
   # Installed-Size is a required field in the control file. Without it Ubuntu
   # users will see warnings.
   size="$(du --summarize --block-size=1024 "$dest" | awk '{print $1}')"
 
+  echo "DEB4"
   # Debian control file
   cat "$here/control.template" \
     | sed "s/@@NAME@@/$name/" \
@@ -75,6 +80,7 @@ build_one_architecture() {
     | sed "s/@@DEPENDENCIES@@/$dependencies/" \
     > "$dest/build/DEBIAN/control"
 
+  echo "DEB5"
   # Debian postinst script
   postinst_file="$dest/build/DEBIAN/postinst"
   cat "$here/postinst.template" \
@@ -82,6 +88,7 @@ build_one_architecture() {
     > "$postinst_file"
   chmod 755 "$postinst_file"
 
+  echo "DEB6"
   # distro-upgrade-handling cron job (sigh...see comments within)
   cron_file="$dest/build/etc/cron.daily/$name"
   mkdir -p "$(dirname "$cron_file")"
@@ -92,6 +99,7 @@ build_one_architecture() {
     > "$cron_file"
   chmod 755 "$cron_file"
 
+  echo "DEB7"
   fakeroot dpkg-deb --build "$dest/build" "$dest/$name-$version-$debian_arch.deb"
 }
 
