@@ -32,7 +32,7 @@ if (darkModeFromNode) {
     case 'alwaysLight':
     case 'alwaysDark':
     case 'system':
-      setDarkModePreference(dm)
+      setDarkModePreference(dm, false)
       break
     default:
   }

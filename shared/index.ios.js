@@ -20,7 +20,7 @@ try {
     case 'system': // fallthrough
     case 'alwaysDark': // fallthrough
     case 'alwaysLight':
-      setDarkModePreference(dm)
+      setDarkModePreference(dm, false)
       break
   }
 } catch (_) {}

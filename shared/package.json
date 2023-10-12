@@ -52,8 +52,6 @@
     "rn-jsbuild-ios": "mkdir -p ios/dist && react-native bundle --platform ios --dev false --entry-file index.ios.js --bundle-output ios/dist/main.jsbundle --sourcemap-output ios/dist/main.jsbundle.sourcemap",
     "rn-jsbuild-android": "mkdir -p android/dist && react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output android/dist/main.jsbundle --sourcemap-output android/dist/main.jsbundle.sourcemap",
     "tsc": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.json ",
-    "tsc-faster": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.faster.json ",
-    "tsc-strict": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.strict.json ",
     "modules": "yarn install --pure-lockfile --ignore-optional",
     "log-to-trace": "yarn _node desktop/yarn-helper/log-to-trace",
     "pod-clean": "rm -rf ios/build; rm -rf ios/Pods; rm -f ios/.xcode.env.local",
@@ -62,7 +60,8 @@
     "android-clean": "cd android; ./gradlew clean",
     "android-debug": "react-native run-android --mode 'debug'",
     "android-unsigned": "react-native run-android --mode 'releaseUnsigned'",
-    "clean-and-install": "rm -rf node_modules ; yarn pod-clean ; yarn modules ; yarn pod-install"
+    "clean-and-install": "rm -rf node_modules ; yarn pod-clean ; yarn modules ; yarn pod-install",
+    "coverage": "rm -rf coverage-ts; npx typescript-coverage-report"
   },
   "keywords": [],
   "author": "",

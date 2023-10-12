@@ -35,25 +35,45 @@ declare module 'framed-msgpack-rpc' {
     COMPRESSION_TYPE_GZIP: number
   }
 
+  export type ErrorType = {code: number; desc: string}
+  export type PayloadType = {
+    method: string
+    param: Array<Object>
+    response?: {
+      error: (e: ErrorType) => void
+      result: (r: unknown) => void
+    }
+  }
+  export type incomingRPCCallbackType = (payload: PayloadType) => void
+  export type connectDisconnectCB = () => void
+
+  export type InvokeArgs = {
+    program: string
+    ctype: number
+    method: string
+    args: [Object]
+    notify: boolean
+  }
   export namespace transport {
     class RobustTransport {
-      constructor(options: Object)
-      invoke(
-        i: {
-          program: string
-          ctype: number
-          method: string
-          args: [Object]
-          notify: boolean
-        },
-        cb: (err: any, data: any) => void
-      ): void
+      constructor(
+        options: {path?: string},
+        incomingRPCCallback?: incomingRPCCallbackType,
+        connectCallback?: connectDisconnectCB,
+        disconnectCallback?: connectDisconnectCB
+      )
+      invoke(i: InvokeArgs, cb: (err: ErrorType, data: {}) => void): void
       packetize_data(d: any): void
       needsConnect: boolean
-      connect(b: (err?: any) => void): void
-      _connect_critical_section(cb: any): void
+      connect(b: (err?: unknown) => void): void
+      _connect_critical_section(cb: unknown): void
       _raw_write(msg: string, encoding: 'binary'): void
-      _dispatch(a: any): void
+      _dispatch(a: unknown): void
+      hooks: {
+        connected: () => void
+        eof: () => void
+      }
+      set_generic_handler: (f: (payload: PayloadType) => void) => void
     }
   }
 

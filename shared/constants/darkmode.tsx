@@ -22,7 +22,7 @@ type State = Store & {
   dispatch: {
     loadDarkPrefs: () => void
     resetState: () => void
-    setDarkModePreference: (p: DarkModePreference) => void
+    setDarkModePreference: (p: DarkModePreference, writeToConfig?: boolean) => void
     setSystemDarkMode: (dark: boolean) => void
     setSystemSupported: (s: boolean) => void
   }
@@ -60,7 +60,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         systemDarkMode: s.systemDarkMode,
       }))
     },
-    setDarkModePreference: p => {
+    setDarkModePreference: (p, writeToConfig = true) => {
       if (isMobile) {
         // update RN so keyboards / etc are correct on the native side
         switch (p) {
@@ -79,13 +79,16 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.darkModePreference = p
       })
-      const f = async () => {
-        await T.RPCGen.configGuiSetValueRpcPromise({
-          path: 'ui.darkMode',
-          value: {isNull: false, s: p},
-        })
+
+      if (writeToConfig) {
+        const f = async () => {
+          await T.RPCGen.configGuiSetValueRpcPromise({
+            path: 'ui.darkMode',
+            value: {isNull: false, s: p},
+          })
+        }
+        ignorePromise(f())
       }
-      ignorePromise(f())
     },
     setSystemDarkMode: dark => {
       set(s => {

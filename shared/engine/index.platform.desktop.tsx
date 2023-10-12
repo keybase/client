@@ -24,8 +24,7 @@ class NativeTransport extends TransportShared {
     super._connect_critical_section(cb)
   }
 
-  // Override Transport._raw_write -- see transport.iced in
-  // framed-msgpack-rpc.
+  // Override Transport._raw_write -- see transport.iced in framed-msgpack-rpc.
   _raw_write(msg: string, encoding: 'binary') {
     if (printRPCBytes) {
       const b = Buffer.from(msg, encoding)
@@ -34,8 +33,7 @@ class NativeTransport extends TransportShared {
     super._raw_write(msg, encoding)
   }
 
-  // Override Packetizer.packetize_data -- see packetizer.iced in
-  // framed-msgpack-rpc.
+  // Override Packetizer.packetize_data -- see packetizer.iced in framed-msgpack-rpc.
   packetize_data(m: Buffer) {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length, 'bytes:', m.toString('hex'))
