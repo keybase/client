@@ -7,7 +7,7 @@
 # Usage:
 #   ./package_binaries.sh <build_root>
 
-set -e -u -o pipefail
+set -e -u -o -x pipefail
 
 here="$(dirname "${BASH_SOURCE[0]}")"
 
