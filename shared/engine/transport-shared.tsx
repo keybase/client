@@ -1,14 +1,11 @@
 // Classes used to handle RPCs. Ability to inject delays into calls to/from server
-import rpc from 'framed-msgpack-rpc'
+import * as Framed from 'framed-msgpack-rpc'
 import {printRPC, printRPCWaitingSession} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
 import * as LocalConsole from './local-console'
 import * as Stats from './stats'
 
-const RobustTransport = rpc.transport.RobustTransport
-const RpcClient = rpc.client.Client
-
-rpc.pack.set_opt('encode_lib', '@msgpack/msgpack')
+Framed.pack.set_opt('encode_lib', '@msgpack/msgpack')
 
 // We basically always log/ensure once all the calls back and forth
 function _wrap(options: {
@@ -71,24 +68,15 @@ function rpcLog(info: {method: string; reason: string; extra?: Object; type: str
   )
 }
 
-type InvokeArgs = {
-  program: string
-  ctype: number
-  method: string
-  args: [Object]
-  notify: boolean
-}
-
-class TransportShared extends RobustTransport {
+class TransportShared extends Framed.transport.RobustTransport {
   constructor(
-    opts: Object,
-    connectCallback?: () => void,
-    disconnectCallback?: () => void,
-    incomingRPCCallback?: (a: any) => void
+    opts: {path?: string},
+    connectCallback?: Framed.connectDisconnectCB,
+    disconnectCallback?: Framed.connectDisconnectCB,
+    incomingRPCCallback?: Framed.incomingRPCCallbackType
   ) {
     super(opts)
 
-    // @ts-ignore this exists
     this.hooks = {
       connected: () => {
         this.needsConnect = false
@@ -101,22 +89,24 @@ class TransportShared extends RobustTransport {
 
     if (incomingRPCCallback) {
       // delay the call back to us
-      const handler = (payload: any) => {
+      this.set_generic_handler(payload => {
+        const {method} = payload
+        if (printRPC) {
+          const {param} = payload
+          const extra = param[0] as any
+          const reason = '[incoming]'
+          const type = 'serverToEngine'
+          rpcLog({extra, method, reason, type})
+        }
+
+        // always capture stats
+        if (method) {
+          Stats.gotStat(method, true)
+        }
+
         this._injectInstrumentedResponse(payload)
         incomingRPCCallback(payload)
-      }
-
-      // @ts-ignore this exists
-      this.set_generic_handler(
-        _wrap({
-          enforceOnlyOnce: false,
-          extra: p => p.param[0],
-          handler,
-          method: p => p.method,
-          reason: '[incoming]',
-          type: 'serverToEngine',
-        })
-      )
+      })
     }
   }
 
@@ -125,33 +115,37 @@ class TransportShared extends RobustTransport {
   }
 
   // add logging / multiple call checking
-  _injectInstrumentedResponse(payload: any) {
-    if (!payload?.response) {
+  _injectInstrumentedResponse(payload: Framed.PayloadType) {
+    if (!payload.response) {
       return
     }
 
-    const oldResponse = payload?.response
-
-    if (payload && oldResponse) {
-      const calls = ['cancel', 'error', 'result']
-
-      // Can't use {...} here due to react-native not doing object.assign on objects w/ proto chains
-      payload.response = {}
-      Object.keys(oldResponse).forEach(key => {
-        payload.response[key] = oldResponse[key]
+    if (payload.response.error) {
+      const old = payload.response.error.bind(payload.response)
+      payload.response.error = _wrap({
+        enforceOnlyOnce: true,
+        extra: response => ({payload, response}),
+        handler: (...args: Array<any>) => {
+          // @ts-ignore
+          old(...args)
+        },
+        method: payload.method,
+        reason: '[-calling:session]',
+        type: 'engineToServer',
       })
-
-      calls.forEach(call => {
-        payload.response[call] = _wrap({
-          enforceOnlyOnce: true,
-          extra: response => ({payload, response}),
-          handler: (...args) => {
-            oldResponse[call](...args)
-          },
-          method: payload.method,
-          reason: '[-calling:session]',
-          type: 'engineToServer',
-        })
+    }
+    if (payload.response.result) {
+      const old = payload.response.result.bind(payload.response)
+      payload.response.result = _wrap({
+        enforceOnlyOnce: true,
+        extra: response => ({payload, response}),
+        handler: (...args: Array<any>) => {
+          // @ts-ignore
+          old(...args)
+        },
+        method: payload.method,
+        reason: '[-calling:session]',
+        type: 'engineToServer',
       })
     }
   }
@@ -169,42 +163,41 @@ class TransportShared extends RobustTransport {
   }
 
   // Override RobustTransport.invoke.
-  invoke(arg: InvokeArgs, cb: any) {
+  invoke(arg: Framed.InvokeArgs, cb: (err: any, data: any) => void) {
     // don't actually compress
     // if (arg.ctype == undefined) {
     //   arg.ctype = rpc.dispatch.COMPRESSION_TYPE_GZIP // default to gzip compression
     // }
-    const wrappedInvoke = _wrap({
-      enforceOnlyOnce: true,
-      extra: arg.args[0],
-      // @ts-ignore TODO fix this
-      handler: (args: InvokeArgs) => {
-        super.invoke(
-          args,
-          _wrap({
-            enforceOnlyOnce: true,
-            extra: (_, p) => p,
-            handler: (err, data) => {
-              cb(err, data)
-            },
-            method: arg.method,
-            reason: '[-calling]',
-            type: 'serverToEngine',
-          })
-        )
-      },
-      method: arg.method,
-      reason: '[+calling]',
-      type: 'engineToServer',
-    })
+    const extra = arg.args[0]
+    const method = arg.method
+    const reason = '[+calling]'
+    const type = 'engineToServer'
+    if (printRPC) {
+      rpcLog({extra, method, reason, type})
+    }
+    Stats.gotStat(method, false)
 
-    // @ts-ignore
-    wrappedInvoke(arg)
+    let once = false
+    super.invoke(arg, (err, data) => {
+      if (once) {
+        rpcLog({method, reason: 'ignoring multiple result calls', type: 'engineInternal'})
+        return
+      }
+      once = true
+      if (printRPC) {
+        const reason = '[-calling]'
+        const type = 'serverToEngine'
+        const extra = data as any
+        rpcLog({extra, method, reason, type})
+      }
+      Stats.gotStat(method, false)
+      cb(err, data)
+    })
   }
 }
 
 function sharedCreateClient(nativeTransport: any) {
-  const rpcClient = new RpcClient(nativeTransport)
+  const rpcClient = new Framed.client.Client(nativeTransport)
 
   if (rpcClient.transport.needsConnect) {
     rpcClient.transport.connect(err => {
