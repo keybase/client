@@ -84,7 +84,7 @@ const MenuBar = () => {
     }
   }
 
-  Electron.ipcMain.handle('KBmenu', (_: any, action: Action) => {
+  Electron.ipcMain.handle('KBmenu', (_, action: Action) => {
     switch (action.type) {
       case 'showTray': {
         iconPath = action.payload.icon
@@ -142,7 +142,7 @@ const MenuBar = () => {
     // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window
 
     mb.window?.removeAllListeners('close')
-    mb.window?.on('close', (event: any) => {
+    mb.window?.on('close', event => {
       event.preventDefault()
       mb.hideWindow()
     })

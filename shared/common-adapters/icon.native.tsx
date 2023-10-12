@@ -19,20 +19,25 @@ type TextProps = {
   type: IconType
 }
 type Writeable<T> = {-readonly [P in keyof T]: T[P]}
+type DirtyType = {
+  width?: number
+  height?: number
+  backgroundColor?: string
+  textAlign?: string
+  color?: string
+}
+
 const Text = React.forwardRef<RNText, TextProps>(function Text(p, ref) {
   const style: Writeable<Styles.StylesCrossPlatform> = {}
 
   // we really should disallow reaching into style like this but this is what the old code does.
-  // TODO change this
-  const pStyle: any = p.style
+  const pStyle = p.style as DirtyType | undefined
 
   const color =
     p.color ||
-    // @ts-ignore TS is correct but we do actually pass in this color
-    // sometimes. TODO remove this
-    (pStyle && p.style.color) ||
+    pStyle?.color ||
     Shared.defaultColor(p.type) ||
-    (p.opacity && Styles.globalColors.greyLight)
+    (p.opacity ? Styles.globalColors.greyLight : undefined)
   if (color) {
     style.color = color
   }
@@ -48,12 +53,12 @@ const Text = React.forwardRef<RNText, TextProps>(function Text(p, ref) {
 
   // @ts-ignore isn't in the type, but keeping this for now. TODO remove this
   if (p.textAlign !== undefined) {
-    // @ts-ignore see above
+    // @ts-ignore
     style.textAlign = p.textAlign
   }
 
-  if (p.fontSize !== undefined || (pStyle && pStyle.width !== undefined)) {
-    style.fontSize = p.fontSize || pStyle.width
+  if (p.fontSize !== undefined || pStyle?.width !== undefined) {
+    style.fontSize = p.fontSize || pStyle?.width
   }
 
   const temp = Shared.fontSize(p.type)
@@ -81,15 +86,17 @@ Text.displayName = 'IconText'
 
 type ImageProps = {
   style?: Props['style']
-  source: any
+  source?: number
 }
 
 const Image = React.forwardRef<RNImage, ImageProps>((p, ref) => {
-  let style: any
+  if (!p.source) return null
+
+  let style: Styles.StylesCrossPlatform | undefined
 
   // we really should disallow reaching into style like this but this is what the old code does.
   // TODO change this
-  const pStyle: any = p.style
+  const pStyle = p.style as DirtyType | undefined
 
   if (pStyle) {
     style = {}
@@ -149,13 +156,11 @@ const Icon = React.memo<Props>(
         </Text>
       )
     } else {
-      icon = (
-        <Image
-          source={(isDarkMode && iconMeta[iconType].requireDark) || iconMeta[iconType].require}
-          style={hasContainer ? null : p.style}
-          ref={wrap ? undefined : ref}
-        />
-      )
+      let source = (isDarkMode && iconMeta[iconType].requireDark) || iconMeta[iconType].require
+      if (typeof source !== 'number') {
+        source = undefined
+      }
+      icon = <Image source={source} style={hasContainer ? null : p.style} ref={wrap ? undefined : ref} />
     }
 
     return wrap ? (

@@ -1,4 +1,3 @@
-declare module 'menubar'
 declare module 'electron-positioner' {
   type ignore = any
   export default ignore
