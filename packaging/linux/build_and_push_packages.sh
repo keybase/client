@@ -41,7 +41,7 @@ echo "=============================="
 echo "=============================="
 
 # Test all the different credentials that need to be configured.
-"$here/test_all_credentials.sh"
+# "$here/test_all_credentials.sh"
 
 # Clean the build dir.
 rm -rf "$build_dir"

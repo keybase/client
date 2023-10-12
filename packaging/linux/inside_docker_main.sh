@@ -16,12 +16,12 @@ client_clone="/root/client"
 build_dir="/root/build"
 
 # Copy the s3cmd config to root's home dir.
-cp /S3CMD/.s3cfg ~
+# cp /S3CMD/.s3cfg ~
 
 # Copy the SSH configs to the home dir. We copy instead of sharing directly
 # from the host, because SSH complains if ~/.ssh/config is owned by anyone
 # other than the current user. Cloning repos below will test these credentials.
-cp -r /SSH ~/.ssh
+# cp -r /SSH ~/.ssh
 
 # Import the code signing key, kick off the gpg agent, and sign an empty
 # message with it. This makes the password prompt happen now, so that we don't
