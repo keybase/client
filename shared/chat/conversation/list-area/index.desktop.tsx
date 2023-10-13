@@ -137,7 +137,7 @@ const useScrolling = (
   const {listRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
   const editingOrdinal = C.useChatContext(s => s.editing)
   const loadNewerMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
-  const loadNewerMessages = Container.useThrottledCallback(
+  const loadNewerMessages = C.useThrottledCallback(
     React.useCallback(() => {
       loadNewerMessagesDueToScroll()
     }, [loadNewerMessagesDueToScroll]),
@@ -241,7 +241,7 @@ const useScrolling = (
   }, [listRef, adjustScrollAndIgnoreOnScroll, checkForLoadMoreThrottled])
 
   // After lets turn them back on
-  const onAfterScroll = Container.useDebouncedCallback(
+  const onAfterScroll = C.useDebouncedCallback(
     React.useCallback(() => {
       if (isScrollingRef.current) {
         isScrollingRef.current = false
@@ -261,7 +261,7 @@ const useScrolling = (
   )
 
   // While scrolling we disable mouse events to speed things up. We avoid state so we don't re-render while doing this
-  const onScrollThrottled = Container.useThrottledCallback(
+  const onScrollThrottled = C.useThrottledCallback(
     React.useCallback(() => {
       if (!isScrollingRef.current) {
         isScrollingRef.current = true

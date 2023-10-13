@@ -145,5 +145,5 @@ export const useNav = () => {
 }
 
 export {useIsMounted, useOnMountOnce, useOnUnMountOnce} from './react'
-export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
+export {useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 export {useShallow, useDeep} from '../util/zustand'

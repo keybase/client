@@ -1,6 +1,5 @@
 import * as C from './../../constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import type {LayoutEvent} from './../../common-adapters/box'
 import * as Constants from './../../constants/chat2'
@@ -113,7 +112,7 @@ const useCanManageEmoji = () => {
 const WrapperMobile = (props: Props) => {
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
 
-  const setFilterTextChangedThrottled = Container.useThrottledCallback(setFilter, 200)
+  const setFilterTextChangedThrottled = C.useThrottledCallback(setFilter, 200)
   const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const [width, setWidth] = React.useState(0)
   const onLayout = React.useCallback((evt: LayoutEvent) => setWidth(evt.nativeEvent.layout.width), [setWidth])
