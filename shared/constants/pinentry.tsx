@@ -57,7 +57,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           logger.warn('error in registering secret ui: ', error)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     onEngineIncoming: action => {
       switch (action.type) {

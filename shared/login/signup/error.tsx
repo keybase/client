@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import {Wrapper, ContinueButton} from './common'
 
@@ -9,7 +8,7 @@ const ConnectedSignupError = () => {
   const onBack = goBackAndClearErrors
   let header = 'Ah Shoot! Something went wrong, try again?'
   let body = error ? error.desc : ''
-  if (!!error && Container.isNetworkErr(error.code)) {
+  if (!!error && C.isNetworkErr(error.code)) {
     header = 'Hit an unexpected error; try again?'
     body = 'This might be due to a bad connection.'
   }

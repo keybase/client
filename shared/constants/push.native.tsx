@@ -137,7 +137,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           C.useLogoutState.getState().dispatch.wait(waitKey, version, false)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     handlePush: notification => {
       const f = async () => {
@@ -187,7 +187,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           logger.error('[Push] unhandled!!')
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     initialPermissionsCheck: () => {
       const f = async () => {
@@ -202,8 +202,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
             return !!v.b
           }
           const [shownNativePushPrompt, shownMonsterPushPrompt] = await Promise.all([
-            Z.neverThrowPromiseFunc(shownNativePushPromptTask),
-            Z.neverThrowPromiseFunc(shownMonsterPushPromptTask),
+            C.neverThrowPromiseFunc(shownNativePushPromptTask),
+            C.neverThrowPromiseFunc(shownMonsterPushPromptTask),
           ])
           logger.info(
             '[PushInitialCheck] shownNativePushPrompt:',
@@ -217,14 +217,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     rejectPermissions: () => {
       set(s => {
         s.hasPermissions = false
         s.showPushPrompt = false
       })
-      Z.ignorePromise(neverShowMonsterAgain())
+      C.ignorePromise(neverShowMonsterAgain())
     },
     requestPermissions: () => {
       const f = async () => {
@@ -262,7 +262,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetState: 'default',
     setPushToken: (token: string) => {
@@ -290,7 +290,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
       }
       if (token) {
-        Z.ignorePromise(uploadPushToken())
+        C.ignorePromise(uploadPushToken())
       }
     },
     showPermissionsPrompt: p => {
@@ -313,15 +313,15 @@ export const _useState = Z.createZustand<State>((set, get) => {
           !get().hasPermissions
         ) {
           logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
-          await Z.timeoutPromise(100)
+          await C.timeoutPromise(100)
           C.useRouterState.getState().dispatch.switchTab(Tabs.peopleTab)
           C.useRouterState.getState().dispatch.navigateAppend('settingsPushPrompt')
         }
       }
-      Z.ignorePromise(monsterPrompt())
+      C.ignorePromise(monsterPrompt())
 
       if (!get().showPushPrompt && p.persistSkip) {
-        Z.ignorePromise(neverShowMonsterAgain())
+        C.ignorePromise(neverShowMonsterAgain())
       }
     },
   }

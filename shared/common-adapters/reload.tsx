@@ -1,6 +1,5 @@
 import * as C from '../constants'
 // A screen we show when we have a problem loading a screen
-import * as Container from '../util/container'
 import * as React from 'react'
 import * as Styles from '../styles'
 import {Box2} from './box'
@@ -154,7 +153,7 @@ export default (ownProps: OwnProps) => {
   let error = C.useAnyErrors(ownProps.waitingKeys)
 
   // make sure reloadable only responds to network-related errors
-  error = error && Container.isNetworkErr(error.code) ? error : undefined
+  error = error && C.isNetworkErr(error.code) ? error : undefined
 
   if (error && ownProps.errorFilter) {
     error = ownProps.errorFilter(error) ? error : undefined

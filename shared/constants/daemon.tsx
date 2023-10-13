@@ -134,7 +134,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         C.useChatState.getState().dispatch.loadStaticConfig()
         wait(name, version, false)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
       get().dispatch.loadDaemonAccounts()
     },
     daemonHandshakeDone: () => {
@@ -212,7 +212,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     // set to true so we reget status when we're reachable again
     loadDaemonBootstrapStatus: async () => {

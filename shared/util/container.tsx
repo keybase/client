@@ -1,7 +1,6 @@
 import * as React from 'react'
 import type {createListenerMiddleware} from '@reduxjs/toolkit'
 export type ListenerMiddleware = ReturnType<typeof createListenerMiddleware>
-export {networkErrorCodes, isNetworkErr} from '../util/errors'
 
 // Deprecated: avoid useEffect
 export function usePrevious<T>(value: T) {
@@ -9,14 +8,6 @@ export function usePrevious<T>(value: T) {
   React.useEffect(() => {
     ref.current = value
   })
-  return ref.current
-}
-// Deprecated: avoid useEffect
-export function usePrevious2<T>(value: T) {
-  const ref = React.useRef<T>()
-  React.useEffect(() => {
-    ref.current = value
-  }, [value])
   return ref.current
 }
 
@@ -36,11 +27,6 @@ export function useDepChangeEffect(f: () => void, deps: Array<unknown>) {
     // eslint-disable-next-line
   }, deps)
 }
-
-export const timeoutPromise = async (timeMs: number) =>
-  new Promise<void>(resolve => {
-    setTimeout(() => resolve(), timeMs)
-  })
 
 export {useSafeSubmit} from './safe-submit'
 export {useSafeNavigation} from './safe-navigation'

@@ -155,7 +155,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
       }
     }
-    Z.ignorePromise(f())
+    C.ignorePromise(f())
   }
 
   const dispatch: State['dispatch'] = {
@@ -181,7 +181,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     checkInviteCode: invitationCode => {
       set(s => {
@@ -206,7 +206,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     checkUsername: username => {
       set(s => {
@@ -244,7 +244,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     clearJustSignedUpEmail: () => {
       set(s => {
@@ -298,7 +298,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         get().dispatch.checkInviteCode(get().inviteCode)
         C.useRouterState.getState().dispatch.navigateAppend('signupInviteCode')
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     requestInvite: (email, name) => {
       set(s => {
@@ -327,7 +327,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetState: () => {
       set(s => ({

@@ -5,23 +5,6 @@ import {type StateCreator} from 'zustand'
 import {create} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
 
-export const ignorePromise = (f: Promise<void>) => {
-  f.then(() => {}).catch(() => {})
-}
-
-export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
-  try {
-    return await f()
-  } catch {
-    return undefined
-  }
-}
-
-export const timeoutPromise = async (timeMs: number) =>
-  new Promise<void>(resolve => {
-    setTimeout(() => resolve(), timeMs)
-  })
-
 type HasReset = {dispatch: {resetState: 'default' | (() => void)}}
 
 const resetters: (() => void)[] = []

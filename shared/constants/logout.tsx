@@ -68,10 +68,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         const waitKey = 'nullhandshake'
         get().dispatch.wait(waitKey, version, true)
-        await Z.timeoutPromise(10)
+        await C.timeoutPromise(10)
         get().dispatch.wait(waitKey, version, false)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     wait: (name, _version, increment) => {
       const {version} = get()

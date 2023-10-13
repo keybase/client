@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
-import * as Container from '../util/container'
 import * as React from 'react'
 import * as T from '../constants/types'
 import logger from '../logger'
@@ -27,7 +26,7 @@ export default () => {
 
   C.useOnMountOnce(() => {
     const f = async () => {
-      await Container.timeoutPromise(60_000) // don't bother checking during startup
+      await C.timeoutPromise(60_000) // don't bother checking during startup
       // check every hour
       // eslint-disable-next-line
       while (true) {
@@ -57,7 +56,7 @@ export default () => {
         if (C.isMobile) {
           break
         }
-        await Container.timeoutPromise(3_600_000) // 1 hr
+        await C.timeoutPromise(3_600_000) // 1 hr
       }
     }
     C.ignorePromise(f())

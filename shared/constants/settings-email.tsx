@@ -1,4 +1,5 @@
 import * as Z from '../util/zustand'
+import * as C from '../constants'
 import * as T from './types'
 import {isValidEmail} from '../util/simple-validators'
 import {RPCError} from '../util/errors'
@@ -114,7 +115,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     editEmail: p => {
       const f = async () => {
@@ -156,7 +157,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         logger.warn('Empty editEmail action')
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     notifyEmailAddressEmailsChanged: list => {
       set(s => {

@@ -2,7 +2,7 @@ import * as EngineGen from '../actions/engine-gen-gen'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import * as T from './types'
-import {RPCError, isNetworkErr} from '../util/errors'
+import * as C from '.'
 import {mapGetEnsureValue} from '../util/map'
 
 export const getIsBroken = (infoMap: Map<string, T.Users.UserInfo>, username: string) =>
@@ -70,8 +70,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
             get().dispatch.updates([{info: {bio: userCard.bioDecorated}, name: username}])
           }
         } catch (error) {
-          if (error instanceof RPCError) {
-            if (isNetworkErr(error.code)) {
+          if (error instanceof C.RPCError) {
+            if (C.isNetworkErr(error.code)) {
               logger.info('Network error getting userCard')
             } else {
               logger.info(error.message)
@@ -79,7 +79,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     getBlockState: usernames => {
       const f = async () => {
@@ -90,7 +90,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     onEngineIncoming: action => {
       switch (action.type) {
@@ -126,7 +126,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           reportUserWaitingKey
         )
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetState: 'default',
     setUserBlocks: blocks => {
@@ -135,7 +135,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.userSetUserBlocksRpcPromise({blocks}, setUserBlocksWaitingKey)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     updates: (infos: Array<{name: string; info: Partial<T.Users.UserInfo>}>) => {
       set(s => {

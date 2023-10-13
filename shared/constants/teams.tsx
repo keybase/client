@@ -1261,7 +1261,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
 
         C.useRouterState.getState().dispatch.navigateAppend('teamAddToTeamConfirm')
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     addMembersWizardRemoveMember: assertion => {
       set(s => {
@@ -1352,7 +1352,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           logger.error(`${logPrefix} error fetching gregor state: ${String(err)}`)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     addToTeam: (teamID, users, sendChatNotification, fromTeamBuilder) => {
       set(s => {
@@ -1415,7 +1415,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     addUserToTeams: (role, teams, user) => {
       const f = async () => {
@@ -1475,7 +1475,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           s.addUserToTeamsState = errorAddingTo.length > 0 ? 'failed' : 'succeeded'
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     cancelAddMembersWizard: () => {
       set(s => {
@@ -1510,7 +1510,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           )
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     clearAddUserToTeamsResults: () => {
       set(s => {
@@ -1527,7 +1527,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           logError(err)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     createChannel: p => {
       const f = async () => {
@@ -1593,7 +1593,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     createChannels: (teamID, channelnames) => {
       set(s => {
@@ -1629,7 +1629,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           s.creatingChannels = false
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     createNewTeam: (teamname, joinSubteam, fromChat, thenAddMembers) => {
       set(s => {
@@ -1670,7 +1670,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     createNewTeamFromConversation: (conversationIDKey, teamname) => {
       set(s => {
@@ -1701,7 +1701,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         get().dispatch.loadTeamChannelList(teamID)
         C.useRouterState.getState().dispatch.clearModals()
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     deleteMultiChannelsConfirmed: (teamID, channels) => {
       const f = async () => {
@@ -1718,7 +1718,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         get().dispatch.loadTeamChannelList(teamID)
         C.useRouterState.getState().dispatch.clearModals()
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     deleteTeam: teamID => {
       const f = async () => {
@@ -1739,7 +1739,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     dynamic: {
       respondToInviteLink: undefined,
@@ -1776,7 +1776,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     editTeamDescription: (teamID, description) => {
       set(s => {
@@ -1793,7 +1793,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     finishNewTeamWizard: () => {
       set(s => {
@@ -1832,7 +1832,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     finishedAddMembersWizard: () => {
       set(s => {
@@ -1871,7 +1871,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         return
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     getMembers: (teamID: T.Teams.TeamID) => {
       const f = async () => {
@@ -1896,7 +1896,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         return
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     getTeamProfileAddList: username => {
       const f = async () => {
@@ -1912,7 +1912,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           s.teamProfileAddList = teamlist
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     getTeamRetentionPolicy: teamID => {
       const f = async () => {
@@ -1937,7 +1937,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           s.teamIDToRetentionPolicy.set(teamID, retentionPolicy)
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     getTeams: (subscribe, forceReload) => {
       if (subscribe) {
@@ -1985,7 +1985,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     ignoreRequest: (teamID, teamname, username) => {
       const f = async () => {
@@ -1993,7 +1993,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           await T.RPCGen.teamsTeamIgnoreRequestRpcPromise({name: teamname, username}, teamWaitingKey(teamID))
         } catch (_) {}
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     inviteToTeamByEmail: (invitees, role, teamID, teamname, loadingKey) => {
       const f = async () => {
@@ -2048,7 +2048,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     inviteToTeamByPhone: (teamID, teamname, role, phoneNumber, fullName, loadingKey) => {
       const f = async () => {
@@ -2093,7 +2093,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     joinTeam: (teamname, deeplink) => {
       set(s => {
@@ -2156,7 +2156,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     launchNewTeamWizardOrModal: subteamOf => {
       set(s => {
@@ -2189,7 +2189,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadTeam: (teamID, subscribe) => {
       set(s => {
@@ -2231,7 +2231,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadTeamChannelList: teamID => {
       const f = async () => {
@@ -2260,7 +2260,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           // ensure we refresh participants, but don't fail the saga if this somehow fails
           try {
             for (const c of channels.values()) {
-              Z.ignorePromise(
+              C.ignorePromise(
                 T.RPCChat.localRefreshParticipantsRpcPromise({
                   convID: T.Chat.keyToConversationID(c.conversationIDKey),
                 })
@@ -2276,14 +2276,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
           logger.warn(err)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadTeamTree: (teamID, username) => {
       // See protocol/avdl/keybase1/teams.avdl:loadTeamTreeAsync for a description of this RPC.
       const f = async () => {
         await T.RPCGen.teamsLoadTeamTreeMembershipsAsyncRpcPromise({teamID, username})
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadWelcomeMessage: teamID => {
       const f = async () => {
@@ -2304,7 +2304,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadedWelcomeMessage: (teamID, message) => {
       set(s => {
@@ -2404,7 +2404,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     onEngineIncoming: action => {
       switch (action.type) {
@@ -2511,7 +2511,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     refreshTeamRoleMap: () => {
       const f = async () => {
@@ -2529,7 +2529,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           logger.info(`Failed to refresh TeamRoleMap; service will retry`)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     removeMember: (teamID, username) => {
       const f = async () => {
@@ -2549,7 +2549,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           // TODO: create setEmailInviteError?`
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     removePendingInvite: (teamID, inviteID) => {
       const f = async () => {
@@ -2565,7 +2565,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           logger.error('Failed to remove pending invite', err)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     renameTeam: (oldName, _newName) => {
       const f = async () => {
@@ -2577,7 +2577,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           // err displayed from waiting store in component
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     requestInviteLinkDetails: () => {
       const f = async () => {
@@ -2602,7 +2602,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetErrorInEmailInvite: () => {
       set(s => {
@@ -2664,7 +2664,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     setAddMembersWizardIndividualRole: (assertion, role) => {
       set(s => {
@@ -2726,7 +2726,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     setMemberSelected: (teamID, username, selected, clearAll) => {
       set(s => {
@@ -2820,7 +2820,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     setSubteamFilter: (filter, parentTeam) => {
       set(s => {
@@ -2864,7 +2864,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     setTeamRoleMapLatestKnownVersion: version => {
       set(s => {
@@ -2988,7 +2988,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     showTeamByName: (teamname, initialTab, join, addMembers) => {
       const f = async () => {
@@ -3036,7 +3036,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     startAddMembersWizard: teamID => {
       set(s => {
@@ -3077,7 +3077,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     toggleInvitesCollapsed: teamID => {
       set(s => {
@@ -3119,7 +3119,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     updateTeamRetentionPolicy: metas => {
       const first = metas[0]
@@ -3143,7 +3143,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         await T.RPCChat.localPostHeadlineRpcPromise(param, updateChannelNameWaitingKey(teamID))
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     uploadTeamAvatar: (teamname, filename, sendChatNotification, crop) => {
       const f = async () => {
@@ -3160,7 +3160,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
   }
   return {

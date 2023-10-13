@@ -270,7 +270,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           get().dispatch.updateResult(guiID, 'error', `Failed to ${follow ? 'follow' : 'unfollow'}`)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     closeTracker: guiID => {
       set(s => {
@@ -298,7 +298,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     ignore: guiID => {
       const f = async () => {
@@ -309,7 +309,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           get().dispatch.updateResult(guiID, 'error', `Failed to ignore`)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     load: p => {
       const {guiID, forceDisplay, assertion, reason, ignoreCache = false, inTracker} = p
@@ -358,7 +358,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
 
       const loadFollowers = async () => {
         if (inTracker) return
@@ -380,7 +380,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(loadFollowers())
+      C.ignorePromise(loadFollowers())
 
       const loadFollowing = async () => {
         if (inTracker) return
@@ -402,7 +402,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(loadFollowing())
+      C.ignorePromise(loadFollowing())
     },
     loadNonUserProfile: assertion => {
       const f = async () => {
@@ -457,7 +457,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     notifyCard: (guiID, card) => {
       const username = guiIDToUsername(get(), guiID)
@@ -547,7 +547,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           logger.warn('error in registering identify ui: ', error)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     onEngineIncoming: action => {
       switch (action.type) {

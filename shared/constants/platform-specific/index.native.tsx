@@ -1,7 +1,6 @@
 import * as C from '..'
 import * as T from '../types'
 import * as Clipboard from 'expo-clipboard'
-import * as Container from '../../util/container'
 import * as EngineGen from '../../actions/engine-gen-gen'
 import * as ExpoLocation from 'expo-location'
 import * as ExpoTaskManager from 'expo-task-manager'
@@ -30,7 +29,6 @@ import {
   getStartupDetailsFromInitialPush,
   getStartupDetailsFromInitialShare,
 } from './push.native'
-import * as Z from '../../util/zustand'
 
 export const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -372,7 +370,7 @@ export const initPlatformListener = () => {
         })
         _lastPersist = s
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     s.dispatch.dynamic.onEngineIncomingNative = action => {
@@ -434,7 +432,7 @@ export const initPlatformListener = () => {
     }
 
     if (isAndroid) {
-      Z.ignorePromise(
+      C.ignorePromise(
         T.RPCChat.localConfigureFileAttachmentDownloadLocalRpcPromise({
           // Android's cache dir is (when I tried) [app]/cache but Go side uses
           // [app]/.cache by default, which can't be used for sharing to other apps.
@@ -472,7 +470,7 @@ export const initPlatformListener = () => {
           C.useConfigState.getState().dispatch.filePickerError(new Error(String(error)))
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
   })
 
@@ -482,7 +480,7 @@ export const initPlatformListener = () => {
       const {type} = await NetInfo.fetch()
       C.useConfigState.getState().dispatch.osNetworkStatusChanged(type !== 'none', type, true)
     }
-    Z.ignorePromise(f())
+    C.ignorePromise(f())
   })
 
   C.useConfigState.subscribe((s, old) => {
@@ -496,7 +494,7 @@ export const initPlatformListener = () => {
         console.warn('Error sending mobileNetStateUpdate', err)
       }
     }
-    Z.ignorePromise(f())
+    C.ignorePromise(f())
   })
 
   C.useConfigState.setState(s => {
@@ -504,7 +502,7 @@ export const initPlatformListener = () => {
       const f = async () => {
         await showShareActionSheet({filePath, message, mimeType})
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
   })
 
@@ -530,15 +528,15 @@ export const initPlatformListener = () => {
     const prev = old.navState
     if (next === prev) return
     const f = async () => {
-      await Container.timeoutPromise(1000)
+      await C.timeoutPromise(1000)
       const path = C.getVisiblePath()
       C.useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
     }
-    Z.ignorePromise(f())
+    C.ignorePromise(f())
   })
 
   // Start this immediately instead of waiting so we can do more things in parallel
-  Z.ignorePromise(loadStartupDetails())
+  C.ignorePromise(loadStartupDetails())
   initPushListener()
 
   NetInfo.addEventListener(({type}) => {
@@ -546,7 +544,7 @@ export const initPlatformListener = () => {
   })
 
   const initAudioModes = () => {
-    Z.ignorePromise(setupAudioMode(false))
+    C.ignorePromise(setupAudioMode(false))
   }
   initAudioModes()
 
@@ -565,7 +563,7 @@ export const initPlatformListener = () => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     s.dispatch.dynamic.onEngineIncomingNative = action => {
@@ -583,10 +581,10 @@ export const initPlatformListener = () => {
           break
         }
         case EngineGen.chat1ChatUiChatWatchPosition:
-          Z.ignorePromise(onChatWatchPosition(action))
+          C.ignorePromise(onChatWatchPosition(action))
           break
         case EngineGen.chat1ChatUiChatClearWatch:
-          Z.ignorePromise(onChatClearWatch())
+          C.ignorePromise(onChatClearWatch())
           break
         default:
       }

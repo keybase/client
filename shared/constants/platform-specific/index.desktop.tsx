@@ -2,7 +2,6 @@ import * as C from '..'
 import * as ConfigConstants from '../config'
 import * as EngineGen from '../../actions/engine-gen-gen'
 import * as T from '../types'
-import * as Z from '../../util/zustand'
 import InputMonitor from './input-monitor.desktop'
 import KB2 from '../../util/electron.desktop'
 import logger from '../../logger'
@@ -73,7 +72,7 @@ export const initPlatformListener = () => {
       const f = async () => {
         await T.RPCGen.configHelloIAmRpcPromise({details: KB2.constants.helloDetails})
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     s.dispatch.dynamic.onEngineIncomingDesktop = action => {
@@ -87,7 +86,7 @@ export const initPlatformListener = () => {
               response.result()
             }
           }
-          Z.ignorePromise(f())
+          C.ignorePromise(f())
           break
         }
         case EngineGen.keybase1NotifyAppExit:
@@ -102,7 +101,7 @@ export const initPlatformListener = () => {
             T.RPCGen.pgpPgpStorageDismissRpcPromise().catch(err => {
               console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
             })
-          Z.ignorePromise(f())
+          C.ignorePromise(f())
           break
         }
         case EngineGen.keybase1NotifyServiceShutdown: {
@@ -173,7 +172,7 @@ export const initPlatformListener = () => {
         wait(waitKey, version, false, error.message || 'windows pipe owner fail', true)
       }
     }
-    Z.ignorePromise(f())
+    C.ignorePromise(f())
   })
 
   const handleWindowFocusEvents = () => {

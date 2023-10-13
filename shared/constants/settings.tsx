@@ -127,13 +127,13 @@ export const _useState = Z.createZustand<State>(set => {
           s.checkPasswordIsCorrect = res
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     dbNuke: () => {
       const f = async () => {
         await T.RPCGen.ctlDbNukeRpcPromise(undefined, settingsWaitingKey)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     deleteAccountForever: passphrase => {
       const f = async () => {
@@ -147,7 +147,7 @@ export const _useState = Z.createZustand<State>(set => {
         C.useConfigState.getState().dispatch.setJustDeletedSelf(username)
         C.useRouterState.getState().dispatch.navigateAppend(Tabs.loginTab)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadLockdownMode: () => {
       const f = async () => {
@@ -168,7 +168,7 @@ export const _useState = Z.createZustand<State>(set => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadProxyData: () => {
       const f = async () => {
@@ -182,7 +182,7 @@ export const _useState = Z.createZustand<State>(set => {
           return
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadSettings: () => {
       const f = async () => {
@@ -202,14 +202,14 @@ export const _useState = Z.createZustand<State>(set => {
           return
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loginBrowserViaWebAuthToken: () => {
       const f = async () => {
         const link = await T.RPCGen.configGenerateWebAuthTokenRpcPromise()
         openURL(link)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     onEngineIncoming: action => {
       switch (action.type) {
@@ -243,10 +243,10 @@ export const _useState = Z.createZustand<State>(set => {
         })
         const {decrement, increment} = C.useWaitingState.getState().dispatch
         increment(processorProfileInProgressKey)
-        await Z.timeoutPromise(profileDurationSeconds * 1_000)
+        await C.timeoutPromise(profileDurationSeconds * 1_000)
         decrement(processorProfileInProgressKey)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetCheckPassword: () => {
       set(s => {
@@ -275,7 +275,7 @@ export const _useState = Z.createZustand<State>(set => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     setProxyData: proxyData => {
       const f = async () => {
@@ -285,13 +285,13 @@ export const _useState = Z.createZustand<State>(set => {
           logger.warn('Error in saving proxy data', err)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     stop: exitCode => {
       const f = async () => {
         await T.RPCGen.ctlStopRpcPromise({exitCode})
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     trace: durationSeconds => {
       const f = async () => {
@@ -301,10 +301,10 @@ export const _useState = Z.createZustand<State>(set => {
         })
         const {decrement, increment} = C.useWaitingState.getState().dispatch
         increment(traceInProgressKey)
-        await Z.timeoutPromise(durationSeconds * 1_000)
+        await C.timeoutPromise(durationSeconds * 1_000)
         decrement(traceInProgressKey)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
   }
   return {

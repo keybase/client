@@ -91,7 +91,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         )
         get().dispatch.loadContactImportEnabled()
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     importContactsLater: () => {
       set(s => {
@@ -130,7 +130,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         get().dispatch.loadContactPermissions()
         get().dispatch.manageContactsCache()
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadContactPermissions: () => {
       const f = async () => {
@@ -141,7 +141,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           s.permissionStatus = status
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     manageContactsCache: () => {
       const f = async () => {
@@ -239,7 +239,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     requestPermissions: (thenToggleImportOn?: boolean, fromSettings?: boolean) => {
       const f = async () => {
@@ -255,7 +255,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         })
         decrement(importContactsWaitingKey)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetState: 'default',
   }

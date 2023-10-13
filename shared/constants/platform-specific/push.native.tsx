@@ -1,6 +1,5 @@
 import * as C from '..'
 import * as T from '../types'
-import * as Container from '../../util/container'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../../logger'
 import {isIOS, isAndroid} from '../platform'
@@ -227,7 +226,7 @@ const getStartupDetailsFromInitialShare = async () => {
 const getStartupDetailsFromInitialPush = async () => {
   const notification = await Promise.race([
     isAndroid ? getInitialPushAndroid() : getInitialPushiOS(),
-    Container.timeoutPromise(10),
+    C.timeoutPromise(10),
   ])
   if (!notification) {
     return

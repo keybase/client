@@ -119,6 +119,11 @@ export const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
 }
 
+export const timeoutPromise = async (timeMs: number) =>
+  new Promise<void>(resolve => {
+    setTimeout(() => resolve(), timeMs)
+  })
+
 export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
   try {
     return await f()
@@ -147,3 +152,4 @@ export const useNav = () => {
 export {useIsMounted, useOnMountOnce, useOnUnMountOnce} from './react'
 export {useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 export {useShallow, useDeep} from '../util/zustand'
+export {isNetworkErr, RPCError} from '../util/errors'

@@ -2,7 +2,6 @@ import * as C from '..'
 import * as Constants from '../fs'
 import logger from '../../logger'
 import * as T from '../types'
-import * as Z from '../../util/zustand'
 import * as Styles from '../../styles'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
@@ -21,7 +20,7 @@ export default function initNative() {
           Constants.errorToActionOrThrow(e)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     s.dispatch.dynamic.finishedDownloadWithIntentMobile = (downloadID, downloadIntent, mimeType) => {
@@ -58,7 +57,7 @@ export default function initNative() {
           Constants.errorToActionOrThrow(err)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
   })
 }

@@ -460,7 +460,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
         closeBotModal()
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     attachFromDragAndDrop: (paths, titles) => {
       const f = async () => {
@@ -479,7 +479,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           get().dispatch.attachmentsUpload(paths, titles)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     attachmentDownload: ordinal => {
       const {dispatch, messageMap} = get()
@@ -503,7 +503,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
         await downloadAttachment(false, message)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     attachmentPasted: data => {
       const f = async () => {
@@ -520,7 +520,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           selected: 'chatAttachmentGetTitles',
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     attachmentPreviewSelect: ordinal => {
       C.useRouterState.getState().dispatch.navigateAppend({
@@ -534,7 +534,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           await T.RPCChat.localCancelUploadTempFileRpcPromise({outboxID})
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     attachmentsUpload: (paths, titles, _tlfName) => {
       const f = async () => {
@@ -576,7 +576,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           )
         )
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     badgesUpdated: badge => {
       set(s => {
@@ -593,7 +593,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           status: reportUser ? T.RPCChat.ConversationStatus.reported : T.RPCChat.ConversationStatus.blocked,
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     botCommandsUpdateStatus: status => {
       set(s => {
@@ -660,7 +660,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     dismissBottomBanner: () => {
       set(s => {
@@ -679,7 +679,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
         get().dispatch.messagesWereDeleted({ordinals: [ordinal]})
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     editBotSettings: (username, allowCommands, allowMentions, convs) => {
       const f = async () => {
@@ -701,7 +701,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
         closeBotModal()
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     giphyGotSearchResult: results => {
       set(s => {
@@ -720,7 +720,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         get().dispatch.injectIntoInput('')
         get().dispatch.messageSend(result.targetUrl, replyTo)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     giphyToggleWindow: (show: boolean) => {
       set(s => {
@@ -747,7 +747,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           Common.waitingKeyConvStatusChange(conversationIDKey)
         )
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     hideSearch: () => {
       set(s => {
@@ -760,7 +760,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           convID: T.Chat.keyToConversationID(get().id),
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     injectIntoInput: text => {
       set(s => {
@@ -775,7 +775,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           Common.waitingKeyJoinConversation
         )
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     jumpToRecent: () => {
       get().dispatch.setMessageCenterOrdinal()
@@ -788,7 +788,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           Common.waitingKeyLeaveConversation
         )
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
       C.useRouterState.getState().dispatch.clearModals()
       if (navToInbox) {
         C.useRouterState.getState().dispatch.navUpToScreen('chatRoot')
@@ -859,7 +859,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadMessagesCentered: (messageID, highlightMode) => {
       get().dispatch.loadMoreMessages({
@@ -1027,7 +1027,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadNewerMessagesDueToScroll: () => {
       const {dispatch} = get()
@@ -1058,7 +1058,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const tlfID = Buffer.from(T.Teams.teamIDToString(teamID), 'hex')
         await T.RPCChat.localMarkTLFAsReadLocalRpcPromise({tlfID})
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     markThreadAsRead: () => {
       const f = async () => {
@@ -1110,7 +1110,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           msgID: readMsgID,
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     messageAttachmentNativeSave: message => {
       if (!C.isMobile) return
@@ -1148,7 +1148,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           throw new Error('Failed to save attachment: ' + err)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     messageAttachmentNativeShare: ordinal => {
       const message = get().messageMap.get(ordinal)
@@ -1184,7 +1184,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           logger.error('Failed to share attachment: ' + JSON.stringify(e))
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     messageDelete: ordinal => {
       const {id, dispatch, messageMap, meta, isMetaGood} = get()
@@ -1234,7 +1234,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           )
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     messageDeleteHistory: () => {
       // Delete a message and any older
@@ -1252,7 +1252,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           tlfPublic: false,
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     messageEdit: (ordinal, text) => {
       const {id, dispatch, messageMap, meta} = get()
@@ -1307,7 +1307,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     messageReplyPrivately: ordinal => {
       const f = async () => {
@@ -1349,7 +1349,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         C.useChatState.getState().dispatch.metasReceived([meta])
         _getConvoState(conversationIDKey).dispatch.navigateToThread('createdMessagePrivately')
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     messageRetry: outboxID => {
       const ordinal = get().pendingOutboxToOrdinal.get(outboxID)
@@ -1371,7 +1371,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           Common.waitingKeyRetryPost
         )
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     messageSend: (text, replyTo, waitingKey) => {
       const f = async () => {
@@ -1435,7 +1435,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         // narrow down the places where the action can possibly stop.
         logger.info('non-empty text?', text.length > 0)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
 
       get().dispatch.setReplyTo(0)
       get().dispatch.setCommandMarkdown()
@@ -1604,7 +1604,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           status: m ? T.RPCChat.ConversationStatus.muted : T.RPCChat.ConversationStatus.unfiled,
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     navigateToThread: (_reason, highlightMessageID, pushBody) => {
       get().dispatch.hideSearch()
@@ -2046,7 +2046,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     refreshBotRoleInConv: username => {
       const f = async () => {
@@ -2074,7 +2074,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     refreshBotSettings: username => {
       set(s => {
@@ -2097,7 +2097,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     refreshMutualTeamsInConv: () => {
       const f = async () => {
@@ -2112,7 +2112,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           s.mutualTeams = results.teamIDs ?? []
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     removeBotMember: username => {
       const f = async () => {
@@ -2126,7 +2126,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     replyJump: messageID => {
       get().dispatch.setMessageCenterOrdinal()
@@ -2157,7 +2157,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           username,
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetState: 'default',
     resetUnsentText: () => {
@@ -2171,7 +2171,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           mention: {channel, name},
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     selectedConversation: () => {
       const conversationIDKey = get().id
@@ -2248,7 +2248,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     sendTyping: throttle(typing => {
       const f = async () => {
@@ -2257,7 +2257,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           typing,
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }, 2000),
     setCommandMarkdown: md => {
       set(s => {
@@ -2284,7 +2284,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           throw error
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     setEditing: _ordinal => {
       // clearing
@@ -2388,7 +2388,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     setExplodingModeLocked: locked => {
       set(s => {
@@ -2490,7 +2490,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           .then(() => {})
           .catch(() => {})
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     setMessageCenterOrdinal: m => {
       set(s => {
@@ -2521,7 +2521,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           role: T.RPCGen.TeamRole[role],
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     setMoreToLoad: m => {
       set(s => {
@@ -2679,7 +2679,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     toggleGiphyPrefill: () => {
       // if the window is up, just blow it away
@@ -2729,7 +2729,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           msgID: messageID,
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     toggleMessageReaction: (ordinal, emoji) => {
       const f = async () => {
@@ -2771,7 +2771,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     toggleThreadSearch: hide => {
       set(s => {
@@ -2792,7 +2792,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           await T.RPCChat.localCancelActiveSearchRpcPromise()
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     unfurlRemove: messageID => {
       const f = async () => {
@@ -2815,7 +2815,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           Common.waitingKeyDeletePost
         )
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     unfurlResolvePrompt: (messageID, domain, result) => {
       const f = async () => {
@@ -2827,7 +2827,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           result,
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     unfurlTogglePrompt: (messageID, domain, show) => {
       set(s => {
@@ -2885,7 +2885,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           tlfName: meta.tlfname,
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }, 200),
     updateFromUIInboxLayout: l => {
       if (get().isMetaGood()) return
@@ -2952,7 +2952,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           ],
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     updateReactions: updates => {
       const {pendingOutboxToOrdinal, dispatch, messageMap} = get()

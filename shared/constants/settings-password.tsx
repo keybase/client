@@ -65,7 +65,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           return
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadPgpSettings: () => {
       const f = async () => {
@@ -84,7 +84,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadRememberPassword: () => {
       const f = async () => {
@@ -93,7 +93,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           s.rememberPassword = remember
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     notifyUsersPasswordChanged: randomPW => {
       set(s => {
@@ -117,7 +117,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         await T.RPCGen.configSetRememberPassphraseRpcPromise({remember})
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     submitNewPassword: (thenLogout = false) => {
       const f = async () => {
@@ -152,7 +152,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
   }
   return {
