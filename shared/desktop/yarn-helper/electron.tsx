@@ -26,7 +26,7 @@ const commands = {
   'start-cold': {
     help: 'Start electron with no hot reloading',
     nodeEnv: 'development',
-    shell: `yarn electron ${path.resolve(__dirname, '../dist/node.dev.bundle.js')}`,
+    shell: `electron ${path.resolve(__dirname, '../dist/node.dev.bundle.js')}`,
   },
   'start-hot': {
     code: startHot,
