@@ -6,7 +6,6 @@ import * as Constants from '../../../../constants/teams'
 import * as Kb from '../../../../common-adapters'
 import * as dateFns from 'date-fns'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../../../util/emoji'
-import useRPC from '../../../../util/use-rpc'
 import EmojiMenu from './emoji-menu'
 import {useEmojiState} from '../../../emojis/use-emoji'
 
@@ -24,7 +23,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const canManageEmoji = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID).manageEmojis)
   const deleteOtherEmoji = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
-  const onAddAlias = Container.useEvent(() => {
+  const onAddAlias = C.useEvent(() => {
     nav.safeNavigateAppend({
       props: {conversationIDKey, defaultSelected: emojiData},
       selected: 'teamAddEmojiAlias',
@@ -34,7 +33,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const doAddAlias = !isStockAlias && canManageEmoji ? onAddAlias : undefined
 
   const refreshEmoji = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
-  const removeRpc = useRPC(T.RPCChat.localRemoveEmojiRpcPromise)
+  const removeRpc = C.useRPC(T.RPCChat.localRemoveEmojiRpcPromise)
   const doRemove = React.useMemo(
     () =>
       canRemove

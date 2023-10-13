@@ -15,7 +15,6 @@ import {
   type EmojiData,
   type RenderableEmoji,
 } from './../../util/emoji'
-import useRPC from './../../util/use-rpc'
 import {usePickerState, type PickKey} from './use-picker'
 
 type Props = {
@@ -62,7 +61,7 @@ const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) 
 
 const useSkinTone = () => {
   const currentSkinTone = T.Chat.EmojiSkinToneFromRPC(C.useChatState(s => s.userReacjis.skinTone))
-  const rpc = useRPC(T.RPCChat.localPutReacjiSkinToneRpcPromise)
+  const rpc = C.useRPC(T.RPCChat.localPutReacjiSkinToneRpcPromise)
   const updateUserReacjis = C.useChatState(s => s.dispatch.updateUserReacjis)
   const setSkinTone = (emojiSkinTone: undefined | T.Chat.EmojiSkinTone) => {
     rpc(

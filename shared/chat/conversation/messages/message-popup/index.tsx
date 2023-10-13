@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import AttachmentMessage from './attachment'
@@ -148,7 +147,7 @@ export const useMessagePopup = (p: {
     popupAnchor: React.useRef<Kb.MeasureRef>(null),
     setShowingPopup: () => {},
     showingPopup: true,
-    toggleShowingPopup: Container.useEvent(() => {
+    toggleShowingPopup: C.useEvent(() => {
       navigateAppend(conversationIDKey => ({
         props: {conversationIDKey, ordinal},
         selected: 'chatMessagePopup',

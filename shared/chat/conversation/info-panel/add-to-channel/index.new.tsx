@@ -42,7 +42,7 @@ const AddToChannel = (props: Props) => {
 
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const addToChannel = Container.useRPC(T.RPCChat.localBulkAddToConvRpcPromise)
+  const addToChannel = C.useRPC(T.RPCChat.localBulkAddToConvRpcPromise)
 
   const onClose = () => nav.safeNavigateUp()
   const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)

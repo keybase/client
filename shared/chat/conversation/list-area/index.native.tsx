@@ -41,7 +41,7 @@ const useScrolling = (p: {
   const oldestOrdinal = messageOrdinals.at(-1) ?? -1
   const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
 
-  const loadOlderMessages = Container.useEvent(() => {
+  const loadOlderMessages = C.useEvent(() => {
     // already loaded and nothing has changed
     if (lastLoadOrdinal.current === oldestOrdinal) {
       return
@@ -64,7 +64,7 @@ const useScrolling = (p: {
     lastScrollToCentered.current = -1
   }
 
-  const scrollToCentered = Container.useEvent(() => {
+  const scrollToCentered = C.useEvent(() => {
     setTimeout(() => {
       const list = listRef.current
       if (!list) {
@@ -161,7 +161,7 @@ const ConversationList = React.memo(function ConversationList(p: {
 
   const numOrdinals = messageOrdinals.length
 
-  const getItemType = Container.useEvent((ordinal: T.Chat.Ordinal, idx: number) => {
+  const getItemType = C.useEvent((ordinal: T.Chat.Ordinal, idx: number) => {
     if (!ordinal) {
       return 'null'
     }
@@ -206,7 +206,7 @@ const ConversationList = React.memo(function ConversationList(p: {
 
   useChatDebugDump(
     'listArea',
-    Container.useEvent(() => {
+    C.useEvent(() => {
       if (!listRef.current) return ''
       const {props, state} = listRef.current as any
       const {extraData, data} = props

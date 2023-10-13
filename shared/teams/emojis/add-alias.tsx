@@ -11,7 +11,6 @@ import {
   renderEmoji,
 } from '../../util/emoji'
 import {AliasInput, Modal} from './common'
-import useRPC from '../../util/use-rpc'
 import {useEmojiState} from './use-emoji'
 import {usePickerState} from '../../chat/emoji-picker/use-picker'
 
@@ -51,7 +50,7 @@ export const AddAliasModal = (props: Props) => {
     [props.defaultSelected]
   )
 
-  const addAliasRpc = useRPC(T.RPCChat.localAddEmojiAliasRpcPromise)
+  const addAliasRpc = C.useRPC(T.RPCChat.localAddEmojiAliasRpcPromise)
   const [addAliasWaiting, setAddAliasWaiting] = React.useState(false)
 
   const refreshEmoji = useEmojiState(s => s.dispatch.triggerEmojiUpdated)

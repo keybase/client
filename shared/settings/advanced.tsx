@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as Constants from '../constants/settings'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as T from '../constants/types'
 import * as React from 'react'
@@ -79,7 +78,7 @@ const Advanced = () => {
   const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
 
   const initialDisableSpellCheck = React.useRef<boolean | undefined>(undefined)
-  const loadDisableSpellcheck = Container.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
+  const loadDisableSpellcheck = C.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
 
   // load it
   if (disableSpellCheck === undefined) {
@@ -95,7 +94,7 @@ const Advanced = () => {
       }
     )
   }
-  const submitDisableSpellcheck = Container.useRPC(T.RPCGen.configGuiSetValueRpcPromise)
+  const submitDisableSpellcheck = C.useRPC(T.RPCGen.configGuiSetValueRpcPromise)
 
   const onToggleDisableSpellcheck = () => {
     const next = !disableSpellCheck

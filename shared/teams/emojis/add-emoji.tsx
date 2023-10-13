@@ -3,7 +3,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import {AliasInput, Modal} from './common'
-import useRPC from '../../util/use-rpc'
 import {pickImages} from '../../util/pick-files'
 import kebabCase from 'lodash/kebabCase'
 import {useEmojiState} from './use-emoji'
@@ -35,7 +34,7 @@ const useDoAddEmojis = (
   removeFilePath: (toRemove: Set<string> | string) => void,
   onChange?: () => void
 ) => {
-  const addEmojisRpc = useRPC(T.RPCChat.localAddEmojisRpcPromise)
+  const addEmojisRpc = C.useRPC(T.RPCChat.localAddEmojisRpcPromise)
   const [waitingAddEmojis, setWaitingAddEmojis] = React.useState(false)
   const [bannerError, setBannerError] = React.useState('')
   const clearBannerError = React.useCallback(() => setBannerError(''), [setBannerError])

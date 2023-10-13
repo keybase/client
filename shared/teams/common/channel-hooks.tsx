@@ -1,7 +1,6 @@
 import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
 import * as ChatConstants from '../../constants/chat2'
 import * as Constants from '../../constants/teams'
 
@@ -30,7 +29,7 @@ export const useAllChannelMetas = (
   loadingChannels: boolean
   reloadChannels: () => Promise<void>
 } => {
-  const getConversations = Container.useRPC(T.RPCChat.localGetTLFConversationsLocalRpcPromise)
+  const getConversations = C.useRPC(T.RPCChat.localGetTLFConversationsLocalRpcPromise)
 
   const teamname = C.useTeamsState(s => C.getTeamNameFromID(s, teamID) ?? '')
   const [channelMetas, setChannelMetas] = React.useState(
@@ -95,7 +94,7 @@ export const useChannelMeta = (
   teamID: T.Teams.TeamID,
   conversationIDKey: T.Chat.ConversationIDKey
 ): T.Chat.ConversationMeta | undefined => {
-  const getInboxItem = Container.useRPC(T.RPCChat.localGetInboxAndUnboxUILocalRpcPromise)
+  const getInboxItem = C.useRPC(T.RPCChat.localGetInboxAndUnboxUILocalRpcPromise)
   const [conv, setConv] = React.useState<T.RPCChat.InboxUIItem | undefined>()
 
   const waitingKey = C.teamWaitingKey(teamID)

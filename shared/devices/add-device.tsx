@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as React from 'react'
 import * as Constants from '../constants/devices'
 import * as Kb from '../common-adapters'
-import {useSafeCallback} from '../util/container'
 
 type OwnProps = {
   highlight?: Array<'computer' | 'phone' | 'paper key'>
@@ -20,7 +19,7 @@ export default function AddDevice(ownProps: OwnProps) {
   }, [addNewDevice])
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onAddPaperKey = useSafeCallback(
+  const onAddPaperKey = C.useSafeCallback(
     React.useCallback(() => {
       navigateAppend('devicePaperKey')
     }, [navigateAppend]),

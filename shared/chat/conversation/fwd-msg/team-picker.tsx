@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as Container from '../../../util/container'
 import * as T from '../../../constants/types'
 import {Avatars, TeamAvatar} from '../../avatars'
 import debounce from 'lodash/debounce'
@@ -25,8 +24,8 @@ const TeamPicker = (props: Props) => {
   const [results, setResults] = React.useState<Array<T.RPCChat.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const fwdMsg = Container.useRPC(T.RPCChat.localForwardMessageNonblockRpcPromise)
-  const submit = Container.useRPC(T.RPCChat.localForwardMessageConvSearchRpcPromise)
+  const fwdMsg = C.useRPC(T.RPCChat.localForwardMessageNonblockRpcPromise)
+  const submit = C.useRPC(T.RPCChat.localForwardMessageConvSearchRpcPromise)
   const [lastTerm, setLastTerm] = React.useState('init')
   if (lastTerm !== term) {
     setLastTerm(term)

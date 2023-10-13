@@ -56,7 +56,7 @@ const AddMembersConfirm = () => {
   const newTeamWaiting = C.useAnyWaiting(Constants.teamCreationWaitingKey)
   const waiting = _waiting || newTeamWaiting
 
-  const addMembers = Container.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
+  const addMembers = C.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
   const finishNewTeamWizard = C.useTeamsState(s => s.dispatch.finishNewTeamWizard)
   const finishedAddMembersWizard = C.useTeamsState(s => s.dispatch.finishedAddMembersWizard)
 

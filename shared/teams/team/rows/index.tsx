@@ -3,7 +3,6 @@ import * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
 import * as ChatConstants from '../../../constants/chat2'
 import * as Constants from '../../../constants/teams'
-import * as Container from '../../../util/container'
 import * as React from 'react'
 import EmptyRow from './empty-row'
 import LoadingRow from './loading'
@@ -209,7 +208,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
   const convID = useGeneralConversationIDKey(teamID)
   const [lastActuallyLoad, setLastActuallyLoad] = React.useState(false)
   const cidChanged = C.useCIDChanged(convID)
-  const getUserEmoji = Container.useRPC(T.RPCChat.localUserEmojisRpcPromise)
+  const getUserEmoji = C.useRPC(T.RPCChat.localUserEmojisRpcPromise)
   const [customEmoji, setCustomEmoji] = React.useState<T.RPCChat.Emoji[]>([])
   const [filter, setFilter] = React.useState('')
 

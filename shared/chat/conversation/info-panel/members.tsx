@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Container from '../../../util/container'
 import * as TeamConstants from '../../../constants/teams'
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
@@ -29,7 +28,7 @@ const MembersTab = (props: Props) => {
   const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && !teamMembers
-  const refreshParticipants = Container.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
+  const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
   const participantInfo = C.useChatContext(s => s.participants)
   const participants = C.useChatContext(
     s => Constants.getBotsAndParticipants(s.meta, s.participants).participants

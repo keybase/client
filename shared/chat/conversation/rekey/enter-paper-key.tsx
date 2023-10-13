@@ -1,6 +1,5 @@
 import {PaperKey} from '../../../provision/paper-key'
 import * as T from '../../../constants/types'
-import * as Container from '../../../util/container'
 import * as C from '../../../constants'
 
 export default () => {
@@ -12,7 +11,7 @@ export default () => {
     navigateUp()
   }
 
-  const checkPaperKeyRPC = Container.useRPC(T.RPCGen.loginPaperKeySubmitRpcPromise)
+  const checkPaperKeyRPC = C.useRPC(T.RPCGen.loginPaperKeySubmitRpcPromise)
   const onSubmit = (paperKey: string) => {
     checkPaperKeyRPC(
       [{paperPhrase: paperKey}],

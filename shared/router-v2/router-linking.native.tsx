@@ -1,9 +1,8 @@
 import * as C from '../constants'
 import * as ChatConstants from '../constants/chat2'
-import type * as ConfigConstants from '../constants/config'
-import * as Container from '../util/container'
 import * as Shared from './router.shared'
 import * as Tabs from '../constants/tabs'
+import type * as ConfigConstants from '../constants/config'
 import {getStateFromPath} from '@react-navigation/native'
 import {tabRoots} from './routes'
 import {Linking} from 'react-native'
@@ -70,7 +69,7 @@ type OptionsType = {
 
 const makeLinking = (options: OptionsType) => {
   const {androidShare, startupTab, showMonster, startupFollowUser, startupConversation} = options
-  const config = Container.produce(
+  const config = C.produce(
     {
       initialRouteName: 'loggedIn',
       screens: {
@@ -141,7 +140,7 @@ const makeLinking = (options: OptionsType) => {
       // use the chat path to make the object but swap out the name with the convo id
       if (path.startsWith('convid/')) {
         const [, id] = path.split('/')
-        return Container.produce(getStateFromPath('chat/REPLACE', options), draft => {
+        return C.produce(getStateFromPath('chat/REPLACE', options), draft => {
           // @ts-ignore
           draft.routes[0].state.routes[0].state.routes[1].params.conversationIDKey = id
         })
