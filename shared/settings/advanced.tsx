@@ -5,7 +5,6 @@ import * as Kb from '../common-adapters'
 import * as T from '../constants/types'
 import * as React from 'react'
 import {ProxySettings} from './proxy/container'
-import {toggleRenderDebug} from '../router-v2/shim.shared'
 
 let initialUseNativeFrame: boolean | undefined
 
@@ -234,13 +233,6 @@ const Developer = () => {
             mode="Secondary"
             style={styles.developerButtons}
           />
-          <Kb.Button
-            label="Toggle Render Stats"
-            onClick={toggleRenderDebug}
-            mode="Secondary"
-            style={styles.developerButtons}
-          />
-
           <Kb.Button
             waiting={traceInProgress}
             style={{marginTop: Kb.Styles.globalMargins.small}}

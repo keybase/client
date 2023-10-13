@@ -3,10 +3,10 @@ import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
-import * as Shim from './shim.desktop'
+import {shim, getOptions} from './shim'
 import * as Tabs from '../constants/tabs'
 import Header from './header/index.desktop'
-import type {RouteMap} from '../util/container'
+import type {RouteMap} from '../constants/types/router2'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
 import {NavigationContainer} from '@react-navigation/native'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
@@ -39,7 +39,7 @@ const makeTabStack = (tab: DesktopTabs) => {
 
   let tabScreens = tabScreensCache.get(tab)
   if (!tabScreens) {
-    tabScreens = makeNavScreens(Shim.shim(routesMinusRoots(tab), false, false), S.Screen, false)
+    tabScreens = makeNavScreens(shim(routesMinusRoots(tab), false, false), S.Screen, false)
     tabScreensCache.set(tab, tabScreens)
   }
 
@@ -70,7 +70,7 @@ const makeNavScreens = (rs: any, Screen: any, _isModal: boolean) => {
         name={name}
         getComponent={rs[name].getScreen}
         options={({route, navigation}: any) => {
-          const no = Shim.getOptions(rs[name])
+          const no = getOptions(rs[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}
         }}
@@ -113,7 +113,7 @@ const AppTabs = React.memo(
 )
 
 const LoggedOutStack = createNativeStackNavigator()
-const LoggedOutScreens = makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
+const LoggedOutScreens = makeNavScreens(shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
 const LoggedOut = React.memo(function LoggedOut() {
   return (
     <LoggedOutStack.Navigator
@@ -133,7 +133,7 @@ const LoggedOut = React.memo(function LoggedOut() {
 })
 
 const RootStack = createNativeStackNavigator()
-const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
+const ModalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen, true)
 const documentTitle = {
   formatter: () => {
     // @ts-ignore

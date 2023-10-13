@@ -1,14 +1,13 @@
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/crypto'
 import * as Common from '../../router-v2/common.desktop'
-import * as Shim from '../../router-v2/shim'
 import LeftNav from './left-nav.desktop'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import {type EncryptIO} from '../operations/encrypt'
 import {type DecryptIO} from '../operations/decrypt'
 import {type SignIO} from '../operations/sign'
 import {type VerifyIO} from '../operations/verify'
-import {getOptions} from '../../router-v2/shim.shared'
+import {getOptions, shim} from '../../router-v2/shim'
 
 /* Desktop SubNav */
 const cryptoSubRoutes = {
@@ -61,7 +60,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
 const TabNavigator = createLeftTabNavigator()
 
-const shimmed = Shim.shim(cryptoSubRoutes, false, false)
+const shimmed = shim(cryptoSubRoutes, false, false)
 
 const CryptoSubNavigator = () => (
   <TabNavigator.Navigator initialRouteName={Constants.encryptTab} backBehavior="none">

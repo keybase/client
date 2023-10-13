@@ -3,15 +3,21 @@ import * as React from 'react'
 import * as Shared from './shim.shared'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {View} from 'react-native'
+import type {RouteMap, GetOptions, GetOptionsParams} from '../constants/types/router2'
 
-export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
-  Shared.shim(routes, shimNewRoute, isModal, isLoggedOut)
+export const shim = (routes: RouteMap, isModal: boolean, isLoggedOut: boolean) =>
+  Shared._shim(routes, platformShim, isModal, isLoggedOut)
 
-export const getOptions = Shared.getOptions
+export const getOptions = Shared._getOptions
 
-const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, getOptions: any) => {
+export const platformShim = (
+  Original: React.JSXElementConstructor<GetOptionsParams>,
+  isModal: boolean,
+  isLoggedOut: boolean,
+  getOptions?: GetOptions
+) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
-  return React.memo(function ShimmedNew(props: any) {
+  return React.memo(function ShimmedNew(props: GetOptionsParams) {
     const navigationOptions =
       typeof getOptions === 'function'
         ? getOptions({navigation: props.navigation, route: props.route})

@@ -1,11 +1,10 @@
 import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as Common from '../router-v2/common'
-import * as Shim from '../router-v2/shim'
+import {shim, getOptions} from '../router-v2/shim'
 import LeftNav from './sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import {sharedNewRoutes} from './routes'
-import {getOptions} from '../router-v2/shim.shared'
 
 const settingsSubRoutes = {
   ...sharedNewRoutes,
@@ -50,7 +49,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
 const TabNavigator = createLeftTabNavigator()
 
-const shimmed = Shim.shim(settingsSubRoutes, false, false)
+const shimmed = shim(settingsSubRoutes, false, false)
 
 // TODO on ipad this doesn't have a stack navigator so when you go into crypto you get
 // a push from the parent stack. If we care just make a generic left nav / right stack

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import type {NavigationContainerRef} from '@react-navigation/core'
 import type {createListenerMiddleware} from '@reduxjs/toolkit'
 export type ListenerMiddleware = ReturnType<typeof createListenerMiddleware>
 export {getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params'
@@ -39,15 +38,6 @@ export function useDepChangeEffect(f: () => void, deps: Array<unknown>) {
     // eslint-disable-next-line
   }, deps)
 }
-
-import type {NavigationState} from '@react-navigation/core'
-type Route = NavigationState['routes'][0]
-export type RouteDef = {
-  getScreen: () => React.ComponentType<any>
-  getOptions?: Object | ((p: {navigation: NavigationContainerRef<{}>; route: Route}) => Object)
-  screen?: React.ComponentType
-}
-export type RouteMap = {[K in string]?: RouteDef}
 
 export const timeoutPromise = async (timeMs: number) =>
   new Promise<void>(resolve => {
