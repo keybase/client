@@ -1,14 +1,13 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Container from '../util/container'
 import * as T from '../constants/types'
 import logger from '../logger'
 
 const Display = () => {
   const allowAnimatedEmojis = C.useConfigState(s => s.allowAnimatedEmojis)
   const darkModePreference = C.useDarkModeState(s => s.darkModePreference)
-  const toggleAnimatedEmoji = Container.useRPC(T.RPCChat.localToggleEmojiAnimationsRpcPromise)
+  const toggleAnimatedEmoji = C.useRPC(T.RPCChat.localToggleEmojiAnimationsRpcPromise)
   const supported = C.useDarkModeState(s => s.supported)
   const onSetDarkModePreference = C.useDarkModeState(s => s.dispatch.setDarkModePreference)
   const doToggleAnimatedEmoji = (enabled: boolean) => {

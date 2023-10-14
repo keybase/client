@@ -26,7 +26,7 @@ const AddPhone = () => {
     }
   }, [defaultCountry, loadDefaultPhoneCountry])
 
-  const emailsToAssertionsRPC = Container.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
+  const emailsToAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
   const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
   const onContinue = () => {
     setError('')

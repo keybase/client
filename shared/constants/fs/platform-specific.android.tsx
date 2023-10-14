@@ -1,7 +1,6 @@
 import * as C from '..'
 import * as Constants from '../fs'
 import * as T from '../types'
-import * as Z from '../../util/zustand'
 import logger from '../../logger'
 import nativeInit from './common.native'
 import {androidAddCompleteDownload, fsCacheDir, fsDownloadDir} from 'react-native-kb'
@@ -21,7 +20,7 @@ export default function initPlatformSpecific() {
           downloadDirOverride: fsDownloadDir,
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     s.dispatch.dynamic.finishedRegularDownloadMobile = (downloadID, mimeType) => {
@@ -58,7 +57,7 @@ export default function initPlatformSpecific() {
         }
         // No need to dismiss here as the download wrapper does it for Android.
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
   })
 }

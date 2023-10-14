@@ -814,7 +814,7 @@ const plumbEvents = () => {
         if (showDevTools && !skipSecondaryDevtools) {
           remoteWindow.webContents.openDevTools({
             mode: 'detach',
-            title: `${action.payload.windowComponent} Devtools`,
+            title: `${__DEV__ ? 'DEV' : 'Prod'} ${action.payload.windowComponent} Devtools`,
           })
         }
 

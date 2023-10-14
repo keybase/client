@@ -1,6 +1,5 @@
 import * as C from './../../constants'
 import * as React from 'react'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import type {LayoutEvent} from './../../common-adapters/box'
 import * as Constants from './../../constants/chat2'
@@ -16,7 +15,6 @@ import {
   type EmojiData,
   type RenderableEmoji,
 } from './../../util/emoji'
-import useRPC from './../../util/use-rpc'
 import {usePickerState, type PickKey} from './use-picker'
 
 type Props = {
@@ -63,7 +61,7 @@ const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) 
 
 const useSkinTone = () => {
   const currentSkinTone = T.Chat.EmojiSkinToneFromRPC(C.useChatState(s => s.userReacjis.skinTone))
-  const rpc = useRPC(T.RPCChat.localPutReacjiSkinToneRpcPromise)
+  const rpc = C.useRPC(T.RPCChat.localPutReacjiSkinToneRpcPromise)
   const updateUserReacjis = C.useChatState(s => s.dispatch.updateUserReacjis)
   const setSkinTone = (emojiSkinTone: undefined | T.Chat.EmojiSkinTone) => {
     rpc(
@@ -113,7 +111,7 @@ const useCanManageEmoji = () => {
 const WrapperMobile = (props: Props) => {
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
 
-  const setFilterTextChangedThrottled = Container.useThrottledCallback(setFilter, 200)
+  const setFilterTextChangedThrottled = C.useThrottledCallback(setFilter, 200)
   const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const [width, setWidth] = React.useState(0)
   const onLayout = React.useCallback((evt: LayoutEvent) => setWidth(evt.nativeEvent.layout.width), [setWidth])

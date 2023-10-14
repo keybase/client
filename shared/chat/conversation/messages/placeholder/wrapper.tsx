@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
-import * as Container from '../../../../util/container'
 import * as React from 'react'
 import * as T from '../../../../constants/types'
 import {WrapperMessage, type Props} from '../wrapper/wrapper'
@@ -26,7 +25,7 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
 
   useChatDebugDump(
     `wrapper${o}`,
-    Container.useEvent(() => {
+    C.useEvent(() => {
       return `placeholder: ${o}: ${type ?? ''}`
     })
   )

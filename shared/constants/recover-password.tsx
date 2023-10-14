@@ -243,7 +243,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           C.useRouterState.getState().dispatch.clearModals()
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
   }
   return {

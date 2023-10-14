@@ -7,7 +7,6 @@ import logger from '../logger'
 import * as T from './types'
 import type {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {isMobile} from './platform'
-import {isNetworkErr, RPCError} from '../util/errors'
 
 // set this to true to have all todo items + a contact joined notification show up all the time
 const debugTodo = false as boolean
@@ -377,7 +376,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           i: id,
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadPeople: (markViewed, numFollowSuggestionsWanted = defaultNumFollowSuggestions) => {
       const f = async () => {
@@ -492,24 +491,24 @@ export const _useState = Z.createZustand<State>((set, get) => {
           // never throw black bars
         } catch (_) {}
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     markViewed: () => {
       const f = async () => {
         try {
           await T.RPCGen.homeHomeMarkViewedRpcPromise()
         } catch (error) {
-          if (!(error instanceof RPCError)) {
+          if (!(error instanceof C.RPCError)) {
             throw error
           }
-          if (isNetworkErr(error.code)) {
+          if (C.isNetworkErr(error.code)) {
             logger.warn('Network error calling homeMarkViewed')
           } else {
             throw error
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     onEngineConnected: () => {
       const f = async () => {
@@ -520,7 +519,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           console.warn('Error in registering home UI:', error)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     onEngineIncoming: action => {
       switch (action.type) {
@@ -554,7 +553,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           get().dispatch.loadPeople(false)
         } catch (_) {}
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
   }
   return {

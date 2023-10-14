@@ -3,7 +3,6 @@ import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import Fullscreen from '.'
-import * as Container from '../../../util/container'
 import {maxWidth, maxHeight} from '../messages/attachment/shared'
 
 const blankMessage = Constants.makeMessageAttachment({})
@@ -53,7 +52,7 @@ const Connected = (props: OwnProps) => {
     maxHeight
   )
 
-  const submit = Container.useRPC(T.RPCChat.localGetNextAttachmentMessageLocalRpcPromise)
+  const submit = C.useRPC(T.RPCChat.localGetNextAttachmentMessageLocalRpcPromise)
 
   const onSwitchAttachment = (backInTime: boolean) => {
     if (conversationIDKey !== blankMessage.conversationIDKey) {

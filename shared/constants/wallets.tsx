@@ -80,7 +80,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           )
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     removeAccount: accountID => {
       const f = async () => {
@@ -90,7 +90,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         )
         get().dispatch.load()
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetState: 'default',
   }

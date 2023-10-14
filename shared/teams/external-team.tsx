@@ -14,7 +14,7 @@ type Props = {teamname: string}
 const ExternalTeam = (props: Props) => {
   const teamname = props.teamname
 
-  const getTeamInfo = Container.useRPC(T.RPCGen.teamsGetUntrustedTeamInfoRpcPromise)
+  const getTeamInfo = C.useRPC(T.RPCGen.teamsGetUntrustedTeamInfoRpcPromise)
   const [teamInfo, setTeamInfo] = React.useState<T.RPCGen.UntrustedTeamInfo | undefined>()
   const [waiting, setWaiting] = React.useState(false)
 

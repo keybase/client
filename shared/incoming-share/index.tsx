@@ -5,7 +5,6 @@ import * as T from '../constants/types'
 import * as FsConstants from '../constants/fs'
 import * as FsCommon from '../fs/common'
 import {MobileSendToChat} from '../chat/send-to-chat'
-import useRPC from '../util/use-rpc'
 
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
@@ -32,7 +31,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
   }, [originalOnly, setUseOriginalInStore])
 
   // From service to store, but only if this is not original only.
-  const getRPC = useRPC(T.RPCGen.incomingShareGetPreferenceRpcPromise)
+  const getRPC = C.useRPC(T.RPCGen.incomingShareGetPreferenceRpcPromise)
   const syncCompressPreferenceFromServiceToStore = React.useCallback(() => {
     getRPC(
       [undefined],
@@ -252,7 +251,7 @@ const useIncomingShareItems = () => {
   const [incomingShareError, setIncomingShareError] = React.useState<any>(undefined)
 
   // iOS
-  const rpc = useRPC(T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise)
+  const rpc = C.useRPC(T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise)
   const getIncomingShareItemsIOS = React.useCallback(() => {
     if (!C.isIOS) {
       return

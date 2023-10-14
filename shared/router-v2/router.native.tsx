@@ -3,7 +3,7 @@ import * as Constants from '../constants/router2'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
-import * as Shim from './shim.native'
+import {shim, getOptions} from './shim'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
 import * as RouterLinking from './router-linking.native'
@@ -42,7 +42,7 @@ const makeNavScreens = (rs: any, Screen: any, isModal: any) => {
         name={name}
         getComponent={rs[name].getScreen}
         options={({route, navigation}: any) => {
-          const no = Shim.getOptions(rs[name])
+          const no = getOptions(rs[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {
             ...opt,
@@ -137,7 +137,7 @@ const makeTabStack = (tab: string) => {
 
   let tabScreens = tabScreensCache.get(tab)
   if (!tabScreens) {
-    tabScreens = makeNavScreens(Shim.shim(tabRoutes, false, false), S.Screen, false)
+    tabScreens = makeNavScreens(shim(tabRoutes, false, false), S.Screen, false)
     tabScreensCache.set(tab, tabScreens)
   }
 
@@ -240,7 +240,7 @@ const AppTabs = React.memo(
 
 const LoggedOutStack = createNativeStackNavigator()
 
-const LoggedOutScreens = makeNavScreens(Shim.shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
+const LoggedOutScreens = makeNavScreens(shim(loggedOutRoutes, false, true), LoggedOutStack.Screen, false)
 const LoggedOut = React.memo(function LoggedOut() {
   return (
     // TODO show header and use nav headers
@@ -305,7 +305,7 @@ enum GoodLinkingState {
 }
 
 const RootStack = createNativeStackNavigator()
-const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
+const ModalScreens = makeNavScreens(shim(modalRoutes, true, false), RootStack.Screen, true)
 
 const useBarStyle = () => {
   const darkModePreference = C.useDarkModeState(s => s.darkModePreference)

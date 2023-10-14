@@ -1,5 +1,4 @@
 import * as C from '../../../../../constants'
-import * as Container from '../../../../../util/container'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
@@ -50,33 +49,33 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   })
 
   const setMarkAsUnread = C.useChatContext(s => s.dispatch.setMarkAsUnread)
-  const onMarkConversationAsUnread = Container.useEvent(() => {
+  const onMarkConversationAsUnread = C.useEvent(() => {
     setMarkAsUnread()
   })
 
   const mute = C.useChatContext(s => s.dispatch.mute)
-  const onMuteConversation = Container.useEvent(() => {
+  const onMuteConversation = C.useEvent(() => {
     mute(!isMuted)
   })
 
   const hideConversation = C.useChatContext(s => s.dispatch.hideConversation)
-  const onHideConversation = Container.useEvent(() => {
+  const onHideConversation = C.useEvent(() => {
     hideConversation(true)
   })
 
   const isMuted = C.useChatContext(s => s.meta.isMuted)
 
-  const onMarkAsUnread = Container.useEvent(() => {
+  const onMarkAsUnread = C.useEvent(() => {
     onMarkConversationAsUnread()
     swipeCloseRef?.current?.()
   })
 
-  const onMute = Container.useEvent(() => {
+  const onMute = C.useEvent(() => {
     onMuteConversation()
     swipeCloseRef?.current?.()
   })
 
-  const onHide = Container.useEvent(() => {
+  const onHide = C.useEvent(() => {
     onHideConversation()
     swipeCloseRef?.current?.()
   })

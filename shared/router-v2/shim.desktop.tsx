@@ -3,15 +3,22 @@ import * as Shared from './shim.shared'
 import * as Kb from '../common-adapters'
 import {EscapeHandler} from '../common-adapters/key-event-handler.desktop'
 import {useFocusEffect} from '@react-navigation/native'
+import type {
+  RouteMap,
+  GetOptions,
+  GetOptionsParams,
+  GetOptionsRet,
+  ModalType,
+} from '../constants/types/router2'
 
-export const getOptions = Shared.getOptions
-export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
-  Shared.shim(routes, shimNewRoute, isModal, isLoggedOut)
+export const getOptions = Shared._getOptions
+export const shim = (routes: RouteMap, isModal: boolean, isLoggedOut: boolean) =>
+  Shared._shim(routes, platformShim, isModal, isLoggedOut)
 
 const mouseResetValue = -9999
 const mouseDistanceThreshold = 5
 
-const useMouseClick = (navigation: any, noClose: boolean) => {
+const useMouseClick = (navigation: {pop: () => void}, noClose?: boolean) => {
   const backgroundRef = React.useRef(null)
 
   // we keep track of mouse down/up to determine if we should call it a 'click'. We don't want dragging the
@@ -48,8 +55,14 @@ const useMouseClick = (navigation: any, noClose: boolean) => {
 
   return [backgroundRef, onMouseUp, onMouseDown] as const
 }
-type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide' | 'SuperWide'
-const ModalWrapper = ({navigationOptions, navigation, children}: any) => {
+type WrapProps = {
+  navigationOptions?: GetOptionsRet
+  navigation: {pop: () => void}
+  children: React.ReactNode
+}
+
+const ModalWrapper = (p: WrapProps) => {
+  const {navigationOptions, navigation, children} = p
   const {modal2Style, modal2AvoidTabs, modal2, modal2ClearCover, modal2NoClose, modal2Type} =
     navigationOptions ?? {}
 
@@ -86,8 +99,8 @@ const ModalWrapper = ({navigationOptions, navigation, children}: any) => {
             modal2ClearCover && styles.modal2ClearCover,
             !topMostModal && styles.hidden,
           ])}
-          onMouseDown={onMouseDown as any}
-          onMouseUp={onMouseUp as any}
+          onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
         >
           {modal2AvoidTabs && (
             <Kb.Box2 direction="vertical" className="tab-container" style={styles.modal2AvoidTabs} />
@@ -217,8 +230,13 @@ const styles = Kb.Styles.styleSheetCreate(() => {
   } as const
 })
 
-const shimNewRoute = (Original: any, isModal: boolean, _isLoggedOut: boolean, getOptions: any) => {
-  return React.memo(function ShimmedNew(props: any) {
+export const platformShim = (
+  Original: React.JSXElementConstructor<GetOptionsParams>,
+  isModal: boolean,
+  _isLoggedOut: boolean,
+  getOptions?: GetOptions
+) => {
+  return React.memo(function ShimmedNew(props: GetOptionsParams) {
     const navigationOptions =
       typeof getOptions === 'function'
         ? getOptions({navigation: props.navigation, route: props.route})

@@ -98,7 +98,7 @@ const GenerateLinkModal = (props: Props) => {
 
   const {toggleShowingPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
-  const generateLinkRPC = Container.useRPC(T.RPCGen.teamsTeamCreateSeitanInvitelinkWithDurationRpcPromise)
+  const generateLinkRPC = C.useRPC(T.RPCGen.teamsTeamCreateSeitanInvitelinkWithDurationRpcPromise)
   const onGenerate = () => {
     const expireAfter = validityValuesMap[validity as keyof typeof validityValuesMap] ?? ''
     const maxUses = !expireAfter ? 1 : -1

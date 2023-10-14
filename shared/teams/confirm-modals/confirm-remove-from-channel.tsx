@@ -26,7 +26,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 
   const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
   const channelSetMemberSelected = C.useTeamsState(s => s.dispatch.channelSetMemberSelected)
-  const removeFromChannel = Container.useRPC(T.RPCChat.localRemoveFromConversationLocalRpcPromise)
+  const removeFromChannel = C.useRPC(T.RPCChat.localRemoveFromConversationLocalRpcPromise)
 
   const onRemove = () => {
     setWaiting(true)

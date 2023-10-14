@@ -1,8 +1,8 @@
 import * as T from './types'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Z from '../util/zustand'
+import * as C from '.'
 import logger from '../logger'
-import {RPCError, isNetworkErr} from '../util/errors'
 
 export const waitingKeyBotSearchFeatured = 'bots:search:featured'
 export const waitingKeyBotSearchUsers = 'bots:search:users'
@@ -71,17 +71,17 @@ export const _useState = Z.createZustand<State>((set, get) => {
           get().dispatch.updateFeaturedBots(bots ?? [], page)
           get().dispatch.setLoadedAllBots(loadedAllBots)
         } catch (error) {
-          if (!(error instanceof RPCError)) {
+          if (!(error instanceof C.RPCError)) {
             return
           }
-          if (isNetworkErr(error.code)) {
+          if (C.isNetworkErr(error.code)) {
             logger.info('Network error getting featured bots')
           } else {
             logger.info(error.message)
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadNextBotPage: ps => {
       get().dispatch.getFeaturedBots(ps ?? pageSize, get().featuredBotsPage + 1)
@@ -122,7 +122,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           botRes = temp[0]
           userRes = temp[1] ?? undefined
         } catch (error) {
-          if (!(error instanceof RPCError)) {
+          if (!(error instanceof C.RPCError)) {
             return
           }
           logger.info(`searchFeaturedAndUsers: failed to run search: ${error.message}`)
@@ -139,7 +139,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }, []),
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     searchFeaturedBots: (query, limit, offset) => {
       const f = async () => {
@@ -155,17 +155,17 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
           get().dispatch.updateFeaturedBots(bots)
         } catch (error) {
-          if (!(error instanceof RPCError)) {
+          if (!(error instanceof C.RPCError)) {
             return
           }
-          if (isNetworkErr(error.code)) {
+          if (C.isNetworkErr(error.code)) {
             logger.info('Network error searching featured bots')
           } else {
             logger.info(error.message)
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     setLoadedAllBots: loaded => {
       set(s => {

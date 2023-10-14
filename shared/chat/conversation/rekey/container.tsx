@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as T from '../../../constants/types'
-import * as Container from '../../../util/container'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
 
@@ -32,7 +31,7 @@ export default () => {
     navigateAppend('chatEnterPaperkey')
   }
 
-  const rekeyShowPendingRekeyStatus = Container.useRPC(T.RPCGen.rekeyShowPendingRekeyStatusRpcPromise)
+  const rekeyShowPendingRekeyStatus = C.useRPC(T.RPCGen.rekeyShowPendingRekeyStatusRpcPromise)
 
   const onRekey = () => {
     rekeyShowPendingRekeyStatus(

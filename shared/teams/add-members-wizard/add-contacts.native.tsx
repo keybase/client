@@ -28,7 +28,7 @@ const AddContacts = () => {
   }
 
   const [waiting, setWaiting] = React.useState(false)
-  const toAssertionsRPC = Container.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
+  const toAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
 
   const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
 

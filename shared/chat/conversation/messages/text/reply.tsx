@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import {OrdinalContext, HighlightedContext} from '../ids-context'
@@ -129,7 +128,7 @@ const Reply = React.memo(function Reply() {
   })
 
   const replyJump = C.useChatContext(s => s.dispatch.replyJump)
-  const onClick = Container.useEvent(() => {
+  const onClick = C.useEvent(() => {
     const id = replyTo.id
     id && replyJump(id)
   })

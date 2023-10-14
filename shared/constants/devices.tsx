@@ -1,4 +1,5 @@
 import * as Z from '../util/zustand'
+import * as C from '../constants'
 import * as T from './types'
 import {memoize} from '../util/memoize'
 
@@ -19,7 +20,7 @@ type State = T.Devices.State & {
 export const _useState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
     clearBadges: () => {
-      Z.ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())
+      C.ignorePromise(T.RPCGen.deviceDismissDeviceChangeNotificationsRpcPromise())
     },
     load: () => {
       const f = async () => {
@@ -33,7 +34,7 @@ export const _useState = Z.createZustand<State>(set => {
           )
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetState: 'default',
     setBadges: b => {

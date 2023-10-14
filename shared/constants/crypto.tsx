@@ -324,7 +324,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         })
       }
     }
-    Z.ignorePromise(f())
+    C.ignorePromise(f())
   }
 
   const decrypt = (destinationDir: string = '') => {
@@ -377,7 +377,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
     }
 
-    Z.ignorePromise(f())
+    C.ignorePromise(f())
   }
 
   const sign = (destinationDir: string = '') => {
@@ -410,7 +410,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
     }
 
-    Z.ignorePromise(f())
+    C.ignorePromise(f())
   }
 
   const verify = (destinationDir: string = '') => {
@@ -459,7 +459,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
     }
 
-    Z.ignorePromise(f())
+    C.ignorePromise(f())
   }
 
   const download = (op: T.Crypto.Operations) => {
@@ -481,7 +481,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         o.outputType = 'file'
       })
     }
-    Z.ignorePromise(f())
+    C.ignorePromise(f())
   }
 
   const dispatch: State['dispatch'] = {

@@ -40,8 +40,8 @@ declare module 'framed-msgpack-rpc' {
     method: string
     param: Array<Object>
     response?: {
-      error: (e: ErrorType) => void
-      result: (r: unknown) => void
+      error?: (e: ErrorType) => void
+      result?: (r: unknown) => void
     }
   }
   export type incomingRPCCallbackType = (payload: PayloadType) => void

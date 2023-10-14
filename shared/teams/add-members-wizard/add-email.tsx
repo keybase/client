@@ -21,7 +21,7 @@ const AddEmail = (props: Props) => {
   const teamID = C.useTeamsState(s => s.addMembersWizard.teamID)
   const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
 
-  const emailsToAssertionsRPC = Container.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
+  const emailsToAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
   const onContinue = () => {
     setError('')
     emailsToAssertionsRPC(

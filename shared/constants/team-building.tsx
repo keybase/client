@@ -340,7 +340,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     finishTeamBuilding: () => {
       set(s => {
@@ -451,7 +451,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         }, new Array<string>())
         blocks.length && C.useUsersState.getState().dispatch.getBlockState(blocks)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     selectRole: role => {
       set(s => {

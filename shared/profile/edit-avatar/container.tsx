@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as T from '../../constants/types'
 import type * as ImagePicker from 'expo-image-picker'
@@ -65,7 +64,7 @@ export default (ownProps: OwnProps) => {
     error =
       sperror.code === T.RPCGen.StatusCode.scgeneric
         ? sperror.desc
-        : Container.isNetworkErr(sperror.code)
+        : C.isNetworkErr(sperror.code)
         ? 'Connection lost. Please check your network and try again.'
         : 'This image format is not supported.'
   }

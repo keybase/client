@@ -9,7 +9,7 @@ import {Activity, useChannelParticipants} from '../common'
 
 const useRecentJoins = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const [recentJoins, setRecentJoins] = React.useState<number | undefined>(undefined)
-  const getRecentJoinsRPC = Container.useRPC(T.RPCChat.localGetRecentJoinsLocalRpcPromise)
+  const getRecentJoinsRPC = C.useRPC(T.RPCChat.localGetRecentJoinsLocalRpcPromise)
   React.useEffect(() => {
     setRecentJoins(undefined)
     getRecentJoinsRPC(

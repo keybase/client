@@ -293,7 +293,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         C.useRouterState.getState().dispatch.clearModals()
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     dynamic: {
       cancel: _cancel,
@@ -337,7 +337,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetState: () => {
       get().dispatch.dynamic.cancel?.()
@@ -553,7 +553,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           get().dispatch.resetState()
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     startProvision: (name = '', fromReset = false) => {
       get().dispatch.dynamic.cancel?.()
@@ -573,7 +573,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         C.useRouterState.getState().dispatch.navigateAppend({props: {fromReset}, selected: 'username'})
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
   }
 

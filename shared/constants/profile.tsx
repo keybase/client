@@ -219,7 +219,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
       }
     }
-    Z.ignorePromise(f())
+    C.ignorePromise(f())
   }
 
   const dispatch: State['dispatch'] = {
@@ -449,7 +449,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     backToProfile: () => {
       C.useRouterState.getState().dispatch.clearModals()
@@ -492,7 +492,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
       get().dispatch.dynamic.afterCheckProof?.()
     },
     clearPlatformGeneric: () => {
@@ -513,7 +513,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         await T.RPCGen.userProfileEditRpcPromise({bio, fullName, location}, C.Tracker.waitingKey)
         get().dispatch.showUserProfile(C.useCurrentUserState.getState().username)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     finishRevoking: () => {
       const username = C.useCurrentUserState.getState().username
@@ -589,7 +589,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           s.dispatch.dynamic.finishedWithKeyGen = undefined
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     hideStellar: hidden => {
       const f = async () => {
@@ -605,7 +605,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           logger.warn('Error setting Stellar hidden:', e)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     recheckProof: sigID => {
       set(s => {
@@ -616,7 +616,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         await T.RPCGen.proveCheckProofRpcPromise({sigID}, waitingKey)
         C.useTrackerState.getState().dispatch.showUser(C.useCurrentUserState.getState().username, false)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetState: () => {
       set(s => ({
@@ -661,7 +661,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     submitRevokeProof: proofId => {
       const f = async () => {
@@ -694,7 +694,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     submitUnblockUser: (username, guiID) => {
       const f = async () => {
@@ -717,7 +717,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             .dispatch.updateResult(guiID, 'error', `Failed to unblock ${username}: ${error.desc}`)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     submitZcashAddress: () => {
       submitCryptoAddress('zcash')
@@ -756,7 +756,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           logger.warn(`Error uploading user avatar: ${error.message}`)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
   }
   return {

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as T from '../../../constants/types'
-import * as Container from '../../../util/container'
+import * as C from '../../../constants'
 import logger from '../../../logger'
 import debounce from 'lodash/debounce'
 import {Avatars, TeamAvatar} from '../../avatars'
@@ -60,7 +60,7 @@ const ConversationList = (props: Props) => {
   const [waiting, setWaiting] = React.useState(false)
   const [selected, setSelected] = React.useState(0)
   const [results, setResults] = React.useState<Array<T.RPCChat.SimpleSearchInboxConvNamesHit>>([])
-  const submit = Container.useRPC(T.RPCChat.localSimpleSearchInboxConvNamesRpcPromise)
+  const submit = C.useRPC(T.RPCChat.localSimpleSearchInboxConvNamesRpcPromise)
   const [lastQuery, setLastQuery] = React.useState('init')
   if (lastQuery !== query) {
     setLastQuery(query)

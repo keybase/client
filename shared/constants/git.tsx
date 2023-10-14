@@ -93,7 +93,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         })
       }
     }
-    Z.ignorePromise(wrapper())
+    C.ignorePromise(wrapper())
   }
 
   const _load = async () => {
@@ -106,7 +106,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     })
   }
   const load = () => {
-    Z.ignorePromise(_load())
+    C.ignorePromise(_load())
   }
   const dispatch: State['dispatch'] = {
     clearBadges: () => {
@@ -149,7 +149,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetState: 'default',
     setBadges: b => {

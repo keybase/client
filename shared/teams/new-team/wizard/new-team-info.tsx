@@ -46,7 +46,7 @@ const NewTeamInfo = () => {
   // Also it shouldn't leak the names of subteams people make to the server
   // eslint-disable-next-line
   const checkTeamNameTaken = React.useCallback(
-    debounce(Container.useRPC(T.RPCGen.teamsUntrustedTeamExistsRpcPromise), 100),
+    debounce(C.useRPC(T.RPCGen.teamsUntrustedTeamExistsRpcPromise), 100),
     []
   )
   React.useEffect(() => {

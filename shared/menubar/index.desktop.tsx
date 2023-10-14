@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as R from '../constants/remote'
-import * as Container from '../util/container'
 import * as T from '../constants/types'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -238,7 +237,7 @@ const LoggedIn = (p: Props) => {
   const {endEstimate, files, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
   const {outOfDate, windowShownCount} = p
 
-  const refreshUserFileEdits = Container.useThrottledCallback(() => {
+  const refreshUserFileEdits = C.useThrottledCallback(() => {
     R.remoteDispatch(RemoteGen.createUserFileEditsLoad())
   }, 5000)
 

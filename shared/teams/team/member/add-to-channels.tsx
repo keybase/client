@@ -98,7 +98,7 @@ const AddToChannels = (props: Props) => {
   const onCancel = () => nav.safeNavigateUp()
   const onCreate = () => nav.safeNavigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
 
-  const submit = Container.useRPC(T.RPCChat.localBulkAddToManyConvsRpcPromise)
+  const submit = C.useRPC(T.RPCChat.localBulkAddToManyConvsRpcPromise)
   const [waiting, setWaiting] = React.useState(false)
   const onFinish = () => {
     if (!selected.size) {
@@ -356,8 +356,8 @@ const SelfChannelActions = (p: {
     })
   }, [nav, meta])
 
-  const joinRPC = Container.useRPC(T.RPCChat.localJoinConversationByIDLocalRpcPromise)
-  const leaveRPC = Container.useRPC(T.RPCChat.localLeaveConversationLocalRpcPromise)
+  const joinRPC = C.useRPC(T.RPCChat.localJoinConversationByIDLocalRpcPromise)
+  const leaveRPC = C.useRPC(T.RPCChat.localLeaveConversationLocalRpcPromise)
 
   const convID = T.Chat.keyToConversationID(meta.conversationIDKey)
   const onLeave = React.useCallback(() => {

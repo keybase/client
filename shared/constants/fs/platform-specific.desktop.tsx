@@ -1,5 +1,4 @@
 import * as C from '..'
-import * as Z from '../../util/zustand'
 import * as T from '../types'
 import * as Constants from '../fs'
 import * as Tabs from '../tabs'
@@ -149,7 +148,7 @@ const initPlatformSpecific = () => {
           localPaths.forEach(localPath => upload(parentPath, localPath))
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop = localPath => {
@@ -163,7 +162,7 @@ const initPlatformSpecific = () => {
           Constants.errorToActionOrThrow(e)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     s.dispatch.dynamic.openPathInSystemFileManagerDesktop = path => {
@@ -187,7 +186,7 @@ const initPlatformSpecific = () => {
               }
             })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     s.dispatch.dynamic.refreshDriverStatusDesktop = () => {
@@ -201,7 +200,7 @@ const initPlatformSpecific = () => {
         }
         fuseStatusToActions(C.useFSState.getState().sfmi.driverStatus.type)(status)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     s.dispatch.dynamic.refreshMountDirsDesktop = () => {
@@ -216,14 +215,14 @@ const initPlatformSpecific = () => {
         dispatch.setDirectMountDir(directMountDir)
         dispatch.setPreferredMountDirs(preferredMountDirs || [])
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     s.dispatch.dynamic.setSfmiBannerDismissedDesktop = dismissed => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed})
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     s.dispatch.dynamic.afterDriverEnabled = isRetry => {
@@ -235,7 +234,7 @@ const initPlatformSpecific = () => {
           await driverEnableFuse(isRetry)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     s.dispatch.dynamic.afterDriverDisable = () => {
@@ -247,7 +246,7 @@ const initPlatformSpecific = () => {
           await uninstallKBFSConfirm()
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     s.dispatch.dynamic.afterDriverDisabling = () => {
@@ -258,14 +257,14 @@ const initPlatformSpecific = () => {
           await uninstallKBFS()
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     s.dispatch.dynamic.openSecurityPreferencesDesktop = () => {
       const f = async () => {
         await openURL?.('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     s.dispatch.dynamic.openFilesFromWidgetDesktop = path => {
@@ -283,7 +282,7 @@ const initPlatformSpecific = () => {
           Promise.resolve([]))
         localPaths.forEach(localPath => C.useFSState.getState().dispatch.upload(parentPath, localPath))
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     }
 
     if (!isLinux) {

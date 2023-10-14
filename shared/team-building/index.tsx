@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import * as ChatConstants from '../constants/chat2'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as T from '../constants/types'
@@ -101,7 +100,7 @@ const TeamBuilding = (p: OwnProps) => {
   const fetchUserRecs = C.useTBContext(s => s.dispatch.fetchUserRecs)
 
   const _search = C.useTBContext(s => s.dispatch.search)
-  const search = Container.useThrottledCallback(
+  const search = C.useThrottledCallback(
     (query: string, service: T.TB.ServiceIdWithContact, limit?: number) => {
       _search(query, service, namespace === 'chat2', limit)
     },

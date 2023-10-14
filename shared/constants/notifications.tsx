@@ -146,7 +146,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     onEngineIncoming: action => {
       switch (action.type) {

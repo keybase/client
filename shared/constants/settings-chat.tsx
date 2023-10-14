@@ -68,7 +68,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     contactSettingsSaved: (enabled, indirectFollowees, teamsEnabled, teamsList) => {
       const f = async () => {
@@ -97,7 +97,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetState: 'default',
     unfurlSettingsRefresh: () => {
@@ -120,7 +120,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     unfurlSettingsSaved: (unfurlMode, unfurlWhitelist) => {
       set(s => {
@@ -142,7 +142,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
   }
   return {

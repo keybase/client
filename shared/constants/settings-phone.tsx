@@ -1,4 +1,5 @@
 import * as T from './types'
+import * as C from '.'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
@@ -143,7 +144,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     clearAddedPhone: () => {
       set(s => {
@@ -176,7 +177,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadDefaultPhoneCountry: () => {
       const f = async () => {
@@ -191,7 +192,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           s.defaultCountry = country
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     notifyPhoneNumberPhoneNumbersChanged: list => {
       set(s => {
@@ -228,7 +229,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetState: 'default',
     setNumbers: phoneNumbers => {
@@ -277,7 +278,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
   }
   return {

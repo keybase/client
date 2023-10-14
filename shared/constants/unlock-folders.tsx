@@ -44,7 +44,7 @@ export const _useState = Z.createZustand<State>((set, _get) => {
           logger.debug('error in registering rekey ui: ', error)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     onEngineIncoming: action => {
       switch (action.type) {

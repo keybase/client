@@ -489,7 +489,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     ensureWidgetMetas: () => {
       const {inboxLayout} = get()
@@ -525,7 +525,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         )
         get().dispatch.loadedUserEmoji(results)
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     findGeneralConvIDFromTeamID: teamID => {
       const f = async () => {
@@ -546,7 +546,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     inboxRefresh: reason => {
       const f = async () => {
@@ -573,7 +573,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     inboxSearch: query => {
       set(s => {
@@ -765,7 +765,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     inboxSearchMoveSelectedIndex: increment => {
       set(s => {
@@ -860,7 +860,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           dispatch.wait(name, handshakeVersion, false)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     loadedUserEmoji: results => {
       set(s => {
@@ -933,7 +933,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     metasReceived: (metas, removals) => {
       removals?.forEach(r => {
@@ -1052,7 +1052,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           console.warn('Error in registering Chat UI:', error)
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     onEngineIncoming: action => {
       switch (action.type) {
@@ -1472,11 +1472,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
     onTeamBuildingFinished: users => {
       const f = async () => {
         // need to let the mdoal hide first else its thrashy
-        await Z.timeoutPromise(500)
+        await C.timeoutPromise(500)
         C.getConvoState(C.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
         get().dispatch.createConversation([...users].map(u => u.id))
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     paymentInfoReceived: paymentInfo => {
       set(s => {
@@ -1595,7 +1595,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
       }
       previewConversationPersonMakesAConversation()
-      Z.ignorePromise(previewConversationTeam())
+      C.ignorePromise(previewConversationTeam())
     },
     queueMetaHandle: () => {
       // Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible
@@ -1609,13 +1609,13 @@ export const _useState = Z.createZustand<State>((set, get) => {
           get().dispatch.unboxRows(conversationIDKeys)
         }
         if (metaQueue.size && conversationIDKeys.length) {
-          await Z.timeoutPromise(100)
+          await C.timeoutPromise(100)
         }
         if (metaQueue.size) {
           get().dispatch.queueMetaHandle()
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     queueMetaToRequest: ids => {
       let added = false as boolean
@@ -1659,7 +1659,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           s.botPublicCommands.set(username, {commands, loadError: false})
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetConversationErrored: () => {
       set(s => {
@@ -1697,7 +1697,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           })
         } catch (_) {}
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     setMaybeMentionInfo: (name, info) => {
       set(s => {
@@ -1729,7 +1729,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           get().dispatch.inboxSearch('')
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     toggleSmallTeamsExpanded: () => {
       set(s => {
@@ -1776,7 +1776,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     updateCoinFlipStatus: statuses => {
       set(s => {
@@ -1826,7 +1826,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const {accuracy, lat, lon} = coord
         await T.RPCChat.localLocationUpdateRpcPromise({coord: {accuracy, lat, lon}})
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     updateUserReacjis: userReacjis => {
       set(s => {

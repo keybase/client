@@ -111,7 +111,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           s.pendingInvites = pendingInvites
         })
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     reclaimInvite: inviteId => {
       const f = async () => {
@@ -128,7 +128,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         get().dispatch.loadInvites()
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
     resetError: () => {
       set(s => {
@@ -169,7 +169,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           get().dispatch.loadInvites()
         }
       }
-      Z.ignorePromise(f())
+      C.ignorePromise(f())
     },
   }
   return {

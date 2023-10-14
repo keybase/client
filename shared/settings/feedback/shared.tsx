@@ -1,7 +1,7 @@
 import * as T from '../../constants/types'
+import * as C from '../../constants'
 import * as Constants from '../../constants/settings'
 import * as React from 'react'
-import * as Z from '../../util/zustand'
 import logger from '../../logger'
 import {RPCError} from '../../util/errors'
 import {androidIsTestDevice, version} from '../../constants/platform'
@@ -43,7 +43,7 @@ export const useSendFeedback = () => {
         setError(error.desc)
       }
     }
-    Z.ignorePromise(f())
+    C.ignorePromise(f())
   }, [])
 
   return {error, sendFeedback}
