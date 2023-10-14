@@ -73,7 +73,7 @@ class Engine {
 
     this._emitWaiting = emitWaiting
     this._rpcClient = createClient(
-      payload => this._rpcIncoming(payload),
+      payload => this._rpcIncoming(payload as any),
       () => this._onConnected(),
       () => this._onDisconnect()
     )
@@ -152,9 +152,13 @@ class Engine {
   }
 
   // An incoming rpc call
-  _rpcIncoming(payload: {method: MethodKey; param: Array<Object>; response?: any}) {
+  _rpcIncoming(payload: {
+    method: MethodKey
+    param: Array<{sessionID?: number}>
+    response?: {cancelled: boolean; seqid: number; result?: () => void}
+  }) {
     const {method, param: incomingParam, response} = payload
-    const param: any = incomingParam.length ? incomingParam[0] || {} : {}
+    const param = incomingParam.length ? incomingParam[0] || {} : {}
     const {seqid, cancelled} = response || {cancelled: false, seqid: 0}
     const {sessionID} = param
 
@@ -166,13 +170,11 @@ class Engine {
         // Part of a session?
       } else {
         // Dispatch as an action
-        const extra = {}
+        const extra: {response?: unknown} = {}
         if (this._customResponseAction[method]) {
-          // @ts-ignore
           extra.response = response
         } else {
           // Not a custom response so we auto handle it
-          // @ts-ignore
           response?.result?.()
         }
         const type = method
@@ -182,7 +184,7 @@ class Engine {
           .join('')
 
         const act = {payload: {params: param, ...extra}, type: `engine-gen:${type}`}
-        this._engineConstantsIncomingCall(act as any)
+        this._engineConstantsIncomingCall(act as EngineGen.Actions)
       }
     }
   }
@@ -195,17 +197,19 @@ class Engine {
     method: string
     params: Object
     callback: (...args: Array<any>) => void
-    incomingCallMap?: any
-    customResponseIncomingCallMap?: any
+    incomingCallMap?: IncomingCallMapType
+    customResponseIncomingCallMap?: CustomResponseIncomingCallMapType
     waitingKey?: WaitingKey
   }) {
+    const {customResponseIncomingCallMap, incomingCallMap, waitingKey} = p
+    const {method, params, callback} = p
     // Make a new session and start the request
     const session = this.createSession({
-      customResponseIncomingCallMap: p.customResponseIncomingCallMap,
-      incomingCallMap: p.incomingCallMap,
-      waitingKey: p.waitingKey,
+      customResponseIncomingCallMap,
+      incomingCallMap,
+      waitingKey,
     })
-    session.start(p.method, p.params, p.callback)
+    session.start(method, params, callback)
     return session.getId()
   }
 
@@ -229,7 +233,7 @@ class Engine {
       invoke: (method, param, cb) => {
         const callback =
           (method: string) =>
-          (...args: any) => {
+          (...args: Array<unknown>) => {
             // If first argument is set, convert it to an Error type
             if (args.length > 0 && !!args[0]) {
               args[0] = convertToError(args[0], method)
@@ -291,7 +295,7 @@ export class FakeEngine {
   setFailOnError() {}
   setIncomingActionCreator(
     _: MethodKey,
-    __: (arg0: {param: Object; response: Object | undefined; state: any}) => any
+    __: (a: {param: Object; response: Object | undefined; state: unknown}) => unknown
   ) {}
   createSession(
     _: IncomingCallMapType | undefined,
@@ -306,25 +310,25 @@ export class FakeEngine {
       sessionID: 0,
     })
   }
-  _channelMapRpcHelper(_: Array<string>, __: string, ___: any) {
+  _channelMapRpcHelper(_: Array<string>, __: string, ___: unknown) {
     return null
   }
   _rpcOutgoing(
     _: string,
     __:
       | {
-          incomingCallMap?: any
+          incomingCallMap?: unknown
           waitingHandler?: WaitingHandlerType
         }
       | undefined,
-    ___: (...args: Array<any>) => void
+    ___: (...args: Array<unknown>) => void
   ) {}
 }
 
 // don't overwrite this on HMR
 let engine: Engine | undefined
 if (__DEV__) {
-  engine = global.DEBUGEngine
+  engine = global.DEBUGEngine as Engine
 }
 
 const makeEngine = (emitWaiting: (b: BatchParams) => void, onConnected: (c: boolean) => void) => {

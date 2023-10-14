@@ -19,15 +19,15 @@ export interface Console {
 
 declare global {
   var DEBUGmadeEngine: boolean | undefined
-  var DEBUGStore: any
-  var DEBUGEngine: any
+  var DEBUGStore: unknown
+  var DEBUGEngine: unknown
   var DEBUGLoaded: boolean | undefined
-  var KBCONSTANTS: any
+  var KBCONSTANTS: unknown
   var _fromPreload: any
   var __HOT__: boolean
   var __VERSION__: string
   var __FILE_SUFFIX__: string
   var __PROFILE__: boolean
-  var rpcOnGo: undefined | ((b: any) => void)
-  var rpcOnJs: undefined | ((b: any) => void)
+  var rpcOnGo: undefined | ((b: unknown) => void)
+  var rpcOnJs: undefined | ((b: unknown) => void)
 }
