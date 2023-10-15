@@ -7,27 +7,27 @@ import * as Styles from '../styles'
 import {Text as NativeText, Alert} from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 
-const modes = ['positive', 'negative']
+const modes = ['positive', 'negative'] as const
 
-const styles = Styles.styleSheetCreate(() =>
-  Object.keys(metaData()).reduce<any>(
-    (map, type) => {
-      const meta = metaData()[type as TextType]
-      modes.forEach(mode => {
-        map[`${type}:${mode}`] = {
-          ...fontSizeToSizeStyle(meta.fontSize),
-          // @ts-ignore
-          color: meta.colorForBackground[mode] || Styles.globalColors.black,
-          ...meta.styleOverride,
-        }
-      })
-      return map
-    },
-    {
+const styles2 = Styles.styleSheetCreate(
+  () =>
+    ({
       center: {textAlign: 'center'},
       fixOverdraw: {backgroundColor: Styles.globalColors.fastBlank},
-    }
-  )
+    }) as const
+)
+const styles = Styles.styleSheetCreate(() =>
+  Object.keys(metaData()).reduce<{[key: string]: Styles._StylesCrossPlatform}>((map, type) => {
+    const meta = metaData()[type as TextType]
+    modes.forEach(mode => {
+      map[`${type}:${mode}`] = {
+        ...fontSizeToSizeStyle(meta.fontSize),
+        color: meta.colorForBackground[mode] || Styles.globalColors.black,
+        ...meta.styleOverride,
+      } as Styles._StylesCrossPlatform
+    })
+    return map
+  }, {})
 )
 
 // Init common styles for perf
@@ -36,7 +36,7 @@ class Text extends React.Component<Props> {
   static defaultProps = {
     allowFontScaling: false,
   }
-  _nativeText: any
+  _nativeText: null | {focus: () => void} = null
 
   highlightText() {
     // ignored
@@ -81,7 +81,7 @@ class Text extends React.Component<Props> {
     })
   }
 
-  private setRef = (r: any) => {
+  private setRef = (r: typeof this._nativeText) => {
     this._nativeText = r
   }
 
@@ -97,13 +97,13 @@ class Text extends React.Component<Props> {
         this.props.style || this.props.center || this.props.fixOverdraw
           ? [
               baseStyle,
-              this.props.center && styles.center,
-              this.props.fixOverdraw && styles.fixOverdraw,
+              this.props.center && styles2.center,
+              this.props.fixOverdraw && styles2.fixOverdraw,
               this.props.style,
             ]
           : baseStyle
     } else {
-      style = [baseStyle, dynamicStyle, this.props.center && styles.center, this.props.style]
+      style = [baseStyle, dynamicStyle, this.props.center && styles2.center, this.props.style]
     }
 
     const onPress =
@@ -121,7 +121,7 @@ class Text extends React.Component<Props> {
         ref={this.setRef}
         selectable={this.props.selectable}
         textBreakStrategy={this.props.textBreakStrategy ?? 'simple'}
-        style={style}
+        style={style as any}
         {...lineClamp(this.props.lineClamp || undefined, this.props.ellipsizeMode || undefined)}
         onPress={onPress}
         onLongPress={onLongPress}

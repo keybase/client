@@ -266,8 +266,8 @@ type Props = {
 }
 
 type OldProps = Props & {
-  popup: any
-  popupAnchor: any
+  popup: React.ReactNode
+  popupAnchor: React.RefObject<MeasureRef>
   country: string | undefined
   setCountry: React.Dispatch<React.SetStateAction<string | undefined>>
   focused: boolean
