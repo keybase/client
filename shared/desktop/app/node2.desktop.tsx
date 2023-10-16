@@ -367,21 +367,25 @@ const plumbEvents = () => {
   Electron.nativeTheme.on('updated', () => {
     mainWindowDispatch(ConfigGen.createSetSystemDarkMode({dark: Electron.nativeTheme.shouldUseDarkColors}))
   })
-  Electron.powerMonitor.on('suspend', () => {
-    mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'suspend'}))
-  })
-  Electron.powerMonitor.on('resume', () => {
-    mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'resume'}))
-  })
-  Electron.powerMonitor.on('shutdown', () => {
-    mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'shutdown'}))
-  })
-  Electron.powerMonitor.on('lock-screen', () => {
-    mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'lock-screen'}))
-  })
-  Electron.powerMonitor.on('unlock-screen', () => {
-    mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'unlock-screen'}))
-  })
+
+  // this crashes on newer electron, unclear why
+  if (!isLinux) {
+    Electron.powerMonitor.on('suspend', () => {
+      mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'suspend'}))
+    })
+    Electron.powerMonitor.on('resume', () => {
+      mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'resume'}))
+    })
+    Electron.powerMonitor.on('shutdown', () => {
+      mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'shutdown'}))
+    })
+    Electron.powerMonitor.on('lock-screen', () => {
+      mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'lock-screen'}))
+    })
+    Electron.powerMonitor.on('unlock-screen', () => {
+      mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'unlock-screen'}))
+    })
+  }
 
   Electron.ipcMain.handle('KBdispatchAction', (_: any, action: any) => {
     mainWindow?.webContents.send('KBdispatchAction', action)
