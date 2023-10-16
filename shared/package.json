@@ -114,7 +114,7 @@
     "react-dom": "18.2.0",
     "react-list": "0.8.17",
     "react-measure": "2.5.2",
-    "react-native": "0.72.5",
+    "react-native": "0.72.6",
     "react-native-gesture-handler": "2.13.2",
     "react-native-hw-keyboard-event": "0.0.4",
     "react-native-image-keyboard": "2.2.0",
@@ -136,16 +136,16 @@
     "zustand": "4.4.3"
   },
   "devDependencies": {
-    "@babel/core": "7.23.0",
+    "@babel/core": "7.23.2",
     "@babel/node": "7.22.19",
-    "@babel/preset-env": "7.22.20",
+    "@babel/preset-env": "7.23.2",
     "@babel/preset-react": "7.22.15",
-    "@babel/preset-typescript": "7.23.0",
+    "@babel/preset-typescript": "7.23.2",
     "@babel/plugin-proposal-numeric-separator": "7.18.6",
     "@babel/plugin-proposal-nullish-coalescing-operator": "7.18.6",
     "@babel/plugin-proposal-optional-chaining": "7.21.0",
     "@pmmmwh/react-refresh-webpack-plugin": "0.5.11",
-    "@react-native/metro-config": "0.73.1",
+    "@react-native/metro-config": "0.74.0",
     "@types/fs-extra": "11.0.2",
     "@types/google-libphonenumber": "7.4.28",
     "@types/lodash": "4.14.199",
@@ -195,10 +195,10 @@
     "terser-webpack-plugin": "5.3.9",
     "tls": "keybase/nullModule",
     "typescript": "5.2.2",
-    "webpack": "5.88.2",
+    "webpack": "5.89.0",
     "webpack-cli": "5.1.4",
     "webpack-dev-server": "4.15.1",
-    "webpack-merge": "5.9.0"
+    "webpack-merge": "5.10.0"
   },
   "resolutions": {
     "**/purepack": "keybase/nullModule",
