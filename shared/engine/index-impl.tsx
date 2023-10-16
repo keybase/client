@@ -70,7 +70,6 @@ class Engine {
     f()
       .then(() => {})
       .catch(() => {})
-    // temp
     this._emitWaiting = emitWaiting
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload as any),
