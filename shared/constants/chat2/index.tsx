@@ -1082,8 +1082,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
         case EngineGen.chat1NotifyChatChatParticipantsInfo: {
           const {participants: participantMap} = action.payload.params
-          Object.keys(participantMap).forEach(convIDStr => {
-            const participants = participantMap[convIDStr]
+          Object.keys(participantMap ?? {}).forEach(convIDStr => {
+            const participants = participantMap?.[convIDStr]
             const conversationIDKey = T.Chat.stringToConversationIDKey(convIDStr)
             if (participants) {
               C.getConvoState(conversationIDKey).dispatch.setParticipants(

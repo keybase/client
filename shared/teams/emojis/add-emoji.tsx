@@ -59,10 +59,10 @@ const useDoAddEmojis = (
                 onChange?.()
                 removeFilePath(new Set(res.successFilenames))
               }
-              const failedFilenamesKeys = Object.keys(res.failedFilenames)
+              const failedFilenamesKeys = Object.keys(res.failedFilenames ?? {})
               !failedFilenamesKeys.length && clearModals()
               setErrors(
-                new Map(failedFilenamesKeys.map(key => [key, res.failedFilenames[key]?.uidisplay ?? '']))
+                new Map(failedFilenamesKeys.map(key => [key, res.failedFilenames?.[key]?.uidisplay ?? '']))
               )
               setBannerError(`Failed to add ${failedFilenamesKeys.length} emoji.`)
               setWaitingAddEmojis(false)

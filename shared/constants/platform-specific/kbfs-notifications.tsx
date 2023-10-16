@@ -30,14 +30,14 @@ function decodeKBFSError(user: string, notification: T.RPCGen.FSNotification): D
     case T.RPCGen.FSErrorType.accessDenied: {
       const prefix = user ? `${user} does` : 'You do'
       return {
-        body: `${prefix} not have ${notification.params['mode'] ?? ''} access to ${notification.filename}`,
+        body: `${prefix} not have ${notification.params?.['mode'] ?? ''} access to ${notification.filename}`,
         title: 'Keybase: Access denied',
       }
     }
 
     case T.RPCGen.FSErrorType.userNotFound:
       return {
-        body: `${notification.params['username'] ?? ''} is not a Keybase user`,
+        body: `${notification.params?.['username'] ?? ''} is not a Keybase user`,
         title: 'Keybase: User not found',
       }
 
@@ -56,13 +56,13 @@ function decodeKBFSError(user: string, notification: T.RPCGen.FSNotification): D
     case T.RPCGen.FSErrorType.timeout:
       return {
         body: `The ${
-          notification.params['mode'] ?? ''
+          notification.params?.['mode'] ?? ''
         } operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
-        title: `Keybase: ${capitalize(notification.params['mode'] ?? '')} timeout in ${tlf}`,
+        title: `Keybase: ${capitalize(notification.params?.['mode'] ?? '')} timeout in ${tlf}`,
       }
 
     case T.RPCGen.FSErrorType.rekeyNeeded:
-      return notification.params['rekeyself'] === 'true'
+      return notification.params?.['rekeyself'] === 'true'
         ? {
             body: `Please open one of your other computers to unlock ${tlf}`,
             title: 'Keybase: Files need to be rekeyed',
@@ -74,8 +74,8 @@ function decodeKBFSError(user: string, notification: T.RPCGen.FSNotification): D
     // Aggregate these cases together since they both use the usage/limit calc
     case T.RPCGen.FSErrorType.overQuota:
     case T.RPCGen.FSErrorType.diskLimitReached: {
-      const usageBytes = parseInt(notification.params['usageBytes'] ?? '', 10)
-      const limitBytes = parseInt(notification.params['limitBytes'] ?? '', 10)
+      const usageBytes = parseInt(notification.params?.['usageBytes'] ?? '', 10)
+      const limitBytes = parseInt(notification.params?.['limitBytes'] ?? '', 10)
       const usedGB = (usageBytes / 1e9).toFixed(1)
       const usedPercent = Math.round((100 * usageBytes) / limitBytes)
       if (notification.errorType === T.RPCGen.FSErrorType.overQuota) {

@@ -154,6 +154,7 @@ export const formatPhoneNumber = (rawNumber: string) => {
 export const formatAnyPhoneNumbers = (rawText: string) => {
   const found = rawText.match(/(\+)?(\d)+/)
   const rawNumber = found ? found[0] : ''
+  if (!rawNumber) return rawText
   const validatedNumber = validateNumber(rawNumber)
   const phoneNumber = validatedNumber.phoneNumber
   if (!validatedNumber.valid || !phoneNumber) return rawText

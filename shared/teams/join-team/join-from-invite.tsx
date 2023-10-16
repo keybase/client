@@ -100,7 +100,7 @@ const JoinFromInvite = () => {
             size={96}
             teamname={teamname}
             isTeam={true}
-            imageOverrideUrl={details.teamAvatars['square_192']}
+            imageOverrideUrl={details.teamAvatars?.['square_192']}
           />
           {details.teamIsOpen && (
             <Kb.Box2

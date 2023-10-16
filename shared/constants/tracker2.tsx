@@ -522,7 +522,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         const {blocker, blocks} = b
         const d = getDetails(s, blocker)
-        const toProcess = Object.entries(blocks).map(
+        const toProcess = Object.entries(blocks ?? {}).map(
           ([username, userBlocks]) => [username, getDetails(s, username), userBlocks || []] as const
         )
         toProcess.forEach(([username, det, userBlocks]) => {

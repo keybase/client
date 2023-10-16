@@ -600,8 +600,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.botCommandsUpdateStatus = status.typ
         if (status.typ === T.RPCChat.UIBotCommandsUpdateStatusTyp.uptodate) {
           const settingsMap = new Map<string, T.RPCGen.TeamBotSettings | undefined>()
-          Object.keys(status.uptodate.settings).forEach(u => {
-            settingsMap.set(u, status.uptodate.settings[u])
+          Object.keys(status.uptodate.settings ?? {}).forEach(u => {
+            settingsMap.set(u, status.uptodate.settings?.[u])
           })
           s.botSettings = settingsMap
         }
