@@ -66,16 +66,13 @@ for arch in x86_64 ; do
   # hashes in a text file at the root of the Debian repo, RPM puts a separate
   # signature in each package file. Command copied from:
   # https://ask.fedoraproject.org/en/question/56107/can-gpg-agent-be-used-when-signing-rpm-packages/
-  #
-  # The `setsid` and `/dev/null` bits are both required to suppress the no-op
-  # password prompt that appears despite the agent configs.
-  echo "Signing '$rpmcopy'..."
-  setsid -w rpm \
+  rpm \
    --define "_gpg_name $code_signing_fingerprint"  \
    --define '_signature gpg' \
+   --define '_gpgbin /usr/bin/gpg' \
    --define '__gpg_check_password_cmd /bin/true' \
    --define '__gpg_sign_cmd %{__gpg} gpg --batch --no-verbose --no-armor --use-agent --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}' \
-   --addsign "$rpmcopy" < /dev/null
+   --addsign "$rpmcopy"
 
   # Add a standalone signature file, for user convenience. Other packaging
   # steps will pick this up and copy it around.

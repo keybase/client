@@ -354,21 +354,25 @@ const plumbEvents = () => {
   Electron.nativeTheme.on('updated', () => {
     R.remoteDispatch(RemoteGen.createSetSystemDarkMode({dark: Electron.nativeTheme.shouldUseDarkColors}))
   })
-  Electron.powerMonitor.on('suspend', () => {
-    R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'suspend'}))
-  })
-  Electron.powerMonitor.on('resume', () => {
-    R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'resume'}))
-  })
-  Electron.powerMonitor.on('shutdown', () => {
-    R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'shutdown'}))
-  })
-  Electron.powerMonitor.on('lock-screen', () => {
-    R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'lock-screen'}))
-  })
-  Electron.powerMonitor.on('unlock-screen', () => {
-    R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'unlock-screen'}))
-  })
+
+  // this crashes on newer electron, unclear why
+  if (!isLinux) {
+    Electron.powerMonitor.on('suspend', () => {
+      R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'suspend'}))
+    })
+    Electron.powerMonitor.on('resume', () => {
+      R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'resume'}))
+    })
+    Electron.powerMonitor.on('shutdown', () => {
+      R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'shutdown'}))
+    })
+    Electron.powerMonitor.on('lock-screen', () => {
+      R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'lock-screen'}))
+    })
+    Electron.powerMonitor.on('unlock-screen', () => {
+      R.remoteDispatch(RemoteGen.createPowerMonitorEvent({event: 'unlock-screen'}))
+    })
+  }
 
   Electron.ipcMain.handle('KBdispatchAction', (_: any, action: any) => {
     mainWindow?.webContents.send('KBdispatchAction', action)

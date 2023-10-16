@@ -1,4 +1,4 @@
-FROM debian:stretch
+FROM debian:buster
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 # Install dependencies from the standard repos.
@@ -13,7 +13,7 @@ LABEL maintainer="Keybase <admin@keybase.io>"
 #   - unzip because electron6 packager requires it
 RUN apt-get update
 RUN apt-get install -y fakeroot reprepro rpm createrepo git wget \
-  build-essential curl python python-pip gnupg1 unzip
+  build-essential curl python python-pip gnupg2 unzip rsync
 
 # Install s3cmd. See this issue for why we need a version newer than what's in
 # the Debian repos: https://github.com/s3tools/s3cmd/issues/437
