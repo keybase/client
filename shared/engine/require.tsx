@@ -15,10 +15,10 @@ export function getEngine(): Engine {
   return _engine
 }
 
-let _engineListener: any
-export function initEngineListener(l: any) {
+let _engineListener: unknown
+export function initEngineListener(l: typeof _engineListener) {
   _engineListener = l
 }
-export function getEngineListener() {
-  return _engineListener
+export function getEngineListener<C, R>() {
+  return _engineListener as (args: C & {method: string}) => R
 }

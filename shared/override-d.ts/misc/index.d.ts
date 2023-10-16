@@ -1,9 +1,9 @@
 declare module 'electron-positioner' {
-  type ignore = any
+  type ignore = unknown
   export default ignore
 }
 declare module 'react-native/Libraries/Image/AssetRegistry' {
-  type PackagerAsset = any
+  type PackagerAsset = {[key: string]: unknown}
 }
 
 declare module '@react-spring/rafz' {
