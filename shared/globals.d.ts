@@ -1,7 +1,7 @@
 /* eslint-disable no-var */
 export {}
 
-export type RequestIdleCallbackHandle = any
+export type RequestIdleCallbackHandle = unknown
 export type RequestIdleCallbackOptions = {
   timeout: number
 }
@@ -11,23 +11,23 @@ export type RequestIdleCallbackDeadline = {
 }
 
 export interface Console {
-  _log: any
-  _warn: any
-  _error: any
-  _info: any
+  _log: unknown
+  _warn: unknown
+  _error: unknown
+  _info: unknown
 }
 
 declare global {
   var DEBUGmadeEngine: boolean | undefined
-  var DEBUGStore: any
-  var DEBUGEngine: any
+  var DEBUGStore: unknown
+  var DEBUGEngine: unknown
   var DEBUGLoaded: boolean | undefined
-  var KBCONSTANTS: any
-  var _fromPreload: any
+  var KBCONSTANTS: unknown
+  var _fromPreload: unknown
   var __HOT__: boolean
   var __VERSION__: string
   var __FILE_SUFFIX__: string
   var __PROFILE__: boolean
-  var rpcOnGo: undefined | ((b: any) => void)
-  var rpcOnJs: undefined | ((b: any) => void)
+  var rpcOnGo: undefined | ((b: unknown) => void)
+  var rpcOnJs: undefined | ((b: unknown) => void)
 }

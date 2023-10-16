@@ -17,7 +17,7 @@ type State = {
 class DragAndDrop extends React.PureComponent<Props, State> {
   state = {showDropOverlay: false}
 
-  _onDrop = (e: any) => {
+  _onDrop = (e: React.DragEvent) => {
     const f = async () => {
       if (!this._validDrag(e)) return
       const fileList = e.dataTransfer.files
@@ -36,9 +36,8 @@ class DragAndDrop extends React.PureComponent<Props, State> {
                 return
               }
               // delegate to handler for any errors
-            } catch (error_) {
-              const error = error_ as any
-              logger.warn(`Error stating dropped attachment: ${error.code}`)
+            } catch (error) {
+              logger.warn(`Error stating dropped attachment: ${String(error)}`)
             }
           }
         }
@@ -49,9 +48,9 @@ class DragAndDrop extends React.PureComponent<Props, State> {
     C.ignorePromise(f())
   }
 
-  _validDrag = (e: any) => e.dataTransfer.types.includes('Files') && !this.props.disabled
+  _validDrag = (e: React.DragEvent) => e.dataTransfer.types.includes('Files') && !this.props.disabled
 
-  _onDragOver = (e: any) => {
+  _onDragOver = (e: React.DragEvent) => {
     if (this._validDrag(e)) {
       e.dataTransfer.dropEffect = 'copy'
       this.setState({showDropOverlay: true})

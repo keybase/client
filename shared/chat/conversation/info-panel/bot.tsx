@@ -196,13 +196,13 @@ const BotTab = (props: Props) => {
   }
   const adhocTeam = teamType === 'adhoc'
   const participantInfo = C.useChatContext(s => s.participants)
-  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID)) ?? new Map()
+  const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const participantsAll = participantInfo.all
 
   let botUsernames: Array<string> = []
   if (adhocTeam) {
     botUsernames = participantsAll.filter(p => !participantInfo.name.includes(p))
-  } else {
+  } else if (teamMembers) {
     botUsernames = [...teamMembers.values()]
       .filter(
         p =>
@@ -218,7 +218,7 @@ const BotTab = (props: Props) => {
     .filter(
       k =>
         !botUsernames.includes(k.botUsername) &&
-        !(!adhocTeam && TeamConstants.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
+        !(!adhocTeam && teamMembers && TeamConstants.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
     )
     .map((bot, index) => ({...bot, index}))
   const infoMap = C.useUsersState(s => s.infoMap)

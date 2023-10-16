@@ -1,10 +1,12 @@
 import * as React from 'react'
 
+import type {LayoutChangeEvent} from 'react-native'
+
 export const useDebugLayout = __DEV__
   ? (cb?: () => void) => {
       const sizeRef = React.useRef([0, 0])
       return React.useCallback(
-        (e: any) => {
+        (e: LayoutChangeEvent) => {
           const height = e.nativeEvent.layout.height
           const width = e.nativeEvent.layout.width
           const [w, h] = sizeRef.current
@@ -27,29 +29,27 @@ export const useDebugLayout = __DEV__
     }
 
 // helper to debug method calls into an object
-export function createLoggingProxy<T extends object>(
+export function createLoggingProxy<T extends {[key: string]: unknown}>(
   obj: T,
   logMethods: boolean = true,
   logProps: boolean = false
 ): T {
   console.log('[PROXY] installed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-  const cache = new Map()
+  const cache = new Map<string, unknown>()
   const proxy = new Proxy(
     {},
     {
-      get(_target, propKey) {
+      get(_target, propKey: string) {
         if (cache.get(propKey)) {
           return cache.get(propKey)
         }
-        // @ts-ignore
-        const originalMethod = obj[propKey] as any
+        const originalMethod = obj[propKey] as any as unknown
         if (typeof originalMethod === 'function') {
           if (logMethods) {
             const ret = function (...args: any[]) {
               console.log(`[PROXY] Calling method: ${String(propKey)}`)
               console.log('[PROXY] Arguments:', args)
-              // @ts-ignore
-              const result = originalMethod.apply(this, args)
+              const result = originalMethod.apply(obj, args) as unknown
               console.log('[PROXY] Result:', result)
               return result
             }

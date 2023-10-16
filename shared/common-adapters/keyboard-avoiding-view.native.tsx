@@ -126,10 +126,18 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
       .catch(() => {})
   }
 
+  // Avoid unnecessary renders if the KeyboardAvoidingView is disabled.
+  _setBottom = (value: number) => {
+    const enabled = this.props.enabled ?? true
+    this._bottom = value
+    if (enabled) {
+      this.setState({bottom: value})
+    }
+  }
+
   _updateBottomIfNecessary = async () => {
     if (!this._keyboardEvent) {
-      this._bottom = 0
-      this.setState({bottom: 0})
+      this._setBottom(0)
 
       if (getKeyboardUp()) {
         // @ts-ignore actually exists but not in the api until 71
@@ -137,8 +145,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
         this._bottom = h
         this.setState({bottom: h + (this.props.extraPadding ?? 0)})
       } else {
-        this._bottom = 0
-        this.setState({bottom: 0})
+        this._setBottom(0)
       }
       return
     }
@@ -146,23 +153,32 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
     const {duration, easing, endCoordinates} = this._keyboardEvent
     const height = await this._relativeKeyboardHeight(endCoordinates)
 
-    // do NOT use state here as its async and we can race
     if (this._bottom === height) {
       return
     }
 
-    if (duration) {
+    const enabled = this.props.enabled ?? true
+    // eslint-disable-next-line
+    if (enabled && duration && easing) {
       LayoutAnimation.configureNext({
         // We have to pass the duration equal to minimal accepted duration defined here: RCTLayoutAnimation.m
         duration: duration > 10 ? duration : 10,
         update: {
           duration: duration > 10 ? duration : 10,
-          type: LayoutAnimation.Types[easing],
+          // eslint-disable-next-line
+          type: LayoutAnimation.Types[easing] || 'keyboard',
         },
       })
     }
     this._bottom = height
     this.setState({bottom: height + (this.props.extraPadding ?? 0)})
+  }
+
+  componentDidUpdate(_: Props, prevState: State): void {
+    const enabled = this.props.enabled ?? true
+    if (enabled && this._bottom !== prevState.bottom) {
+      this.setState({bottom: this._bottom})
+    }
   }
 
   componentDidMount(): void {

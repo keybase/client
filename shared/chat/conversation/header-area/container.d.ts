@@ -1,2 +1,2 @@
-declare function headerNavigationOptions(route: any): Object
+declare function headerNavigationOptions(route: unknown): Object
 export {headerNavigationOptions}

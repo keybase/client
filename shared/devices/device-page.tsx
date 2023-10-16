@@ -2,6 +2,7 @@ import * as C from '../constants'
 import * as Constants from '../constants/devices'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
+import type * as T from '../constants/types'
 import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '../util/timestamp'
 
 type OwnProps = {deviceID: string}
@@ -22,23 +23,32 @@ const TimelineMarker = ({
   </Kb.Box>
 )
 
-const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}: any) => (
-  <Kb.Box2 direction="vertical" style={styles.timelineLabel}>
-    <Kb.Text type="Body">{desc}</Kb.Text>
-    {!!subDesc && subDescIsName && (
-      <Kb.Text type="BodySmall">
-        by{' '}
-        <Kb.Text type="BodySmallItalic" style={styles.subDesc}>
-          {subDesc}
+const TimelineLabel = (p: {
+  desc: string
+  subDesc: string
+  subDescIsName: boolean
+  spacerOnBottom: boolean
+}) => {
+  const {desc, subDesc, subDescIsName, spacerOnBottom} = p
+  return (
+    <Kb.Box2 direction="vertical" style={styles.timelineLabel}>
+      <Kb.Text type="Body">{desc}</Kb.Text>
+      {!!subDesc && subDescIsName && (
+        <Kb.Text type="BodySmall">
+          by{' '}
+          <Kb.Text type="BodySmallItalic" style={styles.subDesc}>
+            {subDesc}
+          </Kb.Text>
         </Kb.Text>
-      </Kb.Text>
-    )}
-    {!!subDesc && !subDescIsName && <Kb.Text type="BodySmall">{subDesc}</Kb.Text>}
-    {spacerOnBottom && <Kb.Box style={{height: 15}} />}
-  </Kb.Box2>
-)
+      )}
+      {!!subDesc && !subDescIsName && <Kb.Text type="BodySmall">{subDesc}</Kb.Text>}
+      {spacerOnBottom && <Kb.Box style={{height: 15}} />}
+    </Kb.Box2>
+  )
+}
 
-const Timeline = ({device}: any) => {
+const Timeline = (p: {device: T.Devices.Device}) => {
+  const {device} = p
   const timeline = [
     ...(device.revokedAt
       ? [
@@ -136,7 +146,7 @@ const DevicePage = (ownProps: OwnProps) => {
       fullHeight={true}
     >
       <Kb.NameWithIcon icon={icon} title={device?.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
-      <Timeline device={device} />
+      {device ? <Timeline device={device} /> : null}
       {device?.revokedAt ? null : (
         <Kb.Button
           disabled={!canRevoke}

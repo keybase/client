@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import Emoji from './emoji'
 import Text from './text'
-import {Box2} from './box'
+import {Box2, Box2Measure} from './box'
 import FloatingMenu from './floating-menu'
 import SearchFilter from './search-filter'
 import PlainInput from './plain-input'
@@ -25,6 +25,7 @@ import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Box2,
+  Box2Measure,
   ClickableBox,
   Emoji,
   FloatingMenu,
@@ -266,8 +267,8 @@ type Props = {
 }
 
 type OldProps = Props & {
-  popup: any
-  popupAnchor: any
+  popup: React.ReactNode
+  popupAnchor: React.RefObject<MeasureRef>
   country: string | undefined
   setCountry: React.Dispatch<React.SetStateAction<string | undefined>>
   focused: boolean
@@ -509,7 +510,7 @@ class _PhoneInput extends React.Component<OldProps> {
             onClick={this.props.toggleShowingMenu}
             style={this.isSmall() ? styles.fullWidthDesktopOnly : styles.fullWidth}
           >
-            <Kb.Box2
+            <Kb.Box2Measure
               direction="horizontal"
               style={styles.countrySelectorContainer}
               alignItems="center"
@@ -518,7 +519,7 @@ class _PhoneInput extends React.Component<OldProps> {
             >
               {this.renderCountrySelector()}
               <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
-            </Kb.Box2>
+            </Kb.Box2Measure>
           </Kb.ClickableBox>
         </Kb.Box2>
         <Kb.Box2

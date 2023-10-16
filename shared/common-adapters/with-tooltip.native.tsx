@@ -29,12 +29,8 @@ type Dims = {
   top: number
   width: number
 }
-const measureCb =
-  (resolve: (dims: Dims) => void) =>
-  (_x: number, _y: number, width: number, height: number, pageX: number, pageY: number) =>
-    resolve({height, left: pageX, top: pageY, width})
 
-const FloatingBox = (props: any) => (
+const FloatingBox = (props: {children: React.ReactNode; style: Styles.StylesCrossPlatform}) => (
   <Kb.Portal hostName="popup-root">
     <Kb.Box pointerEvents="box-none" style={[Styles.globalStyles.fillAbsolute, props.style]}>
       {props.children}
@@ -65,11 +61,22 @@ const WithTooltip = (props: Props) => {
     const screenHeight = Dimensions.get('window').height
 
     Promise.all([
-      new Promise(resolve => clickableRef.current?.measure(measureCb(resolve))),
-      new Promise(resolve => tooltipRef.current?.measure(measureCb(resolve))),
-      // @ts-ignore this stucture makes this very hard to type
-    ])
-      .then(([c, t]: [any, any]) => {
+      new Promise<Dims>(resolve => {
+        clickableRef.current?.measure(
+          (_x: number, _y: number, width: number, height: number, pageX: number, pageY: number) => {
+            resolve({height, left: pageX, top: pageY, width})
+          }
+        )
+      }),
+      new Promise<Dims>(resolve => {
+        tooltipRef.current?.measure(
+          (_x: number, _y: number, width: number, height: number, pageX: number, pageY: number) => {
+            resolve({height, left: pageX, top: pageY, width})
+          }
+        )
+      }),
+    ] as const)
+      .then(([c, t]) => {
         if (!isMounted()) {
           return
         }
