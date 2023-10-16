@@ -1844,17 +1844,16 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           const results = await T.RPCChat.localGetLastActiveForTeamsRpcPromise()
-          const teams = Object.entries(results.teams).reduce<Map<T.Teams.TeamID, T.Teams.ActivityLevel>>(
-            (res, [teamID, status]) => {
-              if (status === T.RPCChat.LastActiveStatus.none) {
-                return res
-              }
-              res.set(teamID, lastActiveStatusToActivityLevel[status])
+          const teams = Object.entries(results.teams ?? {}).reduce<
+            Map<T.Teams.TeamID, T.Teams.ActivityLevel>
+          >((res, [teamID, status]) => {
+            if (status === T.RPCChat.LastActiveStatus.none) {
               return res
-            },
-            new Map()
-          )
-          const channels = Object.entries(results.channels).reduce<
+            }
+            res.set(teamID, lastActiveStatusToActivityLevel[status])
+            return res
+          }, new Map())
+          const channels = Object.entries(results.channels ?? {}).reduce<
             Map<T.Chat.ConversationIDKey, T.Teams.ActivityLevel>
           >((res, [conversationIDKey, status]) => {
             if (status === T.RPCChat.LastActiveStatus.none) {
@@ -2387,7 +2386,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             {teamIDs: [teamID], username},
             waitingKey
           )
-          const activityMap = new Map(Object.entries(_activityMap))
+          const activityMap = new Map(Object.entries(_activityMap ?? {}))
           set(s => {
             activityMap.forEach((lastActivity, teamID) => {
               if (!s.teamMemberToLastActivity.has(teamID)) {
@@ -3017,7 +3016,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             // Get (hopefully fresh) role map. The app might have just started so it's
             // not enough to just look in the react store.
             const map = await T.RPCGen.teamsGetTeamRoleMapRpcPromise()
-            const role = map.teams[teamID]?.role || map.teams[teamID]?.implicitRole
+            const role = map.teams?.[teamID]?.role || map.teams?.[teamID]?.implicitRole
             if (role !== T.RPCGen.TeamRole.admin && role !== T.RPCGen.TeamRole.owner) {
               logger.info(`ignoring team="${teamname}" with addMember, user is not an admin but role=${role}`)
               return

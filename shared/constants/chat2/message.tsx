@@ -554,16 +554,16 @@ export const uiPaymentInfoToChatPaymentInfo = (
 
 export const reactionMapToReactions = (r: T.RPCChat.UIReactionMap): MessageTypes.Reactions =>
   new Map(
-    Object.keys(r.reactions).reduce((arr: Array<[string, MessageTypes.ReactionDesc]>, emoji) => {
-      if (r.reactions[emoji]) {
+    Object.keys(r.reactions ?? {}).reduce((arr: Array<[string, MessageTypes.ReactionDesc]>, emoji) => {
+      if (r.reactions?.[emoji]) {
         arr.push([
           emoji,
           {
             decorated: r.reactions[emoji]!.decorated,
             users: new Set(
-              Object.keys(r.reactions[emoji]!.users).map(username =>
+              Object.keys(r.reactions[emoji]?.users ?? {}).map(username =>
                 makeReaction({
-                  timestamp: r.reactions[emoji]!.users[username]?.ctime,
+                  timestamp: r.reactions?.[emoji]!.users?.[username]?.ctime,
                   username,
                 })
               )

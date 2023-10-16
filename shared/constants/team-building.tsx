@@ -95,9 +95,9 @@ const parseRawResultToUser = (
   result: T.RPCGen.APIUserSearchResult,
   service: T.TB.ServiceIdWithContact
 ): T.TB.User | undefined => {
-  const serviceMap = Object.keys(result.servicesSummary).reduce<{[key: string]: string}>(
+  const serviceMap = Object.keys(result.servicesSummary ?? {}).reduce<{[key: string]: string}>(
     (acc, service_name) => {
-      acc[service_name] = result.servicesSummary[service_name]?.username ?? ''
+      acc[service_name] = result.servicesSummary?.[service_name]?.username ?? ''
       return acc
     },
     {}
@@ -231,11 +231,11 @@ async function specialContactSearch(users: T.TB.User[], query: string, region?: 
 
 type HasServiceMap = {
   username: string
-  serviceMap: {[key: string]: string}
+  serviceMap?: {[key: string]: string} | null
 }
 
 const pluckServiceMap = (contact: HasServiceMap) =>
-  Object.entries(contact.serviceMap)
+  Object.entries(contact.serviceMap ?? {})
     .concat([['keybase', contact.username]])
     .reduce<T.TB.ServiceMap>((acc, [service, username]) => {
       if (serviceIdFromString(service) === service) {

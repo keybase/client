@@ -177,7 +177,7 @@ export const parseNotificationSettings = (
   if (notifications) {
     notificationsGlobalIgnoreMentions = notifications.channelWide
     const s = notifications.settings
-    const desktop = s[String(T.RPCGen.DeviceType.desktop)]
+    const desktop = s?.[String(T.RPCGen.DeviceType.desktop)]
     if (desktop) {
       if (desktop[String(T.RPCChat.NotificationKind.generic)]) {
         notificationsDesktop = 'onAnyActivity'
@@ -185,7 +185,7 @@ export const parseNotificationSettings = (
         notificationsDesktop = 'onWhenAtMentioned'
       }
     }
-    const mobile = s[String(T.RPCGen.DeviceType.mobile)]
+    const mobile = s?.[String(T.RPCGen.DeviceType.mobile)]
     if (mobile) {
       if (mobile[String(T.RPCChat.NotificationKind.generic)]) {
         notificationsMobile = 'onAnyActivity'
@@ -284,7 +284,7 @@ export const inboxUIItemToConversationMeta = (
 
   return {
     ...makeConversationMeta(),
-    botAliases: i.botAliases,
+    botAliases: i.botAliases ?? {},
     botCommands: i.botCommands,
     cannotWrite,
     channelname: (isTeam && i.channel) || '',

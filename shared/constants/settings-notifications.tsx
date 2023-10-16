@@ -104,21 +104,21 @@ export const _useState = Z.createZustand<State>((set, get) => {
               description_h: 'Show message content in phone chat notifications',
               name: 'plaintextmobile',
               subscribed:
-                !!chatGlobalSettings.settings[`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`],
+                !!chatGlobalSettings.settings?.[`${T.RPCChat.GlobalAppNotificationSetting.plaintextmobile}`],
             },
             {
               description: 'Show message content in computer chat notifications',
               description_h: 'Show message content in computer chat notifications',
               name: 'plaintextdesktop',
               subscribed:
-                !!chatGlobalSettings.settings[`${T.RPCChat.GlobalAppNotificationSetting.plaintextdesktop}`],
+                !!chatGlobalSettings.settings?.[`${T.RPCChat.GlobalAppNotificationSetting.plaintextdesktop}`],
             },
             {
               description: "Show others when you're typing",
               description_h: "Show others when you're typing",
               name: 'disabletyping',
               subscribed:
-                !chatGlobalSettings.settings[`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`],
+                !chatGlobalSettings.settings?.[`${T.RPCChat.GlobalAppNotificationSetting.disabletyping}`],
             },
           ],
           unsub: false,
@@ -132,7 +132,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                   description_h: 'Phone: use default sound for new messages',
                   name: 'defaultsoundmobile',
                   subscribed:
-                    !!chatGlobalSettings.settings[
+                    !!chatGlobalSettings.settings?.[
                       `${T.RPCChat.GlobalAppNotificationSetting.defaultsoundmobile}`
                     ],
                 } as const,

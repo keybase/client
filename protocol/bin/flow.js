@@ -162,7 +162,7 @@ function figureType(type, prefix = '') {
       case 'array':
         return `Array<${prefix}${capitalize(type.items)}> | null`
       case 'map':
-        return `{[key: string]: ${figureType(type.values)}}`
+        return `{[key: string]: ${figureType(type.values)}} | null`
       default:
         console.log(`Unknown type: ${type}`)
         return 'unknown'
