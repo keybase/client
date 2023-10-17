@@ -4,7 +4,7 @@ import type {LayoutChangeEvent} from 'react-native'
 
 export const useDebugLayout = __DEV__
   ? (cb?: () => void) => {
-      const sizeRef = React.useRef([0, 0])
+      const sizeRef = React.useRef([0 as number, 0 as number] as const)
       return React.useCallback(
         (e: LayoutChangeEvent) => {
           const height = e.nativeEvent.layout.height

@@ -38,7 +38,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
     setIsZoomed(zoomed)
   }, [])
 
-  const vidRef = React.useRef(null)
+  const vidRef = React.useRef<HTMLVideoElement>(null)
   const hotKeys = ['left', 'right']
   const onHotKey = (cmd: string) => {
     cmd === 'left' && onPreviousAttachment()
