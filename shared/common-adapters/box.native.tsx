@@ -3,8 +3,9 @@ import * as Styles from '../styles'
 import {View} from 'react-native'
 import type {Box2Props} from './box'
 import type {MeasureRef} from './measure-ref'
+import Reanimated from 'react-native-reanimated'
 
-const Box = View
+export const Box = View
 
 type Margins = keyof typeof Styles.globalMargins
 const marginKeys: Array<Margins> = Object.keys(Styles.globalMargins) as any
@@ -99,10 +100,16 @@ const useBox2Shared = (p: Box2Props) => {
   }
 }
 
-const Box2 = (p: Box2Props) => {
+export const Box2 = (p: Box2Props) => {
   const props = useBox2Shared(p)
   return <View {...props} />
 }
+
+const Box2PlainRef = React.forwardRef<View, Box2Props>(function Box2Animated(p, ref) {
+  const props = useBox2Shared(p)
+  return <View {...props} ref={ref} />
+})
+export const Box2Animated = Reanimated.createAnimatedComponent(Box2PlainRef)
 
 export const Box2Measure = React.forwardRef<MeasureRef, Box2Props>(function Box2(p, _ref) {
   React.useImperativeHandle(
@@ -163,4 +170,3 @@ const styles = {
 } as const
 
 export default Box
-export {Box, Box2}

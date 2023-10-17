@@ -34,7 +34,7 @@ const serviceMinWidthWhenSmall = (containerWidth: number) => {
 
 const smallWidth = serviceMinWidthWhenSmall(Kb.Styles.dimensionWidth)
 const bigWidth = Math.max(smallWidth, 92)
-const AnimatedBox2 = createAnimatedComponent(Kb.Box2)
+const AnimatedBox2 = Kb.Box2Animated
 const AnimatedScrollView = createAnimatedComponent(ScrollView)
 
 // On tablet add an additional "service" item that is only a bottom border that extends to the end of the ScrollView

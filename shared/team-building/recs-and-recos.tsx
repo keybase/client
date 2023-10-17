@@ -76,7 +76,7 @@ const TeamAlphabetIndex = (
 
 const SectionList = createAnimatedComponent<
   SectionListProps<SectionType<Types.ResultData, Types.SearchRecSection>>
->(Kb.SectionList as any)
+>(Kb.SectionList)
 
 export const RecsAndRecos = (
   props: Pick<

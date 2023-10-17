@@ -130,7 +130,7 @@ const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => 
 type Extra = {title: React.ReactElement}
 type Section = SectionType<TeamTreeRowIn | TeamTreeRowNotIn, Extra>
 
-const SectionList = createAnimatedComponent<SectionListProps<Section>>(Kb.SectionList as any)
+const SectionList = createAnimatedComponent<SectionListProps<Section>>(Kb.SectionList)
 
 const TeamMember = (props: OwnProps) => {
   const username = props.username

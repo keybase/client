@@ -84,7 +84,7 @@ const useLoadFeaturedBots = (teamDetails: T.Teams.TeamDetails, shouldLoad: boole
   }, [shouldLoad, _bots, featuredBotsMap, searchFeaturedBots])
 }
 
-const SectionList = createAnimatedComponent<SectionListProps<SectionType<Section>>>(Kb.SectionList as any)
+const SectionList = createAnimatedComponent<SectionListProps<SectionType<Section>>>(Kb.SectionList)
 
 const Team = (props: Props) => {
   const teamID = props.teamID

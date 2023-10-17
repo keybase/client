@@ -65,6 +65,8 @@ export type Box2Props = {
  **/
 export declare const Box: (p: Props) => React.ReactNode
 export declare const Box2: (p: Box2Props) => React.ReactNode
+// wrapped by reanimated
+export declare const Box2Animated: ReturnType<typeof React.forwardRef<React.RefObject<typeof Box>, Box2Props>>
 // Box2 but with a special ref, split in case there's overhead we barely need
 export declare const Box2Measure: ReturnType<typeof React.forwardRef<MeasureRef, Box2Props>>
 export default Box

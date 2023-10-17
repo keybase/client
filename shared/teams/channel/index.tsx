@@ -101,7 +101,7 @@ const useTabsState = (
 const makeSingleRow = (key: string, renderItem: () => React.ReactNode) => ({data: ['row'], key, renderItem})
 
 const SectionList = createAnimatedComponent<SectionListProps<SectionType<string, {title?: string}>>>(
-  Kb.SectionList as any
+  Kb.SectionList
 )
 
 const emptyMapForUseSelector = new Map<string, T.Teams.MemberInfo>()
