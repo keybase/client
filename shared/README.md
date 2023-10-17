@@ -31,6 +31,7 @@ The following `yarn run` commands, to build, run or package the app:
 | build-dev | Build development bundle |
 | build-prod | Build prod bundle |
 | package | Package app |
+| storybook | Start the storybook server to preview how Components appear |
 
 
 You can set environment variables for debugging:
