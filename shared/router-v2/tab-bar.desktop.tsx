@@ -28,7 +28,7 @@ const FilesTabBadge = () => {
 
 const Header = () => {
   const [showingMenu, setShowingMenu] = React.useState(false)
-  const attachmentRef = React.useRef<Kb.MeasureRef>(null)
+  const popupAnchor = React.useRef<Kb.MeasureRef>(null)
   const username = C.useCurrentUserState(s => s.username)
   const fullname = C.useTrackerState(s => TrackerConstants.getDetails(s, username).fullname || '')
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
@@ -106,7 +106,7 @@ const Header = () => {
           fullWidth={true}
           style={styles.nameContainer}
           alignItems="center"
-          ref={attachmentRef}
+          ref={popupAnchor}
         >
           <Kb.Avatar
             size={24}
@@ -133,7 +133,7 @@ const Header = () => {
         header={menuHeader()}
         closeOnSelect={true}
         visible={showingMenu}
-        attachTo={attachmentRef}
+        attachTo={popupAnchor}
         items={menuItems()}
         onHidden={() => setShowingMenu(false)}
       />

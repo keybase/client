@@ -59,7 +59,7 @@ const CopyText = (props: Props) => {
     }
   }, [withReveal, text, loadText])
 
-  const attachmentRef = React.useRef<MeasureRef>(null)
+  const popupAnchor = React.useRef<MeasureRef>(null)
   const textRef = React.useRef<TextMeasureRef>(null)
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const showShareActionSheet = C.useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
@@ -119,7 +119,7 @@ const CopyText = (props: Props) => {
 
   return (
     <Kb.Box2Measure
-      ref={attachmentRef}
+      ref={popupAnchor}
       direction="horizontal"
       style={Styles.collapseStyles([
         styles.container,
@@ -127,7 +127,7 @@ const CopyText = (props: Props) => {
         props.containerStyle,
       ])}
     >
-      <Kb.Toast position="top center" attachTo={attachmentRef} visible={showingToast}>
+      <Kb.Toast position="top center" attachTo={popupAnchor} visible={showingToast}>
         {Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color={Styles.globalColors.whiteOrWhite} />}
         <Kb.Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
           Copied to clipboard

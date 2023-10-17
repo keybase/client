@@ -136,7 +136,7 @@ const ConversationList = React.memo(function ConversationList(p: {
   }, [])
 
   const renderItem = React.useCallback(
-    (info: /*ListRenderItemInfo<ItemType>*/ any) => {
+    (info?: /*ListRenderItemInfo<ItemType>*/ {index?: number}) => {
       const index: number = info?.index ?? 0
       const ordinal = messageOrdinals[index]
       if (!ordinal) {
@@ -208,11 +208,16 @@ const ConversationList = React.memo(function ConversationList(p: {
     'listArea',
     C.useEvent(() => {
       if (!listRef.current) return ''
-      const {props, state} = listRef.current as any
+      const {props, state} = listRef.current as {props: {extraData?: {}; data?: [number]}; state: unknown}
       const {extraData, data} = props
 
       // @ts-ignore
-      const layoutManager = state?.layoutProvider?._lastLayoutManager ?? ({} as any)
+      const layoutManager = (state?.layoutProvider?._lastLayoutManager ?? ({} as any)) as {
+        _layouts?: [unknown]
+        _renderWindowSize: unknown
+        _totalHeight: unknown
+        _totalWidth: unknown
+      }
       const {_layouts, _renderWindowSize, _totalHeight, _totalWidth} = layoutManager
       // @ts-ignore
       // const mm = window.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)

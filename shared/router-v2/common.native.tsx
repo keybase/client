@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import {TabActions} from '@react-navigation/core'
+import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import {HeaderLeftArrow} from '../common-adapters/header-hoc'
 
 export const TabletWrapper = (p: {children: React.ReactNode}) => {
@@ -46,22 +47,16 @@ const actionWidth = 64
 const DEBUGCOLORS = __DEV__ && (false as boolean)
 
 // Options used by default on all navigators
-export const defaultNavigationOptions: any = {
+export const defaultNavigationOptions = {
   headerBackTitle: '',
   headerBackVisible: false,
   headerBackgroundContainerStyle: {
     flexShrink: 0,
     ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
   },
-  headerLeft: ({
-    canGoBack,
-    onPress,
-    tintColor,
-  }: {
-    canGoBack: boolean
-    onPress: () => void
-    tintColor: string
-  }) => <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />,
+  headerLeft: ({canGoBack, onPress, tintColor}: HeaderBackButtonProps) => (
+    <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
+  ),
   headerLeftContainerStyle: {
     flexGrow: 0,
     flexShrink: 0,
@@ -81,7 +76,7 @@ export const defaultNavigationOptions: any = {
     ...(DEBUGCOLORS ? {backgroundColor: 'orange'} : {}),
   },
   headerStyle: headerDefaultStyle,
-  headerTitle: (hp: any) => (
+  headerTitle: (hp: {children: React.ReactNode}) => (
     <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1} center={true}>
       {hp.children}
     </Kb.Text>
@@ -97,7 +92,7 @@ export const defaultNavigationOptions: any = {
     minHeight: 44,
     ...(DEBUGCOLORS ? {backgroundColor: 'cyan'} : {}),
   },
-}
+} as const
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   headerTitle: {

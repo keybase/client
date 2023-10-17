@@ -249,7 +249,7 @@ type WithProfileCardPopupProps = {
 }
 
 export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithProfileCardPopupProps) => {
-  const ref = React.useRef<MeasureRef>(null)
+  const popupAnchor = React.useRef<MeasureRef>(null)
   const [showing, setShowing] = React.useState(false)
   const [remeasureHint, setRemeasureHint] = React.useState(0)
   const onLayoutChange = React.useCallback(() => setRemeasureHint(Date.now()), [setRemeasureHint])
@@ -267,7 +267,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   const popup = showing && (
     <DelayedMounting delay={Styles.isMobile ? 0 : 500}>
       <Kb.FloatingMenu
-        attachTo={ref}
+        attachTo={popupAnchor}
         closeOnSelect={true}
         onHidden={() => setShowing(false)}
         position="top center"
@@ -299,7 +299,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
       style={Styles.collapseStyles([styles.popupTextContainer, ellipsisStyle])}
       onMouseOver={onShow}
       onMouseLeave={onHide}
-      ref={ref}
+      ref={popupAnchor}
     >
       {children()}
       {popup}

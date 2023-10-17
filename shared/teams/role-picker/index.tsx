@@ -428,7 +428,7 @@ export type FloatingProps<T extends boolean> = {
 export class FloatingRolePicker<IncludeSetIndividually extends boolean = false> extends React.Component<
   FloatingProps<IncludeSetIndividually>
 > {
-  ref = React.createRef<Kb.MeasureRef>()
+  popupAnchor = React.createRef<Kb.MeasureRef>()
   render() {
     const {position, children, open, floatingContainerStyle, onCancel, ...props} = this.props
     const picker = (
@@ -437,10 +437,10 @@ export class FloatingRolePicker<IncludeSetIndividually extends boolean = false> 
     return (
       <>
         {children}
-        <Kb.Box2Measure direction="vertical" ref={this.ref} />
+        <Kb.Box2Measure direction="vertical" ref={this.popupAnchor} />
         {open && (
           <Kb.FloatingBox
-            attachTo={this.ref}
+            attachTo={this.popupAnchor}
             position={position || 'top center'}
             onHidden={onCancel}
             hideKeyboard={true}

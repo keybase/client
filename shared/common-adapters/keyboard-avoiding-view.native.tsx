@@ -72,7 +72,6 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
     if (
       Platform.OS === 'ios' &&
       keyboardFrame.screenY === 0 &&
-      // @ts-ignore actually exists but not in the api until 71
       (await AccessibilityInfo.prefersCrossFadeTransitions())
     ) {
       return 0
@@ -131,7 +130,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
     const enabled = this.props.enabled ?? true
     this._bottom = value
     if (enabled) {
-      this.setState({bottom: value})
+      this.setState({bottom: value + (this.props.extraPadding ?? 0)})
     }
   }
 
@@ -142,8 +141,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
       if (getKeyboardUp()) {
         // @ts-ignore actually exists but not in the api until 71
         const h = Keyboard.metrics()?.height ?? 0
-        this._bottom = h
-        this.setState({bottom: h + (this.props.extraPadding ?? 0)})
+        this._setBottom(h)
       } else {
         this._setBottom(0)
       }
@@ -170,16 +168,15 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
         },
       })
     }
-    this._bottom = height
-    this.setState({bottom: height + (this.props.extraPadding ?? 0)})
+    this._setBottom(height)
   }
 
-  componentDidUpdate(_: Props, prevState: State): void {
-    const enabled = this.props.enabled ?? true
-    if (enabled && this._bottom !== prevState.bottom) {
-      this.setState({bottom: this._bottom})
-    }
-  }
+  // componentDidUpdate(_: Props, prevState: State): void {
+  // const enabled = this.props.enabled ?? true
+  // if (enabled && this._bottom !== prevState.bottom) {
+  //   this.setState({bottom: this._bottom})
+  // }
+  // }
 
   componentDidMount(): void {
     if (Platform.OS === 'ios') {
