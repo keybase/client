@@ -298,6 +298,7 @@ notarize_dmg() {(
   fi
   echo "Uploading $dmg_name to notarization service in $out_dir"
   xcrun notarytool submit "$out_dir/$dmg_name" --keychain-profile "NOTARY_TOOL" --wait
+  xcrun stapler staple "$out_dir/$dmg_name" 
   echo "Successfully uploaded to notarization service"
 )}
 
