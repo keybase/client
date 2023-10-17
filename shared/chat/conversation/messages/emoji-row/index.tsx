@@ -47,7 +47,7 @@ class HoverEmoji extends React.Component<
 
 class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   state = {showingPicker: false}
-  _attachmentRef = React.createRef<Kb.MeasureRef>()
+  popupAnchor = React.createRef<Kb.MeasureRef>()
   _setShowingPicker = (showingPicker: boolean) => {
     this.props.onShowingEmojiPicker?.(showingPicker)
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
@@ -58,7 +58,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
     return (
       <Kb.Box2Measure
         direction="horizontal"
-        ref={this._attachmentRef}
+        ref={this.popupAnchor}
         style={Kb.Styles.collapseStyles([styles.container, this.props.style])}
         className={this.props.className}
       >
@@ -91,7 +91,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
         </Kb.Box2>
         {this.state.showingPicker && (
           <Kb.FloatingBox
-            attachTo={this._attachmentRef}
+            attachTo={this.popupAnchor}
             containerStyle={styles.pickerContainer}
             position="top right"
             onHidden={this._hidePicker}

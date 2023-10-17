@@ -17,7 +17,7 @@ const Kb = {
 const WithTooltip = React.memo(function WithTooltip(p: Props) {
   const {containerStyle, className, multiline, backgroundColor, toastStyle} = p
   const {disabled, toastClassName, children, position, textStyle, tooltip} = p
-  const attachmentRef = React.useRef<MeasureRef>(null)
+  const popupAnchor = React.useRef<MeasureRef>(null)
   const [visible, setVisible] = React.useState(false)
 
   const onMouseEnter = React.useCallback(() => {
@@ -34,7 +34,7 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
         alignSelf="stretch"
         alignItems="center"
         style={containerStyle}
-        ref={attachmentRef}
+        ref={popupAnchor}
         onMouseOver={IGNORE_FOR_PROFILING ? undefined : onMouseEnter}
         onMouseLeave={IGNORE_FOR_PROFILING ? undefined : onMouseLeave}
         className={className}
@@ -50,7 +50,7 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
             toastStyle,
           ])}
           visible={!!tooltip && visible}
-          attachTo={attachmentRef}
+          attachTo={popupAnchor}
           position={position || 'top center'}
           className={toastClassName}
         >

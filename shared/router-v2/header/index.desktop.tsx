@@ -148,7 +148,7 @@ const DesktopHeader = React.memo(
       ? Kb.Styles.globalColors.black_10
       : Kb.Styles.globalColors.transparent
 
-    const whatsNewAttachToRef = React.createRef<Kb.MeasureRef>()
+    const popupAnchor = React.createRef<Kb.MeasureRef>()
 
     return (
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
@@ -169,7 +169,7 @@ const DesktopHeader = React.memo(
             fullWidth={true}
             style={styles.headerBack}
             alignItems="center"
-            ref={whatsNewAttachToRef}
+            ref={popupAnchor}
           >
             {/* TODO have headerLeft be the back button */}
             {opt.headerLeft !== null && (
@@ -195,7 +195,7 @@ const DesktopHeader = React.memo(
                   p.style?.backgroundColor !== Kb.Styles.globalColors.white
                 }
               />
-              {loggedIn && <WhatsNewIconWithPopup attachToRef={whatsNewAttachToRef} />}
+              {loggedIn && <WhatsNewIconWithPopup attachToRef={popupAnchor} />}
               {!title && rightActions}
               {windowDecorationsAreNeeded && <SystemButtons isMaximized={isMaximized} />}
             </Kb.Box2>

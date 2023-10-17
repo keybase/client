@@ -9,12 +9,9 @@ const gridHeight = 100
 
 const GiphySearch = (props: Props) => {
   const [width, setWidth] = React.useState<number | undefined>(undefined)
-  const containerRef = React.useRef<Kb.MeasureRef>(null)
+  const divRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
-    const m = containerRef.current
-    if (!m) return
-    const {divRef} = m
     if (!divRef.current) return
     const cs = getComputedStyle(divRef.current)
     setWidth(divRef.current.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight))
@@ -32,9 +29,9 @@ const GiphySearch = (props: Props) => {
   }
   return (
     <Kb.Box style={styles.outerContainer}>
-      <Kb.Box2Measure
+      <Kb.Box2Div
         direction="vertical"
-        ref={containerRef}
+        ref={divRef}
         style={Styles.collapseStyles([styles.scrollContainer, {overflowY: width ? 'auto' : 'scroll'} as any])}
       >
         <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="xtiny">
@@ -82,7 +79,7 @@ const GiphySearch = (props: Props) => {
               <Kb.ProgressIndicator />
             </Kb.Box2>
           ))}
-      </Kb.Box2Measure>
+      </Kb.Box2Div>
       <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
     </Kb.Box>
   )
