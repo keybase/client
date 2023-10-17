@@ -35,8 +35,14 @@ module.exports = {
   get Box2Animated() {
     return require('./box').Box2Animated
   },
+  get Box2Div() {
+    return require('./box').Box2Div
+  },
   get Box2Measure() {
     return require('./box').Box2Measure
+  },
+  get Box2View() {
+    return require('./box').Box2View
   },
   get BoxGrow() {
     return require('./box-grow').default

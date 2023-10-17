@@ -1,6 +1,7 @@
 import type * as React from 'react'
 import type {StylesCrossPlatform, globalMargins} from '../styles'
 import type {MeasureRef} from './measure-ref'
+import type {View} from 'react-native'
 
 export type Props = {
   onMoveShouldSetResponder?: any
@@ -67,6 +68,10 @@ export declare const Box: (p: Props) => React.ReactNode
 export declare const Box2: (p: Box2Props) => React.ReactNode
 // wrapped by reanimated
 export declare const Box2Animated: ReturnType<typeof React.forwardRef<React.RefObject<typeof Box>, Box2Props>>
-// Box2 but with a special ref, split in case there's overhead we barely need
+// Box2 but with a special ref for targetting popups, split in case there's overhead we barely need
 export declare const Box2Measure: ReturnType<typeof React.forwardRef<MeasureRef, Box2Props>>
+// desktop only
+export declare const Box2Div: ReturnType<typeof React.forwardRef<HTMLDivElement, Box2Props>>
+// mobile only
+export declare const Box2View: ReturnType<typeof React.forwardRef<View, Box2Props>>
 export default Box

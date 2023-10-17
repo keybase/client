@@ -19,7 +19,7 @@ const mouseResetValue = -9999
 const mouseDistanceThreshold = 5
 
 const useMouseClick = (navigation: {pop: () => void}, noClose?: boolean) => {
-  const backgroundRef = React.useRef(null)
+  const backgroundRef = React.useRef<HTMLDivElement>(null)
 
   // we keep track of mouse down/up to determine if we should call it a 'click'. We don't want dragging the
   // window around to count
@@ -90,7 +90,7 @@ const ModalWrapper = (p: WrapProps) => {
   if (modal2) {
     return (
       <EscapeHandler onESC={topMostModal ? navigation.pop : undefined}>
-        <Kb.Box2Measure
+        <Kb.Box2Div
           key="background"
           direction="horizontal"
           ref={backgroundRef}
@@ -119,7 +119,7 @@ const ModalWrapper = (p: WrapProps) => {
               )}
             </Kb.Box2>
           </Kb.Box2>
-        </Kb.Box2Measure>
+        </Kb.Box2Div>
       </EscapeHandler>
     )
   } else {
