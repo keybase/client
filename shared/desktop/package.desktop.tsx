@@ -247,7 +247,9 @@ async function pack(plat: string, arch: string) {
     }
   }
 
-  return packager(opts)
+  const ret = await packager(opts)
+  // sometimes returns bools, unclear why
+  return ret.filter(o => typeof o === 'string')
 }
 
 function postPack(appPaths: Array<string> | null, plat: string, arch: string) {
