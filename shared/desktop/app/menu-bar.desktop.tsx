@@ -48,6 +48,7 @@ const MenuBar = (menubarWindowIDCallback: (id: number) => void) => {
         preload: `${assetRoot}preload${__FILE_SUFFIX__}.bundle.js`,
       },
       width: 360,
+      alwaysOnTop: true,
     },
     icon,
     index: false,
@@ -210,6 +211,9 @@ const MenuBar = (menubarWindowIDCallback: (id: number) => void) => {
     })
     mb.tray.on('click', (_, bounds: Bounds) => {
       logger.info('Clicked tray icon:', bounds)
+    })
+    mb.on('focus-lost', () => {
+      mb.hideWindow()
     })
   })
 
