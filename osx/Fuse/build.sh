@@ -8,9 +8,9 @@ cd "$dir"
 rm -rf osxfuse macfuse
 
 version=${VERSION:?"Need to set VERSION for Fuse"}
-if [ "$version" = "4.4.1" ]; then
-  tar -xjf /Volumes/Keybase/team/keybase.builds.macos/macfuse/macfuse-4.4.1-src.tbz
-  mv macfuse-4.4.1-src macfuse
+if [ "$version" = "4.5.0" ]; then
+  tar -xjf /Volumes/Keybase/team/keybase.builds.macos/macfuse/macfuse-4.5.0-src.tbz
+  mv macfuse-4.5.0-src macfuse
 else
   echo "Unsupported VERSION"
   exit 1
@@ -23,8 +23,8 @@ fi
 rm -rf /tmp/kbfuse*
 cd macfuse
 # If you get an error compiling you might have to run `brew link gettext --force` (see https://github.com/osxfuse/osxfuse/issues/149).
-# use 12.3 SDK (-s) and set deployment target 12.3 (-d). Build for macOS 12 kernel, and support up to Darwin 22 (macOS 13).
-./build.sh -v 5 -t filesystembundle -- -s 12.3 -d 12.3 --kext="12,12.3,22" --kext="13->12"
+# use 12.3 SDK (-s) and set deployment target 12.3 (-d). Build for macOS 12 kernel, and support up to Darwin 23 (macOS 14).
+./build.sh -v 5 -t filesystembundle -- -s 12.3 -d 12.3 --kext="12,12.3,23" --kext="14->12" --kext="13->12"
 
 cd $dir
 rm -rf kbfuse.bundle
