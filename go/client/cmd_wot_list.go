@@ -100,11 +100,12 @@ func (c *cmdWotList) Run() error {
 	}
 	line(wotTitle)
 	line("-------------------------------")
-	if len(res) == 0 {
+	if len(res.Entries) == 0 {
 		line("no attestations to show")
 		return nil
 	}
-	for _, vouch := range res {
+	res.SortEntries()
+	for _, vouch := range res.Entries {
 		line("Vouchee: %s", vouch.VoucheeUsername)
 		line("Voucher: %s", vouch.VoucherUsername)
 		line("Attestation: \"%s\"", vouch.VouchText)

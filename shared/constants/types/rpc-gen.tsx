@@ -1640,7 +1640,7 @@ export type MessageTypes = {
   }
   'keybase.1.wot.wotFetchVouches': {
     inParam: {readonly vouchee: String; readonly voucher: String}
-    outParam: Array<WotVouch> | null
+    outParam: WebOfTrust
   }
   'keybase.1.wot.wotReact': {
     inParam: {readonly voucher: String; readonly sigID: SigID; readonly reaction: WotReactionType; readonly allowEmptySigID: Boolean}
@@ -2459,6 +2459,7 @@ export enum StatusCode {
   scsigcreationdisallowed = 1016,
   scsigmissingratchet = 1021,
   scsigbadtotalorder = 1022,
+  scsignotfound = 1030,
   scbadtracksession = 1301,
   scdevicebadname = 1404,
   scdevicebadstatus = 1405,
@@ -3442,6 +3443,7 @@ export type VID = String
 export type VerifyAllEmailTodoExt = {readonly lastVerifyEmailDate: UnixTime}
 export type VerifySessionRes = {readonly uid: UID; readonly sid: String; readonly generated: Int; readonly lifetime: Int}
 export type WalletAccountInfo = {readonly accountID: String; readonly numUnread: Int}
+export type WebOfTrust = {readonly entries?: Array<WotVouch> | null; readonly displayOrder?: Array<SigID> | null}
 export type WebProof = {readonly hostname: String; readonly protocols?: Array<String> | null}
 export type WotProof = {readonly proofType: ProofType; readonly name: String; readonly username: String; readonly protocol: String; readonly hostname: String; readonly domain: String}
 export type WotProofUI = {readonly type: String; readonly value: String; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconDarkmode?: Array<SizedImage> | null}

@@ -85,6 +85,7 @@ const (
 	StatusCode_SCSigCreationDisallowed                     StatusCode = 1016
 	StatusCode_SCSigMissingRatchet                         StatusCode = 1021
 	StatusCode_SCSigBadTotalOrder                          StatusCode = 1022
+	StatusCode_SCSigNotFound                               StatusCode = 1030
 	StatusCode_SCBadTrackSession                           StatusCode = 1301
 	StatusCode_SCDeviceBadName                             StatusCode = 1404
 	StatusCode_SCDeviceBadStatus                           StatusCode = 1405
@@ -336,6 +337,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCSigCreationDisallowed":     1016,
 	"SCSigMissingRatchet":         1021,
 	"SCSigBadTotalOrder":          1022,
+	"SCSigNotFound":               1030,
 	"SCBadTrackSession":           1301,
 	"SCDeviceBadName":             1404,
 	"SCDeviceBadStatus":           1405,
@@ -585,6 +587,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	1016: "SCSigCreationDisallowed",
 	1021: "SCSigMissingRatchet",
 	1022: "SCSigBadTotalOrder",
+	1030: "SCSigNotFound",
 	1301: "SCBadTrackSession",
 	1404: "SCDeviceBadName",
 	1405: "SCDeviceBadStatus",

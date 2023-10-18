@@ -100,10 +100,26 @@ func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVou
 	}))
 }
 
-func (h *WebOfTrustHandler) WotFetchVouches(ctx context.Context, arg keybase1.WotFetchVouchesArg) (res []keybase1.WotVouch, err error) {
+func (h *WebOfTrustHandler) WotFetchVouches(ctx context.Context, arg keybase1.WotFetchVouchesArg) (res keybase1.WebOfTrust, err error) {
 	ctx = libkb.WithLogTag(ctx, "WOT")
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	return libkb.FetchWotVouches(mctx, libkb.FetchWotVouchesArg{Vouchee: arg.Vouchee, Voucher: arg.Voucher})
+	entries, err := libkb.FetchWotVouches(mctx, libkb.FetchWotVouchesArg{Vouchee: arg.Vouchee, Voucher: arg.Voucher})
+	if err != nil {
+		return res, err
+	}
+	var wotOrder []keybase1.SigID
+	if len(entries) > 0 && len(arg.Vouchee) > 0 {
+		wotOrder, err = libkb.FetchWotOrder(mctx, arg.Vouchee)
+		if err != nil {
+			return res, err
+		}
+	}
+	res = keybase1.WebOfTrust{
+		Entries:      entries,
+		DisplayOrder: wotOrder,
+	}
+	res.SortEntries()
+	return res, nil
 }
 
 func (h *WebOfTrustHandler) WotReact(ctx context.Context, arg keybase1.WotReactArg) error {

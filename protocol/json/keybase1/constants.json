@@ -80,6 +80,7 @@
         "SCSigCreationDisallowed_1016",
         "SCSigMissingRatchet_1021",
         "SCSigBadTotalOrder_1022",
+        "SCSigNotFound_1030",
         "SCBadTrackSession_1301",
         "SCDeviceBadName_1404",
         "SCDeviceBadStatus_1405",

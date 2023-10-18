@@ -254,6 +254,48 @@ func FetchWotVouches(mctx MetaContext, arg FetchWotVouchesArg) (res []keybase1.W
 	return res, nil
 }
 
+type apiWotOrder struct {
+	AppStatusEmbed
+	WotOrder []keybase1.SigID `json:"wot_order"`
+}
+
+func FetchWotOrder(mctx MetaContext, username string) (res []keybase1.SigID, err error) {
+	defer mctx.Trace("FetchWotOrder", &err)()
+	user, err := LoadUser(NewLoadUserArgWithMetaContext(mctx).WithName(username).WithPublicKeyOptional())
+	if err != nil {
+		mctx.Error("error loading user to fetch wot order: %s", err.Error())
+		return nil, err
+	}
+	apiArg := APIArg{
+		Endpoint:    "wot/order",
+		SessionType: APISessionTypeREQUIRED,
+		Args: HTTPArgs{
+			"uid":          user.GetUID(),
+			"eldest_seqno": user.GetCurrentEldestSeqno(),
+		},
+	}
+	var apiResponse apiWotOrder
+	err = mctx.G().API.GetDecode(mctx, apiArg, &apiResponse)
+	if err != nil {
+		mctx.Error("error fetching wot order: %s", err.Error())
+		return nil, err
+	}
+	return apiResponse.WotOrder, nil
+}
+
+func UpdateWotOrder(mctx MetaContext, order []keybase1.SigID) (err error) {
+	defer mctx.Trace("UpdateWotOrder", &err)()
+
+	payload := make(JSONPayload)
+	payload["wot_order"] = order
+	_, err = mctx.G().API.Post(mctx, APIArg{
+		Endpoint:    "wot/order",
+		SessionType: APISessionTypeREQUIRED,
+		JSONPayload: payload,
+	})
+	return err
+}
+
 type _wotMsg struct {
 	Voucher *string `json:"voucher,omitempty"`
 	Vouchee *string `json:"vouchee,omitempty"`
