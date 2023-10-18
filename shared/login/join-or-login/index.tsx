@@ -50,7 +50,7 @@ const Intro = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
         <Kb.ButtonBar direction="column" fullWidth={Kb.Styles.isMobile} style={styles.buttonBar}>
-          <Kb.Button label="Create an account" onClick={props.onSignup} fullWidth={true} />
+          <Kb.Button label="Create account" onClick={props.onSignup} fullWidth={true} />
           <Kb.Button label="Log in" mode="Secondary" onClick={props.onLogin} fullWidth={true} />
           {props.isOnline === false && (
             <Kb.Button

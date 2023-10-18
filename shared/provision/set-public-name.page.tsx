@@ -2,10 +2,7 @@ import * as React from 'react'
 
 const Name = React.lazy(async () => import('./set-public-name'))
 
-const getOptions = () => ({
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-})
+const getOptions = () => ({})
 
 const Screen = () => (
   <React.Suspense>

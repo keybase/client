@@ -4,10 +4,7 @@ import type * as C from '../../constants'
 const Waiting = React.lazy(async () => import('./waiting'))
 type OwnProps = C.ViewPropsToPageProps<typeof Waiting>
 
-const getOptions = () => ({
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-})
+const getOptions = () => ({})
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

@@ -278,7 +278,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
             s.inviteCode = inviteCode
           })
           get().dispatch.checkInviteCode()
-          C.useRouterState.getState().dispatch.navigateAppend('signupInviteCode')
         } catch (_) {
           set(s => {
             s.inviteCode = ''
@@ -288,6 +287,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
+    // shouldn't ever be used
     requestInvite: (email, name) => {
       set(s => {
         s.email = email
@@ -304,7 +304,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             {email, fullname: name, notes: 'Requested through GUI app'},
             waitingKey
           )
-          C.useRouterState.getState().dispatch.navigateAppend('signupRequestInviteSuccess')
+          // C.useRouterState.getState().dispatch.navigateAppend('signupRequestInviteSuccess')
         } catch (error) {
           if (error instanceof RPCError) {
             const emailError = `Sorry can't get an invite: ${error.desc}`

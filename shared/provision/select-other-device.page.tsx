@@ -2,10 +2,7 @@ import * as React from 'react'
 
 const Select = React.lazy(async () => import('./select-other-device'))
 
-const getOptions = () => ({
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-})
+const getOptions = () => ({})
 
 const Screen = () => (
   <React.Suspense>

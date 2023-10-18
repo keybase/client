@@ -6,8 +6,7 @@ const Error = React.lazy(async () => import('./error'))
 
 const getOptions = () => ({
   gesturesEnabled: false,
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
+  headerLeft: undefined, // no back button
   headerRightActions: () => (
     <Kb.Box2
       direction="horizontal"

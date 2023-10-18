@@ -4,10 +4,7 @@ import type * as C from '../../constants'
 const UOE = React.lazy(async () => import('./container'))
 type OwnProps = C.ViewPropsToPageProps<typeof UOE>
 
-const getOptions = () => ({
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-})
+const getOptions = () => ({})
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>

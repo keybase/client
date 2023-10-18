@@ -55,7 +55,7 @@ class Login extends React.Component<Props, State> {
         banners={errorBanner(this.props.error)}
         headerStyle={styles.header}
         onRightAction={this.props.onSignup}
-        rightActionLabel="Create an account"
+        rightActionLabel="Create account"
         title="Log in"
       >
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.contentBox}>
