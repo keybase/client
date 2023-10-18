@@ -86,9 +86,10 @@ const PromptReset = (props: Props) => {
             <Kb.Text type="Body" center={true} style={styles.main}>
               You will keep your username but{' '}
               <Kb.Text type="BodyBold">
-                lose all your data (chat, files, git repos) and be removed from teams.
+                lose all your data (chat, files, git repos, stellar wallet) and be removed from teams.
               </Kb.Text>{' '}
               Teams for which you were the last admin or owner will be lost forever.
+              All assets in your stellar wallet will be impossible to recover without the wallet's secret key.
             </Kb.Text>
           </>
         )}
