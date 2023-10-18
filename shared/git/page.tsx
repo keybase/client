@@ -7,7 +7,9 @@ type OwnProps = C.ViewPropsToPageProps<typeof Index>
 
 const getOptions = () => {
   return C.isMobile
-    ? {title: 'Git'}
+    ? {
+        title: 'Git',
+      }
     : {
         headerRightActions: HeaderRightActions,
         headerTitle: HeaderTitle,

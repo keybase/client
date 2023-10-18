@@ -34,15 +34,15 @@ const tabToData = {
   [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 } as const
 
-const makeNavScreens = (rs: any, Screen: any, isModal: any) => {
-  return Object.keys(rs).map(name => {
+const makeNavScreens = (rs: typeof tabRoutes, Screen: typeof RootStack.Screen, isModal: boolean) => {
+  return Object.keys(rs).map((name: keyof typeof tabRoutes) => {
     return (
       <Screen
         key={name}
         name={name}
-        getComponent={rs[name].getScreen}
+        getComponent={rs[name]?.getScreen}
         options={({route, navigation}: any) => {
-          const no = getOptions(rs[name])
+          const no = getOptions(rs[name]!)
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {
             ...opt,

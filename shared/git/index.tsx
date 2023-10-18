@@ -99,12 +99,7 @@ export default (ownProps: OwnProps) => {
   const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Reloadable
-      waitingKeys={C.gitWaitingKey}
-      onBack={C.isMobile ? onBack : undefined}
-      onReload={load}
-      reloadOnMount={true}
-    >
+    <Kb.Reloadable waitingKeys={C.gitWaitingKey} onBack={undefined} onReload={load} reloadOnMount={true}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
         {Kb.Styles.isMobile && (
