@@ -1752,9 +1752,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
                 const trustedState = cs.meta.trustedState
                 if (trustedState !== 'requesting' && trustedState !== 'trusted') {
                   arr.push(id)
-                  cs.dispatch.updateMeta({
-                    trustedState: 'requesting',
-                  })
+                  cs.dispatch.updateMeta({trustedState: 'requesting'})
                 }
               }
               return arr

@@ -271,7 +271,7 @@ class Inbox extends React.Component<TInbox.Props, State> {
     const toUnbox = this.props.rows
       .slice(visibleStartIndex, visibleStopIndex + 1)
       .reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
-        if (r.type === 'small' && r.conversationIDKey) {
+        if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
           arr.push(r.conversationIDKey)
         }
         return arr
