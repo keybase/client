@@ -1088,21 +1088,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
         const message = ordinal ? messageMap.get(ordinal) : undefined
 
-        let readMsgID: number | undefined
-        if (isMetaGood()) {
-          readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
-        }
-
-        //  invalid?
-        if (!readMsgID) {
-          logger.info(`marking read messages is invalid bail: ${conversationIDKey} ${readMsgID}`)
-          return
-        }
-        // noop?
-        if (readMsgID === meta.readMsgID) {
+        const readMsgID = message?.id
+        // if we have a meta and we think we're already up to date ignore
+        if (isMetaGood() && readMsgID === meta.readMsgID) {
           logger.info(`marking read messages is noop bail: ${conversationIDKey} ${readMsgID}`)
           return
         }
+
+        // else just write it
         logger.info(`marking read messages ${conversationIDKey} ${readMsgID}`)
         await T.RPCChat.localMarkAsReadLocalRpcPromise({
           conversationID: T.Chat.keyToConversationID(conversationIDKey),

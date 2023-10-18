@@ -76,11 +76,11 @@ const load = () => {
   })
 }
 
-export const countryData: () => {[key: string]: CountryData | undefined} = () => {
+export const countryData: () => {[key: string]: CountryData} = () => {
   load()
   return _countryDataRaw
 }
-export const codeToCountry: () => {[key: string]: string | undefined} = () => {
+export const codeToCountry: () => {[key: string]: string} = () => {
   load()
   return _codeToCountryRaw
 }

@@ -98,7 +98,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
     return null
   }, [inputRef, active, lastTextRef])
 
-  const triggerIDRef = React.useRef<any>(0)
+  const triggerIDRef = React.useRef<NodeJS.Timeout>()
   const checkTrigger = React.useCallback(() => {
     if (triggerIDRef.current) {
       clearTimeout(triggerIDRef.current)
@@ -146,7 +146,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
   }, [])
 
   const triggerTransform = React.useCallback(
-    (maybeValue: any, final = true) => {
+    (maybeValue: unknown, final = true) => {
       if (!inputRef.current || !active) {
         return
       }
@@ -297,7 +297,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   )
 
   const onSelected = React.useCallback(
-    (item: any, final: boolean) => {
+    (item: unknown, final: boolean) => {
       selectedItemRef.current = item
       triggerTransform(item, final)
     },

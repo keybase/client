@@ -2,10 +2,7 @@ import * as React from 'react'
 
 const Enter = React.lazy(async () => import('./password-enter'))
 
-const getOptions = () => ({
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-})
+const getOptions = () => ({})
 
 const Screen = () => (
   <React.Suspense>

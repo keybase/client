@@ -27,6 +27,7 @@ import {
 import logger from '../../../../logger'
 import {AudioSendWrapper} from '../../../audio/audio-send.native'
 import {usePickerState} from '../../../emoji-picker/use-picker'
+import type {Props as PlainInputProps} from '../../../../common-adapters/plain-input'
 
 const singleLineHeight = 36
 const threeLineHeight = 78
@@ -148,12 +149,10 @@ const AnimatedExpand = (() => {
       const {expandInput, expanded} = p
       const offset = useSharedValue(expanded ? 1 : 0)
       const topStyle: any = useAnimatedStyle(() => ({
-        // @ts-ignore
         transform: [{rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)}, {scale: 0.6}],
       }))
       const bottomStyle: any = useAnimatedStyle(() => ({
         transform: [
-          // @ts-ignore
           {rotate: withTiming(`${offset.value ? 45 + 180 : 45}deg`)},
           {scaleX: -0.6},
           {scaleY: -0.6},
@@ -203,29 +202,38 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
   const navigateAppend = C.useChatNavigateAppend()
   const launchNativeImagePicker = React.useCallback(
     (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
-      const handleSelection = (result: ImagePicker.ImagePickerResult) => {
-        if (result.canceled || result.assets.length == 0 || !conversationIDKey) {
-          return
+      const f = async () => {
+        const handleSelection = (result: ImagePicker.ImagePickerResult) => {
+          if (result.canceled || result.assets.length == 0 || !conversationIDKey) {
+            return
+          }
+          const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
+          navigateAppend(conversationIDKey => ({
+            props: {conversationIDKey, pathAndOutboxIDs},
+            selected: 'chatAttachmentGetTitles',
+          }))
         }
-        const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
-        navigateAppend(conversationIDKey => ({
-          props: {conversationIDKey, pathAndOutboxIDs},
-          selected: 'chatAttachmentGetTitles',
-        }))
-      }
 
-      switch (location) {
-        case 'camera':
-          launchCameraAsync(mediaType)
-            .then(handleSelection)
-            .catch(error => filePickerError(new Error(error)))
-          break
-        case 'library':
-          launchImageLibraryAsync(mediaType, true, true)
-            .then(handleSelection)
-            .catch(error => filePickerError(new Error(error)))
-          break
+        switch (location) {
+          case 'camera':
+            try {
+              const res = await launchCameraAsync(mediaType)
+              handleSelection(res)
+            } catch (error) {
+              filePickerError(new Error(String(error)))
+            }
+            break
+          case 'library':
+            try {
+              const res = await launchImageLibraryAsync(mediaType, true, true)
+              handleSelection(res)
+            } catch (error) {
+              filePickerError(new Error(String(error)))
+            }
+            break
+        }
       }
+      C.ignorePromise(f())
     },
     [navigateAppend, conversationIDKey, filePickerError]
   )
@@ -474,14 +482,14 @@ const AnimatedPlainInput = createAnimatedComponent(Kb.PlainInput)
 const AnimatedInput = (() => {
   if (skipAnimations) {
     return React.memo(
-      React.forwardRef<any, any>(function AnimatedInput(p: any, ref) {
+      React.forwardRef<Kb.PlainInput, PlainInputProps & {expanded: boolean}>(function AnimatedInput(p, ref) {
         const {expanded, ...rest} = p
         return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style]} />
       })
     )
   } else {
     return React.memo(
-      React.forwardRef<any, any>(function AnimatedInput(p: any, ref) {
+      React.forwardRef<Kb.PlainInput, PlainInputProps & {expanded: boolean}>(function AnimatedInput(p, ref) {
         const maxInputArea = React.useContext(MaxInputAreaContext)
         const {expanded, ...rest} = p
         const [lastExpanded, setLastExpanded] = React.useState(expanded)

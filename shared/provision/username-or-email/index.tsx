@@ -31,7 +31,7 @@ const Username = (props: Props) => {
   return (
     <SignupScreen
       onRightAction={onGoToSignup}
-      rightActionLabel="Create an account"
+      rightActionLabel="Create account"
       banners={
         <>
           {resetBannerUser ? (

@@ -205,13 +205,13 @@ export default AddEmojiModalWrapper
 
 const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {
   const [dragOver, setDragOver] = React.useState(false)
-  const onDragOver = (e: any) => e.dataTransfer.types.includes('Files') && setDragOver(true)
+  const onDragOver = (e: React.DragEvent) => e.dataTransfer.types.includes('Files') && setDragOver(true)
   const onDragLeave = () => setDragOver(false)
-  const onDrop = (e: any) => {
+  const onDrop = (e: React.DragEvent) => {
     if (!e.dataTransfer.types.includes('Files')) {
       return
     }
-    const filesToAdd = [...e.dataTransfer.files]
+    const filesToAdd = Array.from(e.dataTransfer.files)
       .filter(file => file.type.startsWith('image/') && typeof file.path === 'string')
       .map(file => file.path)
     filesToAdd.length && addFiles(filesToAdd)

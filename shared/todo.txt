@@ -1,2 +1,2 @@
 Some short term todos:
-add back d.ts eslint into sep pr
+try hybrid for plugin jsi

@@ -98,7 +98,7 @@ class LoginRender extends React.Component<Props, State> {
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.createAccountContainer}>
               <Kb.Button
                 fullWidth={true}
-                label="Create an account"
+                label="Create account"
                 mode="Secondary"
                 onClick={this.props.onSignup}
                 style={{flexGrow: 0}}

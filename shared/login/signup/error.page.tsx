@@ -3,8 +3,7 @@ import * as React from 'react'
 const Error = React.lazy(async () => import('./error'))
 
 const getOptions = () => ({
-  gesturesEnabled: false,
-  headerLeft: null,
+  headerLeft: undefined,
 })
 
 const Screen = () => (

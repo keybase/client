@@ -1,6 +1,7 @@
 import type * as React from 'react'
 import type {StylesCrossPlatform} from '../../styles'
 import type {IconType} from '../icon.constants-gen'
+import type {HeaderBackButtonProps} from '@react-navigation/elements'
 export type Action = {
   custom?: React.ReactNode
   label?: string // TODO: make this required after updates are fully integrated,
@@ -61,15 +62,7 @@ export declare const LeftAction: (p: LeftActionProps) => React.ReactNode
 // HeaderHoc is deprecated. navigationOptions should be used instead.
 
 // used in navigationOptions
-export declare const HeaderLeftArrow: (p: {
-  canGoBack?: boolean
-  tintColor?: string
-  onPress?: () => void
-}) => React.ReactNode
+export declare const HeaderLeftArrow: (p: HeaderBackButtonProps) => React.ReactNode
 export declare const HeaderLeftBlank: () => React.ReactNode
-export declare const HeaderLeftCancel: (p: {
-  canGoBack?: boolean
-  tintColor?: string
-  onPress?: () => void
-}) => React.ReactNode
-export declare const HeaderLeftCancel2: (p: {canGoBack?: boolean; tintColor?: string}) => React.ReactNode
+export declare const HeaderLeftCancel: (p: HeaderBackButtonProps) => React.ReactNode
+export declare const HeaderLeftCancel2: (p: HeaderBackButtonProps) => React.ReactNode

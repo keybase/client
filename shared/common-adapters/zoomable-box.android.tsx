@@ -9,7 +9,7 @@ import Animated, {
   cancelAnimation,
   runOnJS,
 } from 'react-native-reanimated'
-import {View} from 'react-native'
+import {View, type LayoutChangeEvent} from 'react-native'
 import {Gesture, GestureDetector} from 'react-native-gesture-handler'
 import * as Styles from '../styles'
 
@@ -230,14 +230,14 @@ export function ZoomableBox(props: Props) {
   }, [])
 
   const onContainerLayout = useCallback(
-    (e: any) => {
+    (e: LayoutChangeEvent) => {
       containerHeight.value = e.nativeEvent.layout.height
       containerWidth.value = e.nativeEvent.layout.width
     },
     [containerHeight, containerWidth]
   )
   const onLayout = useCallback(
-    (e: any) => {
+    (e: LayoutChangeEvent) => {
       viewHeight.value = e.nativeEvent.layout.height
       viewWidth.value = e.nativeEvent.layout.width
     },

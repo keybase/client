@@ -37,8 +37,6 @@ export default (ownProps: OwnProps) => {
   )
   const {badged} = useLocalBadging(isNew, clearBadges)
   const {personals, teams} = getRepos(idToInfo)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = navigateUp
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowDelete = React.useCallback(
     (id: string) => {
@@ -99,12 +97,7 @@ export default (ownProps: OwnProps) => {
   const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Reloadable
-      waitingKeys={C.gitWaitingKey}
-      onBack={C.isMobile ? onBack : undefined}
-      onReload={load}
-      reloadOnMount={true}
-    >
+    <Kb.Reloadable waitingKeys={C.gitWaitingKey} onBack={undefined} onReload={load} reloadOnMount={true}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
         {Kb.Styles.isMobile && (

@@ -1,8 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import {TabActions} from '@react-navigation/core'
+import {TabActions, type NavigationContainerRef} from '@react-navigation/core'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import {HeaderLeftArrow} from '../common-adapters/header-hoc'
+import type {NavState} from '../constants/router2'
 
 export const TabletWrapper = (p: {children: React.ReactNode}) => {
   const {children} = p
@@ -101,23 +102,24 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-export const useSubnavTabAction = (navigation: any, state: any) =>
+export const useSubnavTabAction = (navigation: NavigationContainerRef<{}>, state: NavState) =>
   React.useCallback(
     (tab: string) => {
-      // @ts-ignore
-      const route = state.routes.find(r => r.name === tab)
+      const route = state?.routes?.find(r => r.name === tab)
       const event = route
-        ? navigation.emit({
+        ? // @ts-ignore
+          navigation.emit({
             canPreventDefault: true,
             target: route.key,
+            // @ts-ignore
             type: 'tabPress',
           })
-        : {}
+        : {defaultPrevented: false}
 
       if (!event.defaultPrevented) {
         navigation.dispatch({
           ...TabActions.jumpTo(tab),
-          target: state.key,
+          target: state?.key,
         })
       }
     },

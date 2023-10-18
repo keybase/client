@@ -345,6 +345,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
         ...s,
         ...initialStore,
         dispatch: s.dispatch,
+        finalError: s.finalError,
+        inlineError: s.inlineError,
       }))
     },
     restartProvisioning: () => {

@@ -2,10 +2,7 @@ import * as React from 'react'
 
 const Known = React.lazy(async () => import('./password-known'))
 
-const getOptions = () => ({
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-})
+const getOptions = () => ({})
 
 const Screen = () => (
   <React.Suspense>

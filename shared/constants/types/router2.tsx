@@ -1,6 +1,7 @@
 import type * as Styles from '../../styles'
 import type {NavigationContainerRef} from '@react-navigation/core'
 import type {NavigationState} from '@react-navigation/core'
+import type {HeaderBackButtonProps} from '@react-navigation/elements'
 type Route = NavigationState['routes'][0]
 export type GetOptionsParams = {navigation: NavigationContainerRef<{}> & {pop: () => void}; route: Route}
 export type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide' | 'SuperWide'
@@ -13,8 +14,8 @@ export type GetOptionsRet = {
   modal2NoClose?: boolean
   modal2Type?: ModalType
   headerBottomStyle?: Styles.StylesCrossPlatform
-  headerLeft?: Styles.StylesCrossPlatform
-  headerRightActions?: null | (() => React.ReactNode)
+  headerLeft?: (p: HeaderBackButtonProps) => React.ReactNode
+  headerRightActions?: (p: HeaderBackButtonProps) => React.ReactNode
   headerShown?: boolean
   gesturesEnabled?: boolean
 }

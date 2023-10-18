@@ -6,7 +6,7 @@ const Explain = React.lazy(async () => import('./explain-device'))
 
 const getOptions = () => ({
   headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
+  headerLeft: undefined, // no back button
   headerRightActions: () => (
     <Kb.Box2
       direction="horizontal"

@@ -121,7 +121,7 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
 
   private askForUnboxing = (rows: Array<RowItem>) => {
     const toUnbox = rows.reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
-      if (r.type === 'small' && r.conversationIDKey) {
+      if ((r.type === 'small' || r.type === 'big') && r.conversationIDKey) {
         arr.push(r.conversationIDKey)
       }
       return arr

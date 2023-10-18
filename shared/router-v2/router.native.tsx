@@ -34,15 +34,18 @@ const tabToData = {
   [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 } as const
 
-const makeNavScreens = (rs: any, Screen: any, isModal: any) => {
-  return Object.keys(rs).map(name => {
+type Screen = ReturnType<typeof createNativeStackNavigator>['Screen']
+const makeNavScreens = (rs: typeof tabRoutes, Screen: Screen, isModal: boolean) => {
+  return Object.keys(rs).map((name: keyof typeof tabRoutes) => {
+    const val = rs[name]
+    if (!val?.getScreen) return null
     return (
       <Screen
         key={name}
         name={name}
-        getComponent={rs[name].getScreen}
+        getComponent={val.getScreen}
         options={({route, navigation}: any) => {
-          const no = getOptions(rs[name])
+          const no = getOptions(val)
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {
             ...opt,
