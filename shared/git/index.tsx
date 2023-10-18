@@ -37,8 +37,6 @@ export default (ownProps: OwnProps) => {
   )
   const {badged} = useLocalBadging(isNew, clearBadges)
   const {personals, teams} = getRepos(idToInfo)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = navigateUp
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onShowDelete = React.useCallback(
     (id: string) => {

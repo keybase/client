@@ -101,7 +101,7 @@ export default () => {
   }
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onFeedback = () => {
-    navigateAppend({props: {}, selected: 'feedback'})
+    navigateAppend({props: {}, selected: 'signupSendFeedbackLoggedOut'})
   }
   const onLogin = C.useConfigState(s => s.dispatch.login)
   const requestAutoInvite = C.useSignupState(s => s.dispatch.requestAutoInvite)

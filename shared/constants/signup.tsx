@@ -29,7 +29,6 @@ type Store = {
   emailError: string
   emailVisible: boolean
   inviteCode: string
-  inviteCodeError: string
   justSignedUpEmail: string
   name: string
   nameError: string
@@ -46,7 +45,6 @@ const initialStore: Store = {
   emailError: '',
   emailVisible: false,
   inviteCode: '',
-  inviteCodeError: '',
   justSignedUpEmail: '',
   name: '',
   nameError: '',
@@ -59,7 +57,7 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     checkDeviceName: (devicename: string) => void
-    checkInviteCode: (inviteCode: string) => void
+    checkInviteCode: () => void
     checkUsername: (username: string) => void
     clearJustSignedUpEmail: () => void
     goBackAndClearErrors: () => void
@@ -74,17 +72,9 @@ export type State = Store & {
 
 export const _useState = Z.createZustand<State>((set, get) => {
   const noErrors = () => {
-    const {devicenameError, emailError, inviteCodeError} = get()
+    const {devicenameError, emailError} = get()
     const {nameError, usernameError, signupError, usernameTaken} = get()
-    return !(
-      devicenameError ||
-      emailError ||
-      inviteCodeError ||
-      nameError ||
-      usernameError ||
-      signupError ||
-      usernameTaken
-    )
+    return !(devicenameError || emailError || nameError || usernameError || signupError || usernameTaken)
   }
 
   const reallySignupOnNoErrors = () => {
@@ -183,15 +173,13 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       C.ignorePromise(f())
     },
-    checkInviteCode: invitationCode => {
-      set(s => {
-        s.inviteCode = invitationCode
-      })
+    checkInviteCode: () => {
+      const invitationCode = get().inviteCode
       const f = async () => {
         try {
           await T.RPCGen.signupCheckInvitationCodeRpcPromise({invitationCode}, waitingKey)
           set(s => {
-            s.inviteCodeError = ''
+            s.signupError = undefined
           })
           if (noErrors()) {
             C.useRouterState.getState().dispatch.navigateUp()
@@ -199,9 +187,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         } catch (error) {
           if (error instanceof RPCError) {
-            const msg = error.desc
+            const e = error
             set(s => {
-              s.inviteCodeError = msg
+              s.signupError = e
             })
           }
         }
@@ -255,7 +243,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.devicenameError = ''
         s.emailError = ''
-        s.inviteCodeError = ''
         s.nameError = ''
         s.signupError = undefined
         s.usernameError = ''
@@ -290,13 +277,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.inviteCode = inviteCode
           })
+          get().dispatch.checkInviteCode()
+          C.useRouterState.getState().dispatch.navigateAppend('signupInviteCode')
         } catch (_) {
           set(s => {
             s.inviteCode = ''
           })
+          C.useRouterState.getState().dispatch.navigateAppend('signupError')
         }
-        get().dispatch.checkInviteCode(get().inviteCode)
-        C.useRouterState.getState().dispatch.navigateAppend('signupInviteCode')
       }
       C.ignorePromise(f())
     },
