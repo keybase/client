@@ -10,7 +10,7 @@ import {Box2} from '../box'
 import type {MeasureRef} from '../measure-ref'
 import MenuLayout, {type MenuItems as _MenuItems} from './menu-layout'
 import * as Styles from '../../styles'
-import {BottomSheetModal, BottomSheetBackdrop, type BottomSheetBackdropProps} from '@gorhom/bottom-sheet'
+import {BottomSheetModal, BottomSheetBackdrop, type BottomSheetBackdropProps} from '../bottom-sheet'
 
 const Kb = {
   Box2,
