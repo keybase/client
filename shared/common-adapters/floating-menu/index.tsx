@@ -77,7 +77,7 @@ const FloatingMenu = (props: Props) => {
     return contents
   }
 
-  if (isModal === 'bottomsheet') {
+  if (Styles.isMobile && isModal === 'bottomsheet') {
     return (
       <BottomSheetModal
         snapPoints={snapPoints}
