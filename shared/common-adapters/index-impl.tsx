@@ -32,6 +32,9 @@ module.exports = {
   get BottomSheetModal() {
     return require('./bottom-sheet').BottomSheetModal
   },
+  get BottomSheetScrollView() {
+    return require('./bottom-sheet').BottomSheetScrollView
+  },
   get Box() {
     return require('./box').default
   },

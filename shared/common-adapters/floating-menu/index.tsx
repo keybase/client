@@ -40,19 +40,22 @@ export type Props = {
   snapPoints?: Array<string | number>
 }
 
-const defSnapPoints = ['50%', '95%']
-
 const Backdrop = React.memo(function Backdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
 })
 
 const FloatingMenu = (props: Props) => {
-  const {snapPoints = defSnapPoints} = props
+  const {snapPoints: _snapPoints, items} = props
   const isModal = React.useContext(FloatingModalContext)
   const bottomSheetModalRef = React.useRef<BottomSheetModal>(null)
   React.useEffect(() => {
     bottomSheetModalRef.current?.present()
   }, [])
+
+  const numItems = items.length
+  const snapPoints = React.useMemo(() => {
+    return _snapPoints ?? [numItems * 40 + 40 + 40] // close and handle
+  }, [_snapPoints, numItems])
 
   if (!props.visible && isModal === false) {
     return null
@@ -63,7 +66,7 @@ const FloatingMenu = (props: Props) => {
       isModal={isModal}
       header={props.header}
       onHidden={props.onHidden}
-      items={props.items}
+      items={items}
       closeOnClick={props.closeOnSelect}
       closeText={props.closeText}
       listStyle={props.listStyle}
