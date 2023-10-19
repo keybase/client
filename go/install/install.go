@@ -136,11 +136,6 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 	installStatus = keybase1.InstallStatus_UNKNOWN
 	installAction = keybase1.InstallAction_UNKNOWN
 	switch {
-	// not sure how a version got out with this weird 2113.21 version, but handle it separately here
-	case version == "2113.21" && bundleVersion == "4.5.0":
-		log.Warning("hit case where previous version is 2113.21, and we have 4.5.0 to install")
-		installStatus = keybase1.InstallStatus_INSTALLED
-		installAction = keybase1.InstallAction_UPGRADE
 	case version != "" && bundleVersion != "":
 		sv, err := semver.Make(version)
 		if err != nil {
