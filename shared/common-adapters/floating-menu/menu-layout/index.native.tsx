@@ -59,7 +59,7 @@ const MenuRow = (props: MenuRowProps) => (
         fullHeight={true}
         gap={props.icon ? 'small' : undefined}
       >
-        {props.icon ? (
+        {props.icon || props.isSelected ? (
           <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.iconContainer}>
             {props.isSelected && (
               <Kb.Icon
