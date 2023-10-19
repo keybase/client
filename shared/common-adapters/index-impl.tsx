@@ -26,6 +26,9 @@ module.exports = {
   get BannerParagraph() {
     return require('./banner').BannerParagraph
   },
+  get BottomSheet() {
+    return require('@gorhom/bottom-sheet').default
+  },
   get Box() {
     return require('./box').default
   },

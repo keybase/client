@@ -1,0 +1,13 @@
+diff --git a/node_modules/@gorhom/bottom-sheet/lib/typescript/components/bottomSheetModal/types.d.ts b/node_modules/@gorhom/bottom-sheet/lib/typescript/components/bottomSheetModal/types.d.ts
+index bc1e71a..010792d 100644
+--- a/node_modules/@gorhom/bottom-sheet/lib/typescript/components/bottomSheetModal/types.d.ts
++++ b/node_modules/@gorhom/bottom-sheet/lib/typescript/components/bottomSheetModal/types.d.ts
+@@ -55,7 +55,7 @@ export interface BottomSheetModalProps
+    * @type React.ReactNode[] | React.ReactNode | (({ data: any }?) => React.ReactElement)
+    */
+   children:
+-    | (({ data: any }?) => React.ReactElement)
++    | ((p?: { data: any }) => React.ReactElement)
+     | React.ReactNode[]
+     | React.ReactNode;
+ }

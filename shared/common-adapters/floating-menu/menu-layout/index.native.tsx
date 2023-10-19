@@ -7,13 +7,25 @@ import Text from '../../text'
 import Meta from '../../meta'
 import Divider from '../../divider'
 import ScrollView from '../../scroll-view'
+import {BottomSheetScrollView} from '@gorhom/bottom-sheet'
 import ProgressIndicator from '../../progress-indicator'
 import SafeAreaView from '../../safe-area-view'
 import type {MenuItem, MenuLayoutProps} from '.'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 
+const Kb = {
+  Badge,
+  Box,
+  Box2,
+  Divider,
+  Icon,
+  Meta,
+  ProgressIndicator,
+  SafeAreaView,
+  Text,
+}
+
 type MenuRowProps = {
-  centered?: boolean
   isHeader?: boolean
   newTag?: boolean
   index: number
@@ -23,8 +35,8 @@ type MenuRowProps = {
   backgroundColor?: Styles.Color
 } & MenuItem
 
-const itemContainerHeight = 48
-const itemContainerHeightWithSubTitle = itemContainerHeight + 18 // lineHeight of subTitle
+const itemContainerHeight = 40
+const itemContainerHeightWithSubTitle = 40
 
 const MenuRow = (props: MenuRowProps) => (
   <TouchableOpacity
@@ -41,65 +53,126 @@ const MenuRow = (props: MenuRowProps) => (
     ])}
   >
     {props.view || (
-      <Box2 centerChildren={props.centered} direction="horizontal" fullWidth={true}>
-        <Box2 direction="horizontal" style={styles.flexOne}>
-          <Box2 direction="vertical" fullHeight={true}>
-            <Box2 direction="horizontal" fullWidth={true}>
-              {props.decoration && <Box style={styles.flexOne} />}
-              <Text type="Body" style={styleRowText(props)}>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        fullHeight={true}
+        gap={props.icon ? 'small' : undefined}
+      >
+        {props.icon ? (
+          <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.iconContainer}>
+            {props.isSelected && (
+              <Kb.Icon
+                type="iconfont-check"
+                color={Styles.globalColors.blue}
+                fontSize={16}
+                sizeType="Default"
+              />
+            )}
+            {props.icon &&
+              !props.isSelected &&
+              (props.inProgress ? (
+                <Kb.ProgressIndicator />
+              ) : (
+                <>
+                  <Kb.Icon
+                    color={props.danger ? Styles.globalColors.redDark : Styles.globalColors.black_60}
+                    style={Styles.collapseStyles([{alignSelf: 'center'}, props.iconStyle])}
+                    sizeType="Default"
+                    type={props.icon}
+                  />
+                  {props.isBadged && <Kb.Badge badgeStyle={styles.iconBadge} />}
+                </>
+              ))}
+          </Kb.Box2>
+        ) : null}
+        <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+          <Kb.Box2
+            direction="vertical"
+            fullHeight={true}
+            fullWidth={true}
+            alignItems="center"
+            style={{justifyContent: 'center'}}
+          >
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
+              {props.decoration && <Kb.Box style={styles.flexOne} />}
+              <Kb.Text type="Body" style={styleRowText(props)}>
                 {props.title}
-              </Text>
+              </Kb.Text>
               {props.newTag && (
-                <Meta
+                <Kb.Meta
                   title="New"
                   size="Small"
                   backgroundColor={Styles.globalColors.blue}
                   style={styles.badge}
                 />
               )}
-              {props.decoration && <Box style={styles.flexOne}>{props.decoration}</Box>}
-            </Box2>
+              {props.decoration && <Kb.Box style={styles.flexOne}>{props.decoration}</Kb.Box>}
+            </Kb.Box2>
             {!!props.subTitle && (
-              <Box2 direction="horizontal" fullWidth={true}>
-                <Text type="BodySmall">{props.subTitle}</Text>
-              </Box2>
+              <Kb.Box2 direction="horizontal" fullWidth={true}>
+                <Kb.Text type="BodyTiny">{props.subTitle}</Kb.Text>
+              </Kb.Box2>
             )}
-          </Box2>
-        </Box2>
-        <Box2
-          direction="horizontal"
-          fullHeight={true}
-          style={Styles.collapseStyles([!props.centered && styles.iconContainer])}
-        >
-          {props.isSelected && (
-            <Icon type="iconfont-check" color={Styles.globalColors.blue} fontSize={16} sizeType="Default" />
-          )}
-          {props.icon &&
-            !props.isSelected &&
-            (props.inProgress ? (
-              <ProgressIndicator />
-            ) : (
-              <>
-                <Icon
-                  color={props.danger ? Styles.globalColors.redDark : Styles.globalColors.black_60}
-                  style={props.iconStyle}
-                  sizeType="Default"
-                  type={props.icon}
-                />
-                {props.isBadged && <Badge badgeStyle={styles.iconBadge} />}
-              </>
-            ))}
-        </Box2>
-      </Box2>
+          </Kb.Box2>
+        </Kb.Box2>
+      </Kb.Box2>
     )}
-    {!!props.progressIndicator && <ProgressIndicator style={styles.progressIndicator} />}
+    {!!props.progressIndicator && <Kb.ProgressIndicator style={styles.progressIndicator} />}
   </TouchableOpacity>
 )
 
 const MenuLayout = (props: MenuLayoutProps) => {
+  const {isModal} = props
   const menuItemsWithDividers = props.items.filter((x): x is MenuItem | 'Divider' => x !== undefined)
   const beginningDivider = props.items[0] === 'Divider'
   const firstIsUnWrapped = props.items[0] !== 'Divider' && props.items[0]?.unWrapped
+
+  const items = menuItemsWithDividers.map((mi, idx) =>
+    mi === 'Divider' ? (
+      idx !== 0 && idx !== props.items.length ? (
+        <Kb.Divider key={idx} style={styles.dividerInScrolleView} />
+      ) : null
+    ) : (
+      <MenuRow
+        key={idx}
+        {...mi}
+        index={idx}
+        numItems={menuItemsWithDividers.length}
+        onHidden={props.closeOnClick ? props.onHidden : undefined}
+        textColor={props.textColor}
+        backgroundColor={props.backgroundColor}
+      />
+    )
+  )
+
+  const close = (
+    <>
+      <Kb.Divider style={styles.divider} />
+      <Kb.Box style={Styles.collapseStyles([styles.menuGroup, props.listStyle])}>
+        <MenuRow
+          title={props.closeText || 'Close'}
+          index={0}
+          numItems={1}
+          onClick={props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
+          onHidden={() => {}}
+          textColor={props.textColor}
+          backgroundColor={props.backgroundColor}
+        />
+      </Kb.Box>
+    </>
+  )
+
+  if (isModal === 'bottomsheet') {
+    return (
+      <BottomSheetScrollView style={styles.bottomSheetScrollView}>
+        <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+          {items}
+          {close}
+        </Kb.Box2>
+      </BottomSheetScrollView>
+    )
+  }
 
   return (
     <SafeAreaProvider
@@ -107,13 +180,13 @@ const MenuLayout = (props: MenuLayoutProps) => {
       style={[styles.safeProvider, props.safeProviderStyle]}
       pointerEvents="box-none"
     >
-      <SafeAreaView
+      <Kb.SafeAreaView
         style={Styles.collapseStyles([
           styles.safeArea,
           props.backgroundColor && {backgroundColor: props.backgroundColor},
         ])}
       >
-        <Box
+        <Kb.Box
           style={Styles.collapseStyles([
             styles.menuBox,
             firstIsUnWrapped && styles.firstIsUnWrapped,
@@ -122,45 +195,17 @@ const MenuLayout = (props: MenuLayoutProps) => {
         >
           {/* Display header if there is one */}
           {props.header}
-          {beginningDivider && <Divider />}
+          {beginningDivider && <Kb.Divider />}
           <ScrollView
             alwaysBounceVertical={false}
             style={Styles.collapseStyles([styles.scrollView, firstIsUnWrapped && styles.firstIsUnWrapped])}
             contentContainerStyle={styles.menuGroup}
           >
-            {menuItemsWithDividers.map((mi, idx) =>
-              mi === 'Divider' ? (
-                idx !== 0 && idx !== props.items.length ? (
-                  <Divider key={idx} style={styles.dividerInScrolleView} />
-                ) : null
-              ) : (
-                <MenuRow
-                  key={idx}
-                  {...mi}
-                  index={idx}
-                  numItems={menuItemsWithDividers.length}
-                  onHidden={props.closeOnClick ? props.onHidden : undefined}
-                  textColor={props.textColor}
-                  backgroundColor={props.backgroundColor}
-                />
-              )
-            )}
+            {items}
           </ScrollView>
-          <Divider style={styles.divider} />
-          <Box style={Styles.collapseStyles([styles.menuGroup, props.listStyle])}>
-            <MenuRow
-              centered={true}
-              title={props.closeText || 'Close'}
-              index={0}
-              numItems={1}
-              onClick={props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
-              onHidden={() => {}}
-              textColor={props.textColor}
-              backgroundColor={props.backgroundColor}
-            />
-          </Box>
-        </Box>
-      </SafeAreaView>
+          {close}
+        </Kb.Box>
+      </Kb.SafeAreaView>
     </SafeAreaProvider>
   )
 }
@@ -183,17 +228,14 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'center',
         marginLeft: Styles.globalMargins.tiny,
       },
-      divider: {
-        marginBottom: Styles.globalMargins.tiny,
-      },
+      bottomSheetScrollView: {backgroundColor: Styles.globalColors.white},
+      divider: {marginBottom: Styles.globalMargins.tiny},
       dividerInScrolleView: {
         marginBottom: Styles.globalMargins.tiny,
         marginTop: Styles.globalMargins.tiny,
       },
       firstIsUnWrapped: {paddingTop: 0},
-      flexOne: {
-        flex: 1,
-      },
+      flexOne: {flex: 1},
       iconBadge: {
         backgroundColor: Styles.globalColors.blue,
         height: Styles.globalMargins.tiny,
@@ -205,6 +247,7 @@ const styles = Styles.styleSheetCreate(
         width: Styles.globalMargins.tiny,
       },
       iconContainer: {
+        justifyContent: 'center',
         width: 20,
       },
       itemContainer: {
@@ -215,14 +258,10 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         position: 'relative',
       },
-      itemContainerWithSubTitle: {
-        height: itemContainerHeightWithSubTitle,
-      },
+      itemContainerWithSubTitle: {height: itemContainerHeightWithSubTitle},
       itemContainerWrapped: {
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.medium,
-        paddingRight: Styles.globalMargins.medium,
-        paddingTop: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
       },
       menuBox: {
         ...Styles.globalStyles.flexBoxColumn,
@@ -244,9 +283,7 @@ const styles = Styles.styleSheetCreate(
         right: 0,
         top: 0,
       },
-      safeArea: {
-        backgroundColor: Styles.globalColors.white,
-      },
+      safeArea: {backgroundColor: Styles.globalColors.white},
       safeProvider: {
         flex: 0,
         justifyContent: 'flex-end',

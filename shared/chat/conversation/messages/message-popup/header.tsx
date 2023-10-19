@@ -53,16 +53,18 @@ const MessagePopupHeader = (props: Props) => {
   return (
     <Kb.Box style={styles.headerContainer}>
       {Kb.Styles.isMobile ? null : <Kb.Icon type={iconName} style={styles.headerIcon} />}
-      <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
-        <Kb.Text
-          type="BodySmall"
-          style={{
-            color: deviceRevokedAt ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.greenDark,
-          }}
-        >
-          ENCRYPTED & SIGNED
-        </Kb.Text>
-      </Kb.Box>
+      {Kb.Styles.isMobile ? null : (
+        <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>
+          <Kb.Text
+            type="BodySmall"
+            style={{
+              color: deviceRevokedAt ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.greenDark,
+            }}
+          >
+            ENCRYPTED & SIGNED
+          </Kb.Text>
+        </Kb.Box>
+      )}
       <Kb.Box2 direction="horizontal">
         <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
           <Kb.Avatar username={author} size={16} onClick="profile" />

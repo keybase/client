@@ -123,7 +123,6 @@ export default (ownProps: OwnProps) => {
   const itemReplyPrivately = onReplyPrivately
     ? ([{icon: 'iconfont-reply', onClick: onReplyPrivately, title: 'Reply privately'}] as const)
     : []
-  const itemDivider = onViewProfile || itemKick.length || !yourMessage ? (['Divider'] as const) : []
   const itemProfile = onViewProfile
     ? ([{icon: 'iconfont-person', onClick: onViewProfile, title: 'View profile'}] as const)
     : []
@@ -174,19 +173,19 @@ export default (ownProps: OwnProps) => {
 
   const items = [
     ...itemReaction,
-    ...itemMap,
     ...itemEdit,
-    ...itemBot,
-    ...itemCopyText,
-    ...itemCopyLink,
-    ...itemReply,
-    ...itemForward,
-    ...itemReplyPrivately,
-    ...itemDelete,
     ...itemExplode,
-    ...itemPin,
+    ...itemCopyText,
+    ...itemReply,
     ...itemUnread,
-    ...itemDivider,
+    'Divider' as const,
+    ...itemDelete,
+    ...itemForward,
+    ...itemCopyLink,
+    ...itemReplyPrivately,
+    ...itemPin,
+    ...itemBot,
+    ...itemMap,
     ...itemProfile,
     ...itemKick,
     ...itemBlock,
@@ -195,6 +194,14 @@ export default (ownProps: OwnProps) => {
     ...itemFlag,
   ]
   const header = useHeader(ordinal, false)
+
+  const numItems = items.length
+
+  const snapPoints = React.useMemo(() => {
+    const first = 6 * 40 + 25
+    const max = numItems * 40 + 35
+    return [first, max]
+  }, [numItems])
 
   return (
     <Kb.FloatingMenu
@@ -206,6 +213,7 @@ export default (ownProps: OwnProps) => {
       position={position}
       containerStyle={style}
       visible={visible}
+      snapPoints={snapPoints}
       safeProviderStyle={safeProviderStyle}
     />
   )

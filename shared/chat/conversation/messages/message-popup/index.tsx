@@ -117,43 +117,27 @@ export const useMessagePopup = (p: {
   style?: Kb.Styles.StylesCrossPlatform
 }) => {
   const {ordinal, shouldShow, style} = p
+  const conversationIDKey = C.useChatContext(s => s.id)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {toggleShowingPopup, attachTo} = p
       return shouldShow?.() ?? true ? (
-        <MessagePopup
-          ordinal={ordinal}
-          key="popup"
-          attachTo={attachTo}
-          onHidden={toggleShowingPopup}
-          position="top right"
-          style={style}
-          visible={true}
-        />
+        <C.ChatProvider id={conversationIDKey}>
+          <Kb.FloatingModalContext.Provider value="bottomsheet">
+            <MessagePopup
+              ordinal={ordinal}
+              key="popup"
+              attachTo={attachTo}
+              onHidden={toggleShowingPopup}
+              position="top right"
+              style={style}
+              visible={true}
+            />
+          </Kb.FloatingModalContext.Provider>
+        </C.ChatProvider>
       ) : null
     },
-    [ordinal, shouldShow, style]
+    [ordinal, shouldShow, style, conversationIDKey]
   )
-  const desktopPopup = Kb.usePopup2(makePopup)
-  const navigateAppend = C.useChatNavigateAppend()
-  const mobilePopup: {
-    popup: React.ReactNode
-    popupAnchor: React.RefObject<Kb.MeasureRef>
-    setShowingPopup: React.Dispatch<React.SetStateAction<boolean>>
-    showingPopup: boolean
-    toggleShowingPopup: () => void
-  } = {
-    popup: null,
-    popupAnchor: React.useRef<Kb.MeasureRef>(null),
-    setShowingPopup: () => {},
-    showingPopup: true,
-    toggleShowingPopup: C.useEvent(() => {
-      navigateAppend(conversationIDKey => ({
-        props: {conversationIDKey, ordinal},
-        selected: 'chatMessagePopup',
-      }))
-    }),
-  }
-
-  return Kb.Styles.isMobile ? mobilePopup : desktopPopup
+  return Kb.usePopup2(makePopup)
 }

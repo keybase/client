@@ -82,24 +82,33 @@ export default (ownProps: OwnProps) => {
 
   const items = [
     ...itemReaction,
-    ...itemFinder,
-    ...itemSave,
+    ...itemEdit,
+    ...itemExplode,
+    ...itemReply,
     ...itemDownload,
+    'Divider' as const,
+    ...itemUnread,
+    ...itemDelete,
+    ...itemForward,
+    ...itemCopyLink,
     ...itemShare,
+    ...itemSave,
+    ...itemFinder,
     ...itemBot,
     ...itemMedia,
-    ...itemCopyLink,
-    ...itemReply,
-    ...itemEdit,
-    ...itemForward,
-    ...itemPin,
-    ...itemUnread,
-    ...itemExplode,
-    ...itemDelete,
     ...itemKick,
+    ...itemPin,
   ]
 
   const header = useHeader(ordinal, true)
+
+  const numItems = items.length
+
+  const snapPoints = React.useMemo(() => {
+    const first = 6 * 40 + 25
+    const max = numItems * 40 + 35
+    return [first, max]
+  }, [numItems])
 
   return (
     <FloatingMenu
@@ -110,6 +119,7 @@ export default (ownProps: OwnProps) => {
       closeOnSelect={true}
       position={position}
       containerStyle={style}
+      snapPoints={snapPoints}
       visible={visible}
     />
   )
