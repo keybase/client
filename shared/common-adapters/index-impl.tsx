@@ -361,9 +361,6 @@ module.exports = {
   get useSafeAreaInsets() {
     return require('./safe-area-view').useSafeAreaInsets
   },
-  get useSnapPoint() {
-    return require('./floating-menu').useSnapPoint
-  },
   get useTimeout() {
     return require('./use-timers').useTimeout
   },
