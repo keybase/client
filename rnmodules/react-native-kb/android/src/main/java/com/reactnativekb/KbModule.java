@@ -145,13 +145,6 @@ public class KbModule extends KbSpec {
 
     // newarch @Override
     protected Map<String, Object> getTypedExportedConstants() {
-        try {
-            jsiInstalled = true;
-            this.nativeInstallJSI(this.reactContext.getJavaScriptContextHolder().get());
-        } catch (Exception exception) {
-            NativeLogger.error("Exception in installJSI", exception);
-        }
-
         String versionCode = String.valueOf(getBuildConfigValue("VERSION_CODE"));
         String versionName = String.valueOf(getBuildConfigValue("VERSION_NAME"));
         boolean isDeviceSecure = false;
@@ -577,6 +570,16 @@ public class KbModule extends KbSpec {
             reactContext
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                 .emit(RPC_META_EVENT_NAME, RPC_META_EVENT_ENGINE_RESET);
+        }
+    }
+
+    @ReactMethod
+    public void install() {
+        try {
+            jsiInstalled = true;
+            this.nativeInstallJSI(this.reactContext.getJavaScriptContextHolder().get());
+        } catch (Exception exception) {
+            NativeLogger.error("Exception in installJSI", exception);
         }
     }
 

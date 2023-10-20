@@ -5,10 +5,12 @@ import ViewReactNativeStyleAttributes from 'react-native/Libraries/Components/Vi
 import './util/why-did-you-render'
 import './app/globals.native'
 import {Appearance} from 'react-native'
-import {darkModeSupported, guiConfig} from 'react-native-kb'
+import {darkModeSupported, guiConfig, install} from 'react-native-kb'
 import * as DarkMode from './constants/darkmode'
 import {enableMapSet} from 'immer'
+
 enableMapSet()
+install()
 
 // Add scaleY back to work around its removal in React Native 0.70. needed for list perf issues, see list-area.native
 ViewReactNativeStyleAttributes.scaleY = true

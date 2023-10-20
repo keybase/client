@@ -18,6 +18,9 @@ export const getDefaultCountryCode = () => {
 export const logSend = (status, feedback, sendLogs, sendMaxBytes, traceDir, cpuProfileDir) => {
   return Kb.logSend(status, feedback, sendLogs, sendMaxBytes, traceDir, cpuProfileDir);
 };
+export const install = () => {
+  Kb.install();
+};
 export const iosGetHasShownPushPrompt = () => {
   if (Platform.OS === 'ios') {
     return Kb.iosGetHasShownPushPrompt();
