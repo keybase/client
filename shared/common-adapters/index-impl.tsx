@@ -26,6 +26,15 @@ module.exports = {
   get BannerParagraph() {
     return require('./banner').BannerParagraph
   },
+  get BottomSheetBackdrop() {
+    return require('./bottom-sheet').BottomSheetBackdrop
+  },
+  get BottomSheetModal() {
+    return require('./bottom-sheet').BottomSheetModal
+  },
+  get BottomSheetScrollView() {
+    return require('./bottom-sheet').BottomSheetScrollView
+  },
   get Box() {
     return require('./box').default
   },

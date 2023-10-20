@@ -45,7 +45,11 @@ const MoreMenuPopup = (props: Props) => {
       title: 'Other commands',
     },
   ]
-  return <Kb.FloatingMenu closeOnSelect={true} items={items} onHidden={onHidden} visible={visible} />
+  return (
+    <Kb.FloatingModalContext.Provider value="bottomsheet">
+      <Kb.FloatingMenu closeOnSelect={true} items={items} onHidden={onHidden} visible={visible} />
+    </Kb.FloatingModalContext.Provider>
+  )
 }
 
 export default MoreMenuPopup

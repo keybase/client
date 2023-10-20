@@ -11,7 +11,8 @@ const Kb = {
 }
 
 const Overlay = (props: Props) => {
-  if (Object.prototype.hasOwnProperty.call(props, 'visible') && !props.visible) {
+  const {visible = true} = props
+  if (!visible) {
     return null
   }
   return (

@@ -6,7 +6,12 @@ export type {WebViewProps, WebViewInjections} from './web-view'
 export type {AnimationType} from './animation'
 
 export {LayoutAnimation} from 'react-native' // exported from index.native
-
+export {
+  BottomSheetModal,
+  BottomSheetBackdrop,
+  BottomSheetScrollView,
+  type BottomSheetBackdropProps,
+} from './bottom-sheet'
 export {default as Animation} from './animation'
 export {default as Avatar} from './avatar'
 export {default as AvatarLine} from './avatar-line'
