@@ -12,7 +12,7 @@ type OwnProps = {
   onSelectConversation: () => void
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const _hasBadge = C.useChatContext(s => s.badge > 0)
   const _hasUnread = C.useChatContext(s => s.unread > 0)
   const _meta = C.useChatContext(s => s.meta)
@@ -61,3 +61,5 @@ export default (ownProps: OwnProps) => {
 
   return <SelectableSmallTeam {...props} />
 }
+
+export default Container

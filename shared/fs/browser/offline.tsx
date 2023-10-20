@@ -44,7 +44,7 @@ type OwnProps = {
   path: T.FS.Path
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const syncConfig = C.useFSState(s => C.getTlfFromPath(s.tlfs, path).syncConfig)
   const props = {
@@ -53,3 +53,5 @@ export default (ownProps: OwnProps) => {
   }
   return <OfflineFolder {...props} />
 }
+
+export default Container

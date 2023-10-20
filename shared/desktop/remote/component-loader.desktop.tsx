@@ -80,7 +80,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default function (options: {
+export default function Loader(options: {
   child: React.ReactNode
   deserialize: (arg0: any, arg1: any) => any
   name: RemoteComponents

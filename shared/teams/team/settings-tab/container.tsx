@@ -9,7 +9,7 @@ export type OwnProps = {
   teamID: T.Teams.TeamID
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
   const teamMeta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
@@ -73,3 +73,5 @@ export default (ownProps: OwnProps) => {
   }
   return <Settings {...props} />
 }
+
+export default Container

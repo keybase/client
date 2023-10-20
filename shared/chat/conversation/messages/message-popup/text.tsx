@@ -19,7 +19,7 @@ type OwnProps = {
 
 const emptyMessage = makeMessageText({})
 
-export default (ownProps: OwnProps) => {
+const PopText = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
   const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const you = C.useCurrentUserState(s => s.username)
@@ -205,3 +205,4 @@ export default (ownProps: OwnProps) => {
 }
 
 const safeProviderStyle = {flex: 1} as const
+export default PopText

@@ -15,4 +15,5 @@ const Screen = () =>
     </React.Suspense>
   ) : null
 
-export default {getOptions, getScreen: () => Screen}
+const Page = {getOptions, getScreen: () => Screen}
+export default Page

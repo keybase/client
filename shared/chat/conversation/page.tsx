@@ -16,4 +16,5 @@ const Screen = (p: OwnProps) => (
   </C.ProviderScreen>
 )
 
-export default {getOptions, getScreen: () => Screen}
+const Page = {getOptions, getScreen: () => Screen}
+export default Page

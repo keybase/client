@@ -7,7 +7,7 @@ type OwnProps = {
   username: string
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const username = ownProps.username
   const d = C.useTrackerState(s => Constants.getDetails(s, username))
   const followThem = C.useFollowerState(s => s.following.has(username))
@@ -68,3 +68,5 @@ export default (ownProps: OwnProps) => {
   }
   return <Actions {...props} />
 }
+
+export default Container

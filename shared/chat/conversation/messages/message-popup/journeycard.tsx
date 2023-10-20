@@ -13,7 +13,7 @@ type OwnProps = {
   visible: boolean
 }
 
-export default (ownProps: OwnProps) => {
+const JourneyCard = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, style, visible, position} = ownProps
   const cardType = C.useChatContext(
     s => s.messageMap.get(ordinal)?.cardType ?? T.RPCChat.JourneycardType.unused
@@ -40,3 +40,4 @@ export default (ownProps: OwnProps) => {
   )
 }
 const safeProviderStyle = {flex: 1} as const
+export default JourneyCard

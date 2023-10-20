@@ -24,7 +24,7 @@ const ReloadableNotifications = (props: Props) => {
   )
 }
 
-export default () => {
+const Container = () => {
   const _groups = C.useSettingsNotifState(s => s.groups)
   const allowEdit = C.useSettingsNotifState(s => s.allowEdit)
   const toggle = C.useSettingsNotifState(s => s.dispatch.toggle)
@@ -52,3 +52,5 @@ export default () => {
   }
   return <ReloadableNotifications {...props} />
 }
+
+export default Container

@@ -2,7 +2,7 @@ import * as C from '../../constants'
 import * as React from 'react'
 import Errs from './errs'
 
-export default () => {
+const Container = () => {
   const _errors = C.useFSState(s => s.errors)
   const _dismiss = C.useFSState(s => s.dispatch.dismissRedbar)
   const props = {
@@ -13,3 +13,5 @@ export default () => {
   }
   return <Errs {...props} />
 }
+
+export default Container

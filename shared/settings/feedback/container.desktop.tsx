@@ -4,7 +4,7 @@ import Feedback from '.'
 import type {Props} from './container'
 import {useSendFeedback} from './shared'
 
-export default (ownProps: Props) => {
+const Container = (ownProps: Props) => {
   const {sendFeedback, error} = useSendFeedback()
 
   const feedback = ownProps.feedback ?? ''
@@ -27,3 +27,5 @@ export default (ownProps: Props) => {
   }
   return <Feedback {...props} />
 }
+
+export default Container

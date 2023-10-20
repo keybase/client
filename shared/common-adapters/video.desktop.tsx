@@ -4,7 +4,7 @@ import type {Props, State} from './video'
 import * as Styles from '../styles'
 import {getVideoSize, CheckURL} from './video.shared'
 
-export default class extends React.PureComponent<Props, State> {
+export default class Video extends React.PureComponent<Props, State> {
   state = {
     containerHeight: 0,
     containerWidth: 0,

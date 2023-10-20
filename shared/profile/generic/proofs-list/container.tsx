@@ -2,7 +2,7 @@ import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import ProofsList from '.'
 
-export default () => {
+const Container = () => {
   const _proofSuggestions = C.useTrackerState(s => s.proofSuggestions)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
@@ -26,3 +26,5 @@ export default () => {
   }
   return <ProofsList {...props} />
 }
+
+export default Container

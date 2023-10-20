@@ -8,7 +8,7 @@ const empty = {
   displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
 }
 
-export default () => {
+const Container = () => {
   const info = C.useChatContext(s => s.commandStatus)
   const _info = info || empty
 
@@ -38,3 +38,4 @@ export default () => {
   }
   return <CommandStatus {...props} />
 }
+export default Container

@@ -9,7 +9,7 @@ type OwnProps = {
   entityType: RetentionEntityType
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
@@ -33,3 +33,5 @@ export default (ownProps: OwnProps) => {
   }
   return <RetentionWarning {...props} />
 }
+
+export default Container

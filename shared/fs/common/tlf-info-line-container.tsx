@@ -9,7 +9,7 @@ export type OwnProps = {
   mode: 'row' | 'default'
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const _tlf = C.useFSState(s => C.getTlfFromPath(s.tlfs, ownProps.path))
   const _username = C.useCurrentUserState(s => s.username)
   const resetParticipants = _tlf === Constants.unknownTlf ? undefined : _tlf.resetParticipants
@@ -26,3 +26,5 @@ export default (ownProps: OwnProps) => {
   }
   return <TlfInfoLine {...props} />
 }
+
+export default Container

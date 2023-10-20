@@ -32,7 +32,7 @@ export class WatchForSuccess extends React.Component<WatcherProps> {
   }
 }
 
-export default () => {
+const Container = () => {
   const error = C.useSettingsPhoneState(s => (s.verificationState === 'error' ? s.error : ''))
   const phoneNumber = C.useSettingsPhoneState(s => s.pendingVerification)
   const resendWaiting = C.useAnyWaiting([C.resendVerificationForPhoneWaitingKey, C.addPhoneNumberWaitingKey])
@@ -73,3 +73,5 @@ export default () => {
   }
   return <WatchForSuccess {...props} />
 }
+
+export default Container

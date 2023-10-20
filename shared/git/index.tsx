@@ -25,7 +25,7 @@ const getRepos = memoize((git: Map<string, T.Git.GitInfo>) =>
   )
 )
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const initialExpandedSet = ownProps.expanded ? new Set([ownProps.expanded]) : undefined
   const loading = C.useAnyWaiting(C.gitWaitingKey)
   const {clearBadges, load, setError, error, idToInfo, isNew} = C.useGitState(
@@ -152,3 +152,5 @@ const styles = Kb.Styles.styleSheetCreate(
       },
     }) as const
 )
+
+export default Container

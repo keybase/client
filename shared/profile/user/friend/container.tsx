@@ -6,7 +6,7 @@ type OwnProps = {
   width: number
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const fullname = C.useUsersState(s => s.infoMap.get(ownProps.username)?.fullname ?? '')
   const username = ownProps.username
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
@@ -19,3 +19,5 @@ export default (ownProps: OwnProps) => {
   }
   return <Friend {...props} />
 }
+
+export default Container

@@ -2,7 +2,7 @@ import * as C from '../../constants'
 import * as Constants from '../../constants/settings'
 import UpdatePassword from '.'
 
-export default () => {
+const Container = () => {
   const error = C.useSettingsPasswordState(s => s.error)
   const hasPGPKeyOnServer = C.useSettingsPasswordState(s => !!s.hasPGPKeyOnServer)
   const hasRandomPW = C.useSettingsPasswordState(s => !!s.randomPW)
@@ -42,3 +42,5 @@ export default () => {
   }
   return <UpdatePassword {...props} />
 }
+
+export default Container

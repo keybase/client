@@ -8,7 +8,7 @@ type OwnProps = {
   platformHandle: string
   proofId: string
 }
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {platformHandle, platform, proofId, icon} = ownProps
   const errorMessage = C.useProfileState(s => s.revokeError)
   const finishRevoking = C.useProfileState(s => s.dispatch.finishRevoking)
@@ -34,3 +34,5 @@ export default (ownProps: OwnProps) => {
   }
   return <Revoke {...props} />
 }
+
+export default Container

@@ -48,7 +48,7 @@ const prettierWriteAll = () =>
     stdio: 'inherit',
   })
 
-export default {
+const Prettier = {
   'prettier-check': {
     code: prettierCheck,
     help: 'Test for any misformatted files',
@@ -58,3 +58,4 @@ export default {
     help: 'Prettier all files',
   },
 }
+export default Prettier

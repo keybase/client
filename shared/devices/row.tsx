@@ -12,18 +12,18 @@ type OwnProps = {
 
 export const NewContext = React.createContext(new Set())
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {deviceID, firstItem} = ownProps
   const device = C.useDevicesState(s => s.deviceMap.get(deviceID))
-  if (!device) return null
-
-  const isNew = React.useContext(NewContext).has(deviceID)
-  const {currentDevice, name, revokedAt, lastUsed} = device
-  const isRevoked = !!device.revokedByName
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const showExistingDevicePage = React.useCallback(() => {
     navigateAppend({props: {deviceID}, selected: 'devicePage'})
   }, [navigateAppend, deviceID])
+
+  const isNew = React.useContext(NewContext).has(deviceID)
+  if (!device) return null
+  const {currentDevice, name, revokedAt, lastUsed} = device
+  const isRevoked = !!device.revokedByName
 
   return (
     <Kb.ListItem2
@@ -74,3 +74,5 @@ const styles = Kb.Styles.styleSheetCreate(
       },
     }) as const
 )
+
+export default Container

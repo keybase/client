@@ -8,7 +8,7 @@ const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolea
   myUsername: string
 ): Array<T> => accountRows.filter(account => account.username !== myUsername)
 
-export default () => {
+const Container = () => {
   const _fullnames = C.useUsersState(s => s.infoMap)
   const _accountRows = C.useConfigState(s => s.configuredAccounts)
   const you = C.useCurrentUserState(s => s.username)
@@ -53,3 +53,5 @@ export default () => {
   }
   return <AccountSwitcher {...props} />
 }
+
+export default Container

@@ -13,7 +13,7 @@ type OwnProps = {
   wizard?: boolean
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const teamID = ownProps.teamID
   const createdTeam = ownProps.createdTeam ?? false
   const image = ownProps.image
@@ -109,3 +109,5 @@ export default (ownProps: OwnProps) => {
       }
   return <EditAvatar {...props} />
 }
+
+export default Container

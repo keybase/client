@@ -1,7 +1,7 @@
 import * as C from '../../constants'
 import Intro from '.'
 
-export default () => {
+const Container = () => {
   const justDeletedSelf = C.useConfigState(s => s.justDeletedSelf)
   const justRevokedSelf = C.useConfigState(s => s.justRevokedSelf)
   const bannerMessage = justDeletedSelf
@@ -37,3 +37,5 @@ export default () => {
   }
   return <Intro {...props} />
 }
+
+export default Container

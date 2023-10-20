@@ -103,7 +103,7 @@ export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTea
 }
 
 type OwnProps = {username: string}
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const _them = ownProps.username
   const _roles = C.useTeamsState(s => s.teamRoleMap.roles)
   const _teams = C.useTeamsState(s => s.teamMeta)
@@ -147,3 +147,5 @@ export default (ownProps: OwnProps) => {
   }
   return <AddToTeamStateWrapper {...props} />
 }
+
+export default Container

@@ -6,7 +6,7 @@ type OwnProps = {
   conversationIDKey: T.Chat.ConversationIDKey // for page
 }
 
-export default (_ownProps: OwnProps) => {
+const Container = (_ownProps: OwnProps) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
@@ -23,3 +23,4 @@ export default (_ownProps: OwnProps) => {
   }
   return <DeleteHistoryWarning {...props} />
 }
+export default Container

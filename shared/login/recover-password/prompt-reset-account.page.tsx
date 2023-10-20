@@ -24,4 +24,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   questionBox: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, 0),
 }))
 
-export default {getOptions, getScreen: () => Screen}
+const Page = {getOptions, getScreen: () => Screen}
+export default Page

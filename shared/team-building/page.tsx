@@ -39,4 +39,5 @@ const Screen = (p: OwnProps) => (
   </C.TBProvider>
 )
 
-export default {getOptions, getScreen: () => Screen}
+const Page = {getOptions, getScreen: () => Screen}
+export default Page

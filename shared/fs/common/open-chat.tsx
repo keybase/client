@@ -30,7 +30,7 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const isTeam = C.isTeamPath(path)
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
@@ -50,3 +50,5 @@ export default (ownProps: OwnProps) => {
   }
   return <OpenChat {...props} />
 }
+
+export default Container

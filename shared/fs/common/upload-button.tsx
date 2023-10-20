@@ -69,7 +69,7 @@ const UploadButton = (props: UploadButtonProps) => {
   )
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, ownProps.path))
   const openAndUploadDesktop = C.useFSState(s => s.dispatch.dynamic.openAndUploadDesktop)
   const pickAndUploadMobile = C.useFSState(s => s.dispatch.dynamic.pickAndUploadMobile)
@@ -110,3 +110,5 @@ export default (ownProps: OwnProps) => {
   }
   return <UploadButton {...props} />
 }
+
+export default Container

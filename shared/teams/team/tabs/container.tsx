@@ -10,7 +10,7 @@ type OwnProps = {
   setSelectedTab: (tab: T.Teams.TabKey) => void
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {selectedTab, setSelectedTab, teamID} = ownProps
   const teamMeta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
@@ -45,3 +45,5 @@ export default (ownProps: OwnProps) => {
   }
   return <Tabs {...props} />
 }
+
+export default Container

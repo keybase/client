@@ -4,7 +4,7 @@ import DefaultView from './default-view'
 
 type OwnProps = {path: T.FS.Path}
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
   const sfmiEnabled = C.useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
@@ -28,3 +28,5 @@ export default (ownProps: OwnProps) => {
   }
   return <DefaultView {...props} />
 }
+
+export default Container

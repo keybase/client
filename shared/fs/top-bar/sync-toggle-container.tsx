@@ -6,7 +6,7 @@ type OwnProps = {
   tlfPath: T.FS.Path
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {tlfPath} = ownProps
   const _tlfPathItem = C.useFSState(s => C.getPathItem(s.pathItems, ownProps.tlfPath))
   const _tlfs = C.useFSState(s => s.tlfs)
@@ -36,3 +36,5 @@ export default (ownProps: OwnProps) => {
   }
   return <SyncToggle {...props} />
 }
+
+export default Container

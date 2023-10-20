@@ -1,7 +1,7 @@
 import * as C from '../../constants'
 import ProveEnterUsername from '.'
 
-export default () => {
+const Container = () => {
   const platform = C.useProfileState(s => s.platform)
   const username = C.useProfileState(s => s.username)
   const _errorText = C.useProfileState(s => s.errorText)
@@ -42,3 +42,5 @@ export default () => {
   }
   return <ProveEnterUsername {...props} />
 }
+
+export default Container

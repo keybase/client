@@ -14,10 +14,12 @@ class Component extends React.PureComponent<Props> {
   }
 }
 
-export default () => {
+const Container = () => {
   const refresh = C.useFSState(s => s.dispatch.loadSettings)
   const props = {
     refresh,
   }
   return <Component {...props} />
 }
+
+export default Container

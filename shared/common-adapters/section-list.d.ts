@@ -147,6 +147,6 @@ export type Props<SectionT extends Section<any, any>> = {
   desktopItemSizeEstimatorOverride?: () => number
 }
 
-export default class<T extends Section<any, any>> extends React.Component<Props<T>> {
+export default class SectionList<T extends Section<any, any>> extends React.Component<Props<T>> {
   scrollToLocation: (o: {animated: boolean; itemIndex: number; sectionIndex: number}) => void
 }

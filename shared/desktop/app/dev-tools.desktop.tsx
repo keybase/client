@@ -38,7 +38,7 @@ function cleanupOpenDevtools() {
   }
 }
 
-export default function () {
+export default function DevTools() {
   if (Electron.app.isReady()) {
     setupOpenDevtools()
   } else {

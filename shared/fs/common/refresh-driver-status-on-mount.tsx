@@ -14,7 +14,7 @@ class Component extends React.PureComponent<Props> {
   }
 }
 
-export default () => {
+const Container = () => {
   const refreshDriverStatusDesktop = C.useFSState(s => s.dispatch.dynamic.refreshDriverStatusDesktop)
   const refresh = () => refreshDriverStatusDesktop?.()
   const props = {
@@ -22,3 +22,5 @@ export default () => {
   }
   return <Component {...props} />
 }
+
+export default Container

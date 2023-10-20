@@ -4,7 +4,7 @@ import upperFirst from 'lodash/upperFirst'
 
 type OwnProps = {initialTeamname?: string}
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const initialTeamname = ownProps.initialTeamname
   const errorText = C.useTeamsState(s => upperFirst(s.errorInTeamJoin))
   const open = C.useTeamsState(s => s.teamJoinSuccessOpen)
@@ -27,3 +27,5 @@ export default (ownProps: OwnProps) => {
   }
   return <JoinTeam {...props} />
 }
+
+export default Container

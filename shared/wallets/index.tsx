@@ -100,7 +100,7 @@ const Row = (p: {account: Constants.Account}) => {
   )
 }
 
-export default () => {
+const Container = () => {
   const [acceptedDisclaimer, setAcceptedDisclaimer] = React.useState(false)
   const checkDisclaimer = C.useRPC(T.RPCStellar.localHasAcceptedDisclaimerLocalRpcPromise)
 
@@ -197,3 +197,5 @@ const styles = Kb.Styles.styleSheetCreate(
       scroll: {flexGrow: 1},
     }) as const
 )
+
+export default Container

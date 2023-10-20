@@ -11,7 +11,7 @@ import {runMode} from '../../constants/platform.desktop'
 // parent process is killed.
 // Callback is optional and accepts (error, boolean), where boolean is if we
 // attempted to execute.
-export default function (
+export default function Exec(
   path: string | undefined,
   args: any,
   platformOnly: any,

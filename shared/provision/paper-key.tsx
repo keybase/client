@@ -4,7 +4,7 @@ import * as React from 'react'
 import {SignupScreen, errorBanner} from '../signup/common'
 import {isMobile} from '../constants/platform'
 
-export default () => {
+const Container = () => {
   const error = C.useProvisionState(s => s.error)
   const hint = C.useProvisionState(s => `${s.codePageOtherDevice.name || ''}...`)
   const waiting = C.useAnyWaiting(C.provisionWaitingKey)
@@ -120,3 +120,5 @@ const styles = Kb.Styles.styleSheetCreate(
       },
     }) as const
 )
+
+export default Container

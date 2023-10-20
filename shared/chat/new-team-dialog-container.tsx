@@ -7,7 +7,7 @@ type OwnProps = {
   conversationIDKey: T.Chat.ConversationIDKey // for page
 }
 
-export default (_: OwnProps) => {
+const Container = (_: OwnProps) => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const baseTeam = ''
   const errorText = C.useTeamsState(s => upperFirst(s.errorInTeamCreation))
@@ -30,3 +30,5 @@ export default (_: OwnProps) => {
   }
   return <NewTeamDialog {...props} />
 }
+
+export default Container

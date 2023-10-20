@@ -29,4 +29,5 @@ const Screen = (p: OwnProps) => (
     <Profile {...p.route.params} />
   </React.Suspense>
 )
-export default {getOptions, getScreen: () => Screen}
+const Page = {getOptions, getScreen: () => Screen}
+export default Page

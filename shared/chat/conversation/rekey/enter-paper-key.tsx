@@ -2,7 +2,7 @@ import {PaperKey} from '../../../provision/paper-key'
 import * as T from '../../../constants/types'
 import * as C from '../../../constants'
 
-export default () => {
+const EnterPaperKey = () => {
   const error = ''
   const hint = ''
   const waiting = false
@@ -30,3 +30,4 @@ export default () => {
   }
   return <PaperKey {...props} />
 }
+export default EnterPaperKey

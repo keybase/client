@@ -8,7 +8,7 @@ type OwnProps = {
   mode: 'row' | 'screen'
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {path, mode} = ownProps
   const deleteFile = C.useFSState(s => s.dispatch.deleteFile)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -34,3 +34,5 @@ export default (ownProps: OwnProps) => {
   }
   return <ReallyDelete {...props} />
 }
+
+export default Container

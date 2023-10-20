@@ -8,7 +8,7 @@ import {Group} from './notifications/render'
 
 const emptyList = new Array<string>()
 
-export default () => {
+const Container = () => {
   const contactSettingsEnabled = C.useSettingsChatState(s => s.contactSettings.settings?.enabled)
   const contactSettingsIndirectFollowees = C.useSettingsChatState(
     s => s.contactSettings.settings?.allowFolloweeDegrees === 2
@@ -596,3 +596,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
 }))
+
+export default Container

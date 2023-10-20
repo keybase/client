@@ -13,7 +13,7 @@ export type OwnProps = {
   teamID: T.Teams.TeamID
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {entityType, conversationIDKey: _cid, teamID} = ownProps
 
   let loading = false
@@ -73,3 +73,5 @@ export default (ownProps: OwnProps) => {
   }
   return <RetentionPicker {...props} />
 }
+
+export default Container

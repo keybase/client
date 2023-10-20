@@ -6,7 +6,7 @@ import FeedbackForm from '../settings/feedback/index'
 import {SignupScreen, errorBanner} from './common'
 import {useSendFeedback} from '../settings/feedback/shared'
 
-export default () => {
+const Container = () => {
   const {error, sendFeedback} = useSendFeedback()
   const loggedOut = C.useConfigState(s => !s.loggedIn)
   const sendError = error
@@ -65,3 +65,5 @@ const SignupFeedback = (props: Props) => {
     </SignupScreen>
   )
 }
+
+export default Container

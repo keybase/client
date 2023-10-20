@@ -61,7 +61,7 @@ type OwnProps = {
   style?: StylesTextCrossPlatform
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {name, channel} = ownProps
   const info = C.useChatState(s => s.maybeMentionMap.get(Constants.getTeamMentionName(name, channel)))
   const resolveMaybeMention = C.useChatContext(s => s.dispatch.resolveMaybeMention)
@@ -78,3 +78,5 @@ export default (ownProps: OwnProps) => {
   }
   return <MaybeMention {...props} />
 }
+
+export default Container

@@ -2,7 +2,7 @@ import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
 import EditProfile from '.'
 
-export default () => {
+const Container = () => {
   const username = C.useCurrentUserState(s => s.username)
   const d = C.useTrackerState(s => Constants.getDetails(s, username))
   const bio = d.bio || ''
@@ -29,3 +29,5 @@ export default () => {
   }
   return <EditProfile {...props} />
 }
+
+export default Container

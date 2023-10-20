@@ -24,4 +24,5 @@ const Screen = (p: OwnProps) => (
     <AddToTeam {...p.route.params} />
   </React.Suspense>
 )
-export default {getOptions, getScreen: () => Screen}
+const Page = {getOptions, getScreen: () => Screen}
+export default Page

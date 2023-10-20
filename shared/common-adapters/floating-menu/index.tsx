@@ -58,6 +58,8 @@ const FloatingMenu = (props: Props) => {
     return null
   }
 
+  console.log('aaa 2')
+
   const contents = (
     <MenuLayout
       isModal={isModal}
