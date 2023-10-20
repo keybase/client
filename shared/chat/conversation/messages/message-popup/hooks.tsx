@@ -6,6 +6,7 @@ import {makeMessageAttachment, makeMessageText} from '../../../../constants/chat
 import ReactionItem from './reactionitem'
 import MessagePopupHeader from './header'
 import ExplodingPopupHeader from './exploding-header'
+import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
 
 const emptyAttach = makeMessageAttachment({})
 const emptyText = makeMessageText({})
@@ -13,7 +14,7 @@ const emptyText = makeMessageText({})
 export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: () => void) => {
   const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const message = isAttach ? (m?.type === 'attachment' ? m : emptyAttach) : m?.type === 'text' ? m : emptyText
-  const {author, id} = message
+  const {author, id, deviceName, timestamp, deviceRevokedAt} = message
   const meta = C.useChatContext(s => s.meta)
   const {teamID, teamname} = meta
   const participantInfo = C.useChatContext(s => s.participants)
@@ -191,6 +192,25 @@ export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: (
         },
       ] as const)
     : []
+
+  const _showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
+  const showUserProfile = React.useCallback(() => {
+    _showUserProfile(author)
+  }, [_showUserProfile, author])
+  const onViewProfile = author && !yourMessage ? showUserProfile : undefined
+  const profileSubtitle = `${deviceName} ${deviceRevokedAt ? 'REVOKED at' : '-'} ${
+    deviceRevokedAt ? `${formatTimeForRevoked(deviceRevokedAt)}` : formatTimeForPopup(timestamp)
+  }`
+  const itemProfile = onViewProfile
+    ? ([
+        {
+          icon: 'iconfont-person',
+          onClick: onViewProfile,
+          subTitle: profileSubtitle,
+          title: `View ${author}'s profile`,
+        },
+      ] as const)
+    : []
   return {
     itemBot,
     itemCopyLink,
@@ -200,6 +220,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: (
     itemForward,
     itemKick,
     itemPin,
+    itemProfile,
     itemReaction,
     itemReply,
     itemUnread,

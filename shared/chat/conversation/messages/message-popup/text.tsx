@@ -40,11 +40,6 @@ export default (ownProps: OwnProps) => {
     copyToClipboard(text.stringValue())
   }, [copyToClipboard, text])
 
-  const _showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
-  const showUserProfile = React.useCallback(() => {
-    _showUserProfile(author)
-  }, [_showUserProfile, author])
-  const onViewProfile = author && !yourMessage ? showUserProfile : undefined
   const messageReplyPrivately = C.useChatContext(s => s.dispatch.messageReplyPrivately)
   const _onReplyPrivately = React.useCallback(() => {
     messageReplyPrivately(ordinal)
@@ -114,7 +109,7 @@ export default (ownProps: OwnProps) => {
 
   const i = useItems(ordinal, false, onHidden)
   const {itemReaction, itemBot, itemCopyLink, itemReply, itemEdit, itemForward, itemPin, itemUnread} = i
-  const {itemDelete, itemExplode, itemKick} = i
+  const {itemDelete, itemExplode, itemKick, itemProfile} = i
 
   const itemMap = onViewMap
     ? ([{icon: 'iconfont-location', onClick: onViewMap, title: 'View on Google Maps'}] as const)
@@ -122,9 +117,6 @@ export default (ownProps: OwnProps) => {
   const itemCopyText = [{icon: 'iconfont-clipboard', onClick: onCopy, title: 'Copy text'}] as const
   const itemReplyPrivately = onReplyPrivately
     ? ([{icon: 'iconfont-reply', onClick: onReplyPrivately, title: 'Reply privately'}] as const)
-    : []
-  const itemProfile = onViewProfile
-    ? ([{icon: 'iconfont-person', onClick: onViewProfile, title: 'View profile'}] as const)
     : []
 
   const itemBlock = !yourMessage

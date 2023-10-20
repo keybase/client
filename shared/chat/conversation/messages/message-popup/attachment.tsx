@@ -3,7 +3,7 @@ import * as React from 'react'
 import type * as T from '../../../../constants/types'
 import {type Position, fileUIName, type StylesCrossPlatform} from '../../../../styles'
 import {makeMessageAttachment} from '../../../../constants/chat2/message'
-import {useItems, useHeader} from './hooks'
+import {useItems, useHeader, useProfileSubtitle} from './hooks'
 import * as Kb from '../../../../common-adapters'
 
 type OwnProps = {
@@ -47,6 +47,8 @@ export default (ownProps: OwnProps) => {
   }, [messageAttachmentNativeShare, ordinal])
   const onShareAttachment = C.isIOS ? _onShareAttachment : undefined
 
+  const profileSubtitle = useProfileSubtitle(ordinal, false)
+
   const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
@@ -57,7 +59,7 @@ export default (ownProps: OwnProps) => {
 
   const i = useItems(ordinal, true, onHidden)
   const {itemBot, itemReaction, itemCopyLink, itemReply, itemEdit, itemForward, itemPin, itemUnread} = i
-  const {itemExplode, itemDelete, itemKick} = i
+  const {itemExplode, itemDelete, itemKick, itemProfile} = i
 
   const itemFinder = onShowInFinder
     ? ([{icon: 'iconfont-finder', onClick: onShowInFinder, title: `Show in ${fileUIName}`}] as const)
@@ -96,6 +98,7 @@ export default (ownProps: OwnProps) => {
     ...itemFinder,
     ...itemBot,
     ...itemMedia,
+    ...itemProfile,
     ...itemKick,
     ...itemPin,
   ]
