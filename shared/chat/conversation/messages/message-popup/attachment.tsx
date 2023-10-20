@@ -3,7 +3,7 @@ import * as React from 'react'
 import type * as T from '../../../../constants/types'
 import {type Position, fileUIName, type StylesCrossPlatform} from '../../../../styles'
 import {makeMessageAttachment} from '../../../../constants/chat2/message'
-import {useItems, useHeader, useProfileSubtitle} from './hooks'
+import {useItems, useHeader} from './hooks'
 import * as Kb from '../../../../common-adapters'
 
 type OwnProps = {
@@ -46,8 +46,6 @@ export default (ownProps: OwnProps) => {
     messageAttachmentNativeShare(ordinal)
   }, [messageAttachmentNativeShare, ordinal])
   const onShareAttachment = C.isIOS ? _onShareAttachment : undefined
-
-  const profileSubtitle = useProfileSubtitle(ordinal, false)
 
   const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop

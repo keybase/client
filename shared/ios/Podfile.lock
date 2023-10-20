@@ -29,7 +29,7 @@ PODS:
     - ExpoModulesCore
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
-  - Expo (49.0.13):
+  - Expo (49.0.16):
     - ExpoModulesCore
   - ExpoClipboard (4.5.0):
     - ExpoModulesCore
@@ -901,7 +901,7 @@ SPEC CHECKSUMS:
   EXImageLoader: 03063370bc06ea1825713d3f55fe0455f7c88d04
   EXLocation: e5dd52bdf61ccb6153c9e46ad4cb2686c96a35f9
   EXMediaLibrary: 802eee8ef888ee16ef80f1b79005d3d611793e14
-  Expo: e7d2116b947e2e6fdeb09ee4f2754f819426d1b6
+  Expo: fcfd60c1ed6806dee5103b210335ae0c72f675ed
   ExpoClipboard: d2f0e44d50e5ba07b02f5fb7bd280178b420e24e
   ExpoHaptics: 604aca02e942d1d43c139cae7cf397b26f85476f
   ExpoImage: bbd451559f49f78d858592fe1d4d74aedb3d900b
