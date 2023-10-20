@@ -4,10 +4,10 @@ import type * as T from '../../../../constants/types'
 import {type Position, fileUIName, type StylesCrossPlatform} from '../../../../styles'
 import {makeMessageAttachment} from '../../../../constants/chat2/message'
 import {useItems, useHeader} from './hooks'
-import {FloatingMenu, type MeasureRef} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
 
 type OwnProps = {
-  attachTo?: React.RefObject<MeasureRef>
+  attachTo?: React.RefObject<Kb.MeasureRef>
   ordinal: T.Chat.Ordinal
   onHidden: () => void
   position: Position
@@ -101,17 +101,10 @@ export default (ownProps: OwnProps) => {
   ]
 
   const header = useHeader(ordinal, true)
-
-  const numItems = items.length
-
-  const snapPoints = React.useMemo(() => {
-    const first = 6 * 40 + 25
-    const max = numItems * 40 + 35
-    return [first, max]
-  }, [numItems])
+  const snapPoints = React.useMemo(() => [6 * 40 + 25], [])
 
   return (
-    <FloatingMenu
+    <Kb.FloatingMenu
       attachTo={attachTo}
       header={header}
       items={items}

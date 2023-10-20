@@ -11,10 +11,12 @@ import type {MeasureRef} from '../measure-ref'
 import MenuLayout, {type MenuItems as _MenuItems} from './menu-layout'
 import * as Styles from '../../styles'
 import {BottomSheetModal, BottomSheetBackdrop, type BottomSheetBackdropProps} from '../bottom-sheet'
+import {useSafeAreaInsets} from '../safe-area-view'
 
 const Kb = {
   Box2,
   Overlay,
+  useSafeAreaInsets,
 }
 
 export type MenuItems = _MenuItems
@@ -45,17 +47,12 @@ const Backdrop = React.memo(function Backdrop(props: BottomSheetBackdropProps) {
 })
 
 const FloatingMenu = (props: Props) => {
-  const {snapPoints: _snapPoints, items} = props
+  const {snapPoints, items} = props
   const isModal = React.useContext(FloatingModalContext)
   const bottomSheetModalRef = React.useRef<BottomSheetModal>(null)
   React.useEffect(() => {
     bottomSheetModalRef.current?.present()
   }, [])
-
-  const numItems = items.length
-  const snapPoints = React.useMemo(() => {
-    return _snapPoints ?? [numItems * 40 + 40 + 40] // close and handle
-  }, [_snapPoints, numItems])
 
   if (!props.visible && isModal === false) {
     return null
@@ -84,11 +81,18 @@ const FloatingMenu = (props: Props) => {
     return (
       <BottomSheetModal
         snapPoints={snapPoints}
+        enableDynamicSizing={true}
         ref={bottomSheetModalRef}
         handleStyle={styles.handleStyle}
         handleIndicatorStyle={styles.handleIndicatorStyle}
         style={styles.modalStyle}
         backdropComponent={Backdrop}
+        onDismiss={() => {
+          console.log('aaa dismissed', new Error().stack)
+        }}
+        onChange={e => {
+          console.log('aaa chnge', e)
+        }}
       >
         {contents}
       </BottomSheetModal>

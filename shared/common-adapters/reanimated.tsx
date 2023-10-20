@@ -11,6 +11,7 @@ import type {
   useAnimatedScrollHandler as useAnimatedScrollHandlerType,
   Extrapolation as ExtrapolationType,
   withSpring as withSpringType,
+  useReducedMotion as useReducedMotionType,
 } from 'react-native-reanimated'
 
 let useSharedValue: typeof useSharedValueType
@@ -24,6 +25,7 @@ let Animated: typeof ReAnimatedType
 let interpolate: typeof interpolateType
 let Extrapolation: typeof ExtrapolationType
 let withSpring: typeof withSpringType
+let useReducedMotion: typeof useReducedMotionType
 
 if (isMobile && !skipAnimations) {
   const rnr = require('react-native-reanimated')
@@ -38,6 +40,7 @@ if (isMobile && !skipAnimations) {
   useAnimatedScrollHandler = rnr.useAnimatedScrollHandler
   Extrapolation = rnr.Extrapolation
   withSpring = rnr.withSpring
+  useReducedMotion = rnr.useReducedMotion
   if (isDebuggingInChrome) {
     console.log('DEBUG: Real ReAnimated enabled, yet in chrome. Might not work!')
   }
@@ -55,7 +58,7 @@ if (isMobile && !skipAnimations) {
   withDelay = (a: any) => a
   useAnimatedScrollHandler = () => () => {}
   interpolate = (a: any) => a
-
+  useReducedMotion = () => false
   enum _Extrapolation {
     IDENTITY = 'identity',
     CLAMP = 'clamp',
@@ -75,6 +78,7 @@ export {
   skipAnimations,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withDelay,
   withRepeat,

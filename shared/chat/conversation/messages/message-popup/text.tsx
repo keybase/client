@@ -194,14 +194,7 @@ export default (ownProps: OwnProps) => {
     ...itemFlag,
   ]
   const header = useHeader(ordinal, false)
-
-  const numItems = items.length
-
-  const snapPoints = React.useMemo(() => {
-    const first = 6 * 40 + 25
-    const max = numItems * 40 + 35
-    return [first, max]
-  }, [numItems])
+  const snapPoints = React.useMemo(() => [6 * 40 + 25], [])
 
   return (
     <Kb.FloatingMenu

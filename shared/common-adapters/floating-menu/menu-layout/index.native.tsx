@@ -11,6 +11,7 @@ import {BottomSheetScrollView} from '../../bottom-sheet'
 import ProgressIndicator from '../../progress-indicator'
 import SafeAreaView from '../../safe-area-view'
 import type {MenuItem, MenuLayoutProps} from '.'
+import {useSafeAreaInsets} from '../../safe-area-view'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 
 const Kb = {
@@ -23,6 +24,7 @@ const Kb = {
   ProgressIndicator,
   SafeAreaView,
   Text,
+  useSafeAreaInsets,
 }
 
 type MenuRowProps = {
@@ -36,7 +38,6 @@ type MenuRowProps = {
 } & MenuItem
 
 const itemContainerHeight = 40
-const itemContainerHeightWithSubTitle = 40
 
 const MenuRow = (props: MenuRowProps) => (
   <TouchableOpacity
@@ -163,10 +164,12 @@ const MenuLayout = (props: MenuLayoutProps) => {
     </>
   )
 
+  const {bottom: paddingBottom} = Kb.useSafeAreaInsets()
+
   if (isModal === 'bottomsheet') {
     return (
       <BottomSheetScrollView style={styles.bottomSheetScrollView}>
-        <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+        <Kb.Box2 style={{paddingBottom}} direction="vertical" fullWidth={true}>
           {items}
           {close}
         </Kb.Box2>
@@ -258,7 +261,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         position: 'relative',
       },
-      itemContainerWithSubTitle: {height: itemContainerHeightWithSubTitle},
+      itemContainerWithSubTitle: {height: itemContainerHeight},
       itemContainerWrapped: {
         paddingLeft: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.small,
