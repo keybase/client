@@ -8,7 +8,7 @@ export type OwnProps = {
   mode: 'row' | 'default' | 'menu'
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {path, mode} = ownProps
   const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
   const props = {
@@ -19,3 +19,5 @@ export default (ownProps: OwnProps) => {
   }
   return <LastModifiedLine {...props} />
 }
+
+export default Container

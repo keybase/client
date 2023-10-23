@@ -48,7 +48,7 @@ const addCancelIfNeeded = (action: () => void, cancel: (arg0: string) => void, t
       }
     : action
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {path, mode} = ownProps
 
   const _downloads = C.useFSState(s => s.downloads)
@@ -163,3 +163,5 @@ export default (ownProps: OwnProps) => {
   }
   return <Menu {...props} />
 }
+
+export default Container

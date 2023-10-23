@@ -7,7 +7,7 @@ type OwnProps = {
   path: T.FS.Path
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
   const _pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
@@ -48,3 +48,5 @@ export default (ownProps: OwnProps) => {
   }
   return <Sort {...props} />
 }
+
+export default Container

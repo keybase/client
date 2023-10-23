@@ -1,7 +1,7 @@
 import * as C from '../../../constants'
 import Success from '.'
 
-export default () => {
+const Container = () => {
   const errorText = C.useProfileState(s =>
     s.errorCode !== undefined ? s.errorText || 'Failed to verify proof' : ''
   )
@@ -23,3 +23,5 @@ export default () => {
   }
   return <Success {...props} />
 }
+
+export default Container

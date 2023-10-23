@@ -23,7 +23,7 @@ const ChooseView = (props: Props) => {
   }
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const view = C.useFSState(s => s.pathItemActionMenu.view)
   const props = {
     ...ownProps,
@@ -31,3 +31,5 @@ export default (ownProps: OwnProps) => {
   }
   return <ChooseView {...props} />
 }
+
+export default Container

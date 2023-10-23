@@ -91,7 +91,7 @@ const LoginWrapper = (props: Props) => {
   )
 }
 
-export default () => {
+const ReloginContainer = () => {
   const _users = C.useConfigState(s => s.configuredAccounts)
   const error = C.useConfigState(s => s.loginError)
   const selectedUser = C.useConfigState(s => s.defaultUsername)
@@ -120,3 +120,5 @@ export default () => {
   }
   return <LoginWrapper {...props} />
 }
+
+export default ReloginContainer

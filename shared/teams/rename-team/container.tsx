@@ -4,7 +4,7 @@ import RenameTeam from '.'
 
 type OwnProps = {teamname: string}
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const teamname = ownProps.teamname
   const error = C.useAnyErrors(Constants.teamRenameWaitingKey)
   const waiting = C.useAnyWaiting(Constants.teamRenameWaitingKey)
@@ -29,3 +29,5 @@ export default (ownProps: OwnProps) => {
   }
   return <RenameTeam {...props} />
 }
+
+export default Container

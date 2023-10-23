@@ -3,7 +3,7 @@ import ConfirmOrPending from '.'
 import * as T from '../../constants/types'
 import {globalColors} from '../../styles'
 
-export default () => {
+const Container = () => {
   const proofFound = C.useProfileState(s => s.proofFound)
   const proofStatus = C.useProfileState(s => s.proofStatus)
   const platform = C.useProfileState(s => s.platform)
@@ -23,3 +23,5 @@ export default () => {
   const props = {isPending, onCancel, platform, platformIconOverlayColor, username}
   return <ConfirmOrPending {...props} />
 }
+
+export default Container

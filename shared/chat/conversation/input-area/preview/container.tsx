@@ -1,7 +1,7 @@
 import * as C from '../../../../constants'
 import ChannelPreview from '.'
 
-export default () => {
+const Container = () => {
   const meta = C.useChatContext(s => s.meta)
   const onJoinChannel = C.useChatContext(s => s.dispatch.joinConversation)
   const onLeaveChannel = C.useChatContext(s => s.dispatch.leaveConversation)
@@ -13,3 +13,4 @@ export default () => {
   }
   return <ChannelPreview {...props} />
 }
+export default Container

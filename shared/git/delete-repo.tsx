@@ -6,7 +6,7 @@ type OwnProps = {id: string}
 
 const NullWrapper = (props: Props) => (props.name ? <DeleteRepo {...props} /> : null)
 const emptyGit = C.makeGitInfo()
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {id} = ownProps
   const git = C.useGitState(s => s.idToInfo.get(id) || emptyGit)
   const error = C.useGitState(s => s.error)
@@ -200,3 +200,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     padding: Kb.Styles.globalMargins.tiny,
   },
 }))
+
+export default Container

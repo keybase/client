@@ -1,7 +1,7 @@
 import * as C from '../../constants'
 import DBNukeConfirm from '.'
 
-export default () => {
+const Container = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
@@ -14,3 +14,5 @@ export default () => {
   const props = {onCancel, onDBNuke}
   return <DBNukeConfirm {...props} />
 }
+
+export default Container

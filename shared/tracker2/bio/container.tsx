@@ -7,7 +7,7 @@ type OwnProps = {
   username: string
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {inTracker, username} = ownProps
   const stateProps = C.useTrackerState(
     C.useShallow(s => {
@@ -57,3 +57,5 @@ export default (ownProps: OwnProps) => {
   }
   return <Bio {...props} />
 }
+
+export default Container

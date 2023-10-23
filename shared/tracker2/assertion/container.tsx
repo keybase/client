@@ -30,7 +30,7 @@ const notAUserAssertion = {
   timestamp: 0,
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   let a = Constants.noAssertion
   let notAUser = false as boolean
   let stellarHidden = false
@@ -127,3 +127,5 @@ export default (ownProps: OwnProps) => {
   }
   return <Assertion {...props} />
 }
+
+export default Container

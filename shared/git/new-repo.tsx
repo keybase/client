@@ -5,7 +5,7 @@ import * as React from 'react'
 
 type OwnProps = {isTeam: boolean}
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {isTeam} = ownProps
   const error = C.useGitState(s => s.error)
   const teamnames = C.useTeamsState(s => s.teamnames)
@@ -266,3 +266,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     padding: Kb.Styles.globalMargins.tiny,
   },
 }))
+
+export default Container

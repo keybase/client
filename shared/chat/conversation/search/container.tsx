@@ -8,7 +8,7 @@ type OwnProps = {
   style?: Styles.StylesCrossPlatform
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {style} = ownProps
   const conversationIDKey = C.useChatContext(s => s.id)
   const info = C.useChatContext(s => s.threadSearchInfo)
@@ -55,3 +55,4 @@ export default (ownProps: OwnProps) => {
   }
   return <ThreadSearch {...props} />
 }
+export default Container

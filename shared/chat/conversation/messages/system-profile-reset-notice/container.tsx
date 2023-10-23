@@ -2,7 +2,7 @@ import * as C from '../../../../constants'
 import type * as T from '../../../../constants/types'
 import ProfileResetNotice from '.'
 
-export default () => {
+const Container = () => {
   const meta = C.useChatContext(s => s.meta)
   const prevConversationIDKey = meta.supersedes
   const username = meta.wasFinalizedBy || ''
@@ -17,3 +17,4 @@ export default () => {
   }
   return <ProfileResetNotice {...props} />
 }
+export default Container

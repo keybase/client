@@ -9,7 +9,7 @@ type OwnProps = {
 
 const noTeams = new Array<T.Tracker.TeamShowcase>()
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const d = C.useTrackerState(s => Constants.getDetails(s, ownProps.username))
   const _isYou = C.useCurrentUserState(s => s.username === ownProps.username)
   const _roles = C.useTeamsState(s => s.teamRoleMap.roles)
@@ -44,3 +44,5 @@ export default (ownProps: OwnProps) => {
   }
   return <Teams {...props} />
 }
+
+export default Container

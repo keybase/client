@@ -37,6 +37,9 @@ export const logSend = (
   return Kb.logSend(status, feedback, sendLogs, sendMaxBytes, traceDir, cpuProfileDir)
 }
 
+export const install = () => {
+  Kb.install()
+}
 export const iosGetHasShownPushPrompt = (): Promise<boolean> => {
   if (Platform.OS === 'ios') {
     return Kb.iosGetHasShownPushPrompt()

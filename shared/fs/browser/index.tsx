@@ -14,7 +14,7 @@ import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
 
 type OwnProps = {path: T.FS.Path}
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)
   const _pathItem = C.useFSState(s => Constants.getPathItem(s.pathItems, path))
@@ -128,3 +128,5 @@ const BrowserContent = (props: Props) => {
     </DragAndDrop>
   )
 }
+
+export default Container

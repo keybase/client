@@ -17,7 +17,7 @@ export const FolderViewFilterIcon = (props: Props) =>
 
 type OwnProps = Omit<Props, 'pathItem'>
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const pathItem = C.useFSState(s => C.getPathItem(s.pathItems, path))
   const props = {
@@ -26,3 +26,5 @@ export default (ownProps: OwnProps) => {
   }
   return <FolderViewFilterIcon {...props} />
 }
+
+export default Container

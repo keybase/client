@@ -2,7 +2,7 @@ import * as C from '../constants'
 import Mention, {type OwnProps} from './mention'
 import {isSpecialMention} from '../constants/chat2'
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   let {username} = ownProps
   username = username.toLowerCase()
   const following = C.useFollowerState(s => s.following.has(username))
@@ -39,3 +39,5 @@ export default (ownProps: OwnProps) => {
 
   return <Mention {...props} />
 }
+
+export default Container

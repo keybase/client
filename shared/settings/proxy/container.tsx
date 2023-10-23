@@ -35,7 +35,7 @@ const useConnect = () => {
 }
 
 // Export the popup as the default export so it is easy to make a route pointing to it
-export default () => {
+const Container = () => {
   const props = useConnect()
   return <ProxySettingsPopup {...props} />
 }
@@ -46,3 +46,5 @@ const ProxySettings = () => {
   return <ProxySettingsComponent {...props} />
 }
 export {ProxySettings}
+
+export default Container

@@ -122,10 +122,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default (ownProps: Props) => {
+const ContactContainer = (ownProps: Props) => {
   const props = {
     source: ownProps.source,
     usernames: ownProps.usernames,
   }
   return <ContactRestricted {...props} />
 }
+
+export default ContactContainer

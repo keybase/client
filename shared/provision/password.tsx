@@ -5,7 +5,7 @@ import UserCard from '../login/user-card'
 import {SignupScreen, errorBanner} from '../signup/common'
 import {isMobile} from '../constants/platform'
 
-export default () => {
+const Container = () => {
   const error = C.useProvisionState(s => s.error)
   const resetEmailSent = C.useRecoverState(s => s.resetEmailSent)
   const username = C.useProvisionState(s => s.username)
@@ -159,3 +159,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
 }))
+
+export default Container

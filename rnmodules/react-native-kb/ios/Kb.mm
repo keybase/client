@@ -336,17 +336,15 @@ RCT_EXPORT_METHOD(engineStart) {
   });
 }
 
+RCT_EXPORT_METHOD(install) {
+    [self installJsiBindings];
+}
+
 - (NSDictionary *)getConstants {
   return [self constantsToExport];
 }
 
 - (NSDictionary *)constantsToExport {
-
-#ifndef RCT_NEW_ARCH_ENABLED
-  [self installJsiBindings]; // a convenient place thats early enough and not
-                             // too early
-#endif
-
   NSString *serverConfig = [self setupServerConfig];
   NSString *guiConfig = [self setupGuiConfig];
 
@@ -440,9 +438,6 @@ RCT_EXPORT_METHOD(engineStart) {
 #ifdef RCT_NEW_ARCH_ENABLED
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params {
-  [self installJsiBindings]; // a convenient place thats early enough and not
-                             // too early
-
   return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
 }
 #endif

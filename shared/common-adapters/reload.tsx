@@ -149,7 +149,7 @@ export type OwnProps = {
   errorFilter?: (rPCError: RPCError) => boolean
 }
 
-export default (ownProps: OwnProps) => {
+const ReloadContainer = (ownProps: OwnProps) => {
   let error = C.useAnyErrors(ownProps.waitingKeys)
 
   // make sure reloadable only responds to network-related errors
@@ -191,3 +191,5 @@ export default (ownProps: OwnProps) => {
 
   return <Reloadable {...props} />
 }
+
+export default ReloadContainer

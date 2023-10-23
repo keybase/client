@@ -5,7 +5,7 @@ import * as React from 'react'
 import EmailPhoneRow from './email-phone-row'
 import {isMobile} from '../../styles'
 
-export default () => {
+const Container = () => {
   const _emails = C.useSettingsEmailState(s => s.emails)
   const _phones = C.useSettingsPhoneState(s => s.phones)
   const addedEmail = C.useSettingsEmailState(s => s.addedEmail)
@@ -336,3 +336,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginTop: Kb.Styles.globalMargins.xtiny,
   },
 }))
+
+export default Container

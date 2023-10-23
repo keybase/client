@@ -1,1 +1,2 @@
-export default () => null
+const Protect = () => null
+export default Protect

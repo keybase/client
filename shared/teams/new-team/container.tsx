@@ -6,7 +6,7 @@ import * as T from '../../constants/types'
 
 type OwnProps = {subteamOf?: T.Teams.TeamID}
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const subteamOf = ownProps.subteamOf ?? T.Teams.noTeamID
   const baseTeam = C.useTeamsState(s => Constants.getTeamMeta(s, subteamOf).teamname)
   const errorText = C.useTeamsState(s => upperFirst(s.errorInTeamCreation))
@@ -30,3 +30,5 @@ export default (ownProps: OwnProps) => {
   }
   return <NewTeamDialog {...props} />
 }
+
+export default Container

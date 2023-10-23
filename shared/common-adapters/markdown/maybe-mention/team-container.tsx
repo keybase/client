@@ -13,7 +13,7 @@ type OwnProps = {
 
 const noAdmins: Array<string> = []
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {allowFontScaling, name, channel, style} = ownProps
   const maybeMentionInfo = C.useChatState(s =>
     s.maybeMentionMap.get(Constants.getTeamMentionName(name, channel))
@@ -62,3 +62,5 @@ export default (ownProps: OwnProps) => {
   }
   return <TeamMention {...props} />
 }
+
+export default Container

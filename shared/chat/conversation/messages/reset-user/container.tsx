@@ -1,7 +1,7 @@
 import * as C from '../../../../constants'
 import ResetUser from '.'
 
-export default () => {
+const Container = () => {
   const meta = C.useChatContext(s => s.meta)
   const participantInfo = C.useChatContext(s => s.participants)
   const resetChatWithoutThem = C.useChatContext(s => s.dispatch.resetChatWithoutThem)
@@ -24,3 +24,4 @@ export default () => {
 
   return <ResetUser {...props} />
 }
+export default Container

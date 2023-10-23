@@ -11,7 +11,7 @@ type OwnProps = {
   allowFontScaling?: boolean
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
   const _onClick = React.useCallback(
     (name: string, convID: T.Chat.ConversationIDKey) =>
@@ -33,3 +33,5 @@ export default (ownProps: OwnProps) => {
 
   return <Channel {...props} />
 }
+
+export default Container

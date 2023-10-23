@@ -5,7 +5,7 @@ import {InviteByEmailDesktop} from '.'
 
 type OwnProps = {teamID: string}
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const teamID = ownProps.teamID
   const {teamname} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
   const inviteError = C.useTeamsState(s => s.errorInEmailInvite)
@@ -43,3 +43,5 @@ export default (ownProps: OwnProps) => {
   }
   return <InviteByEmailDesktop {...props} />
 }
+
+export default Container

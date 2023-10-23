@@ -82,7 +82,7 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default () => {
+const Container = () => {
   const pgpKeyString = C.useProfileState(s => s.pgpPublicKey || 'Error getting public key...')
   const promptShouldStoreKeyOnServer = C.useProfileState(s => s.promptShouldStoreKeyOnServer)
   const finishedWithKeyGen = C.useProfileState(s => s.dispatch.dynamic.finishedWithKeyGen)
@@ -99,3 +99,5 @@ export default () => {
   }
   return <Finished {...props} />
 }
+
+export default Container

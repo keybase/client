@@ -17,7 +17,7 @@ type OwnProps = {
 const labelledInviteRegex = /^(.+?) \((.+)\)$/
 
 // TODO: when removing flags.teamsRedesign, move this into the component itself
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const _invites = teamDetails?.invites
@@ -58,3 +58,5 @@ export default (ownProps: OwnProps) => {
   }
   return <TeamInviteRow {...props} />
 }
+
+export default Container

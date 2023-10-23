@@ -1,7 +1,7 @@
 import * as C from '../../constants'
 import ConfirmDisableCertPinningModal from '.'
 
-export default () => {
+const Container = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()
@@ -17,3 +17,5 @@ export default () => {
   }
   return <ConfirmDisableCertPinningModal {...props} />
 }
+
+export default Container

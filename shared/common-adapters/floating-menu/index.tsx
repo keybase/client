@@ -12,6 +12,7 @@ import MenuLayout, {type MenuItems as _MenuItems} from './menu-layout'
 import * as Styles from '../../styles'
 import {BottomSheetModal, BottomSheetBackdrop, type BottomSheetBackdropProps} from '../bottom-sheet'
 import {useSafeAreaInsets} from '../safe-area-view'
+import {FloatingModalContext} from './context'
 
 const Kb = {
   Box2,
@@ -87,12 +88,6 @@ const FloatingMenu = (props: Props) => {
         handleIndicatorStyle={styles.handleIndicatorStyle}
         style={styles.modalStyle}
         backdropComponent={Backdrop}
-        onDismiss={() => {
-          console.log('aaa dismissed', new Error().stack)
-        }}
-        onChange={e => {
-          console.log('aaa chnge', e)
-        }}
       >
         {contents}
       </BottomSheetModal>
@@ -132,7 +127,3 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default FloatingMenu
-
-// escape hatch to make a floating to a modal
-export type FloatingModalType = boolean | 'bottomsheet'
-export const FloatingModalContext = React.createContext<FloatingModalType>(false)

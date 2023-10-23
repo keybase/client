@@ -15,7 +15,7 @@ type OwnProps = {
   noDragDrop?: Boolean
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {titles, tlfName, pathAndOutboxIDs} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
@@ -67,3 +67,4 @@ export default (ownProps: OwnProps) => {
 
   return <GetTitles {...props} />
 }
+export default Container

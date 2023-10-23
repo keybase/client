@@ -2,7 +2,7 @@ import * as C from '../../../../constants'
 import type * as T from '../../../../constants/types'
 import OldProfileResetNotice from '.'
 
-export default () => {
+const Container = () => {
   const participantInfo = C.useChatContext(s => s.participants)
   const meta = C.useChatContext(s => s.meta)
   const _participants = participantInfo.all
@@ -23,3 +23,4 @@ export default () => {
   }
   return <OldProfileResetNotice {...props} />
 }
+export default Container

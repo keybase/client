@@ -19,7 +19,7 @@ const Rekey = (props: Props) =>
     <ParticipantRekey rekeyers={props.rekeyers} onShowProfile={props.onShowProfile} onBack={props.onBack} />
   )
 
-export default () => {
+const Container = () => {
   const _you = C.useCurrentUserState(s => s.username)
   const rekeyers = C.useChatContext(s => s.meta.rekeyers)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -52,3 +52,4 @@ export default () => {
   }
   return <Rekey {...props} />
 }
+export default Container

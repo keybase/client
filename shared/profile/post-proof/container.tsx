@@ -1,7 +1,7 @@
 import * as C from '../../constants'
 import PostProof from '.'
 
-export default () => {
+const Container = () => {
   const platform = C.useProfileState(s => s.platform)
   const errorText = C.useProfileState(s => s.errorText)
   const username = C.useProfileState(s => s.username)
@@ -67,3 +67,5 @@ export default () => {
   }
   return <PostProof {...props} />
 }
+
+export default Container

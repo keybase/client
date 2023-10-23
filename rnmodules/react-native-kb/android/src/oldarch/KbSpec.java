@@ -16,6 +16,7 @@ abstract class KbSpec extends ReactContextBaseJavaModule {
     return this.getTypedExportedConstants();
   }
 
+    public abstract void install();
     public abstract void getDefaultCountryCode(Promise promise);
     public abstract void logSend(String status, String feedback, boolean sendLogs, boolean sendMaxBytes, String traceDir, String cpuProfileDir, Promise promise);
     public abstract void androidOpenSettings();

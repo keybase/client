@@ -77,7 +77,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
   const {teamname, role, memberCount} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
   const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
@@ -144,3 +144,5 @@ export default (ownProps: OwnProps) => {
   }
   return <TeamMenu {...props} />
 }
+
+export default Container

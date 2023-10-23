@@ -11,7 +11,7 @@ type OwnProps = {
 
 const blankInfo = Constants.initialMemberInfo
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {teamID, firstItem, username} = ownProps
   const {members} = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
   const {teamname} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
@@ -79,3 +79,5 @@ export default (ownProps: OwnProps) => {
   }
   return <TeamMemberRow {...props} />
 }
+
+export default Container

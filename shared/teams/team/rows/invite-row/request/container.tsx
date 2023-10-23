@@ -58,7 +58,7 @@ class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, Stat
   }
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {teamID, username, reset, fullName} = ownProps
   const {teamname} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
   const _notifLabel = C.useChatState(s =>
@@ -108,3 +108,5 @@ export default (ownProps: OwnProps) => {
   }
   return <RequestRowStateWrapper {...props} />
 }
+
+export default Container

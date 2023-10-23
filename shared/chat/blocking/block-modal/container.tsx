@@ -16,7 +16,7 @@ type OwnProps = {
   username?: string
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {context, conversationIDKey} = ownProps
   const teamname = ownProps.team
   const blockUserByDefault = ownProps.blockUserByDefault ?? false
@@ -139,3 +139,4 @@ export default (ownProps: OwnProps) => {
 
   return <BlockModal {...props} />
 }
+export default Container

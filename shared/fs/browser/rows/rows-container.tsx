@@ -172,7 +172,7 @@ const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
       )
     : rows
 
-export default (o: OwnProps) => {
+const Container = (o: OwnProps) => {
   const _edits = C.useFSState(s => s.edits)
   const _filter = C.useFSState(s => s.folderViewFilter)
   const _pathItems = C.useFSState(s => s.pathItems)
@@ -221,3 +221,5 @@ export default (o: OwnProps) => {
   }
   return <Rows {...props} />
 }
+
+export default Container

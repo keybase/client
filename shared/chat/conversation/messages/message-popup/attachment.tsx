@@ -17,7 +17,7 @@ type OwnProps = {
 
 const emptyMessage = makeMessageAttachment({})
 
-export default (ownProps: OwnProps) => {
+const PopAttach = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
   const m = C.useChatContext(s => s.messageMap.get(ordinal))
   const message = m?.type === 'attachment' ? m : emptyMessage
@@ -118,3 +118,4 @@ export default (ownProps: OwnProps) => {
     />
   )
 }
+export default PopAttach

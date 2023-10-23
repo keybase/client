@@ -4,7 +4,7 @@ import WalletPopup from '../wallet-popup'
 
 type OwnProps = {accountID: string}
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {accountID} = ownProps
   const account = C.useWalletsState(s => s.accountMap.get(accountID))
   const balance = account?.balanceDescription ?? 'Error loading account'
@@ -84,3 +84,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
 }))
+
+export default Container

@@ -1,7 +1,7 @@
 import * as C from '../../constants'
 import ProveWebsiteChoice from '.'
 
-export default () => {
+const Container = () => {
   const cancelAddProof = C.useProfileState(s => s.dispatch.dynamic.cancelAddProof)
   const addProof = C.useProfileState(s => s.dispatch.addProof)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
@@ -22,3 +22,5 @@ export default () => {
   }
   return <ProveWebsiteChoice {...props} />
 }
+
+export default Container

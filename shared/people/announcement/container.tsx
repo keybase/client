@@ -14,7 +14,7 @@ type OwnProps = {
   url?: string
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {appLink, badged, confirmLabel, iconUrl, id, text, url, dismissable} = ownProps
   const loadPeople = C.usePeopleState(s => s.dispatch.loadPeople)
   const dismissAnnouncement = C.usePeopleState(s => s.dispatch.dismissAnnouncement)
@@ -82,3 +82,5 @@ export default (ownProps: OwnProps) => {
   }
   return <Announcement {...props} />
 }
+
+export default Container

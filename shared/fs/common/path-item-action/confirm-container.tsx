@@ -9,7 +9,7 @@ type OwnProps = {
   path: T.FS.Path
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
   const size = C.useFSState(s => C.getPathItem(s.pathItems, path).size)
@@ -34,3 +34,5 @@ export default (ownProps: OwnProps) => {
   }
   return <Confirm {...props} />
 }
+
+export default Container

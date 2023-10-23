@@ -9,7 +9,7 @@ type OwnProps = {
   onSelectConversation: () => void
 }
 
-export default (ownProps: OwnProps) => {
+const Container = (ownProps: OwnProps) => {
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
   const showBold = C.useChatContext(s => s.unread > 0)
   const showBadge = C.useChatContext(s => s.badge > 0)
@@ -37,3 +37,5 @@ export default (ownProps: OwnProps) => {
   }
   return <SelectableBigTeamChannel {...props} />
 }
+
+export default Container
