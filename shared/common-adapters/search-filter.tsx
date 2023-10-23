@@ -10,6 +10,7 @@ import ProgressIndicator from './progress-indicator'
 import Icon, {type IconType} from './icon'
 import * as Styles from '../styles'
 import * as Platforms from '../constants/platform'
+import type {NativeSyntheticEvent} from 'react-native'
 
 const Kb = {
   Animation,
@@ -54,11 +55,7 @@ type Props = {
   onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
   onKeyDown?: (event: React.KeyboardEvent) => void
   onKeyUp?: (event: React.KeyboardEvent) => void
-  onKeyPress?: (event: {
-    nativeEvent: {
-      key: string
-    }
-  }) => void
+  onKeyPress?: (event: NativeSyntheticEvent<{key: string}>) => void
 }
 
 type State = {

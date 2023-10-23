@@ -4,7 +4,11 @@ import ClickableBox from './clickable-box'
 import logger from '../logger'
 import pick from 'lodash/pick'
 import type {InternalProps, TextInfo, Selection} from './plain-input'
-import {TextInput as NativeTextInput} from 'react-native'
+import {
+  TextInput as NativeTextInput,
+  type NativeSyntheticEvent,
+  type TextInputSelectionChangeEventData,
+} from 'react-native'
 import {Box2} from './box'
 import {checkTextInfo} from './input.shared'
 import {getStyle as getTextStyle} from './text'
@@ -109,11 +113,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this.props.onChangeText?.(t)
   }
 
-  _onSelectionChange = (event: {
-    nativeEvent: {
-      selection: Selection
-    }
-  }) => {
+  _onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     const {start: _start, end: _end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .
@@ -197,7 +197,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     ])
   }
 
-  onImageChange = (e: {nativeEvent: {uri: string; linkUri: string}}) => {
+  onImageChange = (e: NativeSyntheticEvent<{uri: string; linkUri: string}>) => {
     if (this.props.onPasteImage) {
       const {uri, linkUri} = e.nativeEvent
       uri && this.props.onPasteImage(linkUri || uri)

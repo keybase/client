@@ -1,7 +1,7 @@
 import type * as React from 'react'
 import type {StylesCrossPlatform, globalMargins} from '../styles'
 import type {MeasureRef} from './measure-ref'
-import type {View} from 'react-native'
+import type {View, NativeSyntheticEvent} from 'react-native'
 
 export type Props = {
   onMoveShouldSetResponder?: any
@@ -20,16 +20,14 @@ export type Props = {
   ref?: never
 }
 
-export type LayoutEvent = {
-  nativeEvent: {
-    layout: {
-      x: number
-      y: number
-      width: number
-      height: number
-    }
+export type LayoutEvent = NativeSyntheticEvent<{
+  layout: {
+    x: number
+    y: number
+    width: number
+    height: number
   }
-}
+}>
 
 export type Box2Props = {
   alignItems?: 'center' | 'flex-start' | 'flex-end' | 'stretch'

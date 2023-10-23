@@ -1,12 +1,26 @@
 import * as React from 'react'
-import type {RefreshControlProps} from 'react-native'
+import type {NativeSyntheticEvent, RefreshControlProps} from 'react-native'
 import type {StylesCrossPlatform} from '../styles'
 
 export type Props = {
   children?: React.ReactNode
   contentContainerStyle?: StylesCrossPlatform
   style?: StylesCrossPlatform
-  onScroll?: React.UIEventHandler<any>
+  onScroll?: (
+    e: Partial<
+      NativeSyntheticEvent<{
+        contentSize: {
+          height: number
+          width: number
+        }
+        zoomScale: number
+        contentOffset: {
+          x: number
+          y: number
+        }
+      }>
+    >
+  ) => void
   className?: string
   ref?: React.Ref<any>
   showsVerticalScrollIndicator?: boolean

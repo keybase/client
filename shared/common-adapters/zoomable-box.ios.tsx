@@ -17,16 +17,11 @@ export const ZoomableBox = (props: Props) => (
     minimumZoomScale={props.minZoom || 1}
     onScroll={e =>
       props.onZoom?.({
-        // @ts-ignore misses rn types
-        height: e.nativeEvent.contentSize.height,
-        // @ts-ignore misses rn types
-        scale: e.nativeEvent.zoomScale,
-        // @ts-ignore misses rn types
-        width: e.nativeEvent.contentSize.width,
-        // @ts-ignore misses rn types
-        x: e.nativeEvent.contentOffset.x,
-        // @ts-ignore misses rn types
-        y: e.nativeEvent.contentOffset.y,
+        height: e.nativeEvent?.contentSize.height ?? 0,
+        scale: e.nativeEvent?.zoomScale ?? 0,
+        width: e.nativeEvent?.contentSize.width ?? 0,
+        x: e.nativeEvent?.contentOffset.x ?? 0,
+        y: e.nativeEvent?.contentOffset.y ?? 0,
       })
     }
     scrollEventThrottle={16}

@@ -1,11 +1,12 @@
 import type * as React from 'react'
 import type * as Styles from '../styles'
+import type {LayoutChangeEvent} from 'react-native'
 
 export type Props = {
   maxZoom?: number
   minZoom?: number
   zoomScale?: number
-  onLayout?: (e: any) => void
+  onLayout?: (e: Partial<LayoutChangeEvent>) => void
   onZoom?: (e: {height: number; width: number; x: number; y: number; scale: number}) => void
   style?: Styles.StylesCrossPlatform
   bounces?: boolean

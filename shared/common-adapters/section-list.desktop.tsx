@@ -286,7 +286,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
         <Kb.ScrollView
           contentContainerStyle={this.props.contentContainerStyle}
           style={Styles.collapseStyles([styles.scroll, this.props.style])}
-          onScroll={this.onScroll}
+          onScroll={this.onScroll as any}
         >
           {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
           <SafeReactList
