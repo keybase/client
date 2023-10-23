@@ -5,7 +5,12 @@ import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.native'
 import * as Styles from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'
-import {TextInput} from 'react-native'
+import {
+  TextInput,
+  type NativeSyntheticEvent,
+  type TextInputContentSizeChangeEventData,
+  type TextInputSelectionChangeEventData,
+} from 'react-native'
 import type {KeyboardType, Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
 
@@ -74,10 +79,10 @@ class Input extends React.Component<Props, State> {
     this.input.current?.setNativeProps(nativeProps)
   }
 
-  private onContentSizeChange = (event?: {nativeEvent?: {contentSize?: {width: number; height: number}}}) => {
+  private onContentSizeChange = (event?: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
     if (
       this.props.multiline &&
-      event?.nativeEvent?.contentSize?.height &&
+      event?.nativeEvent.contentSize.height &&
       event.nativeEvent.contentSize.width
     ) {
       let height = event.nativeEvent.contentSize.height
@@ -211,14 +216,7 @@ class Input extends React.Component<Props, State> {
         }
   }
 
-  private onSelectionChange = (event: {
-    nativeEvent: {
-      selection: {
-        start: number
-        end: number
-      }
-    }
-  }) => {
+  private onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     const {start: _start, end: _end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .

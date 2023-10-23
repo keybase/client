@@ -1,6 +1,7 @@
 import * as React from 'react'
 import type {globalMargins, CustomStyles} from '../styles'
 import type {TextType} from './text'
+import type {NativeSyntheticEvent} from 'react-native'
 
 export type KeyboardType =
   | 'default'
@@ -100,11 +101,7 @@ export type Props = {
   // Mobile only
   children?: React.ReactNode
   allowFontScaling?: boolean
-  onKeyPress?: (event: {
-    nativeEvent: {
-      key: string
-    }
-  }) => void
+  onKeyPress?: (event: NativeSyntheticEvent<{key: string}>) => void
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
   autoCorrect?: boolean
   keyboardType?: KeyboardType
