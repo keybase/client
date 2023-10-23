@@ -15,7 +15,15 @@ import * as Styles from '../styles'
 
 // mostly based on https://github.com/intergalacticspacehighway/react-native-reanimated-zoom
 export function ZoomableBox(props: Props) {
-  const {children, minZoom = 1, maxZoom = 10, style, onZoom, contentContainerStyle} = props
+  const {
+    children,
+    minZoom = 1,
+    maxZoom = 10,
+    style,
+    onZoom,
+    contentContainerStyle,
+    onLayout: _onLayout,
+  } = props
 
   const translationX = useSharedValue(0)
   const translationY = useSharedValue(0)
@@ -233,8 +241,9 @@ export function ZoomableBox(props: Props) {
     (e: LayoutChangeEvent) => {
       containerHeight.value = e.nativeEvent.layout.height
       containerWidth.value = e.nativeEvent.layout.width
+      _onLayout?.(e)
     },
-    [containerHeight, containerWidth]
+    [containerHeight, containerWidth, _onLayout]
   )
   const onLayout = useCallback(
     (e: LayoutChangeEvent) => {

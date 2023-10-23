@@ -1,14 +1,14 @@
 import * as React from 'react'
 import LoadingStateView from './loading-state-view'
 import type {Props} from './image2'
-import {Image} from 'expo-image'
+import {Image, type ImageLoadEventData} from 'expo-image'
 
 const Image2 = (p: Props) => {
   const {showLoadingStateUntilLoaded, src, onLoad, onError, style, contentFit = 'contain'} = p
   // if we don't have showLoadingStateUntilLoaded then just mark as loaded and ignore this state
   const [loading, setLoading] = React.useState(showLoadingStateUntilLoaded ? false : true)
   const _onLoad = React.useCallback(
-    (e: any) => {
+    (e: ImageLoadEventData) => {
       setLoading(false)
       onLoad?.(e)
     },

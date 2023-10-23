@@ -1,7 +1,9 @@
 import * as React from 'react'
+import * as Styles from '../styles'
 import {ZoomableBox} from './zoomable-box'
 import Image2 from './image2.native'
 import type {Props} from './zoomable-image'
+import type {LayoutChangeEvent} from 'react-native'
 
 const Kb = {
   Image2,
@@ -24,7 +26,8 @@ const ZoomableImage = (p: Props) => {
   }, [boxW, boxH, imgH, imgW, zoomScale])
 
   const onLoad = React.useCallback(
-    (e: any) => {
+    (e: {source?: {width: number; height: number}}) => {
+      if (!e.source) return
       onLoaded?.()
       const {height, width} = e.source
       setImgW(width)
@@ -35,7 +38,8 @@ const ZoomableImage = (p: Props) => {
   )
 
   const boxOnLayout = React.useCallback(
-    (e: any) => {
+    (e: Partial<LayoutChangeEvent>) => {
+      if (!e.nativeEvent) return
       const {width, height} = e.nativeEvent.layout
       setBoxW(width)
       setBoxH(height)
@@ -48,13 +52,17 @@ const ZoomableImage = (p: Props) => {
     <Kb.ZoomableBox
       onLayout={boxOnLayout}
       style={style}
-      contentContainerStyle={{
-        alignItems: 'center',
-        height: imgH === 0 ? 1 : imgH + 0,
-        justifyContent: 'center',
-        opacity: imgW === 0 ? 0 : 1,
-        width: imgW === 0 ? 1 : imgW + 0,
-      }}
+      contentContainerStyle={
+        Styles.isIOS
+          ? {
+              alignItems: 'center',
+              height: imgH === 0 ? 1 : imgH + 0,
+              justifyContent: 'center',
+              opacity: imgW === 0 ? 0 : 1,
+              width: imgW === 0 ? 1 : imgW + 0,
+            }
+          : styles.zoomableBoxContainerAndroid
+      }
       onZoom={onZoom}
       minZoom={zoomScale}
       zoomScale={zoomScale}
@@ -62,12 +70,26 @@ const ZoomableImage = (p: Props) => {
       <Kb.Image2
         contentFit="none"
         src={src}
-        style={{height: imgH === 0 ? 10 : imgH, width: imgW === 0 ? 10 : imgW}}
+        style={
+          Styles.isIOS ? {height: imgH === 0 ? 10 : imgH, width: imgW === 0 ? 10 : imgW} : styles.imageAndroid
+        }
         onLoad={onLoad}
         showLoadingStateUntilLoaded={true}
       />
     </Kb.ZoomableBox>
   )
 }
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      imageAndroid: {flexGrow: 1},
+      zoomableBoxContainerAndroid: {
+        flex: 1,
+        overflow: 'hidden',
+        position: 'relative',
+      },
+    }) as const
+)
 
 export default ZoomableImage

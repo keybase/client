@@ -6,7 +6,7 @@ export type Props = {
   src: string | Array<{uri: string; width: number; height: number}> /*this form mobile only for now*/
   style?: StylesCrossPlatform
   showLoadingStateUntilLoaded?: boolean
-  onLoad?: (e: React.BaseSyntheticEvent) => void
+  onLoad?: (e: {target?: unknown; source?: {width: number; height: number}}) => void
   onError?: () => void
 }
 
