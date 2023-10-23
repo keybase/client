@@ -59,6 +59,7 @@
     "pod-install-new": "cd ios; RCT_NEW_ARCH_ENABLED=1 pod install --repo-update",
     "android-clean": "cd android; ./gradlew clean",
     "android-debug": "react-native run-android --mode 'debug'",
+    "android-install-downgrade": "adb install -r -d android/app/build/outputs/apk/debug/app-debug.apk",
     "android-unsigned": "react-native run-android --mode 'releaseUnsigned'",
     "clean-and-install": "rm -rf node_modules ; yarn pod-clean ; yarn modules ; yarn pod-install",
     "coverage": "rm -rf coverage-ts; npx typescript-coverage-report"

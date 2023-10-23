@@ -106,10 +106,6 @@ public class KbModule extends KbSpec {
   public void addListener(String eventType) {}
   public void removeListeners(double count) {}
 
-  static {
-    System.loadLibrary("cpp");
-  }
-
     // Is this a robot controlled test device? (i.e. pre-launch report?)
     private static boolean isTestDevice(ReactApplicationContext context) {
       String testLabSetting = Settings.System.getString(context.getContentResolver(), "firebase.test.lab");
@@ -573,9 +569,10 @@ public class KbModule extends KbSpec {
         }
     }
 
-    @ReactMethod
+    @ReactMethod(isBlockingSynchronousMethod = true)
     public void install() {
         try {
+            System.loadLibrary("cpp");
             jsiInstalled = true;
             this.nativeInstallJSI(this.reactContext.getJavaScriptContextHolder().get());
         } catch (Exception exception) {

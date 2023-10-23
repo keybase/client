@@ -1,7 +1,6 @@
 // React-native tooling assumes this file is here, so we just require our real entry point
 import 'react-native-gesture-handler' // MUST BE FIRST https://github.com/software-mansion/react-native-gesture-handler/issues/320
 import 'react-native-reanimated' // MUST BE HERE due to another bug https://github.com/software-mansion/react-native-reanimated/issues/4836
-import ViewReactNativeStyleAttributes from 'react-native/Libraries/Components/View/ReactNativeStyleAttributes'
 import './util/why-did-you-render'
 import './app/globals.native'
 import {Appearance} from 'react-native'
@@ -11,9 +10,6 @@ import {enableMapSet} from 'immer'
 
 enableMapSet()
 install()
-
-// Add scaleY back to work around its removal in React Native 0.70. needed for list perf issues, see list-area.native
-ViewReactNativeStyleAttributes.scaleY = true
 
 const {setSystemSupported, setSystemDarkMode, setDarkModePreference} = DarkMode._useState.getState().dispatch
 setSystemDarkMode(Appearance.getColorScheme() === 'dark')
