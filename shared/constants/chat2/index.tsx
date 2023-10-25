@@ -12,6 +12,7 @@ import * as Meta from './meta'
 import {isMobile, isPhone} from '../platform'
 import * as Z from '../../util/zustand'
 import * as Common from './common'
+import {uint8ArrayToString} from 'uint8array-extras'
 
 export const defaultTopReacjis = [
   {name: ':+1:'},
@@ -1847,7 +1848,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         explodingItems.forEach(i => {
           try {
             const {category, body} = i.item
-            const secondsString = Buffer.from(body).toString()
+            const secondsString = uint8ArrayToString(body)
             const seconds = parseInt(secondsString, 10)
             if (isNaN(seconds)) {
               logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)

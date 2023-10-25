@@ -13,6 +13,7 @@ import {Box2} from './box'
 import {checkTextInfo} from './input.shared'
 import {getStyle as getTextStyle} from './text'
 import {isIOS} from '../constants/platform'
+import {stringToUint8Array} from 'uint8array-extras'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
@@ -105,7 +106,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   _onChangeText = (t: string) => {
     if (this.props.maxBytes) {
       const {maxBytes} = this.props
-      if (Buffer.byteLength(t) > maxBytes) {
+      if (stringToUint8Array(t).byteLength > maxBytes) {
         return
       }
     }

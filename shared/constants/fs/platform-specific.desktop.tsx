@@ -6,6 +6,7 @@ import {isWindows, isLinux, pathSep, isDarwin} from '../platform.desktop'
 import logger from '../../logger'
 import * as Path from '../../util/path'
 import KB2 from '../../util/electron.desktop'
+import {uint8ArrayToHex} from 'uint8array-extras'
 
 const {openPathInFinder, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions
 const {darwinCopyToKBFSTempUploadFile, relaunchApp, uninstallKBFSDialog, uninstallDokanDialog} = KB2.functions
@@ -20,9 +21,7 @@ const _openPathInSystemFileManagerPromise = async (openPath: string, isFolder: b
 
 const escapeBackslash = isWindows
   ? (pathElem: string): string =>
-      pathElem
-        .replace(/‰/g, '‰2030')
-        .replace(/([<>:"/\\|?*])/g, (_, c) => '‰' + Buffer.from(c).toString('hex'))
+      pathElem.replace(/‰/g, '‰2030').replace(/([<>:"/\\|?*])/g, (_, c) => '‰' + uint8ArrayToHex(c))
   : (pathElem: string): string => pathElem
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: T.FS.Path, mountLocation: string) =>

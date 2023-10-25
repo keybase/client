@@ -1308,7 +1308,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           const pushState = await T.RPCGen.gregorGetStateRpcPromise(undefined, teamWaitingKey(teamID))
           const item = pushState.items?.find(i => i.item?.category === chosenChannelsGregorKey)
           let teams: Array<string> = []
-          let msgID: Buffer | undefined
+          let msgID: Uint8Array | undefined
           if (item?.item?.body) {
             const body = item.item.body
             msgID = item.md?.msgID

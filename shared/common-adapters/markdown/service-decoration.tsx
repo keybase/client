@@ -15,6 +15,7 @@ import type {
   renderEmoji as renderEmojiType,
   RPCToEmojiData as RPCToEmojiDataType,
 } from '../../util/emoji'
+import {base64ToUint8Array, uint8ArrayToString} from 'uint8array-extras'
 
 const prefix = 'keybase://'
 export const linkIsKeybaseLink = (link: string) => link.startsWith(prefix)
@@ -112,7 +113,7 @@ const ServiceDecoration = (p: Props) => {
   // Parse JSON to get the type of the decoration
   let parsed: T.RPCChat.UITextDecoration
   try {
-    const jsonString = Buffer.from(json, 'base64').toString()
+    const jsonString = uint8ArrayToString(base64ToUint8Array(json))
     parsed = JSON.parse(jsonString)
   } catch (e) {
     return null

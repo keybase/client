@@ -5,6 +5,7 @@ import pick from 'lodash/pick'
 import logger from '../logger'
 import {checkTextInfo} from './input.shared'
 import type {InternalProps, TextInfo, Selection} from './plain-input'
+import {stringToUint8Array} from 'uint8array-extras'
 
 const maybeParseInt = (input: string | number, radix: number): number =>
   typeof input === 'string' ? parseInt(input, radix) : input
@@ -30,7 +31,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   _onChange = ({target: {value = ''}}) => {
     if (this.props.maxBytes) {
       const {maxBytes} = this.props
-      if (Buffer.byteLength(value) > maxBytes) {
+      if (stringToUint8Array(value).byteLength > maxBytes) {
         return
       }
     }

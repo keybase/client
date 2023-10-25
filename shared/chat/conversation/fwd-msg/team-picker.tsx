@@ -20,7 +20,7 @@ const TeamPicker = (props: Props) => {
   const message = C.useChatContext(s => s.messageMap.get(ordinal))
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
-  const dstConvIDRef = React.useRef<Buffer | undefined>()
+  const dstConvIDRef = React.useRef<Uint8Array | undefined>()
   const [results, setResults] = React.useState<Array<T.RPCChat.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
