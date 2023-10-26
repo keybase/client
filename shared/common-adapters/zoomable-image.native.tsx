@@ -52,7 +52,8 @@ const ZoomableImage = (p: Props) => {
     [updateZoomScale]
   )
 
-  const show = imgW > 0 && zoomScale > 0
+  const hasZoomScale = Styles.isAndroid || zoomScale > 0
+  const show = imgW > 0 && hasZoomScale
 
   return (
     <Kb.ZoomableBox
