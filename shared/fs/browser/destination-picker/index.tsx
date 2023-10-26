@@ -24,14 +24,17 @@ type Props = {
   headerRightButton?: React.ReactNode
 }
 
-const NewFolder = ({onNewFolder}: any) => (
-  <Kb.ClickableBox style={styles.newFolderBox} onClick={onNewFolder}>
-    <Kb.Icon type="iconfont-folder-new" color={Kb.Styles.globalColors.blue} />
-    <Kb.Text type="BodyBig" style={styles.newFolderText}>
-      Create new folder
-    </Kb.Text>
-  </Kb.ClickableBox>
-)
+const NewFolder = (p: {onNewFolder?: () => void}) => {
+  const {onNewFolder} = p
+  return (
+    <Kb.ClickableBox style={styles.newFolderBox} onClick={onNewFolder}>
+      <Kb.Icon type="iconfont-folder-new" color={Kb.Styles.globalColors.blue} />
+      <Kb.Text type="BodyBig" style={styles.newFolderText}>
+        Create new folder
+      </Kb.Text>
+    </Kb.ClickableBox>
+  )
+}
 
 const makeLeftButton = (props: Props) => {
   if (!Kb.Styles.isMobile) {

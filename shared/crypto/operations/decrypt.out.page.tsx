@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {HeaderLeftCancel2} from '../../common-adapters/header-hoc'
+import {HeaderLeftCancel2, type HeaderBackButtonProps} from '../../common-adapters/header-hoc'
 
 const Output = React.lazy(async () => {
   const {DecryptOutput} = await import('./decrypt')
@@ -7,7 +7,7 @@ const Output = React.lazy(async () => {
 })
 
 const getOptions = () => ({
-  headerLeft: (p: any) => <HeaderLeftCancel2 {...p} />,
+  headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftCancel2 {...p} />,
   headerShown: true,
   needsKeyboard: false,
   title: 'Decrypt',
