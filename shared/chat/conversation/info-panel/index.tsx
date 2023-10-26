@@ -1,15 +1,66 @@
-import * as React from 'react'
 import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
+import * as React from 'react'
 import type * as T from '../../../constants/types'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
 import MembersList from './members'
 import BotsList from './bot'
 import AttachmentsList from './attachments'
-import * as TeamConstants from '../../../constants/teams'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
 import type {Tab as TabType} from '../../../common-adapters/tabs'
+
+type Props = {
+  conversationIDKey: T.Chat.ConversationIDKey // for page
+  navigation?: any
+} & Partial<{
+  conversationIDKey: T.Chat.ConversationIDKey // for page
+  tab?: 'settings' | 'members' | 'attachments' | 'bots'
+}>
+
+const InfoPanelConnector = (props: Props) => {
+  const storeSelectedTab = C.useChatState(s => s.infoPanelSelectedTab)
+  const initialTab = props.tab ?? storeSelectedTab
+  const conversationIDKey = C.useChatContext(s => s.id)
+  const meta = C.useConvoState(conversationIDKey, s => s.meta)
+  const shouldNavigateOut = meta.conversationIDKey === C.noConversationIDKey
+  const yourRole = C.useTeamsState(s => C.Teams.getRole(s, meta.teamID))
+  const isPreview = meta.membershipType === 'youArePreviewing'
+  const channelname = meta.channelname
+  const smallTeam = meta.teamType !== 'big'
+  const teamname = meta.teamname
+
+  const [selectedTab, onSelectTab] = React.useState<Panel | undefined>(initialTab)
+  const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
+
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
+  const clearAttachmentView = C.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
+  const onCancel = () => {
+    showInfoPanel(false, undefined)
+    clearAttachmentView()
+  }
+  const onGoToInbox = C.useChatState(s => s.dispatch.navigateToInbox)
+
+  if (lastSNO !== shouldNavigateOut) {
+    setLastSNO(shouldNavigateOut)
+    if (!lastSNO && shouldNavigateOut) {
+      console.log('aaaaaa fail')
+      onGoToInbox()
+    }
+  }
+
+  const p = {
+    channelname,
+    isPreview,
+    onCancel,
+    onSelectTab,
+    selectedTab: selectedTab ?? 'members',
+    smallTeam,
+    teamname,
+    yourRole,
+  }
+  return <_InfoPanel {...p} conversationIDKey={conversationIDKey} />
+}
 
 export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
 type InfoPanelProps = {
@@ -23,19 +74,10 @@ type InfoPanelProps = {
   yourRole: T.Teams.MaybeTeamRoleType
 }
 
-export const InfoPanel = (p: InfoPanelProps) => {
-  const conversationIDKey = C.useChatContext(s => s.id)
-  return <_InfoPanel {...p} conversationIDKey={conversationIDKey} />
-}
-
-export class _InfoPanel extends React.PureComponent<
-  InfoPanelProps & {conversationIDKey: T.Chat.ConversationIDKey}
-> {
+class _InfoPanel extends React.PureComponent<InfoPanelProps & {conversationIDKey: T.Chat.ConversationIDKey}> {
   private getTabs = (): Array<TabType<Panel>> => {
     const showSettings =
-      !this.props.isPreview ||
-      TeamConstants.isAdmin(this.props.yourRole) ||
-      TeamConstants.isOwner(this.props.yourRole)
+      !this.props.isPreview || C.Teams.isAdmin(this.props.yourRole) || C.Teams.isOwner(this.props.yourRole)
 
     return [
       {title: 'members' as const},
@@ -187,3 +229,5 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
     }) as const
 )
+
+export default InfoPanelConnector

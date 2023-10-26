@@ -6,7 +6,7 @@ import type * as T from '../constants/types'
 import Conversation from './conversation/container'
 import Inbox from './inbox/container'
 import InboxSearch from './inbox-search'
-import InfoPanel from './conversation/info-panel/container'
+import InfoPanel from './conversation/info-panel'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; navKey?: string}
 
