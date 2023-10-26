@@ -4,9 +4,13 @@ import {ZoomableBox} from './zoomable-box'
 import Image2 from './image2.native'
 import type {Props} from './zoomable-image'
 import type {LayoutChangeEvent} from 'react-native'
+import ProgressIndicator from './progress-indicator.native'
+import {Box2} from './box'
 
 const Kb = {
+  Box2,
   Image2,
+  ProgressIndicator,
   ZoomableBox,
 }
 
@@ -48,6 +52,8 @@ const ZoomableImage = (p: Props) => {
     [updateZoomScale]
   )
 
+  const show = imgW > 0 && zoomScale > 0
+
   return (
     <Kb.ZoomableBox
       onLayout={boxOnLayout}
@@ -58,7 +64,6 @@ const ZoomableImage = (p: Props) => {
               alignItems: 'center',
               height: imgH === 0 ? 1 : imgH + 0,
               justifyContent: 'center',
-              opacity: imgW === 0 ? 0 : 1,
               width: imgW === 0 ? 1 : imgW + 0,
             }
           : styles.zoomableBoxContainerAndroid
@@ -71,11 +76,18 @@ const ZoomableImage = (p: Props) => {
         contentFit="none"
         src={src}
         style={
-          Styles.isIOS ? {height: imgH === 0 ? 10 : imgH, width: imgW === 0 ? 10 : imgW} : styles.imageAndroid
+          Styles.isIOS
+            ? {height: imgH === 0 ? 10 : imgH, opacity: show ? 1 : 0, width: imgW === 0 ? 10 : imgW}
+            : styles.imageAndroid
         }
         onLoad={onLoad}
         showLoadingStateUntilLoaded={true}
       />
+      {show ? null : (
+        <Kb.Box2 direction="vertical" style={styles.progress}>
+          <Kb.ProgressIndicator white={true} />
+        </Kb.Box2>
+      )}
     </Kb.ZoomableBox>
   )
 }
@@ -84,6 +96,10 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       imageAndroid: {flexGrow: 1},
+      progress: {
+        position: 'absolute',
+        top: 0,
+      },
       zoomableBoxContainerAndroid: {
         flex: 1,
         overflow: 'hidden',
