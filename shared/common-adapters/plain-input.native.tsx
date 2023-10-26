@@ -154,6 +154,10 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   _onFocus = () => {
     this.props.onFocus?.()
+    if (this.props.selectTextOnFocus) {
+      // https://github.com/facebook/react-native/issues/30585 doesn't work on ios w/o this
+      this.setNativeProps({end: this.props.value?.length, start: 0})
+    }
   }
 
   _onBlur = () => {

@@ -44,7 +44,6 @@ const InfoPanelConnector = (props: Props) => {
   if (lastSNO !== shouldNavigateOut) {
     setLastSNO(shouldNavigateOut)
     if (!lastSNO && shouldNavigateOut) {
-      console.log('aaaaaa fail')
       onGoToInbox()
     }
   }

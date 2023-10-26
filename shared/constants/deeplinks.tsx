@@ -15,7 +15,17 @@ export const linkFromConvAndMessage = (conv: string, messageID: number) =>
   `${prefix}chat/${conv}/${messageID}`
 
 const teamPageActions = ['add_or_invite', 'manage_settings', 'join'] as const
-const isTeamPageAction = (a: any): a is TeamPageAction => teamPageActions.includes(a)
+const isTeamPageAction = (a?: string): a is TeamPageAction => {
+  switch (a) {
+    case 'add_or_invite':
+    case 'manage_settings':
+    case 'join':
+      return true
+    default:
+      return false
+  }
+}
+
 type TeamPageAction = (typeof teamPageActions)[number]
 
 // This logic is copied from go/protocol/keybase1/extras.go.
