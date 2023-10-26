@@ -3,6 +3,7 @@ import * as RPCTypes from '../rpc-gen'
 import * as _Message from './message'
 import type * as Meta from './meta'
 import type * as RPCChatTypes from '../rpc-chat-gen'
+import {uint8ArrayToHex, hexToUint8Array} from 'uint8array-extras'
 
 export type PaymentConfirmInfo = {
   error?: RPCTypes.Status
@@ -193,16 +194,16 @@ export type RenderMessageType =
   | 'attachment:video'
 
 export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey =>
-  Common.stringToConversationIDKey(Buffer.from(conversationID).toString('hex'))
+  Common.stringToConversationIDKey(uint8ArrayToHex(conversationID))
 
 export const keyToConversationID = (key: Common.ConversationIDKey): RPCChatTypes.ConversationID =>
-  Buffer.from(Common.conversationIDKeyToString(key), 'hex')
+  hexToUint8Array(Common.conversationIDKeyToString(key))
 
 export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): _Message.OutboxID =>
-  _Message.stringToOutboxID(outboxID.toString('hex'))
+  _Message.stringToOutboxID(uint8ArrayToHex(outboxID))
 
 export const outboxIDToRpcOutboxID = (outboxID: _Message.OutboxID): RPCChatTypes.OutboxID =>
-  Buffer.from(_Message.outboxIDToString(outboxID), 'hex')
+  hexToUint8Array(_Message.outboxIDToString(outboxID))
 
 export * from './message'
 export * from './common'

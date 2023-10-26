@@ -5,7 +5,7 @@ type KB2 = {
     darwinCopyToChatTempUploadFile?: (
       dst: string,
       originalFilePath: string
-    ) => Promise<{outboxID: Buffer; path: string}>
+    ) => Promise<{outboxID: Uint8Array; path: string}>
   }
 }
 

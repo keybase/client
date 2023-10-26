@@ -20,6 +20,7 @@ import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import * as Platform from '../platform'
 import KB2 from '../../util/electron'
 import NotifyPopup from '../../util/notify-popup'
+import {hexToUint8Array} from 'uint8array-extras'
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
 const makeThreadSearchInfo = (): T.Chat.ThreadSearchInfo => ({
@@ -147,7 +148,7 @@ export type ConvoState = ConvoStore & {
       restricted: boolean,
       convs?: Array<string>
     ) => void
-    attachmentPasted: (data: Buffer) => void
+    attachmentPasted: (data: Uint8Array) => void
     attachmentPreviewSelect: (ordinal: T.Chat.Ordinal) => void
     attachmentUploadCanceled: (outboxIDs: Array<T.RPCChat.OutboxID>) => void
     attachmentDownload: (ordinal: T.Chat.Ordinal) => void
@@ -553,7 +554,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         // disable sending exploding messages if flag is false
         const ephemeralLifetime = get().explodingMode
         const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-        const outboxIDs = paths.reduce<Array<Buffer>>((obids, p) => {
+        const outboxIDs = paths.reduce<Array<Uint8Array>>((obids, p) => {
           obids.push(p.outboxID ? p.outboxID : Common.generateOutboxID())
           return obids
         }, [])
@@ -565,7 +566,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 conversationID: T.Chat.keyToConversationID(conversationIDKey),
                 filename: Styles.unnormalizePath(p.path),
                 identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-                metadata: Buffer.from([]),
+                metadata: new Uint8Array(),
                 outboxID: outboxIDs[i],
                 title: titles[i] ?? '',
                 tlfName: tlfName ?? '',
@@ -1055,7 +1056,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           logger.info('bail on not logged in')
           return
         }
-        const tlfID = Buffer.from(T.Teams.teamIDToString(teamID), 'hex')
+        const tlfID = hexToUint8Array(T.Teams.teamIDToString(teamID))
         await T.RPCChat.localMarkTLFAsReadLocalRpcPromise({tlfID})
       }
       C.ignorePromise(f())
@@ -2227,7 +2228,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               conversationID: T.Chat.keyToConversationID(conversationIDKey),
               filename: path,
               identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-              metadata: Buffer.from([]),
+              metadata: new Uint8Array(),
               outboxID,
               title: '',
               tlfName: meta.tlfname,

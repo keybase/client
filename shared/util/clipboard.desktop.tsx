@@ -1,7 +1,7 @@
 import KB2 from './electron.desktop'
 const {clipboardAvailableFormats} = KB2.functions
 
-export async function readImageFromClipboard(event: React.SyntheticEvent): Promise<Buffer | undefined> {
+export async function readImageFromClipboard(event: React.SyntheticEvent): Promise<Uint8Array | undefined> {
   const formats = await (clipboardAvailableFormats?.() ?? [])
   console.log('Read clipboard, formats:', formats)
   const imageFormats = formats.filter(f => f.startsWith('image/'))

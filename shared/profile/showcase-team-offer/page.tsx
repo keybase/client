@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-const ShowCase = React.lazy(async () => import('./container'))
+const ShowCase = React.lazy(async () => import('.'))
 const Screen = () => (
   <React.Suspense>
     <ShowCase />

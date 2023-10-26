@@ -131,7 +131,8 @@ export const allMessageTypes: Set<T.Chat.MessageType> = new Set([
   'placeholder',
 ])
 
-export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
+export const generateOutboxID = () =>
+  Uint8Array.from([...Array<number>(8)], () => Math.floor(Math.random() * 256))
 
 export const formatTextForQuoting = (text: string) =>
   text

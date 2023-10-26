@@ -4,7 +4,7 @@
 
 export type Bool = boolean
 export type Boolean = boolean
-export type Bytes = Buffer
+export type Bytes = Uint8Array
 export type Double = number
 export type Int = number
 export type Int64 = number

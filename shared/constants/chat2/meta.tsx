@@ -6,6 +6,7 @@ import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isPhone} from '../platform'
 import type {AllowedColors} from '../../common-adapters/text'
+import {base64ToUint8Array, uint8ArrayToHex} from 'uint8array-extras'
 
 const conversationMemberStatusToMembershipType = (m: T.RPCChat.ConversationMemberStatus) => {
   switch (m) {
@@ -21,8 +22,8 @@ const conversationMemberStatusToMembershipType = (m: T.RPCChat.ConversationMembe
 }
 
 // This one call handles us getting a string or a buffer
-const supersededConversationIDToKey = (id: string | Buffer): string => {
-  return typeof id === 'string' ? Buffer.from(id, 'base64').toString('hex') : id.toString('hex')
+const supersededConversationIDToKey = (id: string | Uint8Array): string => {
+  return typeof id === 'string' ? uint8ArrayToHex(base64ToUint8Array(id)) : uint8ArrayToHex(id)
 }
 
 export const unverifiedInboxUIItemToConversationMeta = (

@@ -918,7 +918,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../node_modules/msgpack-cxx-4.1.1/include/**",
+					"$(SRCROOT)/../node_modules/msgpack-cxx-6.1.0/include",
 					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon-Samples/ReactCommon_Samples.framework/Headers",
 					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon/ReactCommon.framework/Headers/react/nativemodule/core",
 					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon-Samples/ReactCommon_Samples.framework/Headers/platform/ios",
@@ -957,8 +957,8 @@
 					"$(inherited)",
 					"-Wl",
 					"-ld_classic",
-					" ",
-					"-Wl -ld_classic ",
+					"-Wl",
+					"-ld_classic",
 				);
 				OTHER_SWIFT_FLAGS = "-DDEBUG";
 				"OTHER_SWIFT_FLAGS[sdk=iphonesimulator*]" = "-DDEBUG -DSIMULATOR";
@@ -1014,7 +1014,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../node_modules/msgpack-cxx-4.1.1/include",
+					"$(SRCROOT)/../node_modules/msgpack-cxx-6.1.0/include",
 					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon-Samples/ReactCommon_Samples.framework/Headers",
 					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon/ReactCommon.framework/Headers/react/nativemodule/core",
 					"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon-Samples/ReactCommon_Samples.framework/Headers/platform/ios",
@@ -1052,8 +1052,8 @@
 					"$(inherited)",
 					"-Wl",
 					"-ld_classic",
-					" ",
-					"-Wl -ld_classic ",
+					"-Wl",
+					"-ld_classic",
 				);
 				OTHER_SWIFT_FLAGS = "";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";

@@ -20,7 +20,7 @@ const Kb = {
   WaitingButton,
 }
 
-type Props = {
+export type Props = {
   attachTo?: React.RefObject<MeasureRef>
   description: string
   inTeam: boolean

@@ -1,5 +1,6 @@
 import type * as T from './types'
 import * as Z from '../util/zustand'
+import {uint8ArrayToString} from 'uint8array-extras'
 
 /*
  * IMPORTANT:
@@ -108,7 +109,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     updateLastSeen: lastSeenItem => {
       if (lastSeenItem) {
         const {body} = lastSeenItem.item
-        const pushStateLastSeenVersion = Buffer.from(body).toString()
+        const pushStateLastSeenVersion = uint8ArrayToString(body)
         const lastSeenVersion = pushStateLastSeenVersion || noVersion
         // Default to 0.0.0 (noVersion) if user has never marked a version as seen
         set(s => {
