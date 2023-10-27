@@ -160,12 +160,16 @@ function isStyleInViewport(style: ComputedStyle, popupCoords: MeasureDesktop): b
   }
 
   // hidden on top
-  if (typeof element.top === 'number' && element.top < pageYOffset) return false
+  if (typeof element.top === 'number' && element.top < pageYOffset) {
+    return false
+  }
   // hidden on the bottom
   if (typeof element.top === 'number' && element.top + element.height > pageYOffset + clientHeight)
     return false
   // hidden the left
-  if (typeof element.left === 'number' && element.left < pageXOffset) return false
+  if (typeof element.left === 'number' && element.left < pageXOffset) {
+    return false
+  }
   // hidden on the right
   if (typeof element.left === 'number' && element.left + element.width > pageXOffset + clientWidth)
     return false
@@ -334,10 +338,15 @@ export class RelativeFloatingBox extends React.PureComponent<
         ? this.popupNode.getBoundingClientRect()
         : {height: -1, width: -1}
       if (snapshot.width !== width || snapshot.height !== height) {
-        this._computeStyle(this.props.targetRect)
+        // need to defer this until it actually renders
+        clearTimeout(this._timeout)
+        this._timeout = setTimeout(() => {
+          this._computeStyle(this.props.targetRect)
+        }, 10)
       }
     }
   }
+  _timeout: NodeJS.Timeout | undefined
 
   _handleDown = (e: MouseEvent) => {
     this.down = {x: e.clientX, y: e.clientY}
@@ -379,6 +388,8 @@ export class RelativeFloatingBox extends React.PureComponent<
   }
 
   componentWillUnmount() {
+    clearTimeout(this._timeout)
+    this._timeout = undefined
     const node = document.body
     node.removeEventListener('mousedown', this._handleDown, false)
     node.removeEventListener('mouseup', this._handleUp, false)
@@ -394,11 +405,9 @@ export class RelativeFloatingBox extends React.PureComponent<
     return (
       <Modal setNode={this._setRef}>
         <Kb.Box style={this.state.style}>
-          {
-            <EscapeHandler onESC={this.props.onClosePopup}>
-              <Kb.Box> {this.props.children} </Kb.Box>
-            </EscapeHandler>
-          }
+          <EscapeHandler onESC={this.props.onClosePopup}>
+            <Kb.Box className="fade-in-generic"> {this.props.children} </Kb.Box>
+          </EscapeHandler>
         </Kb.Box>
       </Modal>
     )
