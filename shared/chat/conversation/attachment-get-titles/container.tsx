@@ -49,18 +49,16 @@ const Container = (ownProps: OwnProps) => {
   const props = {
     onCancel,
     onSubmit,
-    pathAndInfos: pathAndOutboxIDs.map(({path, outboxID}) => {
+    pathAndInfos: pathAndOutboxIDs.map(({path, outboxID, url}) => {
       const filename = T.FS.getLocalPathName(path)
       const info: Info = {
         filename,
         outboxID: outboxID,
         title: '',
         type: Constants.pathToAttachmentType(path),
+        url,
       }
-      return {
-        info,
-        path,
-      }
+      return {info, path}
     }),
     titles,
   }
