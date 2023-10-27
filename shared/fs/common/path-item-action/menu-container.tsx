@@ -1,12 +1,13 @@
 import * as C from '../../../constants'
-import * as T from '../../../constants/types'
-import * as React from 'react'
 import * as Constants from '../../../constants/fs'
-import {memoize} from '../../../util/memoize'
-import Menu from './menu'
+import * as Kb from '../../../common-adapters'
+import * as Kbfs from '../../common/hooks'
+import * as React from 'react'
+import * as T from '../../../constants/types'
+import * as Util from '../../../util/kbfs'
+import Header from './header'
 import type {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
-import * as Util from '../../../util/kbfs'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
@@ -17,151 +18,260 @@ type OwnProps = {
 const needConfirm = (pathItem: T.FS.PathItem) =>
   pathItem.type === T.FS.PathType.File && pathItem.size > 50 * 1024 * 1024
 
-const getDownloadingState = memoize(
-  (
-    downloads: T.FS.Downloads,
-    downloadID: string | undefined,
-    pathItemActionMenu: T.FS.PathItemActionMenu
-  ) => {
-    if (!downloadID) {
-      return {done: true, saving: false, sharing: false}
-    }
-    const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
-    const intent = pathItemActionMenu.downloadIntent
-    const done = downloadState !== Constants.emptyDownloadState && !Constants.downloadIsOngoing(downloadState)
-    if (!intent) {
-      return {done, saving: false, sharing: false}
-    }
-    return {
-      done,
-      saving: intent === T.FS.DownloadIntent.CameraRoll,
-      sharing: intent === T.FS.DownloadIntent.Share,
-    }
-  }
-)
-
-const addCancelIfNeeded = (action: () => void, cancel: (arg0: string) => void, toCancel?: string) =>
-  toCancel
-    ? () => {
-        action()
-        cancel(toCancel)
-      }
-    : action
-
-const Container = (ownProps: OwnProps) => {
-  const {path, mode} = ownProps
-
-  const _downloads = C.useFSState(s => s.downloads)
+const Container = (op: OwnProps) => {
+  const {path, mode, floatingMenuProps} = op
+  const {hide, containerStyle, attachTo, visible} = floatingMenuProps
+  Kbfs.useFsFileContext(path)
+  const pathItem = C.useFSState(s => Constants.getPathItem(s.pathItems, path))
+  const pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
+  const {downloadID, downloadIntent, view} = pathItemActionMenu
+  const username = C.useCurrentUserState(s => s.username)
+  const fileContext = C.useFSState(s => s.fileContext.get(path) || Constants.emptyFileContext)
+  const getLayout = view === T.FS.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
+  const layout = getLayout(mode, path, pathItem, fileContext, username)
   const cancelDownload = C.useFSState(s => s.dispatch.cancelDownload)
-
-  const _fileContext = C.useFSState(s => s.fileContext.get(path) || Constants.emptyFileContext)
-  const _ignoreNeedsToWait = C.useAnyWaiting([Constants.folderListWaitingKey, Constants.statWaitingKey])
-  const _pathItem = C.useFSState(s => Constants.getPathItem(s.pathItems, path))
-  const _pathItemActionMenu = C.useFSState(s => s.pathItemActionMenu)
-  const _downloadID = _pathItemActionMenu.downloadID
-  const _sfmiEnabled = C.useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
-  const _username = C.useCurrentUserState(s => s.username)
-  const _view = _pathItemActionMenu.view
-  const _cancel = cancelDownload
-
-  const setPathItemActionMenuView = C.useFSState(s => s.dispatch.setPathItemActionMenuView)
-
-  const _confirmSaveMedia = React.useCallback(() => {
-    setPathItemActionMenuView(T.FS.PathItemActionMenuView.ConfirmSaveMedia)
-  }, [setPathItemActionMenuView])
-  const _confirmSendToOtherApp = React.useCallback(() => {
-    setPathItemActionMenuView(T.FS.PathItemActionMenuView.ConfirmSendToOtherApp)
-  }, [setPathItemActionMenuView])
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _delete = () => {
-    navigateAppend({props: {mode, path}, selected: 'confirmDelete'})
+  const cancel = () => {
+    C.isMobile && downloadID && cancelDownload(downloadID)
   }
-  const favoriteIgnore = C.useFSState(s => s.dispatch.favoriteIgnore)
-  const _ignoreTlf = React.useCallback(() => {
-    favoriteIgnore(path)
-  }, [favoriteIgnore, path])
+  const setPathItemActionMenuView = C.useFSState(s => s.dispatch.setPathItemActionMenuView)
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const download = C.useFSState(s => s.dispatch.download)
+  const saving = downloadID && downloadIntent === T.FS.DownloadIntent.CameraRoll
+  const sharing = downloadID && downloadIntent === T.FS.DownloadIntent.Share
+
+  const hideAfter = (onClick: (evt?: React.SyntheticEvent) => void) => (evt?: React.SyntheticEvent) => {
+    onClick(evt)
+    hide()
+  }
+  const cancelAfter = (f: () => void) => () => {
+    f()
+    cancel()
+  }
+  const hideAndCancelAfter = (f: () => void) => hideAfter(cancelAfter(f))
+
   const newFolderRow = C.useFSState(s => s.dispatch.newFolderRow)
-  const _newFolder = React.useCallback(() => {
-    newFolderRow(path)
-  }, [newFolderRow, path])
+  const itemNewFolder = layout.newFolder
+    ? ([
+        {
+          icon: 'iconfont-folder-new',
+          onClick: hideAndCancelAfter(() => {
+            newFolderRow(path)
+          }),
+          title: 'New folder',
+        },
+      ] as const)
+    : []
+
   const previewConversation = C.useChatState(s => s.dispatch.previewConversation)
-  const _openChat = () => {
+  const openChat = cancelAfter(() => {
     previewConversation({
       reason: 'files',
       // tlfToParticipantsOrTeamname will route both public and private
       // folders to a private chat, which is exactly what we want.
       ...Util.tlfToParticipantsOrTeamname(T.FS.pathToString(path)),
     })
-  }
-  const startRename = C.useFSState(s => s.dispatch.startRename)
-  const download = C.useFSState(s => s.dispatch.download)
-  const _download = React.useCallback(() => {
-    download(path, 'download')
-  }, [download, path])
-  const _rename = React.useCallback(() => {
-    startRename(path)
-  }, [startRename, path])
-  const _saveMedia = React.useCallback(() => {
-    download(path, 'saveMedia')
-  }, [download, path])
-  const _sendAttachmentToChat = () => {
-    path && navigateAppend({props: {sendPaths: [path]}, selected: 'chatSendToChat'})
-  }
-  const _sendToOtherApp = React.useCallback(() => {
-    download(path, 'share')
-  }, [download, path])
-  const _share = React.useCallback(() => {
-    setPathItemActionMenuView(T.FS.PathItemActionMenuView.Share)
-  }, [setPathItemActionMenuView])
+  })
+  const itemChatTeam = layout.openChatTeam
+    ? ([{icon: 'iconfont-chat', onClick: hideAfter(openChat), title: 'Chat with team'}] as const)
+    : []
+  const itemChat = layout.openChatNonTeam
+    ? ([{icon: 'iconfont-chat', onClick: hideAfter(openChat), title: 'Chat with them'}] as const)
+    : []
+
   const openPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
   )
-  const _showInSystemFileManager = React.useCallback(() => {
-    openPathInSystemFileManagerDesktop?.(path)
-  }, [openPathInSystemFileManagerDesktop, path])
+  const sfmiEnabled = C.useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
+  const itemFinder =
+    layout.showInSystemFileManager && sfmiEnabled
+      ? ([
+          {
+            icon: 'iconfont-finder',
+            onClick: hideAndCancelAfter(() => {
+              openPathInSystemFileManagerDesktop?.(path)
+            }),
+            title: 'Show in ' + C.fileUIName,
+          },
+        ] as const)
+      : []
 
-  const getLayout = _view === 'share' ? getShareLayout : getRootLayout
-  const layout = getLayout(mode, ownProps.path, _pathItem, _fileContext, _username)
-  const c = (action: any) => (C.isMobile ? addCancelIfNeeded(action, _cancel, _downloadID) : action)
-
-  const getSendToOtherApp = () => {
-    const {sharing} = getDownloadingState(_downloads, _downloadID, _pathItemActionMenu)
-    if (sharing) {
-      return 'in-progress'
-    } else {
-      return needConfirm(_pathItem) ? c(_confirmSendToOtherApp) : c(_sendToOtherApp)
-    }
-  }
-
-  const getSaveMedia = () => {
-    const {saving} = getDownloadingState(_downloads, _downloadID, _pathItemActionMenu)
+  const itemSave = (() => {
+    if (!layout.saveMedia) return []
     if (saving) {
-      return 'in-progress'
+      return [
+        {
+          disabled: true,
+          icon: 'iconfont-download-2',
+          inProgress: true,
+          onClick: undefined,
+          title: 'Save',
+        },
+      ] as const
     } else {
-      return needConfirm(_pathItem) ? c(_confirmSaveMedia) : c(_saveMedia)
+      const onClick = needConfirm(pathItem)
+        ? () => {
+            setPathItemActionMenuView(T.FS.PathItemActionMenuView.ConfirmSaveMedia)
+            cancel()
+          }
+        : () => {
+            download(path, 'saveMedia')
+            cancel()
+          }
+      return [{icon: 'iconfont-download-2', onClick, title: 'Save'}] as const
     }
-  }
+  })()
 
-  const props = {
-    ...ownProps,
-    delete: layout.delete ? c(_delete) : undefined,
-    download: layout.download ? c(_download) : undefined,
-    ignoreTlf: layout.ignoreTlf ? (_ignoreNeedsToWait ? 'disabled' : c(_ignoreTlf)) : undefined,
-    me: _username,
-    moveOrCopy: undefined,
-    newFolder: layout.newFolder ? c(_newFolder) : undefined,
-    openChatNonTeam: layout.openChatNonTeam ? c(_openChat) : undefined,
-    openChatTeam: layout.openChatTeam ? c(_openChat) : undefined,
-    pathItemType: _pathItem.type,
-    rename: layout.rename ? c(_rename) : undefined,
-    saveMedia: layout.saveMedia ? getSaveMedia() : undefined,
-    sendAttachmentToChat: layout.sendAttachmentToChat ? c(_sendAttachmentToChat) : undefined, // TODO
-    sendToOtherApp: layout.sendToOtherApp ? getSendToOtherApp() : undefined,
-    share: layout.share ? _share : undefined,
-    showInSystemFileManager:
-      layout.showInSystemFileManager && _sfmiEnabled ? c(_showInSystemFileManager) : undefined,
-  }
-  return <Menu {...props} />
+  const itemShare = layout.share
+    ? ([
+        {
+          icon: 'iconfont-share',
+          onClick: () => {
+            setPathItemActionMenuView(T.FS.PathItemActionMenuView.Share)
+          },
+          title: 'Share...',
+        },
+      ] as const)
+    : []
+
+  const itemSendToChat = layout.sendAttachmentToChat
+    ? ([
+        {
+          icon: 'iconfont-chat',
+          onClick: hideAndCancelAfter(() => {
+            path && navigateAppend({props: {sendPaths: [path]}, selected: 'chatSendToChat'})
+          }),
+          subTitle: `The ${
+            pathItem.type === T.FS.PathType.Folder ? 'folder' : 'file'
+          } will be sent as an attachment.`,
+          title: 'Attach in another conversation',
+        },
+      ] as const)
+    : []
+
+  const itemSendToApp = (() => {
+    if (!layout.sendToOtherApp) return []
+    if (sharing) {
+      return [
+        {
+          disabled: true,
+          icon: 'iconfont-share',
+          inProgress: true,
+          onClick: undefined,
+          title: 'Send to another app',
+        },
+      ] as const
+    } else {
+      const conf = needConfirm(pathItem)
+      const onClick = cancelAfter(() => {
+        if (conf) {
+          setPathItemActionMenuView(T.FS.PathItemActionMenuView.ConfirmSendToOtherApp)
+        } else {
+          download(path, 'share')
+        }
+      })
+      return [{icon: 'iconfont-share', onClick, title: 'Send to another app'}] as const
+    }
+  })()
+
+  const itemDownload = layout.download
+    ? ([
+        {
+          icon: 'iconfont-download-2',
+          onClick: hideAndCancelAfter(() => {
+            download(path, 'download')
+          }),
+          title: 'Download',
+        },
+      ] as const)
+    : []
+
+  const ignoreNeedsToWait = C.useAnyWaiting([Constants.folderListWaitingKey, Constants.statWaitingKey])
+  const favoriteIgnore = C.useFSState(s => s.dispatch.favoriteIgnore)
+  const ignoreTlf = layout.ignoreTlf
+    ? ignoreNeedsToWait
+      ? ('disabled' as const)
+      : cancelAfter(() => {
+          favoriteIgnore(path)
+        })
+    : undefined
+  const itemIgnore = ignoreTlf
+    ? ([
+        {
+          danger: true,
+          disabled: ignoreTlf === 'disabled',
+          icon: 'iconfont-hide',
+          onClick: ignoreTlf === 'disabled' ? undefined : hideAfter(ignoreTlf),
+          progressIndicator: ignoreTlf === 'disabled',
+          subTitle: 'Will hide the folder from your list.',
+          title: 'Ignore this folder',
+        },
+      ] as const)
+    : []
+
+  const startRename = C.useFSState(s => s.dispatch.startRename)
+  const itemRename = layout.rename
+    ? ([
+        {
+          icon: 'iconfont-edit',
+          onClick: hideAndCancelAfter(() => {
+            startRename(path)
+          }),
+          title: 'Rename',
+        },
+      ] as const)
+    : []
+
+  const itemDelete = layout.delete
+    ? ([
+        {
+          danger: true,
+          icon: 'iconfont-trash',
+          onClick: hideAfter(() => {
+            navigateAppend({props: {mode, path}, selected: 'confirmDelete'})
+          }),
+          title: 'Delete',
+        },
+      ] as const)
+    : []
+  const items: Kb.MenuItems = [
+    ...itemNewFolder,
+    ...itemChatTeam,
+    ...itemChat,
+    ...itemFinder,
+    ...itemSave,
+    ...itemShare,
+    ...itemSendToChat,
+    ...itemSendToApp,
+    ...itemDownload,
+    ...itemIgnore,
+    ...itemRename,
+    ...itemDelete,
+  ]
+
+  const justDoneWithIntent = Kbfs.useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
+  React.useEffect(() => {
+    justDoneWithIntent && hide()
+  }, [justDoneWithIntent, hide])
+
+  const dismissDownload = C.useFSState(s => s.dispatch.dismissDownload)
+  const userInitiatedHide = React.useCallback(() => {
+    hide()
+    downloadID && dismissDownload(downloadID)
+  }, [downloadID, hide, dismissDownload])
+
+  return (
+    <Kb.FloatingMenu
+      closeText="Cancel"
+      closeOnSelect={false}
+      containerStyle={containerStyle}
+      attachTo={attachTo}
+      visible={visible}
+      onHidden={userInitiatedHide}
+      position="left center"
+      header={<Header path={path} />}
+      items={items.length ? ['Divider' as const, ...items] : items}
+    />
+  )
 }
 
 export default Container

@@ -348,23 +348,34 @@ class Inbox extends React.Component<TInbox.Props, State> {
             onDrop={this.onDrop}
             ref={this.dragList}
           >
-            <AutoSizer>
-              {({height = 1, width = 1}) => (
-                <VariableSizeList
-                  height={height}
-                  width={width}
-                  ref={this.listRef}
-                  outerRef={this.scrollDiv}
-                  onItemsRendered={this.onItemsRendered}
-                  itemCount={this.props.rows.length}
-                  itemSize={this.itemSizeGetter}
-                  estimatedItemSize={56}
-                  itemData={this.state.dragY === -1 ? this.props.rows : this.state.dragY}
-                >
-                  {this.listChild}
-                </VariableSizeList>
-              )}
-            </AutoSizer>
+            {this.props.rows.length ? (
+              <AutoSizer>
+                {p => {
+                  let {height = 1, width = 1} = p
+                  if (isNaN(height)) {
+                    height = 1
+                  }
+                  if (isNaN(width)) {
+                    width = 1
+                  }
+                  return (
+                    <VariableSizeList
+                      height={height}
+                      width={width}
+                      ref={this.listRef}
+                      outerRef={this.scrollDiv}
+                      onItemsRendered={this.onItemsRendered}
+                      itemCount={this.props.rows.length}
+                      itemSize={this.itemSizeGetter}
+                      estimatedItemSize={56}
+                      itemData={this.state.dragY === -1 ? this.props.rows : this.state.dragY}
+                    >
+                      {this.listChild}
+                    </VariableSizeList>
+                  )
+                }}
+              </AutoSizer>
+            ) : null}
           </div>
           {floatingDivider || (this.props.rows.length === 0 && <BuildTeam />)}
           {this.state.showUnread && !this.state.showFloating && (

@@ -154,10 +154,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   _onFocus = () => {
     this.props.onFocus?.()
-    if (this.props.selectTextOnFocus) {
-      // https://github.com/facebook/react-native/issues/30585 doesn't work on ios w/o this
-      this.setNativeProps({end: this.props.value?.length, start: 0})
-    }
   }
 
   _onBlur = () => {
@@ -235,6 +231,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       ref: this._input,
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password' || this.props.secureTextEntry,
+      // currently broken on ios https://github.com/facebook/react-native/issues/30585
       selectTextOnFocus: this.props.selectTextOnFocus,
       style: this._getStyle(),
       textContentType: this.props.textContentType,

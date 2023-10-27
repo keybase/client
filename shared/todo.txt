@@ -1,2 +1,2 @@
 Some short term todos:
-ios new folder fs doesnt' select all text
+send sometimes leaves a draft

@@ -87,10 +87,14 @@ const DesktopSendToChat = (props: Props) => {
     setConversationIDKey(convID)
     setConvName(convname)
   }
-  const attachmentsUpload = C.useChatContext(s => s.dispatch.attachmentsUpload)
   const onSend = () => {
+    const {dispatch} = C.getConvoState(conversationIDKey)
     sendPaths.forEach(path =>
-      attachmentsUpload([{path: T.FS.pathToString(path)}], [title], `${username},${convName.split('#')[0]}`)
+      dispatch.attachmentsUpload(
+        [{path: T.FS.pathToString(path)}],
+        [title],
+        `${username},${convName.split('#')[0]}`
+      )
     )
     clearModals()
     C.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
