@@ -161,6 +161,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const onSubmit = React.useCallback(
     (text: string) => {
       if (!text) return
+      injectText('')
 
       // non reactive on purpose
       const cs = C.getConvoState(conversationIDKey)
@@ -170,8 +171,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
       } else {
         messageSend(text, replyTo)
       }
-
-      injectText('')
 
       const containsLatestMessage = cs.isCaughtUp()
       if (containsLatestMessage) {

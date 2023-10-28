@@ -1,4 +1,2 @@
 Some short term todos:
-send sometimes leaves a draft
 jsi leaks
-fs menu doe'nst keep on screen
