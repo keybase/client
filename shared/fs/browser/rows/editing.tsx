@@ -9,7 +9,7 @@ type Props = {
   editID: T.FS.EditID
 }
 
-const Editing = ({editID}: Props) => {
+const Editing = React.memo(function ({editID}: Props) {
   const discardEdit = C.useFSState(s => s.dispatch.discardEdit)
   const onCancel = () => {
     discardEdit(editID)
@@ -81,7 +81,7 @@ const Editing = ({editID}: Props) => {
       }
     />
   )
-}
+})
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

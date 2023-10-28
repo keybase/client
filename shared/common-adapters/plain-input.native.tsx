@@ -231,6 +231,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       ref: this._input,
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password' || this.props.secureTextEntry,
+      // currently broken on ios https://github.com/facebook/react-native/issues/30585
       selectTextOnFocus: this.props.selectTextOnFocus,
       style: this._getStyle(),
       textContentType: this.props.textContentType,

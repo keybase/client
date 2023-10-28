@@ -68,9 +68,17 @@ class List2<T> extends React.PureComponent<Props<T>> {
   }
 
   render() {
+    if (this.props.items.length === 0) return null
     return (
       <AutoSizer>
-        {({height = 1, width = 1}) => {
+        {p => {
+          let {height = 1, width = 1} = p
+          if (isNaN(height)) {
+            height = 1
+          }
+          if (isNaN(width)) {
+            width = 1
+          }
           switch (this.props.itemHeight.type) {
             case 'fixed':
               return this._fixed({height, itemHeight: this.props.itemHeight.height, width})

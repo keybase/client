@@ -58,6 +58,7 @@ export type MessageExplodeDescription = {
 export type PathAndOutboxID = {
   path: string
   outboxID?: RPCChatTypes.OutboxID
+  url?: string // if its a kbfs path
 }
 
 // optional props here may never get set depending on the type

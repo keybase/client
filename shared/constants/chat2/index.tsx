@@ -955,8 +955,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
     },
     navigateToInbox: () => {
-      C.useRouterState.getState().dispatch.navUpToScreen('chatRoot')
-      C.useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
+      // components can call us during render sometimes so always defer
+      setTimeout(() => {
+        C.useRouterState.getState().dispatch.navUpToScreen('chatRoot')
+        C.useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
+      }, 1)
     },
     onChatInboxSynced: action => {
       const {syncRes} = action.payload.params

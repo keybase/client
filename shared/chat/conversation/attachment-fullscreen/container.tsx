@@ -93,6 +93,7 @@ const Connected = (props: OwnProps) => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
   const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
+
   return (
     <Fullscreen
       message={message}

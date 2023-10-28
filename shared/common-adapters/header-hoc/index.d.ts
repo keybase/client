@@ -66,3 +66,5 @@ export declare const HeaderLeftArrow: (p: HeaderBackButtonProps) => React.ReactN
 export declare const HeaderLeftBlank: () => React.ReactNode
 export declare const HeaderLeftCancel: (p: HeaderBackButtonProps) => React.ReactNode
 export declare const HeaderLeftCancel2: (p: HeaderBackButtonProps) => React.ReactNode
+
+export type {HeaderBackButtonProps} from '@react-navigation/elements'

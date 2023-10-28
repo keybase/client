@@ -9,6 +9,7 @@ export type Info = {
   title: string
   filename: string
   outboxID?: T.RPCChat.OutboxID
+  url?: string
 }
 
 type PathAndInfo = {
@@ -85,7 +86,7 @@ class GetTitles extends React.Component<Props, State> {
     let preview: React.ReactNode = null
     switch (info.type) {
       case 'image':
-        preview = path ? <Kb.ZoomableImage src={path} style={styles.image} /> : null
+        preview = path ? <Kb.ZoomableImage src={info.url ?? path} style={styles.image} /> : null
         break
       case 'video':
         preview = path ? <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} /> : null

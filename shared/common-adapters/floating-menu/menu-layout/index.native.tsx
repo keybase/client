@@ -1,5 +1,5 @@
 import * as Styles from '../../../styles'
-import {TouchableOpacity} from 'react-native'
+import {TouchableOpacity, Keyboard} from 'react-native'
 import Badge from '../../badge'
 import Box, {Box2} from '../../box'
 import Icon from '../../icon'
@@ -9,9 +9,9 @@ import Divider from '../../divider'
 import ScrollView from '../../scroll-view'
 import {BottomSheetScrollView} from '../../bottom-sheet'
 import ProgressIndicator from '../../progress-indicator'
-import SafeAreaView from '../../safe-area-view'
+import {useOnMountOnce} from '../../../constants/react'
 import type {MenuItem, MenuLayoutProps} from '.'
-import {useSafeAreaInsets} from '../../safe-area-view'
+import {default as SafeAreaView, useSafeAreaInsets} from '../../safe-area-view'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 
 const Kb = {
@@ -128,6 +128,11 @@ const MenuLayout = (props: MenuLayoutProps) => {
   const menuItemsWithDividers = props.items.filter((x): x is MenuItem | 'Divider' => x !== undefined)
   const beginningDivider = props.items[0] === 'Divider'
   const firstIsUnWrapped = props.items[0] !== 'Divider' && props.items[0]?.unWrapped
+
+  // hide keyboards that are up
+  useOnMountOnce(() => {
+    Keyboard.dismiss()
+  })
 
   const items = menuItemsWithDividers.map((mi, idx) =>
     mi === 'Divider' ? (

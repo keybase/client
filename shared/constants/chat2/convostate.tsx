@@ -718,7 +718,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         try {
           await T.RPCChat.localTrackGiphySelectRpcPromise({result})
         } catch {}
-        get().dispatch.injectIntoInput('')
         get().dispatch.messageSend(result.targetUrl, replyTo)
       }
       C.ignorePromise(f())
@@ -1249,6 +1248,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.ignorePromise(f())
     },
     messageEdit: (ordinal, text) => {
+      get().dispatch.injectIntoInput('')
       const {id, dispatch, messageMap, meta} = get()
       const message = messageMap.get(ordinal)
       dispatch.updateMessage(ordinal, {
@@ -1368,6 +1368,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.ignorePromise(f())
     },
     messageSend: (text, replyTo, waitingKey) => {
+      get().dispatch.injectIntoInput('')
+      get().dispatch.setReplyTo(0)
+      get().dispatch.setCommandMarkdown()
+      set(s => {
+        s.giphyWindow = false
+      })
       const f = async () => {
         const meta = get().meta
         const tlfName = meta.tlfname
@@ -1430,12 +1436,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         logger.info('non-empty text?', text.length > 0)
       }
       C.ignorePromise(f())
-
-      get().dispatch.setReplyTo(0)
-      get().dispatch.setCommandMarkdown()
-      set(s => {
-        s.giphyWindow = false
-      })
     },
     messagesAdd: messages => {
       set(s => {

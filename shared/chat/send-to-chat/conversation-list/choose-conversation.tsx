@@ -54,9 +54,7 @@ export default ChooseConversation
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      dropdownButton: {
-        width: 300,
-      },
+      dropdownButton: {width: 300},
       overlay: {
         backgroundColor: Kb.Styles.globalColors.white,
         height: 360,
