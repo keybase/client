@@ -42,8 +42,9 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     onOpenWithoutResetUsers: () =>
       _onOpenWithoutResetUsers(
         path,
-        _tlf.resetParticipants.reduce((acc, i: string) => {
-          // @ts-ignore
+        _tlf.resetParticipants.reduce<{
+          [x: string]: boolean
+        }>((acc, i: string) => {
           acc[i] = true
           return acc
         }, {})

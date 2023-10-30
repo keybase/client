@@ -1,3 +1,4 @@
+import type * as Framed from 'framed-msgpack-rpc'
 export type EndHandlerType = (session: Object) => void
 export type MethodKey = string
 export type SessionID = number
@@ -7,7 +8,7 @@ export type ResponseType = {
   result: (...args: Array<any>) => void
   error: (...args: Array<any>) => void
 }
-export type RPCErrorHandler = (err: any) => void
+export type RPCErrorHandler = (e: Framed.ErrorType) => void
 export type CommonResponseHandler = {
   error: RPCErrorHandler
   result: (...rest: Array<any>) => void
