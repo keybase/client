@@ -18,6 +18,8 @@ export interface Console {
 }
 
 declare global {
+  var DEBUGNavigator: unknown
+  var DEBUGRouter2: unknown
   var DEBUGmadeEngine: boolean | undefined
   var DEBUGStore: unknown
   var DEBUGEngine: unknown
