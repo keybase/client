@@ -1823,6 +1823,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             s.addMembersWizard = {...addMembersWizardEmptyState, justFinished: true}
           })
           C.useRouterState.getState().dispatch.navigateAppend({props: {teamID}, selected: 'team'})
+          C.useRouterState.getState().dispatch.clearModals()
         } catch (error) {
           set(s => {
             if (error instanceof RPCError) {
