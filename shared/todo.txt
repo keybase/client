@@ -1,5 +1,4 @@
 Some short term todos:
 background / foreground thread reloads
 make team channel widget doesn't back in friends mode
-uin864 for base64 to string can skip
 team wizard hitting back is broken
