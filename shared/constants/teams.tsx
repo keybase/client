@@ -1822,7 +1822,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
             s.newTeamWizard = newTeamWizardEmptyState
             s.addMembersWizard = {...addMembersWizardEmptyState, justFinished: true}
           })
-          C.useRouterState.getState().dispatch.clearModals()
           C.useRouterState.getState().dispatch.navigateAppend({props: {teamID}, selected: 'team'})
         } catch (error) {
           set(s => {

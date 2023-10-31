@@ -46,13 +46,18 @@ const ScrollView = React.forwardRef(function ScrollView(props: Props, ref) {
     }),
     [divRef]
   )
+
+  React.useEffect(() => {
+    const options = {passive: true}
+    const cur = divRef.current
+    cur && onScroll && cur.addEventListener('scroll', onScroll, options)
+    return () => {
+      cur && onScroll && cur.removeEventListener('scroll', onScroll, options as any)
+    }
+  }, [onScroll])
+
   return (
-    <div
-      className={cn}
-      style={Styles.collapseStyles([styles.overflowAuto, style])}
-      onScroll={(props.onScroll as any) || undefined}
-      ref={divRef}
-    >
+    <div className={cn} style={Styles.collapseStyles([styles.overflowAuto, style])} ref={divRef}>
       <div style={contentContainerStyle as any} {...rest} />
     </div>
   )

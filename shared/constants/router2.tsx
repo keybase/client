@@ -7,7 +7,7 @@ import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
 import type {NavigationState} from '@react-navigation/core'
-import type {NavigateAppendType} from '../router-v2/route-params'
+import type {NavigateAppendType, RouteKeys} from '../router-v2/route-params'
 export type PathParam = NavigateAppendType
 type Route = NavigationState['routes'][0]
 // still a little paranoid about some things being missing in this type
@@ -250,7 +250,7 @@ export type State = Store & {
     }
     navigateAppend: (path: PathParam, replace?: boolean, fromKey?: string) => void
     navigateUp: () => void
-    navUpToScreen: (name: string) => void
+    navUpToScreen: (name: RouteKeys) => void
     popStack: () => void
     resetState: () => void
     setNavState: (ns: NavState) => void

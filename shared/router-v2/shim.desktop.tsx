@@ -160,9 +160,7 @@ const styles = Kb.Styles.styleSheetCreate(() => {
         position: 'relative',
       },
     }),
-    hidden: {
-      display: 'none',
-    },
+    hidden: {display: 'none'},
     modal2AvoidTabs: Kb.Styles.platformStyles({
       isElectron: {
         backgroundColor: undefined,
@@ -182,7 +180,8 @@ const styles = Kb.Styles.styleSheetCreate(() => {
     }),
     modal2Container: {
       ...Kb.Styles.globalStyles.fillAbsolute,
-      backgroundColor: Kb.Styles.globalColors.black_50OrBlack_60,
+      // bg handled up a level w css
+      // backgroundColor: Kb.Styles.globalColors.black_50OrBlack_60,
     },
     modal2Style: Kb.Styles.platformStyles({
       isElectron: {flexGrow: 1, pointerEvents: 'none'},

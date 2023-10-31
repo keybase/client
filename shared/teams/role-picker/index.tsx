@@ -484,11 +484,4 @@ export const nextRoleUp = (currentRole: Role<false>): Role<false> =>
     (orderedRoles.length + (orderedRoles.indexOf(currentRole) - 1)) % (orderedRoles.length - 1)
   ] as Role<false>
 
-export const roleIconMap = {
-  admin: 'iconfont-crown-admin',
-  owner: 'iconfont-crown-owner',
-  reader: undefined,
-  writer: undefined,
-} as const
-
 export default RolePicker

@@ -1,7 +1,6 @@
 import * as Kb from '../../common-adapters'
 import {InlineDropdown} from '../../common-adapters/dropdown'
 import type * as T from '../../constants/types'
-import {roleIconMap} from '../role-picker'
 import capitalize from 'lodash/capitalize'
 
 export type Props = {
@@ -12,8 +11,16 @@ export type Props = {
   loading?: boolean
 }
 
+const roleIconMap = {
+  admin: 'iconfont-crown-admin',
+  bot: undefined,
+  owner: 'iconfont-crown-owner',
+  reader: undefined,
+  restrictedbot: undefined,
+  writer: undefined,
+} as const
+
 const RoleButton = (props: Props) => {
-  // @ts-ignore
   const iconType = roleIconMap[props.selectedRole]
 
   return (
@@ -22,7 +29,7 @@ const RoleButton = (props: Props) => {
       textWrapperType={null}
       label={
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.label}>
-          <Kb.Icon type={iconType} style={styles.icon} sizeType="Small" />
+          {iconType ? <Kb.Icon type={iconType} style={styles.icon} sizeType="Small" /> : null}
           <Kb.Text type="BodySmallSemibold">{capitalize(props.selectedRole)}</Kb.Text>
         </Kb.Box2>
       }
