@@ -115,9 +115,15 @@ if (isRenderer) {
         isDirectory: async (path: string) => {
           return invoke({payload: {path}, type: 'isDirectory'})
         },
-        mainWindowDispatch: (action: Actions, nodeTypeOverride?: string) => {
+        mainWindowDispatch: (action: Actions) => {
           Electron.ipcRenderer
-            .invoke(nodeTypeOverride ?? 'KBdispatchAction', action)
+            .invoke('KBdispatchAction', action)
+            .then(() => {})
+            .catch(() => {})
+        },
+        mainWindowDispatchEngineIncoming: (data: Uint8Array) => {
+          Electron.ipcRenderer
+            .invoke('engineIncoming', data)
             .then(() => {})
             .catch(() => {})
         },
@@ -298,8 +304,11 @@ if (isRenderer) {
   const kb2 = {
     constants: kb2consts,
     functions: {
-      mainWindowDispatch: (action: Actions, nodeTypeOverride?: string) => {
-        getMainWindow()?.webContents.send(nodeTypeOverride ?? 'KBdispatchAction', action)
+      mainWindowDispatch: (action: Actions) => {
+        getMainWindow()?.webContents.send('KBdispatchAction', action)
+      },
+      mainWindowDispatchEngineIncoming: (data: Uint8Array) => {
+        getMainWindow()?.webContents.send('engineIncoming', data)
       },
     },
   }

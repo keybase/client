@@ -135,8 +135,7 @@ class NewRepo extends React.Component<Props, State> {
     if (node.key === NewTeamSentry) {
       this.props.onNewTeam()
     } else {
-      // @ts-ignore doesn't understand key will be string
-      const selectedTeam: string = node.key
+      const selectedTeam: string = node.key ?? ''
       this.setState({selectedTeam})
     }
   }

@@ -84,11 +84,7 @@ class Engine {
       return
     }
 
-    if (typeof window !== 'undefined') {
-      logger.info('DEV MODE ENGINE AVAILABLE AS window.DEBUGengine')
-      // @ts-ignore
-      window.DEBUGengine = this
-    }
+    global.DEBUGEngine = this
 
     // Print out any alive sessions periodically
     if (printOutstandingRPCs) {
@@ -337,9 +333,6 @@ const makeEngine = (emitWaiting: (b: BatchParams) => void, onConnected: (c: bool
 
   if (!engine) {
     engine = isTesting ? (new FakeEngine() as unknown as Engine) : new Engine(emitWaiting, onConnected)
-    if (__DEV__) {
-      global.DEBUGEngine = engine
-    }
     initEngine(engine as any)
     initEngineListener(engineListener)
   }

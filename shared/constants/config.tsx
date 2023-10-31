@@ -279,9 +279,7 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
         return
       }
       const {dispatch} = C.getConvoState(C.getSelectedConversation())
-      dispatch.loadMoreMessages({
-        reason: 'foregrounding',
-      })
+      dispatch.loadMoreMessages({reason: 'foregrounding'})
       dispatch.markThreadAsRead()
     },
     checkForUpdate: () => {

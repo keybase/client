@@ -82,6 +82,7 @@
     "@react-navigation/native": "6.1.9",
     "@react-navigation/native-stack": "6.9.16",
     "@reduxjs/toolkit": "1.9.7",
+    "base-64": "1.0.0",
     "classnames": "2.3.2",
     "date-fns": "2.30.0",
     "emoji-datasource-apple": "15.0.1",

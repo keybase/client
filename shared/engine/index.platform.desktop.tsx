@@ -5,7 +5,7 @@ import {printRPCBytes} from '../local-debug'
 import type {SendArg, createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import KB2 from '../util/electron.desktop'
 
-const {engineSend, mainWindowDispatch, ipcRendererOn} = KB2.functions
+const {engineSend, ipcRendererOn, mainWindowDispatchEngineIncoming} = KB2.functions
 const {isRenderer} = KB2.constants
 
 // used by node
@@ -36,8 +36,7 @@ class NativeTransport extends TransportShared {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length)
     }
-    // @ts-ignore this isn't a typical redux action
-    mainWindowDispatch({payload: m}, 'engineIncoming')
+    mainWindowDispatchEngineIncoming(m)
   }
 }
 
@@ -87,9 +86,9 @@ function createClient(
     )
 
     // plumb back data from the node side
-    ipcRendererOn?.('engineIncoming', (_e, action) => {
+    ipcRendererOn?.('engineIncoming', (_e, data: Uint8Array) => {
       try {
-        client.transport.packetize_data(new Uint8Array(action.payload))
+        client.transport.packetize_data(data)
       } catch (e) {
         logger.error('>>>> rpcOnJs JS thrown!', e)
       }

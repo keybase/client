@@ -64,6 +64,16 @@ type NavReason =
   | 'misc' // misc
   | 'teamMention' // from team mention
 
+type LoadMoreReason =
+  | 'foregrounding'
+  | 'got stale'
+  | 'jump to recent'
+  | 'centered'
+  | 'scroll forward'
+  | 'scroll back'
+  | 'tab selected'
+  | NavReason
+
 // per convo store
 type ConvoStore = {
   id: T.Chat.ConversationIDKey
@@ -193,7 +203,7 @@ export type ConvoState = ConvoStore & {
         messageID: T.Chat.MessageID
         highlightMode: T.Chat.CenterOrdinalHighlightMode
       }
-      reason: string
+      reason: LoadMoreReason
       knownRemotes?: Array<string>
       forceClear?: boolean
       scrollDirection?: ScrollDirection
@@ -937,10 +947,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           const getLastOrdinal = () => messageOrdinals?.at(-1) ?? 0
           const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
           let shouldClearOthers = false
-          if ((forceClear || sd === 'none') && !calledClear) {
-            shouldClearOthers = true
-            calledClear = true
+          if (!calledClear) {
+            if (forceClear) {
+              shouldClearOthers = true
+              calledClear = true
+            }
           }
+
           const messages = (uiMessages.messages ?? []).reduce<Array<T.Chat.Message>>((arr, m) => {
             const message = conversationIDKey
               ? Message.uiMessageToMessage(conversationIDKey, m, username, getLastOrdinal, devicename)
@@ -1045,7 +1058,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       dispatch.loadMoreMessages({
         numberOfMessagesToLoad: numMessagesOnScrollback,
-        reason: '',
+        reason: 'scroll back',
         scrollDirection: 'back',
       })
     },
@@ -1605,8 +1618,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const loadMessages = () => {
         const {dispatch} = get()
-        let reason: string = _reason
-        let forceClear = true
+        let reason: LoadMoreReason = _reason
+        const forceClear = true
         let forceContainsLatestCalc = false
         let messageIDControl: T.RPCChat.MessageIDControl | undefined = undefined
         const knownRemotes = pushBody && pushBody.length > 0 ? [pushBody] : []
@@ -1625,7 +1638,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             num: numMessagesOnInitialLoad,
             pivot: highlightMessageID,
           }
-          forceClear = true
           forceContainsLatestCalc = true
         }
         dispatch.loadMoreMessages({

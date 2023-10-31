@@ -280,15 +280,12 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       if (teamSoFar.size) {
         switch (namespace) {
           case 'people': {
+            get().dispatch.cancelTeamBuilding()
             for (const user of teamSoFar) {
               const username = user.serviceMap.keybase || user.id
               C.useProfileState.getState().dispatch.showUserProfile(username)
               break
             }
-            // stop a silly race
-            setTimeout(() => {
-              get().dispatch.cancelTeamBuilding()
-            }, 100)
             break
           }
           default:
@@ -309,7 +306,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const routeNames = [...namespaceToRoute.values()]
       const routeName = modals.at(-1)?.name
       if (routeNames.includes(routeName ?? '')) {
-        C.useRouterState.getState().dispatch.clearModals()
+        C.useRouterState.getState().dispatch.navigateUp()
       }
     },
     fetchUserRecs: () => {

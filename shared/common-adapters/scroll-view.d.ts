@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type {NativeSyntheticEvent, RefreshControlProps} from 'react-native'
+import type {RefreshControlProps} from 'react-native'
 import type {StylesCrossPlatform} from '../styles'
 
 export type Props = {
@@ -8,7 +8,7 @@ export type Props = {
   style?: StylesCrossPlatform
   onScroll?: (
     e: Partial<
-      NativeSyntheticEvent<{
+      React.BaseSyntheticEvent<{
         contentSize: {
           height: number
           width: number

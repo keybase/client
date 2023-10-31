@@ -46,11 +46,12 @@ const ScrollView = React.forwardRef(function ScrollView(props: Props, ref) {
     }),
     [divRef]
   )
+
   return (
     <div
       className={cn}
       style={Styles.collapseStyles([styles.overflowAuto, style])}
-      onScroll={(props.onScroll as any) || undefined}
+      onScroll={onScroll as any}
       ref={divRef}
     >
       <div style={contentContainerStyle as any} {...rest} />

@@ -11,6 +11,8 @@ import {enableFreeze} from 'react-native-screens'
 import {setKeyboardUp} from '../styles/keyboard-state'
 import {setServiceDecoration} from '../common-adapters/markdown/react'
 import ServiceDecoration from '../common-adapters/markdown/service-decoration'
+import {useUnmountAll} from '../util/debug'
+
 enableFreeze(true)
 
 setServiceDecoration(ServiceDecoration)
@@ -19,11 +21,9 @@ module.hot?.accept(() => {
   console.log('accepted update in shared/index.native')
 })
 
-const ReduxHelper = (p: {children: React.ReactNode}) => {
-  const {children} = p
+const useDarkHookup = () => {
   const appStateRef = React.useRef('active')
   const {setSystemDarkMode} = C.useDarkModeState.getState().dispatch
-  const handleAppLink = C.useDeepLinksState(s => s.dispatch.handleAppLink)
   const setMobileAppState = C.useConfigState(s => s.dispatch.setMobileAppState)
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
@@ -41,10 +41,16 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
         setSystemDarkMode(Appearance.getColorScheme() === 'dark')
       }
     })
-    const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
-      handleAppLink(url)
-    })
 
+    return () => {
+      appStateChangeSub.remove()
+      darkSub.remove()
+    }
+  }, [setSystemDarkMode, setMobileAppState])
+}
+
+const useKeyboardHookup = () => {
+  React.useEffect(() => {
     const kbSubWS = Keyboard.addListener('keyboardWillShow', () => {
       setKeyboardUp(true)
     })
@@ -57,17 +63,29 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
     const kbSubDH = Keyboard.addListener('keyboardDidHide', () => {
       setKeyboardUp(false)
     })
-
     return () => {
-      appStateChangeSub.remove()
-      darkSub.remove()
-      linkingSub.remove()
       kbSubWS.remove()
       kbSubDS.remove()
       kbSubWH.remove()
       kbSubDH.remove()
     }
-  }, [setSystemDarkMode, handleAppLink, setMobileAppState])
+  }, [])
+}
+
+const ReduxHelper = (p: {children: React.ReactNode}) => {
+  const {children} = p
+  useDarkHookup()
+  useKeyboardHookup()
+  const handleAppLink = C.useDeepLinksState(s => s.dispatch.handleAppLink)
+
+  React.useEffect(() => {
+    const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
+      handleAppLink(url)
+    })
+    return () => {
+      linkingSub.remove()
+    }
+  }, [handleAppLink])
 
   const darkMode = C.useDarkModeState(s => s.isDarkMode())
   return <Kb.Styles.DarkModeContext.Provider value={darkMode}>{children}</Kb.Styles.DarkModeContext.Provider>
@@ -79,7 +97,7 @@ if (__DEV__ && !globalThis.DEBUGmadeEngine) {
 }
 
 let inited = false
-const init = () => {
+const useInit = () => {
   if (inited) return
   inited = true
   const {batch} = C.useWaitingState.getState().dispatch
@@ -99,22 +117,27 @@ const init = () => {
 
 // on android this can be recreated a bunch so our engine/store / etc should live outside
 const Keybase = () => {
-  init()
+  useInit()
   // reanimated still isn't compatible yet with strict mode
   // <React.StrictMode>
   // </React.StrictMode>
-  return (
+
+  const {unmountAll, show} = useUnmountAll()
+  return show ? (
     <GestureHandlerRootView style={styles.gesture}>
       <PortalProvider>
         <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
           <ReduxHelper>
             <Kb.Styles.CanFixOverdrawContext.Provider value={true}>
               <Main />
+              {unmountAll}
             </Kb.Styles.CanFixOverdrawContext.Provider>
           </ReduxHelper>
         </SafeAreaProvider>
       </PortalProvider>
     </GestureHandlerRootView>
+  ) : (
+    unmountAll
   )
 }
 

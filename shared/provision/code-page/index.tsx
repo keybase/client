@@ -16,7 +16,7 @@ type Props = {
   currentDevice: T.Devices.Device
   currentDeviceAlreadyProvisioned: boolean
   currentDeviceName: string
-  iconNumber: number
+  iconNumber: T.Devices.IconNumber
   otherDevice: C.ProvisionDevice
   tabOverride?: Tab
   textCode: string
@@ -55,15 +55,18 @@ class CodePage2 extends React.Component<Props, State> {
     !this.state.troubleshooting && this.props.onClose()
   }
 
-  _defaultTab = (props: Props) => {
-    const oppositeTabMap = {
-      QR: 'QR',
-      enterText: 'viewText',
-      viewText: 'enterText',
+  _defaultTab = (props: Props): Tab => {
+    const getTabOrOpposite = (tabToShowToNew: Tab) => {
+      if (!props.currentDeviceAlreadyProvisioned) return tabToShowToNew
+      switch (tabToShowToNew) {
+        case 'QR':
+          return 'QR'
+        case 'enterText':
+          return 'viewText'
+        case 'viewText':
+          return 'enterText'
+      }
     }
-    const getTabOrOpposite = (tabToShowToNew: any) =>
-      // @ts-ignore
-      props.currentDeviceAlreadyProvisioned ? oppositeTabMap[tabToShowToNew] : tabToShowToNew
 
     switch (currentDeviceType) {
       case 'mobile':
@@ -362,16 +365,22 @@ const ViewText = (props: Props) => (
   </Kb.Box2>
 )
 
+const getIcon = (type: T.Devices.DeviceType, iconNumber: T.Devices.IconNumber) => {
+  switch (type) {
+    case 'desktop':
+      return `icon-computer-background-${iconNumber}-96` as const
+    case 'mobile':
+      return `icon-phone-background-${iconNumber}-96` as const
+    default:
+      return 'icon-computer-96' as const
+  }
+}
+
 const Instructions = (p: Props) => {
-  // @ts-ignore
-  const maybeIcon = (
-    {
-      desktop: `icon-computer-background-${p.iconNumber}-96`,
-      mobile: `icon-phone-background-${p.iconNumber}-96`,
-    } as const
-  )[p.currentDeviceAlreadyProvisioned ? p.currentDevice.type : p.otherDevice.type]
-  // @ts-ignore
-  const icon = Kb.isValidIconType(maybeIcon) ? maybeIcon : 'icon-computer-96'
+  const icon = getIcon(
+    p.currentDeviceAlreadyProvisioned ? p.currentDevice.type : p.otherDevice.type,
+    p.iconNumber
+  )
 
   return (
     <Kb.Box2 direction="vertical">
