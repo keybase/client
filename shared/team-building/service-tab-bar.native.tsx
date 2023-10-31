@@ -126,13 +126,7 @@ const ServiceIcon = React.memo(function ServiceIcon(props: IconProps) {
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
             <Kb.Box2 direction="vertical">
               {label.map((label, i) => (
-                <Kb.Text
-                  key={i}
-                  center={true}
-                  type="BodyTiny"
-                  // @ts-ignore: we need to allow any color here for various services
-                  style={{color}}
-                >
+                <Kb.Text key={i} center={true} type="BodyTiny" style={{color}}>
                   {label}
                 </Kb.Text>
               ))}

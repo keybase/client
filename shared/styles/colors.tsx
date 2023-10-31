@@ -497,17 +497,15 @@ const partyFallbackColors: {[P in keyof typeof colors]?: string | undefined} = {
 type Color = typeof colors
 type Names = keyof Color
 
-const names: Array<Names> = Object.keys(colors) as any
-
-let iosDynamicColors: {[P in keyof typeof colors]: (typeof colors)[P]}
+const names = Object.keys(colors) as Array<Names>
+let iosDynamicColors: Color
 if (isIOS && !isNewArch /* not working? */) {
-  iosDynamicColors = names.reduce<Color>((obj, name) => {
-    const {DynamicColorIOS} = require('react-native')
-    // @ts-ignore
+  const {DynamicColorIOS: _DynamicColorIOS} = require('react-native')
+  const DynamicColorIOS: (u: unknown) => string = _DynamicColorIOS
+  iosDynamicColors = names.reduce<{[key: string]: unknown}>((obj, name) => {
     obj[name] = DynamicColorIOS({dark: darkColors[name], light: colors[name]})
     return obj
-    // eslint-disable-next-line
-  }, {} as Color)
+  }, {}) as Color
 } else {
   iosDynamicColors = colors
 }

@@ -64,9 +64,13 @@ const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
   </LoginContainer>
 )
 
-const rewriteErrorDesc = {
-  'Provisioner is a different user than we wanted.':
-    'Is the other device using the username you expect? It seems to be different.',
+const rewriteErrorDesc = (s: string) => {
+  switch (s) {
+    case 'Provisioner is a different user than we wanted.':
+      return 'Is the other device using the username you expect? It seems to be different.'
+    default:
+      return s
+  }
 }
 
 // Normally this would be a component but I want the children to be flat so i can use a Box2 as the parent and have nice gaps
@@ -303,10 +307,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
         <Wrapper onBack={onBack}>
           <Kb.Box2 direction="vertical">
             <Text center={true} type="Body" selectable={true}>
-              {
-                // @ts-ignore
-                rewriteErrorDesc[error.desc] || error.desc
-              }
+              {rewriteErrorDesc(error.desc)}
             </Text>
             <Text center={true} type="BodySmall" selectable={true}>
               {' '}
