@@ -5,6 +5,7 @@ import * as React from 'react'
 import * as C from '../../constants'
 import throttle from 'lodash/throttle'
 import KB2 from '../../util/electron.desktop'
+import isEqual from 'lodash/isEqual'
 
 const {rendererNewProps} = KB2.functions
 
@@ -28,14 +29,12 @@ export default function useSerializeProps<ProxyProps extends {}, SerializeProps 
   const throttledSend = React.useRef(
     throttle(
       (p: ProxyProps, forceUpdate: boolean) => {
-        const lastToSend = forceUpdate ? {} : lastSent.current
+        const lastToSend: any = forceUpdate ? {} : lastSent.current
         const serialized = serializer(p)
-        const toSend = {...serialized}
+        const toSend = {...serialized} as any
         // clear undefineds / exact dupes
         Object.keys(toSend).forEach(k => {
-          // @ts-ignore
-          if (toSend[k] === undefined || JSON.stringify(toSend[k]) === JSON.stringify(lastToSend[k])) {
-            // @ts-ignore
+          if (toSend[k] === undefined || isEqual(toSend[k], lastToSend[k])) {
             delete toSend[k] // eslint-disable-line
           }
         })

@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as C from '../constants'
 import Menubar from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
@@ -17,15 +18,25 @@ const RemoteContainer = () => {
   C.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
   C.useConfigState(s => s.dispatch.setOutOfDate)(outOfDate)
   C.useConfigState(s => s.dispatch.setLoggedIn)(loggedIn, false)
-  for (const [id, unread] of unreadMap) {
-    C.getConvoState(id).dispatch.unreadUpdated(unread)
-  }
-  for (const [id, badge] of badgeMap) {
-    C.getConvoState(id).dispatch.badgesUpdated(badge)
-  }
-  for (const [id, meta] of metaMap) {
-    C.getConvoState(id).dispatch.updateMeta(meta)
-  }
+
+  // defer this so we don't update while rendering
+  React.useEffect(() => {
+    const id = setTimeout(() => {
+      for (const [id, unread] of unreadMap) {
+        C.getConvoState(id).dispatch.unreadUpdated(unread)
+      }
+      for (const [id, badge] of badgeMap) {
+        C.getConvoState(id).dispatch.badgesUpdated(badge)
+      }
+      for (const [id, meta] of metaMap) {
+        C.getConvoState(id).dispatch.updateMeta(meta)
+      }
+    }, 1)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [unreadMap, badgeMap, metaMap])
+
   return (
     <Menubar
       daemonHandshakeState={daemonHandshakeState}

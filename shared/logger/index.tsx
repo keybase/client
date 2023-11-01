@@ -27,10 +27,10 @@ const localError = console.error.bind(console)
 
 // inject for convenience
 if (__DEV__) {
-  DEBUGLog = console.log
-  DEBUGWarn = console.warn
-  DEBUGError = console.error
-  DEBUGInfo = console.info
+  globalThis.DEBUGLog = console.log
+  globalThis.DEBUGWarn = console.warn
+  globalThis.DEBUGError = console.error
+  globalThis.DEBUGInfo = console.info
 }
 
 // Present a single logger interface to the outside world, but actually delegate the various methods to different
