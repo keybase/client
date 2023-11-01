@@ -41,7 +41,7 @@ const commands = {
     help: 'Start electron with profile',
     shell: `electron ${path.resolve(__dirname, '../dist/node.profile.bundle.js')}`,
   },
-}
+} as const
 
 function startHot() {
   try {

@@ -1,11 +1,11 @@
-// @ts-ignore
+// @ts-ignore import don't bother
 import {rimrafSync} from 'rimraf'
 import fs from 'fs-extra'
 import os from 'os'
 import packager, {type Options} from 'electron-packager'
 import path from 'path'
 import webpack from 'webpack'
-// @ts-ignore
+// @ts-ignore import don't bother
 import rootConfig from './webpack.config.babel'
 import {readdir} from 'node:fs/promises'
 
@@ -78,8 +78,7 @@ const getArgs = () => {
         const k = l.substring(2)
 
         if (Object.prototype.hasOwnProperty.call(ret, k)) {
-          // @ts-ignore
-          ret[k] = r
+          ret[k as keyof typeof ret] = r
         }
       } else {
         console.error('Weird argv key', a)
@@ -211,8 +210,7 @@ async function main() {
 
 async function startPack() {
   console.log('Starting webpack build\nInjecting __VERSION__: ', appVersion)
-  // @ts-ignore
-  process.env.APP_VERSION = appVersion
+  process.env['APP_VERSION'] = appVersion
   const webpackConfig = rootConfig(null, {mode: 'production'})
   try {
     if (TEMP_SKIP_BUILD) {

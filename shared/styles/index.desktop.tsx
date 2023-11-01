@@ -126,8 +126,7 @@ const fixScrollbars = () => {
 
   // Measure the child element, if it is not
   // 30px wide the scrollbars are obtrusive.
-  // @ts-ignore
-  const scrollbarWidth = 30 - parent.firstChild.clientWidth
+  const scrollbarWidth = 30 - (parent.firstChild as HTMLDivElement).clientWidth
   if (scrollbarWidth) {
     document.body.classList.add('layout-scrollbar-obtrusive')
   }

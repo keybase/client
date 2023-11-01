@@ -16,9 +16,9 @@ class Session {
   // Our id
   _id: SessionID
   // Map of methods => callbacks
-  _incomingCallMap: IncomingCallMapType | {}
+  _incomingCallMap: IncomingCallMapType
   // Map of methods => callbacks
-  _customResponseIncomingCallMap: CustomResponseIncomingCallMap | {}
+  _customResponseIncomingCallMap: CustomResponseIncomingCallMap
   // Let the outside know we're waiting
   _waitingKey: WaitingKey
   // Tell engine we're done
@@ -157,7 +157,7 @@ class Session {
   }
 
   // We have an incoming call tied to a sessionID, called only by engine
-  incomingCall(method: MethodKey, param: Object, response: any): boolean {
+  incomingCall(method: keyof IncomingCallMapType, param: Object, response: any): boolean {
     rpcLog({
       extra: {
         id: this.getId(),
@@ -169,11 +169,10 @@ class Session {
       type: 'engineInternal',
     })
 
-    // @ts-ignore
     let handler = this._incomingCallMap[method]
 
     if (!handler) {
-      // @ts-ignore
+      // @ts-ignore TODO eventually
       handler = this._customResponseIncomingCallMap[method]
     }
 
@@ -186,7 +185,7 @@ class Session {
     }
 
     const waitingHandler = this._makeWaitingHandler(false, method, response?.seqid)
-    const incomingRequest = new IncomingRequest(method, param, response, waitingHandler, handler)
+    const incomingRequest = new IncomingRequest(method, param, response, waitingHandler, handler as any)
     this._incomingRequests.push(incomingRequest)
     incomingRequest.handle()
     return true

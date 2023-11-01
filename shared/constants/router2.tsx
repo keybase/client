@@ -187,14 +187,13 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
       chatStack.state = chatStack.state ?? {index: 0, routes: []}
       chatStack.state.index = 0
 
-      let chatRoot = chatStack.state.routes[0]
+      const _chatRoot = chatStack.state.routes[0]
       // key is required or you'll run into issues w/ the nav
-      chatRoot = {
-        key: chatRoot?.key || `chatRoot-${conversationIDKey}`,
+      const chatRoot = {
+        key: _chatRoot?.key || `chatRoot-${conversationIDKey}`,
         name: 'chatRoot',
         params: {conversationIDKey},
-      }
-      // @ts-ignore
+      } as const
       chatStack.state.routes = [chatRoot]
     } else {
       // set inbox + convo

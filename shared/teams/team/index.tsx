@@ -29,7 +29,7 @@ type Props = {
 }
 
 // keep track during session
-const lastSelectedTabs = {}
+const lastSelectedTabs = new Map<string, T.Teams.TabKey>()
 const defaultTab: T.Teams.TabKey = 'members'
 
 const useTabsState = (
@@ -37,14 +37,12 @@ const useTabsState = (
   providedTab?: T.Teams.TabKey
 ): [T.Teams.TabKey, (t: T.Teams.TabKey) => void] => {
   const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
-  // @ts-ignore
-  const defaultSelectedTab = lastSelectedTabs[teamID] ?? providedTab ?? defaultTab
+  const defaultSelectedTab = lastSelectedTabs.get(teamID) ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<T.Teams.TabKey>(defaultSelectedTab)
   const resetErrorInSettings = C.useTeamsState(s => s.dispatch.resetErrorInSettings)
   const setSelectedTab = React.useCallback(
     (t: T.Teams.TabKey) => {
-      // @ts-ignore
-      lastSelectedTabs[teamID] = t
+      lastSelectedTabs.set(teamID, t)
       if (selectedTab !== 'settings' && t === 'settings') {
         resetErrorInSettings()
       }

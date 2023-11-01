@@ -34,6 +34,7 @@ type TeamTreeRowNotIn = {
 type TeamTreeRowIn = {
   role: T.Teams.TeamRoleType
 } & TeamTreeRowNotIn
+type Either = TeamTreeRowNotIn & {role?: T.Teams.TeamRoleType}
 
 const getMemberships = (
   state: Constants.State,
@@ -128,7 +129,7 @@ const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => 
 }
 
 type Extra = {title: React.ReactElement}
-type Section = SectionType<TeamTreeRowIn | TeamTreeRowNotIn, Extra>
+type Section = SectionType<Either, Extra>
 
 const SectionList = createAnimatedComponent<SectionListProps<Section>>(Kb.SectionList)
 
@@ -172,10 +173,9 @@ const TeamMember = (props: OwnProps) => {
   const nodesInSection: Section = {
     data: nodesIn,
     key: 'section-nodes',
-    // @ts-ignore TODO differentiate the type
-    renderItem: ({item, index}: {item: TeamTreeRowIn; index: number}) => (
+    renderItem: ({item, index}) => (
       <NodeInRow
-        node={item}
+        node={item as TeamTreeRowIn}
         idx={index}
         isParentTeamMe={isMe && teamID == item.teamID}
         username={username}
@@ -196,9 +196,8 @@ const TeamMember = (props: OwnProps) => {
   const nodesNotInSection = {
     data: nodesNotIn,
     key: 'section-add-nodes',
-    // @ts-ignore TODO differentiate the type
-    renderItem: ({item, index}: {item: TeamTreeRowNotIn; index: number}) => (
-      <NodeNotInRow node={item} idx={index} username={username} />
+    renderItem: ({item, index}: {item: Either; index: number}) => (
+      <NodeNotInRow node={item as TeamTreeRowNotIn} idx={index} username={username} />
     ),
     title: makeTitle(isMe ? 'You are not in:' : `${username} is not in:`),
   }

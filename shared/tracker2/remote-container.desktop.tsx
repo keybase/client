@@ -1,4 +1,5 @@
 // Inside tracker we use an embedded Avatar which is connected.
+import * as React from 'react'
 import * as C from '../constants'
 import * as R from '../constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
@@ -29,12 +30,43 @@ const RemoteContainer = () => {
   const details = usernameToDetails.get(trackerUsername) ?? noDetails
   const {assertions, bio, followersCount, followingCount} = details
   const {guiID, location, reason, state: trackerState, teamShowcase} = details
-  useAvatarState(s => s.dispatch.replace)(avatarRefreshCounter)
-  C.useFollowerState(s => s.dispatch.replace)(followers, following)
-  C.useUsersState(s => s.dispatch.replace)(infoMap, blockMap)
-  C.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
-  C.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
-  C.useTrackerState(s => s.dispatch.replace)(tracker2.usernameToDetails)
+
+  const replaceAvatar = useAvatarState(s => s.dispatch.replace)
+  const replaceFollower = C.useFollowerState(s => s.dispatch.replace)
+  const replaceUsers = C.useUsersState(s => s.dispatch.replace)
+  const replaceCurrent = C.useCurrentUserState(s => s.dispatch.replaceUsername)
+  const replaceHTTP = C.useConfigState(s => s.dispatch.setHTTPSrvInfo)
+  const replaceTracker = C.useTrackerState(s => s.dispatch.replace)
+
+  React.useEffect(() => {
+    const id = setTimeout(() => {
+      replaceAvatar(avatarRefreshCounter)
+      replaceFollower(followers, following)
+      replaceUsers(infoMap, blockMap)
+      replaceCurrent(username)
+      replaceHTTP(httpSrvAddress, httpSrvToken)
+      replaceTracker(tracker2.usernameToDetails)
+    }, 1)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [
+    avatarRefreshCounter,
+    blockMap,
+    followers,
+    following,
+    httpSrvAddress,
+    httpSrvToken,
+    infoMap,
+    replaceAvatar,
+    replaceCurrent,
+    replaceFollower,
+    replaceHTTP,
+    replaceTracker,
+    replaceUsers,
+    tracker2.usernameToDetails,
+    username,
+  ])
 
   return (
     <Tracker

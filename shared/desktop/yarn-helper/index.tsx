@@ -6,26 +6,36 @@ import prettierCommands from './prettier'
 import {execSync} from 'child_process'
 import path from 'path'
 import fs from 'fs'
-// @ts-ignore
+// @ts-ignore import dont bother
 import {rimrafSync} from 'rimraf'
 
 const [, , command, ...rest] = process.argv
 
-const commands = {
+type Command = {
+  code?: (info: unknown, exec: Function) => void
+  help?: string
+  env?: {}
+  shell?: string
+  nodeEnv?: 'production' | 'development'
+  options?: {}
+}
+
+const commands: {[key: string]: Command} = {
   ...buildCommands,
   ...fontCommands,
   ...electronComands,
   ...prettierCommands,
   help: {
     code: () => {
+      const keys = Object.keys(commands) as Array<keyof typeof commands>
       console.log(
-        Object.keys(commands)
-          // @ts-ignore
-          .map(c => commands[c].help && `yarn run ${c}}${commands[c].help || ''}`)
+        keys
+          .map(c => commands[c]?.help && `yarn run ${c}}${commands[c]?.help || ''}`)
           .filter(Boolean)
           .join('\n')
       )
     },
+    help: '',
   },
   postinstall: {
     code: () => {
@@ -111,13 +121,13 @@ function exec(command: string, env?: any, options?: Object) {
   )
 }
 
-const decorateInfo = (info: any) => {
+const decorateInfo = (info: Command) => {
   const temp = {
     ...info,
     env: {
       ...process.env,
       ...info.env,
-    },
+    } as {NODE_ENV?: unknown},
   }
 
   if (info.nodeEnv) {
@@ -203,8 +213,7 @@ const clearTSCache = () => {
 }
 
 function main() {
-  // @ts-ignore
-  let info = commands[command]
+  let info = commands[command ?? '']
 
   if (!info) {
     console.log('Unknown command: ', command)

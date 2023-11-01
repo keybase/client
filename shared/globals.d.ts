@@ -25,6 +25,10 @@ declare global {
   var DEBUGEngine: unknown
   var DEBUGLoaded: boolean | undefined
   var KBCONSTANTS: unknown
+  var DEBUGLog: (s: any) => void
+  var DEBUGWarn: (s: any) => void
+  var DEBUGInfo: (s: any) => void
+  var DEBUGError: (s: any) => void
   var _fromPreload: unknown
   var __HOT__: boolean
   var __VERSION__: string

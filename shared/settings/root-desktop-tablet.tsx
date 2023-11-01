@@ -50,20 +50,19 @@ const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
 const TabNavigator = createLeftTabNavigator()
 
 const shimmed = shim(settingsSubRoutes, false, false)
+const shimKeys = Object.keys(shimmed) as Array<keyof typeof settingsSubRoutes>
 
 // TODO on ipad this doesn't have a stack navigator so when you go into crypto you get
 // a push from the parent stack. If we care just make a generic left nav / right stack
 // that the global app / etc could use and put it here also. not worth it now
 const SettingsSubNavigator = () => (
   <TabNavigator.Navigator initialRouteName={C.settingsAccountTab} backBehavior="none">
-    {Object.keys(shimmed).map(name => (
+    {shimKeys.map(name => (
       <TabNavigator.Screen
         key={name}
         name={name}
-        // @ts-ignore
-        getComponent={settingsSubRoutes[name].getScreen}
+        getComponent={settingsSubRoutes[name].getScreen as any}
         options={({route, navigation}) => {
-          // @ts-ignore
           const no = getOptions(settingsSubRoutes[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}

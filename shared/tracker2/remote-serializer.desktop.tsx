@@ -1,5 +1,6 @@
 import type * as T from '../constants/types'
 import type {RPCError} from '../util/errors'
+import {produce} from 'immer'
 
 // for convenience we flatten the props we send over the wire
 type WaitingHoistedProps = 'counts' | 'errors'
@@ -29,14 +30,23 @@ type SerializeProps = Omit<
   | 'counts'
   | 'errors'
 > & {
-  assertions: Array<[string, T.Tracker.Assertion]>
+  assertionsArr: Array<[string, T.Tracker.Assertion]>
   avatarRefreshCounterArr: Array<[string, number]>
-  counts: Array<[string, number]>
-  errors: Array<[string, RPCError | undefined]>
+  countsArr: Array<[string, number]>
+  errorsArr: Array<[string, RPCError | undefined]>
   followersArr: Array<string>
   followingArr: Array<string>
-  infoMap: Array<[string, T.Users.UserInfo]>
-  blockMap: Array<[string, T.Users.BlockState]>
+  infoMapArr: Array<[string, T.Users.UserInfo]>
+  blockMapArr: Array<[string, T.Users.BlockState]>
+
+  avatarRefreshCounter?: never
+  assertions?: never
+  blockMap?: never
+  infoMap?: never
+  following?: never
+  followers?: never
+  counts?: never
+  errors?: never
 }
 export type DeserializeProps = {
   avatarRefreshCounter: Map<string, number>
@@ -85,16 +95,16 @@ export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
   } = p
   return {
     ...toSend,
-    assertions: [...(assertions?.entries() ?? [])],
+    assertionsArr: [...(assertions?.entries() ?? [])],
     avatarRefreshCounterArr: [...avatarRefreshCounter.entries()],
-    blockMap: blockMap.has(trackerUsername)
+    blockMapArr: blockMap.has(trackerUsername)
       ? [[trackerUsername, blockMap.get(trackerUsername) ?? {chatBlocked: false, followBlocked: false}]]
       : [],
-    counts: [...counts.entries()],
-    errors: [...errors.entries()],
+    countsArr: [...counts.entries()],
+    errorsArr: [...errors.entries()],
     followersArr: [...followers],
     followingArr: [...following],
-    infoMap: [...infoMap.entries()],
+    infoMapArr: [...infoMap.entries()],
     trackerUsername,
   }
 }
@@ -105,73 +115,91 @@ export const deserialize = (
 ): DeserializeProps => {
   if (!props) return state
 
-  const {
-    assertions,
-    avatarRefreshCounterArr,
-    bio,
-    counts,
-    errors,
-    followersArr,
-    followersCount,
-    followingArr,
-    followingCount,
-    fullname,
-    guiID,
-    hidFromFollowers,
-    httpSrvAddress,
-    httpSrvToken,
-    location,
-    reason,
-    state: trackerState,
-    stellarHidden,
-    teamShowcase,
-    trackerUsername: _trackerUsername,
-    username,
-    ...rest
-  } = props
-  const infoMap = props.infoMap ? new Map(props.infoMap) : state.infoMap
-  const blockMap = props.blockMap ? new Map(props.blockMap) : state.blockMap
-
+  const {bio, darkMode, followingCount, followersCount, fullname} = props
+  const {guiID, hidFromFollowers, httpSrvAddress, httpSrvToken, location} = props
+  const {reason, stellarHidden, teamShowcase} = props
+  const {trackerUsername: _trackerUsername, username} = props
+  const {assertionsArr, avatarRefreshCounterArr, countsArr, errorsArr} = props
+  const {followersArr, followingArr, infoMapArr, blockMapArr, state: trackerState} = props
   const trackerUsername = _trackerUsername ?? state.trackerUsername
-  const oldDetails = state.tracker2.usernameToDetails.get(trackerUsername)
-  const oldBlocked = state.blockMap.get(trackerUsername)?.chatBlocked ?? false
 
-  const details: T.Tracker.Details = {
-    assertions: assertions ? new Map(assertions) : oldDetails?.assertions,
-    bio: bio ?? oldDetails?.bio,
-    blocked: blockMap.get(trackerUsername)?.chatBlocked ?? oldBlocked,
-    followersCount: followersCount ?? oldDetails?.followersCount,
-    followingCount: followingCount ?? oldDetails?.followingCount,
-    fullname: fullname ?? oldDetails?.fullname,
-    guiID: (guiID ?? oldDetails?.guiID) || '',
-    hidFromFollowers: (hidFromFollowers ?? oldDetails?.hidFromFollowers) || false,
-    location: location ?? oldDetails?.location,
-    reason: reason ?? oldDetails?.reason ?? '',
-    resetBrokeTrack: false,
-    state: (trackerState ?? oldDetails?.state) || 'unknown',
-    stellarHidden: stellarHidden ?? oldDetails?.stellarHidden,
-    teamShowcase: teamShowcase ?? oldDetails?.teamShowcase,
-    username: trackerUsername,
-  }
+  return produce(state, s => {
+    s.trackerUsername = trackerUsername
+    s.darkMode = darkMode ?? s.darkMode
+    if (avatarRefreshCounterArr !== undefined) {
+      s.avatarRefreshCounter = new Map(avatarRefreshCounterArr)
+    }
+    if (blockMapArr !== undefined) {
+      s.blockMap = new Map(blockMapArr)
+    }
+    if (followersArr !== undefined) {
+      s.followers = new Set(followersArr)
+    }
+    if (followingArr !== undefined) {
+      s.following = new Set(followingArr)
+    }
+    if (httpSrvAddress !== undefined) {
+      s.httpSrvAddress = httpSrvAddress
+    }
+    if (httpSrvToken !== undefined) {
+      s.httpSrvToken = httpSrvToken
+    }
+    if (infoMapArr !== undefined) {
+      s.infoMap = new Map(infoMapArr)
+    }
+    if (username !== undefined) {
+      s.username = username
+    }
+    if (countsArr !== undefined) {
+      s.waiting.counts = new Map(countsArr)
+    }
+    if (errorsArr !== undefined) {
+      s.waiting.errors = new Map(errorsArr)
+    }
+    if (blockMapArr !== undefined) {
+      s.blockMap = new Map(blockMapArr)
+    }
 
-  return {
-    ...state,
-    ...rest,
-    avatarRefreshCounter: avatarRefreshCounterArr
-      ? new Map(avatarRefreshCounterArr)
-      : state.avatarRefreshCounter,
-    blockMap,
-    followers: followersArr ? new Set(followersArr) : state.followers,
-    following: followingArr ? new Set(followingArr) : state.following,
-    httpSrvAddress: httpSrvAddress ?? state.httpSrvAddress,
-    httpSrvToken: httpSrvToken ?? state.httpSrvToken,
-    infoMap,
-    tracker2: {usernameToDetails: new Map([[trackerUsername, details]])},
-    trackerUsername,
-    username: username ?? state.username,
-    waiting: {
-      counts: counts ? new Map(counts) : state.waiting.counts,
-      errors: errors ? new Map(errors) : state.waiting.errors,
-    },
-  }
+    const details = s.tracker2.usernameToDetails.get(trackerUsername) ?? ({} as T.Tracker.Details)
+    details.username = trackerUsername
+    details.resetBrokeTrack = false
+    details.blocked = s.blockMap.get(trackerUsername)?.chatBlocked ?? details.blocked
+    if (assertionsArr) {
+      details.assertions = new Map(assertionsArr)
+    }
+    if (bio) {
+      details.bio = bio
+    }
+    if (followersCount) {
+      details.followersCount = followersCount
+    }
+    if (followingCount) {
+      details.followingCount = followingCount
+    }
+    if (fullname) {
+      details.fullname = fullname
+    }
+    if (guiID) {
+      details.guiID = guiID
+    }
+    if (hidFromFollowers) {
+      details.hidFromFollowers = hidFromFollowers
+    }
+    if (location) {
+      details.location = location
+    }
+    if (reason) {
+      details.reason = reason
+    }
+    if (trackerState) {
+      details.state = trackerState
+    }
+    if (stellarHidden) {
+      details.stellarHidden = stellarHidden
+    }
+    if (teamShowcase) {
+      details.teamShowcase = teamShowcase
+    }
+    s.tracker2.usernameToDetails.set(trackerUsername, details)
+  })
 }

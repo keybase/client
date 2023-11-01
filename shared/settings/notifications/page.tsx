@@ -3,7 +3,6 @@ import * as React from 'react'
 const Notif = React.lazy(async () => import('./container'))
 
 export const getOptions = () => ({
-  header: undefined,
   title: 'Notifications',
 })
 

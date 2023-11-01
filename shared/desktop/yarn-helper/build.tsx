@@ -36,7 +36,7 @@ const commands = {
     nodeEnv: 'production',
     shell: `yarn _node ${spaceArg} desktop/package.desktop.tsx`,
   },
-}
+} as const
 
 function hotServer(info: any, exec: Function) {
   exec('yarn run _helper build-dev', {...info.env, BEFORE_HOT: 'true', HOT: 'true'})

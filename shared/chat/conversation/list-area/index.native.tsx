@@ -208,10 +208,9 @@ const ConversationList = React.memo(function ConversationList(p: {
     'listArea',
     C.useEvent(() => {
       if (!listRef.current) return ''
-      const {props, state} = listRef.current as {props: {extraData?: {}; data?: [number]}; state: unknown}
+      const {props, state} = listRef.current as {props: {extraData?: {}; data?: [number]}; state: any}
       const {extraData, data} = props
 
-      // @ts-ignore
       const layoutManager = (state?.layoutProvider?._lastLayoutManager ?? ({} as any)) as {
         _layouts?: [unknown]
         _renderWindowSize: unknown
@@ -219,7 +218,6 @@ const ConversationList = React.memo(function ConversationList(p: {
         _totalWidth: unknown
       }
       const {_layouts, _renderWindowSize, _totalHeight, _totalWidth} = layoutManager
-      // @ts-ignore
       // const mm = window.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)
       // const reduxItems = messageOrdinals.map(o => ({o, type: mm.get(o)?.type}))
 
@@ -259,7 +257,7 @@ const ConversationList = React.memo(function ConversationList(p: {
               <List
                 extraData={extraData}
                 removeClippedSubviews={Kb.Styles.isAndroid}
-                // @ts-ignore
+                // @ts-ignore part of FlashList so lets set it
                 drawDistance={100}
                 estimatedItemSize={100}
                 ListHeaderComponent={SpecialBottomMessage}

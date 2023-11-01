@@ -65,6 +65,13 @@ type SerializeProps = Omit<
   infoMapArr: Array<[string, T.Users.UserInfo]>
   navBadgesArr: Array<[C.Tab, number]>
   windowShownCountNum: number
+  // ensure we never send extra stuff
+  avatarRefreshCounter?: never
+  followers?: never
+  following?: never
+  infoMap?: never
+  navBadges?: never
+  windowShownCount?: never
 }
 
 // props we don't send at all if they're falsey
@@ -142,7 +149,7 @@ const initialState: DeserializeProps = {
 }
 
 export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
-  const {avatarRefreshCounter, followers, following, infoMap, ...toSend} = p
+  const {avatarRefreshCounter, followers, following, infoMap, navBadges, ...toSend} = p
   return {
     ...toSend,
     avatarRefreshCounterArr: [...avatarRefreshCounter.entries()],

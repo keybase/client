@@ -140,10 +140,8 @@ class Chat extends React.Component<Props, State> {
   }
   _isUnfurlWhitelistChanged() {
     return (
-      Object.keys(this.state.unfurlWhitelistRemoved).filter(
-        // @ts-ignore
-        d => this.state.unfurlWhitelistRemoved[d]
-      ).length > 0
+      Object.keys(this.state.unfurlWhitelistRemoved).filter(d => this.state.unfurlWhitelistRemoved[d])
+        .length > 0
     )
   }
   _getUnfurlMode() {
@@ -160,8 +158,7 @@ class Chat extends React.Component<Props, State> {
   }
   _getUnfurlWhitelist(filtered: boolean) {
     return filtered
-      ? // @ts-ignore
-        (this.props.unfurlWhitelist || []).filter(w => !this.state.unfurlWhitelistRemoved[w])
+      ? (this.props.unfurlWhitelist || []).filter(w => !this.state.unfurlWhitelistRemoved[w])
       : this.props.unfurlWhitelist || []
   }
   _setUnfurlMode(mode: T.RPCChat.UnfurlMode) {
@@ -176,7 +173,6 @@ class Chat extends React.Component<Props, State> {
     }))
   }
   _isUnfurlWhitelistRemoved(domain: string) {
-    // @ts-ignore
     return this.state.unfurlWhitelistRemoved[domain]
   }
   _isUnfurlSaveDisabled() {
@@ -288,8 +284,7 @@ class Chat extends React.Component<Props, State> {
                       >
                         {this.props.teamMeta.map(teamMeta => (
                           <TeamRow
-                            // @ts-ignore
-                            checked={this.state.contactSettingsSelectedTeams[teamMeta.id]}
+                            checked={this.state.contactSettingsSelectedTeams[teamMeta.id] ?? false}
                             key={teamMeta.id}
                             isOpen={teamMeta.isOpen}
                             name={teamMeta.teamname}

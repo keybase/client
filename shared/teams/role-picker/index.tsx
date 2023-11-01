@@ -115,11 +115,11 @@ const RoleRowWrapper = (props: RoleRowWrapperProps) => {
   const {role, selected, onSelect, disabledReason, plural} = props
   const roleInfo = rolesMetaInfo(role)
 
-  // @ts-ignore spring is confused that I'm animating different things on desktop vs mobile
+  // spring is confused that I'm animating different things on desktop vs mobile
   const style = useSpring({
     ...(Kb.Styles.isMobile ? {flexGrow: selected ? 1 : 0} : {height: selected ? 160 : 42}),
     config: {tension: Kb.Styles.isMobile ? 250 : 260},
-  }) as Kb.Styles.StylesCrossPlatform
+  }) as unknown as Kb.Styles.StylesCrossPlatform
   return (
     <AnimatedClickableBox onClick={onSelect} style={Kb.Styles.collapseStyles([styles.roleRow, style])}>
       <Kb.Divider />
