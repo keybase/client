@@ -102,11 +102,6 @@ class SearchFilter extends React.PureComponent<Props, State> {
   blur = () => {
     this.inputRef.current?.blur()
   }
-  measure = () => {
-    return undefined
-  }
-  divRef = React.createRef<HTMLDivElement>()
-  measureAsync = undefined
   private clear = () => {
     this.update('')
   }
