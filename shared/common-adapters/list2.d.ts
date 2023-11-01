@@ -32,7 +32,6 @@ export type Props<Item> = {
   forceLayout?: number // desktop only; causes resetAfterIndex(0, true) whe nit changes.
   style?: CustomStyles<'flex' | 'flexDirection', {}>
   indexAsKey?: boolean
-  itemAsKey?: Item extends string ? boolean : never // only if items are unique strings
   keyProperty?: string // if passed uses item[keyProperty] for the item keys,
   items: Array<Item>
   renderItem: (index: number, item: Item) => React.ReactElement | null

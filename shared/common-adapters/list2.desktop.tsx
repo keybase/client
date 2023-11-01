@@ -11,22 +11,18 @@ class List2<T> extends React.PureComponent<Props<T>> {
       return String(index)
     }
 
-    if (this.props.itemAsKey) {
-      return item
-    }
-
     const keyProp = this.props.keyProperty || 'key'
-    // @ts-ignore
-    return item[keyProp] ?? String(index)
+    const i: {[key: string]: string} = item
+    return i[keyProp] ?? String(index)
   }
 
   // This has to be a separate variable since if we construct it inside render
   // it's a new function everytime, and that triggers react-window to unmount
   // all rows and mount again.
-  _row = ({index, style}: any) => (
-    // @ts-ignore
-    <div style={style}>{this.props.renderItem(index, this.props.items[index])}</div>
-  )
+  _row = ({index, style}: any) => {
+    const item = this.props.items[index]
+    return item ? <div style={style}>{this.props.renderItem(index, item)}</div> : null
+  }
 
   // Need to pass in itemData to make items re-render on prop changes.
   _fixed = ({height, width, itemHeight}: any) => (
