@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Animation from './animation'
-import Box, {Box2} from './box'
+import Box, {Box2, Box2Measure} from './box'
 import ClickableBox from './clickable-box'
 import NewInput from './new-input'
 import {HotKey} from './hot-key'
@@ -11,11 +11,13 @@ import Icon, {type IconType} from './icon'
 import * as Styles from '../styles'
 import * as Platforms from '../constants/platform'
 import type {NativeSyntheticEvent} from 'react-native'
+import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Animation,
   Box,
   Box2,
+  Box2Measure,
   ClickableBox,
   HotKey,
   Icon,
@@ -56,6 +58,7 @@ type Props = {
   onKeyDown?: (event: React.KeyboardEvent) => void
   onKeyUp?: (event: React.KeyboardEvent) => void
   onKeyPress?: (event: NativeSyntheticEvent<{key: string}>) => void
+  measureRef?: React.RefObject<MeasureRef>
 }
 
 type State = {
@@ -99,6 +102,11 @@ class SearchFilter extends React.PureComponent<Props, State> {
   blur = () => {
     this.inputRef.current?.blur()
   }
+  measure = () => {
+    return undefined
+  }
+  divRef = React.createRef<HTMLDivElement>()
+  measureAsync = undefined
   private clear = () => {
     this.update('')
   }
@@ -282,7 +290,8 @@ class SearchFilter extends React.PureComponent<Props, State> {
         underlayColor={Styles.globalColors.transparent}
         hoverColor={Styles.globalColors.transparent}
       >
-        <Kb.Box2
+        <Kb.Box2Measure
+          ref={this.props.measureRef}
           direction="horizontal"
           style={Styles.collapseStyles([{alignItems: 'center'}, !Styles.isMobile && {width: '100%'}])}
           pointerEvents={Styles.isMobile && this.props.onClick ? 'none' : undefined}
@@ -292,7 +301,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
           {this.input()}
           {this.waiting()}
           {this.rightCancelIcon()}
-        </Kb.Box2>
+        </Kb.Box2Measure>
       </Kb.ClickableBox>
     )
     return Styles.isMobile ? (

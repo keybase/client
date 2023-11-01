@@ -80,8 +80,7 @@ const ChannelInputDesktop = (props: ChannelInputProps) => {
   return (
     <>
       <Kb.SearchFilter
-        // @ts-ignore complaining that popupAnchor is missing properties that SearchFilter has
-        ref={popupAnchor}
+        measureRef={popupAnchor}
         onFocus={() => setShowingPopup(true)}
         onBlur={() => setShowingPopup(false)}
         placeholderText="Add channels"
