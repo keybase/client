@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-ignore import don't bother
 import prettier from 'prettier'
 import path from 'path'
 import json5 from 'json5'
@@ -14,24 +14,25 @@ type FileDesc = {
   actions: Actions
 }
 
-type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc) => string
+type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc | undefined) => string
 
 const reservedPayloadKeys = ['_description']
 const typeMap: Array<string> = []
 const cleanName = (c: string) => c.replace(/-/g, '')
 
-const payloadHasType = (payload: ActionDesc, toFind: RegExp) => {
-  return Object.keys(payload).some(param => {
-    const ps = payload[param]
-    if (Array.isArray(ps)) {
-      return ps.some(p => toFind.exec(p))
-    } else {
-      return toFind.exec(ps ?? '')
-    }
-  })
+const payloadHasType = (payload: ActionDesc | undefined, toFind: RegExp) => {
+  return payload
+    ? Object.keys(payload).some(param => {
+        const ps = payload[param]
+        if (Array.isArray(ps)) {
+          return ps.some(p => toFind.exec(p))
+        } else {
+          return toFind.exec(ps ?? '')
+        }
+      })
+    : false
 }
 const actionHasType = (actions: Actions, toFind: RegExp) =>
-  // @ts-ignore
   Object.keys(actions).some(key => payloadHasType(actions[key], toFind))
 
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
@@ -76,14 +77,15 @@ export type Actions =
 `
 }
 
-function compileActions(ns: ActionNS, actions: Actions, compileActionFn: CompileActionFn): string {
-  return (
-    Object.keys(actions)
-      // @ts-ignore
-      .map((actionName: ActionName) => compileActionFn(ns, actionName, actions[actionName]))
-      .sort()
-      .join('\n')
-  )
+function compileActions(
+  ns: ActionNS,
+  actions: Actions,
+  compileActionFn: CompileActionFn | undefined
+): string {
+  return Object.keys(actions)
+    .map((actionName: ActionName) => compileActionFn?.(ns, actionName, actions[actionName]))
+    .sort()
+    .join('\n')
 }
 
 function capitalize(s: string): string {
@@ -116,9 +118,10 @@ function compileActionPayloads(_: ActionNS, actionName: ActionName) {
   return `export type ${capitalize(actionName)}Payload = ReturnType<typeof create${capitalize(actionName)}>`
 }
 
-function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
+function compileActionCreator(ns: ActionNS, actionName: ActionName, _desc: ActionDesc | undefined) {
   // don't make action creators for this
   const allowCreate = ns !== 'engine-gen'
+  const desc = _desc ?? {}
   const hasPayload = !!payloadKeys(desc).length
   const assignPayload = payloadOptional(desc)
   const comment = desc['_description']
@@ -135,7 +138,7 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: Action
 )`
 }
 
-function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, _: ActionDesc) {
+function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName) {
   return `export const ${actionName} = '${ns}:${actionName}'`
 }
 

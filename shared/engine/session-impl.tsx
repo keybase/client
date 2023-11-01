@@ -172,7 +172,7 @@ class Session {
     let handler = this._incomingCallMap[method]
 
     if (!handler) {
-      // @ts-ignore
+      // @ts-ignore TODO eventually
       handler = this._customResponseIncomingCallMap[method]
     }
 

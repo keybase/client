@@ -2,6 +2,7 @@ import * as React from 'react'
 import type {globalMargins, CustomStyles} from '../styles'
 import type {TextType} from './text'
 import type {NativeSyntheticEvent} from 'react-native'
+import type {MeasureDesktop} from './measure-ref'
 
 export type KeyboardType =
   | 'default'
@@ -169,5 +170,7 @@ declare class PlainInput extends React.Component<Props> {
    *  calling this.
    **/
   transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => void
+
+  _input: React.RefObject<{getBoundingClientRect?: () => MeasureDesktop}>
 }
 export default PlainInput

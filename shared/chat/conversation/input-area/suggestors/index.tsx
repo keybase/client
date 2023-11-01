@@ -128,9 +128,9 @@ export const useSyncInput = (p: UseSyncInputProps) => {
           return
         }
       }
-      // @ts-ignore we know entries will give this type
-      for (const [suggestor, marker]: [string, string | RegExp] of Object.entries(suggestorToMarker)) {
-        const matchInfo = matchesMarker(word, marker as any)
+      const entries = Object.entries(suggestorToMarker) as Array<[string, string | RegExp]>
+      for (const [suggestor, marker] of entries) {
+        const matchInfo = matchesMarker(word, marker)
         if (matchInfo.matches && inputRef.current?.isFocused()) {
           setActive(suggestor as ActiveType)
           setFilter(word.substring(matchInfo.marker.length))
@@ -361,7 +361,6 @@ const Popup = (p: PopupProps) => {
   const attachRef = React.useRef<Kb.MeasureRef | null>({
     divRef: {current: null},
     measure: () => {
-      // @ts-ignore hacky but we want the actual input TODO fix up
       const c = inputRef.current?._input.current
       if (c) {
         return c.getBoundingClientRect?.()
