@@ -30,7 +30,6 @@ const borderSize = 1
 const Avatar = React.memo(function Avatar(props: Props) {
   const {size} = props
   const borderRadius = (props.isTeam && sizeToTeamBorderRadius.get(size)) || size / 2
-  // @ts-ignore
   const containerStyle = Styles.collapseStyles([boxStyles[size], props.style])
 
   return (
@@ -40,19 +39,8 @@ const Avatar = React.memo(function Avatar(props: Props) {
           <Kb.Box style={[styles.background, {backgroundColor: Styles.globalColors.white, borderRadius}]} />
         )}
         {!!props.blocked && (
-          <Kb.Box
-            style={
-              // @ts-ignore
-              [imageStyles[props.size], {borderRadius}]
-            }
-          >
-            <Icon
-              type="icon-poop-96"
-              style={
-                // @ts-ignore
-                iconStyles[props.size]
-              }
-            />
+          <Kb.Box style={[imageStyles[props.size], {borderRadius}]}>
+            <Icon type="icon-poop-96" style={iconStyles[props.size]} />
           </Kb.Box>
         )}
         {!!props.url && (
@@ -60,7 +48,6 @@ const Avatar = React.memo(function Avatar(props: Props) {
             showLoadingStateUntilLoaded={false}
             src={props.url}
             style={Styles.collapseStyles([
-              // @ts-ignore
               imageStyles[props.size],
               {
                 borderRadius,
@@ -69,15 +56,7 @@ const Avatar = React.memo(function Avatar(props: Props) {
             ])}
           />
         )}
-        {props.followIconType && (
-          <Kb.Icon
-            type={props.followIconType}
-            style={
-              // @ts-ignore
-              Styles.collapseStyles([iconStyles[props.followIconSize], props.followIconStyle])
-            }
-          />
-        )}
+        {props.followIconType && <Kb.Icon type={props.followIconType} style={props.followIconStyle} />}
         {props.editable && (
           <Kb.Icon
             color={props.isTeam ? Styles.globalColors.white : undefined}
@@ -93,24 +72,32 @@ const Avatar = React.memo(function Avatar(props: Props) {
 })
 
 const makeIconStyle = (size: AvatarSize) => ({height: size, width: size})
-const iconStyles = Styles.styleSheetCreate(() => ({
-  [128]: makeIconStyle(128),
-  [16]: makeIconStyle(16),
-  [32]: makeIconStyle(32),
-  [48]: makeIconStyle(48),
-  [64]: makeIconStyle(64),
-  [96]: makeIconStyle(96),
-}))
+const iconStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      [128]: makeIconStyle(128),
+      [16]: makeIconStyle(16),
+      [24]: makeIconStyle(24),
+      [32]: makeIconStyle(32),
+      [48]: makeIconStyle(48),
+      [64]: makeIconStyle(64),
+      [96]: makeIconStyle(96),
+    }) as const
+)
 
 const makeBoxStyle = (size: AvatarSize) => ({height: size, position: 'relative' as const, width: size})
-const boxStyles = Styles.styleSheetCreate(() => ({
-  [128]: makeBoxStyle(128),
-  [16]: makeBoxStyle(16),
-  [32]: makeBoxStyle(32),
-  [48]: makeBoxStyle(48),
-  [64]: makeBoxStyle(64),
-  [96]: makeBoxStyle(96),
-}))
+const boxStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      [128]: makeBoxStyle(128),
+      [16]: makeBoxStyle(16),
+      [24]: makeBoxStyle(24),
+      [32]: makeBoxStyle(32),
+      [48]: makeBoxStyle(48),
+      [64]: makeBoxStyle(64),
+      [96]: makeBoxStyle(96),
+    }) as const
+)
 
 const makeImageStyle = (size: AvatarSize) =>
   ({
@@ -123,14 +110,18 @@ const makeImageStyle = (size: AvatarSize) =>
     top: 0,
     width: size,
   }) as const
-const imageStyles = Styles.styleSheetCreate(() => ({
-  [128]: makeImageStyle(128),
-  [16]: makeImageStyle(16),
-  [32]: makeImageStyle(32),
-  [48]: makeImageStyle(48),
-  [64]: makeImageStyle(64),
-  [96]: makeImageStyle(96),
-}))
+const imageStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      [128]: makeImageStyle(128),
+      [16]: makeImageStyle(16),
+      [24]: makeImageStyle(24),
+      [32]: makeImageStyle(32),
+      [48]: makeImageStyle(48),
+      [64]: makeImageStyle(64),
+      [96]: makeImageStyle(96),
+    }) as const
+)
 
 const styles = Styles.styleSheetCreate(
   () =>

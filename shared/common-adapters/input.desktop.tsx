@@ -361,13 +361,7 @@ class Input extends React.PureComponent<Props, State> {
             {this.props.smallLabel}
           </Text>
         )}
-        {this.props.multiline ? (
-          // @ts-ignore clash between our types and DOM types
-          <textarea {...multilineProps} />
-        ) : (
-          // @ts-ignore clash between our types and DOM types
-          <input {...singlelineProps} />
-        )}
+        {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
         {!!this.props.errorTextComponent && this.props.errorTextComponent}
         {!!this.props.errorText && !this.props.small && (
           <Text

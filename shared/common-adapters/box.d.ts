@@ -12,7 +12,7 @@ export type Props = {
   onStartShouldSetResponder?: any
   pointerEvents?: 'none' | 'box-none'
   onLayout?: (evt: LayoutEvent) => void // mobile only
-  onClick?: (event: React.MouseEvent) => void
+  onClick?: (event: React.BaseSyntheticEvent) => void
   children?: React.ReactNode
   collapsable?: boolean
   className?: string

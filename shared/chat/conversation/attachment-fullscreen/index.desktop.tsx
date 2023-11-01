@@ -14,7 +14,7 @@ const Arrow = (props: ArrowProps) => {
   return (
     <Kb.Box
       className="hover_background_color_black background_color_black_50 fade-background-color"
-      onClick={(e: React.MouseEvent) => {
+      onClick={e => {
         e.stopPropagation()
         onClick()
       }}

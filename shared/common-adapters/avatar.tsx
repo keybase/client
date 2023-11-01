@@ -81,19 +81,11 @@ const followSizeToStyle = new Map<AvatarSize, IconStyle>([
   [96, {bottom: 0, left: 65, position: 'absolute'}],
 ])
 
-const followIconHelper = (
-  size: AvatarSize,
-  followsYou: boolean,
-  following: boolean
-): {
-  iconSize: 28 | 21
-  iconStyle: IconStyle
-  iconType: IconType | undefined
-} => {
-  const iconSize = size === 128 ? 28 : 21
+const followIconHelper = (size: AvatarSize, followsYou: boolean, following: boolean) => {
+  const iconSize = size === 128 ? (28 as const) : (21 as const)
   const rel =
     followsYou === following ? (followsYou ? 'mutual-follow' : null) : followsYou ? 'follow-me' : 'following'
-  const iconType: IconType | undefined = rel ? (`icon-${rel}-${iconSize}` as any) : undefined
+  const iconType = rel ? (`icon-${rel}-${iconSize}` as const) : undefined
   const iconStyle = followSizeToStyle.get(size)
   return {
     iconSize,
