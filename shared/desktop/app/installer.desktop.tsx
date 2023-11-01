@@ -132,19 +132,17 @@ const darwinInstall = (callback: CB) => {
 
   const logOutput = async (stdout: string, stderr: string) =>
     Promise.all([
-      new Promise((resolve, reject) =>
+      new Promise<Buffer>((resolve, reject) =>
         zlib.gzip(stdout, (error, res) => (error ? reject(error) : resolve(res)))
       ),
-      new Promise((resolve, reject) =>
+      new Promise<Buffer>((resolve, reject) =>
         zlib.gzip(stderr, (error, res) => (error ? reject(error) : resolve(res)))
       ),
     ])
       .then(([zStdout, zStderr]) =>
         logger.info(
           '[Installer]: got result from install-auto. To read, pipe the base64 strings to "| base64 -d | gzip -d".',
-          // @ts-ignore codemode issue
           `stdout=${zStdout.toString('base64')}`,
-          // @ts-ignore codemode issue
           `stderr=${zStderr.toString('base64')}`
         )
       )

@@ -103,8 +103,7 @@ const MenuBar = () => {
             action.payload.desktopAppBadgeCount > 0
               ? getAssetPath('images', 'icons', 'icon-windows-badge.png')
               : null
-          // @ts-ignore overlay can be a string but TS is wrong
-          mw?.setOverlayIcon(overlay, 'new activity')
+          overlay && mw?.setOverlayIcon(Electron.nativeImage.createFromPath(overlay), 'new activity')
         }
 
         break
@@ -131,15 +130,10 @@ const MenuBar = () => {
     }
 
     // Hack: open widget when left/right/double clicked
-    mb.tray.on('right-click', (e: Electron.KeyboardEvent, bounds: Bounds) => {
-      // @ts-ignore
-      e.preventDefault()
+    mb.tray.on('right-click', (e, bounds: Bounds) => {
       setTimeout(() => mb.tray.emit('click', {...e}, {...bounds}), 0)
     })
-    mb.tray.on('double-click', (e: Electron.KeyboardEvent) => {
-      // @ts-ignore
-      e.preventDefault()
-    })
+    mb.tray.on('double-click', () => {})
 
     // prevent the menubar's window from dying when we quit
     // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window
