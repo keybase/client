@@ -4,25 +4,17 @@ import type * as T from '../../../constants/types'
 // 2 is neutral
 // lower values come earlier
 
-const order = {admin: 3, owner: 2, reader: 5, writer: 4}
-
 const getWeights = (manageMembers: boolean) => {
-  // only weigh actionable statuses higher if we can effect them
-  const statusWeights = manageMembers
-    ? {
-        active: 2,
-        deleted: 0,
-        reset: 1,
-      }
-    : {
-        active: 2,
-        deleted: 2,
-        reset: 2,
-      }
-  return {
-    ...order,
-    ...statusWeights,
-  }
+  return new Map([
+    ['admin', 3],
+    ['owner', 2],
+    ['reader', 5],
+    ['writer', 4],
+    ['active', 2],
+    // only weigh actionable statuses higher if we can effect them
+    ['deleted', manageMembers ? 0 : 2],
+    ['reset', manageMembers ? 1 : 2],
+  ])
 }
 
 export const getOrderedMemberArray = (
@@ -42,9 +34,8 @@ export const getOrderedMemberArray = (
 
           const weights = getWeights(yourOperations.manageMembers)
           // Diff the statuses then types. If they're both the same sort alphabetically
-          const diff1 = weights[a.status] - weights[b.status]
-          // @ts-ignore
-          const diff2 = (weights[a.type as any] ?? 0) - (weights[b.type as any] ?? 0)
+          const diff1 = (weights.get(a.status) ?? 0) - (weights.get(b.status) ?? 0)
+          const diff2 = (weights.get(a.type) ?? 0) - (weights.get(b.type) ?? 0)
           return diff1 || diff2 || a.username.localeCompare(b.username)
         })
         .filter(

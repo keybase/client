@@ -27,14 +27,10 @@ const localError = console.error.bind(console)
 
 // inject for convenience
 if (__DEV__) {
-  // @ts-ignore
-  console._log = console.log
-  // @ts-ignore
-  console._warn = console.warn
-  // @ts-ignore
-  console._error = console.error
-  // @ts-ignore
-  console._info = console.info
+  DEBUGLog = console.log
+  DEBUGWarn = console.warn
+  DEBUGError = console.error
+  DEBUGInfo = console.info
 }
 
 // Present a single logger interface to the outside world, but actually delegate the various methods to different
@@ -46,15 +42,15 @@ class AggregateLoggerImpl {
   private _action: Logger
   private _debug: Logger
 
-  error = (...s: Array<any>) => this._error.log(...s)
-  warn = (...s: Array<any>) => this._warn.log(...s)
-  info = (...s: Array<any>) => this._info.log(...s)
-  action = (...s: Array<any>) => this._action.log(...s)
-  debug = (...s: Array<any>) => this._debug.log(...s)
+  error = (...s: Array<unknown>) => this._error.log(...s)
+  warn = (...s: Array<unknown>) => this._warn.log(...s)
+  info = (...s: Array<unknown>) => this._info.log(...s)
+  action = (...s: Array<unknown>) => this._action.log(...s)
+  debug = (...s: Array<unknown>) => this._debug.log(...s)
 
-  localError = (...s: Array<any>) => localError(...s)
-  localWarn = (...s: Array<any>) => localWarn(...s)
-  localLog = (...s: Array<any>) => localLog(...s)
+  localError = (...s: Array<unknown>) => localError(...s)
+  localWarn = (...s: Array<unknown>) => localWarn(...s)
+  localLog = (...s: Array<unknown>) => localLog(...s)
 
   private allLoggers: Array<Logger>
   // loggers that we dump periodically

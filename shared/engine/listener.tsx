@@ -63,8 +63,7 @@ async function listener(p: {
       getEngine().dispatchWaitingAction(waitingKey, true)
     }
 
-    const callMap = bothCallMaps.reduce((map, {method, custom}) => {
-      // @ts-ignore
+    const callMap = bothCallMaps.reduce((map: any, {method, custom}) => {
       map[method] = (params: any, _response: CommonResponseHandler) => {
         // No longer waiting on the server
         if (waitingKey) {
@@ -131,7 +130,6 @@ async function listener(p: {
           resolve(params)
         }
       },
-      // @ts-ignore TODO
       incomingCallMap: callMap,
       method,
       params,

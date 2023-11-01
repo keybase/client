@@ -268,8 +268,7 @@ export class Settings extends React.Component<Props, State> {
   setBoolSettings =
     (key: SettingName) =>
     (newSetting: boolean): void => {
-      // @ts-ignore not sure how to type this
-      this.setState({[key]: newSetting})
+      this.setState({[key]: newSetting} as any)
     }
 
   onSaveSettings = () => {

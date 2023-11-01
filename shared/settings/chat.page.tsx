@@ -3,7 +3,6 @@ import * as React from 'react'
 const Chat = React.lazy(async () => import('./chat'))
 
 const getOptions = () => ({
-  header: undefined,
   title: 'Chat',
 })
 

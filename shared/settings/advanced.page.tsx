@@ -6,7 +6,6 @@ const Advanced = React.lazy(async () => import('./advanced'))
 const getOptions = () =>
   C.isMobile
     ? {
-        header: undefined,
         title: 'Advanced',
       }
     : undefined

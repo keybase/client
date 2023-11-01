@@ -3,7 +3,6 @@ import * as React from 'react'
 const About = React.lazy(async () => import('./about'))
 
 const getOptions = () => ({
-  header: undefined,
   title: 'About',
 })
 

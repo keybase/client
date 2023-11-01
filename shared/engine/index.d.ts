@@ -20,6 +20,7 @@ export declare class Engine {
     method: string
     params?: Object
     callback: (...args: Array<any>) => void
+    incomingCallMap?: IncomingCallMapType
     waitingKey?: WaitingKey
   }): void
 }
