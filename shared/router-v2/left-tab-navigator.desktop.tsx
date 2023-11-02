@@ -71,7 +71,6 @@ const LeftTabNavigator = React.memo(function LeftTabNavigator({
               key={route.name}
               selected={i === state.index}
               route={route}
-              // @ts-ignore
               desc={descriptors[route.key]}
             />
           ))}

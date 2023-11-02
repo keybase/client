@@ -247,7 +247,7 @@ const typeToColorName = {
 export const smallHeight = Styles.isMobile ? 32 : 28
 export const regularHeight = Styles.isMobile ? 40 : 32
 
-const common: () => Styles.StylesCrossPlatform = () =>
+const common: () => Styles._StylesCrossPlatform = () =>
   Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -325,7 +325,6 @@ const styles = Styles.styleSheetCreate(() => ({
 
 const containerStyles: any = Styles.styleSheetCreate(() => {
   const commonSecondaryWhiteBg = Styles.platformStyles({
-    // @ts-ignore TS is correct we shouldn't be doing this. TODO fix later
     common: common(),
     isElectron: {
       backgroundColor: Styles.globalColors.white,

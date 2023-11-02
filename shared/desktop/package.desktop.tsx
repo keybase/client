@@ -1,11 +1,9 @@
-// @ts-ignore import don't bother
 import {rimrafSync} from 'rimraf'
 import fs from 'fs-extra'
 import os from 'os'
 import packager, {type Options} from 'electron-packager'
 import path from 'path'
 import webpack from 'webpack'
-// @ts-ignore import don't bother
 import rootConfig from './webpack.config.babel'
 import {readdir} from 'node:fs/promises'
 

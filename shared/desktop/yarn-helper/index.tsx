@@ -6,7 +6,6 @@ import prettierCommands from './prettier'
 import {execSync} from 'child_process'
 import path from 'path'
 import fs from 'fs'
-// @ts-ignore import don't bother
 import {rimrafSync} from 'rimraf'
 
 const [, , command, ...rest] = process.argv

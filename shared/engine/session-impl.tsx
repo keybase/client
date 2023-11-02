@@ -169,11 +169,11 @@ class Session {
       type: 'engineInternal',
     })
 
-    let handler = this._incomingCallMap[method]
+    let handler: any = this._incomingCallMap[method]
 
     if (!handler) {
-      // @ts-ignore TODO eventually
-      handler = this._customResponseIncomingCallMap[method]
+      const c: any = this._customResponseIncomingCallMap
+      handler = c[method]
     }
 
     if (!handler) {
