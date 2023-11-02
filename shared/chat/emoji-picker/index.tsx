@@ -38,11 +38,14 @@ const removeObsolete = (emojis: Array<EmojiData>) => emojis.filter(e => !e.obsol
 
 const getEmojiSections = memoize(
   (emojisPerLine: number): Array<Section> =>
-    _getData().categories.map(c => ({
-      data: chunkEmojis(removeObsolete(c.emojis), emojisPerLine),
-      key: c.category,
-      title: c.category,
-    }))
+    _getData().categories.map(
+      c =>
+        ({
+          data: chunkEmojis(removeObsolete(c.emojis), emojisPerLine),
+          key: c.category,
+          title: c.category,
+        }) as const
+    )
 )
 
 const getFrequentSection = memoize(
@@ -79,7 +82,7 @@ type Row = {emojis: Array<EmojiData>; key: string}
 type Section = _Section<
   Row,
   {
-    // enforce string keys so we can easily refernece it for coveredSectionKeys
+    // enforce string keys so we can easily reference it for coveredSectionKeys
     key: string
     title: string
   }
@@ -141,11 +144,15 @@ const getCustomEmojiIndex = memoize((emojiGroups: Array<T.RPCChat.EmojiGroup>) =
   // at that point.
   return {
     filter: (filter: string): Array<EmojiData> =>
-      // @ts-ignore ts doesn't know Boolean filters out undefined.
-      keys
-        .filter(k => k.includes(filter))
-        .map(key => mapper.get(key))
-        .filter(Boolean),
+      keys.reduce((result, key) => {
+        if (key.includes(filter)) {
+          const value = mapper.get(key)
+          if (value) {
+            result.push(value)
+          }
+        }
+        return result
+      }, new Array<EmojiData>()),
     get: (shortName: string): EmojiData | undefined => mapper.get(shortName),
   }
 })
@@ -187,8 +194,8 @@ const getSectionsAndBookmarks = memoize(
     }
 
     getEmojiSections(emojisPerLine).forEach(section => {
-      // @ts-ignore
-      const categoryIcon = Data.categoryIcons[section.title]
+      const cat = Data.categoryIcons as {[key: string]: Kb.IconType}
+      const categoryIcon = cat[section.title]
       categoryIcon &&
         bookmarks.push({
           coveredSectionKeys: new Set([section.key]),

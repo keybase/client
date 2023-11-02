@@ -131,16 +131,15 @@ class SaveIndicator extends React.Component<Props, State> {
     }
 
     const debugLog = this.props.debugLog
-    const newPartialState: Partial<State> = {
+    const newPartialState = {
+      lastJustSaved: result === 'justSaved' ? now : this.state.lastJustSaved,
       saveState: result,
-      ...(result === 'justSaved' ? {lastJustSaved: now} : {}),
-    }
+    } as const
     if (debugLog) {
       debugLog(
         `runStateMachine: merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(this.state)}`
       )
     }
-    // @ts-ignore problem in react type def. This is protected by the type assertion of : Partial<State> above
     this.setState(newPartialState)
   }
 
@@ -151,16 +150,15 @@ class SaveIndicator extends React.Component<Props, State> {
   componentDidUpdate(_: Props, prevState: State) {
     if (this.props.saving !== this.state.saving) {
       const debugLog = this.props.debugLog
-      const newPartialState: Partial<State> = {
+      const newPartialState = {
+        lastSave: this.props.saving ? new Date() : this.state.lastSave,
         saving: this.props.saving,
-        ...(this.props.saving ? {lastSave: new Date()} : {}),
       }
       if (debugLog) {
         debugLog(
           `componentDidUpdate: merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(prevState)}`
         )
       }
-      // @ts-ignore problem in react type def. This is protected by the type assertion of : Partial<State> above
       this.setState(newPartialState)
     }
 

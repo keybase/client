@@ -3,13 +3,7 @@ import {Box2, Text, FloatingPicker} from '../../../../common-adapters'
 import type {Props} from '.'
 
 const Prompt = () => (
-  <Box2
-    direction="horizontal"
-    fullWidth={true}
-    gap="xtiny"
-    // @ts-ignore TODO fix styles
-    style={promptContainerStyle}
-  >
+  <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
     <Text type="BodySmallSemibold">Explode messages after:</Text>
   </Box2>
 )
@@ -17,7 +11,7 @@ const Prompt = () => (
 const promptContainerStyle = {
   alignItems: 'center',
   justifyContent: 'center',
-}
+} as const
 
 type State = {
   selected: number

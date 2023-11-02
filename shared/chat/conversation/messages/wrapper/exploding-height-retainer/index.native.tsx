@@ -14,26 +14,35 @@ const explodedIllustrationDarkURL = require('../../../../../images/icons/dark-pa
 
 export const animationDuration = 1500
 
-const copyChildren = (children: React.ReactNode): React.ReactNode =>
-  // @ts-ignore
-  React.Children.map(children, child => (child ? React.cloneElement(child) : child))
+const copyChildren = (children: React.ReactElement | Array<React.ReactElement>) =>
+  React.Children.map(children, child => {
+    return React.cloneElement(child)
+  })
 
 type State = {
-  children: React.ReactNode
+  children: React.ReactElement | Array<React.ReactElement>
   height: number | undefined
   numImages: number
 }
 
 class ExplodingHeightRetainer extends React.Component<Props, State> {
   state = {
-    children: this.props.retainHeight ? null : copyChildren(this.props.children),
+    children: this.props.retainHeight ? (
+      <></>
+    ) : this.props.children ? (
+      copyChildren(this.props.children)
+    ) : (
+      <></>
+    ),
     height: 20,
     numImages: 1,
   }
   timeoutID?: ReturnType<typeof setTimeout>
 
   static getDerivedStateFromProps(nextProps: Props, _: State) {
-    return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}
+    return nextProps.retainHeight
+      ? null
+      : {children: nextProps.children ? copyChildren(nextProps.children) : <></>}
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -41,7 +50,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
       // we just exploded! get rid of children when we're supposed to.
       this._clearTimeout()
       this.timeoutID = setTimeout(() => {
-        this.setState({children: null})
+        this.setState({children: <></>})
         this.timeoutID = undefined
       }, animationDuration)
     }

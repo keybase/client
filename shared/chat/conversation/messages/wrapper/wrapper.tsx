@@ -253,7 +253,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
 
   const content = exploding ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <ExplodingHeightRetainer>{children}</ExplodingHeightRetainer>
+      <ExplodingHeightRetainer>{children as React.ReactElement}</ExplodingHeightRetainer>
     </Kb.Box2>
   ) : (
     children

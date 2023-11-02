@@ -64,8 +64,7 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
 
   componentWillUnmount(): void {
     this.swipeCloseRef.current?.()
-    // @ts-ignore
-    this.swipeCloseRef.current = null
+    this.swipeCloseRef = {current: null}
   }
 
   componentDidUpdate(prevProps: TInbox.Props) {
@@ -299,7 +298,7 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
             </Kb.Box2>
           ) : (
             <List
-              // @ts-ignore
+              // @ts-ignore flashlist props, leave for now
               disableAutoLayout={true}
               ListHeaderComponent={this.HeadComponent}
               data={this.props.rows}
