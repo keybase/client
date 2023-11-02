@@ -28,6 +28,7 @@ type ReactListProps = {
   type?: string | undefined
   useStaticSize?: boolean | undefined
   useTranslate3d?: boolean | undefined
+  extraData?: unknown
 }
 
 const SafeReactList = React.forwardRef<ReactList, ReactListProps>(function SafeReactList(p, ref) {

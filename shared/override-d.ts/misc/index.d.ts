@@ -42,3 +42,8 @@ declare module 'fastestsmallesttextencoderdecoder' {
 declare module 'rimraf' {
   export const rimrafSync: (s: string) => void
 }
+
+declare module 'emoji-datasource-apple/img/apple/sheets/64.png' {
+  var png: string
+  export default png
+}

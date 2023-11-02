@@ -208,8 +208,8 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
       // reuse visible route if it's the same
       const visible = chatStack.state.routes.at(-1)
       if (visible) {
-        // @ts-ignore TODO better route types
-        if (visible.name === 'chatConversation' && visible.params?.conversationIDKey === conversationIDKey) {
+        const vParams: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = visible.params
+        if (visible.name === 'chatConversation' && vParams?.conversationIDKey === conversationIDKey) {
           convoRoute = visible
         }
       }

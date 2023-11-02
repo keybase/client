@@ -9,6 +9,7 @@ import {emojiIndexByName, emojiIndexByChar, emojiRegex, commonTlds} from './emoj
 import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles, serviceOnlyOutput} from './react'
 import type * as T from '../../constants/types'
 import type {StylesTextCrossPlatform, LineClampType} from '../../common-adapters/text'
+import isArray from 'lodash/isArray'
 
 type MarkdownComponentType =
   | 'inline-code'
@@ -387,15 +388,23 @@ const noRules: {[type: string]: SimpleMarkdown.ParserRule} = {
 const noMarkdownParser = SimpleMarkdown.parserFor(noRules)
 
 const isAllEmoji = (ast: Array<SimpleMarkdown.SingleASTNode>) => {
-  const trimmed = ast.filter(n => n.type !== 'newline')
-  // Only 1 paragraph
-  // @ts-ignore
-  if (trimmed.length === 1 && trimmed[0]?.content?.some) {
-    // Is something in the content not an emoji?
-    // @ts-ignore
-    return !trimmed[0]?.content?.some(n => n.type !== 'emoji' && n.type !== 'newline')
+  let emojiLine = 0
+  for (const node of ast) {
+    if (node.type === 'newline') {
+      continue // ignore newline
+    }
+    const c = node['content'] as Array<{type: string}> | string
+    if (!isArray(c) || c.some(n => n.type !== 'emoji' && n.type !== 'newline')) {
+      return false // non-emoji, done
+    }
+
+    emojiLine++
+    if (emojiLine > 1) {
+      return false // too many, done
+    }
   }
-  return false
+
+  return emojiLine === 1
 }
 
 const tooLong = 10000

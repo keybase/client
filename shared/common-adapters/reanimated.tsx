@@ -1,34 +1,22 @@
 import {isDebuggingInChrome, isMobile} from '../constants/platform'
 import skipAnimations from './skip-animations'
-import type {
-  default as ReAnimatedType,
-  useSharedValue as useSharedValueType,
-  useAnimatedStyle as useAnimatedStyleType,
-  withTiming as withTimingType,
-  withDelay as withDelayType,
-  withRepeat as withRepeatType,
-  interpolate as interpolateType,
-  useAnimatedScrollHandler as useAnimatedScrollHandlerType,
-  Extrapolation as ExtrapolationType,
-  withSpring as withSpringType,
-  useReducedMotion as useReducedMotionType,
-} from 'react-native-reanimated'
+import type * as R from 'react-native-reanimated'
 
-let useSharedValue: typeof useSharedValueType
-let withRepeat: typeof withRepeatType
-let useAnimatedStyle: typeof useAnimatedStyleType
-let withTiming: typeof withTimingType
-let withDelay: typeof withDelayType
-let useAnimatedScrollHandler: typeof useAnimatedScrollHandlerType
-let createAnimatedComponent: (typeof ReAnimatedType)['createAnimatedComponent']
-let Animated: typeof ReAnimatedType
-let interpolate: typeof interpolateType
-let Extrapolation: typeof ExtrapolationType
-let withSpring: typeof withSpringType
-let useReducedMotion: typeof useReducedMotionType
+let useSharedValue: typeof R.useSharedValue
+let withRepeat: typeof R.withRepeat
+let useAnimatedStyle: typeof R.useAnimatedStyle
+let withTiming: typeof R.withTiming
+let withDelay: typeof R.withDelay
+let useAnimatedScrollHandler: typeof R.useAnimatedScrollHandler
+let createAnimatedComponent: typeof R.default.createAnimatedComponent
+let Animated: typeof R.default
+let interpolate: typeof R.interpolate
+let Extrapolation: typeof R.Extrapolation
+let withSpring: typeof R.withSpring
+let useReducedMotion: typeof R.useReducedMotion
 
 if (isMobile && !skipAnimations) {
-  const rnr = require('react-native-reanimated')
+  const rnr = require('react-native-reanimated') as typeof R
   Animated = rnr.default
   createAnimatedComponent = rnr.default.createAnimatedComponent
   useAnimatedStyle = rnr.useAnimatedStyle
@@ -48,10 +36,14 @@ if (isMobile && !skipAnimations) {
   if (isMobile) {
     console.log('\n\n\nDEBUG: mock ReAnimated enabled')
   }
-  Animated = {View: ({children}: any) => children} as any
+  Animated = {View: ({children}: {children: unknown}) => children} as any as typeof Animated
   createAnimatedComponent = (f: any) => f
-  // @ts-ignore
-  useSharedValue = (a: any, _oneWayReadsOnly?: boolean) => ({value: a})
+  useSharedValue = (a: any, _oneWayReadsOnly?: boolean) => ({
+    addListener: () => {},
+    modify: () => {},
+    removeListener: () => {},
+    value: a,
+  })
   withRepeat = (a: any) => a
   useAnimatedStyle = (f: () => Object): any => f()
   withTiming = (a: any) => a
@@ -59,14 +51,13 @@ if (isMobile && !skipAnimations) {
   useAnimatedScrollHandler = () => () => {}
   interpolate = (a: any) => a
   useReducedMotion = () => false
+
   enum _Extrapolation {
     IDENTITY = 'identity',
     CLAMP = 'clamp',
     EXTEND = 'extend',
   }
-
-  // @ts-ignore
-  Extrapolation = _Extrapolation
+  Extrapolation = _Extrapolation as unknown as typeof Extrapolation
   withSpring = (a: any) => a
   if (!isDebuggingInChrome) {
     console.log('DEBUG: Mock ReAnimated enabled, yet not in chrome. Some animations will be missing')

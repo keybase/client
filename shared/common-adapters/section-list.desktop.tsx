@@ -289,8 +289,7 @@ class SectionList<T extends Section<any>> extends React.Component<Props<T>, Stat
                 : undefined
             }
             length={this._flat.length}
-            // @ts-ignore prop doesn't exist just to force a mutation
-            retrigger={this._flat}
+            extraData={this._flat as any}
             ref={this._listRef}
             type={this.props.desktopReactListTypeOverride ?? 'variable'}
           />
