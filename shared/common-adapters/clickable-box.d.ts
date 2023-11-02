@@ -16,7 +16,6 @@ export type Props = {
   // mobile only
   feedback?: boolean
   activeOpacity?: number
-  pointerEvents?: 'auto' | 'none' | 'box-none' | 'box-only'
   // desktop only
   hoverColor?: string
   onMouseOver?: (event: React.MouseEvent) => void
