@@ -261,25 +261,22 @@ async function pack(plat: string, arch: string) {
   if (packageOutDir === '') packageOutDir = desktopPath(`release/${plat}-${arch}`)
   console.log('Packaging to', packageOutDir)
 
-  let opts = {
+  const opts = {
     ...packagerOpts,
     arch,
     out: packageOutDir,
     platform: plat,
     prune: true,
-  }
-
-  if (plat === 'win32') {
-    opts = {
-      ...opts,
-      // @ts-ignore does exist on win32
-      'version-string': {
-        CompanyName: companyName,
-        FileDescription: appName,
-        OriginalFilename: appName + '.exe',
-        ProductName: appName,
-      },
-    }
+    ...(plat === 'win32'
+      ? {
+          'version-string': {
+            CompanyName: companyName,
+            FileDescription: appName,
+            OriginalFilename: appName + '.exe',
+            ProductName: appName,
+          },
+        }
+      : null),
   }
 
   const ret = await packager(opts)

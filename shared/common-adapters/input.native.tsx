@@ -259,13 +259,9 @@ class Input extends React.Component<Props, State> {
         ...(this.props.rowsMax ? {maxHeight: this.rowsToHeight(this.props.rowsMax)} : null),
       },
       this.props.small ? styles.commonInputSmall : styles.commonInputRegular,
+      // Override height if we received an onContentSizeChange() earlier.
+      isIOS && this.state.height && {height: this.state.height},
     ])
-
-    // Override height if we received an onContentSizeChange() earlier.
-    if (isIOS && this.state.height) {
-      // @ts-ignore we shouldn't reach in here
-      multilineStyle.height = this.state.height
-    }
 
     const value = this.getValueImpl()
 
@@ -309,12 +305,8 @@ class Input extends React.Component<Props, State> {
       textContentType: this.props.textContentType,
       underlineColorAndroid: 'transparent',
       ...(this.props.maxLength ? {maxLength: this.props.maxLength} : null),
+      ...(this.props.uncontrolled ? null : {value}),
     } as const
-
-    if (!this.props.uncontrolled) {
-      // @ts-ignore it's ok to add this
-      commonProps.value = value
-    }
 
     const singlelineProps = {
       ...commonProps,

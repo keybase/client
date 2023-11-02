@@ -15,8 +15,7 @@ const ChoiceList = ({options}: Props) => {
   return (
     <Kb.Box>
       {options.map((op, idx) => {
-        // TODO is this okay?
-        const iconType: IconType = op.icon as IconType
+        const iconType = op.icon as IconType
         return (
           <Kb.Box
             style={Styles.collapseStyles([
