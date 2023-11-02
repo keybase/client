@@ -1,3 +1,4 @@
+import type * as Framed from 'framed-msgpack-rpc'
 import type Session from './session'
 import type {RPCError} from '../util/errors'
 import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '../constants/types/rpc-all-gen'
@@ -23,6 +24,7 @@ export declare class Engine {
     incomingCallMap?: IncomingCallMapType
     waitingKey?: WaitingKey
   }): void
+  _rpcClient: Framed.client.Client
 }
 export declare function getEngine(): Engine
 export declare function makeEngine(

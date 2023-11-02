@@ -62,6 +62,7 @@ declare module 'framed-msgpack-rpc' {
         connectCallback?: connectDisconnectCB,
         disconnectCallback?: connectDisconnectCB
       )
+      send(u: unknown): boolean
       invoke(i: InvokeArgs, cb: (err: ErrorType, data: {}) => void): void
       packetize_data(d: any): void
       needsConnect: boolean
