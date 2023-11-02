@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
-import * as KbMobile from '../../../../../common-adapters/mobile.native'
+import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import throttle from 'lodash/throttle'
 // ios must animated plain colors not the dynamic ones
 import colors, {darkColors} from '../../../../../styles/colors'
@@ -100,24 +100,22 @@ type AshTowerProps = {
 
 type AshTowerState = {
   showExploded: boolean
-  width: KbMobile.NativeAnimated.Value
+  width: NativeAnimated.Value
 }
 
 class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
   state = {
     showExploded: this.props.exploded,
-    width: this.props.exploded
-      ? new KbMobile.NativeAnimated.Value(100)
-      : new KbMobile.NativeAnimated.Value(0),
+    width: this.props.exploded ? new NativeAnimated.Value(100) : new NativeAnimated.Value(0),
   }
   timerID?: SharedTimerID
 
   componentDidUpdate(prevProps: AshTowerProps) {
     if (!prevProps.exploded && this.props.exploded) {
       // just exploded! animate
-      KbMobile.NativeAnimated.timing(this.state.width, {
+      NativeAnimated.timing(this.state.width, {
         duration: animationDuration,
-        easing: KbMobile.NativeEasing.inOut(KbMobile.NativeEasing.ease),
+        easing: NativeEasing.inOut(NativeEasing.ease),
         toValue: 100,
         useNativeDriver: false,
       }).start()
@@ -143,16 +141,16 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
       outputRange: ['0%', '100%'],
     })
     return (
-      <KbMobile.NativeAnimated.View style={[{width}, styles.slider]}>
+      <NativeAnimated.View style={[{width}, styles.slider]}>
         <AshTower {...this.props} showExploded={this.state.showExploded} />
         <EmojiTower animatedValue={this.state.width} numImages={this.props.numImages} />
-      </KbMobile.NativeAnimated.View>
+      </NativeAnimated.View>
     )
   }
 }
 
 class EmojiTower extends React.Component<
-  {numImages: number; animatedValue: KbMobile.NativeAnimated.Value},
+  {numImages: number; animatedValue: NativeAnimated.Value},
   {running: boolean}
 > {
   state = {running: false}

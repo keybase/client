@@ -1,5 +1,5 @@
 import * as Kb from '../../../common-adapters'
-import * as KbMobile from '../../../common-adapters/mobile.native'
+import NativeScrollView from '../../../common-adapters/scroll-view.native'
 import type {Props} from './participant-rekey.types'
 
 const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked: (s: string) => void}) => (
@@ -42,7 +42,7 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
         This conversation is waiting for a participant to open their Keybase app.
       </Kb.Text>
     </Kb.Box>
-    <KbMobile.NativeScrollView style={{flex: 1, paddingTop: 8}}>
+    <NativeScrollView style={{flex: 1, paddingTop: 8}}>
       <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 8}}>
         <Kb.Box>
           {rekeyers.map(username => (
@@ -50,7 +50,7 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
           ))}
         </Kb.Box>
       </Kb.Box>
-    </KbMobile.NativeScrollView>
+    </NativeScrollView>
   </Kb.Box>
 )
 

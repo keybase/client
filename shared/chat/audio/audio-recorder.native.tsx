@@ -1,7 +1,7 @@
 import * as C from '../../constants'
 import * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
-import * as KbMobile from '../../common-adapters/mobile.native'
+import {Portal} from '../../common-adapters/portal.native'
 import * as React from 'react'
 import * as Styles from '../../styles'
 // we need to use the raw colors to animate
@@ -72,7 +72,7 @@ const useTooltip = () => {
   }, [])
 
   const tooltip = showTooltip ? (
-    <KbMobile.Portal hostName="convOverlay" useFullScreenOverlay={false}>
+    <Portal hostName="convOverlay" useFullScreenOverlay={false}>
       <Animated.View style={animatedStyles}>
         <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
           <Kb.Text type="BodySmall" negative={true}>
@@ -80,7 +80,7 @@ const useTooltip = () => {
           </Kb.Text>
         </Kb.Box2>
       </Animated.View>
-    </KbMobile.Portal>
+    </Portal>
   ) : null
 
   const flashTip = React.useCallback(() => {
@@ -289,7 +289,7 @@ const useIconAndOverlay = (p: {
 
   const overlay =
     visible === Visible.HIDDEN ? null : (
-      <KbMobile.Portal hostName="convOverlay" useFullScreenOverlay={false}>
+      <Portal hostName="convOverlay" useFullScreenOverlay={false}>
         <Animated.View style={styles.container} pointerEvents="box-none">
           <BigBackground fadeSV={fadeSV} />
           <AmpCircle fadeSV={fadeSV} ampSV={ampSV} dragXSV={dragXSV} dragYSV={dragYSV} lockedSV={lockedSV} />
@@ -307,7 +307,7 @@ const useIconAndOverlay = (p: {
             <AudioCounter />
           </Animated.View>
         </Animated.View>
-      </KbMobile.Portal>
+      </Portal>
     )
 
   return {icon, overlay}
