@@ -139,7 +139,6 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
       this._setBottom(0)
 
       if (getKeyboardUp()) {
-        // @ts-ignore actually exists but not in the api until 71
         const h = Keyboard.metrics()?.height ?? 0
         this._setBottom(h)
       } else {

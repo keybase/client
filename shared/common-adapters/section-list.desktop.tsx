@@ -27,7 +27,7 @@ type State = {
   currentSectionFlatIndex: number
 }
 
-class SectionList<T extends Section<any, any>> extends React.Component<Props<T>, State> {
+class SectionList<T extends Section<any>> extends React.Component<Props<T>, State> {
   _flat: Array<FlatListElement<T>> = []
   _sectionIndexToFlatIndex: Array<number> = []
   state = {currentSectionFlatIndex: 0}
@@ -76,14 +76,12 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
     const item = this._flat[index]
     if (!item) {
       // data is switching out from under us. let things settle
-      // @ts-ignore
-      return null
+      return <></>
     }
     const section = this._flat[item.flatSectionIndex] as HeaderFlatListElement<T> | undefined
     if (!section) {
       // data is switching out from under us. let things settle
-      // @ts-ignore
-      return null
+      return <></>
     }
 
     if (item.type === 'header') {
@@ -124,14 +122,11 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
     } else {
       return (
         <Kb.Box2 direction="vertical" key={`${section.key}:${item.key}`} style={styles.box}>
-          {
-            // @ts-ignore TODO fix this
-            (section.section.renderItem || this.props.renderItem)({
-              index: item.indexWithinSection,
-              item: item.item,
-              section: section.section,
-            })
-          }
+          {(section.section.renderItem || this.props.renderItem)?.({
+            index: item.indexWithinSection,
+            item: item.item,
+            section: section.section as any,
+          })}
         </Kb.Box2>
       )
     }
@@ -202,27 +197,23 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
       this._sectionIndexToFlatIndex.push(flatSectionIndex)
       arr.push({
         flatSectionIndex,
-        // @ts-ignore TODO fix this
         key: this.props.sectionKeyExtractor?.(section, sectionIndex) || section.key || sectionIndex,
         section,
         sectionIndex,
         type: 'header',
       })
-      // @ts-ignore TODO fix this
       if (section.data.length) {
         arr.push(
-          // @ts-ignore TODO fix this
           ...section.data.map((item: ItemTFromSectionT<T>, indexWithinSection) => ({
             flatSectionIndex,
             indexWithinSection,
             item,
             key:
               this.props.keyExtractor?.(item, indexWithinSection) ||
-              // @ts-ignore
               item.key ||
               `${sectionIndex}-${indexWithinSection}`,
             sectionIndex,
-            type: 'body',
+            type: 'body' as const,
           }))
         )
       } else {
@@ -298,7 +289,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
                 : undefined
             }
             length={this._flat.length}
-            // @ts-ignore
+            // @ts-ignore prop doesn't exist just to force a mutation
             retrigger={this._flat}
             ref={this._listRef}
             type={this.props.desktopReactListTypeOverride ?? 'variable'}
@@ -310,14 +301,15 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
   }
 }
 
-type HeaderFlatListElement<T> = {
+type HeaderFlatListElement<SectionT extends Section<any>> = {
   flatSectionIndex: number
   key: React.Key
-  section: T
+  section: SectionT
   sectionIndex: number
   type: 'header'
 }
-type FlatListElement<T> =
+
+type FlatListElement<T extends Section<any>> =
   | {
       flatSectionIndex: number
       indexWithinSection: number

@@ -327,11 +327,7 @@ class Input extends React.PureComponent<Props, State> {
           : undefined,
       ref: this._setInputRef,
       ...(this.props.maxLength ? {maxLength: this.props.maxLength} : null),
-    }
-
-    if (!this.props.uncontrolled) {
-      // @ts-ignore it's ok to add this
-      commonProps.value = value
+      ...(this.props.uncontrolled ? null : {value}),
     }
 
     const singlelineProps = {
@@ -390,7 +386,6 @@ const styles = Styles.styleSheetCreate(() => ({
       border: 'none',
       color: Styles.globalColors.black,
       flex: 1,
-      // @ts-ignore
       outlineWidth: 0,
     },
   }),
@@ -419,7 +414,6 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   smallLabel: Styles.platformStyles({
-    // @ts-ignore
     isElectron: {
       ...Styles.globalStyles.fontSemibold,
       color: Styles.globalColors.blueDark,

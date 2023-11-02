@@ -2,7 +2,6 @@
 import fs from 'fs'
 import path from 'path'
 import {execSync} from 'child_process'
-// @ts-ignore
 import prettier from 'prettier'
 import crypto from 'crypto'
 
@@ -20,7 +19,7 @@ const commands = {
     help: 'Update icon.constants-gen.tsx and icon.css with new/removed files',
   },
   'unused-assets': {
-    code: unusedAssetes,
+    code: unusedAssets,
     help: 'Find unused assets',
   },
 }
@@ -51,34 +50,49 @@ const baseCharCode = 0xe900
 
 const iconfontRegex = /^(\d+)-kb-iconfont-(.*)-(\d+).svg$/
 const computeCounter = (counter: number) => baseCharCode + counter - 1
-const mapPaths = (skipUnmatchedFile: boolean) => (path: string) => {
-  const match = path.match(iconfontRegex)
-  if (!match || match.length !== 4) {
-    return skipUnmatchedFile ? undefined : console.error(`Filename did not match, skipping ${path}`)
-  }
-  const [, counter, name, size] = match
-
-  if (!counter) {
-    throw new Error(`Invalid counter for filename ${path}`)
-  }
-
-  if (!(size === '8' || size === '16' || size === '24')) {
-    throw new Error(`Invalid size for filename ${path} - valid sizes are 8, 16, 24`)
-  }
-
-  const score = Number(counter)
-  return !isNaN(score) ? {filePath: path, counter: score, name, size} : null
+type Infos = {
+  filePath: string
+  counter: number
+  name?: string
+  size: string
 }
-const getSvgNames = (
-  skipUnmatchedFile: boolean
-): Array<{filePath: string; counter: number; name: string; size: string}> =>
-  // @ts-ignore codemode issue
-  fs
+const mapPaths =
+  (skipUnmatchedFile: boolean) =>
+  (path: string | undefined | null): Infos | undefined => {
+    if (!path) {
+      throw new Error('invalid path')
+    }
+    const match = path.match(iconfontRegex)
+    if (!match || match.length !== 4) {
+      if (!skipUnmatchedFile) console.error(`Filename did not match, skipping ${path}`)
+      return undefined
+    }
+    const [, counter, name, size] = match
+
+    if (!counter) {
+      throw new Error(`Invalid counter for filename ${path}`)
+    }
+
+    if (!(size === '8' || size === '16' || size === '24')) {
+      throw new Error(`Invalid size for filename ${path} - valid sizes are 8, 16, 24`)
+    }
+
+    const score = Number(counter)
+    return !isNaN(score) ? {filePath: path, counter: score, name, size} : undefined
+  }
+const getSvgNames = (skipUnmatchedFile: boolean) => {
+  const mp = mapPaths(skipUnmatchedFile)
+  return fs
     .readdirSync(paths.iconfont)
-    .map(mapPaths(skipUnmatchedFile))
-    .filter(Boolean)
-    // @ts-ignore codemode issue
+    .reduce((arr, p) => {
+      const info = mp(p)
+      if (info) {
+        arr.push(info)
+      }
+      return arr
+    }, new Array<Infos>())
     .sort((x, y) => x.counter - y.counter)
+}
 
 const getSvgPaths = (skipUnmatchedFile: boolean) =>
   getSvgNames(skipUnmatchedFile).map(i => path.resolve(paths.iconfont, i.filePath))
@@ -191,8 +205,7 @@ const fontsGeneratedSuccess = (web: boolean, result: FontResult) => {
 
 const generateWebCSS = (result: FontResult) => {
   const svgFilenames = getSvgNames(false /* print skipped */)
-  const rules: {[key: string]: number} = svgFilenames.reduce((map, {counter, name}) => {
-    // @ts-ignore
+  const rules = svgFilenames.reduce<{[key: string]: number}>((map, {counter, name}) => {
     map[`kb-iconfont-${name}`] = computeCounter(counter)
     return map
   }, {})
@@ -276,15 +289,24 @@ const fontsGeneratedError = (error: unknown) => {
   process.exit(1)
 }
 
+type IconInfo = {
+  extension?: string
+  imagesDir?: string
+  isFont: boolean
+  gridSize?: string
+  charCode?: number
+  nameDark?: string
+  require?: string
+  requireDark?: string
+}
 function insertIconAssets(iconFiles: Array<string>) {
-  const icons = {}
+  const icons: {[key: string]: IconInfo} = {}
 
   // light
   iconFiles
     .filter(i => i.startsWith('icon-'))
     .forEach(i => {
       const shortName = i.slice(0, -4)
-      // @ts-ignore
       icons[shortName] = {
         extension: i.slice(-3),
         imagesDir: `'icons'`,
@@ -301,22 +323,20 @@ function insertIconAssets(iconFiles: Array<string>) {
     .forEach(i => {
       const shortName = i.slice(0, -4)
       const lightName = shortName.replace(/^icon-dark-/, 'icon-')
-      // @ts-ignore
-      if (!icons[lightName]) {
+      const icon = icons[lightName]
+      if (!icon) {
         console.error(`Found a dark icon without a matching light icon! ${lightName} ${i}`)
         process.exit(1)
       }
-      // @ts-ignore
-      icons[lightName].nameDark = `'${shortName}'`
-      // @ts-ignore
-      icons[lightName].requireDark = `'../images/icons/${i}'`
+      icon.nameDark = `'${shortName}'`
+      icon.requireDark = `'../images/icons/${i}'`
     })
 
   return icons
 }
 
 function insertIllustrationAssets(illustrationFiles: Array<string>) {
-  return illustrationFiles.reduce((prevIcons, i) => {
+  return illustrationFiles.reduce<{[key: string]: IconInfo}>((prevIcons, i) => {
     const shortName = i.slice(0, -4)
     return {
       ...prevIcons,
@@ -333,7 +353,7 @@ function insertIllustrationAssets(illustrationFiles: Array<string>) {
 }
 
 function insertReleaseAssets(releaseFiles: Array<string>) {
-  return releaseFiles.reduce((prevIcons, i) => {
+  return releaseFiles.reduce<{[key: string]: IconInfo}>((prevIcons, i) => {
     const shortName = i.slice(0, -4)
     return {
       ...prevIcons,
@@ -354,7 +374,7 @@ async function updateIconConstants() {
   console.log('\t*' + pngAssetDirPaths.map(({assetDirPath}) => assetDirPath).join('\n\t*'))
 
   // Build constants for the png assests.
-  const icons = pngAssetDirPaths.reduce((prevIcons, {assetDirPath, insertFn}) => {
+  const icons = pngAssetDirPaths.reduce<{[key: string]: IconInfo}>((prevIcons, {assetDirPath, insertFn}) => {
     // Don't include @2x and @3x assets in icon-constants-gen.
     // They are included later in srcSet generation by icon.*.tsx
     //
@@ -370,7 +390,6 @@ async function updateIconConstants() {
   // Build constants for iconfont svgs
   const svgFilenames = getSvgNames(false /* print skipped */)
   svgFilenames.reduce((_, {counter, name, size}) => {
-    // @ts-ignore
     return (icons[`iconfont-${name}`] = {
       isFont: true,
       gridSize: size,
@@ -392,30 +411,27 @@ async function updateIconConstants() {
   }
 
   export const iconMeta = {
-  ${
-    /* eslint-disable */
-    Object.keys(icons)
-      .sort()
-      .map(name => {
-        // @ts-ignore
-        const icon = icons[name]
-        const meta = [
-          icon.charCode ? [`charCode: 0x${icon.charCode.toString(16)}`] : [],
-          icon.extension ? [`extension: '${icon.extension}'`] : [],
-          icon.imagesDir ? [`imagesDir: ${icon.imagesDir}`] : [],
-          icon.gridSize ? [`gridSize: ${icon.gridSize}`] : [],
-          `isFont: ${icon.isFont}`,
-          icon.nameDark ? [`nameDark: ${icon.nameDark}`] : [],
-          icon.require ? [`get require() {return require(${icon.require}) as ReqOut}`] : [],
-          icon.requireDark ? [`get requireDark() {return require(${icon.requireDark}) as ReqOut}`] : [],
-        ]
+  ${Object.keys(icons)
+    .sort()
+    .map(name => {
+      const icon = icons[name]
+      if (!icon) throw new Error('impossible')
+      const meta = [
+        icon.charCode ? [`charCode: 0x${icon.charCode.toString(16)}`] : [],
+        icon.extension ? [`extension: '${icon.extension}'`] : [],
+        icon.imagesDir ? [`imagesDir: ${icon.imagesDir}`] : [],
+        icon.gridSize ? [`gridSize: ${icon.gridSize}`] : [],
+        `isFont: ${icon.isFont}`,
+        icon.nameDark ? [`nameDark: ${icon.nameDark}`] : [],
+        icon.require ? [`get require() {return require(${icon.require}) as ReqOut}`] : [],
+        icon.requireDark ? [`get requireDark() {return require(${icon.requireDark}) as ReqOut}`] : [],
+      ]
 
-        return `'${name}': {
+      return `'${name}': {
             ${meta.filter(x => x.length).join(',\n')}
         } as IconMeta`
-      })
-      .join(',\n')
-  }
+    })
+    .join(',\n')}
   } as const
   export type IconType = keyof typeof iconMeta
   `
@@ -436,15 +452,11 @@ async function updateIconConstants() {
 }
 
 /* Icon types */
-${Object.keys(icons).reduce(
-  (res, name) =>
-    // @ts-ignore
-    icons[name].isFont
-      ? // @ts-ignore
-        res + `.icon-gen-${name}::before {content: "\\${icons[name].charCode.toString(16)}";}\n`
-      : res,
-  ''
-)}
+${Object.keys(icons).reduce((res, name) => {
+  const i = icons[name]
+  if (!i) throw new Error('impossible')
+  return i.isFont ? res + `.icon-gen-${name}::before {content: "\\${i.charCode?.toString(16)}";}\n` : res
+}, '')}
 `
 
   try {
@@ -539,11 +551,11 @@ const setFontMetrics = () => {
   }
 }
 
-function unusedAssetes() {
+function unusedAssets() {
   const allFiles = fs.readdirSync(paths.iconPng)
 
   // map of root name => [files]
-  const images = {}
+  const images: {[key: string]: Array<string>} = {}
   allFiles.forEach(f => {
     const parsed = path.parse(f)
     if (!['.jpg', '.png'].includes(parsed.ext)) {
@@ -556,25 +568,19 @@ function unusedAssetes() {
       root = atFiles[1] ?? ''
     }
 
-    // @ts-ignore
-    if (!images[root]) {
-      // @ts-ignore
-      images[root] = []
+    let ir = images[root]
+    if (!ir) {
+      images[root] = ir = []
     }
-    // @ts-ignore
-    images[root].push(f)
+    ir.push(f)
   })
 
   Object.keys(images).forEach(image => {
     const command = `ag --ignore "./common-adapters/icon.constants-gen.tsx" "${image}"`
     try {
       execSync(command, {encoding: 'utf8', env: process.env})
-    } catch (error_) {
-      const error = error_ as any
-      if (error.status === 1) {
-        // @ts-ignore
-        console.log(images[image].join('\n'))
-      }
+    } catch {
+      console.log(image, images[image]?.join('\n'))
     }
   })
 }

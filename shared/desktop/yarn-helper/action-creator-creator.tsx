@@ -1,4 +1,3 @@
-// @ts-ignore import don't bother
 import prettier from 'prettier'
 import path from 'path'
 import json5 from 'json5'
