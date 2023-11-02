@@ -290,7 +290,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               'keybase.1.proveUi.continueChecking': (_, response) =>
                 canceled ? response.result(false) : response.result(true),
               'keybase.1.proveUi.okToCheck': (_, response) => response.result(true),
-              'keybase.1.proveUi.outputInstructions': ({instructions, proof}, response) => {
+              'keybase.1.proveUi.outputInstructions': ({proof}, response) => {
                 if (canceled) {
                   response.error(inputCancelError)
                   return
@@ -311,23 +311,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
                     response.error(inputCancelError)
                   }
                 })
-                // @ts-ignore propbably a real thing
-                if (service === 'dnsOrGenericWebSite') {
-                  // We don't get this directly (yet) so we parse this out
-                  try {
-                    const match = instructions.data.match(/<url>(http[s]+):\/\//)
-                    const protocol = match?.[1]
-                    set(s => {
-                      s.platform = protocol === 'https' ? 'https' : 'http'
-                      updateUsername(s)
-                    })
-                  } catch (_) {
-                    set(s => {
-                      s.platform = 'http'
-                      updateUsername(s)
-                    })
-                  }
-                }
                 if (service) {
                   set(s => {
                     s.proofText = proof

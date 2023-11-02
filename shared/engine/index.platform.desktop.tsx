@@ -68,7 +68,7 @@ class ProxyNativeTransport extends TransportShared {
   }
 
   send(msg: unknown) {
-    engineSend?.(msg)
+    engineSend?.(msg as Uint8Array)
     return true
   }
 }

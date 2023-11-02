@@ -198,7 +198,7 @@ const lines = fs.readFileSync(logfile, 'utf8').split('\n')
 // 'Line to debug',
 // ]
 let lastGuiLine: Info | undefined
-const knownIDs = {}
+const knownIDs: {[key: string]: Info | undefined} = {}
 lines.forEach(line => {
   const info = convertLine(line)
   if (!info) return
@@ -206,23 +206,20 @@ lines.forEach(line => {
   // console.log(`DEBUG line type: '${info.type}' \n${line}\n${JSON.stringify(info, null, 2)}`)
   // Core has start/end marked with +/-. Ui doesn't have any timing like this so we treat them like they're contiguous
   switch (info.type) {
-    case '+':
+    case '+': {
       // If we overwrite an event, bookkeep that
-      // @ts-ignore
-      if (knownIDs[info.id]) {
-        // @ts-ignore
-        output.single = output.single.concat(buildEvent(knownIDs[info.id], 'i'))
+      const k = knownIDs[info.id]
+      if (k) {
+        output.single = output.single.concat(buildEvent(k, 'i'))
         output.collision.push(info)
       }
-      // @ts-ignore
       knownIDs[info.id] = info
       break
-    case '-':
-      // @ts-ignore
-      if (knownIDs[info.id]) {
-        // @ts-ignore
-        output.good = output.good.concat(buildGood(knownIDs[info.id], info))
-        // @ts-ignore
+    }
+    case '-': {
+      const k = knownIDs[info.id]
+      if (k) {
+        output.good = output.good.concat(buildGood(k, info))
         knownIDs[info.id] = undefined
       } else {
         // If we didn't find a corresponding event, bookkeep that
@@ -230,6 +227,7 @@ lines.forEach(line => {
         output.unmatched.push(info)
       }
       break
+    }
     case '|':
       // We ignore pipes
       break
