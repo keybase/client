@@ -1,6 +1,7 @@
 import partition from 'lodash/partition'
 import * as Kb from '../../../../../common-adapters'
 import * as T from '../../../../../constants/types'
+import capitalize from 'lodash/capitalize'
 
 type Props = {
   result: T.RPCChat.UICoinFlipResult
@@ -114,8 +115,34 @@ const suits = {
   },
 } as const
 
+const cardToTitle = (c: (typeof cards)[number]) => {
+  let v
+  switch (c.value) {
+    case 'A':
+      v = 'Ace'
+      break
+    case 'K':
+      v = 'King'
+      break
+    case 'Q':
+      v = 'Queen'
+      break
+    case 'J':
+      v = 'Jack'
+      break
+    default:
+      v = c.value
+  }
+  return `${v} of ${capitalize(c.suit)}`
+}
+
 const Card = (props: CardType) => (
-  <Kb.Box2 direction="vertical" centerChildren={true} style={styles.card}>
+  <Kb.Box2
+    direction="vertical"
+    centerChildren={true}
+    style={styles.card}
+    title={cardToTitle(cards[props.card])}
+  >
     <Kb.Box2 direction="horizontal">
       <Kb.Text
         selectable={true}

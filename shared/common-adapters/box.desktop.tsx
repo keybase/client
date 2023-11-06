@@ -13,7 +13,7 @@ const useBox2Shared = (p: Box2Props) => {
   const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = p
   const {onMouseMove, onMouseDown, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture, children} = p
   const {onContextMenu, gap, gapStart, gapEnd, pointerEvents, onDragLeave, onDragOver, onDrop} = p
-  const {style: _style, className: _className} = p
+  const {style: _style, className: _className, title} = p
   const horizontal = direction === 'horizontal' || direction === 'horizontalReverse'
   const reverse = direction === 'verticalReverse' || direction === 'horizontalReverse'
 
@@ -59,6 +59,7 @@ const useBox2Shared = (p: Box2Props) => {
     onMouseOver,
     onMouseUp,
     style,
+    title,
   }
 }
 
