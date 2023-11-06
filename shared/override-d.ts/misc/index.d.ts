@@ -47,3 +47,7 @@ declare module 'emoji-datasource-apple/img/apple/sheets/64.png' {
   var png: string
   export default png
 }
+
+declare module 'react-is' {
+  export const isValidElementType: (a: unknown) => boolean
+}

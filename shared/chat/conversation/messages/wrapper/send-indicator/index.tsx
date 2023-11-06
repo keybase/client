@@ -29,11 +29,19 @@ const statusToIconDark = {
 
 const statusToIconExploding = {
   encrypting: 'messageStatusEncryptingExploding',
+  encryptingExploding: undefined,
+  error: undefined,
   sending: 'messageStatusSendingExploding',
+  sendingExploding: undefined,
+  sent: undefined,
 } as const
 const statusToIconDarkExploding = {
   encrypting: 'darkMessageStatusEncryptingExploding',
+  encryptingExploding: undefined,
+  error: undefined,
   sending: 'darkMessageStatusSendingExploding',
+  sendingExploding: undefined,
+  sent: undefined,
 } as const
 
 const shownEncryptingSet = new Set()
@@ -74,10 +82,8 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
 
   const animationType: Kb.AnimationType | undefined = isExploding
     ? Kb.Styles.isDarkMode()
-      ? // @ts-ignore
-        statusToIconDarkExploding[status]
-      : // @ts-ignore
-        statusToIconExploding[status]
+      ? statusToIconDarkExploding[status]
+      : statusToIconExploding[status]
     : Kb.Styles.isDarkMode()
     ? statusToIconDark[status]
     : statusToIcon[status]

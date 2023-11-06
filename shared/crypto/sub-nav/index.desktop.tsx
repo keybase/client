@@ -41,8 +41,7 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
           {state.routes.map((route, i) => {
             return i === state.index ? (
               <Kb.Box2 key={route.key} direction="vertical" fullHeight={true} fullWidth={true}>
-                {// @ts-ignore
-                descriptors[route.key]?.render()}
+                {descriptors[route.key]?.render()}
               </Kb.Box2>
             ) : null
           })}
@@ -61,19 +60,16 @@ const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator)
 const TabNavigator = createLeftTabNavigator()
 
 const shimmed = shim(cryptoSubRoutes, false, false)
+const shimKeys = Object.keys(shimmed) as Array<keyof typeof shimmed>
 
 const CryptoSubNavigator = () => (
   <TabNavigator.Navigator initialRouteName={Constants.encryptTab} backBehavior="none">
-    {Object.keys(shimmed).map(name => (
+    {shimKeys.map(name => (
       <TabNavigator.Screen
         key={name}
         name={name}
-        getComponent={
-          // @ts-ignore
-          cryptoSubRoutes[name].getScreen
-        }
+        getComponent={cryptoSubRoutes[name].getScreen}
         options={({route, navigation}) => {
-          // @ts-ignore
           const no = getOptions(cryptoSubRoutes[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}

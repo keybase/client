@@ -206,25 +206,13 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     )
   }
 
-  const renderSectionHeader = ({
-    section,
-  }: {
-    section:
-      | Section<NameResult>
-      | Section<T.Chat.InboxSearchOpenTeamHit>
-      | Section<T.RPCGen.FeaturedBot>
-      | Section<TextResult>
-  }): React.ReactNode => {
-    // @ts-ignore
-    return section.renderHeader(section)
-  }
   const keyExtractor = (
     _: T.RPCGen.FeaturedBot | T.Chat.InboxSearchOpenTeamHit | NameResult | TextResult,
     index: number
   ) => index
 
   const renderHit = (h: {
-    item: TextResult | NameResult
+    item: unknown // TextResult | NameResult
     section: {
       indexOffset: number
       onSelect: (item: NameResult | TextResult, index: number) => void
@@ -239,7 +227,8 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
       )
     }
 
-    const {item, section, index} = h
+    const {item: _item, section, index} = h
+    const item = _item as TextResult | NameResult
     const numHits = item.numHits || undefined
     const realIndex = index + section.indexOffset
     return item.type === 'big' ? (
@@ -308,8 +297,8 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     onCollapse: toggleCollapseName,
     onSelect: selectName,
     renderHeader: renderNameHeader,
-    // @ts-ignore better typing
-    renderItem: renderHit,
+    // TODO fix types
+    renderItem: renderHit as any,
     status: nameStatus,
     title: nameResultsUnread ? 'Unread' : 'Chats',
   }
@@ -318,8 +307,8 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     indexOffset: nameResults.length,
     isCollapsed: openTeamsCollapsed,
     onCollapse: toggleCollapseOpenTeams,
-    // @ts-ignore TODO: pretty sure this line is just wrong:
-    onSelect: selectText,
+    // TODO fix types
+    onSelect: selectText as any,
     renderHeader: renderTeamHeader,
     renderItem: renderOpenTeams,
     status: openTeamsStatus,
@@ -343,8 +332,8 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     onCollapse: toggleCollapseText,
     onSelect: selectText,
     renderHeader: renderTextHeader,
-    // @ts-ignore better typing
-    renderItem: renderHit,
+    // TODO better types
+    renderItem: renderHit as any,
     status: textStatus,
     title: 'Messages',
   }
@@ -361,7 +350,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
       <Kb.SectionList
         ListHeaderComponent={header}
         stickySectionHeadersEnabled={true}
-        renderSectionHeader={renderSectionHeader as any}
+        renderSectionHeader={({section}) => section.renderHeader(section as any)}
         keyExtractor={keyExtractor}
         keyboardShouldPersistTaps="handled"
         sections={sections}
@@ -389,7 +378,7 @@ type SectionExtra<T> = {
   isCollapsed: boolean
   onCollapse: () => void
   onSelect: (item: T, index: number) => void
-  renderHeader: (section: Section<T>) => React.ReactNode
+  renderHeader: (section: Section<T>) => React.ReactElement
   status: T.Chat.InboxSearchStatus
   title: string
 }

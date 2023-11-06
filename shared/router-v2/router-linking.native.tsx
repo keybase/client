@@ -1,4 +1,5 @@
 import * as C from '../constants'
+import type * as T from '../constants/types'
 import * as ChatConstants from '../constants/chat2'
 import * as Shared from './router.shared'
 import * as Tabs from '../constants/tabs'
@@ -76,14 +77,10 @@ const makeLinking = (options: OptionsType) => {
         initialRouteName: 'loggedIn',
         loggedIn: {
           screens: {
-            ...tabs.reduce((m, name) => {
-              // m[name] = name
-              // @ts-ignore
+            ...tabs.reduce<{[tab: string]: unknown}>((m, name) => {
               m[name] = {
-                // @ts-ignore
                 initialRouteName: tabRoots[name],
                 screens: {
-                  // @ts-ignore
                   [tabRoots[name]]: name,
                 },
               }
@@ -94,11 +91,22 @@ const makeLinking = (options: OptionsType) => {
       },
     },
     draft => {
-      const {screens} = draft.screens.loggedIn
-      // @ts-ignore
-      screens[Tabs.chatTab].screens.chatConversation = 'chat/:_convoName/:_highlightMessageID?'
-      // @ts-ignore
-      screens[Tabs.peopleTab].screens.profile = 'profile/show/:_username'
+      const {screens: _screens} = draft.screens.loggedIn
+      const screens = _screens as {
+        [key: string]: {
+          screens: {
+            [key: string]: string
+          }
+        }
+      }
+      const chat = screens[Tabs.chatTab]
+      if (chat) {
+        chat.screens['chatConversation'] = 'chat/:_convoName/:_highlightMessageID?'
+      }
+      const people = screens[Tabs.peopleTab]
+      if (people) {
+        people.screens['profile'] = 'profile/show/:_username'
+      }
     }
   )
 
@@ -141,8 +149,11 @@ const makeLinking = (options: OptionsType) => {
       if (path.startsWith('convid/')) {
         const [, id] = path.split('/')
         return C.produce(getStateFromPath('chat/REPLACE', options), draft => {
-          // @ts-ignore
-          draft.routes[0].state.routes[0].state.routes[1].params.conversationIDKey = id
+          const params: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} =
+            draft?.routes[0]?.state?.routes[0]?.state?.routes[1]?.params
+          if (params) {
+            params.conversationIDKey = id
+          }
         })
       } else {
         return getStateFromPath(path, options)

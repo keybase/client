@@ -1,7 +1,6 @@
 export const chatTab = 'tabs.chatTab'
 export const cryptoTab = 'tabs.cryptoTab'
 export const devicesTab = 'tabs.devicesTab'
-export const folderTab = 'tabs.folderTab'
 export const loginTab = 'tabs.loginTab'
 export const peopleTab = 'tabs.peopleTab'
 export const searchTab = 'tabs.searchTab'
@@ -15,7 +14,6 @@ export type Tab =
   | typeof chatTab
   | typeof cryptoTab
   | typeof devicesTab
-  | typeof folderTab
   | typeof loginTab
   | typeof peopleTab
   | typeof settingsTab
@@ -61,4 +59,8 @@ export const desktopTabMeta = {
   [settingsTab]: {icon: 'iconfont-nav-2-settings', label: 'Settings'},
   [teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
   [walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
+
+  // eslint-disable-next-line
+  [loginTab]: undefined,
+  [searchTab]: undefined,
 } as const

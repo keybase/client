@@ -43,7 +43,7 @@ export {settingsScreenprotectorTab, settingsContactsTab, settingsInvitationsTab}
 export {settingsCryptoTab, settingsDevicesTab, settingsFeedbackTab, settingsDisplayTab} from './settings'
 export {settingsPasswordTab, settingsWalletsTab, settingsGitTab, settingsAdvancedTab} from './settings'
 export {_useState as useSettingsState} from './settings'
-export {settingsTab, chatTab, cryptoTab, devicesTab, folderTab, loginTab, type Tab} from './tabs'
+export {settingsTab, chatTab, cryptoTab, devicesTab, loginTab, type Tab} from './tabs'
 export {peopleTab, searchTab, teamsTab, gitTab, fsTab, walletsTab, type AppTab} from './tabs'
 export {settingsWaitingKey, checkPasswordWaitingKey} from './settings'
 export {_useState as useSettingsChatState, contactSettingsSaveWaitingKey} from './settings-chat'

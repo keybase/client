@@ -147,7 +147,6 @@ const SimpleTopLineImpl = React.memo(function SimpleTopLineImpl(p: IProps) {
           type="iconfont-gear"
           className="conversation-gear"
           onClick={toggleShowingPopup}
-          // @ts-ignore icon typing is bad
           ref={popupAnchor}
           color={subColor}
           hoverColor={iconHoverColor}

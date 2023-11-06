@@ -107,13 +107,11 @@ export const useSubnavTabAction = (navigation: NavigationContainerRef<{}>, state
     (tab: string) => {
       const route = state?.routes?.find(r => r.name === tab)
       const event = route
-        ? // @ts-ignore
-          navigation.emit({
+        ? navigation.emit({
             canPreventDefault: true,
             target: route.key,
-            // @ts-ignore
             type: 'tabPress',
-          })
+          } as any)
         : {defaultPrevented: false}
 
       if (!event.defaultPrevented) {
