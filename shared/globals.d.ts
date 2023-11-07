@@ -36,4 +36,6 @@ declare global {
   var __PROFILE__: boolean
   var rpcOnGo: undefined | ((b: unknown) => void)
   var rpcOnJs: undefined | ((b: unknown) => void)
+  // RN
+  var __turboModuleProxy: unknown
 }

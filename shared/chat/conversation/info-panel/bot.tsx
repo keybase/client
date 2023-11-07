@@ -4,7 +4,6 @@ import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as TeamConstants from '../../../constants/teams'
-import type * as Container from '../../../util/container'
 import type * as T from '../../../constants/types'
 import type {Section as _Section} from '../../../common-adapters/section-list'
 
@@ -227,7 +226,7 @@ const BotTab = (props: Props) => {
   const usernamesToFeaturedBots = (usernames: string[]) =>
     usernames.map((b, index) => ({
       ...(featuredBotsMap.get(b) ?? {
-        botAlias: botAliases[b] ?? (infoMap.get(b) || {fullname: ''}).fullname,
+        botAlias: botAliases[b] ?? (infoMap.get(b) || {fullname: ''}).fullname ?? '',
         botUsername: b,
         description: infoMap.get(b)?.bio ?? '',
         extendedDescription: '',
@@ -269,7 +268,6 @@ const BotTab = (props: Props) => {
     }
   }
 
-  // @ts-ignore TODO Fix
   const items: Array<string | T.RPCGen.FeaturedBot> = [
     ...(canManageBots ? [addBotButton] : []),
     ...(botsInConv.length > 0 ? [inThisChannelHeader] : []),
@@ -282,12 +280,11 @@ const BotTab = (props: Props) => {
     ...(loadingBots ? [featuredBotSpinner] : []),
   ]
 
-  const sections: Section[] = [
+  const sections = [
     {
       data: items,
       key: 'bots',
-      // @ts-ignore this is a mobile-only property we don't want to generally expose because it might end up confusing people.
-      keyExtractor: (item: Container.Unpacked<typeof items>, index: number) => {
+      keyExtractor: (item: (typeof items)[number], index: number) => {
         if (typeof item === 'string' || item instanceof String) {
           return item
         }

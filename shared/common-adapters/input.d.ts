@@ -40,7 +40,7 @@ export type Props = {
   inputStyle?: StylesCrossPlatform
   multiline?: boolean
   onBlur?: () => void
-  onClick?: (event: Event) => void
+  onClick?: (event: React.MouseEvent) => void
   onChangeText?: (text: string) => void
   onFocus?: () => void
   rowsMax?: number

@@ -58,15 +58,13 @@ export const useSubnavTabAction: typeof useSubnavTabActionType = (navigation, st
   navRef.current = navigation
 
   const onSelectTab = React.useCallback((tab: string) => {
-    // @ts-ignore
     const key = routeKeyMapRef.current.get(tab)
     const event = key
       ? navRef.current.emit({
           canPreventDefault: true,
           target: key,
-          // @ts-ignore
           type: 'tabPress',
-        })
+        } as any)
       : {defaultPrevented: false}
 
     if (!event.defaultPrevented) {

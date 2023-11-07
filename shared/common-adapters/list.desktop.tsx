@@ -14,8 +14,7 @@ class List extends React.PureComponent<Props<any>> {
     // ReactList has an issue where it caches the list length into its own state so can ask
     // for indices outside of the items...
     if (index >= this.props.items.length) {
-      // @ts-ignore
-      return null
+      return <></>
     }
     const item = this.props.items[index]
     const children = this.props.renderItem(index, item)

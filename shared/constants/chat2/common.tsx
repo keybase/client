@@ -75,8 +75,8 @@ export const reasonToRPCReason = (reason: string): T.RPCChat.GetThreadReason => 
 export const getSelectedConversation = (): T.Chat.ConversationIDKey => {
   const maybeVisibleScreen = Router2.getVisibleScreen()
   if (maybeVisibleScreen?.name === threadRouteName) {
-    // @ts-ignore TODO better types
-    return maybeVisibleScreen.params?.conversationIDKey ?? T.Chat.noConversationIDKey
+    const mParams: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = maybeVisibleScreen.params
+    return mParams?.conversationIDKey ?? T.Chat.noConversationIDKey
   }
   return T.Chat.noConversationIDKey
 }

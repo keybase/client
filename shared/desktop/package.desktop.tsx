@@ -1,11 +1,9 @@
-// @ts-ignore import don't bother
 import {rimrafSync} from 'rimraf'
 import fs from 'fs-extra'
 import os from 'os'
 import packager, {type Options} from 'electron-packager'
 import path from 'path'
 import webpack from 'webpack'
-// @ts-ignore import don't bother
 import rootConfig from './webpack.config.babel'
 import {readdir} from 'node:fs/promises'
 
@@ -263,25 +261,22 @@ async function pack(plat: string, arch: string) {
   if (packageOutDir === '') packageOutDir = desktopPath(`release/${plat}-${arch}`)
   console.log('Packaging to', packageOutDir)
 
-  let opts = {
+  const opts = {
     ...packagerOpts,
     arch,
     out: packageOutDir,
     platform: plat,
     prune: true,
-  }
-
-  if (plat === 'win32') {
-    opts = {
-      ...opts,
-      // @ts-ignore does exist on win32
-      'version-string': {
-        CompanyName: companyName,
-        FileDescription: appName,
-        OriginalFilename: appName + '.exe',
-        ProductName: appName,
-      },
-    }
+    ...(plat === 'win32'
+      ? {
+          'version-string': {
+            CompanyName: companyName,
+            FileDescription: appName,
+            OriginalFilename: appName + '.exe',
+            ProductName: appName,
+          },
+        }
+      : null),
   }
 
   const ret = await packager(opts)

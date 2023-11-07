@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
-import * as KbMobile from '../../../../../common-adapters/mobile.native'
+import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import throttle from 'lodash/throttle'
 // ios must animated plain colors not the dynamic ones
 import colors, {darkColors} from '../../../../../styles/colors'
@@ -14,26 +14,35 @@ const explodedIllustrationDarkURL = require('../../../../../images/icons/dark-pa
 
 export const animationDuration = 1500
 
-const copyChildren = (children: React.ReactNode): React.ReactNode =>
-  // @ts-ignore
-  React.Children.map(children, child => (child ? React.cloneElement(child) : child))
+const copyChildren = (children: React.ReactElement | Array<React.ReactElement>) =>
+  React.Children.map(children, child => {
+    return React.cloneElement(child)
+  })
 
 type State = {
-  children: React.ReactNode
+  children: React.ReactElement | Array<React.ReactElement>
   height: number | undefined
   numImages: number
 }
 
 class ExplodingHeightRetainer extends React.Component<Props, State> {
   state = {
-    children: this.props.retainHeight ? null : copyChildren(this.props.children),
+    children: this.props.retainHeight ? (
+      <></>
+    ) : this.props.children ? (
+      copyChildren(this.props.children)
+    ) : (
+      <></>
+    ),
     height: 20,
     numImages: 1,
   }
   timeoutID?: ReturnType<typeof setTimeout>
 
   static getDerivedStateFromProps(nextProps: Props, _: State) {
-    return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}
+    return nextProps.retainHeight
+      ? null
+      : {children: nextProps.children ? copyChildren(nextProps.children) : <></>}
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -41,7 +50,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
       // we just exploded! get rid of children when we're supposed to.
       this._clearTimeout()
       this.timeoutID = setTimeout(() => {
-        this.setState({children: null})
+        this.setState({children: <></>})
         this.timeoutID = undefined
       }, animationDuration)
     }
@@ -100,24 +109,22 @@ type AshTowerProps = {
 
 type AshTowerState = {
   showExploded: boolean
-  width: KbMobile.NativeAnimated.Value
+  width: NativeAnimated.Value
 }
 
 class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
   state = {
     showExploded: this.props.exploded,
-    width: this.props.exploded
-      ? new KbMobile.NativeAnimated.Value(100)
-      : new KbMobile.NativeAnimated.Value(0),
+    width: this.props.exploded ? new NativeAnimated.Value(100) : new NativeAnimated.Value(0),
   }
   timerID?: SharedTimerID
 
   componentDidUpdate(prevProps: AshTowerProps) {
     if (!prevProps.exploded && this.props.exploded) {
       // just exploded! animate
-      KbMobile.NativeAnimated.timing(this.state.width, {
+      NativeAnimated.timing(this.state.width, {
         duration: animationDuration,
-        easing: KbMobile.NativeEasing.inOut(KbMobile.NativeEasing.ease),
+        easing: NativeEasing.inOut(NativeEasing.ease),
         toValue: 100,
         useNativeDriver: false,
       }).start()
@@ -143,16 +150,16 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
       outputRange: ['0%', '100%'],
     })
     return (
-      <KbMobile.NativeAnimated.View style={[{width}, styles.slider]}>
+      <NativeAnimated.View style={[{width}, styles.slider]}>
         <AshTower {...this.props} showExploded={this.state.showExploded} />
         <EmojiTower animatedValue={this.state.width} numImages={this.props.numImages} />
-      </KbMobile.NativeAnimated.View>
+      </NativeAnimated.View>
     )
   }
 }
 
 class EmojiTower extends React.Component<
-  {numImages: number; animatedValue: KbMobile.NativeAnimated.Value},
+  {numImages: number; animatedValue: NativeAnimated.Value},
   {running: boolean}
 > {
   state = {running: false}

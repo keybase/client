@@ -2489,14 +2489,6 @@
     "@types/qs" "*"
     "@types/serve-static" "*"
 
-"@types/fs-extra@11.0.3":
-  version "11.0.3"
-  resolved "https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-11.0.3.tgz#72c3a247c8dd5703c93d900c584e006476146866"
-  integrity sha512-sF59BlXtUdzEAL1u0MSvuzWd7PdZvZEtnaVkzX5mjpdWTJ8brG0jUqve3jPCzSzvAKKMHTG8F8o/WMQLtleZdQ==
-  dependencies:
-    "@types/jsonfile" "*"
-    "@types/node" "*"
-
 "@types/google-libphonenumber@7.4.29":
   version "7.4.29"
   resolved "https://registry.yarnpkg.com/@types/google-libphonenumber/-/google-libphonenumber-7.4.29.tgz#161545a4168c85b768e32154019fbaa4d95af6f4"
@@ -2566,13 +2558,6 @@
   resolved "https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz#ee28707ae94e11d2b827bcbe5270bcea7f3e71ee"
   integrity sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==
 
-"@types/jsonfile@*":
-  version "6.1.3"
-  resolved "https://registry.yarnpkg.com/@types/jsonfile/-/jsonfile-6.1.3.tgz#683d447b413119393e913ecd414a2bc0e5d0f4b9"
-  integrity sha512-/yqTk2SZ1wIezK0hiRZD7RuSf4B3whFxFamB1kGStv+8zlWScTMcHanzfc0XKWs5vA1TkHeckBlOyM8jxU8nHA==
-  dependencies:
-    "@types/node" "*"
-
 "@types/keyv@^3.1.4":
   version "3.1.4"
   resolved "https://registry.yarnpkg.com/@types/keyv/-/keyv-3.1.4.tgz#3ccdb1c6751b0c7e52300bcdacd5bcbf8faa75b6"
@@ -2601,11 +2586,6 @@
   version "1.3.4"
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-1.3.4.tgz#a4ed836e069491414bab92c31fdea9e557aca0d9"
   integrity sha512-1Gjee59G25MrQGk8bsNvC6fxNiRgUlGn2wlhGf95a59DrprnnHk80FIMMFG9XHMdrfsuA119ht06QPDXA1Z7tw==
-
-"@types/mousetrap@1.6.13":
-  version "1.6.13"
-  resolved "https://registry.yarnpkg.com/@types/mousetrap/-/mousetrap-1.6.13.tgz#1b2e4cd374fdd1ee58a240be0aafd94f7270b3be"
-  integrity sha512-dEzDpaR+P/thkMsjsREQDX9OP8AMyLncTkgUgTTIxq5lJTlQffiLJt67ImDtaX+kC7CaNIX30pfdrrMZkym+eg==
 
 "@types/node@*":
   version "20.8.9"
@@ -2742,11 +2722,6 @@
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-2.0.2.tgz#01284dde9ef4e6d8cef6422798d9a3ad18a66f8b"
   integrity sha512-g7CK9nHdwjK2n0ymT2CW698FuWJRIx+RP6embAzZ2Qi8/ilIrA1Imt2LVSeHUzKvpoi7BhmmQcXz95eS0f2JXw==
-
-"@types/url-parse@1.4.10":
-  version "1.4.10"
-  resolved "https://registry.yarnpkg.com/@types/url-parse/-/url-parse-1.4.10.tgz#a2230ff9671613673cbecfafcaaf076b09353c3e"
-  integrity sha512-lMIBep0gR2Z8rt7IIiqRYD61TAX5dks4i48P12OPAw1xETYz5fz3ml0UJvOZCstvvgenDmehhKp524ZUwxFZFA==
 
 "@types/use-sync-external-store@^0.0.3":
   version "0.0.3"

@@ -1,6 +1,11 @@
 import * as C from '.'
 import type * as T from './types'
-import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
+import {
+  createNavigationContainerRef,
+  StackActions,
+  CommonActions,
+  type NavigationContainerRef,
+} from '@react-navigation/core'
 import * as Z from '../util/zustand'
 import {produce} from 'immer'
 import * as Tabs from './tabs'
@@ -12,6 +17,7 @@ export type PathParam = NavigateAppendType
 type Route = NavigationState['routes'][0]
 // still a little paranoid about some things being missing in this type
 export type NavState = Partial<Route['state']>
+export type Navigator = NavigationContainerRef<any>
 
 const DEBUG_NAV = __DEV__ && (false as boolean)
 
@@ -133,12 +139,12 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
   navUpHelper(route.state, name)
 }
 
-export const getTab = (navState?: NavState) => {
+export const getTab = (navState?: NavState): undefined | C.Tab => {
   const s = navState || getRootState()
   const loggedInRoute = s?.routes?.[0]
   if (loggedInRoute?.name === 'loggedIn') {
     // eslint-disable-next-line
-    return loggedInRoute.state?.routes?.[loggedInRoute.state.index ?? 0]?.name
+    return loggedInRoute.state?.routes?.[loggedInRoute.state.index ?? 0]?.name as C.Tab
   }
   return undefined
 }
@@ -208,8 +214,8 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
       // reuse visible route if it's the same
       const visible = chatStack.state.routes.at(-1)
       if (visible) {
-        // @ts-ignore TODO better route types
-        if (visible.name === 'chatConversation' && visible.params?.conversationIDKey === conversationIDKey) {
+        const vParams: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = visible.params
+        if (visible.name === 'chatConversation' && vParams?.conversationIDKey === conversationIDKey) {
           convoRoute = visible
         }
       }

@@ -1311,30 +1311,30 @@ export const specialMentions = ['here', 'channel', 'everyone']
 
 // TODO maybe its better to avoid merging at all and just deal with it at the component level. we pay for merging
 // on non visible items so the cost might be higher
-export const mergeMessage = (old: T.Chat.Message | undefined, m: T.Chat.Message): T.Chat.Message => {
+export const mergeMessage = (old: T.Chat.Message | undefined, msg: T.Chat.Message): T.Chat.Message => {
   if (!old) {
-    return m
+    return msg
   }
 
   // only merge if its the same id and type
-  if (old.id !== m.id || old.type !== m.type) {
-    return m
+  if (old.id !== msg.id || old.type !== msg.type) {
+    return msg
   }
 
-  let toRet: any = {...m}
+  const m = msg as {[key: string]: any}
+  let toRet = {...m}
 
   // if all props are the same then just use old
   let allSame = true as boolean
   Object.keys(old).forEach(key => {
+    const o = old as {[key: string]: any}
     switch (key) {
       case 'mentionsChannelName':
       case 'reactions':
       case 'mentionsAt':
       case 'audioAmps':
-        // @ts-ignore
-        if (C.shallowEqual([...old[key]], [...m[key]])) {
-          // @ts-ignore
-          toRet[key] = old[key]
+        if (C.shallowEqual([...o[key]], [...m[key]])) {
+          toRet[key] = o[key]
         } else {
           allSame = false
         }
@@ -1342,10 +1342,8 @@ export const mergeMessage = (old: T.Chat.Message | undefined, m: T.Chat.Message)
       case 'bodySummary':
       case 'decoratedText':
       case 'text':
-        // @ts-ignore
-        if (old[key]?.stringValue?.() === m[key]?.stringValue?.()) {
-          // @ts-ignore
-          toRet[key] = old[key]
+        if (o[key]?.stringValue?.() === m[key]?.stringValue?.()) {
+          toRet[key] = o[key]
         } else {
           allSame = false
         }
@@ -1358,10 +1356,8 @@ export const mergeMessage = (old: T.Chat.Message | undefined, m: T.Chat.Message)
         }
         break
       default:
-        // @ts-ignore strict: key is just a string here so TS doesn't like it
-        if (old[key] === m[key]) {
-          // @ts-ignore strict
-          toRet[key] = old[key]
+        if (o[key] === m[key]) {
+          toRet[key] = o[key]
         } else {
           allSame = false
         }
@@ -1370,7 +1366,7 @@ export const mergeMessage = (old: T.Chat.Message | undefined, m: T.Chat.Message)
   if (allSame) {
     toRet = old
   }
-  return toRet
+  return toRet as T.Chat.Message
 }
 
 export const upgradeMessage = (old: T.Chat.Message, m: T.Chat.Message): T.Chat.Message => {

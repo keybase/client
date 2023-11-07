@@ -348,12 +348,8 @@ export const initPlatformListener = () => {
           const ap = C.getVisiblePath()
           ap.some(r => {
             if (r.name == 'chatConversation') {
-              param = {
-                // @ts-ignore TODO better param typing
-                selectedConversationIDKey: r.params?.conversationIDKey as
-                  | T.Chat.ConversationIDKey
-                  | undefined,
-              }
+              const rParams: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = r.params
+              param = {selectedConversationIDKey: rParams?.conversationIDKey}
               return true
             }
             return false

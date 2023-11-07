@@ -1,17 +1,36 @@
 import partition from 'lodash/partition'
 import * as Kb from '../../../../../common-adapters'
 import * as T from '../../../../../constants/types'
+import capitalize from 'lodash/capitalize'
 
 type Props = {
   result: T.RPCChat.UICoinFlipResult
+}
+
+// prettier-ignore
+type CardIndex = 0|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51
+
+type CardType = {
+  card: CardIndex
+  hand?: boolean
+}
+
+function isCardIndex(value: number): value is CardIndex {
+  return value >= 0 && value <= 51
+}
+
+function isArrayOfCardIndex(arr: Array<number>): arr is Array<CardIndex> {
+  return arr.every(isCardIndex)
 }
 
 const CoinFlipResult = (props: Props) => {
   switch (props.result.typ) {
     case T.RPCChat.UICoinFlipResultTyp.shuffle:
       return <CoinFlipResultShuffle shuffle={props.result.shuffle} />
-    case T.RPCChat.UICoinFlipResultTyp.deck:
-      return <CoinFlipResultDeck deck={props.result.deck} />
+    case T.RPCChat.UICoinFlipResultTyp.deck: {
+      const d = isArrayOfCardIndex(props.result.deck) ? props.result.deck : undefined
+      return <CoinFlipResultDeck deck={d} />
+    }
     case T.RPCChat.UICoinFlipResultTyp.hands:
       return <CoinFlipResultHands hands={props.result.hands} />
     case T.RPCChat.UICoinFlipResultTyp.coin:
@@ -96,39 +115,48 @@ const suits = {
   },
 } as const
 
-type CardType = {
-  card: number
-  hand?: boolean
+const cardToTitle = (c: (typeof cards)[number]) => {
+  let v
+  switch (c.value) {
+    case 'A':
+      v = 'Ace'
+      break
+    case 'K':
+      v = 'King'
+      break
+    case 'Q':
+      v = 'Queen'
+      break
+    case 'J':
+      v = 'Jack'
+      break
+    default:
+      v = c.value
+  }
+  return `${v} of ${capitalize(c.suit)}`
 }
 
 const Card = (props: CardType) => (
-  <Kb.Box2 direction="vertical" centerChildren={true} style={styles.card}>
+  <Kb.Box2
+    direction="vertical"
+    centerChildren={true}
+    style={styles.card}
+    title={cardToTitle(cards[props.card])}
+  >
     <Kb.Box2 direction="horizontal">
       <Kb.Text
         selectable={true}
         type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'}
-        style={
-          // @ts-ignore
-          {color: suits[cards[props.card].suit].color}
-        }
+        style={{color: suits[cards[props.card].suit].color}}
       >
-        {
-          // @ts-ignore
-          cards[props.card].value
-        }
+        {cards[props.card].value}
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="horizontal">
       <Kb.Icon
         fontSize={Kb.Styles.isMobile ? 10 : 12}
-        type={
-          // @ts-ignore
-          suits[cards[props.card]?.suit]?.icon
-        }
-        color={
-          // @ts-ignore
-          suits[cards[props.card].suit].color
-        }
+        type={suits[cards[props.card]?.suit].icon}
+        color={suits[cards[props.card].suit].color}
         style={styles.cardSuit}
       />
     </Kb.Box2>
@@ -136,7 +164,7 @@ const Card = (props: CardType) => (
 )
 
 type DeckType = {
-  deck?: Array<number>
+  deck?: Array<CardType['card']>
   hand?: boolean
 }
 
@@ -187,16 +215,19 @@ const CoinFlipResultHands = (props: HandType) => {
           ))}
         </Kb.Box2>
         <Kb.Box2 direction="vertical" style={styles.handContainer}>
-          {handsWithCards.map(hand => (
-            <Kb.Box2
-              key={hand.target}
-              direction="vertical"
-              alignSelf="flex-start"
-              style={styles.commonContainer}
-            >
-              <CoinFlipResultDeck deck={hand.hand || undefined} hand={true} />
-            </Kb.Box2>
-          ))}
+          {handsWithCards.map(hand => {
+            const d = hand.hand && isArrayOfCardIndex(hand.hand) ? hand.hand : undefined
+            return (
+              <Kb.Box2
+                key={hand.target}
+                direction="vertical"
+                alignSelf="flex-start"
+                style={styles.commonContainer}
+              >
+                <CoinFlipResultDeck deck={d} hand={true} />
+              </Kb.Box2>
+            )
+          })}
         </Kb.Box2>
       </Kb.Box2>
       {handsWithoutCards.length > 0 && (

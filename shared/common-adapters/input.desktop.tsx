@@ -327,11 +327,7 @@ class Input extends React.PureComponent<Props, State> {
           : undefined,
       ref: this._setInputRef,
       ...(this.props.maxLength ? {maxLength: this.props.maxLength} : null),
-    }
-
-    if (!this.props.uncontrolled) {
-      // @ts-ignore it's ok to add this
-      commonProps.value = value
+      ...(this.props.uncontrolled ? null : {value}),
     }
 
     const singlelineProps = {
@@ -361,13 +357,7 @@ class Input extends React.PureComponent<Props, State> {
             {this.props.smallLabel}
           </Text>
         )}
-        {this.props.multiline ? (
-          // @ts-ignore clash between our types and DOM types
-          <textarea {...multilineProps} />
-        ) : (
-          // @ts-ignore clash between our types and DOM types
-          <input {...singlelineProps} />
-        )}
+        {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
         {!!this.props.errorTextComponent && this.props.errorTextComponent}
         {!!this.props.errorText && !this.props.small && (
           <Text
@@ -396,7 +386,6 @@ const styles = Styles.styleSheetCreate(() => ({
       border: 'none',
       color: Styles.globalColors.black,
       flex: 1,
-      // @ts-ignore
       outlineWidth: 0,
     },
   }),
@@ -425,7 +414,6 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   smallLabel: Styles.platformStyles({
-    // @ts-ignore
     isElectron: {
       ...Styles.globalStyles.fontSemibold,
       color: Styles.globalColors.blueDark,

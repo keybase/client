@@ -39,8 +39,7 @@ const Animation = React.memo(function Animation(props: Props) {
   return (
     <Box className={props.className} style={props.containerStyle}>
       <div
-        // @ts-ignore
-        style={{height: height ?? defaultDimension, width: width ?? defaultDimension, ...style}}
+        style={{height: height ?? defaultDimension, width: width ?? defaultDimension, ...style} as any}
         ref={element}
       />
     </Box>

@@ -18,7 +18,6 @@ import type {RouteMap} from '../constants/types/router2'
 // We have normal routes, modal routes, and logged out routes.
 // We also end up using existence of a nameToTab value for a route as a test
 // of whether we're on a loggedIn route: loggedOut routes have no selected tab.
-export const nameToTab = {}
 export const routes: RouteMap = {}
 
 type RoutePlusTab = {route: RouteMap; tab: Tabs.Tab}
@@ -37,15 +36,14 @@ const _newRoutes: ReadonlyArray<RoutePlusTab> = [
   {route: gitNewRoutes, tab: Tabs.gitTab} as RoutePlusTab,
 ]
 
-_newRoutes.forEach(({route, tab}) => {
+const seenNames = new Set()
+_newRoutes.forEach(({route}) => {
   Object.keys(route).forEach(name => {
     // Just sanity check dupes
-    // @ts-ignore
-    if (nameToTab[name]) {
+    if (seenNames.has(name)) {
       throw new Error('New route with dupe name, disallowed! ' + name)
     }
-    // @ts-ignore
-    nameToTab[name] = tab
+    seenNames.add(name)
     routes[name] = route[name]
   })
 })
@@ -60,6 +58,9 @@ export const tabRoots = {
   [Tabs.gitTab]: 'gitRoot',
   [Tabs.devicesTab]: 'devicesRoot',
   [Tabs.settingsTab]: 'settingsRoot',
+
+  [Tabs.loginTab]: '',
+  [Tabs.searchTab]: '',
 } as const
 
 const _modalRoutes = [

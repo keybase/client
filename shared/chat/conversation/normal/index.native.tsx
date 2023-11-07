@@ -1,7 +1,7 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
+import {PortalHost} from '../../../common-adapters/portal.native'
 import * as Kb from '../../../common-adapters'
-import * as KbMobile from '../../../common-adapters/mobile.native'
 import * as React from 'react'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import DropView, {type DropItems} from '../../../common-adapters/drop-view.native'
@@ -133,7 +133,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
           {props.threadLoadedOffline && <Offline />}
           {innerComponent}
         </Kb.Box2>
-        <KbMobile.PortalHost name="convOverlay" />
+        <PortalHost name="convOverlay" />
       </DropView>
     </Kb.Box2>
   )

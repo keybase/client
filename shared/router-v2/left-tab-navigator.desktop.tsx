@@ -63,18 +63,20 @@ const LeftTabNavigator = React.memo(function LeftTabNavigator({
   return (
     <NavigationContent>
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.box}>
-        <TabBar state={state} navigation={navigation} />
+        <TabBar state={state} navigation={navigation as any} />
         <Kb.BoxGrow>
-          {state.routes.map((route, i) => (
-            <RouteBox
-              shouldRender={shouldRender}
-              key={route.name}
-              selected={i === state.index}
-              route={route}
-              // @ts-ignore
-              desc={descriptors[route.key]}
-            />
-          ))}
+          {state.routes.map((route, i) => {
+            const d = descriptors[route.key]
+            return d ? (
+              <RouteBox
+                shouldRender={shouldRender}
+                key={route.name}
+                selected={i === state.index}
+                route={route}
+                desc={d}
+              />
+            ) : null
+          })}
         </Kb.BoxGrow>
         <ModalBackdrop hasModals={hasModals} />
       </Kb.Box2>

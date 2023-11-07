@@ -12,7 +12,7 @@ const Kb = {
 
 const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBoxInner(props: Props, ref: any) {
   const {feedback = true, onClick, onPressIn, onPressOut, onLongPress} = props
-  const {style, activeOpacity, children, pointerEvents} = props
+  const {style, activeOpacity, children} = props
 
   React.useImperativeHandle(
     ref,
@@ -28,8 +28,6 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBoxIn
     if (feedback) {
       return (
         <TouchableOpacity
-          // @ts-ignore maybe wrong
-          pointerEvents={pointerEvents}
           disabled={!onClick}
           onPress={onClick}
           onPressIn={onPressIn}
@@ -44,8 +42,6 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBoxIn
     } else {
       return (
         <TouchableWithoutFeedback
-          // @ts-ignore maybe wrong
-          pointerEvents={pointerEvents}
           onPressIn={onPressIn}
           onPressOut={onPressOut}
           style={clickStyle}
@@ -63,7 +59,7 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBoxIn
       }
     }
     return (
-      <View style={style} pointerEvents={pointerEvents} ref={ref}>
+      <View style={style} ref={ref}>
         {children}
       </View>
     )

@@ -1,6 +1,5 @@
 // this is to defer actually importing these modules until you actually use them
 // this file is ignored by ts
-// @ts-ignore
 module.exports = {
   get Animation() {
     return require('./animation').default

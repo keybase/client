@@ -3,10 +3,8 @@ import {showDevTools, skipExtensions} from '../../local-debug.desktop'
 import flags from '../../util/feature-flags'
 
 export function setupDevToolsExtensions() {
-  // @ts-ignore
-  if (!skipExtensions && process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
-    // @ts-ignore
-    process.env.KEYBASE_DEV_TOOL_EXTENSIONS.split(',').forEach(p => {
+  if (!skipExtensions && process.env['KEYBASE_DEV_TOOL_EXTENSIONS']) {
+    process.env['KEYBASE_DEV_TOOL_EXTENSIONS'].split(',').forEach(p => {
       Electron.app
         .whenReady()
         .then(async () => {

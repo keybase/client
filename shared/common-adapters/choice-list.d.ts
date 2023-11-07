@@ -4,7 +4,7 @@ import type {IconType} from './icon'
 export type Option = {
   title: string
   description: string
-  icon: IconType | React.JSX.Element
+  icon: IconType
   onClick: () => void
   onPress?: never
 }

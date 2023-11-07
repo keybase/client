@@ -6,13 +6,12 @@ const getConfigOverload = () => {
   if (fs.existsSync(serverConfigFileName)) {
     try {
       const serverConfig = JSON.parse(fs.readFileSync(serverConfigFileName, 'utf8')) as
-        | {lastLoggedInUser?: string}
+        | {[key: string]: unknown}
         | undefined
 
-      const lastLoggedInUser = serverConfig?.lastLoggedInUser
+      const lastLoggedInUser = serverConfig?.['lastLoggedInUser']
       if (typeof lastLoggedInUser === 'string') {
         if (lastLoggedInUser) {
-          // @ts-ignore
           const userConfig = serverConfig[lastLoggedInUser] as {printRPCStats?: boolean} | undefined
           if (userConfig?.printRPCStats) {
             config.printRPCStats = true

@@ -17,6 +17,7 @@ import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
 import {useChatDebugDump} from '../../../constants/chat2/debug'
 import {usingFlashList} from './flashlist-config'
+import noop from 'lodash/noop'
 
 // TODO if we bring flashlist back bring back the patch
 const List = /*usingFlashList ? FlashList :*/ FlatList
@@ -255,6 +256,7 @@ const ConversationList = React.memo(function ConversationList(p: {
           <SeparatorMapContext.Provider value={separatorMap}>
             <Kb.Box style={styles.container}>
               <List
+                onScrollToIndexFailed={noop}
                 extraData={extraData}
                 removeClippedSubviews={Kb.Styles.isAndroid}
                 // @ts-ignore part of FlashList so lets set it

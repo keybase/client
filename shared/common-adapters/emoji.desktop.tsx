@@ -2,7 +2,6 @@ import type {Props} from './emoji'
 import {type EmojiData, emojiNameMap, skinTones} from '../util/emoji-shared'
 
 // Just the single set we use
-// @ts-ignore
 import emojiSet from 'emoji-datasource-apple/img/apple/sheets/64.png'
 
 const unifiedToNative = (unified: string) =>
@@ -22,8 +21,10 @@ const EmojiWrapper = (props: Props) => {
   if (skin) {
     const skinNum = parseInt(skin)
     if (!isNaN(skinNum)) {
-      // @ts-ignore
-      emoji = emoji?.skin_variations?.[skinTones[skinNum - 1] ?? ''] as typeof emoji
+      const tone = skinTones[skinNum - 1] ?? ''
+      if (tone) {
+        emoji = emoji?.skin_variations?.[tone] as typeof emoji
+      }
     }
   }
 
@@ -36,7 +37,7 @@ const EmojiWrapper = (props: Props) => {
   const multiplyY = 100 / (sheetRows - 1)
   const backgroundPosition = `${multiplyX * sheet_x}% ${multiplyY * sheet_y}%`
   const backgroundSize = `${100 * sheetColumns}% ${100 * sheetRows}%`
-  const backgroundImage = `url("${emojiSet as string}")`
+  const backgroundImage = `url("${emojiSet}")`
 
   return (
     <span

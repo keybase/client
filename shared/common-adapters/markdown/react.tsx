@@ -168,10 +168,7 @@ const reactComponentsForMarkdownType = {
       state: SimpleMarkdown.State
     ) => (
       <Box key={state.key} style={markdownStyles.quoteStyle}>
-        {
-          // @ts-ignore
-          output(node.content, {...state, inBlockQuote: true})
-        }
+        {output(node['content'] as SimpleMarkdown.ASTNode, {...state, inBlockQuote: true})}
       </Box>
     ),
   },

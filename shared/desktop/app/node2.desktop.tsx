@@ -445,7 +445,6 @@ const plumbEvents = () => {
     switch (action.type) {
       case 'engineSend': {
         const {buf} = action.payload
-        // @ts-ignore reaching into internals here
         nodeEngine._rpcClient.transport.send(buf)
         return
       }

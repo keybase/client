@@ -1,6 +1,6 @@
 import Box from './box'
 import ClickableBox from './clickable-box'
-import Icon, {type IconType} from './icon'
+import Icon from './icon'
 import Text from './text'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -31,8 +31,7 @@ class ChoiceList extends React.Component<Props, State> {
     return (
       <Kb.Box>
         {options.map((op, idx) => {
-          // @ts-ignore
-          const iconType: IconType = op.icon
+          const iconType = op.icon
           return (
             <Kb.ClickableBox
               key={idx}

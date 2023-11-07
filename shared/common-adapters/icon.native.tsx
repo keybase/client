@@ -51,12 +51,6 @@ const Text = React.forwardRef<RNText, TextProps>(function Text(p, ref) {
     }
   }
 
-  // @ts-ignore isn't in the type, but keeping this for now. TODO remove this
-  if (p.textAlign !== undefined) {
-    // @ts-ignore
-    style.textAlign = p.textAlign
-  }
-
   if (p.fontSize !== undefined || pStyle?.width !== undefined) {
     style.fontSize = p.fontSize || pStyle?.width
   }
@@ -116,8 +110,6 @@ const Image = React.forwardRef<RNImage, ImageProps>((p, ref) => {
 Image.displayName = 'IconImage'
 
 const Icon = React.memo<Props>(
-  // TODO this type is a mess
-  // @ts-ignore
   React.forwardRef<any, Props>((p: Props, ref: any) => {
     const sizeType = p.sizeType || 'Default'
     // Only apply props.style to icon if there is no onClick
@@ -181,12 +173,14 @@ Icon.displayName = 'Icon'
 
 export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize: number): any {
   const multsMap = Shared.getMultsMap(imgMap, targetSize)
-  const idealMults = [2, 3, 1]
+  const idealMults = [2, 3, 1] as const
   for (const mult of idealMults) {
-    // @ts-ignore
     if (multsMap[mult]) {
-      // @ts-ignore
-      return iconMeta[imgMap[multsMap[mult]]].require
+      const size = multsMap[mult]
+      if (!size) return null
+      const icon = imgMap[size]
+      if (!icon) return null
+      return iconMeta[icon].require
     }
   }
   return null
@@ -201,10 +195,11 @@ export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize:
 
 export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
   const multsMap = Shared.getMultsMap(imgMap, targetSize)
-  const imgSet = Object.keys(multsMap)
+  const keys = Object.keys(multsMap)
+  const imgSet = keys
     .map(mult => {
-      // @ts-ignore
-      const uri = imgMap[multsMap[mult]]
+      const size = multsMap[mult as any as keyof typeof multsMap]
+      const uri = size ? imgMap[size] : null
       if (!uri) {
         return null
       }

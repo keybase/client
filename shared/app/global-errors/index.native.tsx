@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as KbMobile from '../../common-adapters/mobile.native'
+import NativeScrollView from '../../common-adapters/scroll-view.native'
 import useData from './hook'
 
 const GlobalError = () => {
@@ -46,13 +46,13 @@ const GlobalError = () => {
         </Kb.Box>
       </Kb.Box>
       {size === 'Big' && (
-        <KbMobile.NativeScrollView>
+        <NativeScrollView>
           <Kb.Text type="BodySmall" selectable={true} style={styles.details}>
             {error?.message}
             {'\n\n'}
             {cachedDetails}
           </Kb.Text>
-        </KbMobile.NativeScrollView>
+        </NativeScrollView>
       )}
     </Kb.Box2>
   )

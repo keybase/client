@@ -11,7 +11,7 @@ export type Props = {
   children?: React.ReactNode
   crop?: T.Teams.AvatarCrop
   editable?: boolean
-  followIconSize: number
+  followIconSize: 28 | 21
   followIconType?: IconType
   followIconStyle: IconStyle
   isTeam: boolean

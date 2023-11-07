@@ -28,6 +28,7 @@ type ReactListProps = {
   type?: string | undefined
   useStaticSize?: boolean | undefined
   useTranslate3d?: boolean | undefined
+  extraData?: unknown
 }
 
 const SafeReactList = React.forwardRef<ReactList, ReactListProps>(function SafeReactList(p, ref) {
@@ -49,7 +50,6 @@ const SafeReactList = React.forwardRef<ReactList, ReactListProps>(function SafeR
       // we have to entirely redraw as it has internal caching which is ruined with no way to clear it, this matches the old behavior
       key={String(force)}
       {...p}
-      // @ts-ignore ref
       ref={ref}
     />
   )

@@ -1,6 +1,6 @@
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {encode} from '@msgpack/msgpack'
-import type {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import type {incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import logger from '../logger'
 import {engineStart, engineReset, getNativeEmitter} from 'react-native-kb'
 
@@ -32,7 +32,7 @@ class NativeTransport extends TransportShared {
   }
 
   // A custom send override to write to the react native bridge
-  send(msg: SendArg) {
+  send(msg: unknown) {
     const packed = encode(msg)
     const len = encode(packed.length)
     const buf = new Uint8Array(len.length + packed.length)

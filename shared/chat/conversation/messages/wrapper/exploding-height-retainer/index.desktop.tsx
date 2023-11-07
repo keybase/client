@@ -6,8 +6,7 @@ import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers
 import {getAssetPath} from '../../../../../constants/platform.desktop'
 
 const copyChildren = (children: React.ReactNode): React.ReactNode =>
-  // @ts-ignore
-  React.Children.map(children, child => (child ? React.cloneElement(child) : child))
+  React.Children.map(children, child => (child ? React.cloneElement(child as any) : child))
 
 export const animationDuration = 2000
 

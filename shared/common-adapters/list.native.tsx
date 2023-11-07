@@ -27,8 +27,8 @@ class List<Item> extends React.PureComponent<Props<Item>> {
     }
 
     const keyProp = this.props.keyProperty || 'key'
-    // @ts-ignore
-    return item[keyProp] ?? String(index)
+    const i = item as any
+    return i[keyProp] ?? String(index)
   }
 
   render() {

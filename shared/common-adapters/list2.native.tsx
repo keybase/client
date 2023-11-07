@@ -37,13 +37,9 @@ class List2<T> extends React.PureComponent<Props<T>> {
       return String(index)
     }
 
-    if (this.props.itemAsKey) {
-      return item
-    }
-
     const keyProp = this.props.keyProperty || 'key'
-    // @ts-ignore
-    return item[keyProp] ?? String(index)
+    const i: {[key: string]: string} = item
+    return i[keyProp] ?? String(index)
   }
 
   render() {
@@ -77,7 +73,7 @@ const styles = Styles.styleSheetCreate(
         flexGrow: 1,
         position: 'relative',
       },
-    } as const)
+    }) as const
 )
 
 export default List2

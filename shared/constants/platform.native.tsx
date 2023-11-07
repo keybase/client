@@ -9,7 +9,6 @@ import {
 
 export {version, androidIsTestDevice, uses24HourClock, fsCacheDir} from 'react-native-kb'
 
-// @ts-ignore
 export const isNewArch = global.__turboModuleProxy != null
 
 export const setSecureFlagSetting = androidSetSecureFlagSetting

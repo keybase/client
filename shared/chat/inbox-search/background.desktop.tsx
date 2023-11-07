@@ -29,8 +29,7 @@ const Rover = () => {
 
     window.addEventListener('mousemove', onMouseMove, {passive: true})
     return () => {
-      // @ts-ignore mdn suggests we should use the same values as addEventListener
-      window.removeEventListener('mousemove', onMouseMove, {passive: true})
+      window.removeEventListener('mousemove', onMouseMove)
     }
   }, [api])
   return (

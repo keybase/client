@@ -60,7 +60,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     C.useProfileState.getState().dispatch.showUserProfile(username)
   }
 
-  const isKeybaseIoUrl = (url: URL<string>) => {
+  const isKeybaseIoUrl = (url: URL) => {
     const {protocol} = url
     if (protocol !== 'http:' && protocol !== 'https:') return false
     if (url.username || url.password) return false
@@ -74,7 +74,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     return true
   }
 
-  const urlToUsername = (url: URL<string>) => {
+  const urlToUsername = (url: URL) => {
     if (!isKeybaseIoUrl(url)) {
       return null
     }
@@ -92,7 +92,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
     return usernameMatch.toLowerCase()
   }
 
-  const urlToTeamDeepLink = (url: URL<string>) => {
+  const urlToTeamDeepLink = (url: URL) => {
     if (!isKeybaseIoUrl(url)) {
       return null
     }

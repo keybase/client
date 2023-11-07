@@ -2,7 +2,7 @@ import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {socketPath} from '../constants/platform.desktop'
 import {printRPCBytes} from '../local-debug'
-import type {SendArg, createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import KB2 from '../util/electron.desktop'
 
 const {engineSend, ipcRendererOn, mainWindowDispatchEngineIncoming} = KB2.functions
@@ -67,8 +67,8 @@ class ProxyNativeTransport extends TransportShared {
     return 1
   }
 
-  send(msg: SendArg) {
-    engineSend?.(msg)
+  send(msg: unknown) {
+    engineSend?.(msg as Uint8Array)
     return true
   }
 }

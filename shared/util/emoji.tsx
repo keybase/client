@@ -162,8 +162,7 @@ export const emojiDataToRenderableEmoji = (
     emoji.unified &&
     String.fromCodePoint(
       ...(skinToneModifier && skinToneKey
-        ? // @ts-ignore
-          emoji.skin_variations?.[skinToneKey].unified ?? ''
+        ? emoji.skin_variations?.[skinToneKey].unified ?? ''
         : emoji.unified
       )
         .split('-')

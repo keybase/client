@@ -1659,8 +1659,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
         const conversationIDKey = get().id
         const visible = C.getVisibleScreen()
-        // @ts-ignore TODO better types
-        const visibleConvo: T.Chat.ConversationIDKey | undefined = visible?.params?.conversationIDKey
+        const params = visible?.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
+        const visibleConvo = params?.conversationIDKey
         const visibleRouteName = visible?.name
 
         if (visibleRouteName !== Common.threadRouteName && reason === 'findNewestConversation') {
@@ -2904,23 +2904,24 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     // maybe remove this when reducer is ported
     updateMessage: (ordinal: T.Chat.Ordinal, pm: Partial<T.Chat.Message>) => {
       set(s => {
-        const m = s.messageMap.get(ordinal)
+        const m = s.messageMap.get(ordinal) as {[key: string]: unknown} | undefined
         if (!m) return
 
+        const opm = pm as typeof m
         const keys = Object.keys(pm)
         keys.forEach(k => {
-          // @ts-ignore
-          m[k] = pm[k]
+          m[k] = opm[k]
         })
       })
     },
     updateMeta: (pm: Partial<T.Chat.ConversationMeta>) => {
       // see setmeta
+      const opm = pm as {[key: string]: any}
       set(s => {
         const keys = Object.keys(pm) as Array<keyof T.Chat.ConversationMeta>
         keys.forEach(k => {
-          // @ts-ignore
-          s.meta[k] = pm[k]
+          const m = s.meta as {[key: string]: any}
+          m[k] = opm[k]
         })
       })
     },

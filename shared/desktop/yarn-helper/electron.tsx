@@ -53,8 +53,7 @@ function startHot() {
 
   // Find extensions
 
-  // @ts-ignore
-  const devToolRoots = !process.env.KEYBASE_PERF && process.env.KEYBASE_DEV_TOOL_ROOTS
+  const devToolRoots = !process.env['KEYBASE_PERF'] && process.env['KEYBASE_DEV_TOOL_ROOTS']
   const devToolExtensions = devToolRoots
     ? {
         KEYBASE_DEV_TOOL_EXTENSIONS: devToolRoots
@@ -72,8 +71,7 @@ function startHot() {
   const hitServer = () => {
     const req = http.get('http://localhost:4000/dist/node.dev.bundle.js', () => {
       // require in case we're trying to yarn install electron!
-      const electron = require('electron')
-      // @ts-ignore
+      const electron = require('electron') as unknown as string
       spawn(electron, [...params, ...(isLinux ? ['--disable-gpu'] : [])], {env, stdio: 'inherit'})
     })
     req.on('error', e => {

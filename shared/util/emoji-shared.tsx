@@ -8,7 +8,7 @@ export type EmojiData = {
   short_name: string
   short_names: Array<string>
   sort_order?: number
-  skin_variations?: {[K in T.Chat.EmojiSkinTone]: Object}
+  skin_variations?: {[K in T.Chat.EmojiSkinTone]: {unified?: string}}
   teamname?: string
   unified: string
   userEmojiRenderStock?: string

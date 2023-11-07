@@ -5,7 +5,7 @@ import ExplodingHeightRetainer from '.'
 import {OrdinalContext} from '../../ids-context'
 
 type OwnProps = {
-  children: React.ReactNode
+  children: React.ReactElement
 }
 
 const ExplodingHeightRetainerContainer = React.memo(function ExplodingHeightRetainerContainer(p: OwnProps) {

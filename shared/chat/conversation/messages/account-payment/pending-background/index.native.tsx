@@ -1,7 +1,7 @@
 import * as C from '../../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
-import * as KbMobile from '../../../../../common-adapters/mobile.native'
+import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import type {Props} from '.'
 
 const lightPatternImage = require('../../../../../images/payment-pattern-80.png')
@@ -9,13 +9,13 @@ const darkPatternImage = require('../../../../../images/dark-payment-pattern-80.
 
 const PendingBackground = (p: Props) => {
   const {children, style} = p
-  const offset = React.useRef(new KbMobile.NativeAnimated.Value(0)).current
+  const offset = React.useRef(new NativeAnimated.Value(0)).current
 
   C.useOnMountOnce(() => {
-    KbMobile.NativeAnimated.loop(
-      KbMobile.NativeAnimated.timing(offset, {
+    NativeAnimated.loop(
+      NativeAnimated.timing(offset, {
         duration: 2000,
-        easing: KbMobile.NativeEasing.linear,
+        easing: NativeEasing.linear,
         toValue: -80,
         useNativeDriver: true,
       })
@@ -26,7 +26,7 @@ const PendingBackground = (p: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" style={style}>
-      <KbMobile.NativeAnimated.Image
+      <NativeAnimated.Image
         resizeMode="repeat"
         source={source}
         style={[styles.image, {transform: [{translateY: offset}] as any}]}

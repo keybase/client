@@ -1,7 +1,7 @@
 import type * as React from 'react'
 import type * as Styles from '../../../../../styles'
 export type Props = {
-  children?: React.ReactNode
+  children?: React.ReactElement
   explodedBy?: string
   exploding: boolean
   messageKey: string

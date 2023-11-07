@@ -3,7 +3,6 @@
 // This is supposed to bootstrap / polyfill / fixup the app. Do NOT add things here or change things unless you really know
 // what's happening
 import 'fastestsmallesttextencoderdecoder'
-// @ts-ignore
 import {encode as btoa, decode as atob} from 'base-64'
 
 global.btoa = btoa

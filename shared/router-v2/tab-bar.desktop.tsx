@@ -17,8 +17,8 @@ import KB2 from '../util/electron.desktop'
 const {hideWindow, ctlQuit} = KB2.functions
 
 export type Props = {
-  navigation: any
-  state: any
+  navigation: C.Router2.Navigator
+  state: C.Router2.NavState
 }
 
 const FilesTabBadge = () => {
@@ -141,11 +141,13 @@ const Header = () => {
   )
 }
 
-const keysMap = Tabs.desktopTabs.reduce((map, tab, index) => {
-  // @ts-ignore
-  map[`mod+${index + 1}`] = tab
-  return map
-}, {})
+const keysMap = Tabs.desktopTabs.reduce<{[key: string]: (typeof Tabs.desktopTabs)[number]}>(
+  (map, tab, index) => {
+    map[`mod+${index + 1}`] = tab
+    return map
+  },
+  {}
+)
 const hotKeys = Object.keys(keysMap)
 
 const TabBar = React.memo(function TabBar(props: Props) {
@@ -153,8 +155,7 @@ const TabBar = React.memo(function TabBar(props: Props) {
   const username = C.useCurrentUserState(s => s.username)
   const onHotKey = React.useCallback(
     (cmd: string) => {
-      // @ts-ignore
-      navigation.navigate(keysMap[cmd])
+      navigation.navigate(keysMap[cmd] as string)
     },
     [navigation]
   )
@@ -169,18 +170,15 @@ const TabBar = React.memo(function TabBar(props: Props) {
         <Header />
         <Kb.Divider style={styles.divider} />
       </Kb.Box2>
-      {
-        // @ts-ignore
-        state.routes.map((route, index) => (
-          <Tab
-            key={route.key}
-            tab={route.name}
-            index={index}
-            isSelected={index === state.index}
-            onSelectTab={onSelectTab}
-          />
-        ))
-      }
+      {state?.routes?.map((route, index) => (
+        <Tab
+          key={route.key}
+          tab={route.name as Tabs.AppTab}
+          index={index}
+          isSelected={index === state.index}
+          onSelectTab={onSelectTab}
+        />
+      ))}
       <RuntimeStats />
     </Kb.Box2>
   ) : null

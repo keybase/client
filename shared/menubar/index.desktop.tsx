@@ -117,13 +117,6 @@ const useMenuItems = (
     if (showBadges) {
       return [
         {
-          onClick: () => openApp(C.walletsTab),
-          title: 'Wallet',
-          view: (
-            <TabView title="Wallet" iconType="iconfont-nav-2-wallets" count={countMap.get(C.walletsTab)} />
-          ),
-        },
-        {
           onClick: () => openApp(C.gitTab),
           title: 'Git',
           view: <TabView title="Git" iconType="iconfont-nav-2-git" count={countMap.get(C.gitTab)} />,
@@ -231,8 +224,8 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
   )
 }
 
-const badgeTypesInHeader = [C.peopleTab, C.chatTab, C.fsTab, C.teamsTab]
-const badgesInMenu = [C.walletsTab, C.gitTab, C.devicesTab, C.settingsTab]
+const badgeTypesInHeader = [C.peopleTab, C.chatTab, C.fsTab, C.teamsTab] as const
+const badgesInMenu = [C.gitTab, C.devicesTab, C.settingsTab] as const
 const LoggedIn = (p: Props) => {
   const {endEstimate, files, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
   const {outOfDate, windowShownCount} = p
@@ -381,10 +374,15 @@ const iconMap = {
   [C.devicesTab]: 'iconfont-nav-2-devices',
   [C.fsTab]: 'iconfont-nav-2-files',
   [C.teamsTab]: 'iconfont-nav-2-teams',
+  [C.gitTab]: undefined,
+  [C.settingsTab]: undefined,
 } as const
-const BadgeIcon = ({tab, countMap, openApp}: any) => {
+
+type Tabs = (typeof badgeTypesInHeader)[number] | (typeof badgesInMenu)[number]
+
+const BadgeIcon = (p: {tab: Tabs; countMap: Map<string, number>; openApp: (t: Tabs) => void}) => {
+  const {tab, countMap, openApp} = p
   const count = countMap.get(tab)
-  // @ts-ignore
   const iconType = iconMap[tab]
 
   if ((tab === C.devicesTab && !count) || !iconType) {

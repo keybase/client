@@ -119,10 +119,7 @@ export const getTeamChannelInfo = (
 export const teamRoleByEnum = ((m: {[K in T.Teams.MaybeTeamRoleType]: T.RPCGen.TeamRole}) => {
   const mInv: {[K in T.RPCGen.TeamRole]?: T.Teams.MaybeTeamRoleType} = {}
   for (const roleStr in m) {
-    // roleStr is typed as string; see
-    // https://github.com/facebook/flow/issues/1736 .
-    // @ts-ignore
-    const role: T.Teams.TeamRoleType = roleStr
+    const role = roleStr as T.Teams.TeamRoleType
     const e = m[role]
     mInv[e] = role
   }

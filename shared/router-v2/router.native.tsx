@@ -25,14 +25,14 @@ const settingsTabChildrenPhone = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab,
 const settingsTabChildrenTablet = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
 const settingsTabChildren = C.isPhone ? settingsTabChildrenPhone : settingsTabChildrenTablet
 const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
-const tabToData = {
-  [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
-  [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
-  [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
-  [Tabs.peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
-  [Tabs.settingsTab]: {icon: 'iconfont-nav-2-hamburger', label: 'More'},
-  [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
-} as const
+const tabToData = new Map<C.Tab, {icon: Kb.IconType; label: string}>([
+  [Tabs.chatTab, {icon: 'iconfont-nav-2-chat', label: 'Chat'}],
+  [Tabs.fsTab, {icon: 'iconfont-nav-2-files', label: 'Files'}],
+  [Tabs.teamsTab, {icon: 'iconfont-nav-2-teams', label: 'Teams'}],
+  [Tabs.peopleTab, {icon: 'iconfont-nav-2-people', label: 'People'}],
+  [Tabs.settingsTab, {icon: 'iconfont-nav-2-hamburger', label: 'More'}],
+  [Tabs.walletsTab, {icon: 'iconfont-nav-2-wallets', label: 'Wallet'}],
+] as const)
 
 type Screen = ReturnType<typeof createNativeStackNavigator>['Screen']
 const makeNavScreens = (rs: typeof tabRoutes, Screen: Screen, isModal: boolean) => {
@@ -70,12 +70,11 @@ const TabBarIcon = React.memo(
       onSettings && !hasPermissions ? 1 : 0
     )
 
-    // @ts-ignore
-    return tabToData[routeName] ? (
+    const data = tabToData.get(routeName)
+    return data ? (
       <View style={styles.container}>
         <Kb.Icon
-          // @ts-ignore
-          type={tabToData[routeName].icon}
+          type={data.icon}
           fontSize={32}
           style={styles.tab}
           color={isFocused ? Kb.Styles.globalColors.whiteOrWhite : Kb.Styles.globalColors.blueDarkerOrBlack}
@@ -135,7 +134,7 @@ const tabRoutes = routes
 
 // we must ensure we don't keep remaking these components
 const tabScreensCache = new Map()
-const makeTabStack = (tab: string) => {
+const makeTabStack = (tab: (typeof tabs)[number]) => {
   const S = createNativeStackNavigator()
 
   let tabScreens = tabScreensCache.get(tab)
@@ -148,7 +147,6 @@ const makeTabStack = (tab: string) => {
     function TabStack() {
       return (
         <S.Navigator
-          // @ts-ignore
           initialRouteName={tabRoots[tab]}
           screenOptions={{
             ...Common.defaultNavigationOptions,
@@ -210,10 +208,7 @@ const AppTabs = React.memo(
           ])}
           type="BodyBig"
         >
-          {
-            // @ts-ignore
-            tabToData[routeName].label
-          }
+          {tabToData.get(routeName as C.Tab)?.label}
         </Kb.Text>
       )
 
@@ -294,8 +289,8 @@ const useInitialStateChangeAfterLinking = (
 
   React.useEffect(() => {
     if (loggedIn && !lastLoggedIn && lastLoggedInTab.current) {
-      // @ts-ignore
-      Constants.navigationRef_.navigate(lastLoggedInTab.current as any)
+      const navRef: any = Constants.navigationRef_
+      navRef.navgate(lastLoggedInTab.current)
     }
   }, [loggedIn, lastLoggedIn])
 

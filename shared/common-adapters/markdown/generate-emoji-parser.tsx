@@ -1,10 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import emojiData from 'emoji-datasource-apple'
-// MUST be lodash for node to work simply
-
 import escapeRegExp from 'lodash/escapeRegExp'
-// @ts-ignore
 import prettier from 'prettier'
 
 const commonTlds = [
@@ -71,11 +68,11 @@ function genEmojiData() {
 
   emojiData.forEach(emoji => {
     if (emoji.skin_variations) {
-      Object.keys(emoji.skin_variations).forEach((k, idx) =>
+      Object.keys(emoji.skin_variations).forEach((_k, idx) => {
+        const k = _k as keyof typeof emoji.skin_variations
         // + 2 because idx starts at 0, and skin-tone-1 is not a thing
-        // @ts-ignore
         addEmojiLiteral(emoji.skin_variations[k]?.unified ?? '', emoji.short_name, idx + 2)
-      )
+      })
     }
     addEmojiLiteral(emoji.unified, emoji.short_name)
     if (emoji.non_qualified) {

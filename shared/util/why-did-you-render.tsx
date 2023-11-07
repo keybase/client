@@ -1,5 +1,4 @@
 /// <reference types="@welldone-software/why-did-you-render" />
-// @ts-ignore
 import enabled from './why-did-you-render-enabled'
 import * as React from 'react'
 if (enabled && __DEV__) {

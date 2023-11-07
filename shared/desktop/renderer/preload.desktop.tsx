@@ -79,8 +79,7 @@ if (isRenderer) {
             type: 'dumpNodeLogger',
           })
         },
-        engineSend: (buf: unknown) => {
-          // @ts-ignore
+        engineSend: (buf: Uint8Array) => {
           invoke({payload: {buf}, type: 'engineSend'})
             .then(() => {})
             .catch(() => {})

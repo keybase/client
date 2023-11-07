@@ -85,8 +85,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
             created: i.ctime,
             email: i.email,
             id: i.invitation_id,
-            // @ts-ignore for now
-            key: i.invitation_id,
             // type will get filled in later
             type: '',
             uid: i.uid,
