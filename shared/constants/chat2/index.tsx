@@ -1490,23 +1490,18 @@ export const _useState = Z.createZustand<State>((set, get) => {
     previewConversation: p => {
       // We always make adhoc convos and never preview it
       const previewConversationPersonMakesAConversation = () => {
-        const {participants, teamname, reason, highlightMessageID} = p
+        const {participants, teamname, highlightMessageID} = p
         if (teamname) return
         if (!participants) return
-
-        // if stellar just search first, could do others maybe
-        if ((reason === 'requestedPayment' || reason === 'sentPayment') && participants.length === 1) {
-          const username = C.useCurrentUserState.getState().username
-          const toFind = participants[0]
-          for (const cs of C.chatStores.values()) {
-            const p = cs.getState().participants
-            if (p.name.length === 2) {
-              const other = p.name.filter(n => n !== username)
-              if (other[0] === toFind) {
-                C.getConvoState(cs.getState().id).dispatch.navigateToThread('justCreated')
-                return
-              }
-            }
+        const toFind = participants.toSorted().join(',')
+        const toFindN = participants.length
+        for (const cs of C.chatStores.values()) {
+          const names = cs.getState().participants.name
+          if (names.length !== toFindN) continue
+          const p = names.toSorted().join(',')
+          if (p === toFind) {
+            C.getConvoState(cs.getState().id).dispatch.navigateToThread('justCreated', highlightMessageID)
+            return
           }
         }
 
