@@ -7,6 +7,7 @@ export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: S
 export type ResponseType = {
   result: (...args: Array<any>) => void
   error: (...args: Array<any>) => void
+  seqid?: number
 }
 export type RPCErrorHandler = (e: Framed.ErrorType) => void
 export type CommonResponseHandler = {

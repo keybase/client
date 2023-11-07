@@ -70,14 +70,14 @@ class IncomingRequest extends Request {
 
 class OutgoingRequest extends Request {
   // Callback when we've gotten a response
-  _callback: (err: any, data: any) => void
+  _callback: (err: RPCError | undefined, data: unknown) => void
   // How we make calls
   _invoke: invokeType
 
   constructor(
     method: MethodKey,
     param: Object,
-    callback: () => void,
+    callback: (err: RPCError | undefined, data: unknown) => void,
     waitingHandler: SimpleWaiting,
     invoke: invokeType
   ) {
@@ -93,7 +93,7 @@ class OutgoingRequest extends Request {
     })
   }
 
-  _sendCallback(err: any, data: any) {
+  _sendCallback(err: RPCError | undefined, data: unknown) {
     this.updateWaiting(false, err)
     this._callback(err, data)
   }
