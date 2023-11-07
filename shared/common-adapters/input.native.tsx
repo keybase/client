@@ -237,7 +237,7 @@ class Input extends React.Component<Props, State> {
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const containerStyle = this.containerStyle(underlineColor)
 
-    const singlelineStyle: Styles.StylesCrossPlatform = Styles.collapseStyles([
+    const singlelineStyle = Styles.collapseStyles([
       styles.commonInput,
       {
         lineHeight: lineHeight,
@@ -248,7 +248,7 @@ class Input extends React.Component<Props, State> {
       this.props.small ? styles.commonInputSmall : styles.commonInputRegular,
     ])
 
-    const multilineStyle: Styles.StylesCrossPlatform = Styles.collapseStyles([
+    const multilineStyle = Styles.collapseStyles([
       styles.commonInput,
       {
         height: undefined,
@@ -363,10 +363,10 @@ class Input extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate(() => {
-  const _headerTextStyle: any = getTextStyle('Header')
-  const _bodyTextStyle: any = getTextStyle('Body')
-  const _bodySmallTextStyle: any = getTextStyle('BodySmall')
-  const _bodyErrorTextStyle: any = getTextStyle('BodySmallError')
+  const _headerTextStyle = getTextStyle('Header')
+  const _bodyTextStyle = getTextStyle('Body')
+  const _bodySmallTextStyle = getTextStyle('BodySmall')
+  const _bodyErrorTextStyle = getTextStyle('BodySmallError')
   return {
     commonInput: {
       backgroundColor: Styles.globalColors.fastBlank,

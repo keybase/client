@@ -154,7 +154,9 @@ const EditAvatar = (p: Props) => {
       <div
         className={Kb.Styles.classNames({dropping: dropping})}
         onDrop={onDrop}
-        style={Kb.Styles.collapseStyles([styles.container, createdTeam && styles.paddingTopForCreatedTeam])}
+        style={
+          Kb.Styles.collapseStyles([styles.container, createdTeam && styles.paddingTopForCreatedTeam]) as any
+        }
       >
         {type === 'team' && createdTeam && !wizard && (
           <Kb.Box style={styles.createdBanner}>

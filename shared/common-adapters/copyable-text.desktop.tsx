@@ -4,7 +4,7 @@ import type {Props} from './copyable-text'
 const CopyableText = ({value, style}: Props) => {
   return (
     <textarea
-      style={Styles.collapseStyles([styles.base, style])}
+      style={Styles.collapseStyles([styles.base, style]) as React.CSSProperties}
       readOnly={true}
       value={value}
       onClick={e => {
@@ -41,7 +41,7 @@ const styles = Styles.styleSheetCreate(
           wordWrap: 'break-word',
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default CopyableText

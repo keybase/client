@@ -95,11 +95,13 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
       onMouseUp={onMouseUp}
       onDoubleClick={onDoubleClick}
       onClick={onClick}
-      style={Styles.collapseStyles([
-        _containerStyle,
-        onClick || props.onMouseDown ? Styles.desktopStyles.clickable : null,
-        style,
-      ] as any)}
+      style={
+        Styles.collapseStyles([
+          styles.container,
+          onClick || props.onMouseDown ? styles.click : null,
+          style,
+        ]) as React.CSSProperties
+      }
     >
       {underlay}
       {children}
@@ -107,19 +109,31 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
   )
 })
 
-const _containerStyle = {
-  alignItems: 'stretch',
-  borderRadius: 0,
-  display: 'flex',
-  flexDirection: 'column',
-  height: undefined,
-  lineHeight: 0,
-  minWidth: undefined,
-  position: 'relative',
-  textAlign: 'left',
-  transform: 'none',
-  transition: 'none',
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      click: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.clickable,
+        },
+      }),
+      container: Styles.platformStyles({
+        isElectron: {
+          alignItems: 'stretch',
+          borderRadius: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          height: undefined,
+          lineHeight: 0,
+          minWidth: undefined,
+          position: 'relative',
+          textAlign: 'left',
+          transform: 'none',
+          transition: 'none',
+        },
+      }),
+    }) as const
+)
 
 export default ClickableBox
 

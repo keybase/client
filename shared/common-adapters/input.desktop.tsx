@@ -332,14 +332,14 @@ class Input extends React.PureComponent<Props, State> {
 
     const singlelineProps = {
       ...commonProps,
-      style: Styles.collapseStyles([inputStyle, this.props.inputStyle]),
+      style: Styles.collapseStyles([inputStyle, this.props.inputStyle]) as React.CSSProperties,
       type: this._propTypeToSingleLineType(),
     }
 
     const multilineProps = {
       ...commonProps,
       rows: this.props.rowsMin || defaultRowsToShow,
-      style: Styles.collapseStyles([textareaStyle, this.props.inputStyle]),
+      style: Styles.collapseStyles([textareaStyle, this.props.inputStyle]) as React.CSSProperties,
     }
 
     return (

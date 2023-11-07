@@ -1,6 +1,7 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
+import type {StylesTextCrossPlatform} from '../../../common-adapters/text'
 import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Styles from '../../../styles'
@@ -373,7 +374,10 @@ const styles = Styles.styleSheetCreate(
 )
 
 const linkStyleOverride = {
-  link: Styles.collapseStyles([styles.linkStyle, {color: Styles.globalColors.blueDark}]),
+  link: Styles.collapseStyles([
+    styles.linkStyle,
+    {color: Styles.globalColors.blueDark},
+  ]) as StylesTextCrossPlatform,
 }
 
 type Props = {

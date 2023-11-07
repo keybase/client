@@ -71,10 +71,15 @@ class List extends React.PureComponent<Props<any>> {
 
   render() {
     return (
-      <div style={Styles.collapseStyles([styles.outerDiv, this.props.style])}>
+      <div style={Styles.collapseStyles([styles.outerDiv, this.props.style]) as React.CSSProperties}>
         <div style={Styles.globalStyles.fillAbsolute}>
           <div
-            style={Styles.collapseStyles([styles.innerDiv, this.props.contentContainerStyle])}
+            style={
+              Styles.collapseStyles([
+                styles.innerDiv,
+                this.props.contentContainerStyle,
+              ]) as React.CSSProperties
+            }
             onScroll={this.props.onEndReached ? this._onScroll : undefined}
           >
             {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}

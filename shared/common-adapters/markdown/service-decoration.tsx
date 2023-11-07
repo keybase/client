@@ -209,7 +209,13 @@ const ServiceDecoration = (p: Props) => {
         allowFontScaling={allowFontScaling || false}
         convID={parsed.channelnamemention.convID}
         name={parsed.channelnamemention.name}
-        style={Styles.collapseStyles([styles['linkStyle'], linkStyle, styleOverride.link])}
+        style={
+          Styles.collapseStyles([
+            styles['linkStyle'],
+            linkStyle,
+            styleOverride.link,
+          ]) as StylesTextCrossPlatform
+        }
       />
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.kbfspath) {

@@ -103,7 +103,7 @@ class Text extends React.Component<Props> {
         className={this._className(this.props)}
         onClick={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined) || undefined}
         onContextMenuCapture={this.props.onClickURL ? this.onContextMenu : undefined}
-        style={Styles.collapseStyles([this.props.style])}
+        style={Styles.collapseStyles([this.props.style]) as React.CSSProperties}
         data-virtual-text={this.props.virtualText ? this.props.children : undefined}
       >
         {this.props.virtualText ? null : this.props.children}

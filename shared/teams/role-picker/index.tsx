@@ -121,7 +121,7 @@ const RoleRowWrapper = (props: RoleRowWrapperProps) => {
     config: {tension: Kb.Styles.isMobile ? 250 : 260},
   }) as unknown as Kb.Styles.StylesCrossPlatform
   return (
-    <AnimatedClickableBox onClick={onSelect} style={Kb.Styles.collapseStyles([styles.roleRow, style])}>
+    <AnimatedClickableBox onClick={onSelect} style={Kb.Styles.collapseStyles([styles.roleRow, style]) as any}>
       <Kb.Divider />
       <RoleRow
         selected={selected}

@@ -4,7 +4,7 @@ import type {Props} from '.'
 const UserCard = (p: Props) => {
   const {avatarSize = 128, outerStyle, onAvatarClicked, username, style, children, lighterPlaceholders} = p
   return (
-    <div style={Kb.Styles.collapseStyles([styles.container, outerStyle])}>
+    <div style={Kb.Styles.collapseStyles([styles.container, outerStyle]) as React.CSSProperties}>
       <Kb.Avatar
         size={avatarSize}
         onClick={onAvatarClicked}
@@ -12,14 +12,16 @@ const UserCard = (p: Props) => {
         lighterPlaceholders={lighterPlaceholders}
       />
       <div
-        style={Kb.Styles.collapseStyles([
-          styles.inside,
-          {
-            marginTop: -avatarSize / 2,
-            paddingTop: 30 + avatarSize / 2,
-          },
-          style,
-        ])}
+        style={
+          Kb.Styles.collapseStyles([
+            styles.inside,
+            {
+              marginTop: -avatarSize / 2,
+              paddingTop: 30 + avatarSize / 2,
+            },
+            style,
+          ]) as React.CSSProperties
+        }
       >
         {children}
       </div>

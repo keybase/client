@@ -121,7 +121,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
       }
   }
 
-  let userStyle = Styles.platformStyles({
+  let userStyle: Styles.StylesCrossPlatform = Styles.platformStyles({
     common: {
       ...(colorFollowing && !you
         ? ({
@@ -215,7 +215,11 @@ type UsernamesTextProps = {
 const UsernamesText = (p: UsernamesTextProps) => {
   const {showAnd, inlineGrammar, users, joinerStyle, commaColor, ...rest} = p
   const derivedJoinerStyle = React.useMemo(() => {
-    return Styles.collapseStyles([joinerStyle, styles.joinerStyle, {color: commaColor}])
+    return Styles.collapseStyles([
+      joinerStyle,
+      styles.joinerStyle,
+      {color: commaColor},
+    ]) as StylesTextCrossPlatform
   }, [commaColor, joinerStyle])
 
   const lastIdx = users.length - 1

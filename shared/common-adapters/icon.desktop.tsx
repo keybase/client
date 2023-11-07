@@ -79,12 +79,12 @@ const Icon = React.memo<Props>(
       // handled by a class below
       iconElement = null
     } else {
-      const imgStyle = Styles.collapseStyles([
-        Styles.desktopStyles.noSelect,
-        !hasContainer ? style : {},
-        onClick ? Styles.desktopStyles.clickable : {},
-        props.color ? {color: color} : {},
-      ] as any)
+      const imgStyle = {
+        ...Styles.desktopStyles.noSelect,
+        ...(!hasContainer ? style : {}),
+        ...(onClick ? Styles.desktopStyles.clickable : {}),
+        ...(props.color ? {color: color} : {}),
+      } as React.CSSProperties
 
       iconElement = (
         <img
@@ -132,21 +132,25 @@ const Icon = React.memo<Props>(
       return (
         <div
           ref={divRef}
-          style={Styles.collapseStyles([
-            // This breaks a couple existing uses. So only apply it when padding
-            // is provided for now. Eventually after we know all uses are fine,
-            // we can remove the padding guard.
-            padding && styles.flex,
-            boxStyle,
-          ])}
+          style={
+            Styles.collapseStyles([
+              // This breaks a couple existing uses. So only apply it when padding
+              // is provided for now. Eventually after we know all uses are fine,
+              // we can remove the padding guard.
+              padding && styles.flex,
+              boxStyle,
+            ]) as React.CSSProperties
+          }
         >
           <span
             title={hint}
-            style={Styles.collapseStyles([
-              mergedStyle,
-              padding && Shared.paddingStyles[padding],
-              typeof colorStyleName !== 'string' ? {color} : null, // For colors that are not in Styles.globalColors
-            ])}
+            style={
+              Styles.collapseStyles([
+                mergedStyle,
+                padding && Shared.paddingStyles[padding],
+                typeof colorStyleName !== 'string' ? {color} : null, // For colors that are not in Styles.globalColors
+              ]) as React.CSSProperties
+            }
             className={Styles.classNames(
               'icon',
               colorStyleName,

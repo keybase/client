@@ -16,7 +16,7 @@ const Toast = (props: Props) => (
   >
     <div
       className={Styles.classNames({visible: props.visible}, props.className, 'fadeBox')}
-      style={Styles.collapseStyles([styles.container, props.containerStyle])}
+      style={Styles.collapseStyles([styles.container, props.containerStyle]) as React.CSSProperties}
     >
       {props.children}
     </div>
