@@ -7,7 +7,7 @@ import {rpcLog, type invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {RPCError} from '../util/errors'
 import {getEngine} from './require'
-import type {SessionID, EndHandlerType, MethodKey} from './types'
+import type {SessionID, ResponseType, EndHandlerType, MethodKey} from './types'
 
 type WaitingKey = string | Array<string>
 
@@ -32,14 +32,14 @@ class Session {
   // Name of the start method, just to help debug
   _startMethod: MethodKey | undefined
   // Start callback so we can cancel our own callback
-  _startCallback: ((err?: RPCError, ...args: Array<any>) => void) | undefined
+  _startCallback: ((err?: RPCError, ...args: Array<unknown>) => void) | undefined
 
   // Allow us to make calls
   _invoke: invokeType
 
   // Outstanding requests
-  _outgoingRequests: Array<any> = []
-  _incomingRequests: Array<any> = []
+  _outgoingRequests: Array<{method: string}> = []
+  _incomingRequests: Array<{method: string}> = []
 
   constructor(p: {
     sessionID: SessionID
@@ -74,7 +74,7 @@ class Session {
   // Make a waiting handler for the request. We add additional data before calling the parent waitingHandler
   // and do internal bookkeeping if the request is done
   _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid?: number) {
-    return (waiting: boolean, err: any) => {
+    return (waiting: boolean, err: RPCError | undefined) => {
       rpcLog({
         extra: {
           id: this.getId(),
@@ -126,8 +126,8 @@ class Session {
     this._startCallback = callback
 
     // When this request is done the session is done
-    const wrappedCallback = (...args: any) => {
-      this._startCallback?.(...args)
+    const wrappedCallback = (err: RPCError | undefined, ...args: Array<unknown>) => {
+      this._startCallback?.(err, ...args)
       this._startCallback = undefined
       this.end()
     }
@@ -157,7 +157,7 @@ class Session {
   }
 
   // We have an incoming call tied to a sessionID, called only by engine
-  incomingCall(method: keyof IncomingCallMapType, param: Object, response: any): boolean {
+  incomingCall(method: keyof IncomingCallMapType, param: Object, response?: ResponseType): boolean {
     rpcLog({
       extra: {
         id: this.getId(),
@@ -169,10 +169,12 @@ class Session {
       type: 'engineInternal',
     })
 
-    let handler: any = this._incomingCallMap[method]
+    let handler = this._incomingCallMap[method] as
+      | undefined
+      | ((param: Object | undefined, request: ResponseType) => void)
 
     if (!handler) {
-      const c: any = this._customResponseIncomingCallMap
+      const c = this._customResponseIncomingCallMap as {[key: string]: typeof handler}
       handler = c[method]
     }
 

@@ -31,11 +31,13 @@ const UnfurlImage = (p: Props) => {
       autoPlay={autoplayVideo}
       height={height}
       onClick={onClick}
-      style={Kb.Styles.collapseStyles([
-        styles.image,
-        {height, minHeight: height, minWidth: width, width},
-        style,
-      ])}
+      style={
+        Kb.Styles.collapseStyles([
+          styles.image,
+          {height, minHeight: height, minWidth: width, width},
+          style,
+        ]) as React.CSSProperties
+      }
       url={url}
       width={width}
     />

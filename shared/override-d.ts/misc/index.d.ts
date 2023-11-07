@@ -49,7 +49,8 @@ declare module 'emoji-datasource-apple/img/apple/sheets/64.png' {
 }
 
 declare module 'react-is' {
-  export const isValidElementType: (a: unknown) => boolean
+  import * as React from 'react'
+  export function isValidElementType(value: any): value is React.ElementType
 }
 
 declare module 'fs-extra' {

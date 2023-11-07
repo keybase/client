@@ -28,7 +28,7 @@ class Providers extends React.Component<ProvidersProps> {
     height: Kb.Styles.isMobile ? 56 : 48,
     type: 'fixed',
   } as const
-  _renderItem = (_: any, provider: any) => (
+  _renderItem = (_: unknown, provider: IdentityProvider) => (
     <React.Fragment key={provider.name}>
       <Kb.Divider />
       <Kb.ClickableBox

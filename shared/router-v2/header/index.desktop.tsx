@@ -27,7 +27,7 @@ type Props = {
     headerStyle?: Kb.Styles.StylesCrossPlatform
   }
   back?: boolean
-  style?: any
+  style?: Kb.Styles._StylesCrossPlatform
   useNativeFrame: boolean
   params?: unknown
   isMaximized: boolean
@@ -36,7 +36,7 @@ type Props = {
   }
 }
 
-const PlainTitle = ({title}: {title: any}) => (
+const PlainTitle = ({title}: {title: React.ReactNode}) => (
   <Kb.Box2 direction="horizontal" style={styles.plainContainer}>
     <Kb.Text style={styles.plainText} type="Header">
       {title}
@@ -103,21 +103,22 @@ const DesktopHeader = React.memo(
       if (React.isValidElement(opt.headerTitle)) {
         title = opt.headerTitle
       } else if (ReactIs.isValidElementType(opt.headerTitle)) {
-        const CustomTitle = opt.headerTitle as any
-        title = <CustomTitle params={params}>{opt.title}</CustomTitle>
+        const CustomTitle = opt.headerTitle
+        const props = {params} as any
+        title = <CustomTitle {...props}>{opt.title}</CustomTitle>
       }
     }
 
     let rightActions: React.ReactNode = null
     if (ReactIs.isValidElementType(opt.headerRightActions)) {
       const CustomActions = opt.headerRightActions
-      rightActions = CustomActions ? <CustomActions /> : null
+      rightActions = <CustomActions />
     }
 
     let subHeader: React.ReactNode = null
     if (ReactIs.isValidElementType(opt.subHeader)) {
       const CustomSubHeader = opt.subHeader
-      subHeader = CustomSubHeader ? <CustomSubHeader /> : null
+      subHeader = <CustomSubHeader />
     }
 
     let style: Kb.Styles.StylesCrossPlatform = null
@@ -216,7 +217,7 @@ const DesktopHeader = React.memo(
     )
   },
   (p, n) => {
-    return C.shallowEqual(p, n, (obj, oth, key) => {
+    return C.shallowEqual(p, n, (obj: unknown, oth: unknown, key) => {
       if (key === 'options') {
         return C.shallowEqual(obj, oth)
       }

@@ -44,7 +44,7 @@ const makeNavScreens = (rs: typeof tabRoutes, Screen: Screen, isModal: boolean) 
         key={name}
         name={name}
         getComponent={val.getScreen}
-        options={({route, navigation}: any) => {
+        options={({route, navigation}) => {
           const no = getOptions(val)
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {
@@ -133,7 +133,7 @@ const Tab = createBottomTabNavigator()
 const tabRoutes = routes
 
 // we must ensure we don't keep remaking these components
-const tabScreensCache = new Map()
+const tabScreensCache = new Map<(typeof tabs)[number], ReturnType<typeof makeNavScreens>>()
 const makeTabStack = (tab: (typeof tabs)[number]) => {
   const S = createNativeStackNavigator()
 
@@ -255,7 +255,7 @@ const LoggedOut = React.memo(function LoggedOut() {
 })
 
 const useInitialStateChangeAfterLinking = (
-  goodLinking: any,
+  goodLinking: unknown,
   onStateChange: () => void,
   loggedIn: boolean
 ) => {
@@ -289,8 +289,8 @@ const useInitialStateChangeAfterLinking = (
 
   React.useEffect(() => {
     if (loggedIn && !lastLoggedIn && lastLoggedInTab.current) {
-      const navRef: any = Constants.navigationRef_
-      navRef.navgate(lastLoggedInTab.current)
+      const navRef = Constants.navigationRef_
+      navRef.navigate(lastLoggedInTab.current)
     }
   }, [loggedIn, lastLoggedIn])
 
@@ -317,7 +317,7 @@ const useBarStyle = () => {
 
 const RNApp = React.memo(function RNApp() {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
-  const goodLinking: any = RouterLinking.useReduxToLinking(appState.current)
+  const goodLinking = RouterLinking.useReduxToLinking(appState.current)
   // we only send certain params to the container depending on the state so we can remount w/ the right data
   // instead of using useEffect and flashing all the time
   // we use linking and force a key change if we're in NEEDS_INIT
@@ -346,7 +346,7 @@ const RNApp = React.memo(function RNApp() {
       <StatusBar barStyle={barStyle} />
       <NavigationContainer
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
-        linking={goodLinking}
+        linking={goodLinking as any}
         ref={Constants.navigationRef_ as any}
         key={String(navKey)}
         theme={Shared.theme}

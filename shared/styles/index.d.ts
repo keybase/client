@@ -81,7 +81,7 @@ type RemovedStyle = false | '' | 0 | null | undefined
 type CollapsibleStyle = CSS.StylesCrossPlatform | RemovedStyle
 
 // TODO better styles that aren't slow
-export declare function collapseStyles(styles: ReadonlyArray<CollapsibleStyle>): any
+export declare function collapseStyles(styles: ReadonlyArray<CollapsibleStyle>): CSS.StylesCrossPlatform
 
 // new style, used in the common-adapters, not the components, can memo for you
 export declare function useCollapseStyles<

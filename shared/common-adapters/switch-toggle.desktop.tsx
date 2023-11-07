@@ -3,14 +3,16 @@ import type {Props} from './switch-toggle'
 
 const SwitchToggle = (props: Props) => (
   <div
-    style={Styles.collapseStyles([
-      styles.outer,
-      props.on && {
-        backgroundColor: Styles.globalColors[props.color],
-        paddingLeft: enabledOffset,
-      },
-      props.style,
-    ])}
+    style={
+      Styles.collapseStyles([
+        styles.outer,
+        props.on && {
+          backgroundColor: Styles.globalColors[props.color],
+          paddingLeft: enabledOffset,
+        },
+        props.style,
+      ]) as React.CSSProperties
+    }
   >
     <div style={styles.inner} />
   </div>

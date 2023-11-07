@@ -19,12 +19,14 @@ class DragHeader extends React.Component<Props> {
     const maybeWindowDraggingStyle = this.props.windowDragging ? Kb.Styles.desktopStyles.windowDragging : {}
     return (
       <div
-        style={Kb.Styles.collapseStyles([
-          styles.container,
-          maybeWindowDraggingStyle,
-          styles.defaultContainer,
-          this.props.style,
-        ])}
+        style={
+          Kb.Styles.collapseStyles([
+            styles.container,
+            maybeWindowDraggingStyle,
+            styles.defaultContainer,
+            this.props.style,
+          ]) as React.CSSProperties
+        }
       >
         {this.props.children}
         {this.props.icon && <Kb.Icon type="icon-keybase-logo-24" />}
@@ -42,12 +44,14 @@ class DragHeader extends React.Component<Props> {
     const maybeWindowDraggingStyle = this.props.windowDragging ? Kb.Styles.desktopStyles.windowDragging : {}
     return (
       <div
-        style={Kb.Styles.collapseStyles([
-          styles.container,
-          maybeWindowDraggingStyle,
-          styles.strongContainer,
-          this.props.style,
-        ])}
+        style={
+          Kb.Styles.collapseStyles([
+            styles.container,
+            maybeWindowDraggingStyle,
+            styles.strongContainer,
+            this.props.style,
+          ]) as React.CSSProperties
+        }
       >
         {this.props.title && (
           <Kb.Text

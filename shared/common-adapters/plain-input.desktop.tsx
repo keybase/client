@@ -233,7 +233,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
         this.props.resize && styles.resize,
         this.props.growAndScroll && styles.growAndScroll,
         this.props.style,
-      ]),
+      ]) as React.CSSProperties,
     }
   }
 
@@ -246,7 +246,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
         styles.noChrome, // noChrome comes after to unset lineHeight in singleline
         this.props.flexable && styles.flexable,
         this.props.style,
-      ]),
+      ]) as React.CSSProperties,
       type: this.props.type,
     }
   }

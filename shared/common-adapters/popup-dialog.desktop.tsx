@@ -55,7 +55,7 @@ export function PopupDialog(p: Props) {
             />
           )}
           <div
-            style={Styles.collapseStyles([styles.clipContainer, styleClipContainer])}
+            style={Styles.collapseStyles([styles.clipContainer, styleClipContainer]) as React.CSSProperties}
             onClick={allowClipBubbling ? undefined : stopBubbling}
           >
             {children}

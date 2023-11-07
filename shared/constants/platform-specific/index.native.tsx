@@ -138,7 +138,8 @@ const loadStartupDetails = async () => {
   const [routeState, initialUrl, push, share] = await Promise.all([
     C.neverThrowPromiseFunc(async () => {
       try {
-        return Promise.resolve(JSON.parse(guiConfig).ui.routeState2 as string)
+        const config = JSON.parse(guiConfig) as {ui?: {routeState2?: string}} | undefined
+        return Promise.resolve(config?.ui?.routeState2 ?? '')
       } catch {
         return Promise.resolve('')
       }
@@ -237,7 +238,7 @@ const onChatWatchPosition = async (action: EngineGen.Chat1ChatUiChatWatchPositio
   try {
     await requestLocationPermission(action.payload.params.perm)
   } catch (_error) {
-    const error = _error as any
+    const error = _error as {message?: string}
     logger.info('failed to get location perms: ' + error.message)
     setPermissionDeniedCommandStatus(
       T.Chat.conversationIDToKey(action.payload.params.convID),
@@ -286,8 +287,9 @@ ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
   if (!data) {
     return
   }
-  const locations = (data as any).locations as Array<ExpoLocation.LocationObject>
-  if (!locations.length) {
+  const d = data as {locations?: Array<ExpoLocation.LocationObject>}
+  const locations = d.locations
+  if (!locations?.length) {
     return
   }
   const pos = locations.at(-1)
@@ -303,7 +305,7 @@ export const watchPositionForMap = async (conversationIDKey: T.Chat.Conversation
     logger.info('location perms check')
     await requestLocationPermission(T.RPCChat.UIWatchPositionPerm.base)
   } catch (_error) {
-    const error = _error as any
+    const error = _error as {message?: string}
     logger.info('failed to get location perms: ' + error.message)
     setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
     return () => {}
@@ -323,7 +325,7 @@ export const watchPositionForMap = async (conversationIDKey: T.Chat.Conversation
     )
     return () => sub.remove()
   } catch (_error) {
-    const error = _error as any
+    const error = _error as {message?: string}
     logger.info('failed to get location: ' + error.message)
     setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
     return () => {}

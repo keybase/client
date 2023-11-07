@@ -1,11 +1,11 @@
 import * as React from 'react'
-import type * as T from './../../constants/types'
-import * as Data from './../../util/emoji'
-import * as Kb from './../../common-adapters'
+import type * as T from '../../constants/types'
+import * as Data from '../../util/emoji'
+import * as Kb from '../../common-adapters'
 import debounce from 'lodash/debounce'
-import {isMobile} from './../../constants/platform'
+import {isMobile} from '../../constants/platform'
 import chunk from 'lodash/chunk'
-import {memoize} from './../../util/memoize'
+import {memoize} from '../../util/memoize'
 import {
   emojiDataToRenderableEmoji,
   getEmojiStr,
@@ -18,17 +18,20 @@ import type {Section as _Section} from './../../common-adapters/section-list'
 
 // defer loading this until we need to, very expensive
 const _getData = () => {
-  const categories = require('../../util/emoji').categories as typeof Data.categories
-  const emojiSearch = require('../../util/emoji').emojiSearch as typeof Data.emojiSearch
-  const emojiNameMap = require('../../util/emoji').emojiNameMap as typeof Data.emojiNameMap
-  const emojiSkinTones = require('../../util/emoji').skinTones as typeof Data.skinTones
+  const utilEmoji = require('../../util/emoji') as {
+    categories: typeof Data.categories
+    emojiSearch: typeof Data.emojiSearch
+    emojiNameMap: typeof Data.emojiNameMap
+    skinTones: typeof Data.skinTones
+  }
+  const {categories, emojiSearch, emojiNameMap, skinTones: emojiSkinTones} = utilEmoji
   return {categories, emojiNameMap, emojiSearch, emojiSkinTones}
 }
 
 const chunkEmojis = (emojis: Array<EmojiData>, emojisPerLine: number): Array<Row> =>
-  chunk(emojis, emojisPerLine).map((c: any, idx: number) => ({
+  chunk(emojis, emojisPerLine).map((c, idx) => ({
     emojis: c,
-    key: c?.[0]?.short_name || String(idx),
+    key: c[0]?.short_name || String(idx),
   }))
 
 // Remove those that have been obsolete and have a replacement. But it doens't
@@ -237,7 +240,7 @@ const EmojiRow = React.memo(function EmojiRow(p: {
   return (
     <Kb.Box2 key={row.key} fullWidth={true} style={styles.emojiRowContainer} direction="horizontal">
       {row.emojis.map(mapper)}
-      {[...Array(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
+      {[...Array(emojisPerLine - row.emojis.length)].map((_: unknown, index) => makeEmojiPlaceholder(index))}
     </Kb.Box2>
   )
 })
@@ -274,7 +277,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
       <EmojiRow row={row} emojisPerLine={emojisPerLine} mapper={this.mapper} />
     )
 
-  private sectionListRef = React.createRef<any>()
+  private sectionListRef = React.createRef<Kb.SectionList<Section>>()
 
   private getBookmarkBar = (bookmarks: Array<Bookmark>) => {
     const content = (
@@ -295,6 +298,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
                 color={isActive ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black_50}
                 onClick={() =>
                   this.sectionListRef.current?.scrollToLocation({
+                    animated: true,
                     itemIndex: 0,
                     sectionIndex: bookmark.sectionIndex,
                   })
@@ -321,7 +325,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
   )
 
   private onSectionChange = debounce(
-    section => this.mounted && this.setState({activeSectionKey: section.key}),
+    (section: Section) => this.mounted && this.setState({activeSectionKey: section.key}),
     200
   )
 
@@ -350,9 +354,8 @@ class EmojiPicker extends React.PureComponent<Props, State> {
   }
 
   _emojisPerLine = 1
-  private renderItem = ({item}: {item: Row; index: number}) => this.getEmojiRow(item, this._emojisPerLine)
 
-  private renderSectionHeader = ({section}: any) => {
+  private renderSectionHeader = ({section}: {section: Section}) => {
     return section.key === 'not-found' ? this.makeNotFound() : this.getSectionHeader(section.title)
   }
 
@@ -392,7 +395,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
           >
             {this.getSectionHeader('Search results')}
             {results.map(e => this.getEmojiSingle(e, this.props.skinTone))}
-            {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_, index) =>
+            {[...Array(emojisPerLine - (results.length % emojisPerLine))].map((_: unknown, index) =>
               makeEmojiPlaceholder(index)
             )}
             {this.makeNotFound()}
@@ -412,7 +415,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
           fullWidth={true}
           style={styles.sectionListContainer}
         >
-          <Kb.SectionList
+          <Kb.SectionList<Section>
             ref={this.sectionListRef}
             getItemHeight={this.getEmojiWidthWithPadding}
             getSectionHeaderHeight={this.getSectionHeaderHeight}
@@ -421,7 +424,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
             sections={sections}
             onSectionChange={this.onSectionChange}
             stickySectionHeadersEnabled={true}
-            renderItem={this.renderItem}
+            renderItem={({item}) => this.getEmojiRow(item, this._emojisPerLine)}
             renderSectionHeader={this.renderSectionHeader}
           />
         </Kb.Box2>

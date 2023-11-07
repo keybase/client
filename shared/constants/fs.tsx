@@ -8,6 +8,7 @@ import {RPCError} from '../util/errors'
 import logger from '../logger'
 import {isLinux, isMobile} from './platform'
 import {tlfToPreferredOrder} from '../util/kbfs'
+import isObject from 'lodash/isObject'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
 export const folderListWaitingKey = 'fs:folderList'
@@ -996,12 +997,14 @@ const noAccessErrorCodes = [
   T.RPCGen.StatusCode.scteamreaderror,
 ]
 
-export const errorToActionOrThrow = (error: any, path?: T.FS.Path) => {
-  if (error?.code === T.RPCGen.StatusCode.sckbfsclienttimeout) {
+export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
+  if (!isObject(error)) return
+  const code = (error as {code?: number}).code ?? -1
+  if (code === T.RPCGen.StatusCode.sckbfsclienttimeout) {
     _useState.getState().dispatch.checkKbfsDaemonRpcStatus()
     return
   }
-  if (error?.code === T.RPCGen.StatusCode.scidentifiesfailed) {
+  if (code === T.RPCGen.StatusCode.scidentifiesfailed) {
     // This is specifically to address the situation where when user tries to
     // remove a shared TLF from their favorites but another user of the TLF has
     // deleted their account the subscribePath call cauused from the popup will
@@ -1014,18 +1017,18 @@ export const errorToActionOrThrow = (error: any, path?: T.FS.Path) => {
     // an identify error here.
     return undefined
   }
-  if (path && error?.code === T.RPCGen.StatusCode.scsimplefsnotexist) {
+  if (path && code === T.RPCGen.StatusCode.scsimplefsnotexist) {
     _useState.getState().dispatch.setPathSoftError(path, T.FS.SoftError.Nonexistent)
     return
   }
-  if (path && noAccessErrorCodes.includes(error?.code)) {
+  if (path && noAccessErrorCodes.includes(code)) {
     const tlfPath = getTlfPath(path)
     if (tlfPath) {
       _useState.getState().dispatch.setTlfSoftError(tlfPath, T.FS.SoftError.NoAccess)
       return
     }
   }
-  if (error?.code === T.RPCGen.StatusCode.scdeleted) {
+  if (code === T.RPCGen.StatusCode.scdeleted) {
     // The user is deleted. Let user know and move on.
     _useState.getState().dispatch.redbar('A user in this shared folder has deleted their account.')
     return
@@ -1909,8 +1912,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
             return
           }
           if (error.code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
-            const users = error.fields?.filter((elem: any) => elem.key === 'usernames')
-            const usernames = users?.map((elem: any) => elem.value)
+            const fields = error.fields as undefined | Array<{key?: string; value?: string}>
+            const users = fields?.filter(elem => elem.key === 'usernames')
+            const usernames = users?.map(elem => elem.value ?? '') ?? []
             // Don't leave the user on a broken FS dir screen.
             C.useRouterState.getState().dispatch.navigateUp()
             C.useRouterState.getState().dispatch.navigateAppend({

@@ -9,8 +9,10 @@ import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers
 
 // If this image changes, some hard coded dimensions
 // in this file also need to change.
-const explodedIllustrationURL = require('../../../../../images/icons/pattern-ashes-mobile-400-80.png')
-const explodedIllustrationDarkURL = require('../../../../../images/icons/dark-pattern-ashes-mobile-400-80.png')
+const explodedIllustrationURL =
+  require('../../../../../images/icons/pattern-ashes-mobile-400-80.png') as number
+const explodedIllustrationDarkURL =
+  require('../../../../../images/icons/dark-pattern-ashes-mobile-400-80.png') as number
 
 export const animationDuration = 1500
 
@@ -60,8 +62,8 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     this._clearTimeout()
   }
 
-  _onLayout = (evt: any) => {
-    if (evt.nativeEvent && evt.nativeEvent.layout.height !== this.state.height) {
+  _onLayout = (evt: Kb.LayoutEvent) => {
+    if (evt.nativeEvent.layout.height !== this.state.height) {
       this.setState({
         height: evt.nativeEvent.layout.height,
         numImages: Math.ceil(evt.nativeEvent.layout.height / 80),
@@ -193,7 +195,7 @@ class EmojiTower extends React.Component<
     const children: Array<React.ReactNode> = []
     for (let i = 0; i < this.props.numImages * 4; i++) {
       const r = Math.random()
-      let emoji
+      let emoji: string
       if (Kb.Styles.isAndroid) {
         emoji = r < 0.5 ? '💥' : '💣'
       } else {

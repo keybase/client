@@ -23,7 +23,7 @@ const Avatar = (props: Props) => {
     <div
       className={Styles.classNames('avatar', avatarSizeClasName)}
       onClick={props.onClick}
-      style={Styles.collapseStyles([props.style, props.onClick && styles.clickable])}
+      style={Styles.collapseStyles([props.style, props.onClick && styles.clickable]) as React.CSSProperties}
     >
       {!props.skipBackground && (
         <div className={Styles.classNames('avatar-background', avatarSizeClasName)} />
@@ -72,16 +72,18 @@ const Avatar = (props: Props) => {
       )}
       {(!!props.borderColor || props.isTeam) && (
         <div
-          style={Styles.collapseStyles([
-            props.isTeam && styles.borderTeam,
-            !props.isTeam && styles.border,
-            props.borderColor &&
-              ({
-                boxShadow: `0px 0px 0px ${props.isTeam ? 1 : 2}px ${
-                  props.borderColor || Styles.globalColors.black_10
-                } ${props.isTeam ? 'inset' : ''}`,
-              } as const),
-          ] as any)}
+          style={
+            Styles.collapseStyles([
+              props.isTeam && styles.borderTeam,
+              !props.isTeam && styles.border,
+              props.borderColor &&
+                ({
+                  boxShadow: `0px 0px 0px ${props.isTeam ? 1 : 2}px ${
+                    props.borderColor || Styles.globalColors.black_10
+                  } ${props.isTeam ? 'inset' : ''}`,
+                } as any),
+            ]) as React.CSSProperties
+          }
           className={Styles.classNames(
             {'avatar-border': !props.isTeam, 'avatar-border-team': props.isTeam},
             avatarSizeClasName

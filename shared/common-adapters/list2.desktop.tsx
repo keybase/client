@@ -19,43 +19,61 @@ class List2<T> extends React.PureComponent<Props<T>> {
   // This has to be a separate variable since if we construct it inside render
   // it's a new function everytime, and that triggers react-window to unmount
   // all rows and mount again.
-  _row = ({index, style}: any) => {
+  _row = (p: {index: number; style: React.CSSProperties}) => {
+    const {index, style} = p
     const item = this.props.items[index]
     return item ? <div style={style}>{this.props.renderItem(index, item)}</div> : null
   }
 
   // Need to pass in itemData to make items re-render on prop changes.
-  _fixed = ({height, width, itemHeight}: any) => (
-    <FixedSizeList
-      style={this.props.style as React.CSSProperties}
-      height={height}
-      width={width}
-      itemCount={this.props.items.length}
-      itemData={this.props.items}
-      itemKey={this._keyExtractor}
-      itemSize={itemHeight}
-    >
-      {this._row}
-    </FixedSizeList>
-  )
+  _fixed = (p: {height: number; width: number; itemHeight: number}) => {
+    const {height, width, itemHeight} = p
+    return (
+      <FixedSizeList
+        style={this.props.style as React.CSSProperties}
+        height={height}
+        width={width}
+        itemCount={this.props.items.length}
+        itemData={this.props.items}
+        itemKey={this._keyExtractor}
+        itemSize={itemHeight}
+      >
+        {this._row}
+      </FixedSizeList>
+    )
+  }
 
   private variableSizeListRef = React.createRef<VariableSizeList>()
 
-  _variable = ({height, width, getItemLayout}: any) => (
-    <VariableSizeList
-      ref={this.variableSizeListRef}
-      style={this.props.style as React.CSSProperties}
-      height={height}
-      width={width}
-      itemCount={this.props.items.length}
-      itemData={this.props.items}
-      itemKey={this._keyExtractor}
-      itemSize={index => getItemLayout(index, this.props.items[index]).length}
-      estimatedItemSize={this.props.estimatedItemHeight}
-    >
-      {this._row}
-    </VariableSizeList>
-  )
+  _variable = (p: {
+    height: number
+    width: number
+    getItemLayout: (
+      index: number,
+      item?: T | undefined
+    ) => {
+      index: number
+      length: number
+      offset: number
+    }
+  }) => {
+    const {height, width, getItemLayout} = p
+    return (
+      <VariableSizeList
+        ref={this.variableSizeListRef}
+        style={this.props.style as React.CSSProperties}
+        height={height}
+        width={width}
+        itemCount={this.props.items.length}
+        itemData={this.props.items}
+        itemKey={this._keyExtractor}
+        itemSize={index => getItemLayout(index, this.props.items[index]).length}
+        estimatedItemSize={this.props.estimatedItemHeight}
+      >
+        {this._row}
+      </VariableSizeList>
+    )
+  }
 
   componentDidUpdate(prevProps: Props<T>) {
     if (prevProps.forceLayout !== this.props.forceLayout) {
@@ -67,7 +85,7 @@ class List2<T> extends React.PureComponent<Props<T>> {
     if (this.props.items.length === 0) return null
     return (
       <AutoSizer>
-        {p => {
+        {(p: {height?: number; width?: number}) => {
           let {height = 1, width = 1} = p
           if (isNaN(height)) {
             height = 1

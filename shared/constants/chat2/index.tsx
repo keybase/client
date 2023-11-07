@@ -95,7 +95,8 @@ export const getBotsAndParticipants = (
   sort?: boolean
 ) => {
   const isAdhocTeam = meta.teamType === 'adhoc'
-  const teamMembers = C.useTeamsState.getState().teamIDToMembers.get(meta.teamID) ?? new Map()
+  const teamMembers =
+    C.useTeamsState.getState().teamIDToMembers.get(meta.teamID) ?? new Map<string, T.Teams.MemberInfo>()
   let bots: Array<string> = []
   if (isAdhocTeam) {
     bots = participantInfo.all.filter(p => !participantInfo.name.includes(p))
@@ -473,7 +474,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
         } catch (error) {
           if (error instanceof RPCError) {
-            const errUsernames = error.fields?.filter((elem: any) => elem.key === 'usernames') as
+            const f = error.fields as Array<{key?: string}> | undefined
+            const errUsernames = f?.filter(elem => elem.key === 'usernames') as
               | undefined
               | Array<{key: string; value: string}>
             let disallowedUsers: Array<string> = []

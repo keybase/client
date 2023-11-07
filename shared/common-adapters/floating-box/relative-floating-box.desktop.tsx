@@ -279,7 +279,7 @@ type ModalPositionRelativeProps = {
 type Snapshot = {width?: number; height?: number}
 export class RelativeFloatingBox extends React.PureComponent<
   ModalPositionRelativeProps,
-  {style: any},
+  {style: Styles.StylesCrossPlatform},
   Snapshot
 > {
   popupNode: HTMLElement | null = null

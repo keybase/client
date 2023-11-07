@@ -20,10 +20,12 @@ const BackButton = React.memo(function BackButton(props: Props) {
   }
   return (
     <div
-      style={Styles.collapseStyles([
-        props.disabled ? styles.disabledContainer : styles.container,
-        props.style,
-      ] as any)}
+      style={
+        Styles.collapseStyles([
+          props.disabled ? styles.disabledContainer : styles.container,
+          props.style,
+        ]) as React.CSSProperties
+      }
       onClick={_onClick}
     >
       <Kb.Icon
@@ -44,33 +46,38 @@ const BackButton = React.memo(function BackButton(props: Props) {
   )
 })
 
-export const styles = {
-  container: {
-    ...Styles.globalStyles.flexBoxRow,
-    ...Styles.desktopStyles.clickable,
-    alignItems: 'center',
-    zIndex: 1,
-  },
-  disabledContainer: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      cursor: 'default',
-      zIndex: 1,
-    },
-  }),
-  disabledIcon: Styles.platformStyles({
-    isElectron: {
-      cursor: 'default',
-      marginRight: 6,
-    },
-  }),
-  disabledText: Styles.platformStyles({
-    isElectron: {cursor: 'default'},
-  }),
-  icon: {
-    marginRight: 6,
-  },
-} as const
+export const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.flexBoxRow,
+          ...Styles.desktopStyles.clickable,
+          alignItems: 'center',
+          zIndex: 1,
+        },
+      }),
+      disabledContainer: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.flexBoxRow,
+          alignItems: 'center',
+          cursor: 'default',
+          zIndex: 1,
+        },
+      }),
+      disabledIcon: Styles.platformStyles({
+        isElectron: {
+          cursor: 'default',
+          marginRight: 6,
+        },
+      }),
+      disabledText: Styles.platformStyles({
+        isElectron: {cursor: 'default'},
+      }),
+      icon: {
+        marginRight: 6,
+      },
+    }) as const
+)
 
 export default BackButton
