@@ -45,7 +45,7 @@ type Props = {
   onPasswordReset: () => void
 }
 
-const List = (p: any) => (
+const List = (p: {children: React.ReactNode}) => (
   <Box2 direction="vertical" style={styles.list}>
     {p.children}
   </Box2>
@@ -84,11 +84,13 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
       </Wrapper>
     )
   }
-  const fields = (Array.isArray(error.fields) ? error.fields : []).reduce((acc, f) => {
-    const k = f && typeof f.key === 'string' ? f.key : ''
-    acc[k] = f.value || ''
-    return acc
-  }, {})
+  const f = error.fields as Array<undefined | {key?: string; value?: string}> | undefined
+  const fields =
+    f?.reduce<{[key: string]: string}>((acc, f) => {
+      const k = f && typeof f.key === 'string' ? f.key : ''
+      acc[k] = f?.value || ''
+      return acc
+    }, {}) ?? {}
   switch (error.code) {
     case T.RPCGen.StatusCode.scdeviceprovisionoffline:
     case T.RPCGen.StatusCode.scapinetworkerror:
@@ -129,7 +131,7 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
         </Wrapper>
       )
     case T.RPCGen.StatusCode.sckeynomatchinggpg:
-      if (fields.has_active_device) {
+      if (fields['has_active_device']) {
         return (
           <Wrapper onBack={onBack}>
             <Text center={true} type="Body">

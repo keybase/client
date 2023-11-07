@@ -89,7 +89,7 @@ const makeLinking = (options: OptionsType) => {
           },
         },
       },
-    },
+    } as const,
     draft => {
       const {screens: _screens} = draft.screens.loggedIn
       const screens = _screens as {

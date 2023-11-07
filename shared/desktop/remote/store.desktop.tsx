@@ -19,9 +19,9 @@ type UpdateStoreAction = {
 }
 
 class RemoteStore {
-  _store: Store<any, any>
+  _store: Store<unknown, any>
   _gotPropsCallback: (() => void) | undefined // let component know it loaded once so it can show itself. Set to null after calling once
-  _deserialize: (arg0: any, arg1: any) => any
+  _deserialize: (a: unknown, b: unknown) => unknown
 
   getStore = () => this._store
 
@@ -46,25 +46,25 @@ class RemoteStore {
     })
   }
 
-  _reducer = (state: any, action: any) => {
+  _reducer = (state: unknown, action: {type?: 'remoteStore:update'; payload: {propsStr: string}}) => {
     switch (action.type) {
       case updateStore: {
         return this._deserialize(state, JSON.parse(action.payload.propsStr))
       }
+      default:
+        return state
     }
-
-    return state
   }
 
   constructor(props: {
     windowComponent: string
     windowParam: string
     gotPropsCallback: () => void
-    deserialize: (arg0: any, arg1: any) => any
+    deserialize: (a: unknown, b: unknown) => unknown
   }) {
     // eslint-disable-next-line
     this._store = createStore(
-      this._reducer,
+      this._reducer as any,
       props.deserialize(undefined, undefined),
       applyMiddleware(sendToRemoteMiddleware as any)
     )

@@ -8,7 +8,7 @@ import type RL from 'react-list'
 import type {Props} from './list'
 import {renderElementOrComponentOrNot} from '../util/util'
 
-class List extends React.PureComponent<Props<any>> {
+class List<T> extends React.PureComponent<Props<T>> {
   _list: RL | null = null
   _itemRender = (index: number, _: number | string): React.JSX.Element => {
     // ReactList has an issue where it caches the list length into its own state so can ask
@@ -17,17 +17,18 @@ class List extends React.PureComponent<Props<any>> {
       return <></>
     }
     const item = this.props.items[index]
-    const children = this.props.renderItem(index, item)
+    const children = item ? this.props.renderItem(index, item) : <></>
 
     if (this.props.indexAsKey) {
       // if indexAsKey is set, just use index.
       return <React.Fragment key={String(index)}>{children}</React.Fragment>
     }
     const keyProp = this.props.keyProperty || 'key'
-    if (item[keyProp]) {
-      const key = item[keyProp]
+    const i = item as {[key: string]: unknown} | undefined
+    if (i?.[keyProp]) {
+      const key = i[keyProp]
       // otherwise, see if key is set on item directly.
-      return <React.Fragment key={key}>{children}</React.Fragment>
+      return <React.Fragment key={String(key)}>{children}</React.Fragment>
     }
     // We still don't have a key. So hopefully renderItem will provide the key.
     logger.info(
@@ -57,7 +58,7 @@ class List extends React.PureComponent<Props<any>> {
     return this.props.fixedHeight ? 'uniform' : 'simple'
   }
 
-  _checkOnEndReached = throttle(target => {
+  _checkOnEndReached = throttle((target: HTMLDivElement) => {
     const diff = target.scrollHeight - (target.scrollTop + target.clientHeight)
     if (diff < 5) {
       this._onEndReached()
@@ -67,7 +68,8 @@ class List extends React.PureComponent<Props<any>> {
   // This matches the way onEndReached works for flatlist on RN
   _onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
 
-  _onScroll = (e: any) => e.currentTarget && this._checkOnEndReached(e.currentTarget)
+  _onScroll = (e: React.BaseSyntheticEvent<unknown, HTMLDivElement | undefined>) =>
+    e.currentTarget && this._checkOnEndReached(e.currentTarget)
 
   render() {
     return (

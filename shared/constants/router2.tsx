@@ -5,13 +5,13 @@ import {
   StackActions,
   CommonActions,
   type NavigationContainerRef,
+  type NavigationState,
 } from '@react-navigation/core'
 import * as Z from '../util/zustand'
 import {produce} from 'immer'
 import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
-import type {NavigationState} from '@react-navigation/core'
 import type {NavigateAppendType, RouteKeys} from '../router-v2/route-params'
 export type PathParam = NavigateAppendType
 type Route = NavigationState['routes'][0]
@@ -21,7 +21,9 @@ export type Navigator = NavigationContainerRef<any>
 
 const DEBUG_NAV = __DEV__ && (false as boolean)
 
-export const navigationRef_ = createNavigationContainerRef()
+export const navigationRef_: ReturnType<typeof createNavigationContainerRef> & {
+  navigate: (s: string) => void
+} = createNavigationContainerRef()
 export const _getNavigator = () => {
   return navigationRef_.isReady() ? navigationRef_ : undefined
 }
@@ -206,22 +208,22 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
       chatStack.state = chatStack.state ?? {index: 0, routes: []}
       chatStack.state.index = 1
       // key is required or you'll run into issues w/ the nav
-      let convoRoute: any = {
+      let convoRoute = {
         key: `chatConversation-${conversationIDKey}`,
         name: 'chatConversation',
         params: {conversationIDKey},
-      }
+      } as const
       // reuse visible route if it's the same
       const visible = chatStack.state.routes.at(-1)
       if (visible) {
         const vParams: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = visible.params
         if (visible.name === 'chatConversation' && vParams?.conversationIDKey === conversationIDKey) {
-          convoRoute = visible
+          convoRoute = visible as typeof convoRoute
         }
       }
 
-      const chatRoot = chatStack.state.routes[0]
-      chatStack.state.routes = [chatRoot, convoRoute]
+      const chatRoot = chatStack.state.routes[0]!
+      chatStack.state.routes = [chatRoot, convoRoute] as typeof chatStack.state.routes
     }
   })
 
@@ -310,12 +312,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
         return
       }
       let routeName: string | undefined
-      let params: any
+      let params: object | undefined
       if (typeof path === 'string') {
         routeName = path
       } else {
         routeName = path.selected
-        params = path.props
+        params = path.props as object
       }
       if (!routeName) {
         return
@@ -336,7 +338,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
       if (replace) {
         if (visible?.name === routeName) {
-          n.dispatch(CommonActions.setParams(params))
+          n.dispatch(CommonActions.setParams(params as object))
         } else {
           n.dispatch(StackActions.replace(routeName, params))
         }

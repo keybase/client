@@ -170,14 +170,14 @@ const listenForNativeAndroidIntentNotifications = async () => {
   C.usePushState.getState().dispatch.setPushToken(pushToken)
 
   const RNEmitter = getNativeEmitter()
-  RNEmitter.addListener('initialIntentFromNotification', evt => {
+  RNEmitter.addListener('initialIntentFromNotification', (evt?: {}) => {
     const notification = evt && normalizePush(evt)
     if (notification) {
       C.usePushState.getState().dispatch.handlePush(notification)
     }
   })
 
-  RNEmitter.addListener('onShareData', evt => {
+  RNEmitter.addListener('onShareData', (evt: {text?: string; localPath?: string}) => {
     logger.debug('[ShareDataIntent]', evt)
     const {setAndroidShare} = C.useConfigState.getState().dispatch
 
@@ -249,7 +249,7 @@ const getStartupDetailsFromInitialPush = async () => {
 }
 
 const getInitialPushAndroid = async () => {
-  const n = await androidGetInitialBundleFromNotification()
+  const n = (await androidGetInitialBundleFromNotification()) as undefined | {}
   return n ? normalizePush(n) : undefined
 }
 
