@@ -1,3 +1,2 @@
 Some short term todos:
 FS icons incorrect?
-fs paths have gap before last item

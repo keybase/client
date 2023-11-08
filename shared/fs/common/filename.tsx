@@ -59,6 +59,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       breakAll: Kb.Styles.platformStyles({
+        common: {flexShrink: 1},
         isElectron: {wordBreak: 'break-all'},
       }),
       noShrink: {flexShrink: 0},
