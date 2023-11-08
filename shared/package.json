@@ -73,7 +73,7 @@
     "@gorhom/portal": "1.0.14",
     "@gorhom/bottom-sheet": "4.5.1",
     "@msgpack/msgpack": "2.8.0",
-    "@react-native-community/netinfo": "11.0.1",
+    "@react-native-community/netinfo": "11.1.0",
     "@react-native-community/push-notification-ios": "1.11.0",
     "@react-native-masked-view/masked-view": "0.3.0",
     "@react-native-picker/picker": "2.5.1",

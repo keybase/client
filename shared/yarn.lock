@@ -2052,10 +2052,10 @@
     prompts "^2.4.0"
     semver "^7.5.2"
 
-"@react-native-community/netinfo@11.0.1":
-  version "11.0.1"
-  resolved "https://registry.yarnpkg.com/@react-native-community/netinfo/-/netinfo-11.0.1.tgz#477e0e694a62ec73bbf344d64e19447752eefec9"
-  integrity sha512-OqOzDNyFq2u4CYOFv0zwzJdHPPIwX0h4WfFZimdeRIVtwuLk7ZgxeAMuujOe/HXnEjpfXNYVxjM5wgjsxMxqzg==
+"@react-native-community/netinfo@11.1.0":
+  version "11.1.0"
+  resolved "https://registry.yarnpkg.com/@react-native-community/netinfo/-/netinfo-11.1.0.tgz#b3b2ab741a5d935e445685ade8a53d48775e082b"
+  integrity sha512-pIbCuqgrY7SkngAcjUs9fMzNh1h4soQMVw1IeGp1HN5//wox3fUVOuvyIubTscUbdLFKiltJAiuQek7Nhx1bqA==
 
 "@react-native-community/push-notification-ios@1.11.0":
   version "1.11.0"

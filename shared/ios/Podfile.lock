@@ -437,7 +437,7 @@ PODS:
     - React
   - react-native-kb (0.1.1):
     - React-Core
-  - react-native-netinfo (11.0.1):
+  - react-native-netinfo (11.1.0):
     - React-Core
   - react-native-safe-area-context (4.7.4):
     - React-Core
@@ -951,7 +951,7 @@ SPEC CHECKSUMS:
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
   react-native-image-keyboard: adbf5996b8592a7d8cb8d3e431a9607f9cf3b270
   react-native-kb: 00f70648f2f1e0ab1df703c6e8774f8ffffe121c
-  react-native-netinfo: d8c9d0c71658e16362de176f22b06bd93186509c
+  react-native-netinfo: 3aa5637c18834966e0c932de8ae1ae56fea20a97
   react-native-safe-area-context: 2cd91d532de12acdb0a9cbc8d43ac72a8e4c897c
   react-native-webview: 8fc09f66a1a5b16bbe37c3878fda27d5982bb776
   React-NativeModulesApple: 63505fb94b71e2469cab35bdaf36cca813cb5bfd
