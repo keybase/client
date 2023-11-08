@@ -5,7 +5,6 @@ import * as Kb from '../common-adapters'
 import * as React from 'react'
 import type * as ChatConstants from '../constants/chat2'
 import KB2 from '../util/electron.desktop'
-import _getIcons from './icons'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {intersect} from '../util/set'
 import {mapFilterByKey} from '../util/map'
@@ -16,10 +15,6 @@ import type * as NotifConstants from '../constants/notifications'
 
 const {showTray} = KB2.functions
 
-const getIcons = (iconType: NotifConstants.BadgeType, isBadged: boolean) => {
-  return _getIcons(iconType, isBadged, C.useDarkModeState.getState().systemDarkMode)
-}
-
 type WidgetProps = {
   desktopAppBadgeCount: number
   widgetBadge: NotifConstants.BadgeType
@@ -29,8 +24,7 @@ function useWidgetBrowserWindow(p: WidgetProps) {
   const {widgetBadge, desktopAppBadgeCount} = p
   const systemDarkMode = C.useDarkModeState(s => s.systemDarkMode)
   React.useEffect(() => {
-    const icon = getIcons(widgetBadge, desktopAppBadgeCount > 0)
-    showTray?.(desktopAppBadgeCount, icon)
+    showTray?.(desktopAppBadgeCount, widgetBadge)
   }, [widgetBadge, desktopAppBadgeCount, systemDarkMode])
 }
 

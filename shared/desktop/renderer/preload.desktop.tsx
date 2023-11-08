@@ -236,10 +236,10 @@ if (isRenderer) {
             type: 'showSaveDialog',
           })) as string
         },
-        showTray: (desktopAppBadgeCount: number, icon: string) => {
+        showTray: (desktopAppBadgeCount: number, badgeType: 'regular' | 'update' | 'error' | 'uploading') => {
           Electron.ipcRenderer
             .invoke('KBmenu', {
-              payload: {desktopAppBadgeCount, icon},
+              payload: {badgeType, desktopAppBadgeCount},
               type: 'showTray',
             })
             .then(() => {})
