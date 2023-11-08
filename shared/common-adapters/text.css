@@ -172,6 +172,9 @@
 :is(.text_Header, .text_HeaderItalic, .text_HeaderExtrabold, .text_HeaderLink) {
   font-size: 18px;
   line-height: 22px;
+}
+
+.text_HeaderLink {
   .darkMode & {
     color: var(--color-blueDarker2_75);
   }
