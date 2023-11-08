@@ -1,2 +1,3 @@
 Some short term todos:
-type styles / fix anys
+FS icons incorrect?
+fs paths have gap before last item
