@@ -40,27 +40,28 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
       ref={popupAnchor}
       style={Kb.Styles.collapseStyles([
         styles.explodingIconContainer,
-        styles.explodingIconContainerClickable,
         !!explodingModeSeconds && {
           backgroundColor: Kb.Styles.globalColors.black,
         },
       ] as any)}
     >
       {popup}
-      {explodingModeSeconds ? (
-        <Kb.Text type="BodyTinyBold" negative={true}>
-          {formatDurationShort(explodingModeSeconds * 1000)}
-        </Kb.Text>
-      ) : (
-        <Kb.WithTooltip tooltip="Timer">
-          <Kb.Icon
-            className={Kb.Styles.classNames('timer-icon', 'hover_color_black')}
-            onClick={toggleShowingPopup}
-            padding="xtiny"
-            type="iconfont-timer"
-          />
-        </Kb.WithTooltip>
-      )}
+      <Kb.Box2 direction="vertical" style={styles.explodingInsideWrapper}>
+        {explodingModeSeconds ? (
+          <Kb.Text type="BodyTinyBold" negative={true}>
+            {formatDurationShort(explodingModeSeconds * 1000)}
+          </Kb.Text>
+        ) : (
+          <Kb.WithTooltip tooltip="Timer">
+            <Kb.Icon
+              className={Kb.Styles.classNames('timer-icon', 'hover_color_black')}
+              onClick={toggleShowingPopup}
+              padding="xtiny"
+              type="iconfont-timer"
+            />
+          </Kb.WithTooltip>
+        )}
+      </Kb.Box2>
     </Kb.ClickableBox2>
   )
 }
@@ -297,7 +298,7 @@ type SideButtonsProps = Pick<Props, 'cannotWrite'> & {
 const SideButtons = (p: SideButtonsProps) => {
   const {htmlInputRef, cannotWrite, inputRef} = p
   return (
-    <Kb.Box2 direction="horizontal">
+    <Kb.Box2 direction="horizontal" style={styles.sideButtons}>
       {!cannotWrite && (
         <>
           <GiphyButton />
@@ -447,15 +448,16 @@ const styles = Kb.Styles.styleSheetCreate(
           alignSelf: 'stretch',
           borderBottomLeftRadius: 3,
           borderTopLeftRadius: 3,
-          justifyContent: 'center',
+          justifyContent: 'flex-end',
           textAlign: 'center',
           width: 32,
         },
-        isElectron: {borderRight: `1px solid ${Kb.Styles.globalColors.black_20}`},
+        isElectron: {
+          borderRight: `1px solid ${Kb.Styles.globalColors.black_20}`,
+          ...Kb.Styles.desktopStyles.clickable,
+        },
       }),
-      explodingIconContainerClickable: Kb.Styles.platformStyles({
-        isElectron: {...Kb.Styles.desktopStyles.clickable},
-      }),
+      explodingInsideWrapper: {alignItems: 'center', height: 32, justifyContent: 'center'},
       footer: {
         alignSelf: 'flex-end',
         color: Kb.Styles.globalColors.black_20,
@@ -511,6 +513,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       inputWrapperEditing: {backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt},
       inputWrapperExplodingMode: {borderColor: Kb.Styles.globalColors.black},
+      sideButtons: {alignSelf: 'flex-end'},
       suggestionSpinnerStyle: {
         bottom: Kb.Styles.globalMargins.tiny,
         position: 'absolute',

@@ -1,2 +1,1 @@
 Some short term todos:
-menubar icons not dark correctly in darkmode
