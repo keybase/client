@@ -1,2 +1,2 @@
 Some short term todos:
-FS icons incorrect?
+menubar icons not dark correctly in darkmode

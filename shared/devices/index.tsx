@@ -159,7 +159,17 @@ class Devices extends React.PureComponent<Props, State> {
           <PaperKeyNudge onAddDevice={() => this.props.onAddDevice(['paper key'])} />
         )}
         {this.props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
-        <Kb.List bounces={false} items={items} renderItem={this.renderItem} />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1, flexShrink: 1}}>
+          <Kb.List2
+            bounces={false}
+            items={items}
+            renderItem={this.renderItem}
+            itemHeight={{
+              height: 48,
+              type: 'fixed',
+            }}
+          />
+        </Kb.Box2>
       </Kb.Box2>
     )
   }
@@ -168,9 +178,7 @@ class Devices extends React.PureComponent<Props, State> {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {
-        position: 'relative',
-      },
+      container: {position: 'relative'},
       progress: {
         left: 12,
         position: 'absolute',
