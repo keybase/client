@@ -39,9 +39,9 @@ const DeleteChannel = (props: Props) => {
   })
 
   let deleteMsg: string
-  if (channelnames.length == 1) {
+  if (channelnames.length === 1) {
     deleteMsg = `#${channelnames[0]}`
-  } else if (channelnames.length == 2) {
+  } else if (channelnames.length === 2) {
     deleteMsg = `#${channelnames[0]} and #${channelnames[1]}`
   } else {
     const numOtherChans = channelnames.length - 2

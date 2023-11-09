@@ -47,7 +47,7 @@ export const ModalTitle = ({title, teamID}: MTProps) => {
   const teamname = C.useTeamsState(state => Constants.getTeamMeta(state, teamID).teamname)
   const avatarFilepath = C.useTeamsState(state => state.newTeamWizard.avatarFilename)
   const avatarCrop = C.useTeamsState(state => state.newTeamWizard.avatarCrop)
-  const isNewTeamWizard = teamID == T.Teams.newTeamWizardTeamID
+  const isNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
 
   return Kb.Styles.isMobile ? (
     <Kb.Box2 direction="vertical" alignItems="center">

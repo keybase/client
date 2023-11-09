@@ -50,6 +50,8 @@ const ThreadLoadStatus = () => {
       )
     case T.RPCChat.UIChatThreadStatusTyp.validated:
       return <ValidatedStatus />
+    default:
+      return null
   }
 }
 

@@ -439,11 +439,9 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
           C.useDarkModeState.getState().dispatch.setSystemDarkMode(action.payload.dark)
           break
         case RemoteGen.previewConversation:
-          {
-            C.useChatState
-              .getState()
-              .dispatch.previewConversation({participants: [action.payload.participant], reason: 'tracker'})
-          }
+          C.useChatState
+            .getState()
+            .dispatch.previewConversation({participants: [action.payload.participant], reason: 'tracker'})
           break
       }
     },

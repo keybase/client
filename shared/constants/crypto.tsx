@@ -559,7 +559,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const usernames = users.map(user => {
         // If we're encrypting to service account that is not proven on keybase set
         // (SBS) then we *must* encrypt to ourselves
-        if (user.serviceId == 'email') {
+        if (user.serviceId === 'email') {
           hasSBS = true
           return `[${user.username}]@email`
         }

@@ -17,7 +17,7 @@ export const useRedux = () => {
       let {height, width} = Constants.clampImageSize(previewWidth, previewHeight, maxWidth, maxHeight)
       // This is mostly a sanity check and also allows us to handle HEIC even though the go side doesn't
       // understand
-      if (height === 0 || width == 0) {
+      if (height === 0 || width === 0) {
         height = 320
         width = 320
       }

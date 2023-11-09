@@ -570,7 +570,8 @@ function unusedAssets() {
 
     let ir = images[root]
     if (!ir) {
-      images[root] = ir = []
+      ir = []
+      images[root] = ir
     }
     ir.push(f)
   })

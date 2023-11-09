@@ -141,7 +141,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             },
           })
         } catch (error) {
-          if (error != null) {
+          if (error) {
             logger.warn('error in toggling notifications: ', error)
           }
         }

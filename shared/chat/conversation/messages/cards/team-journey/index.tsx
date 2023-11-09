@@ -70,7 +70,7 @@ export const TeamJourney = (props: Props) => {
             style={Kb.Styles.collapseStyles([styles.actionsBox, contentHorizontalPadStyle] as const)}
           >
             {props.actions.map(action =>
-              action == 'wave' ? (
+              action === 'wave' ? (
                 <Kb.WaveButton
                   key="wave"
                   conversationIDKey={conversationIDKey}

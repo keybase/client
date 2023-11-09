@@ -36,12 +36,10 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
         if (username) {
           functionOnClick = onOpenTracker
         }
-      } else {
-        if (username) {
-          functionOnClick = onOpenUserProfile
-        } else if (teamID) {
-          functionOnClick = onOpenTeamProfile
-        }
+      } else if (username) {
+        functionOnClick = onOpenUserProfile
+      } else if (teamID) {
+        functionOnClick = onOpenTeamProfile
       }
       break
     }

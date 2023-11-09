@@ -72,7 +72,7 @@ const GenerateLinkModal = (props: Props) => {
   useTeamDetailsSubscribe(teamID)
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const inviteLinks = teamDetails?.inviteLinks
-  const inviteLink = [...(inviteLinks || [])].find(i => i.url == inviteLinkURL)
+  const inviteLink = [...(inviteLinks || [])].find(i => i.url === inviteLinkURL)
 
   const onBack = () => nav.safeNavigateUp()
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
@@ -133,7 +133,7 @@ const GenerateLinkModal = (props: Props) => {
     teamRole: teamRole,
   }
 
-  if (inviteLink != undefined) {
+  if (inviteLink !== undefined) {
     return (
       <Kb.Modal
         onClose={onClose}

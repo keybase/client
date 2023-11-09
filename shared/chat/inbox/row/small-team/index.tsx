@@ -156,13 +156,11 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
 
   if (typeof participants === 'string') {
     teamname = participants.split('#')[0] ?? ''
+  } else if (layoutIsTeam) {
+    teamname = participants[0] ?? ''
   } else {
-    if (layoutIsTeam) {
-      teamname = participants[0] ?? ''
-    } else {
-      participantOne = participants[0] ?? ''
-      participantTwo = participants[1] ?? ''
-    }
+    participantOne = participants[0] ?? ''
+    participantTwo = participants[1] ?? ''
   }
   return teamname ? (
     <TeamAvatar teamname={teamname} isMuted={isMuted} isSelected={isSelected} isHovered={false} />

@@ -439,10 +439,8 @@ export const useAttachmentSections = (
   const onDocDownload = (message: T.Chat.MessageAttachment) => {
     if (Styles.isMobile) {
       messageAttachmentNativeShare(message.ordinal)
-    } else {
-      if (!message.downloadPath) {
-        attachmentDownload(message.id)
-      }
+    } else if (!message.downloadPath) {
+      attachmentDownload(message.id)
     }
   }
 

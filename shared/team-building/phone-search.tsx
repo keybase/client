@@ -78,8 +78,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
               {!Kb.Styles.isMobile && (
                 <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-number-pad" />
               )}
-
-              {namespace == 'chat2' ? (
+              {namespace === 'chat2' ? (
                 <Kb.Text type="BodySmall" style={styles.helperText}>
                   Start a chat with any phone contact, then tell them to install Keybase. Your messages will
                   unlock after they sign up.

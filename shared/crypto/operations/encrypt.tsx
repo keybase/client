@@ -86,7 +86,7 @@ const EncryptOutputBanner = () => {
           text: 'Saltpack',
         },
         '.',
-        outputType == 'text' ? " It's also called ciphertext." : '',
+        outputType === 'text' ? " It's also called ciphertext." : '',
       ]}
     />
   )

@@ -76,28 +76,18 @@ export const emptyDevice: T.Devices.Device = {
 }
 
 const makeDevice = (d?: Partial<T.Devices.Device>): T.Devices.Device =>
-  d ? Object.assign({...emptyDevice}, d) : emptyDevice
+  d ? {...emptyDevice, ...d} : emptyDevice
 
 export const waitingKey = 'devices:devicesPage'
 
 export const useActiveDeviceCounts = () => {
   const ds = _useState(s => s.deviceMap)
-  return [...ds.values()].reduce((c, v) => {
-    if (!v.revokedAt) {
-      ++c
-    }
-    return c
-  }, 0)
+  return [...ds.values()].reduce((c, v) => (!v.revokedAt ? c + 1 : c), 0)
 }
 
 export const useRevokedDeviceCounts = () => {
   const ds = _useState(s => s.deviceMap)
-  return [...ds.values()].reduce((c, v) => {
-    if (v.revokedAt) {
-      ++c
-    }
-    return c
-  }, 0)
+  return [...ds.values()].reduce((c, v) => (v.revokedAt ? c + 1 : c), 0)
 }
 
 // Icons are numbered 1-10, so this focuses on mapping

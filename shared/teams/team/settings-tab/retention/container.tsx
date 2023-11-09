@@ -17,7 +17,7 @@ const Container = (ownProps: OwnProps) => {
   const {entityType, conversationIDKey: _cid, teamID} = ownProps
 
   let loading = false
-  let teamPolicy: T.Retention.RetentionPolicy | undefined = undefined
+  let teamPolicy: T.Retention.RetentionPolicy | undefined
 
   if (_cid) {
   } else if (!entityType.endsWith('team')) {

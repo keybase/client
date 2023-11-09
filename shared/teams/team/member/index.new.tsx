@@ -96,7 +96,7 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
         teamname,
       }
 
-      if ('none' != sparseMemberInfo.type) {
+      if ('none' !== sparseMemberInfo.type) {
         nodesIn.push({
           role: sparseMemberInfo.type,
           ...row,
@@ -104,7 +104,7 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
       } else {
         nodesNotIn.push(row)
       }
-    } else if (T.RPCGen.TeamTreeMembershipStatus.error == membership.result.s) {
+    } else if (T.RPCGen.TeamTreeMembershipStatus.error === membership.result.s) {
       errors.push(membership)
     }
   }
@@ -177,7 +177,7 @@ const TeamMember = (props: OwnProps) => {
       <NodeInRow
         node={item as TeamTreeRowIn}
         idx={index}
-        isParentTeamMe={isMe && teamID == item.teamID}
+        isParentTeamMe={isMe && teamID === item.teamID}
         username={username}
         expanded={expandedSet.has(item.teamID)}
         setExpanded={newExpanded => {
@@ -224,7 +224,7 @@ const TeamMember = (props: OwnProps) => {
           />
           <>
             {errors.map((error, idx) => {
-              if (T.RPCGen.TeamTreeMembershipStatus.error != error.result.s) {
+              if (T.RPCGen.TeamTreeMembershipStatus.error !== error.result.s) {
                 return <></>
               }
 
@@ -421,7 +421,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     Constants.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
   )
   const amLastOwner = C.useTeamsState(s => Constants.isLastOwner(s, props.node.teamID))
-  const isMe = props.username == C.useCurrentUserState(s => s.username)
+  const isMe = props.username === C.useCurrentUserState(s => s.username)
   const changingRole = C.useAnyWaiting(Constants.editMembershipWaitingKey(props.node.teamID, props.username))
   const loadingActivity = C.useAnyWaiting(
     Constants.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)

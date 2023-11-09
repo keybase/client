@@ -149,7 +149,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             offset: offset ?? 0,
             query,
           })
-          if (!bots || bots.length == 0) {
+          if (!bots || bots.length === 0) {
             // don't do anything with a bad response from rpc
             return
           }

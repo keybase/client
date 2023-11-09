@@ -113,13 +113,14 @@ class Input extends React.PureComponent<Props, State> {
       if (n.scrollHeight > rect.height) {
         this._smartAutoresize.pivotLength = value.length
         n.style.height = `${n.scrollHeight}px`
-      } else {
+      } else if (
         // see if we went back down in height
-        if (this._smartAutoresize.pivotLength !== -1 && value.length <= this._smartAutoresize.pivotLength) {
-          this._smartAutoresize.pivotLength = -1
-          n.style.height = '1px'
-          n.style.height = `${n.scrollHeight}px`
-        }
+        this._smartAutoresize.pivotLength !== -1 &&
+        value.length <= this._smartAutoresize.pivotLength
+      ) {
+        this._smartAutoresize.pivotLength = -1
+        n.style.height = '1px'
+        n.style.height = `${n.scrollHeight}px`
       }
     } else {
       n.style.height = '1px'
@@ -305,7 +306,7 @@ class Input extends React.PureComponent<Props, State> {
 
     const floatingHintText =
       !!value.length &&
-      (Object.prototype.hasOwnProperty.call(this.props, 'floatingHintTextOverride')
+      (Object.hasOwn(this.props, 'floatingHintTextOverride')
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
 
@@ -321,10 +322,7 @@ class Input extends React.PureComponent<Props, State> {
       onKeyDown: this._onKeyDown,
       onKeyUp: this._onKeyUp,
       placeholder: this.props.hintText,
-      readOnly:
-        Object.prototype.hasOwnProperty.call(this.props, 'editable') && !this.props.editable
-          ? true
-          : undefined,
+      readOnly: Object.hasOwn(this.props, 'editable') && !this.props.editable ? true : undefined,
       ref: this._setInputRef,
       ...(this.props.maxLength ? {maxLength: this.props.maxLength} : null),
       ...(this.props.uncontrolled ? null : {value}),

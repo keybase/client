@@ -5,9 +5,7 @@ import {errors as transportErrors} from 'framed-msgpack-rpc'
 import RPCError from './rpcerror'
 
 function isRPCErrorLike(err: Object): err is RPCErrorLike {
-  return (
-    Object.prototype.hasOwnProperty.call(err, 'desc') && Object.prototype.hasOwnProperty.call(err, 'code')
-  )
+  return Object.hasOwn(err, 'desc') && Object.hasOwn(err, 'code')
 }
 
 // convertToError converts an RPC error object (or any object) into an

@@ -487,7 +487,7 @@ const plumbEvents = () => {
         return
       }
       case 'isDirectory': {
-        return new Promise(resolve =>
+        return new Promise(resolve => {
           fs.lstat(action.payload.path, (err, stats) => {
             if (err) {
               resolve(false)
@@ -495,21 +495,22 @@ const plumbEvents = () => {
               resolve(stats.isDirectory())
             }
           })
-        )
+        })
       }
       case 'windowsCheckMountFromOtherDokanInstall': {
         const {mountPoint, status} = action.payload
         return mountPoint
-          ? new Promise(resolve => fs.access(mountPoint, fs.constants.F_OK, err => resolve(!err))).then(
-              mountExists =>
-                mountExists
-                  ? {
-                      ...status,
-                      installAction: RPCTypes.InstallAction.none,
-                      installStatus: RPCTypes.InstallStatus.installed,
-                      kextStarted: true,
-                    }
-                  : status
+          ? new Promise(resolve => {
+              fs.access(mountPoint, fs.constants.F_OK, err => resolve(!err))
+            }).then(mountExists =>
+              mountExists
+                ? {
+                    ...status,
+                    installAction: RPCTypes.InstallAction.none,
+                    installStatus: RPCTypes.InstallStatus.installed,
+                    kextStarted: true,
+                  }
+                : status
             )
           : status
       }
@@ -700,10 +701,8 @@ const plumbEvents = () => {
       case 'setupPreloadKB2':
         return KB2.constants
       case 'showMainWindow':
-        {
-          mainWindow?.show()
-          showDockIcon()
-        }
+        mainWindow?.show()
+        showDockIcon()
         break
       case 'activeChanged':
         // the installer reads this file to understand the gui state to not interrupt

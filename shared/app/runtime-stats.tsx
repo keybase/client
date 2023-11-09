@@ -30,6 +30,8 @@ const processTypeString = (s: T.RPCGen.ProcessType) => {
       return 'Service'
     case T.RPCGen.ProcessType.kbfs:
       return 'KBFS'
+    default:
+      return ''
   }
 }
 
@@ -47,6 +49,8 @@ const dbTypeString = (s: T.RPCGen.DbType) => {
       return 'FSSyncBlkCache'
     case T.RPCGen.DbType.fsSyncBlockCacheMeta:
       return 'FSSyncBlkCacheMeta'
+    default:
+      return ''
   }
 }
 

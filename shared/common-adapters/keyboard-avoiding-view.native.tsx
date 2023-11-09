@@ -105,7 +105,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
 
   _onLayout = (event: LayoutChangeEvent) => {
     const f = async () => {
-      const wasFrameNull = this._frame == null
+      const wasFrameNull = !this._frame
       this._frame = event.nativeEvent.layout
       if (!this._initialFrameHeight) {
         // save the initial frame height, before the keyboard is visible
@@ -209,7 +209,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
     switch (behavior) {
       case 'height': {
         let heightStyle: ViewStyle | undefined
-        if (this._frame != null && this.state.bottom > 0) {
+        if (!!this._frame && this.state.bottom > 0) {
           // Note that we only apply a height change when there is keyboard present,
           // i.e. this.state.bottom is greater than 0. If we remove that condition,
           // this.frame.height will never go back to its original value.

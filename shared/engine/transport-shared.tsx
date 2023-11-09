@@ -171,7 +171,7 @@ function sharedCreateClient(nativeTransport: TransportShared) {
 
   if (rpcClient.transport.needsConnect) {
     rpcClient.transport.connect(err => {
-      if (err != null) {
+      if (err) {
         console.log('Error in connecting to transport rpc:', err)
       }
     })

@@ -168,7 +168,7 @@ export const rpcTeamRoleMapAndVersionToTeamRoleMap = (
     if (value) {
       ret.roles.set(key, {
         implicitAdmin:
-          value.implicitRole === T.RPCGen.TeamRole.admin || value.implicitRole == T.RPCGen.TeamRole.owner,
+          value.implicitRole === T.RPCGen.TeamRole.admin || value.implicitRole === T.RPCGen.TeamRole.owner,
         role: teamRoleByEnum[value.role] || 'none',
       })
     }
@@ -611,8 +611,7 @@ export const emptyTeamMeta = Object.freeze<T.Teams.TeamMeta>({
   teamname: '',
 })
 
-export const makeTeamMeta = (td: Partial<T.Teams.TeamMeta>): T.Teams.TeamMeta =>
-  Object.assign({...emptyTeamMeta}, td)
+export const makeTeamMeta = (td: Partial<T.Teams.TeamMeta>): T.Teams.TeamMeta => ({...emptyTeamMeta, ...td})
 
 export const getTeamMeta = (state: State, teamID: T.Teams.TeamID) =>
   teamID === T.Teams.newTeamWizardTeamID
@@ -622,7 +621,7 @@ export const getTeamMeta = (state: State, teamID: T.Teams.TeamID) =>
         isOpen: state.newTeamWizard.open,
         memberCount: 0,
         showcasing: state.newTeamWizard.profileShowcase,
-        teamname: state.newTeamWizard.name == '' ? 'New team' : state.newTeamWizard.name,
+        teamname: state.newTeamWizard.name === '' ? 'New team' : state.newTeamWizard.name,
       })
     : state.teamMeta.get(teamID) ?? emptyTeamMeta
 
@@ -2360,7 +2359,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           usernameMemberships.set(targetUsername, memberships)
         }
         memberships.memberships.push(membership)
-        if (T.RPCGen.TeamTreeMembershipStatus.ok == membership.result.s) {
+        if (T.RPCGen.TeamTreeMembershipStatus.ok === membership.result.s) {
           const value = membership.result.ok
           const sparseMemberInfos = mapGetEnsureValue(
             s.treeLoaderTeamIDToSparseMemberInfos,

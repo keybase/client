@@ -195,6 +195,6 @@ const emptyInfo = {
   url: '',
 }
 export const makeGitInfo = (i?: Partial<T.Git.GitInfo>): T.Git.GitInfo =>
-  i ? Object.assign({...emptyInfo}, i) : emptyInfo
+  i ? {...emptyInfo, ...i} : emptyInfo
 
 export const loadingWaitingKey = 'git:loading'

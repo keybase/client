@@ -80,7 +80,7 @@ function unifyStyles<T extends {}>(s_: T): Unified<T> {
   const s: any = s_
   return {
     ...s,
-    ...(Object.prototype.hasOwnProperty.call(s, 'lineHeight') && typeof s.lineHeight === 'number'
+    ...(Object.hasOwn(s, 'lineHeight') && typeof s.lineHeight === 'number'
       ? {lineHeight: isMobile ? s.lineHeight : s.lineHeight === 0 ? '0' : `${s.lineHeight}px`}
       : {}),
   }
@@ -143,7 +143,7 @@ export function platformStyles<
     isAndroid?: _StylesMobile
     isElectron?: _StylesDesktop
   },
-  OUT = _StylesCrossPlatform
+  OUT = _StylesCrossPlatform,
 >(o: T): OUT {
   return {
     ...(o.common ? unifyStyles(o.common) : {}),

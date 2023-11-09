@@ -118,7 +118,7 @@ const makeLinking = (options: OptionsType) => {
       // Check if app was opened from a deep link
       // NOTE: This can FAIL debugging in chrome
       let url = await Linking.getInitialURL()
-      if (url != null && !isValidLink(url)) {
+      if (url && !isValidLink(url)) {
         url = null
       }
       if (!url) {

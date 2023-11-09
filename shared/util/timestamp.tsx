@@ -216,7 +216,7 @@ export function formatTimeForPeopleItem(time: number): string {
     locale: {
       ...enUS,
       formatDistance: (token, count, _) =>
-        token == 'xSeconds' && count == 1 ? 'now' : formatDistanceAbbr(token, count),
+        token === 'xSeconds' && count === 1 ? 'now' : formatDistanceAbbr(token, count),
     },
   })
 }

@@ -189,28 +189,28 @@ class Chat extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props) {
     if (
       this.props.contactSettingsEnabled !== prevProps.contactSettingsEnabled ||
-      (this.props.contactSettingsEnabled !== undefined && this.state.contactSettingsEnabled == undefined)
+      (this.props.contactSettingsEnabled !== undefined && this.state.contactSettingsEnabled === undefined)
     ) {
       this.setState({contactSettingsEnabled: this.props.contactSettingsEnabled})
     }
     if (
       this.props.contactSettingsIndirectFollowees !== prevProps.contactSettingsIndirectFollowees ||
       (this.props.contactSettingsIndirectFollowees !== undefined &&
-        this.state.contactSettingsIndirectFollowees == undefined)
+        this.state.contactSettingsIndirectFollowees === undefined)
     ) {
       this.setState({contactSettingsIndirectFollowees: this.props.contactSettingsIndirectFollowees})
     }
     if (
       this.props.contactSettingsTeamsEnabled !== prevProps.contactSettingsTeamsEnabled ||
       (this.props.contactSettingsTeamsEnabled !== undefined &&
-        this.state.contactSettingsTeamsEnabled == undefined)
+        this.state.contactSettingsTeamsEnabled === undefined)
     ) {
       this.setState({contactSettingsTeamsEnabled: this.props.contactSettingsTeamsEnabled})
     }
     // Create an initial copy of teams data into state, so it can be mutated there.
     if (
       Object.keys(this.props.contactSettingsSelectedTeams).length > 0 &&
-      Object.keys(this.state.contactSettingsSelectedTeams).length == 0
+      Object.keys(this.state.contactSettingsSelectedTeams).length === 0
     ) {
       this.setState({contactSettingsSelectedTeams: this.props.contactSettingsSelectedTeams})
     }

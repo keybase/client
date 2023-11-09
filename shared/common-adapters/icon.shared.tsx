@@ -109,9 +109,9 @@ export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): 
   const sizes = ssizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
 
   const multsMap: MultMap = {
-    [1]: undefined,
-    [2]: undefined,
-    [3]: undefined,
+    1: undefined,
+    2: undefined,
+    3: undefined,
   }
 
   multiKeys.forEach(mult => {

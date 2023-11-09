@@ -42,7 +42,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
       } else {
         androidCheckPushPermissions()
           .then(on => resolve({alert: on, badge: on, sound: on}))
-          .catch(() => reject())
+          .catch(() => reject(new Error('')))
       }
     })
 

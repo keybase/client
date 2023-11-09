@@ -161,35 +161,33 @@ class ExplodingMeta2 extends React.Component<Props2> {
     const m = this.props.pending ? 'countdown' : this.props.mode
     switch (m) {
       case 'countdown':
-        {
-          children = (
-            <Kb.Box2 direction="horizontal" gap="xtiny">
-              <Kb.WithTooltip toastStyle={styles.explodingTooltip} tooltip="Exploding message">
-                <Kb.Box2
-                  className="explodingTimeContainer"
-                  direction="horizontal"
+        children = (
+          <Kb.Box2 direction="horizontal" gap="xtiny">
+            <Kb.WithTooltip toastStyle={styles.explodingTooltip} tooltip="Exploding message">
+              <Kb.Box2
+                className="explodingTimeContainer"
+                direction="horizontal"
+                style={Kb.Styles.collapseStyles([
+                  styles.countdownContainer,
+                  {backgroundColor},
+                  this.props.isParentHighlighted && styles.countdownContainerHighlighted,
+                  this.props.pending && styles.hidden,
+                ])}
+              >
+                <Kb.Text
+                  className="explodingTimeText"
+                  type="Body"
                   style={Kb.Styles.collapseStyles([
-                    styles.countdownContainer,
-                    {backgroundColor},
-                    this.props.isParentHighlighted && styles.countdownContainerHighlighted,
-                    this.props.pending && styles.hidden,
+                    styles.countdown,
+                    this.props.isParentHighlighted && styles.countdownHighlighted,
                   ])}
                 >
-                  <Kb.Text
-                    className="explodingTimeText"
-                    type="Body"
-                    style={Kb.Styles.collapseStyles([
-                      styles.countdown,
-                      this.props.isParentHighlighted && styles.countdownHighlighted,
-                    ])}
-                  >
-                    {this.props.pending ? '' : formatDurationShort(this.props.explodesAt - Date.now())}
-                  </Kb.Text>
-                </Kb.Box2>
-              </Kb.WithTooltip>
-            </Kb.Box2>
-          )
-        }
+                  {this.props.pending ? '' : formatDurationShort(this.props.explodesAt - Date.now())}
+                </Kb.Text>
+              </Kb.Box2>
+            </Kb.WithTooltip>
+          </Kb.Box2>
+        )
         break
       case 'boom':
         children = (
