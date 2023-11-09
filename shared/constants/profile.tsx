@@ -222,8 +222,15 @@ export const _useState = Z.createZustand<State>((set, get) => {
     C.ignorePromise(f())
   }
 
+  // only let one of these happen at a time
+  let addProofInProgress = false
+
   const dispatch: State['dispatch'] = {
     addProof: (platform, reason) => {
+      if (addProofInProgress) {
+        logger.warn('addProof while one in progress')
+        return
+      }
       set(s => {
         const maybeNotGeneric = T.More.asPlatformsExpandedType(platform)
         clearErrors(s)
@@ -231,8 +238,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
         s.platformGeneric = maybeNotGeneric ? undefined : platform
         updateUsername(s)
       })
-      // only let one of these happen at a time
-      let addProofInProgress = false
       const f = async () => {
         const service = T.More.asPlatformsExpandedType(platform)
         const genericService = service ? null : platform
@@ -251,10 +256,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
           default:
         }
 
-        if (addProofInProgress) {
-          logger.warn('addProof while one in progress')
-          return
-        }
         addProofInProgress = true
 
         const inputCancelError = {

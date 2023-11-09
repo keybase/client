@@ -1334,6 +1334,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
   let settingsSubscriptionID: string = ''
   let uploadStatusSubscriptionID: string = ''
   let journalStatusSubscriptionID: string = ''
+  let pollJournalStatusPolling = false
 
   const dispatch: State['dispatch'] = {
     cancelDownload: downloadID => {
@@ -2322,7 +2323,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
       C.ignorePromise(f())
     },
     pollJournalStatus: () => {
-      let polling = false
+      if (pollJournalStatusPolling) {
+        return
+      }
+      pollJournalStatusPolling = true
+
       const getWaitDuration = (endEstimate: number | undefined, lower: number, upper: number): number => {
         if (!endEstimate) {
           return upper
@@ -2332,10 +2337,6 @@ export const _useState = Z.createZustand<State>((set, get) => {
       }
 
       const f = async () => {
-        if (polling) {
-          return
-        }
-        polling = true
         try {
           // eslint-disable-next-line
           while (1) {
@@ -2358,7 +2359,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             await C.timeoutPromise(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
           }
         } finally {
-          polling = false
+          pollJournalStatusPolling = false
           C.useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
           get().dispatch.checkKbfsDaemonRpcStatus()
         }
@@ -2692,14 +2693,14 @@ export const _useState = Z.createZustand<State>((set, get) => {
       C.ignorePromise(f())
     },
     waitForKbfsDaemon: () => {
+      if (waitForKbfsDaemonInProgress) {
+        return
+      }
+      waitForKbfsDaemonInProgress = true
       set(s => {
         s.kbfsDaemonStatus.rpcStatus = T.FS.KbfsDaemonRpcStatus.Waiting
       })
       const f = async () => {
-        if (waitForKbfsDaemonInProgress) {
-          return
-        }
-        waitForKbfsDaemonInProgress = true
         try {
           await T.RPCGen.configWaitForClientRpcPromise({
             clientType: T.RPCGen.ClientType.kbfs,

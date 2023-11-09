@@ -231,7 +231,8 @@ class SectionList<T extends Section<any>> extends React.Component<Props<T>, Stat
     }, [])
   })
 
-  _itemIndexToFlatIndex = (index: number) => {
+  _itemIndexToFlatIndex = (_index: number) => {
+    let index = _index
     if (index < 0) {
       return 0
     }

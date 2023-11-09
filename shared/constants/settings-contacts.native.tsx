@@ -218,7 +218,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             isIOS &&
               PushNotificationIOS.addNotificationRequest({
                 body: makeContactsResolvedMessage(newlyResolved),
-                id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
+                id: Math.floor(Math.random() * 2 ** 32).toString(),
               })
           }
           if (get().waitingToShowJoinedModal && resolved) {

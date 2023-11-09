@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-computed-key */
 import {rimrafSync} from 'rimraf'
 import fs from 'fs-extra'
 import os from 'os'
@@ -75,7 +76,7 @@ const getArgs = () => {
       if (l?.startsWith('--')) {
         const k = l.substring(2)
 
-        if (Object.prototype.hasOwnProperty.call(ret, k)) {
+        if (Object.hasOwn(ret, k)) {
           ret[k as keyof typeof ret] = r
         }
       } else {

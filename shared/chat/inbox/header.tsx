@@ -58,8 +58,8 @@ export default React.memo(function ChatHeaderContainer(ownProps: OwnProps) {
     }
   }
 
-  const showNewChat = headerContext == 'chat-header'
-  const showSearch = headerContext == 'chat-header' ? !C.isTablet : C.isMobile
+  const showNewChat = headerContext === 'chat-header'
+  const showSearch = headerContext === 'chat-header' ? !C.isTablet : C.isMobile
 
   return (
     <>

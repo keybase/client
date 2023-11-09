@@ -134,6 +134,7 @@ export const collapseStyles = (
       return false
     }
     // has a value?
+    // eslint-disable-next-line no-unreachable-loop
     for (const _ in s) {
       return true
     }

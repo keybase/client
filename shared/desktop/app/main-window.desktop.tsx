@@ -105,7 +105,7 @@ export const hideDockIcon = () => changeDock(false)
 
 let useNativeFrame = defaultUseNativeFrame
 let isDarkMode = false
-let darkModePreference: undefined | 'system' | 'alwaysDark' | 'alwaysLight' = undefined
+let darkModePreference: undefined | 'system' | 'alwaysDark' | 'alwaysLight'
 let disableSpellCheck = false
 
 /**

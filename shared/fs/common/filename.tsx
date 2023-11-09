@@ -22,6 +22,7 @@ const splitFileNameAndExtension = (fileName: string) => {
 }
 
 const Filename = (props: Props) => {
+  // also does this to subteams...
   const [fileNameWithoutExtension, fileExtension] = splitFileNameAndExtension(
     props.path ? T.FS.getPathName(props.path) : props.filename || ''
   )
@@ -31,7 +32,7 @@ const Filename = (props: Props) => {
         fixOverdraw={true}
         className="hover-underline-child"
         type={props.type}
-        style={Kb.Styles.collapseStyles([props.style, styles.breakAll])}
+        style={styles.breakAll}
         lineClamp={1}
         selectable={props.selectable}
       >
@@ -42,7 +43,7 @@ const Filename = (props: Props) => {
           fixOverdraw={true}
           className="hover-underline-child"
           type={props.type}
-          style={Kb.Styles.collapseStyles([props.style, styles.noShrink])}
+          style={styles.noShrink}
           selectable={props.selectable}
         >
           {fileExtension}
@@ -58,12 +59,9 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       breakAll: Kb.Styles.platformStyles({
-        isElectron: {
-          wordBreak: 'break-all',
-        },
+        common: {flexShrink: 1},
+        isElectron: {wordBreak: 'break-all'},
       }),
-      noShrink: {
-        flexShrink: 0,
-      },
+      noShrink: {flexShrink: 0},
     }) as const
 )

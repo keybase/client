@@ -7,18 +7,39 @@ import {isDarwin, isWindows, isLinux, getAssetPath} from '../../constants/platfo
 import {menubar} from 'menubar'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug'
 import {getMainWindow} from './main-window.desktop'
-import getIcons from '../../menubar/icons'
-import os from 'os'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
+import type {BadgeType} from '../../constants/notifications'
+
+const getIcons = (iconType: BadgeType, isBadged: boolean) => {
+  const devMode = __DEV__ ? '-dev' : ''
+  let color = 'white'
+  const badged = isBadged ? 'badged-' : ''
+  let platform = ''
+
+  if (isDarwin) {
+    color = 'white'
+  } else if (isWindows) {
+    color = 'black'
+    platform = 'windows-'
+  }
+
+  const size = isWindows ? 16 : 22
+  const x = isLinux ? '' : '@2x'
+  return `icon-${platform}keybase-menubar-${badged}${iconType}-${color}-${size}${devMode}${x}.png`
+}
 
 const htmlFile = `${htmlPrefix}${assetRoot}menubar${__FILE_SUFFIX__}.html?param=menubar`
 
-// support dynamic dark mode system bar in big sur
-const useImageTemplate = os.platform() === 'darwin' && parseInt(os.release().split('.')[0] ?? '', 10) >= 20
+let badgeType: BadgeType = 'regular'
+let badged = false
 
-let iconPath = getIcons('regular', false, Electron.nativeTheme.shouldUseDarkColors)
-// only use imageTemplate if its not badged, else we lose the orange
-let iconPathIsBadged = false
+const getIcon = () => {
+  const path = getIcons(badgeType, badged)
+  const icon = Electron.nativeImage.createFromPath(getAssetPath('images', 'menubarIcon', path))
+  // template it always, else the color is just wrong, lose the orange sadly
+  icon.setTemplateImage(true)
+  return icon
+}
 
 type Bounds = {
   x: number
@@ -28,10 +49,7 @@ type Bounds = {
 }
 
 const MenuBar = () => {
-  const icon = Electron.nativeImage.createFromPath(getAssetPath('images', 'menubarIcon', iconPath))
-  if (useImageTemplate && !iconPathIsBadged) {
-    icon.setTemplateImage(true)
-  }
+  const icon = getIcon()
   const mb = menubar({
     browserWindow: {
       hasShadow: true,
@@ -64,12 +82,7 @@ const MenuBar = () => {
 
   const updateIcon = () => {
     try {
-      const resolved = getAssetPath('images', 'menubarIcon', iconPath)
-      const i = Electron.nativeImage.createFromPath(resolved)
-      if (useImageTemplate && !iconPathIsBadged) {
-        i.setTemplateImage(true)
-      }
-      mb.tray.setImage(i)
+      mb.tray.setImage(getIcon())
     } catch (err) {
       console.error('menu icon err: ' + err)
     }
@@ -78,8 +91,7 @@ const MenuBar = () => {
   type Action = {
     type: 'showTray'
     payload: {
-      icon: string
-      iconSelected: string
+      badgeType: BadgeType
       desktopAppBadgeCount: number
     }
   }
@@ -87,8 +99,8 @@ const MenuBar = () => {
   Electron.ipcMain.handle('KBmenu', (_, action: Action) => {
     switch (action.type) {
       case 'showTray': {
-        iconPath = action.payload.icon
-        iconPathIsBadged = action.payload.desktopAppBadgeCount > 0
+        badgeType = action.payload.badgeType
+        badged = action.payload.desktopAppBadgeCount > 0
         updateIcon()
         const dock = Electron.app.dock
         if (dock.isVisible()) {

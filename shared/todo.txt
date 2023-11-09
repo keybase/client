@@ -1,2 +1,2 @@
 Some short term todos:
-type styles / fix anys
+swipeable2 slow

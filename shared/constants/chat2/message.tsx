@@ -911,9 +911,9 @@ const validUIMessagetoMessage = (
       // 3. When we send we place a pending attachment, then get the real attachment then attachmentuploaded
       // We treat all these like a pending text, so any data-less thing will have no message id and map to the same ordinal
       let attachment: T.RPCChat.MessageAttachment | T.RPCChat.MessageAttachmentUploaded | undefined
-      let preview: T.RPCChat.Asset | undefined = undefined
-      let full: T.RPCChat.Asset | undefined = undefined
-      let transferState: 'remoteUploading' | undefined = undefined
+      let preview: T.RPCChat.Asset | undefined
+      let full: T.RPCChat.Asset | undefined
+      let transferState: 'remoteUploading' | undefined
 
       if (m.messageBody.messageType === T.RPCChat.MessageType.attachment) {
         attachment = m.messageBody.attachment

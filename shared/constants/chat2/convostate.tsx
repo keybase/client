@@ -1621,7 +1621,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         let reason: LoadMoreReason = _reason
         const forceClear = true
         let forceContainsLatestCalc = false
-        let messageIDControl: T.RPCChat.MessageIDControl | undefined = undefined
+        let messageIDControl: T.RPCChat.MessageIDControl | undefined
         const knownRemotes = pushBody && pushBody.length > 0 ? [pushBody] : []
         const centeredMessageID = highlightMessageID
           ? {
@@ -1671,29 +1671,24 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         // we select the chat tab and change the params
         if (Common.isSplit) {
           C.navToThread(conversationIDKey)
-        } else {
           // immediately switch stack to an inbox | thread stack
-          if (reason === 'push' || reason === 'savedLastState') {
-            C.navToThread(conversationIDKey)
-            return
-          } else {
-            // replace if looking at the pending / waiting screen
-            const replace =
-              visibleRouteName === Common.threadRouteName &&
-              !T.Chat.isValidConversationIDKey(visibleConvo ?? '')
-            // note: we don't switch tabs on non split
-            const modalPath = C.getModalStack()
-            if (modalPath.length > 0) {
-              C.useRouterState.getState().dispatch.clearModals()
-            }
-
-            C.useRouterState
-              .getState()
-              .dispatch.navigateAppend(
-                {props: {conversationIDKey}, selected: Common.threadRouteName},
-                replace
-              )
+        } else if (reason === 'push' || reason === 'savedLastState') {
+          C.navToThread(conversationIDKey)
+          return
+        } else {
+          // replace if looking at the pending / waiting screen
+          const replace =
+            visibleRouteName === Common.threadRouteName &&
+            !T.Chat.isValidConversationIDKey(visibleConvo ?? '')
+          // note: we don't switch tabs on non split
+          const modalPath = C.getModalStack()
+          if (modalPath.length > 0) {
+            C.useRouterState.getState().dispatch.clearModals()
           }
+
+          C.useRouterState
+            .getState()
+            .dispatch.navigateAppend({props: {conversationIDKey}, selected: Common.threadRouteName}, replace)
         }
       }
       updateNav()

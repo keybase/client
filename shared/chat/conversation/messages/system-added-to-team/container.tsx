@@ -8,7 +8,7 @@ type OwnProps = {
   message: T.Chat.MessageSystemAddedToTeam
 }
 
-const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
+const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContainer(p: OwnProps) {
   const {message} = p
   const {addee, adder, author, bulkAdds, role, timestamp} = message
   const meta = C.useChatContext(s => s.meta)

@@ -132,12 +132,12 @@ const darwinInstall = (callback: CB) => {
 
   const logOutput = async (stdout: string, stderr: string) =>
     Promise.all([
-      new Promise<Buffer>((resolve, reject) =>
+      new Promise<Buffer>((resolve, reject) => {
         zlib.gzip(stdout, (error, res) => (error ? reject(error) : resolve(res)))
-      ),
-      new Promise<Buffer>((resolve, reject) =>
+      }),
+      new Promise<Buffer>((resolve, reject) => {
         zlib.gzip(stderr, (error, res) => (error ? reject(error) : resolve(res)))
-      ),
+      }),
     ])
       .then(([zStdout, zStderr]) =>
         logger.info(

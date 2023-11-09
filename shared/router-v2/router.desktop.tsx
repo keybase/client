@@ -20,7 +20,7 @@ const Tab = createLeftTabNavigator()
 type DesktopTabs = (typeof Tabs.desktopTabs)[number]
 
 const tabRootsVals = Object.values(tabRoots).filter(root => {
-  return root != tabRoots[Tabs.fsTab] && root !== tabRoots[Tabs.gitTab]
+  return root !== tabRoots[Tabs.fsTab] && root !== tabRoots[Tabs.gitTab]
 }) // we allow some root anywhere
 // we don't want the other roots in other stacks
 const routesMinusRoots = (tab: DesktopTabs) => {

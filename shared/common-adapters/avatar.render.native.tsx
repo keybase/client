@@ -75,13 +75,13 @@ const makeIconStyle = (size: AvatarSize) => ({height: size, width: size})
 const iconStyles = Styles.styleSheetCreate(
   () =>
     ({
-      [128]: makeIconStyle(128),
-      [16]: makeIconStyle(16),
-      [24]: makeIconStyle(24),
-      [32]: makeIconStyle(32),
-      [48]: makeIconStyle(48),
-      [64]: makeIconStyle(64),
-      [96]: makeIconStyle(96),
+      128: makeIconStyle(128),
+      16: makeIconStyle(16),
+      24: makeIconStyle(24),
+      32: makeIconStyle(32),
+      48: makeIconStyle(48),
+      64: makeIconStyle(64),
+      96: makeIconStyle(96),
     }) as const
 )
 
@@ -89,13 +89,13 @@ const makeBoxStyle = (size: AvatarSize) => ({height: size, position: 'relative' 
 const boxStyles = Styles.styleSheetCreate(
   () =>
     ({
-      [128]: makeBoxStyle(128),
-      [16]: makeBoxStyle(16),
-      [24]: makeBoxStyle(24),
-      [32]: makeBoxStyle(32),
-      [48]: makeBoxStyle(48),
-      [64]: makeBoxStyle(64),
-      [96]: makeBoxStyle(96),
+      128: makeBoxStyle(128),
+      16: makeBoxStyle(16),
+      24: makeBoxStyle(24),
+      32: makeBoxStyle(32),
+      48: makeBoxStyle(48),
+      64: makeBoxStyle(64),
+      96: makeBoxStyle(96),
     }) as const
 )
 
@@ -113,13 +113,13 @@ const makeImageStyle = (size: AvatarSize) =>
 const imageStyles = Styles.styleSheetCreate(
   () =>
     ({
-      [128]: makeImageStyle(128),
-      [16]: makeImageStyle(16),
-      [24]: makeImageStyle(24),
-      [32]: makeImageStyle(32),
-      [48]: makeImageStyle(48),
-      [64]: makeImageStyle(64),
-      [96]: makeImageStyle(96),
+      128: makeImageStyle(128),
+      16: makeImageStyle(16),
+      24: makeImageStyle(24),
+      32: makeImageStyle(32),
+      48: makeImageStyle(48),
+      64: makeImageStyle(64),
+      96: makeImageStyle(96),
     }) as const
 )
 

@@ -88,7 +88,7 @@ const ConfirmKickOut = (props: Props) => {
             They will lose access to all the team chats and folders, and they won’t be able to get back unless
             an admin invites them.
           </Kb.Text>
-          {subteams.length != 0 && (
+          {subteams.length !== 0 && (
             <Kb.Checkbox
               checked={subteamsToo}
               onCheck={setSubteamsToo}

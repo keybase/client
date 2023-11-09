@@ -63,7 +63,7 @@ export const TeamMemberRow = (props: Props) => {
       </Kb.Text>
     ) : null
 
-  let resetLabel: string | undefined = undefined
+  let resetLabel: string | undefined
   if (!active) {
     resetLabel = props.youCanManageMembers
       ? 'Has reset their account'

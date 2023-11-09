@@ -12,7 +12,7 @@ type OwnProps = {
 
 export const NewContext = React.createContext(new Set())
 
-const Container = (ownProps: OwnProps) => {
+const Container = React.memo(function Container(ownProps: OwnProps) {
   const {deviceID, firstItem} = ownProps
   const device = C.useDevicesState(s => s.deviceMap.get(deviceID))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
@@ -57,7 +57,7 @@ const Container = (ownProps: OwnProps) => {
       }
     />
   )
-}
+})
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

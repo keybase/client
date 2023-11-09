@@ -113,7 +113,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               'keybase.1.loginUi.promptPassphraseRecovery': () => {},
               // This same RPC is called at the beginning and end of the 7-day wait by the service.
               'keybase.1.loginUi.promptResetAccount': (params, response) => {
-                if (params.prompt.t == T.RPCGen.ResetPromptType.enterResetPw) {
+                if (params.prompt.t === T.RPCGen.ResetPromptType.enterResetPw) {
                   C.useRouterState.getState().dispatch.navigateAppend('recoverPasswordPromptResetPassword')
                   const clear = () => {
                     set(s => {

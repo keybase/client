@@ -145,7 +145,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   gesture: {flexGrow: 1},
 }))
 
-function load() {
+const load = () => {
   AppRegistry.registerComponent('Keybase', () => Keybase)
 }
 

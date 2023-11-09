@@ -179,7 +179,9 @@ const TopSide = React.memo(function TopSide(p: TProps) {
 
 const missingMessage = Constants.makeMessageDeleted({})
 
-const useReduxFast = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordinal) => {
+const useReduxFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordinal) => {
+  let trailingItem = _trailingItem
+  let leadingItem = _leadingItem
   const sm = React.useContext(SeparatorMapContext)
   // in flat list we get the leadingItem but its the opposite of what we want
   // we derive the previous by using SeparatorMapContext
@@ -196,7 +198,7 @@ const useReduxFast = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordinal)
       const pmessage = s.messageMap.get(previous)
       const m = s.messageMap.get(ordinal) ?? missingMessage
       const showUsername = getUsernameToShow(m, pmessage, you)
-      const orangeLineAbove = orangeOrdinal == previous && previous > 0
+      const orangeLineAbove = orangeOrdinal === previous && previous > 0
       return {orangeLineAbove, ordinal, showUsername}
     })
   )

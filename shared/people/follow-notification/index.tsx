@@ -54,7 +54,7 @@ const FollowNotification = (props: Props) => {
       <PeopleItem
         badged={props.badged}
         buttons={
-          props.type == 'contact'
+          props.type === 'contact'
             ? [
                 <FollowButton username={username} small={true} key="follow" />,
                 <Kb.WaveButton username={username} small={true} key="wave" />,

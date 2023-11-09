@@ -41,14 +41,12 @@ const AudioVideo = (props: Props) => {
           return
         }
         onPositionUpdated(ct / dur)
-      } else {
-        if (e.didJustFinish) {
-          onEnded()
-          sound
-            ?.setPositionAsync(0)
-            .then(() => {})
-            .catch(() => {})
-        }
+      } else if (e.didJustFinish) {
+        onEnded()
+        sound
+          ?.setPositionAsync(0)
+          .then(() => {})
+          .catch(() => {})
       }
     },
     [onPositionUpdated, onEnded, sound]

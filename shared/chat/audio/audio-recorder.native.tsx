@@ -223,11 +223,9 @@ const useIconAndOverlay = (p: {
           fadeSyncedSV.value = 0
           runOnJS(setVisible)(Visible.HIDDEN)
         }
-      } else {
-        if (fadeSyncedSV.value !== 1) {
-          fadeSyncedSV.value = 1
-          runOnJS(setVisible)(Visible.SHOW)
-        }
+      } else if (fadeSyncedSV.value !== 1) {
+        fadeSyncedSV.value = 1
+        runOnJS(setVisible)(Visible.SHOW)
       }
     }
   )
@@ -369,19 +367,21 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
   const [staged, setStaged] = React.useState(false)
 
   const stopRecording = React.useCallback(async () => {
-    hasSetupRecording.current && (await setupAudioMode(false))
-    hasSetupRecording.current = false
+    const needsTeardown = hasSetupRecording.current
+    if (needsTeardown) {
+      hasSetupRecording.current = false
+      await setupAudioMode(false)
+    }
     recordEndRef.current = Date.now()
 
     const recording = recordingRef.current
+    recordingRef.current = undefined
     if (recording) {
       recording.setOnRecordingStatusUpdate(null)
       try {
         await recording.stopAndUnloadAsync()
       } catch (e) {
         console.log('Recoding stopping fail', e)
-      } finally {
-        recordingRef.current = undefined
       }
     }
   }, [])
@@ -391,11 +391,12 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
       await stopRecording()
     } catch {}
     ampTracker.reset()
-    if (pathRef.current) {
+    const path = pathRef.current
+    pathRef.current = ''
+    if (path) {
       try {
-        await FileSystem.deleteAsync(pathRef.current, {idempotent: true})
+        await FileSystem.deleteAsync(path, {idempotent: true})
       } catch {}
-      pathRef.current = ''
     }
     recordStartRef.current = 0
     recordEndRef.current = 0

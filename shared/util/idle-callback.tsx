@@ -49,6 +49,8 @@ const cancelIdleCallback: CancelType = forceImmediateLogging
   : window.cancelIdleCallback.bind(window)
 
 const onIdlePromise = async (timeout: number = 100): Promise<TimeoutInfo> =>
-  new Promise(resolve => requestIdleCallback(resolve, {timeout}))
+  new Promise(resolve => {
+    requestIdleCallback(resolve, {timeout})
+  })
 
 export {cancelIdleCallback, requestIdleCallback, onIdlePromise}

@@ -118,9 +118,7 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingRight: Kb.Styles.globalMargins.tiny,
           paddingTop: Kb.Styles.globalMargins.tiny,
         },
-        isAndroid: {
-          paddingRight: Kb.Styles.globalMargins.small,
-        },
+        isAndroid: {paddingRight: Kb.Styles.globalMargins.small},
       }),
       expandedTitleContainer: {
         backgroundColor: Kb.Styles.globalColors.white,
@@ -132,19 +130,11 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.white,
           paddingRight: Kb.Styles.globalMargins.tiny,
         },
-        isAndroid: {
-          height: 56,
-        },
-        isIOS: {
-          height: 44,
-        },
+        isAndroid: {height: 56},
+        isIOS: {height: 44},
       }),
-      filename: {
-        marginLeft: Kb.Styles.globalMargins.xtiny,
-      },
-      gap: {
-        flex: 1,
-      },
+      filename: {marginLeft: Kb.Styles.globalMargins.xtiny},
+      gap: {flex: 1},
       headerContainer: {
         backgroundColor: Kb.Styles.globalColors.white,
         borderBottomColor: Kb.Styles.globalColors.black_10,

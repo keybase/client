@@ -195,7 +195,7 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
   private onScrollUnbox = debounce((data: {viewableItems: Array<ViewToken>; changed: Array<ViewToken>}) => {
     const {viewableItems} = data
     const item = viewableItems[0]
-    if (item && Object.prototype.hasOwnProperty.call(item, 'index')) {
+    if (item && Object.hasOwn(item, 'index')) {
       this.askForUnboxing(viewableItems.map(i => i.item))
     }
   }, 1000)

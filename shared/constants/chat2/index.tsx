@@ -784,11 +784,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    inboxSearchSelect: (conversationIDKey, q, selectedIndex) => {
+    inboxSearchSelect: (_conversationIDKey, q, selectedIndex) => {
+      let conversationIDKey = _conversationIDKey
       let query = q
       set(s => {
         const {inboxSearch} = s
-        if (inboxSearch && selectedIndex != null) {
+        if (inboxSearch && selectedIndex !== undefined) {
           inboxSearch.selectedIndex = selectedIndex
         }
       })

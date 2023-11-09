@@ -33,7 +33,7 @@ import {
 export const requestPermissionsToWrite = async () => {
   if (isAndroid) {
     const p = await MediaLibrary.requestPermissionsAsync(false)
-    return p.granted ? Promise.resolve() : Promise.reject('Unable to acquire storage permissions')
+    return p.granted ? Promise.resolve() : Promise.reject(new Error('Unable to acquire storage permissions'))
   }
   return Promise.resolve()
 }
@@ -85,7 +85,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     isIOS &&
       PushNotificationIOS.addNotificationRequest({
         body: `Failed to save ${saveType} to camera roll`,
-        id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
+        id: Math.floor(Math.random() * 2 ** 32).toString(),
       })
     logger.debug(logPrefix + 'failed to save: ' + e)
     throw e
@@ -104,7 +104,7 @@ export const showShareActionSheet = async (options: {
   mimeType: string
 }) => {
   if (isIOS) {
-    return new Promise((resolve, reject) =>
+    return new Promise((resolve, reject) => {
       ActionSheetIOS.showShareActionSheetWithOptions(
         {
           message: options.message,
@@ -113,7 +113,7 @@ export const showShareActionSheet = async (options: {
         reject,
         resolve
       )
-    )
+    })
   } else {
     if (!options.filePath && options.message) {
       try {
@@ -157,7 +157,7 @@ const loadStartupDetails = async () => {
     })
   } catch (_) {}
 
-  let conversation: T.Chat.ConversationIDKey | undefined = undefined
+  let conversation: T.Chat.ConversationIDKey | undefined
   let followUser = ''
   let link = ''
   let tab = ''
@@ -349,7 +349,7 @@ export const initPlatformListener = () => {
           }
           const ap = C.getVisiblePath()
           ap.some(r => {
-            if (r.name == 'chatConversation') {
+            if (r.name === 'chatConversation') {
               const rParams: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = r.params
               param = {selectedConversationIDKey: rParams?.conversationIDKey}
               return true
@@ -362,11 +362,11 @@ export const initPlatformListener = () => {
         if (_lastPersist === s) {
           return
         }
+        _lastPersist = s
         await T.RPCGen.configGuiSetValueRpcPromise({
           path: 'ui.routeState2',
           value: {isNull: false, s},
         })
-        _lastPersist = s
       }
       C.ignorePromise(f())
     }

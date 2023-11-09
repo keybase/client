@@ -374,13 +374,11 @@ class _PhoneInput extends React.Component<OldProps> {
         const possibleMatch = codeToCountry()[extPrefix]
         if (possibleMatch) {
           this.setCountry(possibleMatch, false)
-        } else {
+        } else if (areaCodeIsCanadian(areaCode)) {
           // Otherwise determine the country using the hardcoded ranges
-          if (areaCodeIsCanadian(areaCode)) {
-            this.setCountry('CA', true)
-          } else {
-            this.setCountry('US', true)
-          }
+          this.setCountry('CA', true)
+        } else {
+          this.setCountry('US', true)
         }
       }
     }
@@ -405,7 +403,8 @@ class _PhoneInput extends React.Component<OldProps> {
     this.props.setPrefix(newText)
   }
 
-  setCountry = (country: string, keepPrefix: boolean) => {
+  setCountry = (_country: string, keepPrefix: boolean) => {
+    let country = _country
     if (this.props.country !== country) {
       country = normalizeCountryCode(country)
 

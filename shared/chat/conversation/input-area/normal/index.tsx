@@ -141,7 +141,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     [setExplodingModeLocked, sendTyping, updateDraft]
   )
   const injectText = React.useCallback(
-    (text: string) => {
+    (text: string, focus?: boolean) => {
       injectingTextRef.current = true
       lastTextRef.current = text
       inputRef.current?.transformText(
@@ -151,6 +151,9 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
         }),
         true
       )
+      if (focus) {
+        inputRef.current?.focus()
+      }
       injectingTextRef.current = false
     },
     [inputRef]
@@ -214,7 +217,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     if (injectRef.current === conversationIDKey) {
       // we want to inject '' sometimes
       if (unsentText !== undefined) {
-        injectText(unsentText)
+        injectText(unsentText, true)
         resetUnsentText()
       }
     } else {

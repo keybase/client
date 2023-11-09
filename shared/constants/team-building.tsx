@@ -281,6 +281,8 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         switch (namespace) {
           case 'people': {
             get().dispatch.cancelTeamBuilding()
+            // we want the first item
+            // eslint-disable-next-line no-unreachable-loop
             for (const user of teamSoFar) {
               const username = user.serviceMap.keybase || user.id
               C.useProfileState.getState().dispatch.showUserProfile(username)
@@ -414,17 +416,21 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           return
         }
         // Do the main search for selected service and query.
-        let users = await apiSearch(
+        const _users = await apiSearch(
           searchQuery,
           selectedService,
           searchLimit,
           true /* includeServicesSummary */,
           includeContacts
         )
+
+        let users: typeof _users
         if (selectedService === 'keybase') {
           // If we are on Keybase tab, do additional search if query is phone/email.
           const userRegion = C.useSettingsContactsState.getState().userCountryCode
-          users = await specialContactSearch(users, searchQuery, userRegion)
+          users = await specialContactSearch(_users, searchQuery, userRegion)
+        } else {
+          users = _users
         }
         set(s => {
           const results = mapGetEnsureValue(s.searchResults, searchQuery, new Map())

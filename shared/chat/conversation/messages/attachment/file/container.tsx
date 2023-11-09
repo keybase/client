@@ -60,23 +60,21 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const onDownload = React.useCallback(() => {
     if (C.isMobile) {
       messageAttachmentNativeShare(ordinal)
-    } else {
-      if (!downloadPath) {
-        if (fileType === 'application/pdf') {
-          navigateAppend({
-            props: {conversationIDKey, ordinal},
-            selected: 'chatPDF',
-          })
-        } else {
-          switch (transferState) {
-            case 'uploading':
-            case 'downloading':
-            case 'mobileSaving':
-              return
-            default:
-          }
-          attachmentDownload(ordinal)
+    } else if (!downloadPath) {
+      if (fileType === 'application/pdf') {
+        navigateAppend({
+          props: {conversationIDKey, ordinal},
+          selected: 'chatPDF',
+        })
+      } else {
+        switch (transferState) {
+          case 'uploading':
+          case 'downloading':
+          case 'mobileSaving':
+            return
+          default:
         }
+        attachmentDownload(ordinal)
       }
     }
   }, [

@@ -21,9 +21,9 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
   const canSubmit = !!user && !waiting && isEmailValid
 
   const onChange = React.useCallback(
-    (text: string) => {
+    (_text: string) => {
       // Remove leading or trailing whitespace
-      text = text.trim()
+      const text = _text.trim()
       setEmailString(text)
       const valid = validateEmailAddress(text)
       setEmailValidity(valid)
@@ -77,7 +77,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
             {!Kb.Styles.isMobile && (
               <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-mention" />
             )}
-            {namespace == 'chat2' ? (
+            {namespace === 'chat2' ? (
               <Kb.Text type="BodySmall" style={styles.helperText}>
                 Start a chat with any email contact, then tell them to install Keybase. Your messages will
                 unlock after they sign up.

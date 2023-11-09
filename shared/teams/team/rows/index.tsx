@@ -44,7 +44,7 @@ export const useMembersSections = (
       data: getOrderedMemberArray(details.members, yourUsername, yourOperations),
       key: 'member-members',
       renderItem: ({index, item}) => (
-        <MemberRow teamID={teamID} username={item.username} firstItem={index == 0} />
+        <MemberRow teamID={teamID} username={item.username} firstItem={index === 0} />
       ),
       title: `Already in team (${meta.memberCount})`,
     },
@@ -108,7 +108,7 @@ export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.Team
         })),
       ],
       key: 'invite-requests',
-      renderItem: ({index, item}) => <RequestRow {...item} teamID={teamID} firstItem={index == 0} />,
+      renderItem: ({index, item}) => <RequestRow {...item} teamID={teamID} firstItem={index === 0} />,
       title: Kb.Styles.isMobile ? `Requests (${details.requests.size})` : undefined,
     }
     sections.push(requestsSection)
@@ -119,7 +119,7 @@ export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.Team
       data: collapsed ? [] : [...details.invites].sort(sortInvites),
       key: 'member-invites',
       onToggleCollapsed,
-      renderItem: ({index, item}) => <InviteRow teamID={teamID} id={item.id} firstItem={index == 0} />,
+      renderItem: ({index, item}) => <InviteRow teamID={teamID} id={item.id} firstItem={index === 0} />,
       title: `Invitations (${details.invites.size})`,
     })
   }
@@ -252,7 +252,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
   })
 
   let filteredEmoji: T.RPCChat.Emoji[] = customEmoji
-  if (filter != '') {
+  if (filter !== '') {
     filteredEmoji = filteredEmoji.filter(e => e.alias.includes(filter.toLowerCase()))
   }
 

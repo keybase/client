@@ -60,14 +60,12 @@ const TeamPicker = (props: Props) => {
   if (message?.type === 'attachment') {
     switch (message.attachmentType) {
       case 'image':
-        {
-          if (message.inlineVideoPlayable) {
-            const url = `${message.fileURL}&contentforce=true`
-            preview = url ? <Kb.Video autoPlay={false} allowFile={true} url={url} muted={true} /> : null
-          } else {
-            const src = message.fileURL || message.previewURL
-            preview = src ? <Kb.ZoomableImage src={src} style={styles.image} /> : null
-          }
+        if (message.inlineVideoPlayable) {
+          const url = `${message.fileURL}&contentforce=true`
+          preview = url ? <Kb.Video autoPlay={false} allowFile={true} url={url} muted={true} /> : null
+        } else {
+          const src = message.fileURL || message.previewURL
+          preview = src ? <Kb.ZoomableImage src={src} style={styles.image} /> : null
         }
         break
       default:

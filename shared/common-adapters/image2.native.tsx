@@ -6,7 +6,7 @@ import {Image, type ImageLoadEventData} from 'expo-image'
 const Image2 = (p: Props) => {
   const {showLoadingStateUntilLoaded, src, onLoad, onError, style, contentFit = 'contain'} = p
   // if we don't have showLoadingStateUntilLoaded then just mark as loaded and ignore this state
-  const [loading, setLoading] = React.useState(showLoadingStateUntilLoaded ? false : true)
+  const [loading, setLoading] = React.useState(!showLoadingStateUntilLoaded)
   const _onLoad = React.useCallback(
     (e: ImageLoadEventData) => {
       setLoading(false)

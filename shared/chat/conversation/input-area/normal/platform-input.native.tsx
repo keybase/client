@@ -204,7 +204,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
     (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
       const f = async () => {
         const handleSelection = (result: ImagePicker.ImagePickerResult) => {
-          if (result.canceled || result.assets.length == 0 || !conversationIDKey) {
+          if (result.canceled || result.assets.length === 0 || !conversationIDKey) {
             return
           }
           const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))

@@ -13,7 +13,7 @@ const LocationPopup = (props: Props) => {
   const httpSrv = C.useConfigState(s => s.httpSrv)
   const location = C.useChatState(s => s.lastCoord)
   const locationDenied = C.useChatContext(
-    s => s.commandStatus?.displayType == T.RPCChat.UICommandStatusDisplayTyp.error
+    s => s.commandStatus?.displayType === T.RPCChat.UICommandStatusDisplayTyp.error
   )
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)

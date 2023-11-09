@@ -1,4 +1,4 @@
-/* eslint-disable no-var */
+/* eslint-disable no-var,vars-on-top */
 export {}
 
 export type RequestIdleCallbackHandle = unknown

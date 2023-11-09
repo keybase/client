@@ -82,20 +82,18 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
           <Kb.Text center={true} type="BodySmall">
             {formatTimeForPopup(timestamp)}
           </Kb.Text>
+          {!!deviceRevokedAt && (
+            <Kb.PopupHeaderText
+              color={Kb.Styles.globalColors.white}
+              backgroundColor={Kb.Styles.globalColors.blue}
+              style={styles.revokedAt}
+            >
+              {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
+            </Kb.PopupHeaderText>
+          )}{' '}
         </Kb.Box2>
       </Kb.Box2>
     )
-    {
-      !!deviceRevokedAt && (
-        <Kb.PopupHeaderText
-          color={Kb.Styles.globalColors.white}
-          backgroundColor={Kb.Styles.globalColors.blue}
-          style={styles.revokedAt}
-        >
-          {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
-        </Kb.PopupHeaderText>
-      )
-    }
 
     const banner = (
       <Kb.Box2
