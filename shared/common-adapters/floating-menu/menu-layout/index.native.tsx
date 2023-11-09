@@ -175,6 +175,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
     return (
       <BottomSheetScrollView style={styles.bottomSheetScrollView}>
         <Kb.Box2 style={{paddingBottom}} direction="vertical" fullWidth={true}>
+          {props.header}
           {items}
           {close}
         </Kb.Box2>
@@ -201,7 +202,6 @@ const MenuLayout = (props: MenuLayoutProps) => {
             props.backgroundColor && {backgroundColor: props.backgroundColor},
           ])}
         >
-          {/* Display header if there is one */}
           {props.header}
           {beginningDivider && <Kb.Divider />}
           <ScrollView
