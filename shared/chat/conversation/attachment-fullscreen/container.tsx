@@ -14,36 +14,29 @@ type OwnProps = {
 
 const Connected = (props: OwnProps) => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const inOrdinal = props.ordinal
-  const [ordinal, setOrdinal] = React.useState(inOrdinal)
   const currentDeviceName = C.useCurrentUserState(s => s.deviceName)
   const username = C.useCurrentUserState(s => s.username)
   const ordinals = C.useChatContext(s => s.messageOrdinals)
+  const {ordinal} = props
   const data = C.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal)
-      const lastOrdinal = ordinals?.at(-1) ?? 0
-      const message = m?.type === 'attachment' ? m : blankMessage
-      const {previewHeight, previewWidth, title, fileURL, previewURL, downloadPath, transferProgress} =
-        message
-      const {id} = message
-      return {
-        downloadPath,
-        fileURL,
-        id,
-        lastOrdinal,
-        // TODO dont send entire message
-        message,
-        previewHeight,
-        previewURL,
-        previewWidth,
-        title,
-        transferProgress,
-      }
+      return m?.type === 'attachment' ? m : blankMessage
     })
   )
-  const {downloadPath, fileURL, id, lastOrdinal} = data
-  const {message, previewHeight, previewURL, previewWidth, title, transferProgress} = data
+
+  const submit = C.useRPC(T.RPCChat.localGetNextAttachmentMessageLocalRpcPromise)
+  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
+    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
+  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
+  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
+  const [message, setMessage] = React.useState<T.Chat.MessageAttachment>(data)
+
+  const lastOrdinal = ordinals?.at(-1) ?? 0
+  const {downloadPath, fileURL, id} = message
+  const {previewHeight, previewURL, previewWidth, title, transferProgress} = message
   const getLastOrdinal = () => lastOrdinal
   const {height: clampedHeight, width: clampedWidth} = Constants.clampImageSize(
     previewWidth,
@@ -51,8 +44,6 @@ const Connected = (props: OwnProps) => {
     maxWidth,
     maxHeight
   )
-
-  const submit = C.useRPC(T.RPCChat.localGetNextAttachmentMessageLocalRpcPromise)
 
   const onSwitchAttachment = (backInTime: boolean) => {
     if (conversationIDKey !== blankMessage.conversationIDKey) {
@@ -76,23 +67,14 @@ const Connected = (props: OwnProps) => {
               currentDeviceName
             )
             if (goodMessage && goodMessage.type === 'attachment') {
-              setOrdinal(goodMessage.ordinal)
+              setMessage(goodMessage)
             }
           }
         },
-        _error => {
-          setOrdinal(inOrdinal)
-        }
+        _error => {}
       )
     }
   }
-
-  const openLocalPathInSystemFileManagerDesktop = C.useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
-  )
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const showInfoPanel = C.useChatContext(s => s.dispatch.showInfoPanel)
-  const attachmentDownload = C.useChatContext(s => s.dispatch.attachmentDownload)
 
   return (
     <Fullscreen
