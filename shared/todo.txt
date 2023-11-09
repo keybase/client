@@ -1,3 +1,2 @@
 Some short term todos:
 swipeable2 slow
-upload 2 images into a blank covo
