@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Constants from '../../constants/teams'
 import * as React from 'react'
 import AddToTeam, {type AddToTeamProps} from '.'
 import type * as T from '../../constants/types'
@@ -9,7 +8,7 @@ import {sendNotificationFooter} from '../../teams/role-picker'
 const getOwnerDisabledReason = memoize((selected: Set<string>, teamNameToRole) => {
   return [...selected]
     .map(teamName => {
-      if (Constants.isSubteam(teamName)) {
+      if (C.Teams.isSubteam(teamName)) {
         return `${teamName} is a subteam which cannot have owners.`
       } else if (teamNameToRole.get(teamName) !== 'owner') {
         return `You are not an owner of ${teamName}.`
@@ -112,7 +111,7 @@ const Container = (ownProps: OwnProps) => {
   const clearAddUserToTeamsResults = C.useTeamsState(s => s.dispatch.clearAddUserToTeamsResults)
   const addUserToTeams = C.useTeamsState(s => s.dispatch.addUserToTeams)
   const teamProfileAddList = C.useTeamsState(s => s.teamProfileAddList)
-  const waiting = C.useAnyWaiting(Constants.teamProfileAddListWaitingKey)
+  const waiting = C.useAnyWaiting(C.Teams.teamProfileAddListWaitingKey)
   const _onAddToTeams = addUserToTeams
   const getTeamProfileAddList = C.useTeamsState(s => s.dispatch.getTeamProfileAddList)
   const resetTeamProfileAddList = C.useTeamsState(s => s.dispatch.resetTeamProfileAddList)

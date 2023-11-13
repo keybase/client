@@ -1,8 +1,7 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
-import ThreadSearch from '.'
 import type * as Styles from '../../../styles'
 import type * as T from '../../../constants/types'
+import ThreadSearch from '.'
 
 type OwnProps = {
   style?: Styles.StylesCrossPlatform
@@ -41,7 +40,7 @@ const Container = (ownProps: OwnProps) => {
     })),
     initialText,
     loadSearchHit: (index: number) => {
-      const message = _hits[index] || Constants.makeMessageText()
+      const message = _hits[index] || C.Chat.makeMessageText()
       if (message.id > 0) {
         _loadSearchHit(message.id)
       }

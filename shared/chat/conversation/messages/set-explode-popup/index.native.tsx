@@ -1,11 +1,11 @@
 import * as React from 'react'
-import {Box2, Text, FloatingPicker} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
 import type {Props} from '.'
 
 const Prompt = () => (
-  <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
-    <Text type="BodySmallSemibold">Explode messages after:</Text>
-  </Box2>
+  <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
+    <Kb.Text type="BodySmallSemibold">Explode messages after:</Kb.Text>
+  </Kb.Box2>
 )
 
 const promptContainerStyle = {
@@ -13,9 +13,7 @@ const promptContainerStyle = {
   justifyContent: 'center',
 } as const
 
-type State = {
-  selected: number
-}
+type State = {selected: number}
 
 class SetExplodePopup extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -49,19 +47,24 @@ class SetExplodePopup extends React.Component<Props, State> {
   }
 
   render() {
-    const items = this.props.items.map(item => ({label: item.text, value: item.seconds}))
+    const items = this.props.items.map(item => ({
+      onClick: () => {
+        this.props.onSelect(item.seconds)
+      },
+      title: item.text,
+      value: item.seconds,
+    }))
+
     return (
-      <FloatingPicker
-        items={items}
-        onSelect={this.setSelected}
-        onHidden={this.onCancel}
-        onCancel={this.onCancel}
-        onDone={this.onDone}
-        prompt={<Prompt />}
-        promptString="Pick a timeout"
-        visible={this.props.visible}
-        selectedValue={this.state.selected}
-      />
+      <Kb.FloatingModalContext.Provider value="bottomsheet">
+        <Kb.FloatingMenu
+          header={<Prompt />}
+          closeOnSelect={true}
+          items={items}
+          onHidden={this.onDone}
+          visible={this.props.visible}
+        />
+      </Kb.FloatingModalContext.Provider>
     )
   }
 }

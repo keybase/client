@@ -2,7 +2,6 @@ import * as C from '../constants'
 import * as Kb from '../common-adapters'
 import * as T from '../constants/types'
 import * as React from 'react'
-import * as TeamConstants from '../constants/teams'
 import type {NotificationsGroupState} from '../constants/settings-notifications'
 import {Group} from './notifications/render'
 
@@ -55,7 +54,7 @@ const Container = () => {
   const onToggleSound = C.useConfigState(s => s.dispatch.setNotifySound)
   const onUnfurlSave = unfurlSettingsSaved
 
-  const teamMeta = TeamConstants.sortTeamsByName(_teamMeta)
+  const teamMeta = C.Teams.sortTeamsByName(_teamMeta)
   const serverSelectedTeams = new Map(contactSettingsTeams?.map(t => [t.teamID, {enabled: t.enabled}]))
   const selectedTeams: {[K in T.Teams.TeamID]: boolean} = {}
   teamMeta.forEach(t => {

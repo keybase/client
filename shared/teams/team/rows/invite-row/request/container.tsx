@@ -1,6 +1,4 @@
 import * as C from '../../../../../constants'
-import * as Constants from '../../../../../constants/teams'
-import * as ChatConstants from '../../../../../constants/chat2'
 import * as React from 'react'
 import type * as T from '../../../../../constants/types'
 import type {RowProps} from '.'
@@ -60,14 +58,14 @@ class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, Stat
 
 const Container = (ownProps: OwnProps) => {
   const {teamID, username, reset, fullName} = ownProps
-  const {teamname} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const {teamname} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const _notifLabel = C.useChatState(s =>
-    ChatConstants.isBigTeam(s, teamID) ? `Announce them in #general` : `Announce them in team chat`
+    C.Chat.isBigTeam(s, teamID) ? `Announce them in #general` : `Announce them in team chat`
   )
   const disabledReasonsForRolePicker = C.useTeamsState(s =>
-    Constants.getDisabledReasonsForRolePicker(s, teamID, username)
+    C.Teams.getDisabledReasonsForRolePicker(s, teamID, username)
   )
-  const waiting = C.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
+  const waiting = C.useAnyWaiting(C.Teams.addMemberWaitingKey(teamID, username))
   const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
   const ignoreRequest = C.useTeamsState(s => s.dispatch.ignoreRequest)
 

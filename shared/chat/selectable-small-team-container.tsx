@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as Constants from '../constants/chat2'
 import SelectableSmallTeam from './selectable-small-team'
 
 type OwnProps = {
@@ -20,14 +19,14 @@ const Container = (ownProps: OwnProps) => {
   const _username = C.useCurrentUserState(s => s.username)
   const isMuted = C.useChatContext(s => s.meta.isMuted)
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
-  const styles = Constants.getRowStyles(isSelected, _hasUnread)
+  const styles = C.Chat.getRowStyles(isSelected, _hasUnread)
   const participantNeedToRekey = _meta.rekeyers.size > 0
   const youNeedToRekey = !participantNeedToRekey && _meta.rekeyers.has(_username)
   const isLocked = participantNeedToRekey || youNeedToRekey
 
   // order participants by hit, if it's set
   const filter = ownProps.filter ?? ''
-  const metaParts = Constants.getRowParticipants(_participantInfo, _username)
+  const metaParts = C.Chat.getRowParticipants(_participantInfo, _username)
   let participants = ownProps.participants ?? (metaParts.length > 0 ? metaParts : name.split(','))
   participants = participants.sort((a, b) => {
     const ai = a.indexOf(filter)

@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import ReactButton from './react-button/container'
@@ -47,7 +46,7 @@ const ReactionTooltip = (p: OwnProps) => {
   const {_reactions, good} = C.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
-      if (message && Constants.isMessageWithReactions(message)) {
+      if (message && C.Chat.isMessageWithReactions(message)) {
         const _reactions = message.reactions
         return {_reactions, good: true}
       }

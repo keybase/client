@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as React from 'react'
 import type * as T from '../../../../constants/types'
 import SystemChangeRetention from '.'
-import {getCanPerform} from '../../../../constants/teams'
 
 type OwnProps = {
   message: T.Chat.MessageSystemChangeRetention
@@ -15,7 +14,7 @@ const SystemChangeRetentionContainer = React.memo(function SystemChangeRetention
   const you = C.useCurrentUserState(s => s.username)
   const meta = C.useChatContext(s => s.meta)
   const canManage = C.useTeamsState(s =>
-    meta.teamType === 'adhoc' ? true : getCanPerform(s, meta.teamname).setRetentionPolicy
+    meta.teamType === 'adhoc' ? true : C.Teams.getCanPerform(s, meta.teamname).setRetentionPolicy
   )
 
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)

@@ -3,7 +3,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
 
 type Props = {
   members: string[]
@@ -18,7 +17,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const channelInfo = C.useTeamsState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const channelInfo = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
 
   const nav = Container.useSafeNavigation()
@@ -46,7 +45,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
     )
   }
 
-  const prompt = `Remove ${Constants.stringifyPeople(members)} from #${channelname}?`
+  const prompt = `Remove ${C.Teams.stringifyPeople(members)} from #${channelname}?`
   const header = (
     <Kb.Box style={styles.positionRelative}>
       <Kb.AvatarLine usernames={members} size={64} layout="horizontal" maxShown={5} />

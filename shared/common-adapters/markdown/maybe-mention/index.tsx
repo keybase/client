@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as T from '../../../constants/types'
-import * as Constants from '../../../constants/chat2'
 import Text, {type StylesTextCrossPlatform} from '../../text'
 import Mention from '../../mention-container'
 import TeamMention from './team-container'
@@ -63,7 +62,7 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {name, channel} = ownProps
-  const info = C.useChatState(s => s.maybeMentionMap.get(Constants.getTeamMentionName(name, channel)))
+  const info = C.useChatState(s => s.maybeMentionMap.get(C.Chat.getTeamMentionName(name, channel)))
   const resolveMaybeMention = C.useChatContext(s => s.dispatch.resolveMaybeMention)
   const onResolve = () => {
     resolveMaybeMention(channel, name)

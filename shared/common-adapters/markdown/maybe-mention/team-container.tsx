@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
 import * as T from '../../../constants/types'
 import type {StylesTextCrossPlatform} from '../../text'
 import TeamMention from './team'
@@ -16,7 +15,7 @@ const noAdmins: Array<string> = []
 const Container = (ownProps: OwnProps) => {
   const {allowFontScaling, name, channel, style} = ownProps
   const maybeMentionInfo = C.useChatState(s =>
-    s.maybeMentionMap.get(Constants.getTeamMentionName(name, channel))
+    s.maybeMentionMap.get(C.Chat.getTeamMentionName(name, channel))
   )
   const mentionInfo =
     maybeMentionInfo && maybeMentionInfo.status === T.RPCChat.UIMaybeMentionStatus.team

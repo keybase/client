@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -24,12 +23,12 @@ const AddSubteamMembers = () => {
   const yourUsername = C.useCurrentUserState(s => s.username)
   const parentTeamID = C.useTeamsState(s => s.newTeamWizard.parentTeamID ?? T.Teams.noTeamID)
   useTeamDetailsSubscribe(parentTeamID)
-  const parentTeamName = C.useTeamsState(s => Constants.getTeamMeta(s, parentTeamID).teamname)
+  const parentTeamName = C.useTeamsState(s => C.Teams.getTeamMeta(s, parentTeamID).teamname)
   const parentMembersMap = C.useTeamsState(
-    s => (s.teamDetails.get(parentTeamID) ?? Constants.emptyTeamDetails).members
+    s => (s.teamDetails.get(parentTeamID) ?? C.Teams.emptyTeamDetails).members
   )
   const parentMembers = [...parentMembersMap.values()].filter(
-    m => !Constants.isBot(m.type) && m.username !== yourUsername
+    m => !C.Teams.isBot(m.type) && m.username !== yourUsername
   )
   const filteredMembers = filter
     ? parentMembers.filter(

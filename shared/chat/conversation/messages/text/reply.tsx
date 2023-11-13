@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import {OrdinalContext, HighlightedContext} from '../ids-context'
@@ -10,7 +9,7 @@ export const useReply = (ordinal: T.Chat.Ordinal) => {
   return showReplyTo ? <Reply /> : null
 }
 
-const emptyMessage = Constants.makeMessageText()
+const emptyMessage = C.Chat.makeMessageText()
 
 const ReplyToContext = React.createContext<T.Chat.Message>(emptyMessage)
 
@@ -41,7 +40,7 @@ const ReplyImage = () => {
   const imageHeight = replyTo.previewHeight
   const imageURL = replyTo.previewURL
   const imageWidth = replyTo.previewWidth
-  const sizing = imageWidth && imageHeight ? Constants.zoomImage(imageWidth, imageHeight, 80) : undefined
+  const sizing = imageWidth && imageHeight ? C.Chat.zoomImage(imageWidth, imageHeight, 80) : undefined
   return (
     <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
       <Kb.Box style={sizing?.margins}>

@@ -1,6 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/teams'
-import * as ChatConstants from '../../../constants/chat2'
 import type * as T from '../../../constants/types'
 import Tabs from '.'
 
@@ -12,22 +10,22 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {selectedTab, setSelectedTab, teamID} = ownProps
-  const teamMeta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
-  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
 
   const admin = yourOperations.manageMembers
   const error = C.useTeamsState(s => s.errorInAddToTeam)
-  const isBig = C.useChatState(s => ChatConstants.isBigTeam(s, teamID))
+  const isBig = C.useChatState(s => C.Chat.isBigTeam(s, teamID))
   const loading = C.useAnyWaiting([
-    Constants.teamWaitingKey(teamID),
-    Constants.teamTarsWaitingKey(teamMeta.teamname),
+    C.Teams.teamWaitingKey(teamID),
+    C.Teams.teamTarsWaitingKey(teamMeta.teamname),
   ])
   const newTeamRequests = C.useTeamsState(s => s.newTeamRequests)
   const numInvites = teamDetails?.invites.size ?? 0
   const numRequests = teamDetails?.requests.size ?? 0
   const numSubteams = teamDetails?.subteams.size ?? 0
-  const resetUserCount = C.useTeamsState(s => Constants.getTeamResetUsers(s, teamMeta.teamname).size)
+  const resetUserCount = C.useTeamsState(s => C.Teams.getTeamResetUsers(s, teamMeta.teamname).size)
   const showSubteams = yourOperations.manageSubteams
   const props = {
     admin: admin,

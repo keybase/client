@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
 import {PortalHost} from '../../../common-adapters/portal.native'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -25,8 +24,8 @@ const Offline = () => (
 const LoadingLine = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const showLoader = C.useAnyWaiting([
-    Constants.waitingKeyThreadLoad(conversationIDKey),
-    Constants.waitingKeyInboxSyncStarted,
+    C.Chat.waitingKeyThreadLoad(conversationIDKey),
+    C.Chat.waitingKeyInboxSyncStarted,
   ])
   return showLoader ? <Kb.LoadingLine /> : null
 }

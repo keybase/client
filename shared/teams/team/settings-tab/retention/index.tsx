@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import type * as T from '../../../../constants/types'
-import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
 import {useConfirm} from './use-confirm'
 
@@ -123,9 +122,9 @@ const RetentionPicker = (p: Props) => {
       const {attachTo, toggleShowingPopup} = p
 
       const makeItems = () => {
-        const policies = baseRetentionPolicies.slice()
+        const policies = C.Teams.baseRetentionPolicies.slice()
         if (showInheritOption) {
-          policies.unshift(retentionPolicies.policyInherit)
+          policies.unshift(C.Teams.retentionPolicies.policyInherit)
         }
         return policies.reduce<Kb.MenuItems>((arr, policy) => {
           switch (policy.type) {

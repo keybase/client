@@ -1,6 +1,5 @@
 import * as C from '../../../../../constants'
 import * as React from 'react'
-import * as Constants from '../../../../../constants/chat2'
 import {OrdinalContext} from '../../ids-context'
 import ExplodingMeta from '.'
 
@@ -19,7 +18,7 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
   }
   const {exploded, submitState} = message
   const explodesAt = message.explodingTime
-  const messageKey = Constants.getMessageKey(message)
+  const messageKey = C.Chat.getMessageKey(message)
   const pending = submitState === 'pending' || submitState === 'failed'
   const props = {
     exploded,

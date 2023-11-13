@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as RowSizes from './sizes'
-import * as TeamConstants from '../../../constants/teams'
 import type * as T from '../../../constants/types'
 import TeamMenu from '../../conversation/info-panel/menu/container'
 
@@ -14,7 +13,7 @@ type Props = {
 
 const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
   const {navKey, teamID, teamname} = props
-  const badgeSubscribe = C.useTeamsState(s => !TeamConstants.isTeamWithChosenChannels(s, teamname))
+  const badgeSubscribe = C.useTeamsState(s => !C.Teams.isTeamWithChosenChannels(s, teamname))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onClick = () => navigateAppend({props: {teamID}, selected: 'team'}, false, navKey)
 

@@ -1,10 +1,9 @@
 import * as C from '../../../../../constants'
-import * as Constants from '../../../../../constants/chat2'
 import * as React from 'react'
 import {OrdinalContext} from '../../ids-context'
 import {maxWidth, maxHeight} from '../shared'
 
-const missingMessage = Constants.makeMessageAttachment()
+const missingMessage = C.Chat.makeMessageAttachment()
 
 export const useRedux = () => {
   const ordinal = React.useContext(OrdinalContext)
@@ -14,7 +13,7 @@ export const useRedux = () => {
       const message = m?.type === 'attachment' ? m : missingMessage
       const {fileURL, previewHeight, previewWidth} = message
       let {previewURL} = message
-      let {height, width} = Constants.clampImageSize(previewWidth, previewHeight, maxWidth, maxHeight)
+      let {height, width} = C.Chat.clampImageSize(previewWidth, previewHeight, maxWidth, maxHeight)
       // This is mostly a sanity check and also allows us to handle HEIC even though the go side doesn't
       // understand
       if (height === 0 || width === 0) {

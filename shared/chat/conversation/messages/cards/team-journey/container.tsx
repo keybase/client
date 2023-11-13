@@ -1,11 +1,8 @@
 import * as C from '../../../../../constants'
 import * as T from '../../../../../constants/types'
-import * as Constants from '../../../../../constants/chat2'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
-import * as TeamConstants from '../../../../../constants/teams'
 import {TeamJourney, type Action} from '.'
-import {makeMessageJourneycard} from '../../../../../constants/chat2/message'
 import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '../../../../../teams/common/channel-hooks'
 
@@ -122,7 +119,7 @@ const TeamJourneyContainer = (props: Props) => {
   ) : null
 }
 
-const emptyJourney = makeMessageJourneycard({})
+const emptyJourney = C.Chat.makeMessageJourneycard({})
 
 const TeamJourneyConnected = (ownProps: OwnProps) => {
   const {ordinal} = ownProps
@@ -132,8 +129,8 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const {cannotWrite, channelname, teamname, teamID} = conv
   const welcomeMessage = {display: '', raw: '', set: false}
   const _teamID = teamID
-  const canShowcase = C.useTeamsState(s => TeamConstants.canShowcase(s, teamID))
-  const isBigTeam = C.useChatState(s => Constants.isBigTeam(s, teamID))
+  const canShowcase = C.useTeamsState(s => C.Teams.canShowcase(s, teamID))
+  const isBigTeam = C.useChatState(s => C.Chat.isBigTeam(s, teamID))
   const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const _onAddPeopleToTeam = (teamID: T.Teams.TeamID) => startAddMembersWizard(teamID)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)

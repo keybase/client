@@ -209,6 +209,7 @@ export type ConvoState = ConvoStore & {
       scrollDirection?: ScrollDirection
       numberOfMessagesToLoad?: number
     }) => void
+    loadNextAttachment: (from: T.Chat.Ordinal, backInTime: boolean) => Promise<T.Chat.Ordinal>
     markThreadAsRead: (unreadLineMessageID?: number) => void
     markTeamAsRead: (teamID: T.Teams.TeamID) => void
     messageAttachmentNativeSave: (message: T.Chat.Message) => void
@@ -889,15 +890,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     loadMoreMessages: p => {
-      const {
-        reason,
-        messageIDControl,
-        knownRemotes,
-        forceClear = false,
-        centeredMessageID,
-        scrollDirection: sd = 'none',
-        numberOfMessagesToLoad = numMessagesOnInitialLoad,
-      } = p
+      const {scrollDirection: sd = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
+      const {forceClear = false, reason, messageIDControl, knownRemotes, centeredMessageID} = p
 
       const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
         const pagination = {
@@ -1049,6 +1043,49 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         reason: 'scroll forward',
         scrollDirection: 'forward',
       })
+    },
+    loadNextAttachment: async (from: T.Chat.Ordinal, backInTime: boolean) => {
+      const fromMsg = get().messageMap.get(from)
+      if (!fromMsg) return Promise.reject(new Error('Incorrect from'))
+      const {id} = fromMsg
+
+      const f = async () => {
+        const result = await T.RPCChat.localGetNextAttachmentMessageLocalRpcPromise({
+          assetTypes: [T.RPCChat.AssetMetadataType.image, T.RPCChat.AssetMetadataType.video],
+          backInTime,
+          convID: T.Chat.keyToConversationID(get().id),
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+          messageID: id,
+        })
+
+        if (result.message) {
+          const devicename = C.useCurrentUserState.getState().deviceName
+          const username = C.useCurrentUserState.getState().username
+          const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+          const goodMessage = Message.uiMessageToMessage(
+            get().id,
+            result.message,
+            username,
+            getLastOrdinal,
+            devicename
+          )
+          if (goodMessage?.type === 'attachment') {
+            dispatch.messagesAdd([goodMessage])
+            let ordinal = goodMessage.ordinal
+            // sent?
+            if (goodMessage.outboxID && !get().messageMap.get(ordinal)) {
+              const po = get().pendingOutboxToOrdinal.get(goodMessage.outboxID)
+              if (po) {
+                ordinal = po
+              }
+            }
+            return ordinal
+          }
+        }
+        return Promise.reject(new Error('No more results'))
+      }
+
+      return f()
     },
     loadOlderMessagesDueToScroll: () => {
       const {dispatch, moreToLoad} = get()

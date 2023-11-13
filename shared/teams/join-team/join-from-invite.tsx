@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
-import * as Constants from '../../constants/teams'
 import {Success} from '.'
 
 const JoinFromInvite = () => {
@@ -42,7 +41,7 @@ const JoinFromInvite = () => {
     onNavUp()
   }
 
-  const rpcWaiting = C.useAnyWaiting(Constants.joinTeamWaitingKey)
+  const rpcWaiting = C.useAnyWaiting(C.Teams.joinTeamWaitingKey)
   const waiting = rpcWaiting && clickedJoin
   const wasWaiting = Container.usePrevious(waiting)
   const showSuccess = wasWaiting && !waiting && !error

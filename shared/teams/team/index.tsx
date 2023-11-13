@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import type * as T from '../../constants/types'
@@ -89,9 +88,9 @@ const Team = (props: Props) => {
   const initialTab = props.initialTab
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
 
-  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
-  const teamMeta = C.useTeamsState(C.useDeep(s => Constants.getTeamMeta(s, teamID)))
-  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? C.Teams.emptyTeamDetails
+  const teamMeta = C.useTeamsState(C.useDeep(s => C.Teams.getTeamMeta(s, teamID)))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const teamSeen = C.useTeamsState(s => s.dispatch.teamSeen)
 
   useFocusEffect(

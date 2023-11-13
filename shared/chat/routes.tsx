@@ -1,5 +1,4 @@
-import type * as C from '../constants'
-import * as ChatConstants from '../constants/chat2'
+import * as C from '../constants'
 import chatAddToChannel from './conversation/info-panel/add-to-channel/page'
 import chatAttachmentFullscreen from './conversation/attachment-fullscreen/page'
 import chatAttachmentGetTitles from './conversation/attachment-get-titles/page'
@@ -29,7 +28,7 @@ import chatSendToChat from './send-to-chat/page'
 export const newRoutes = {
   chatConversation,
   chatEnterPaperkey,
-  chatRoot: ChatConstants.isSplit ? chatRootSplit : chatRootSingle,
+  chatRoot: C.Chat.isSplit ? chatRootSplit : chatRootSingle,
 }
 
 export const newModalRoutes = {

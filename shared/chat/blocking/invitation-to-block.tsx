@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
 
 const BlockButtons = () => {
@@ -24,7 +23,7 @@ const BlockButtons = () => {
   const team = teamname
   const adder = blockButtonInfo.adder
   const others = (team ? participantInfo.all : participantInfo.name).filter(
-    person => person !== currentUser && person !== adder && !Constants.isAssertion(person)
+    person => person !== currentUser && person !== adder && !C.Chat.isAssertion(person)
   )
 
   const onViewProfile = () => showUserProfile(adder)

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
-import {typeToLabel} from '../../../../../constants/teams'
+import * as C from '../../../../../constants'
 import type * as T from '../../../../../constants/types'
 
 export type Props = {
@@ -14,7 +14,7 @@ export type Props = {
 
 export const TeamInviteRow = (props: Props) => {
   const {onCancelInvite, role, label, firstItem, subLabel, isKeybaseUser} = props
-  const text2 = subLabel ? `${subLabel} · ${typeToLabel[role]}` : typeToLabel[role]
+  const text2 = subLabel ? `${subLabel} · ${C.Teams.typeToLabel[role]}` : C.Teams.typeToLabel[role]
   return (
     <Kb.ListItem2
       type="Small"

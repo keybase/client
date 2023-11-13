@@ -2,8 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
-import * as ChatConstants from '../../constants/chat2'
 import * as T from '../../constants/types'
 import {assertionToDisplay} from '../../common-adapters/usernames'
 import capitalize from 'lodash/capitalize'
@@ -28,11 +26,11 @@ const AddMembersConfirm = () => {
   const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = C.useTeamsState(
     s => s.addMembersWizard
   )
-  const isSubteam = C.useTeamsState(s => Constants.getTeamMeta(s, teamID).teamname.includes('.'))
+  const isSubteam = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname.includes('.'))
   const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
-  const isBigTeam = C.useChatState(s => (fromNewTeamWizard ? false : ChatConstants.isBigTeam(s, teamID)))
+  const isBigTeam = C.useChatState(s => (fromNewTeamWizard ? false : C.Chat.isBigTeam(s, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
-  const isInTeam = C.useTeamsState(s => Constants.getRole(s, teamID) !== 'none')
+  const isInTeam = C.useTeamsState(s => C.Teams.getRole(s, teamID) !== 'none')
 
   // TODO: consider useMemoing these
   const anyNonKeybase = addingMembers.some(m => m.assertion.includes('@'))
@@ -53,7 +51,7 @@ const AddMembersConfirm = () => {
   const [_error, setError] = React.useState('')
   const newTeamWizErr = C.useTeamsState(s => (fromNewTeamWizard ? s.newTeamWizard.error : undefined))
   const error = _error || newTeamWizErr
-  const newTeamWaiting = C.useAnyWaiting(Constants.teamCreationWaitingKey)
+  const newTeamWaiting = C.useAnyWaiting(C.Teams.teamCreationWaitingKey)
   const waiting = _waiting || newTeamWaiting
 
   const addMembers = C.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)

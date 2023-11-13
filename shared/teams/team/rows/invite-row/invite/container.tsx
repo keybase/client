@@ -1,5 +1,4 @@
 import * as C from '../../../../../constants'
-import * as Constants from '../../../../../constants/teams'
 import {TeamInviteRow} from '.'
 import type * as T from '../../../../../constants/types'
 import {formatPhoneNumber} from '../../../../../util/phone-numbers'
@@ -27,7 +26,7 @@ const Container = (ownProps: OwnProps) => {
     removePendingInvite(teamID, inviteID)
   }
 
-  const user = [...(_invites ?? [])].find(invite => invite.id === ownProps.id) || Constants.emptyInviteInfo
+  const user = [...(_invites ?? [])].find(invite => invite.id === ownProps.id) || C.Teams.emptyInviteInfo
 
   let label: string = ''
   let subLabel: undefined | string

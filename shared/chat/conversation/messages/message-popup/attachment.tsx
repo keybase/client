@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as React from 'react'
 import type * as T from '../../../../constants/types'
 import {type Position, fileUIName, type StylesCrossPlatform} from '../../../../styles'
-import {makeMessageAttachment} from '../../../../constants/chat2/message'
 import {useItems, useHeader} from './hooks'
 import * as Kb from '../../../../common-adapters'
 
@@ -15,7 +14,7 @@ type OwnProps = {
   visible: boolean
 }
 
-const emptyMessage = makeMessageAttachment({})
+const emptyMessage = C.Chat.makeMessageAttachment({})
 
 const PopAttach = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, position, style, visible} = ownProps

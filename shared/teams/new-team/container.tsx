@@ -1,14 +1,13 @@
 import * as C from '../../constants'
+import * as T from '../../constants/types'
 import NewTeamDialog from '.'
 import upperFirst from 'lodash/upperFirst'
-import * as Constants from '../../constants/teams'
-import * as T from '../../constants/types'
 
 type OwnProps = {subteamOf?: T.Teams.TeamID}
 
 const Container = (ownProps: OwnProps) => {
   const subteamOf = ownProps.subteamOf ?? T.Teams.noTeamID
-  const baseTeam = C.useTeamsState(s => Constants.getTeamMeta(s, subteamOf).teamname)
+  const baseTeam = C.useTeamsState(s => C.Teams.getTeamMeta(s, subteamOf).teamname)
   const errorText = C.useTeamsState(s => upperFirst(s.errorInTeamCreation))
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {

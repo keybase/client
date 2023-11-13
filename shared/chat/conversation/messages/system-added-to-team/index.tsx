@@ -1,7 +1,7 @@
+import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import UserNotice from '../user-notice'
 import type * as T from '../../../../constants/types'
-import {typeToLabel} from '../../../../constants/teams'
 import {getAddedUsernames} from '../system-users-added-to-conv'
 import {indefiniteArticle} from '../../../../util/string'
 
@@ -68,7 +68,8 @@ const youOrUsername = (props: {username: string; you: string; capitalize: boolea
 }
 
 const AddedToTeam = (props: Props) => {
-  const role = props.role !== 'none' && isBot(props.role) ? typeToLabel[props.role].toLowerCase() : null
+  const role =
+    props.role !== 'none' && isBot(props.role) ? C.Teams.typeToLabel[props.role].toLowerCase() : null
   if (props.addee === props.you) {
     return <YouAddedToTeam {...props} />
   }
@@ -102,8 +103,8 @@ const YouAddedToTeam = (props: Props) => {
           </Kb.Text>
         )}
         {role !== 'none' &&
-          typeToLabel[role] &&
-          ` as ${indefiniteArticle(props.role)} ${typeToLabel[role].toLowerCase()}`}
+          C.Teams.typeToLabel[role] &&
+          ` as ${indefiniteArticle(props.role)} ${C.Teams.typeToLabel[role].toLowerCase()}`}
         .
       </Kb.Text>
       <ManageComponent {...props} />

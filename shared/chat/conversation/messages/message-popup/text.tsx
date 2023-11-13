@@ -1,12 +1,10 @@
 import * as C from '../../../../constants'
-import * as Constants from '../../../../constants/chat2'
-import openURL from '../../../../util/open-url'
 import * as React from 'react'
+import * as Kb from '../../../../common-adapters'
 import type * as T from '../../../../constants/types'
 import type {Position, StylesCrossPlatform} from '../../../../styles'
-import {makeMessageText} from '../../../../constants/chat2/message'
 import {useItems, useHeader} from './hooks'
-import * as Kb from '../../../../common-adapters'
+import openURL from '../../../../util/open-url'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef>
@@ -17,7 +15,7 @@ type OwnProps = {
   visible: boolean
 }
 
-const emptyMessage = makeMessageText({})
+const emptyMessage = C.Chat.makeMessageText({})
 
 const PopText = (ownProps: OwnProps) => {
   const {ordinal, attachTo, onHidden, position, style, visible} = ownProps
@@ -45,7 +43,7 @@ const PopText = (ownProps: OwnProps) => {
     messageReplyPrivately(ordinal)
   }, [messageReplyPrivately, ordinal])
   const onReplyPrivately = !yourMessage && canReplyPrivately ? _onReplyPrivately : undefined
-  const mapUnfurl = Constants.getMapUnfurl(message)
+  const mapUnfurl = C.Chat.getMapUnfurl(message)
   // don't pass onViewMap if we don't have a coordinate (e.g. when a location share ends)
   const onViewMap =
     mapUnfurl?.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone ? () => openURL(mapUnfurl.url) : undefined

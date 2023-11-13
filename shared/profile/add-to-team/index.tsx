@@ -1,4 +1,4 @@
-import * as Constants from '../../constants/teams'
+import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import type * as T from '../../constants/types'
@@ -188,7 +188,7 @@ class AddToTeam extends React.Component<Props> {
               style={styles.addButton}
               onClick={this.props.onSave}
               label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
-              waitingKey={Constants.addUserToTeamsWaitingKey(this.props.them)}
+              waitingKey={C.Teams.addUserToTeamsWaitingKey(this.props.them)}
             />
           </Kb.ButtonBar>
         ),

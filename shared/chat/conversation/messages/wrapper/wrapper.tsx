@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import {OrdinalContext, HighlightedContext} from '../ids-context'
@@ -44,7 +43,7 @@ const messageShowsPopup = (type?: T.Chat.Message['type']) =>
   ].includes(type)
 
 // If there is no matching message treat it like a deleted
-const missingMessage = Constants.makeMessageDeleted({})
+const missingMessage = C.Chat.makeMessageDeleted({})
 
 export const useCommon = (ordinal: T.Chat.Ordinal) => {
   const showCenteredHighlight = useHighlightMode(ordinal)
@@ -54,7 +53,7 @@ export const useCommon = (ordinal: T.Chat.Ordinal) => {
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal)
       const type = m?.type
-      const shouldShowPopup = Constants.shouldShowPopup(accountsInfoMap, m ?? undefined)
+      const shouldShowPopup = C.Chat.shouldShowPopup(accountsInfoMap, m ?? undefined)
       return {shouldShowPopup, type}
     })
   )
@@ -82,7 +81,7 @@ type WMProps = {
 
 const successfulInlinePaymentStatuses = ['completed', 'claimable']
 const hasSuccessfulInlinePayments = (
-  paymentStatusMap: Constants.State['paymentStatusMap'],
+  paymentStatusMap: C.Chat.State['paymentStatusMap'],
   message: T.Chat.Message
 ): boolean => {
   if (message.type !== 'text' || !message.inlinePaymentIDs) {
@@ -107,7 +106,7 @@ const useRedux = (ordinal: T.Chat.Ordinal) => {
     if (hasReactions) {
       return 'none' as const
     }
-    const validMessage = Constants.isMessageWithReactions(message)
+    const validMessage = C.Chat.isMessageWithReactions(message)
     if (!validMessage) return 'none' as const
 
     return ordinals.at(-1) === ordinal ? ('last' as const) : ('middle' as const)
@@ -153,7 +152,7 @@ const useRedux = (ordinal: T.Chat.Ordinal) => {
       const {exploded, submitState, author, id, botUsername} = m
       const youSent = m.author === you && m.ordinal !== m.id
       const exploding = !!m.exploding
-      const isPendingPayment = Constants.isPendingPaymentMessage(accountsInfoMap, m)
+      const isPendingPayment = C.Chat.isPendingPaymentMessage(accountsInfoMap, m)
       const decorate = !exploded && !m.errorReason
       const type = m.type
       const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable

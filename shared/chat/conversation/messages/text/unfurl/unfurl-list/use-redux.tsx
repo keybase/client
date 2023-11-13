@@ -1,6 +1,5 @@
 import * as C from '../../../../../../constants'
 import * as React from 'react'
-import type * as Constants from '../../../../../../constants/chat2'
 import type * as T from '../../../../../../constants/types'
 
 export const useActions = (youAreAuthor: boolean, messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => {
@@ -16,7 +15,7 @@ export const useActions = (youAreAuthor: boolean, messageID: T.Chat.MessageID, o
   return {onClose: youAreAuthor ? onClose : undefined, onToggleCollapse}
 }
 
-export const getUnfurlInfo = (state: Constants.ConvoState, ordinal: T.Chat.Ordinal, idx: number) => {
+export const getUnfurlInfo = (state: C.Chat.ConvoState, ordinal: T.Chat.Ordinal, idx: number) => {
   const message = state.messageMap.get(ordinal)
   const author = message?.author
   const you = C.useCurrentUserState.getState().username

@@ -1,17 +1,16 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import * as Constants from '../../../../constants/chat2'
 import type * as Kb from '../../../../common-adapters'
 import type * as T from '../../../../constants/types'
 import SetExplodeTime from '.'
 
 const makeItems = (meta: T.Chat.ConversationMeta) => {
-  const convRetention = Constants.getEffectiveRetentionPolicy(meta)
+  const convRetention = C.Chat.getEffectiveRetentionPolicy(meta)
   if (convRetention.type !== 'explode') {
-    return Constants.messageExplodeDescriptions
+    return C.Chat.messageExplodeDescriptions
   }
   const {seconds, title} = convRetention
-  const items = Constants.messageExplodeDescriptions.filter(ed => ed.seconds < seconds)
+  const items = C.Chat.messageExplodeDescriptions.filter(ed => ed.seconds < seconds)
   items.splice(0, 1, {seconds, text: `${title} (Chat policy)`})
   return items
 }

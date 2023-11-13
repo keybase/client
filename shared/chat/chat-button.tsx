@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as ChatConstants from '../constants/chat2'
 import * as Styles from '../styles'
 import WaitingButton from '../common-adapters/waiting-button'
 import Icon from '../common-adapters/icon'
@@ -29,7 +28,7 @@ const ChatButton = ({small, style, username, afterClick}: Props) => {
     <Kb.WaitingButton
       key="Chat"
       label="Chat"
-      waitingKey={ChatConstants.waitingKeyCreating}
+      waitingKey={C.Chat.waitingKeyCreating}
       onClick={chat}
       small={small}
       style={style}

@@ -1,6 +1,4 @@
 import * as C from '../../../constants'
-import * as TeamConstants from '../../../constants/teams'
-import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as T from '../../../constants/types'
@@ -31,7 +29,7 @@ const MembersTab = (props: Props) => {
   const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
   const participantInfo = C.useChatContext(s => s.participants)
   const participants = C.useChatContext(
-    s => Constants.getBotsAndParticipants(s.meta, s.participants).participants
+    s => C.Chat.getBotsAndParticipants(s.meta, s.participants).participants
   )
   const cidChanged = C.useCIDChanged(conversationIDKey)
   const [lastTeamName, setLastTeamName] = React.useState('')
@@ -50,10 +48,8 @@ const MembersTab = (props: Props) => {
   const participantsItems = participants
     .map(p => ({
       fullname: (infoMap.get(p) || {fullname: ''}).fullname || participantInfo.contactName.get(p) || '',
-      isAdmin:
-        teamname && teamMembers ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
-      isOwner:
-        teamname && teamMembers ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
+      isAdmin: teamname && teamMembers ? C.Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
+      isOwner: teamname && teamMembers ? C.Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
       key: `user-${p}`,
       username: p,
     }))

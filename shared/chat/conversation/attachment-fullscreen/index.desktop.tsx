@@ -3,6 +3,7 @@ import * as Kb from '../../../common-adapters'
 import {useMessagePopup} from '../messages/message-popup'
 import * as Styles from '../../../styles'
 import type {Props} from '.'
+import {useData} from './hooks'
 
 type ArrowProps = {
   left: boolean
@@ -30,8 +31,10 @@ const Arrow = (props: ArrowProps) => {
 }
 
 const Fullscreen = React.memo(function Fullscreen(p: Props) {
-  const {path, title, message, progress, progressLabel} = p
-  const {onNextAttachment, onPreviousAttachment, onClose, onDownloadAttachment, onShowInFinder, isVideo} = p
+  const data = useData(p.ordinal)
+  const {message, ordinal, path, title, progress} = data
+  const {progressLabel, onNextAttachment, onPreviousAttachment, onClose} = data
+  const {onDownloadAttachment, onShowInFinder, isVideo} = data
 
   const [isZoomed, setIsZoomed] = React.useState(false)
   const onIsZoomed = React.useCallback((zoomed: boolean) => {
@@ -45,10 +48,9 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
     cmd === 'right' && onNextAttachment()
   }
   const isDownloadError = !!message.transferErrMsg
-  const {id} = message
 
   const {toggleShowingPopup, popup, popupAnchor} = useMessagePopup({
-    ordinal: id,
+    ordinal,
   })
 
   return (

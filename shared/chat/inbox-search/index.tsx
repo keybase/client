@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Constants from '../../constants/chat2'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import Rover from './background'
@@ -14,7 +13,7 @@ import {inboxWidth} from '../inbox/row/sizes'
 
 type OwnProps = {header?: React.ReactElement | null}
 
-const emptySearch = Constants.makeInboxSearchInfo()
+const emptySearch = C.Chat.makeInboxSearchInfo()
 
 export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
   const _inboxSearch = C.useChatState(s => s.inboxSearch ?? emptySearch)
@@ -237,7 +236,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
           isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
           name={item.name}
           numSearchHits={numHits}
-          maxSearchHits={Constants.inboxSearchMaxTextMessages}
+          maxSearchHits={C.Chat.inboxSearchMaxTextMessages}
           onSelectConversation={() => section.onSelect(item, realIndex)}
         />
       </C.ChatProvider>
@@ -247,7 +246,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
           isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
           name={item.name}
           numSearchHits={numHits}
-          maxSearchHits={Constants.inboxSearchMaxTextMessages}
+          maxSearchHits={C.Chat.inboxSearchMaxTextMessages}
           onSelectConversation={() => section.onSelect(item, realIndex)}
         />
       </C.ChatProvider>

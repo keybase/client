@@ -29,7 +29,7 @@ export type Props = {
   closeText?: string // mobile only; default to "Close",
   containerStyle?: Styles.StylesCrossPlatform
   header?: React.ReactNode
-  items: ReadonlyArray<_MenuItems[0]>
+  items: ReadonlyArray<_MenuItems[number]>
   listStyle?: Object
   onHidden: () => void
   position?: Styles.Position

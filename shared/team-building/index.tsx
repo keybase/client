@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as ChatConstants from '../constants/chat2'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as T from '../constants/types'
@@ -11,7 +10,6 @@ import logger from '../logger'
 import trim from 'lodash/trim'
 import {ContactsBanner} from './contacts'
 import {ListBody} from './list-body'
-import {getTeamMeta} from '../constants/teams'
 import {serviceIdToSearchPlaceholder} from './shared'
 import {FilteredServiceTabBar} from './filtered-service-tab-bar'
 import {modalHeaderProps} from './modal-header-props'
@@ -164,10 +162,10 @@ const TeamBuilding = (p: OwnProps) => {
   )
 
   const title = C.useTeamsState(s =>
-    namespace === 'teams' ? `Add to ${getTeamMeta(s, teamID ?? '').teamname}` : p.title ?? ''
+    namespace === 'teams' ? `Add to ${C.Teams.getTeamMeta(s, teamID ?? '').teamname}` : p.title ?? ''
   )
 
-  const waitingForCreate = C.useAnyWaiting(ChatConstants.waitingKeyCreating)
+  const waitingForCreate = C.useAnyWaiting(C.Chat.waitingKeyCreating)
 
   const offset = useSharedValue(0)
 

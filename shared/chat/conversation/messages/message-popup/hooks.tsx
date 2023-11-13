@@ -1,15 +1,13 @@
 import * as React from 'react'
 import type * as T from '../../../../constants/types'
-import * as Constants from '../../../../constants/chat2'
 import * as C from '../../../../constants'
-import {makeMessageAttachment, makeMessageText} from '../../../../constants/chat2/message'
 import ReactionItem from './reactionitem'
 import MessagePopupHeader from './header'
 import ExplodingPopupHeader from './exploding-header'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
 
-const emptyAttach = makeMessageAttachment({})
-const emptyText = makeMessageText({})
+const emptyAttach = C.Chat.makeMessageAttachment({})
+const emptyText = C.Chat.makeMessageText({})
 
 export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: () => void) => {
   const m = C.useChatContext(s => s.messageMap.get(ordinal))
@@ -38,7 +36,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: (
   }, [navigateAppend, ordinal])
   const onAddReaction = C.isMobile ? _onAddReaction : undefined
 
-  const authorIsBot = C.useTeamsState(s => Constants.messageAuthorIsBot(s, meta, message, participantInfo))
+  const authorIsBot = C.useTeamsState(s => C.Chat.messageAuthorIsBot(s, meta, message, participantInfo))
   const _onInstallBot = React.useCallback(() => {
     navigateAppend(() => ({props: {botUsername: author}, selected: 'chatInstallBotPick'}))
   }, [navigateAppend, author])
@@ -65,7 +63,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, isAttach: boolean, onHidden: (
       ] as const)
     : []
 
-  const convLabel = Constants.getConversationLabel(participantInfo, meta, true)
+  const convLabel = C.Chat.getConversationLabel(participantInfo, meta, true)
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopyLink = React.useCallback(() => {
     copyToClipboard(C.linkFromConvAndMessage(convLabel, id))
@@ -234,7 +232,7 @@ export const useHeader = (ordinal: T.Chat.Ordinal, isAttach: boolean) => {
   const {author, deviceType, deviceName, botUsername, timestamp, exploding} = message
   const yourMessage = author === you
   const deviceRevokedAt = message.deviceRevokedAt || undefined
-  const mapUnfurl = Constants.getMapUnfurl(message)
+  const mapUnfurl = C.Chat.getMapUnfurl(message)
   const isLocation = !!mapUnfurl
 
   return exploding ? (

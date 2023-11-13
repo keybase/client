@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import type * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Constants from '../../../constants/teams'
 import MenuHeader from '../../team/rows/menu-header.new'
 
 type Props = {
@@ -31,13 +30,13 @@ const ChannelMemberRow = (props: Props) => {
   const infoMap = C.useUsersState(s => s.infoMap)
   const participantInfo = C.useConvoState(conversationIDKey, s => s.participants)
   const teamMemberInfo = C.useTeamsState(
-    s => s.teamDetails.get(teamID)?.members.get(username) ?? Constants.initialMemberInfo
+    s => s.teamDetails.get(teamID)?.members.get(username) ?? C.Teams.initialMemberInfo
   )
   const you = C.useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type
-  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const crown = React.useMemo(() => {
     return active && showCrown[roleType] ? (
       <Kb.Icon
@@ -61,7 +60,7 @@ const ChannelMemberRow = (props: Props) => {
       : 'Has reset their account; admins can re-invite'
     : null
 
-  const roleLabel = !!active && Constants.typeToLabel[teamMemberInfo.type]
+  const roleLabel = !!active && C.Teams.typeToLabel[teamMemberInfo.type]
   const isYou = you === username
 
   const channelSelectedMembers = C.useTeamsState(s => s.channelSelectedMembers.get(conversationIDKey))
@@ -111,7 +110,7 @@ const ChannelMemberRow = (props: Props) => {
             />
           )}
           <Kb.Text type="BodySmall" style={styles.marginRight}>
-            {!!active && Constants.typeToLabel[teamMemberInfo.type]}
+            {!!active && C.Teams.typeToLabel[teamMemberInfo.type]}
             {resetLabel}
           </Kb.Text>
         </Kb.Box>

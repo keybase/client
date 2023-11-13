@@ -1,8 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import * as T from '../../../../constants/types'
-import * as Constants from '../../../../constants/chat2'
-import * as TeamsConstants from '../../../../constants/teams'
 import * as Common from './common'
 import * as Kb from '../../../../common-adapters'
 
@@ -43,9 +41,9 @@ const ItemRenderer = (p: Common.ItemRendererProps<ChannelType>) => {
 
 const noChannel: Array<{channelname: string}> = []
 const getChannelSuggestions = (
-  s: Constants.ConvoState,
+  s: C.Chat.ConvoState,
   teamname: string,
-  teamMeta: TeamsConstants.State['teamMeta']
+  teamMeta: C.Teams.State['teamMeta']
 ) => {
   if (!teamname) {
     // this is an impteam, so get mutual teams from state
@@ -90,8 +88,8 @@ export const useDataSource = (filter: string) => {
   const {teamID} = meta
 
   const suggestChannelsLoading = C.useAnyWaiting([
-    TeamsConstants.getChannelsWaitingKey(teamID),
-    Constants.waitingKeyMutualTeams(conversationIDKey),
+    C.Teams.getChannelsWaitingKey(teamID),
+    C.Chat.waitingKeyMutualTeams(conversationIDKey),
   ])
   const teamMeta = C.useTeamsState(s => s.teamMeta)
   return C.useChatContext(

@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import type * as T from '../../../../constants/types'
@@ -14,7 +13,7 @@ type Props = {
 export const maxWidth = Kb.Styles.isMobile ? Math.min(320, Kb.Styles.dimensionWidth - 60) : 320
 export const maxHeight = 320
 
-export const missingMessage = Constants.makeMessageAttachment()
+export const missingMessage = C.Chat.makeMessageAttachment()
 
 export const ShowToastAfterSaving = C.isMobile
   ? ({transferState}: Props) => {

@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as Constants from '../../../../constants/teams'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
@@ -13,11 +12,11 @@ type ChannelRowProps = {
 }
 const ChannelRow = (props: ChannelRowProps) => {
   const {conversationIDKey, teamID} = props
-  const channel = C.useTeamsState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const channel = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const isGeneral = channel.channelname === 'general'
 
   const selected = C.useTeamsState(s => !!s.teamSelectedChannels.get(teamID)?.has(channel.conversationIDKey))
-  const canPerform = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
+  const canPerform = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const canDelete = canPerform.deleteChannel && !isGeneral
 
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length

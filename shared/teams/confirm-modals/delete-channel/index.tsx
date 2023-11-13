@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import type * as T from '../../../constants/types'
@@ -76,7 +75,7 @@ const DeleteChannel = (props: Props) => {
           Delete {deleteMsg}?
         </Kb.Text>
       }
-      waitingKey={Constants.deleteChannelWaitingKey(teamID)}
+      waitingKey={C.Teams.deleteChannelWaitingKey(teamID)}
     />
   )
 }

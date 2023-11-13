@@ -1,8 +1,7 @@
 import * as C from '../../../../constants'
-import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
-import AccountPayment from '.'
 import type * as T from '../../../../constants/types'
+import AccountPayment from '.'
 
 // Props for rendering the loading indicator
 const loadingProps = {
@@ -50,7 +49,7 @@ type OwnProps = {
 }
 
 const getRequestMessageInfo = (
-  accountsInfoMap: Constants.ConvoState['accountsInfoMap'],
+  accountsInfoMap: C.Chat.ConvoState['accountsInfoMap'],
   message: T.Chat.MessageRequestPayment
 ) => {
   const maybeRequestInfo = accountsInfoMap.get(message.id)
@@ -73,7 +72,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
     const youAreSender = ownProps.message.author === you
     switch (ownProps.message.type) {
       case 'sendPayment': {
-        const paymentInfo = Constants.getPaymentMessageInfo(accountsInfoMap, ownProps.message)
+        const paymentInfo = C.Chat.getPaymentMessageInfo(accountsInfoMap, ownProps.message)
         if (!paymentInfo) {
           // waiting for service to load it (missed service cache on loading thread)
           return loadingProps

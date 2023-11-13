@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import * as React from 'react'
 import * as Container from '../../../util/container'
-import * as Constants from '../../../constants/teams'
 import type * as T from '../../../constants/types'
 import ReallyLeaveTeam from '.'
 import LastOwnerDialog from './last-owner'
@@ -11,13 +10,13 @@ type OwnProps = {teamID: T.Teams.TeamID}
 
 const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const teamID = op.teamID
-  const {teamname} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
-  const {settings, members} = C.useTeamsState(s => s.teamDetails.get(teamID) ?? Constants.emptyTeamDetails)
+  const {teamname} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const {settings, members} = C.useTeamsState(s => s.teamDetails.get(teamID) ?? C.Teams.emptyTeamDetails)
   const open = settings.open
-  const lastOwner = C.useTeamsState(s => Constants.isLastOwner(s, teamID))
+  const lastOwner = C.useTeamsState(s => C.Teams.isLastOwner(s, teamID))
   const stillLoadingTeam = !members
-  const leaving = C.useAnyWaiting(Constants.leaveTeamWaitingKey(teamname))
-  const error = C.useAnyErrors(Constants.leaveTeamWaitingKey(teamname))
+  const leaving = C.useAnyWaiting(C.Teams.leaveTeamWaitingKey(teamname))
+  const error = C.useAnyErrors(C.Teams.leaveTeamWaitingKey(teamname))
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteTeam = React.useCallback(() => {

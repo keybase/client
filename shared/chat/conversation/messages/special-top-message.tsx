@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
 import * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -153,9 +152,9 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
 
   const pendingState = C.useChatContext(s => {
     switch (s.id) {
-      case Constants.pendingWaitingConversationIDKey:
+      case C.Chat.pendingWaitingConversationIDKey:
         return 'waiting'
-      case Constants.pendingErrorConversationIDKey:
+      case C.Chat.pendingErrorConversationIDKey:
         return 'error'
       default:
         return 'done'

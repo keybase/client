@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as React from 'react'
-import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import type * as T from '../../../constants/types'
 
@@ -31,7 +30,7 @@ const ReplyPreview = () => {
   const imageURL = attachment?.previewURL
   const imageWidth = attachment?.previewWidth
   const username = message?.author ?? ''
-  const sizing = imageWidth && imageHeight ? Constants.zoomImage(imageWidth, imageHeight, 80) : null
+  const sizing = imageWidth && imageHeight ? C.Chat.zoomImage(imageWidth, imageHeight, 80) : null
   const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
   const onCancel = React.useCallback(() => {
     setReplyTo(0)

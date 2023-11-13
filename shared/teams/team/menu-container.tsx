@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import capitalize from 'lodash/capitalize'
@@ -79,11 +78,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const {teamname, role, memberCount} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
-  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
+  const {teamname, role, memberCount} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const canDeleteTeam = yourOperations.deleteTeam
   const canInvite = yourOperations.manageMembers
-  const canLeaveTeam = C.useTeamsState(s => !Constants.isLastOwner(s, teamID) && role !== 'none')
+  const canLeaveTeam = C.useTeamsState(s => !C.Teams.isLastOwner(s, teamID) && role !== 'none')
   const canViewFolder = !yourOperations.joinTeam
   const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const onAddOrInvitePeople = () => {

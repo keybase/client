@@ -1,5 +1,4 @@
 import * as C from '../../../../../constants'
-import * as Constants from '../../../../../constants/chat2'
 import * as React from 'react'
 import File from '.'
 import type * as T from '../../../../../constants/types'
@@ -11,7 +10,7 @@ type OwnProps = {
   toggleMessageMenu: () => void
 }
 
-const missingMessage = Constants.makeMessageAttachment({})
+const missingMessage = C.Chat.makeMessageAttachment({})
 
 const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const ordinal = React.useContext(OrdinalContext)
