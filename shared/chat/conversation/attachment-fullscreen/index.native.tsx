@@ -6,9 +6,11 @@ import {Video, ResizeMode} from 'expo-av'
 import logger from '../../../logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
 import type {Props} from '.'
+import {useData} from './hooks'
 
 const Fullscreen = (p: Props) => {
-  const {path, previewHeight, message, onAllMedia, onClose, isVideo} = p
+  const data = useData(p.ordinal)
+  const {isVideo, onClose, message, path, previewHeight, onAllMedia} = data
   const [loaded, setLoaded] = React.useState(false)
   const {id} = message
 
