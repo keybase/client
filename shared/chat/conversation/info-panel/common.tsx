@@ -1,7 +1,6 @@
 import * as C from '../../../constants'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import type * as ChatConstants from '../../../constants/chat2'
 import type * as T from '../../../constants/types'
 
 export const infoPanelWidthElectron = 320
@@ -39,8 +38,8 @@ export const useTeamHumans = (teamID: T.Teams.TeamID) => {
 }
 
 export const useHumans = (
-  participantInfo: ChatConstants.ConvoState['participants'],
-  meta: ChatConstants.ConvoState['meta']
+  participantInfo: C.Chat.ConvoState['participants'],
+  meta: C.Chat.ConvoState['meta']
 ) => {
   const {teamType, teamID} = meta
   const {bots, teamHumanCount} = useTeamHumans(teamID)

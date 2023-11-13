@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
 import TeamMenu from './menu-container'
 import {pluralize} from '../../util/string'
 import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
@@ -32,7 +31,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
   }, [setJustFinishedAddMembersWizard])
   // Automatically dismisses this when the user navigates away
   React.useEffect(() => onNoThanks, [onNoThanks])
-  const waiting = C.useAnyWaiting(Constants.setMemberPublicityWaitingKey(teamID))
+  const waiting = C.useAnyWaiting(C.Teams.setMemberPublicityWaitingKey(teamID))
   return (
     <Kb.Box2
       direction="vertical"
@@ -85,9 +84,9 @@ const roleDisplay = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID} = props
-  const meta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const meta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const details = C.useTeamsState(s => s.teamDetails.get(teamID))
-  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const justFinishedAddWizard = C.useTeamsState(s => s.addMembersWizard.justFinished)
   useActivityLevels()
   const activityLevel = C.useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
@@ -284,9 +283,9 @@ export default HeaderTitle
 
 const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
   const nav = Container.useSafeNavigation()
-  const meta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const meta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const yourUsername = C.useCurrentUserState(s => s.username)
-  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const startAddMembersWizard = C.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const addMembersWizardPushMembers = C.useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
 

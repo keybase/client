@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import type * as T from '../../../../constants/types'
-import * as TeamConstants from '../../../../constants/teams'
 import SystemAddedToTeam from '.'
 
 type OwnProps = {
@@ -13,8 +12,8 @@ const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContaine
   const {addee, adder, author, bulkAdds, role, timestamp} = message
   const meta = C.useChatContext(s => s.meta)
   const {teamID, teamname, teamType} = meta
-  const authorIsAdmin = C.useTeamsState(s => TeamConstants.userIsRoleInTeam(s, teamID, author, 'admin'))
-  const authorIsOwner = C.useTeamsState(s => TeamConstants.userIsRoleInTeam(s, teamID, author, 'owner'))
+  const authorIsAdmin = C.useTeamsState(s => C.Teams.userIsRoleInTeam(s, teamID, author, 'admin'))
+  const authorIsOwner = C.useTeamsState(s => C.Teams.userIsRoleInTeam(s, teamID, author, 'owner'))
   const you = C.useCurrentUserState(s => s.username)
   const isAdmin = authorIsAdmin || authorIsOwner
   const isTeam = teamType === 'big' || teamType === 'small'

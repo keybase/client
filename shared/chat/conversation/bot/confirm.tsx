@@ -1,5 +1,4 @@
 import * as Kb from '../../../common-adapters'
-import * as Constants from '../../../constants/chat2'
 import * as C from '../../../constants'
 import type * as T from '../../../constants/types'
 import {useBotConversationIDKey} from './install'
@@ -38,7 +37,7 @@ const ConfirmBotRemove = (props: Props) => {
   return (
     <Kb.ConfirmModal
       prompt={`Are you sure you want to uninstall ${botUsername}?`}
-      waitingKey={Constants.waitingKeyBotRemove}
+      waitingKey={C.Chat.waitingKeyBotRemove}
       onConfirm={onRemove}
       onCancel={onClose}
       description=""

@@ -2,8 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
-import * as ChatConstants from '../../constants/chat2'
 import type * as T from '../../constants/types'
 import {useAttachmentSections} from '../../chat/conversation/info-panel/attachments'
 import {SelectionPopup, useChannelParticipants} from '../common'
@@ -113,9 +111,9 @@ const Channel = (props: OwnProps) => {
   const meta = C.useConvoState(conversationIDKey, s => s.meta)
   const {bots, participants: _participants} = C.useConvoState(
     conversationIDKey,
-    C.useDeep(s => ChatConstants.getBotsAndParticipants(meta, s.participants, true /* sort */))
+    C.useDeep(s => C.Chat.getBotsAndParticipants(meta, s.participants, true /* sort */))
   )
-  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
   const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector)
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
@@ -191,8 +189,8 @@ const Channel = (props: OwnProps) => {
         .map(p => p.username)
         .filter(
           p =>
-            Constants.userIsRoleInTeamWithInfo(teamMembers, p, 'restrictedbot') ||
-            Constants.userIsRoleInTeamWithInfo(teamMembers, p, 'bot')
+            C.Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'restrictedbot') ||
+            C.Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'bot')
         )
         .filter(p => !bots.includes(p))
         .sort((l, r) => l.localeCompare(r))

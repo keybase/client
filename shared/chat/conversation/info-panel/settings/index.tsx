@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as T from '../../../../constants/types'
 import * as React from 'react'
@@ -19,7 +18,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const ignored = status === T.RPCChat.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'
 
-  const spinnerForLeave = C.useAnyWaiting(Constants.waitingKeyLeaveConversation)
+  const spinnerForLeave = C.useAnyWaiting(C.Chat.waitingKeyLeaveConversation)
 
   const canDeleteHistory =
     teamname && yourOperations ? yourOperations.deleteChatHistory && !meta.cannotWrite : true
@@ -34,7 +33,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const teamMembers = C.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const participantInfo = C.useChatContext(s => s.participants)
   const membersForBlock = (teamMembers?.size ? [...teamMembers.keys()] : participantInfo.name).filter(
-    u => u !== username && !Constants.isAssertion(u)
+    u => u !== username && !C.Chat.isAssertion(u)
   )
 
   const navigateAppend = C.useChatNavigateAppend()

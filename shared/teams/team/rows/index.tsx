@@ -1,8 +1,6 @@
 import * as C from '../../../constants'
 import * as T from '../../../constants/types'
 import * as Kb from '../../../common-adapters'
-import * as ChatConstants from '../../../constants/chat2'
-import * as Constants from '../../../constants/teams'
 import * as React from 'react'
 import EmptyRow from './empty-row'
 import LoadingRow from './loading'
@@ -129,9 +127,9 @@ export const useChannelsSections = (
   teamID: T.Teams.TeamID,
   yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
-  const isBig = C.useChatState(s => ChatConstants.isBigTeam(s, teamID))
+  const isBig = C.useChatState(s => C.Chat.isBigTeam(s, teamID))
   const channels = C.useTeamsState(s => s.channelInfo.get(teamID))
-  const canCreate = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID).createChannel)
+  const canCreate = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).createChannel)
 
   if (!isBig) {
     return [makeSingleRow('channel-empty', () => <EmptyRow type="channelsEmpty" teamID={teamID} />)]

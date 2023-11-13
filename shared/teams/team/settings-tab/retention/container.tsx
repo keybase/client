@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import type * as T from '../../../../constants/types'
-import * as Constants from '../../../../constants/teams'
 import RetentionPicker, {type RetentionEntityType} from '.'
 import type {StylesCrossPlatform} from '../../../../styles'
 
@@ -25,9 +24,9 @@ const Container = (ownProps: OwnProps) => {
   }
   const conversationIDKey = _cid ?? C.noConversationIDKey
   let policy = C.useConvoState(conversationIDKey, s =>
-    _cid ? s.meta.retentionPolicy : Constants.retentionPolicies.policyRetain
+    _cid ? s.meta.retentionPolicy : C.Teams.retentionPolicies.policyRetain
   )
-  const tempPolicy = C.useTeamsState(s => Constants.getTeamRetentionPolicyByID(s, teamID))
+  const tempPolicy = C.useTeamsState(s => C.Teams.getTeamRetentionPolicyByID(s, teamID))
   if (entityType !== 'adhoc') {
     loading = !tempPolicy
     if (tempPolicy) {
@@ -40,7 +39,7 @@ const Container = (ownProps: OwnProps) => {
   }
 
   const canSetPolicy = C.useTeamsState(
-    s => entityType === 'adhoc' || Constants.getCanPerformByID(s, teamID).setRetentionPolicy
+    s => entityType === 'adhoc' || C.Teams.getCanPerformByID(s, teamID).setRetentionPolicy
   )
   const policyIsExploding =
     policy.type === 'explode' || (policy.type === 'inherit' && teamPolicy?.type === 'explode')

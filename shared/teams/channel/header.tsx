@@ -3,7 +3,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
 import {pluralize} from '../../util/string'
 import {Activity, useChannelParticipants} from '../common'
 
@@ -28,11 +27,11 @@ type HeaderTitleProps = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
-  const teamname = C.useTeamsState(s => Constants.getTeamMeta(s, teamID).teamname)
-  const channelInfo = C.useTeamsState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const teamname = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname)
+  const channelInfo = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname, description} = channelInfo
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
-  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const canDelete = yourOperations.deleteChannel && channelname !== 'general'
 
   const editChannelProps = {

@@ -1,6 +1,5 @@
 import type * as T from '../../../constants/types'
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 
@@ -78,7 +77,7 @@ Make it a big team by creating chat channels.`
 
 const EmptyRow = (props: Props) => {
   const {conversationIDKey, teamID} = props
-  const teamMeta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const notIn = teamMeta.role === 'none' || props.notChannelMember
   const you = C.useCurrentUserState(s => s.username)
   const onSecondaryAction = useSecondaryAction(props)
@@ -94,7 +93,7 @@ const EmptyRow = (props: Props) => {
       addToTeam(teamID, [{assertion: you, role: 'admin'}], false)
     }
   }
-  const waiting = C.useAnyWaiting(Constants.addMemberWaitingKey(teamID, you))
+  const waiting = C.useAnyWaiting(C.Teams.addMemberWaitingKey(teamID, you))
 
   const teamOrChannel = props.conversationIDKey ? 'channel' : 'team'
   const teamOrChannelName = props.conversationIDKey ? 'This channel' : teamMeta.teamname

@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Constants from '../../constants/chat2'
 import * as T from '../../constants/types'
 import Inbox, {type Props} from '.'
 import {useIsFocused} from '@react-navigation/core'
@@ -93,7 +92,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   if (lastIsFocused !== isFocused) {
     setLastIsFocused(isFocused)
     if (C.isMobile) {
-      if (isFocused && Constants.isSplit) {
+      if (isFocused && C.Chat.isSplit) {
         C.getConvoState(C.getSelectedConversation()).dispatch.tabSelected()
       }
     }

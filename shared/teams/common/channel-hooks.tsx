@@ -1,8 +1,6 @@
 import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as React from 'react'
-import * as ChatConstants from '../../constants/chat2'
-import * as Constants from '../../constants/teams'
 
 // Filter bots out using team role info, isolate to only when related state changes
 export const useChannelParticipants = (
@@ -49,7 +47,7 @@ export const useAllChannelMetas = (
               tlfName: teamname,
               topicType: T.RPCChat.TopicType.chat,
             },
-            Constants.getChannelsWaitingKey(teamID),
+            C.Teams.getChannelsWaitingKey(teamID),
           ],
           ({convs}) => {
             resolve()
@@ -57,7 +55,7 @@ export const useAllChannelMetas = (
               setChannelMetas(
                 new Map(
                   convs
-                    .map(conv => ChatConstants.inboxUIItemToConversationMeta(conv))
+                    .map(conv => C.Chat.inboxUIItemToConversationMeta(conv))
                     .reduce((arr, a) => {
                       if (a) {
                         arr.push([a.conversationIDKey, a])
@@ -104,7 +102,7 @@ export const useChannelMeta = (
       [
         {
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          query: ChatConstants.makeInboxQuery([conversationIDKey], true /* all statuses */),
+          query: C.Chat.makeInboxQuery([conversationIDKey], true /* all statuses */),
         },
         waitingKey,
       ],
@@ -117,6 +115,6 @@ export const useChannelMeta = (
     )
   }, [teamID, conversationIDKey, getInboxItem, waitingKey])
 
-  const meta = conv ? ChatConstants.inboxUIItemToConversationMeta(conv) : undefined
+  const meta = conv ? C.Chat.inboxUIItemToConversationMeta(conv) : undefined
   return meta ?? undefined
 }

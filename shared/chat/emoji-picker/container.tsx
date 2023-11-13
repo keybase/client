@@ -1,10 +1,9 @@
 import * as C from './../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import type {LayoutEvent} from './../../common-adapters/box'
-import * as Constants from './../../constants/chat2'
 import * as T from './../../constants/types'
 import * as Data from './../../util/emoji'
+import type {LayoutEvent} from './../../common-adapters/box'
 import startCase from 'lodash/startCase'
 import debounce from 'lodash/debounce'
 import SkinTonePicker from './skin-tone-picker'
@@ -82,7 +81,7 @@ const useSkinTone = () => {
 const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const customEmojiGroups = C.useChatState(s => s.userEmojis)
-  const waiting = C.useAnyWaiting(Constants.waitingKeyLoadingEmoji)
+  const waiting = C.useAnyWaiting(C.Chat.waitingKeyLoadingEmoji)
   const cidChanged = C.useCIDChanged(conversationIDKey, undefined, true)
   const [lastOnlyInTeam, setLastOnlyInTeam] = React.useState(onlyInTeam)
   const [lastDisabled, setLastDisabled] = React.useState(disabled)

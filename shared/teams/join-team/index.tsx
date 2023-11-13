@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
 
 export type Props = {
@@ -56,7 +55,7 @@ const JoinTeam = (props: Props) => {
               label={props.success ? 'Close' : 'Continue'}
               onClick={props.success ? props.onBack : onSubmit}
               type={props.success ? 'Dim' : 'Default'}
-              waitingKey={Constants.joinTeamWaitingKey}
+              waitingKey={C.Teams.joinTeamWaitingKey}
             />
           </Kb.ButtonBar>
         ),

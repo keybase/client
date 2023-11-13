@@ -1,5 +1,4 @@
 import * as C from '../../../../../constants'
-import * as Constants from '../../../../../constants/teams'
 import type * as T from '../../../../../constants/types'
 import {TeamBotRow} from './'
 
@@ -8,12 +7,12 @@ type OwnProps = {
   username: string
 }
 
-const blankInfo = Constants.initialMemberInfo
+const blankInfo = C.Teams.initialMemberInfo
 
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
-  const canManageBots = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID).manageBots)
+  const canManageBots = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).manageBots)
   const map = teamDetails?.members
   const info: T.Teams.MemberInfo = map?.get(ownProps.username) || blankInfo
   const bot: T.RPCGen.FeaturedBot = C.useBotsState(

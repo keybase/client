@@ -3,7 +3,6 @@ import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Container from '../../../../util/container'
 import type * as T from '../../../../constants/types'
-import {typeToLabel} from '../../../../constants/teams'
 import MenuHeader from '../menu-header.new'
 
 export type Props = {
@@ -75,7 +74,7 @@ export const TeamMemberRow = (props: Props) => {
     resetLabel = ' • Needs to update Keybase'
   }
 
-  const roleLabel = !!active && typeToLabel[roleType]
+  const roleLabel = !!active && C.Teams.typeToLabel[roleType]
   const isYou = props.you === props.username
   const teamID = props.teamID
 
@@ -133,7 +132,7 @@ export const TeamMemberRow = (props: Props) => {
             />
           )}
           <Kb.Text type="BodySmall">
-            {!!active && typeToLabel[roleType]}
+            {!!active && C.Teams.typeToLabel[roleType]}
             {resetLabel}
           </Kb.Text>
         </Kb.Box2>

@@ -1,8 +1,6 @@
 import * as C from '../../../../constants'
-import * as ChatConstants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as TeamConstants from '../../../../constants/teams'
 import * as T from '../../../../constants/types'
 import {InfoPanelMenu} from '.'
 
@@ -51,14 +49,14 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     }
 
     if (meta.conversationIDKey !== C.noConversationIDKey) {
-      const participants = ChatConstants.getRowParticipants(participantInfo, username)
+      const participants = C.Chat.getRowParticipants(participantInfo, username)
       // If it's a one-on-one chat, we need the user's fullname.
       const fullname =
         (participants.length === 1 && (infoMap.get(participants[0]!) || {fullname: ''}).fullname) || ''
       const {teamID, teamname, channelname, membershipType, status, isMuted, teamType} = meta
       // TODO getCanPerformByID not reactive here
-      const yourOperations = TeamConstants.getCanPerformByID(C.useTeamsState.getState(), teamID)
-      const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(C.useTeamsState.getState(), teamname)
+      const yourOperations = C.Teams.getCanPerformByID(C.useTeamsState.getState(), teamID)
+      const badgeSubscribe = !C.Teams.isTeamWithChosenChannels(C.useTeamsState.getState(), teamname)
       const canAddPeople = yourOperations.manageMembers
       const isInChannel = membershipType !== 'youArePreviewing'
       const ignored = status === T.RPCChat.ConversationStatus.ignored
@@ -79,12 +77,12 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     } else if (pteamID) {
       const teamID = pteamID
       //TODO not reactive
-      const teamMeta = TeamConstants.getTeamMeta(C.useTeamsState.getState(), teamID)
+      const teamMeta = C.Teams.getTeamMeta(C.useTeamsState.getState(), teamID)
       //TODO not reactive
-      const yourOperations = TeamConstants.getCanPerformByID(C.useTeamsState.getState(), teamID)
+      const yourOperations = C.Teams.getCanPerformByID(C.useTeamsState.getState(), teamID)
       const canAddPeople = yourOperations.manageMembers
       const {teamname} = teamMeta
-      const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(C.useTeamsState.getState(), teamname)
+      const badgeSubscribe = !C.Teams.isTeamWithChosenChannels(C.useTeamsState.getState(), teamname)
       return {...common, badgeSubscribe, canAddPeople, teamID, teamname, yourOperations}
     }
     return {...common}

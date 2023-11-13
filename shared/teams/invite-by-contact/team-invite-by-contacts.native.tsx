@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as React from 'react'
 import type * as T from '../../constants/types'
@@ -46,8 +45,8 @@ type Props = {
 const TeamInviteByContact = (props: Props) => {
   const {teamID} = props
   const {contacts, region, errorMessage} = useContacts()
-  const teamname = C.useTeamsState(s => Constants.getTeamMeta(s, teamID).teamname)
-  const invites = C.useTeamsState(s => s.teamDetails.get(teamID) ?? Constants.emptyTeamDetails).invites
+  const teamname = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname)
+  const invites = C.useTeamsState(s => s.teamDetails.get(teamID) ?? C.Teams.emptyTeamDetails).invites
 
   useTeamDetailsSubscribe(teamID)
 

@@ -1,9 +1,7 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import * as TeamConstants from '../../../constants/teams'
 import type * as T from '../../../constants/types'
 import type {Section as _Section} from '../../../common-adapters/section-list'
 
@@ -37,7 +35,7 @@ const AddToChannel = (props: AddToChannelProps) => {
           )
         }
       }}
-      waitingKey={Constants.waitingKeyBotAdd}
+      waitingKey={C.Chat.waitingKeyBotAdd}
     />
   )
 }
@@ -205,8 +203,8 @@ const BotTab = (props: Props) => {
     botUsernames = [...teamMembers.values()]
       .filter(
         p =>
-          TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p.username, 'restrictedbot') ||
-          TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p.username, 'bot')
+          C.Teams.userIsRoleInTeamWithInfo(teamMembers, p.username, 'restrictedbot') ||
+          C.Teams.userIsRoleInTeamWithInfo(teamMembers, p.username, 'bot')
       )
       .map(p => p.username)
       .sort((l, r) => l.localeCompare(r))
@@ -217,7 +215,7 @@ const BotTab = (props: Props) => {
     .filter(
       k =>
         !botUsernames.includes(k.botUsername) &&
-        !(!adhocTeam && teamMembers && TeamConstants.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
+        !(!adhocTeam && teamMembers && C.Teams.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
     )
     .map((bot, index) => ({...bot, index}))
   const infoMap = C.useUsersState(s => s.infoMap)

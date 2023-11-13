@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as T from '../../constants/types'
-import * as Constants from '../../constants/teams'
 
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
   active: 'iconfont-campfire-burning',
@@ -44,7 +43,7 @@ const Activity = (p: Props) => {
 
 type MTProps = {title: string; teamID: T.Teams.TeamID}
 export const ModalTitle = ({title, teamID}: MTProps) => {
-  const teamname = C.useTeamsState(state => Constants.getTeamMeta(state, teamID).teamname)
+  const teamname = C.useTeamsState(state => C.Teams.getTeamMeta(state, teamID).teamname)
   const avatarFilepath = C.useTeamsState(state => state.newTeamWizard.avatarFilename)
   const avatarCrop = C.useTeamsState(state => state.newTeamWizard.avatarCrop)
   const isNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID

@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
-import * as Constants from '../../../constants/teams'
 import * as T from '../../../constants/types'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import {ModalTitle} from '../../common'
@@ -68,7 +67,7 @@ const GenerateLinkModal = (props: Props) => {
   const [teamRole, setTeamRole] = React.useState<T.Teams.TeamRoleType>('reader')
   const [inviteLinkURL, setInviteLinkURL] = React.useState('')
   const nav = Container.useSafeNavigation()
-  const teamname = C.useTeamsState(s => Constants.getTeamMeta(s, teamID).teamname)
+  const teamname = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname)
   useTeamDetailsSubscribe(teamID)
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const inviteLinks = teamDetails?.inviteLinks

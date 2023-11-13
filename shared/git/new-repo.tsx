@@ -1,5 +1,4 @@
 import * as C from '../constants'
-import * as TeamsConstants from '../constants/teams'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 
@@ -9,7 +8,7 @@ const Container = (ownProps: OwnProps) => {
   const {isTeam} = ownProps
   const error = C.useGitState(s => s.error)
   const teamnames = C.useTeamsState(s => s.teamnames)
-  const teams = [...teamnames].sort(TeamsConstants.sortTeamnames)
+  const teams = [...teamnames].sort(C.Teams.sortTeamnames)
 
   const waitingKey = C.gitWaitingKey
 

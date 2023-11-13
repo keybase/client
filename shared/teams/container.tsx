@@ -5,7 +5,6 @@ import * as Kb from '../common-adapters'
 import * as T from '../constants/types'
 import Teams, {type OwnProps as MainOwnProps} from './main'
 import openURL from '../util/open-url'
-import * as Constants from '../constants/teams'
 import {memoize} from '../util/memoize'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
@@ -22,9 +21,9 @@ const useHeaderActions = () => {
 
 const orderTeamsImpl = (
   teams: Map<string, T.Teams.TeamMeta>,
-  newRequests: Constants.State['newTeamRequests'],
-  teamIDToResetUsers: Constants.State['teamIDToResetUsers'],
-  newTeams: Constants.State['newTeams'],
+  newRequests: C.Teams.State['newTeamRequests'],
+  teamIDToResetUsers: C.Teams.State['teamIDToResetUsers'],
+  newTeams: C.Teams.State['newTeams'],
   sortOrder: T.Teams.TeamListSort,
   activityLevels: T.Teams.ActivityLevels,
   filter: string
@@ -35,19 +34,19 @@ const orderTeamsImpl = (
     : [...teams.values()]
   return teamsFiltered.sort((a, b) => {
     const sizeDiff =
-      Constants.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, b.id) -
-      Constants.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, a.id)
+      C.Teams.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, b.id) -
+      C.Teams.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, a.id)
     if (sizeDiff !== 0) return sizeDiff
     const newTeamsDiff = (newTeams.has(b.id) ? 1 : 0) - (newTeams.has(a.id) ? 1 : 0)
     if (newTeamsDiff !== 0) return newTeamsDiff
     const nameCompare = a.teamname.localeCompare(b.teamname)
     switch (sortOrder) {
       case 'role':
-        return Constants.compareTeamRoles(a.role, b.role) || nameCompare
+        return C.Teams.compareTeamRoles(a.role, b.role) || nameCompare
       case 'activity': {
         const activityA = activityLevels.teams.get(a.id)
         const activityB = activityLevels.teams.get(b.id)
-        return Constants.compareActivityLevels(activityA, activityB) || nameCompare
+        return C.Teams.compareActivityLevels(activityA, activityB) || nameCompare
       }
       default:
         return nameCompare
@@ -78,7 +77,7 @@ const Reloadable = (props: ReloadableProps) => {
   }
 
   return (
-    <Kb.Reloadable waitingKeys={Constants.teamsLoadedWaitingKey} onReload={loadTeams}>
+    <Kb.Reloadable waitingKeys={C.Teams.teamsLoadedWaitingKey} onReload={loadTeams}>
       <Teams {...props} {...headerActions} {...otherActions} />
     </Kb.Reloadable>
   )
@@ -89,7 +88,7 @@ const Connected = () => {
   const activityLevels = C.useTeamsState(s => s.activityLevels)
   const deletedTeams = C.useTeamsState(s => s.deletedTeams)
   const filter = C.useTeamsState(s => s.teamListFilter)
-  const loaded = !C.useAnyWaiting(Constants.teamsLoadedWaitingKey)
+  const loaded = !C.useAnyWaiting(C.Teams.teamsLoadedWaitingKey)
   const newTeamRequests = C.useTeamsState(s => s.newTeamRequests)
   const newTeams = C.useTeamsState(s => s.newTeams)
   const sawChatBanner = C.useTeamsState(s => s.sawChatBanner)

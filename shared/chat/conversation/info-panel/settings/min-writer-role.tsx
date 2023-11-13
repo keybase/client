@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Style from '../../../../styles'
-import * as TeamConstants from '../../../../constants/teams'
 import type * as T from '../../../../constants/types'
 import upperFirst from 'lodash/upperFirst'
 import {indefiniteArticle} from '../../../../util/string'
@@ -13,7 +12,7 @@ const MinWriterRole = () => {
   const meta = C.useChatContext(s => s.meta)
   const {teamname, minWriterRole} = meta
 
-  const canPerform = C.useTeamsState(s => (teamname ? TeamConstants.getCanPerform(s, teamname) : undefined))
+  const canPerform = C.useTeamsState(s => (teamname ? C.Teams.getCanPerform(s, teamname) : undefined))
   const canSetMinWriterRole = canPerform ? canPerform.setMinWriterRole : false
 
   const [saving, setSaving] = React.useState(false)
@@ -43,7 +42,7 @@ const MinWriterRole = () => {
     }
   }
 
-  const items = TeamConstants.teamRoleTypes.map(role => ({
+  const items = C.Teams.teamRoleTypes.map(role => ({
     isSelected: role === minWriterRole,
     onClick: () => selectRole(role),
     title: upperFirst(role),

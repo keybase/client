@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import * as Constants from '../../../../constants/teams'
 import {Box, Icon, Text} from '../../../../common-adapters'
 import {styleSheetCreate, platformStyles, globalColors, globalMargins, globalStyles} from '../../../../styles'
 import type * as T from '../../../../constants/types'
@@ -10,7 +9,7 @@ export type Props = {
 }
 
 const Banner = ({teamID}: Props) => {
-  const teamname = C.useTeamsState(s => Constants.getTeamMeta(s, teamID).teamname)
+  const teamname = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname)
   const shouldRender = C.useTeamsState(s => !s.sawSubteamsBanner)
   const updateGregorCategory = C.useConfigState(s => s.dispatch.updateGregorCategory)
   const onHide = React.useCallback(

@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as T from '../../../constants/types'
-import * as Constants from '../../../constants/teams'
 import type {RPCError} from '../../../util/errors'
 import {ChannelsWidget} from '../../common'
 
@@ -49,7 +48,7 @@ const DefaultChannels = (props: Props) => {
   // Implicit admins should be able to set this, but chat stuff doesnt know about them.
   // For now limit to people who are admins in this team.
   // const canEdit = Container.useSelector(s => Constants.getCanPerformByID(s, teamID).manageMembers)
-  const canEdit = C.useTeamsState(s => ['admin', 'owner'].includes(Constants.getRole(s, teamID)))
+  const canEdit = C.useTeamsState(s => ['admin', 'owner'].includes(C.Teams.getRole(s, teamID)))
 
   const onAdd = (channels: Array<T.Teams.ChannelNameID>) => {
     setWaiting(true)

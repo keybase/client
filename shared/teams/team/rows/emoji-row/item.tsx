@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as T from '../../../../constants/types'
 import * as React from 'react'
 import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/teams'
 import * as Kb from '../../../../common-adapters'
 import * as dateFns from 'date-fns'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../../../util/emoji'
@@ -20,8 +19,8 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji, false)
   const nav = Container.useSafeNavigation()
   const username = C.useCurrentUserState(s => s.username)
-  const canManageEmoji = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID).manageEmojis)
-  const deleteOtherEmoji = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID).deleteOtherEmojis)
+  const canManageEmoji = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).manageEmojis)
+  const deleteOtherEmoji = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
   const onAddAlias = C.useEvent(() => {
     nav.safeNavigateAppend({

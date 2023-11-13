@@ -1,7 +1,6 @@
 import * as C from '../../../../constants'
 import * as T from '../../../../constants/types'
 import * as Common from './common'
-import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 
@@ -229,7 +228,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<ListItem>) => {
       ])}
       gap="tiny"
     >
-      {Constants.isSpecialMention(username ?? '') ? (
+      {C.Chat.isSpecialMention(username ?? '') ? (
         <Kb.Box2 direction="horizontal" style={styles.iconPeople}>
           <Kb.Icon type="iconfont-people" color={Kb.Styles.globalColors.blueDark} fontSize={16} />
         </Kb.Box2>

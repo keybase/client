@@ -1,6 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/teams'
-import * as ChatConstants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as T from '../../../constants/types'
@@ -37,13 +35,13 @@ type TeamTreeRowIn = {
 type Either = TeamTreeRowNotIn & {role?: T.Teams.TeamRoleType}
 
 const getMemberships = (
-  state: Constants.State,
+  state: C.Teams.State,
   teamIDs: Array<T.Teams.TeamID>,
   username: string
 ): Map<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo> => {
   const results = new Map<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo>()
   teamIDs.forEach(teamID => {
-    const info = Constants.maybeGetSparseMemberInfo(state, teamID, username)
+    const info = C.Teams.maybeGetSparseMemberInfo(state, teamID, username)
     if (info) {
       results.set(teamID, info)
     }
@@ -63,7 +61,7 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
 
   // Note that we do not directly take any information directly from the TeamTree result other
   // than the **shape of the tree**. The other information is delegated to
-  // Constants.maybeGetSparseMemberInfo which opportunistically sources the information from the
+  // C.Teams.maybeGetSparseMemberInfo which opportunistically sources the information from the
   // teamDetails map if present, so as to show up-to-date information.
   const teamIDs: Array<T.Teams.TeamID> =
     memberships?.memberships
@@ -85,7 +83,7 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
         continue
       }
 
-      const ops = Constants.deriveCanPerform(roleMap.get(teamID))
+      const ops = C.Teams.deriveCanPerform(roleMap.get(teamID))
       const row = {
         canAdminister: ops.manageMembers,
         joinTime: sparseMemberInfo.joinTime,
@@ -117,7 +115,7 @@ const useMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
 
 const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => {
   const nav = Container.useSafeNavigation()
-  const waitingKey = Constants.removeMemberWaitingKey(teamID, username)
+  const waitingKey = C.Teams.removeMemberWaitingKey(teamID, username)
   const waiting = C.useAnyWaiting(waitingKey)
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
@@ -272,7 +270,7 @@ type NodeNotInRowProps = {
 const NodeNotInRow = (props: NodeNotInRowProps) => {
   useTeamDetailsSubscribe(props.node.teamID)
   const nav = Container.useSafeNavigation()
-  const onAddWaitingKey = Constants.addMemberWaitingKey(props.node.teamID, props.username)
+  const onAddWaitingKey = C.Teams.addMemberWaitingKey(props.node.teamID, props.username)
   const addToTeam = C.useTeamsState(s => s.dispatch.addToTeam)
   const onAdd = (role: T.Teams.TeamRoleType) => {
     addToTeam(props.node.teamID, [{assertion: props.username, role}], true)
@@ -282,7 +280,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
     [props.node.teamID, nav]
   )
   const disabledRoles = C.useTeamsState(s =>
-    Constants.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
+    C.Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
   )
   const [open, setOpen] = React.useState(false)
 
@@ -356,7 +354,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
 
 const LastActivity = (props: {loading: boolean; teamID: T.Teams.TeamID; username: string}) => {
   const lastActivity = C.useTeamsState(s =>
-    Constants.getTeamMemberLastActivity(s, props.teamID, props.username)
+    C.Teams.getTeamMemberLastActivity(s, props.teamID, props.username)
   )
 
   return (
@@ -390,7 +388,7 @@ const NodeInRow = (props: NodeInRowProps) => {
       props: {teamID: props.node.teamID, usernames: [props.username]},
       selected: 'teamAddToChannels',
     })
-  const onKickOutWaitingKey = Constants.removeMemberWaitingKey(props.node.teamID, props.username)
+  const onKickOutWaitingKey = C.Teams.removeMemberWaitingKey(props.node.teamID, props.username)
   const removeMember = C.useTeamsState(s => s.dispatch.removeMember)
   const onKickOut = () => {
     removeMember(props.node.teamID, props.username)
@@ -418,16 +416,16 @@ const NodeInRow = (props: NodeInRowProps) => {
     }
   }
   const disabledRoles = C.useTeamsState(s =>
-    Constants.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
+    C.Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
   )
-  const amLastOwner = C.useTeamsState(s => Constants.isLastOwner(s, props.node.teamID))
+  const amLastOwner = C.useTeamsState(s => C.Teams.isLastOwner(s, props.node.teamID))
   const isMe = props.username === C.useCurrentUserState(s => s.username)
-  const changingRole = C.useAnyWaiting(Constants.editMembershipWaitingKey(props.node.teamID, props.username))
+  const changingRole = C.useAnyWaiting(C.Teams.editMembershipWaitingKey(props.node.teamID, props.username))
   const loadingActivity = C.useAnyWaiting(
-    Constants.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
+    C.Teams.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
   )
 
-  const isSmallTeam = !C.useChatState(s => ChatConstants.isBigTeam(s, props.node.teamID))
+  const isSmallTeam = !C.useChatState(s => C.Chat.isBigTeam(s, props.node.teamID))
   const channelsJoined = isSmallTeam
     ? ''
     : Array.from(channelMetas)
@@ -445,7 +443,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     <></>
   )
 
-  const myRole = C.useTeamsState(s => Constants.getRole(s, props.node.teamID))
+  const myRole = C.useTeamsState(s => C.Teams.getRole(s, props.node.teamID))
   const cantKickOut = props.node.canAdminister && props.node.role === 'owner' && myRole !== 'admin'
 
   return (
@@ -601,7 +599,7 @@ export const TeamMemberHeader = (props: Props) => {
   const nav = Container.useSafeNavigation()
   const leaving = useNavUpIfRemovedFromTeam(teamID, username)
 
-  const teamMeta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const yourUsername = C.useCurrentUserState(s => s.username)
 

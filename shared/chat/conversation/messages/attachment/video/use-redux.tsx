@@ -1,6 +1,5 @@
 import * as C from '../../../../../constants'
 import * as React from 'react'
-import * as Constants from '../../../../../constants/chat2'
 import {OrdinalContext} from '../../ids-context'
 import {missingMessage, maxWidth, maxHeight} from '../shared'
 
@@ -16,7 +15,7 @@ export const useRedux = () => {
       // the native av controls on ios actually clip themselves if the width is too small so give
       // some extra room in this case
       const extra = C.isIOS && vertical ? 75 : 0
-      const {height, width} = Constants.clampImageSize(
+      const {height, width} = C.Chat.clampImageSize(
         previewWidth,
         previewHeight,
         maxWidth + extra,

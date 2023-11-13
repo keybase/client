@@ -1,19 +1,18 @@
 import * as C from '../../constants'
-import * as Constants from '../../constants/teams'
 import RenameTeam from '.'
 
 type OwnProps = {teamname: string}
 
 const Container = (ownProps: OwnProps) => {
   const teamname = ownProps.teamname
-  const error = C.useAnyErrors(Constants.teamRenameWaitingKey)
-  const waiting = C.useAnyWaiting(Constants.teamRenameWaitingKey)
+  const error = C.useAnyErrors(C.Teams.teamRenameWaitingKey)
+  const waiting = C.useAnyWaiting(C.Teams.teamRenameWaitingKey)
   const dispatchClearWaiting = C.useDispatchClearWaiting()
   const renameTeam = C.useTeamsState(s => s.dispatch.renameTeam)
   const _onRename = renameTeam
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
-    dispatchClearWaiting(Constants.teamRenameWaitingKey)
+    dispatchClearWaiting(C.Teams.teamRenameWaitingKey)
     navigateUp()
   }
   const onSuccess = () => {

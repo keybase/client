@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
 import type * as T from '../../constants/types'
 import {ModalTitle} from '../common'
 
@@ -11,7 +10,7 @@ type Props = {teamID: T.Teams.TeamID}
 const TeamInfo = (props: Props) => {
   const nav = Container.useSafeNavigation()
   const {teamID} = props
-  const teamMeta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID))
   const teamname = teamMeta.teamname
   const lastDot = teamname.lastIndexOf('.')
@@ -25,11 +24,11 @@ const TeamInfo = (props: Props) => {
 
   const saveDisabled =
     (description === teamDetails?.description && newName === _leafName) || newName.length < 3
-  const waiting = C.useAnyWaiting([Constants.teamWaitingKey(teamID), Constants.teamRenameWaitingKey])
+  const waiting = C.useAnyWaiting([C.Teams.teamWaitingKey(teamID), C.Teams.teamRenameWaitingKey])
 
   const errors = {
     desc: C.useTeamsState(s => s.errorInEditDescription),
-    rename: C.useAnyErrors(Constants.teamRenameWaitingKey)?.message,
+    rename: C.useAnyErrors(C.Teams.teamRenameWaitingKey)?.message,
   }
 
   const editTeamDescription = C.useTeamsState(s => s.dispatch.editTeamDescription)

@@ -1,9 +1,7 @@
 import * as C from '../../constants'
-import type * as T from '../../constants/types'
-import * as ChatConstants from '../../constants/chat2'
-import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
+import type * as T from '../../constants/types'
 import {FloatingRolePicker} from '../role-picker'
 import {pluralize} from '../../util/string'
 import {useFocusEffect} from '@react-navigation/core'
@@ -201,7 +199,7 @@ const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
 )
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   const membersSet = C.useTeamsState(s => s.teamSelectedMembers.get(teamID))
-  const isBigTeam = C.useChatState(s => ChatConstants.isBigTeam(s, teamID))
+  const isBigTeam = C.useChatState(s => C.Chat.isBigTeam(s, teamID))
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   if (!membersSet) {
     // we shouldn't be rendered
@@ -251,8 +249,8 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
 
   const [showingPicker, setShowingPicker] = React.useState(false)
 
-  const waiting = C.useAnyWaiting(Constants.editMembershipWaitingKey(teamID, ...members))
-  const teamWaiting = C.useAnyWaiting(Constants.teamWaitingKey(teamID))
+  const waiting = C.useAnyWaiting(C.Teams.editMembershipWaitingKey(teamID, ...members))
+  const teamWaiting = C.useAnyWaiting(C.Teams.teamWaitingKey(teamID))
 
   // We wait for the teamLoaded
   React.useEffect(() => {
@@ -261,7 +259,7 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
     }
   }, [showingPicker, teamWaiting])
 
-  const disabledReasons = C.useTeamsState(s => Constants.getDisabledReasonsForRolePicker(s, teamID, members))
+  const disabledReasons = C.useTeamsState(s => C.Teams.getDisabledReasonsForRolePicker(s, teamID, members))
   const disableButton = disabledReasons.admin !== undefined
   const editMembership = C.useTeamsState(s => s.dispatch.editMembership)
   const onChangeRoles = (role: T.Teams.TeamRoleType) => editMembership(teamID, members, role)
@@ -304,7 +302,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
   const membersSet = C.useTeamsState(
     s => s.channelSelectedMembers.get(conversationIDKey) ?? emptySetForUseSelector
   )
-  const channelInfo = C.useTeamsState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const channelInfo = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
 

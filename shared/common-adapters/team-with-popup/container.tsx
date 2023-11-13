@@ -1,6 +1,5 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as TeamsConstants from '../../constants/teams'
 import type * as T from '../../constants/types'
 import type {TextType} from '../text'
 import {TeamWithPopup} from './'
@@ -15,8 +14,8 @@ type OwnProps = {
 }
 
 const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
-  const teamID = C.useTeamsState(s => TeamsConstants.getTeamID(s, ownProps.teamName))
-  const meta = C.useTeamsState(s => TeamsConstants.getTeamMeta(s, teamID))
+  const teamID = C.useTeamsState(s => C.Teams.getTeamID(s, ownProps.teamName))
+  const meta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const description = C.useTeamsState(s => s.teamDetails.get(teamID)?.description) ?? ''
   const stateProps = {
     description,

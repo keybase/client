@@ -1,6 +1,5 @@
 import * as C from '../constants'
 import type * as T from '../constants/types'
-import * as ChatConstants from '../constants/chat2'
 import * as Shared from './router.shared'
 import * as Tabs from '../constants/tabs'
 import type * as ConfigConstants from '../constants/config'
@@ -168,7 +167,7 @@ export const useReduxToLinking = (appState: Shared.AppState) => {
   const {startup} = C.useConfigState.getState()
   const {tab: startupTab, followUser: startupFollowUser} = startup
   let {conversation: startupConversation} = startup
-  if (!ChatConstants.isValidConversationIDKey(startupConversation)) {
+  if (!C.Chat.isValidConversationIDKey(startupConversation)) {
     startupConversation = ''
   }
   const {justSignedUp, showPushPrompt, hasPermissions} = C.usePushState.getState()

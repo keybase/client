@@ -2,8 +2,6 @@ import * as C from '../../../constants'
 import * as T from '../../../constants/types'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as ChatConstants from '../../../constants/chat2'
-import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Common from '../../common'
 import {pluralize} from '../../../util/string'
@@ -21,7 +19,7 @@ const getChannelsForList = memoize(
     const processed = [...channels.values()].reduce(
       ({list, general}: {general: T.Chat.ConversationMeta; list: Array<T.Chat.ConversationMeta>}, c) =>
         c.channelname === 'general' ? {general: c, list} : {general, list: [...list, c]},
-      {general: ChatConstants.makeConversationMeta(), list: []}
+      {general: C.Chat.makeConversationMeta(), list: []}
     )
     const {list, general} = processed
     const sortedList = list.sort((a, b) => a.channelname.localeCompare(b.channelname))
@@ -309,7 +307,7 @@ const SelfChannelActions = (p: {
 }) => {
   const {meta, reloadChannels, selfMode} = p
   const nav = Container.useSafeNavigation()
-  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, meta.teamID))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, meta.teamID))
   const isAdmin = yourOperations.deleteChannel
   const canEdit = yourOperations.editChannelDescription
   const inChannel = meta.membershipType === 'active'

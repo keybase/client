@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import type * as T from '../../../constants/types'
@@ -177,7 +176,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   )
 })
 
-const missingMessage = Constants.makeMessageDeleted({})
+const missingMessage = C.Chat.makeMessageDeleted({})
 
 const useReduxFast = (_trailingItem: T.Chat.Ordinal, _leadingItem: T.Chat.Ordinal) => {
   let trailingItem = _trailingItem

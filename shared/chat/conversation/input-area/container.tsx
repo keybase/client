@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
 import Normal from './normal'
 import Preview from './preview/container'
 import ThreadSearch from '../search/container'
@@ -21,8 +20,8 @@ const InputAreaContainer = (p: OwnProps) => {
 
   let noInput = resetParticipants.size > 0 || !!wasFinalizedBy
   if (
-    conversationIDKey === Constants.pendingWaitingConversationIDKey ||
-    conversationIDKey === Constants.pendingErrorConversationIDKey
+    conversationIDKey === C.Chat.pendingWaitingConversationIDKey ||
+    conversationIDKey === C.Chat.pendingErrorConversationIDKey
   ) {
     noInput = true
   }

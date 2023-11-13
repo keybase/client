@@ -2,13 +2,12 @@ import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as T from '../../constants/types'
-import * as Constants from '../../constants/teams'
 import {ModalTitle} from '../common'
 
 const Skip = () => {
   const finishNewTeamWizard = C.useTeamsState(s => s.dispatch.finishNewTeamWizard)
   const onSkip = () => finishNewTeamWizard()
-  const waiting = C.useAnyWaiting(Constants.teamCreationWaitingKey)
+  const waiting = C.useAnyWaiting(C.Teams.teamCreationWaitingKey)
 
   if (Kb.Styles.isMobile) {
     return waiting ? (

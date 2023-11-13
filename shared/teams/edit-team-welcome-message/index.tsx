@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
 import * as T from '../../constants/types'
 import {computeWelcomeMessageTextRaw} from '../../chat/conversation/messages/cards/team-journey/util'
 
@@ -19,7 +18,7 @@ const EditTeamWelcomeMessage = (props: Props) => {
     throw new Error(`There was a problem loading the welcome message page, please report this error.`)
   }
 
-  const waitingKey = Constants.setWelcomeMessageWaitingKey(teamID)
+  const waitingKey = C.Teams.setWelcomeMessageWaitingKey(teamID)
   const waiting = C.useAnyWaiting(waitingKey)
   const error = C.useTeamsState(s => s.errorInEditWelcomeMessage)
   const origWelcomeMessage = C.useTeamsState(s => s.teamIDToWelcomeMessage.get(teamID))

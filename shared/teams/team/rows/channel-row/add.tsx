@@ -2,14 +2,13 @@ import * as C from '../../../../constants'
 import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
 import type * as T from '../../../../constants/types'
-import * as Constants from '../../../../constants/teams'
 
 const ButtonRow = (props: {teamID: T.Teams.TeamID}) => {
   const nav = Container.useSafeNavigation()
   const onCreateChannel = () =>
     nav.safeNavigateAppend({props: {...props, navToChatOnSuccess: false}, selected: 'chatCreateChannel'})
 
-  const waitingKey = Constants.getChannelsWaitingKey(props.teamID)
+  const waitingKey = C.Teams.getChannelsWaitingKey(props.teamID)
   const waitingForGet = C.useAnyWaiting(waitingKey)
 
   return (

@@ -1,8 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Constants from '../constants/chat2'
-import * as TeamConstants from '../constants/teams'
 import type * as T from '../constants/types'
 import ChatInboxHeader from './inbox/header'
 
@@ -16,15 +14,15 @@ const Header = (props: Props) => {
 }
 
 const Header2 = (props: Props) => {
-  const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
+  const conversationIDKey = props.conversationIDKey ?? C.Chat.noConversationIDKey
   const username = C.useCurrentUserState(s => s.username)
   const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
   const participantInfo = C.useChatContext(s => s.participants)
   const meta = C.useChatContext(s => s.meta)
   const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
   // TODO not reactive
-  const canEditDesc = TeamConstants.getCanPerform(C.useTeamsState.getState(), teamname).editChannelDescription
-  const otherParticipants = Constants.getRowParticipants(participantInfo, username)
+  const canEditDesc = C.Teams.getCanPerform(C.useTeamsState.getState(), teamname).editChannelDescription
+  const otherParticipants = C.Chat.getRowParticipants(participantInfo, username)
   const first: string = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
   const otherInfo = C.useUsersState(s => s.infoMap.get(first))
   // If it's a one-on-one chat, use the user's fullname as the description
@@ -50,7 +48,7 @@ const Header2 = (props: Props) => {
   const isTeam = ['small', 'big'].includes(teamType)
   const muted = isMuted
   const participants = teamType === 'adhoc' ? participantInfo.name : null
-  const showActions = Constants.isValidConversationIDKey(conversationIDKey)
+  const showActions = C.Chat.isValidConversationIDKey(conversationIDKey)
 
   const descStyleOverride = React.useMemo(
     () => ({

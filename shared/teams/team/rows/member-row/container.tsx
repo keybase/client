@@ -1,5 +1,4 @@
 import * as C from '../../../../constants'
-import * as Constants from '../../../../constants/teams'
 import type * as T from '../../../../constants/types'
 import {TeamMemberRow} from '.'
 
@@ -9,12 +8,12 @@ type OwnProps = {
   firstItem: boolean
 }
 
-const blankInfo = Constants.initialMemberInfo
+const blankInfo = C.Teams.initialMemberInfo
 
 const Container = (ownProps: OwnProps) => {
   const {teamID, firstItem, username} = ownProps
-  const {members} = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
-  const {teamname} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const {members} = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? C.Teams.emptyTeamDetails
+  const {teamname} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const info = members.get(username) || blankInfo
 
   const you = C.useCurrentUserState(s => s.username)
@@ -22,9 +21,9 @@ const Container = (ownProps: OwnProps) => {
   const needsPUK = info.needsPUK
   const roleType = info.type
   const status = info.status
-  const waitingForAdd = C.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
-  const waitingForRemove = C.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, username))
-  const youCanManageMembers = C.useTeamsState(s => Constants.getCanPerform(s, teamname).manageMembers)
+  const waitingForAdd = C.useAnyWaiting(C.Teams.addMemberWaitingKey(teamID, username))
+  const waitingForRemove = C.useAnyWaiting(C.Teams.removeMemberWaitingKey(teamID, username))
+  const youCanManageMembers = C.useTeamsState(s => C.Teams.getCanPerform(s, teamname).manageMembers)
   const setUserBlocks = C.useUsersState(s => s.dispatch.setUserBlocks)
   const onBlock = () => {
     username && setUserBlocks([{setChatBlock: true, setFollowBlock: true, username}])

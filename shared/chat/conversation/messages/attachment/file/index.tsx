@@ -1,7 +1,7 @@
 import captialize from 'lodash/capitalize'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
-import * as Constants from '../../../../../constants/chat2'
+import * as C from '../../../../../constants'
 import type * as T from '../../../../../constants/types'
 import {getEditStyle, ShowToastAfterSaving} from '../shared'
 import * as CryptoConstants from '../../../../../constants/crypto'
@@ -24,7 +24,7 @@ type Props = {
 }
 
 const FileAttachment = React.memo(function FileAttachment(props: Props) {
-  const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(props.transferState)
+  const progressLabel = C.Chat.messageAttachmentTransferStateToProgressLabel(props.transferState)
   const {isSaltpackFile, isEditing, toggleMessageMenu} = props
   const iconType = isSaltpackFile ? 'icon-file-saltpack-32' : 'icon-file-32'
   const operation = CryptoConstants.isPathSaltpackEncrypted(props.fileName)

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Constants from '../../../constants/chat2'
+import * as C from '../../../constants'
 
 type Props = {
   author: string
@@ -26,7 +26,7 @@ const PinnedMessage = (props: Props) => {
   }
   const sizing =
     props.imageWidth && props.imageHeight
-      ? Constants.zoomImage(props.imageWidth, props.imageHeight, 30)
+      ? C.Chat.zoomImage(props.imageWidth, props.imageHeight, 30)
       : undefined
   const pin = (
     <Kb.ClickableBox className="hover_container" onClick={props.onClick} style={styles.container}>

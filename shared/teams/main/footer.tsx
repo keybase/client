@@ -1,9 +1,8 @@
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
-import {teamsLoadedWaitingKey} from '../../constants/teams'
 
 const TeamsFooter = (props: {empty: boolean}) => {
-  const isLoadingTeams = C.useAnyWaiting(teamsLoadedWaitingKey)
+  const isLoadingTeams = C.useAnyWaiting(C.Teams.teamsLoadedWaitingKey)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.container}>
       {isLoadingTeams ? (

@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Constants from '../../constants/teams'
 import openUrl from '../../util/open-url'
 
 const openSubteamInfo = () => openUrl('https://book.keybase.io/docs/teams/design')
@@ -17,7 +16,7 @@ type Props = {
 const CreateNewTeam = (props: Props) => {
   const [name, setName] = React.useState('')
   const [joinSubteam, setJoinSubteam] = React.useState(true)
-  const waiting = C.useAnyWaiting(Constants.teamCreationWaitingKey)
+  const waiting = C.useAnyWaiting(C.Teams.teamCreationWaitingKey)
 
   const {baseTeam, onSubmit} = props
   const isSubteam = !!baseTeam

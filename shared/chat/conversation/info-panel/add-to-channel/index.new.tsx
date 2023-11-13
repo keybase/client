@@ -2,7 +2,6 @@ import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as TeamConstants from '../../../../constants/teams'
 import * as Container from '../../../../util/container'
 import * as T from '../../../../constants/types'
 import {useTeamDetailsSubscribe} from '../../../../teams/subscriber'
@@ -30,9 +29,9 @@ const AddToChannel = (props: Props) => {
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.toLowerCase()
 
-  const {channelname} = C.useTeamsState(s => TeamConstants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const {channelname} = C.useTeamsState(s => C.Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const participants = useChannelParticipants(teamID, conversationIDKey)
-  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? TeamConstants.emptyTeamDetails
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? C.Teams.emptyTeamDetails
   const allMembers = sortMembers(teamDetails.members)
   const membersFiltered = allMembers.filter(
     m => m.username.toLowerCase().includes(filterLCase) || m.fullName.toLowerCase().includes(filterLCase)

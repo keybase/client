@@ -1,6 +1,5 @@
 import * as C from '../../../../constants'
 import * as Common from './common'
-import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import {
@@ -51,7 +50,7 @@ export const useDataSource = (filter: string) => {
     fetchUserEmoji(conversationIDKey)
   })
 
-  const userEmojisLoading = C.useAnyWaiting(Constants.waitingKeyLoadingEmoji)
+  const userEmojisLoading = C.useAnyWaiting(C.Chat.waitingKeyLoadingEmoji)
   const userEmojis = C.useChatState(s => s.userEmojisForAutocomplete)
 
   if (!emojiPrepass.test(filter)) {

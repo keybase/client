@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/teams'
 import type * as T from '../../constants/types'
 import {memoize} from '../../util/memoize'
 
@@ -12,9 +11,9 @@ type Props = {
 }
 
 const getSubteamNames = memoize(
-  (state: Constants.State, teamID: T.Teams.TeamID): [string[], T.Teams.TeamID[]] => {
+  (state: C.Teams.State, teamID: T.Teams.TeamID): [string[], T.Teams.TeamID[]] => {
     const subteamIDs = [...(C.useTeamsState.getState().teamDetails.get(teamID)?.subteams ?? [])]
-    return [subteamIDs.map(id => Constants.getTeamMeta(state, id).teamname), subteamIDs]
+    return [subteamIDs.map(id => C.Teams.getTeamMeta(state, id).teamname), subteamIDs]
   }
 )
 
@@ -24,10 +23,10 @@ const ConfirmKickOut = (props: Props) => {
   const [subteamsToo, setSubteamsToo] = React.useState(false)
 
   const [subteams, subteamIDs] = C.useTeamsState(s => getSubteamNames(s, teamID))
-  const teamname = C.useTeamsState(s => Constants.getTeamMeta(s, teamID).teamname)
+  const teamname = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID).teamname)
   const waitingKeys = ([] as string[]).concat.apply(
-    members.map(member => Constants.removeMemberWaitingKey(teamID, member)),
-    members.map(member => subteamIDs.map(subteamID => Constants.removeMemberWaitingKey(subteamID, member)))
+    members.map(member => C.Teams.removeMemberWaitingKey(teamID, member)),
+    members.map(member => subteamIDs.map(subteamID => C.Teams.removeMemberWaitingKey(subteamID, member)))
   )
   const waiting = C.useAnyWaiting(...waitingKeys)
   const nav = Container.useSafeNavigation()
@@ -55,7 +54,7 @@ const ConfirmKickOut = (props: Props) => {
 
   const prompt = (
     <Kb.Text center={true} type="Header" style={styles.prompt}>
-      Kick {Constants.stringifyPeople(members)} out of {teamname}?
+      Kick {C.Teams.stringifyPeople(members)} out of {teamname}?
     </Kb.Text>
   )
   const header = (

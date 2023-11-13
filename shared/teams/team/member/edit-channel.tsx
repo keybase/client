@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -42,7 +41,7 @@ const EditChannel = (props: Props) => {
       updateTopic(teamID, conversationIDKey, description)
     }
   }
-  const waiting = C.useAnyWaiting(Constants.updateChannelNameWaitingKey(teamID))
+  const waiting = C.useAnyWaiting(C.Teams.updateChannelNameWaitingKey(teamID))
   const wasWaiting = Container.usePrevious(waiting)
 
   const triggerEditUpdated = useEditState(s => s.dispatch.triggerEditUpdated)

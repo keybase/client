@@ -2,7 +2,6 @@ import * as C from '../../../constants'
 import * as Constants from '../../../constants/users'
 import * as React from 'react'
 import BlockModal, {type BlockModalContext, type BlockType, type NewBlocksMap, type ReportSettings} from '.'
-import {leaveTeamWaitingKey} from '../../../constants/teams'
 
 type OwnProps = {
   blockUserByDefault?: boolean
@@ -25,7 +24,7 @@ const Container = (ownProps: OwnProps) => {
   const reportsUserByDefault = ownProps.reportsUserByDefault ?? false
   let others = ownProps.others
   let adderUsername = ownProps.username
-  const waitingForLeave = C.useAnyWaiting(teamname ? leaveTeamWaitingKey(teamname) : undefined)
+  const waitingForLeave = C.useAnyWaiting(teamname ? C.Teams.leaveTeamWaitingKey(teamname) : undefined)
   const waitingForBlocking = C.useAnyWaiting(Constants.setUserBlocksWaitingKey)
   const waitingForReport = C.useAnyWaiting(Constants.reportUserWaitingKey)
   if (others?.length === 1 && !adderUsername) {

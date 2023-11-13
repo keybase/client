@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import {useTeamsSubscribe} from '../../subscriber'
 
@@ -41,7 +40,7 @@ const _ReallyLeaveTeam = (props: Props) => {
   const dispatchClearWaiting = C.useDispatchClearWaiting()
   React.useEffect(
     () => () => {
-      dispatchClearWaiting(Constants.leaveTeamWaitingKey(name))
+      dispatchClearWaiting(C.Teams.leaveTeamWaitingKey(name))
     },
     [dispatchClearWaiting, name]
   )
@@ -72,7 +71,7 @@ const _ReallyLeaveTeam = (props: Props) => {
           Leave {props.name}?
         </Kb.Text>
       }
-      waitingKey={Constants.leaveTeamWaitingKey(props.name)}
+      waitingKey={C.Teams.leaveTeamWaitingKey(props.name)}
     />
   )
 }

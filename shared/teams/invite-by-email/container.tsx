@@ -1,5 +1,4 @@
 import * as C from '../../constants'
-import * as Constants from '../../constants/teams'
 import type * as T from '../../constants/types'
 import {InviteByEmailDesktop} from '.'
 
@@ -7,12 +6,12 @@ type OwnProps = {teamID: string}
 
 const Container = (ownProps: OwnProps) => {
   const teamID = ownProps.teamID
-  const {teamname} = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const {teamname} = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   const inviteError = C.useTeamsState(s => s.errorInEmailInvite)
   const errorMessage = inviteError.message
   const malformedEmails = inviteError.malformed
   const name = teamname
-  const waitingKey = Constants.addToTeamByEmailWaitingKey(teamname) || ''
+  const waitingKey = C.Teams.addToTeamByEmailWaitingKey(teamname) || ''
   const inviteToTeamByEmail = C.useTeamsState(s => s.dispatch.inviteToTeamByEmail)
   const _onInvite = (
     teamname: string,

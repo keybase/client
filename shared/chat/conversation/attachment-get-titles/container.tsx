@@ -1,6 +1,5 @@
 import * as C from '../../../constants'
 import * as T from '../../../constants/types'
-import * as Constants from '../../../constants/chat2'
 import GetTitles, {type Info} from '.'
 
 type OwnProps = {
@@ -55,7 +54,7 @@ const Container = (ownProps: OwnProps) => {
         filename,
         outboxID: outboxID,
         title: '',
-        type: Constants.pathToAttachmentType(path),
+        type: C.Chat.pathToAttachmentType(path),
         url,
       }
       return {info, path}

@@ -1,6 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/teams'
-import * as ChatConstants from '../../../constants/chat2'
 import type * as T from '../../../constants/types'
 import {Settings} from '.'
 import {useSettingsState} from './use-settings'
@@ -11,8 +9,8 @@ export type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamMeta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
-  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
+  const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
+  const teamDetails = C.useTeamsState(s => s.teamDetails.get(teamID)) ?? C.Teams.emptyTeamDetails
   const publicityAnyMember = teamMeta.allowPromote
   const publicityMember = teamMeta.showcasing
   const publicityTeam = teamDetails.settings.teamShowcased
@@ -21,12 +19,12 @@ const Container = (ownProps: OwnProps) => {
   const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
   const error = C.useTeamsState(s => s.errorInSettings)
   const ignoreAccessRequests = teamDetails.settings.tarsDisabled
-  const isBigTeam = C.useChatState(s => ChatConstants.isBigTeam(s, teamID))
+  const isBigTeam = C.useChatState(s => C.Chat.isBigTeam(s, teamID))
   const openTeam = settings.open
   const openTeamRole = teamDetails.settings.openJoinAs
   const teamname = teamMeta.teamname
-  const waitingForWelcomeMessage = C.useAnyWaiting(Constants.loadWelcomeMessageWaitingKey(teamID))
-  const yourOperations = C.useTeamsState(s => Constants.getCanPerformByID(s, teamID))
+  const waitingForWelcomeMessage = C.useAnyWaiting(C.Teams.loadWelcomeMessageWaitingKey(teamID))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, teamID))
   const _loadWelcomeMessage = C.useTeamsState(s => s.dispatch.loadWelcomeMessage)
   const resetErrorInSettings = C.useTeamsState(s => s.dispatch.resetErrorInSettings)
   const setPublicity = C.useTeamsState(s => s.dispatch.setPublicity)

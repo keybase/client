@@ -1,9 +1,8 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Constants from '../../constants/teams'
-import type * as T from '../../constants/types'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
+import type * as T from '../../constants/types'
 import {pluralize} from '../../util/string'
 import {useTeamDetailsSubscribe} from '../subscriber'
 
@@ -62,7 +61,7 @@ const ReallyDeleteTeam = (props: Props) => {
   const onCheck = (which: keyof typeof checks) => (enable: boolean) => setChecks({...checks, [which]: enable})
   const disabled = !checkChats || !checkFolder || !checkNotify
   const {deleteWaiting, onBack, teamID} = props
-  const error = C.useAnyErrors(Constants.deleteTeamWaitingKey(props.teamID))
+  const error = C.useAnyErrors(C.Teams.deleteTeamWaitingKey(props.teamID))
   const prevDeleteWaiting = Container.usePrevious(deleteWaiting)
   React.useEffect(() => {
     if (prevDeleteWaiting !== undefined && !deleteWaiting && prevDeleteWaiting && !error) {
@@ -74,7 +73,7 @@ const ReallyDeleteTeam = (props: Props) => {
   const dispatchClearWaiting = C.useDispatchClearWaiting()
   React.useEffect(() => {
     return () => {
-      dispatchClearWaiting(Constants.deleteTeamWaitingKey(teamID))
+      dispatchClearWaiting(C.Teams.deleteTeamWaitingKey(teamID))
     }
   }, [dispatchClearWaiting, teamID])
   useTeamDetailsSubscribe(teamID)
@@ -119,7 +118,7 @@ const ReallyDeleteTeam = (props: Props) => {
       onCancel={props.onBack}
       onConfirm={disabled ? undefined : props.onDelete}
       prompt={`Delete ${props.teamname}?`}
-      waitingKey={Constants.deleteTeamWaitingKey(props.teamID)}
+      waitingKey={C.Teams.deleteTeamWaitingKey(props.teamID)}
     />
   )
 }

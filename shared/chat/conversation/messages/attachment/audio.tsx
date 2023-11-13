@@ -1,11 +1,10 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Constants from '../../../../constants/chat2'
 import {OrdinalContext} from '../ids-context'
 import AudioPlayer from '../../../audio/audio-player'
 
-const missingMessage = Constants.makeMessageAttachment()
+const missingMessage = C.Chat.makeMessageAttachment()
 const AudioAttachment = () => {
   const ordinal = React.useContext(OrdinalContext)
 
@@ -14,8 +13,8 @@ const AudioAttachment = () => {
     const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m : missingMessage
   })
-  const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(message.transferState)
-  const hasProgress = Constants.messageAttachmentHasProgress(message)
+  const progressLabel = C.Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)
+  const hasProgress = C.Chat.messageAttachmentHasProgress(message)
   const openLocalPathInSystemFileManagerDesktop = C.useFSState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )

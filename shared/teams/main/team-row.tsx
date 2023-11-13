@@ -1,7 +1,6 @@
 import * as C from '../../constants'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import type * as T from '../../constants/types'
 import TeamMenu from '../team/menu-container'
@@ -17,7 +16,7 @@ type Props = {
 const TeamRow = (props: Props) => {
   const {firstItem, showChat = true, teamID} = props
   const nav = Container.useSafeNavigation()
-  const teamMeta = C.useTeamsState(s => Constants.getTeamMeta(s, teamID))
+  const teamMeta = C.useTeamsState(s => C.Teams.getTeamMeta(s, teamID))
   // useActivityLevels in ../container ensures these are loaded
   const activityLevel = C.useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
 
@@ -39,7 +38,7 @@ const TeamRow = (props: Props) => {
 
   const teamIDToResetUsers = C.useTeamsState(s => s.teamIDToResetUsers)
   const badgeCount = C.useTeamsState(s =>
-    Constants.getTeamRowBadgeCount(s.newTeamRequests, teamIDToResetUsers, teamID)
+    C.Teams.getTeamRowBadgeCount(s.newTeamRequests, teamIDToResetUsers, teamID)
   )
   const isNew = C.useTeamsState(s => s.newTeams.has(teamID))
 

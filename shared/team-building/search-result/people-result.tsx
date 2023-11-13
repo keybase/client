@@ -2,7 +2,6 @@ import * as C from '../../constants'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as T from '../../constants/types'
-import * as ChatConstants from '../../constants/chat2'
 import CommonResult, {type ResultProps} from './common-result'
 
 /*
@@ -72,7 +71,7 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
       key="Chat"
       label="Chat"
       small={true}
-      waitingKey={ChatConstants.waitingKeyCreating}
+      waitingKey={C.Chat.waitingKeyCreating}
       onClick={e => {
         e.stopPropagation() // instead of using onAdd, use onChat logic
         onChat()

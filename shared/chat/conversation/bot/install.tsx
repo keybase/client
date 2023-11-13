@@ -1,5 +1,4 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
@@ -97,7 +96,7 @@ const InstallBotPopup = (props: Props) => {
   }
 
   const {channelMetas} = useAllChannelMetas(teamID)
-  const error = C.useAnyErrors([Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove])
+  const error = C.useAnyErrors([C.Chat.waitingKeyBotAdd, C.Chat.waitingKeyBotRemove])
   // dispatch
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
@@ -159,7 +158,7 @@ const InstallBotPopup = (props: Props) => {
   const dispatchClearWaiting = C.useDispatchClearWaiting()
   const refreshBotPublicCommands = C.useChatState(s => s.dispatch.refreshBotPublicCommands)
   React.useEffect(() => {
-    dispatchClearWaiting([Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove])
+    dispatchClearWaiting([C.Chat.waitingKeyBotAdd, C.Chat.waitingKeyBotRemove])
     if (noCommands) {
       refreshBotPublicCommands(botUsername)
     }
@@ -350,7 +349,7 @@ const InstallBotPopup = (props: Props) => {
       onClick={onInstall}
       mode="Primary"
       type="Default"
-      waitingKey={Constants.waitingKeyBotAdd}
+      waitingKey={C.Chat.waitingKeyBotAdd}
     />
   )
   const reviewButton = showReviewButton && (
@@ -373,7 +372,7 @@ const InstallBotPopup = (props: Props) => {
         onClick={() => setInstallScreen(true)}
         mode="Primary"
         type="Default"
-        waitingKey={Constants.waitingKeyBotAdd}
+        waitingKey={C.Chat.waitingKeyBotAdd}
         disabled={readOnly}
       />
     </Kb.Box2>
@@ -385,7 +384,7 @@ const InstallBotPopup = (props: Props) => {
       onClick={onRemove}
       mode="Secondary"
       type="Danger"
-      waitingKey={Constants.waitingKeyBotRemove}
+      waitingKey={C.Chat.waitingKeyBotRemove}
     />
   )
   const editButton = showEditButton && (
@@ -411,7 +410,7 @@ const InstallBotPopup = (props: Props) => {
       onClick={onEdit}
       mode="Primary"
       type="Default"
-      waitingKey={Constants.waitingKeyBotAdd}
+      waitingKey={C.Chat.waitingKeyBotAdd}
     />
   )
   const doneButton = showDoneButton && (

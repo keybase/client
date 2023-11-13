@@ -1,9 +1,7 @@
 import * as C from '../../../constants'
-import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
-import PinnedMessage from '.'
 import type * as T from '../../../constants/types'
-import {getCanPerform} from '../../../constants/teams'
+import PinnedMessage from '.'
 
 const PinnedMessageContainer = React.memo(function PinnedMessageContainer() {
   const conversationIDKey = C.useChatContext(s => s.id)
@@ -11,8 +9,8 @@ const PinnedMessageContainer = React.memo(function PinnedMessageContainer() {
   const {teamname, pinnedMsg} = C.useChatContext(s => s.meta)
   const replyJump = C.useChatContext(s => s.dispatch.replyJump)
   const message = pinnedMsg?.message
-  const yourOperations = C.useTeamsState(s => getCanPerform(s, teamname))
-  const unpinning = C.useAnyWaiting(Constants.waitingKeyUnpin(conversationIDKey))
+  const yourOperations = C.useTeamsState(s => C.Teams.getCanPerform(s, teamname))
+  const unpinning = C.useAnyWaiting(C.Chat.waitingKeyUnpin(conversationIDKey))
   const messageID = message?.id
   const onClick = React.useCallback(() => {
     messageID && replyJump(messageID)
