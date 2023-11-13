@@ -4,6 +4,7 @@ import * as React from 'react'
 import Normal from '.'
 import {indefiniteArticle} from '../../../util/string'
 import {OrangeLineContext} from '../orange-line-context'
+import {FocusProvider} from './context'
 
 // Orange line logic:
 // While looking at a thread the line should be static
@@ -60,10 +61,8 @@ const useOrangeLine = (conversationIDKey: T.Chat.ConversationIDKey) => {
 const NormalWrapper = React.memo(function NormalWrapper() {
   const conversationIDKey = C.useChatContext(s => s.id)
   const orangeLine = useOrangeLine(conversationIDKey)
-  const [focusInputCounter, setFocusInputCounter] = React.useState(0)
-  const onFocusInput = React.useCallback(() => {
-    setFocusInputCounter(focusInputCounter + 1)
-  }, [setFocusInputCounter, focusInputCounter])
+
+  const chatInputRef = React.useRef<null | {focus: () => void}>(null)
 
   const requestScrollDownRef = React.useRef<undefined | (() => void)>()
   const onRequestScrollDown = React.useCallback(() => {
@@ -97,7 +96,7 @@ const NormalWrapper = React.memo(function NormalWrapper() {
 
   C.useCIDChanged(conversationIDKey, () => {
     if (!C.isMobile) {
-      setFocusInputCounter(c => c + 1)
+      chatInputRef.current?.focus()
     }
   })
 
@@ -130,24 +129,24 @@ const NormalWrapper = React.memo(function NormalWrapper() {
 
   return (
     <OrangeLineContext.Provider value={orangeLine}>
-      <Normal
-        dragAndDropRejectReason={dragAndDropRejectReason}
-        threadLoadedOffline={threadLoadedOffline}
-        showThreadSearch={showThreadSearch}
-        onFocusInput={onFocusInput}
-        onRequestScrollDown={onRequestScrollDown}
-        onRequestScrollUp={onRequestScrollUp}
-        onRequestScrollToBottom={onRequestScrollToBottom}
-        requestScrollToBottomRef={requestScrollToBottomRef}
-        focusInputCounter={focusInputCounter}
-        requestScrollDownRef={requestScrollDownRef}
-        requestScrollUpRef={requestScrollUpRef}
-        jumpToRecent={jumpToRecent}
-        onPaste={onPaste}
-        onToggleThreadSearch={onToggleThreadSearch}
-        onShowTracker={onShowTracker}
-        onAttach={cannotWrite ? undefined : onAttach}
-      />
+      <FocusProvider>
+        <Normal
+          dragAndDropRejectReason={dragAndDropRejectReason}
+          threadLoadedOffline={threadLoadedOffline}
+          showThreadSearch={showThreadSearch}
+          onRequestScrollDown={onRequestScrollDown}
+          onRequestScrollUp={onRequestScrollUp}
+          onRequestScrollToBottom={onRequestScrollToBottom}
+          requestScrollToBottomRef={requestScrollToBottomRef}
+          requestScrollDownRef={requestScrollDownRef}
+          requestScrollUpRef={requestScrollUpRef}
+          jumpToRecent={jumpToRecent}
+          onPaste={onPaste}
+          onToggleThreadSearch={onToggleThreadSearch}
+          onShowTracker={onShowTracker}
+          onAttach={cannotWrite ? undefined : onAttach}
+        />
+      </FocusProvider>
     </OrangeLineContext.Provider>
   )
 })

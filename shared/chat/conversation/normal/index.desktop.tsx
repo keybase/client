@@ -56,7 +56,6 @@ class Conversation extends React.PureComponent<Props> {
           {this.props.threadLoadedOffline && <Offline />}
           <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
             <ListArea
-              onFocusInput={this.props.onFocusInput}
               requestScrollUpRef={this.props.requestScrollUpRef}
               requestScrollToBottomRef={this.props.requestScrollToBottomRef}
               requestScrollDownRef={this.props.requestScrollDownRef}
@@ -71,7 +70,6 @@ class Conversation extends React.PureComponent<Props> {
           <InvitationToBlock />
           <Banner />
           <InputArea
-            focusInputCounter={this.props.focusInputCounter}
             jumpToRecent={this.props.jumpToRecent}
             onRequestScrollDown={this.props.onRequestScrollDown}
             onRequestScrollToBottom={this.props.onRequestScrollToBottom}

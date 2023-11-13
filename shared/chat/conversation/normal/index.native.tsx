@@ -45,7 +45,6 @@ const Conversation = React.memo(function Conversation(props: Props) {
           requestScrollToBottomRef={props.requestScrollToBottomRef}
           requestScrollDownRef={props.requestScrollDownRef}
           requestScrollUpRef={props.requestScrollUpRef}
-          onFocusInput={props.onFocusInput}
         />
         <LoadingLine />
       </Kb.Box2>
@@ -53,7 +52,6 @@ const Conversation = React.memo(function Conversation(props: Props) {
       <Banner />
       <MaxInputAreaContext.Provider value={maxInputArea}>
         <InputArea
-          focusInputCounter={props.focusInputCounter}
           jumpToRecent={props.jumpToRecent}
           onRequestScrollDown={props.onRequestScrollDown}
           onRequestScrollToBottom={props.onRequestScrollToBottom}

@@ -13,6 +13,7 @@ import {ErrorBoundary} from '../../../common-adapters'
 import {findLast} from '../../../util/arrays'
 import {getMessageRender} from '../messages/wrapper'
 import {globalMargins} from '../../../styles/shared'
+import {FocusContext} from '../normal/context'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
@@ -513,7 +514,6 @@ const useItems = (p: {
 
 const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const {onFocusInput} = p
   const {requestScrollDownRef, requestScrollToBottomRef, requestScrollUpRef} = p
   const editingOrdinal = C.useChatContext(s => s.editing)
   const centeredOrdinal = C.useChatContext(s => s.messageCenterOrdinal)?.ordinal
@@ -577,7 +577,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
     },
     [copyToClipboard]
   )
-
+  const {focusInput} = React.useContext(FocusContext)
   const handleListClick = React.useCallback(
     (ev: React.MouseEvent) => {
       const target = ev.target
@@ -588,10 +588,10 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
 
       const sel = window.getSelection()
       if (sel?.isCollapsed) {
-        onFocusInput()
+        focusInput()
       }
     },
-    [onFocusInput]
+    [focusInput]
   )
 
   const items = useItems({

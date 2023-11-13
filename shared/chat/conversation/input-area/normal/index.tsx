@@ -11,9 +11,9 @@ import type * as T from '../../../../constants/types'
 import {indefiniteArticle} from '../../../../util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '../../../../common-adapters/usernames'
+import {FocusContext} from '../../normal/context'
 
 type Props = {
-  focusInputCounter: number
   jumpToRecent: () => void
   onRequestScrollDown: () => void
   onRequestScrollToBottom: () => void
@@ -69,8 +69,7 @@ const useHintText = (p: {
 }
 
 const Input = (p: Props) => {
-  const {jumpToRecent, focusInputCounter} = p
-  const {onRequestScrollDown, onRequestScrollUp, onRequestScrollToBottom} = p
+  const {jumpToRecent, onRequestScrollDown, onRequestScrollUp, onRequestScrollToBottom} = p
 
   const showGiphySearch = C.useChatContext(s => s.giphyWindow)
   const showCommandMarkdown = C.useChatContext(s => !!s.commandMarkdown)
@@ -84,7 +83,6 @@ const Input = (p: Props) => {
       {showGiphySearch && <Giphy />}
       <ConnectedPlatformInput
         jumpToRecent={jumpToRecent}
-        focusInputCounter={focusInputCounter}
         onRequestScrollDown={onRequestScrollDown}
         onRequestScrollUp={onRequestScrollUp}
         onRequestScrollToBottom={onRequestScrollToBottom}
@@ -94,18 +92,10 @@ const Input = (p: Props) => {
 }
 
 const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
-  p: Pick<
-    Props,
-    | 'jumpToRecent'
-    | 'focusInputCounter'
-    | 'onRequestScrollDown'
-    | 'onRequestScrollUp'
-    | 'onRequestScrollToBottom'
-  >
+  p: Pick<Props, 'jumpToRecent' | 'onRequestScrollDown' | 'onRequestScrollUp' | 'onRequestScrollToBottom'>
 ) {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const {focusInputCounter, onRequestScrollToBottom} = p
-  const {onRequestScrollDown, onRequestScrollUp, jumpToRecent} = p
+  const {onRequestScrollToBottom, onRequestScrollDown, onRequestScrollUp, jumpToRecent} = p
   const isTyping = C.useChatContext(s => s.typing.size > 0)
   const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
   const suggestBotCommandsUpdateStatus = C.useChatContext(s => s.botCommandsUpdateStatus)
@@ -187,7 +177,12 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
 
   Container.useDepChangeEffect(() => {
     inputRef.current?.focus()
-  }, [inputRef, focusInputCounter, isEditing])
+  }, [inputRef, isEditing])
+
+  const {inputRef: inputRefContext} = React.useContext(FocusContext)
+  React.useEffect(() => {
+    inputRefContext.current = inputRef.current
+  }, [inputRefContext])
 
   const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const onCancelEditing = React.useCallback(() => {

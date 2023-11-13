@@ -1,14 +1,12 @@
 import type * as React from 'react'
 export type Props = {
   dragAndDropRejectReason?: string
-  focusInputCounter: number
   jumpToRecent: () => void
   requestScrollToBottomRef: React.MutableRefObject<undefined | (() => void)>
   requestScrollUpRef: React.MutableRefObject<undefined | (() => void)>
   requestScrollDownRef: React.MutableRefObject<undefined | (() => void)>
   onPaste: (data: Uint8Array) => void
   onAttach?: (paths: Array<string>) => void
-  onFocusInput: () => void
   onRequestScrollDown: () => void
   onRequestScrollToBottom: () => void
   onRequestScrollUp: () => void
