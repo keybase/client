@@ -13,8 +13,6 @@ import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '../../../../common-adapters/usernames'
 import {FocusContext, ScrollContext} from '../../normal/context'
 
-type Props = {jumpToRecent: () => void}
-
 const useHintText = (p: {
   isExploding: boolean
   isEditing: boolean
@@ -63,9 +61,7 @@ const useHintText = (p: {
   return 'Write a message'
 }
 
-const Input = (p: Props) => {
-  const {jumpToRecent} = p
-
+const Input = () => {
   const showGiphySearch = C.useChatContext(s => s.giphyWindow)
   const showCommandMarkdown = C.useChatContext(s => !!s.commandMarkdown)
   const showCommandStatus = C.useChatContext(s => !!s.commandStatus)
@@ -76,14 +72,14 @@ const Input = (p: Props) => {
       {/*TODO move this into suggestors*/ showCommandMarkdown && <CommandMarkdown />}
       {showCommandStatus && <CommandStatus />}
       {showGiphySearch && <Giphy />}
-      <ConnectedPlatformInput jumpToRecent={jumpToRecent} />
+      <ConnectedPlatformInput />
     </Kb.Box2>
   )
 }
 
-const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(p: Pick<Props, 'jumpToRecent'>) {
+const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const {jumpToRecent} = p
+  const jumpToRecent = C.useChatContext(s => s.dispatch.jumpToRecent)
   const isTyping = C.useChatContext(s => s.typing.size > 0)
   const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
   const suggestBotCommandsUpdateStatus = C.useChatContext(s => s.botCommandsUpdateStatus)

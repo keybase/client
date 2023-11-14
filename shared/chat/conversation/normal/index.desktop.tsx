@@ -65,7 +65,7 @@ class Conversation extends React.PureComponent<Props> {
           </Kb.Box2>
           <InvitationToBlock />
           <Banner />
-          <InputArea jumpToRecent={this.props.jumpToRecent} />
+          <InputArea />
         </Kb.DragAndDrop>
       </div>
     )

@@ -83,7 +83,6 @@ const NormalWrapper = React.memo(function NormalWrapper() {
     }
   })
 
-  const jumpToRecent = C.useChatContext(s => s.dispatch.jumpToRecent)
   const onPaste = C.useChatContext(s => s.dispatch.attachmentPasted)
   const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = React.useCallback(() => {
@@ -118,7 +117,6 @@ const NormalWrapper = React.memo(function NormalWrapper() {
             dragAndDropRejectReason={dragAndDropRejectReason}
             threadLoadedOffline={threadLoadedOffline}
             showThreadSearch={showThreadSearch}
-            jumpToRecent={jumpToRecent}
             onPaste={onPaste}
             onToggleThreadSearch={onToggleThreadSearch}
             onShowTracker={onShowTracker}

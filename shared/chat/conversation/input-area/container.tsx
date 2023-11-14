@@ -3,13 +3,8 @@ import Normal from './normal'
 import Preview from './preview/container'
 import ThreadSearch from '../search/container'
 
-type OwnProps = {
-  jumpToRecent: () => void
-}
-
-const InputAreaContainer = (p: OwnProps) => {
+const InputAreaContainer = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const {jumpToRecent} = p
   const showThreadSearch = C.useChatContext(s => s.threadSearchInfo.visible)
   const {membershipType, resetParticipants, wasFinalizedBy} = C.useChatContext(s => s.meta)
 
@@ -32,6 +27,6 @@ const InputAreaContainer = (p: OwnProps) => {
   if (showThreadSearch && C.isMobile) {
     return <ThreadSearch />
   }
-  return <Normal jumpToRecent={jumpToRecent} />
+  return <Normal />
 }
 export default InputAreaContainer

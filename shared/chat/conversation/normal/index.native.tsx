@@ -47,7 +47,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
       <InvitationToBlock />
       <Banner />
       <MaxInputAreaContext.Provider value={maxInputArea}>
-        <InputArea jumpToRecent={props.jumpToRecent} />
+        <InputArea />
       </MaxInputAreaContext.Provider>
     </Kb.BoxGrow>
   )
