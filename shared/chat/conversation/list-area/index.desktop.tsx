@@ -8,12 +8,11 @@ import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import chunk from 'lodash/chunk'
-import type {Props} from '.'
 import {ErrorBoundary} from '../../../common-adapters'
 import {findLast} from '../../../util/arrays'
 import {getMessageRender} from '../messages/wrapper'
 import {globalMargins} from '../../../styles/shared'
-import {FocusContext} from '../normal/context'
+import {FocusContext, ScrollContext} from '../normal/context'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
@@ -125,16 +124,13 @@ const useResizeObserver = () => {
 }
 
 // scrolling related things
-const useScrolling = (
-  p: Pick<Props, 'requestScrollUpRef' | 'requestScrollToBottomRef' | 'requestScrollDownRef'> & {
-    containsLatestMessage: boolean
-    messageOrdinals: Array<T.Chat.Ordinal>
-    listRef: React.MutableRefObject<HTMLDivElement | null>
-    centeredOrdinal: T.Chat.Ordinal | undefined
-  }
-) => {
+const useScrolling = (p: {
+  containsLatestMessage: boolean
+  messageOrdinals: Array<T.Chat.Ordinal>
+  listRef: React.MutableRefObject<HTMLDivElement | null>
+  centeredOrdinal: T.Chat.Ordinal | undefined
+}) => {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const {requestScrollUpRef, requestScrollToBottomRef, requestScrollDownRef} = p
   const {listRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
   const editingOrdinal = C.useChatContext(s => s.editing)
   const loadNewerMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
@@ -364,16 +360,8 @@ const useScrolling = (
     setLastCenteredOrdinal(centeredOrdinal)
   }
 
-  requestScrollToBottomRef.current = () => {
-    lockedToBottomRef.current = true
-    scrollToBottom()
-  }
-  requestScrollUpRef.current = () => {
-    scrollUp()
-  }
-  requestScrollDownRef.current = () => {
-    scrollDown()
-  }
+  const {scrollRef} = React.useContext(ScrollContext)
+  scrollRef.current = {scrollDown, scrollToBottom, scrollUp}
 
   // go to editing message
   Container.useDepChangeEffect(() => {
@@ -512,9 +500,8 @@ const useItems = (p: {
   return items
 }
 
-const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
+const ThreadWrapper = React.memo(function ThreadWrapper() {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const {requestScrollDownRef, requestScrollToBottomRef, requestScrollUpRef} = p
   const editingOrdinal = C.useChatContext(s => s.editing)
   const centeredOrdinal = C.useChatContext(s => s.messageCenterOrdinal)?.ordinal
   const containsLatestMessage = C.useChatContext(s => s.isCaughtUp())
@@ -527,9 +514,6 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
     containsLatestMessage,
     listRef,
     messageOrdinals,
-    requestScrollDownRef,
-    requestScrollToBottomRef,
-    requestScrollUpRef,
   })
 
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)

@@ -55,11 +55,7 @@ class Conversation extends React.PureComponent<Props> {
         >
           {this.props.threadLoadedOffline && <Offline />}
           <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
-            <ListArea
-              requestScrollUpRef={this.props.requestScrollUpRef}
-              requestScrollToBottomRef={this.props.requestScrollToBottomRef}
-              requestScrollDownRef={this.props.requestScrollDownRef}
-            />
+            <ListArea />
             <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>
               <ThreadLoadStatus />
               {!this.props.showThreadSearch && <PinnedMessage />}
@@ -69,12 +65,7 @@ class Conversation extends React.PureComponent<Props> {
           </Kb.Box2>
           <InvitationToBlock />
           <Banner />
-          <InputArea
-            jumpToRecent={this.props.jumpToRecent}
-            onRequestScrollDown={this.props.onRequestScrollDown}
-            onRequestScrollToBottom={this.props.onRequestScrollToBottom}
-            onRequestScrollUp={this.props.onRequestScrollUp}
-          />
+          <InputArea jumpToRecent={this.props.jumpToRecent} />
         </Kb.DragAndDrop>
       </div>
     )

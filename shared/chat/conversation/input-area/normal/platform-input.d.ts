@@ -12,8 +12,6 @@ export type Props = {
   minWriterRole: T.Teams.TeamRoleType
   onCancelEditing: () => void
   onChangeText: (newText: string) => void
-  onRequestScrollDown: () => void
-  onRequestScrollUp: () => void
   onSubmit: (text: string) => void
   showReplyPreview: boolean
   showTypingStatus: boolean

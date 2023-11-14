@@ -41,22 +41,13 @@ const Conversation = React.memo(function Conversation(props: Props) {
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
         <ThreadLoadStatus />
         <PinnedMessage />
-        <ListArea
-          requestScrollToBottomRef={props.requestScrollToBottomRef}
-          requestScrollDownRef={props.requestScrollDownRef}
-          requestScrollUpRef={props.requestScrollUpRef}
-        />
+        <ListArea />
         <LoadingLine />
       </Kb.Box2>
       <InvitationToBlock />
       <Banner />
       <MaxInputAreaContext.Provider value={maxInputArea}>
-        <InputArea
-          jumpToRecent={props.jumpToRecent}
-          onRequestScrollDown={props.onRequestScrollDown}
-          onRequestScrollToBottom={props.onRequestScrollToBottom}
-          onRequestScrollUp={props.onRequestScrollUp}
-        />
+        <InputArea jumpToRecent={props.jumpToRecent} />
       </MaxInputAreaContext.Provider>
     </Kb.BoxGrow>
   )
