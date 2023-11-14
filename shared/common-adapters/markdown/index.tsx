@@ -141,7 +141,7 @@ const wordBoundaryLookBehind = /\B$/
 const wordBoundryLookBehindMatch =
   (matchFn: SimpleMarkdown.MatchFunction) =>
   (source: string, state: SimpleMarkdown.State, prevCapture: string) => {
-    if (wordBoundaryLookBehind.exec(prevCapture)) {
+    if (wordBoundaryLookBehind.test(prevCapture)) {
       return matchFn(source, state, prevCapture)
     }
     return null
@@ -170,7 +170,7 @@ const rules: {[type: string]: SimpleMarkdown.ParserRule} = {
       const emptyLookbehind = /^$|\n *$/
 
       const match = regex.exec(source)
-      if (match && emptyLookbehind.exec(prevCapture)) {
+      if (match && emptyLookbehind.test(prevCapture)) {
         return match
       }
       return null

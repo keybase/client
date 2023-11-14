@@ -165,10 +165,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
       case 'btc':
         {
           // A simple check, the server does a fuller check
-          const legacyFormat = !!username.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
-          const segwitFormat = !!username
-            .toLowerCase()
-            .match(/^(bc1)[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{11,71}$/)
+          const legacyFormat = username.search(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/) !== -1
+          const segwitFormat =
+            username.toLowerCase().search(/^(bc1)[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{11,71}$/) !== -1
           usernameValid = legacyFormat || segwitFormat
         }
         break
