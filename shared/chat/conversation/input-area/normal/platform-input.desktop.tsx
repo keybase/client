@@ -314,6 +314,15 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const {showReplyPreview, hintText, inputSetRef, isEditing, onSubmit} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
+  const conversationIDKey = C.useChatContext(s => s.id)
+
+  // keep focus
+  C.useCIDChanged(conversationIDKey, () => {
+    inputRef.current?.focus()
+  })
+  React.useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
 
   const checkEnterOnKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {
