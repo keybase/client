@@ -11,7 +11,6 @@ import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message/container'
 import ThreadLoadStatus from '../load-status'
 import type {LayoutEvent} from '../../../common-adapters/box'
-import type {Props} from '.'
 import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
 import {Dimensions} from 'react-native'
 
@@ -30,7 +29,7 @@ const LoadingLine = () => {
   return showLoader ? <Kb.LoadingLine /> : null
 }
 
-const Conversation = React.memo(function Conversation(props: Props) {
+const Conversation = React.memo(function Conversation() {
   const [maxInputArea, setMaxInputArea] = React.useState(0)
   const onLayout = React.useCallback((e: LayoutEvent) => {
     setMaxInputArea(e.nativeEvent.layout.height)
@@ -41,24 +40,13 @@ const Conversation = React.memo(function Conversation(props: Props) {
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
         <ThreadLoadStatus />
         <PinnedMessage />
-        <ListArea
-          requestScrollToBottomRef={props.requestScrollToBottomRef}
-          requestScrollDownRef={props.requestScrollDownRef}
-          requestScrollUpRef={props.requestScrollUpRef}
-          onFocusInput={props.onFocusInput}
-        />
+        <ListArea />
         <LoadingLine />
       </Kb.Box2>
       <InvitationToBlock />
       <Banner />
       <MaxInputAreaContext.Provider value={maxInputArea}>
-        <InputArea
-          focusInputCounter={props.focusInputCounter}
-          jumpToRecent={props.jumpToRecent}
-          onRequestScrollDown={props.onRequestScrollDown}
-          onRequestScrollToBottom={props.onRequestScrollToBottom}
-          onRequestScrollUp={props.onRequestScrollUp}
-        />
+        <InputArea />
       </MaxInputAreaContext.Provider>
     </Kb.BoxGrow>
   )
@@ -125,11 +113,13 @@ const Conversation = React.memo(function Conversation(props: Props) {
     [height, insets.bottom]
   )
 
+  const threadLoadedOffline = C.useChatContext(s => s.meta.offline)
+
   const content = (
     <Kb.Box2 direction="vertical" style={styles.innerContainer} fullWidth={true} fullHeight={true}>
       <DropView style={styles.dropView} onDropped={onDropped}>
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-          {props.threadLoadedOffline && <Offline />}
+          {threadLoadedOffline && <Offline />}
           {innerComponent}
         </Kb.Box2>
         <PortalHost name="convOverlay" />

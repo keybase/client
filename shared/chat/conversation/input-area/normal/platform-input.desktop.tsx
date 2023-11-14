@@ -8,6 +8,7 @@ import {EmojiPickerDesktop} from '../../../emoji-picker/container'
 import {KeyEventHandler} from '../../../../common-adapters/key-event-handler.desktop'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {useSuggestors} from '../suggestors'
+import {ScrollContext} from '../../normal/context'
 
 type HtmlInputRefType = React.MutableRefObject<HTMLInputElement | null>
 type InputRefType = React.MutableRefObject<Kb.PlainInput | null>
@@ -181,10 +182,7 @@ const Footer = (p: {focusInput: () => void}) => {
   )
 }
 
-type UseKeyboardProps = Pick<
-  Props,
-  'isEditing' | 'onChangeText' | 'onRequestScrollDown' | 'onRequestScrollUp' | 'showReplyPreview'
-> & {
+type UseKeyboardProps = Pick<Props, 'isEditing' | 'onChangeText' | 'showReplyPreview'> & {
   focusInput: () => void
   htmlInputRef: HtmlInputRefType
   onKeyDown?: (evt: React.KeyboardEvent) => void
@@ -193,9 +191,10 @@ type UseKeyboardProps = Pick<
 }
 const useKeyboard = (p: UseKeyboardProps) => {
   const {htmlInputRef, focusInput, isEditing, onKeyDown, onCancelEditing} = p
-  const {onChangeText, onEditLastMessage, onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
+  const {onChangeText, onEditLastMessage, showReplyPreview} = p
   const lastText = React.useRef('')
   const setReplyTo = C.useChatContext(s => s.dispatch.setReplyTo)
+  const {scrollDown, scrollUp} = React.useContext(ScrollContext)
   const onCancelReply = React.useCallback(() => {
     setReplyTo(0)
   }, [setReplyTo])
@@ -220,10 +219,10 @@ const useKeyboard = (p: UseKeyboardProps) => {
         htmlInputRef.current?.click()
         return true
       } else if (e.key === 'PageDown') {
-        onRequestScrollDown()
+        scrollDown()
         return true
       } else if (e.key === 'PageUp') {
-        onRequestScrollUp()
+        scrollUp()
         return true
       }
 
@@ -237,8 +236,8 @@ const useKeyboard = (p: UseKeyboardProps) => {
       onEditLastMessage,
       onCancelEditing,
       onCancelReply,
-      onRequestScrollDown,
-      onRequestScrollUp,
+      scrollDown,
+      scrollUp,
     ]
   )
 
@@ -312,10 +311,18 @@ const SideButtons = (p: SideButtonsProps) => {
 
 const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const {cannotWrite, explodingModeSeconds, onCancelEditing} = p
-  const {hintText, inputSetRef, isEditing, onSubmit} = p
-  const {onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
+  const {showReplyPreview, hintText, inputSetRef, isEditing, onSubmit} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
+  const conversationIDKey = C.useChatContext(s => s.id)
+
+  // keep focus
+  C.useCIDChanged(conversationIDKey, () => {
+    inputRef.current?.focus()
+  })
+  React.useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
 
   const checkEnterOnKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {
@@ -358,8 +365,6 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
     onChangeText: onChangeTextSuggestors,
     onEditLastMessage,
     onKeyDown,
-    onRequestScrollDown,
-    onRequestScrollUp,
     showReplyPreview,
   })
 

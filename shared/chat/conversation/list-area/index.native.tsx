@@ -17,6 +17,7 @@ import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
 import {useChatDebugDump} from '../../../constants/chat2/debug'
 import {usingFlashList} from './flashlist-config'
+import {ScrollContext} from '../normal/context'
 import noop from 'lodash/noop'
 
 // TODO if we bring flashlist back bring back the patch
@@ -34,10 +35,8 @@ const useScrolling = (p: {
   cidChanged: boolean
   conversationIDKey: T.Chat.ConversationIDKey
   listRef: React.MutableRefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
-  requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
 }) => {
-  const {messageOrdinals, requestScrollToBottomRef} = p
-  const {cidChanged, listRef, centeredOrdinal} = p
+  const {messageOrdinals, cidChanged, listRef, centeredOrdinal} = p
   const lastLoadOrdinal = React.useRef<T.Chat.Ordinal>(-1)
   const oldestOrdinal = messageOrdinals.at(-1) ?? -1
   const loadOlderMessagesDueToScroll = C.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
@@ -55,9 +54,8 @@ const useScrolling = (p: {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
   }, [listRef])
 
-  requestScrollToBottomRef.current = () => {
-    scrollToBottom()
-  }
+  const {scrollRef} = React.useContext(ScrollContext)
+  scrollRef.current = {scrollDown: noop, scrollToBottom, scrollUp: noop}
 
   // only scroll to center once per
   const lastScrollToCentered = React.useRef(-1)
@@ -93,17 +91,14 @@ const useScrolling = (p: {
 
 const emptyMap = new Map()
 
-const ConversationList = React.memo(function ConversationList(p: {
-  conversationIDKey: T.Chat.ConversationIDKey
-  requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
-}) {
+const ConversationList = React.memo(function ConversationList() {
   const debugWhichList = __DEV__ ? (
     <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
       {usingFlashList ? 'FLASH' : 'old'}
     </Kb.Text>
   ) : null
 
-  const {conversationIDKey, requestScrollToBottomRef} = p
+  const conversationIDKey = C.useChatContext(s => s.id)
   const cidChanged = C.useCIDChanged(conversationIDKey)
 
   // used to force a rerender when a type changes, aka placeholder resolves
@@ -178,7 +173,6 @@ const ConversationList = React.memo(function ConversationList(p: {
     conversationIDKey,
     listRef,
     messageOrdinals,
-    requestScrollToBottomRef,
   })
 
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)

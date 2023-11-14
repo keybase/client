@@ -8,9 +8,9 @@ import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message/container'
 import ThreadLoadStatus from '../load-status'
 import ThreadSearch from '../search/container'
-import type {Props} from '.'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import '../conversation.css'
+import {indefiniteArticle} from '../../../util/string'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
@@ -27,61 +27,73 @@ const LoadingLine = () => {
   return showLoader ? <Kb.LoadingLine /> : null
 }
 
-class Conversation extends React.PureComponent<Props> {
-  private onPaste = (e: React.SyntheticEvent) => {
-    readImageFromClipboard(e)
-      .then(clipboardData => {
-        if (clipboardData) {
-          this.props.onPaste(clipboardData)
-        }
-      })
-      .catch(() => {})
-  }
+const hotKeys = ['mod+f']
+const Conversation = React.memo(function Conversation() {
+  const navigateAppend = C.useChatNavigateAppend()
+  const onAttach = React.useCallback(
+    (paths: Array<string>) => {
+      const pathAndOutboxIDs = paths.map(p => ({path: p}))
+      navigateAppend(conversationIDKey => ({
+        props: {conversationIDKey, pathAndOutboxIDs},
+        selected: 'chatAttachmentGetTitles',
+      }))
+    },
+    [navigateAppend]
+  )
+  const showThreadSearch = C.useChatContext(s => s.threadSearchInfo.visible)
+  const cannotWrite = C.useChatContext(s => s.meta.cannotWrite)
+  const threadLoadedOffline = C.useChatContext(s => s.meta.offline)
+  const dragAndDropRejectReason = C.useChatContext(s => {
+    const meta = s.meta
+    const {cannotWrite, minWriterRole} = meta
+    return cannotWrite
+      ? `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
+      : undefined
+  })
+  const attachmentPasted = C.useChatContext(s => s.dispatch.attachmentPasted)
+  const onPaste = React.useCallback(
+    (e: React.SyntheticEvent) => {
+      readImageFromClipboard(e)
+        .then(clipboardData => {
+          if (clipboardData) {
+            attachmentPasted(clipboardData)
+          }
+        })
+        .catch(() => {})
+    },
+    [attachmentPasted]
+  )
+  const toggleThreadSearch = C.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const onToggleThreadSearch = React.useCallback(() => {
+    toggleThreadSearch()
+  }, [toggleThreadSearch])
 
-  private hotKeys = ['mod+f']
-  private onHotKey = () => {
-    this.props.onToggleThreadSearch()
-  }
-
-  render() {
-    return (
-      <div className="conversation" style={styles.container} onPaste={this.onPaste}>
-        <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKey} />
-        <Kb.DragAndDrop
-          onAttach={this.props.onAttach}
-          fullHeight={true}
-          fullWidth={true}
-          rejectReason={this.props.dragAndDropRejectReason}
-        >
-          {this.props.threadLoadedOffline && <Offline />}
-          <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
-            <ListArea
-              onFocusInput={this.props.onFocusInput}
-              requestScrollUpRef={this.props.requestScrollUpRef}
-              requestScrollToBottomRef={this.props.requestScrollToBottomRef}
-              requestScrollDownRef={this.props.requestScrollDownRef}
-            />
-            <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>
-              <ThreadLoadStatus />
-              {!this.props.showThreadSearch && <PinnedMessage />}
-            </Kb.Box2>
-            {this.props.showThreadSearch && <ThreadSearch style={styles.threadSearchStyle} />}
-            <LoadingLine />
+  return (
+    <div className="conversation" style={styles.container} onPaste={onPaste}>
+      <Kb.HotKey hotKeys={hotKeys} onHotKey={onToggleThreadSearch} />
+      <Kb.DragAndDrop
+        onAttach={cannotWrite ? undefined : onAttach}
+        fullHeight={true}
+        fullWidth={true}
+        rejectReason={dragAndDropRejectReason}
+      >
+        {threadLoadedOffline && <Offline />}
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
+          <ListArea />
+          <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>
+            <ThreadLoadStatus />
+            {!showThreadSearch && <PinnedMessage />}
           </Kb.Box2>
-          <InvitationToBlock />
-          <Banner />
-          <InputArea
-            focusInputCounter={this.props.focusInputCounter}
-            jumpToRecent={this.props.jumpToRecent}
-            onRequestScrollDown={this.props.onRequestScrollDown}
-            onRequestScrollToBottom={this.props.onRequestScrollToBottom}
-            onRequestScrollUp={this.props.onRequestScrollUp}
-          />
-        </Kb.DragAndDrop>
-      </div>
-    )
-  }
-}
+          {showThreadSearch && <ThreadSearch style={styles.threadSearchStyle} />}
+          <LoadingLine />
+        </Kb.Box2>
+        <InvitationToBlock />
+        <Banner />
+        <InputArea />
+      </Kb.DragAndDrop>
+    </div>
+  )
+})
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

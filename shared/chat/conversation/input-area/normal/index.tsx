@@ -11,14 +11,7 @@ import type * as T from '../../../../constants/types'
 import {indefiniteArticle} from '../../../../util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '../../../../common-adapters/usernames'
-
-type Props = {
-  focusInputCounter: number
-  jumpToRecent: () => void
-  onRequestScrollDown: () => void
-  onRequestScrollToBottom: () => void
-  onRequestScrollUp: () => void
-}
+import {FocusContext, ScrollContext} from '../../normal/context'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -68,10 +61,7 @@ const useHintText = (p: {
   return 'Write a message'
 }
 
-const Input = (p: Props) => {
-  const {jumpToRecent, focusInputCounter} = p
-  const {onRequestScrollDown, onRequestScrollUp, onRequestScrollToBottom} = p
-
+const Input = () => {
   const showGiphySearch = C.useChatContext(s => s.giphyWindow)
   const showCommandMarkdown = C.useChatContext(s => !!s.commandMarkdown)
   const showCommandStatus = C.useChatContext(s => !!s.commandStatus)
@@ -82,30 +72,14 @@ const Input = (p: Props) => {
       {/*TODO move this into suggestors*/ showCommandMarkdown && <CommandMarkdown />}
       {showCommandStatus && <CommandStatus />}
       {showGiphySearch && <Giphy />}
-      <ConnectedPlatformInput
-        jumpToRecent={jumpToRecent}
-        focusInputCounter={focusInputCounter}
-        onRequestScrollDown={onRequestScrollDown}
-        onRequestScrollUp={onRequestScrollUp}
-        onRequestScrollToBottom={onRequestScrollToBottom}
-      />
+      <ConnectedPlatformInput />
     </Kb.Box2>
   )
 }
 
-const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
-  p: Pick<
-    Props,
-    | 'jumpToRecent'
-    | 'focusInputCounter'
-    | 'onRequestScrollDown'
-    | 'onRequestScrollUp'
-    | 'onRequestScrollToBottom'
-  >
-) {
+const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
   const conversationIDKey = C.useChatContext(s => s.id)
-  const {focusInputCounter, onRequestScrollToBottom} = p
-  const {onRequestScrollDown, onRequestScrollUp, jumpToRecent} = p
+  const jumpToRecent = C.useChatContext(s => s.dispatch.jumpToRecent)
   const isTyping = C.useChatContext(s => s.typing.size > 0)
   const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
   const suggestBotCommandsUpdateStatus = C.useChatContext(s => s.botCommandsUpdateStatus)
@@ -161,6 +135,9 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
 
   const messageSend = C.useChatContext(s => s.dispatch.messageSend)
   const messageEdit = C.useChatContext(s => s.dispatch.messageEdit)
+
+  const {scrollToBottom} = React.useContext(ScrollContext)
+
   const onSubmit = React.useCallback(
     (text: string) => {
       if (!text) return
@@ -177,17 +154,22 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
 
       const containsLatestMessage = cs.isCaughtUp()
       if (containsLatestMessage) {
-        onRequestScrollToBottom()
+        scrollToBottom()
       } else {
         jumpToRecent()
       }
     },
-    [messageEdit, injectText, messageSend, conversationIDKey, onRequestScrollToBottom, jumpToRecent, replyTo]
+    [messageEdit, injectText, messageSend, conversationIDKey, scrollToBottom, jumpToRecent, replyTo]
   )
 
   Container.useDepChangeEffect(() => {
     inputRef.current?.focus()
-  }, [inputRef, focusInputCounter, isEditing])
+  }, [inputRef, isEditing])
+
+  const {inputRef: inputRefContext} = React.useContext(FocusContext)
+  React.useEffect(() => {
+    inputRefContext.current = inputRef.current
+  }, [inputRefContext])
 
   const setEditing = C.useChatContext(s => s.dispatch.setEditing)
   const onCancelEditing = React.useCallback(() => {
@@ -257,8 +239,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
       isEditing={isEditing}
       isExploding={isExploding}
       minWriterRole={minWriterRole}
-      onRequestScrollDown={onRequestScrollDown}
-      onRequestScrollUp={onRequestScrollUp}
       showReplyPreview={!!replyTo}
       showTypingStatus={showTypingStatus}
     />
