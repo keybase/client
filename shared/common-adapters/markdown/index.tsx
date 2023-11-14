@@ -408,6 +408,12 @@ const isAllEmoji = (ast: Array<SimpleMarkdown.SingleASTNode>) => {
 }
 
 const tooLong = 10000
+const fastMDReg = /[*_`@#]/
+
+const useParser = (s: string) => {
+  if (s.length < tooLong) return true
+  return s.search(fastMDReg) !== -1
+}
 
 class SimpleMarkdownComponent extends React.PureComponent<MarkdownProps, {hasError: boolean}> {
   state = {hasError: false}
@@ -445,11 +451,11 @@ class SimpleMarkdownComponent extends React.PureComponent<MarkdownProps, {hasErr
         messageType: this.props.messageType,
       }
 
-      const useNoParser = (this.props.children?.length ?? 0) > tooLong
+      const parse = useParser(this.props.children ?? '')
 
-      parseTree = useNoParser
-        ? noMarkdownParser(this.props.children + '\n', options)
-        : simpleMarkdownParser((this.props.children || '').trim() + '\n', options)
+      parseTree = parse
+        ? simpleMarkdownParser((this.props.children || '').trim() + '\n', options)
+        : noMarkdownParser(this.props.children + '\n', options)
 
       const state = {
         allowFontScaling,
@@ -462,10 +468,10 @@ class SimpleMarkdownComponent extends React.PureComponent<MarkdownProps, {hasErr
       output = this.props.serviceOnly
         ? serviceOnlyOutput(parseTree, state)
         : this.props.preview
-        ? previewOutput(parseTree, state)
-        : !this.props.smallStandaloneEmoji && isAllEmoji(parseTree)
-        ? bigEmojiOutput(parseTree, state)
-        : reactOutput(parseTree, state)
+          ? previewOutput(parseTree, state)
+          : !this.props.smallStandaloneEmoji && isAllEmoji(parseTree)
+            ? bigEmojiOutput(parseTree, state)
+            : reactOutput(parseTree, state)
     } catch (e) {
       logger.error('Error parsing markdown')
       logger.debug('Error parsing markdown', e)
