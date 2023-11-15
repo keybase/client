@@ -7,20 +7,9 @@ import path from 'path'
 import webpack from 'webpack'
 import rootConfig from './webpack.config.babel'
 import {readdir} from 'node:fs/promises'
+import {electronChecksums} from './electron-sums'
 
 const TEMP_SKIP_BUILD: boolean = false
-
-// To get the hashes download the SHASUMS.txt file and run ./extract-electron-shasums.sh
-
-// prettier-ignore
-const electronChecksums = {
-  ['electron-v27.0.3-darwin-arm64.zip']: 'a6f536ef69b73c7088e368e581ec0d3979fe1ba8f7e321f4a5d16b6c6aba294e',
-  ['electron-v27.0.3-darwin-x64.zip']: '1cdd1ff09d2bed11ac910ec2be6b4f930010b6404c9f7fa6c5aa47270055ce15',
-  ['electron-v27.0.3-linux-arm64.zip']: 'f469f606211e5783c50bfa0d70aca9783bf3a74e42e76053e1655e8b0ba9e3e6',
-  ['electron-v27.0.3-linux-x64.zip']: '10919cce3ffb05089e61268629e5160028d40910a7fb9abb93ce3513804297a9',
-  ['electron-v27.0.3-win32-x64.zip']: '8d61deaa158cc2eba43a92e70fcd31a6a519ab740572b0c6feebec99a4c250d1',
-  ['hunspell_dictionaries.zip']: '48a682e6c66f35d34e004b5968e7288dc21842909c9d0a8bb7b3827db35aabea',
-}
 
 // absolute path relative to this script
 const desktopPath = (...args: Array<string>) => path.join(__dirname, ...args)
