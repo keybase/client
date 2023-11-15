@@ -127,15 +127,15 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
   const url = ownProps.imageOverrideUrl
     ? `url("${encodeURI(ownProps.imageOverrideUrl)}")`
     : httpSrv.address && name
-    ? urlsToImgSet(urlMap, ownProps.size)
-    : iconTypeToImgSet(
-        isTeam
-          ? teamPlaceHolders
-          : ownProps.lighterPlaceholders
-          ? avatarLighterPlaceHolders
-          : avatarPlaceHolders,
-        ownProps.size
-      )
+      ? urlsToImgSet(urlMap, ownProps.size)
+      : iconTypeToImgSet(
+          isTeam
+            ? teamPlaceHolders
+            : ownProps.lighterPlaceholders
+              ? avatarLighterPlaceHolders
+              : avatarPlaceHolders,
+          ownProps.size
+        )
   const iconInfo = followIconHelper(ownProps.size, followsYou, following)
 
   return (
@@ -205,7 +205,3 @@ const mockOwnToViewProps = (
 
 export default React.memo(ConnectedAvatar)
 export {mockOwnToViewProps}
-
-export function castPlatformStyles(styles: any) {
-  return styles
-}

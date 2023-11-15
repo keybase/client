@@ -213,10 +213,6 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
   return imgSet.length ? imgSet : null
 }
 
-export function castPlatformStyles(styles: any) {
-  return Shared.castPlatformStyles(styles)
-}
-
 const styles = Styles.styleSheetCreate(() => ({
   fixOverdraw: {
     backgroundColor: Styles.globalColors.fastBlank,

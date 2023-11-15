@@ -159,7 +159,7 @@ const FlameFront = (props: {height: number; stop: boolean}) => {
   )
 }
 
-const explodedIllustrationUrl = (): string =>
+const explodedIllustrationUrl = () =>
   Kb.Styles.isDarkMode()
     ? urlsToImgSet({'68': getAssetPath('images', 'icons', 'dark-pattern-ashes-desktop-400-68.png')}, 68)
     : urlsToImgSet({'68': getAssetPath('images', 'icons', 'pattern-ashes-desktop-400-68.png')}, 68)
@@ -170,7 +170,7 @@ const styles = Kb.Styles.styleSheetCreate(
       ashBox: Kb.Styles.platformStyles({
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.white, // exploded messages don't have hover effects and we need to cover the message
-          backgroundImage: explodedIllustrationUrl(),
+          backgroundImage: explodedIllustrationUrl() ?? undefined,
           backgroundRepeat: 'repeat',
           backgroundSize: '400px 68px',
           bottom: 0,

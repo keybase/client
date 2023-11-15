@@ -6,7 +6,7 @@ class RPCError {
   stack: string
 
   code: number // Consult type StatusCode in rpc-gen.js for what this means
-  fields: any
+  fields: unknown
   desc: string
   details: string // Details w/ error code & method if it's present
 

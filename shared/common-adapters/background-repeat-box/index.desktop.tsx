@@ -9,18 +9,21 @@ const BackgroundRepeatBox = (props: Props) => {
   let patternUrl = ''
   if (!props.skipBackground) {
     pattern = getAssetPath(`../images/icons/${props.imageName}`)
-    patternUrl = urlsToImgSet({[props.imageHeight]: pattern}, props.imageHeight)
+    patternUrl = urlsToImgSet({[props.imageHeight]: pattern}, props.imageHeight) ?? ''
   }
   return (
     <Box
       style={Styles.collapseStyles([
         !props.skipBackground && styles.backgroundRepeat,
-        !props.skipBackground && {
-          backgroundImage: patternUrl,
-          backgroundSize: `${props.imageWidth}px ${props.imageHeight}px`,
-        },
+        !props.skipBackground &&
+          Styles.platformStyles({
+            isElectron: {
+              backgroundImage: patternUrl,
+              backgroundSize: `${props.imageWidth}px ${props.imageHeight}px`,
+            },
+          }),
         props.style,
-      ] as any)}
+      ])}
     >
       {props.children}
     </Box>

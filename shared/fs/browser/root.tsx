@@ -34,7 +34,7 @@ const rootRows = [
 
 const getRenderItem =
   (destinationPickerIndex?: number) =>
-  ({item, section}: any) =>
+  ({item, section}: {item: {name: T.FS.TlfType; tlfType: T.FS.TlfType}; section: {key: string}}) =>
     section.key === 'section-top' ? (
       <WrapRow>
         <TlfType name={item.name} destinationPickerIndex={destinationPickerIndex} />
@@ -51,7 +51,7 @@ const getRenderItem =
       </WrapRow>
     )
 
-const renderSectionHeader = ({section}: any) =>
+const renderSectionHeader = ({section}: {section: {key: string; title: string}}) =>
   section.key === 'banner-sfmi' ? <SfmiBanner /> : <Kb.SectionDivider label={section.title} />
 
 const useTopNTlfs = (
@@ -127,7 +127,7 @@ const Root = ({destinationPickerIndex}: Props) => {
     <Kb.BoxGrow>
       <Kb.SectionList
         sections={sections}
-        renderItem={renderItem}
+        renderItem={renderItem as any}
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={false}
       />

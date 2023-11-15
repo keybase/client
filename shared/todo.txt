@@ -1,3 +1,4 @@
 Some short term todos:
 swipeable2 slow
 check regex changes
+sectionlist typing

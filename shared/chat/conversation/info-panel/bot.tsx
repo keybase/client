@@ -288,7 +288,7 @@ const BotTab = (props: Props) => {
         }
         return item.botUsername ? 'abot-' + item.botUsername : index
       },
-      renderItem: ({item}: any) => {
+      renderItem: ({item}: {item: unknown}) => {
         if (item === addBotButton) {
           return (
             <Kb.Button
@@ -335,17 +335,24 @@ const BotTab = (props: Props) => {
             />
           )
         }
-        if (!item.botUsername) {
+
+        const i = item as {
+          botUsername: string
+          index: number
+          description?: string
+          hideHover?: boolean
+        } & T.RPCGen.FeaturedBot
+        if (!i.botUsername) {
           return null
         } else {
           return (
             <Bot
-              {...item}
+              {...i}
               conversationIDKey={conversationIDKey}
-              firstItem={item.index === 0}
+              firstItem={i.index === 0}
               onClick={onBotSelect}
-              showChannelAdd={canManageBots && teamType === 'big' && botsInTeam.includes(item.botUsername)}
-              showTeamAdd={canManageBots && featuredBots.find(bot => bot.botUsername === item.botUsername)}
+              showChannelAdd={canManageBots && teamType === 'big' && botsInTeam.includes(i.botUsername)}
+              showTeamAdd={canManageBots && !!featuredBots.find(bot => bot.botUsername === i.botUsername)}
             />
           )
         }
