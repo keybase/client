@@ -326,10 +326,10 @@ const InstallBotPopup = (props: Props) => {
   const content = channelPickerScreen
     ? channelPickerContent
     : installScreen
-    ? installContent
-    : featured
-    ? featuredContent
-    : usernameContent
+      ? installContent
+      : featured
+        ? featuredContent
+        : usernameContent
   const getHeight = () => {
     if (channelPickerScreen) {
       return 440
@@ -511,7 +511,7 @@ const CommandsLabel = (props: CommandsLabelProps) => {
     inner = props.commands.commands.map((c: string, i: number) => {
       if (!expanded && i >= maxCommandsShown) {
         return i === maxCommandsShown ? (
-          <Kb.Text type="Body">
+          <Kb.Text key={i} type="Body">
             {'• and '}
             <Kb.Text
               type="BodyPrimaryLink"

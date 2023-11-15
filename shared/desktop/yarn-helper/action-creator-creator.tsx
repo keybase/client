@@ -24,9 +24,9 @@ const payloadHasType = (payload: ActionDesc | undefined, toFind: RegExp) => {
     ? Object.keys(payload).some(param => {
         const ps = payload[param]
         if (Array.isArray(ps)) {
-          return ps.some(p => toFind.exec(p))
+          return ps.some(p => toFind.test(p))
         } else {
-          return toFind.exec(ps ?? '')
+          return toFind.test(ps ?? '')
         }
       })
     : false

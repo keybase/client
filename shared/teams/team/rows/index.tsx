@@ -21,7 +21,11 @@ type SectionExtras = {
 }
 export type Section = _Section<any, SectionExtras>
 
-const makeSingleRow = (key: string, renderItem: () => React.ReactNode) => ({data: ['row'], key, renderItem})
+const makeSingleRow = (key: string, renderItem: () => React.ReactNode) => ({
+  data: ['row'] as const,
+  key,
+  renderItem,
+})
 
 export const useMembersSections = (
   teamID: T.Teams.TeamID,
@@ -147,8 +151,8 @@ export const useChannelsSections = (
         a.channelname === 'general'
           ? -1
           : b.channelname === 'general'
-          ? 1
-          : a.channelname.localeCompare(b.channelname)
+            ? 1
+            : a.channelname.localeCompare(b.channelname)
       ),
       key: 'channel-channels',
       renderItem: ({item}) => <ChannelRow teamID={teamID} conversationIDKey={item.conversationIDKey} />,

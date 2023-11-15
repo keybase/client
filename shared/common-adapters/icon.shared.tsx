@@ -135,10 +135,6 @@ export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): 
   return multsMap
 }
 
-export function castPlatformStyles(styles: any) {
-  return styles
-}
-
 function makePaddingStyles(): PaddingStyles {
   type Keys = keyof typeof Styles.globalMargins
   const keys = Object.keys(Styles.globalMargins) as any as Array<Keys>

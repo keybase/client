@@ -129,7 +129,7 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
   }
   // try the incoming s
   if (s?.type === 'stack') {
-    const idx = s.routes?.findIndex(r => r.name === name) ?? -1
+    const idx = s.routes?.findIndex((r: {name: string}) => r.name === name) ?? -1
     // found
     if (idx !== -1 && s.routes) {
       s.index = idx
@@ -171,7 +171,7 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
     if (!loggedInTabs) {
       return
     }
-    const chatTabIdx = loggedInTabs.findIndex(r => r.name === Tabs.chatTab)
+    const chatTabIdx = loggedInTabs.findIndex((r: {name: string}) => r.name === Tabs.chatTab)
     const chatStack = loggedInTabs[chatTabIdx]
 
     if (!chatStack) {
@@ -317,7 +317,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         routeName = path
       } else {
         routeName = path.selected
-        params = path.props as object
+        params = path.props
       }
       if (!routeName) {
         return

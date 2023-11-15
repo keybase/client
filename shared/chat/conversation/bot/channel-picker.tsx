@@ -27,7 +27,7 @@ const getChannels = memoize(
         return (
           // match channel name for search as subsequence (like the identity modal)
           // match channel desc by strict substring (less noise in results)
-          channelname.match(matcher) || description.match(regex)
+          channelname.search(matcher) !== -1 || description.search(regex) !== -1
         )
       })
       .sort((a, b) => a.channelname.localeCompare(b.channelname))

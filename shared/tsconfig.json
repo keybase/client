@@ -38,7 +38,7 @@
     "tsBuildInfoFile": "./.tsOuts/.tsOut/cache",
     "typeRoots": ["./node_modules/@types/"]
   },
-  "include": ["./**/*"],
+  "include": ["./**/*.ts", "./**/*.tsx"],
   "exclude": ["./node_modules", "./desktop/dist", "./desktop/build"],
   "watchOptions": {
     "watchFile": "useFsEvents",

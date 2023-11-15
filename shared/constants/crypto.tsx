@@ -137,29 +137,37 @@ const getStatusCodeMessage = (
     wrongTypeHelpText = ` Did you mean to verify it?` // just a guess.
   }
 
-  const causeStatusCode =
-    error.fields && error.fields[1].key === 'Code' ? error.fields[1].value : T.RPCGen.StatusCode.scgeneric
-  const causeStatusCodeToMessage: any = {
-    [T.RPCGen.StatusCode.scapinetworkerror]: offlineMessage,
-    [T.RPCGen.StatusCode
-      .scdecryptionkeynotfound]: `This message was encrypted for someone else or for a key you don't have.`,
-    [T.RPCGen.StatusCode
-      .scverificationkeynotfound]: `This message couldn't be verified, because the signing key wasn't recognized.`,
-    [T.RPCGen.StatusCode.scwrongcryptomsgtype]: `This Saltpack format is unexpected.` + wrongTypeHelpText,
-  } as const
+  const fields = error.fields as Array<{key: string; value: T.RPCGen.StatusCode}> | undefined
+  const field = fields?.[1]
+  const causeStatusCode = field?.key === 'Code' ? field.value : T.RPCGen.StatusCode.scgeneric
+  const causeStatusCodeToMessage = new Map([
+    [T.RPCGen.StatusCode.scapinetworkerror, offlineMessage],
+    [
+      T.RPCGen.StatusCode.scdecryptionkeynotfound,
+      `This message was encrypted for someone else or for a key you don't have.`,
+    ],
+    [
+      T.RPCGen.StatusCode.scverificationkeynotfound,
+      `This message couldn't be verified, because the signing key wasn't recognized.`,
+    ],
+    [T.RPCGen.StatusCode.scwrongcryptomsgtype, `This Saltpack format is unexpected.` + wrongTypeHelpText],
+  ])
 
-  const statusCodeToMessage: any = {
-    [T.RPCGen.StatusCode.scapinetworkerror]: offlineMessage,
-    [T.RPCGen.StatusCode.scgeneric]: `${
-      error.message.includes('API network error') ? offlineMessage : genericMessage
-    }`,
-    [T.RPCGen.StatusCode
-      .scstreamunknown]: `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`,
-    [T.RPCGen.StatusCode.scsigcannotverify]: causeStatusCodeToMessage[causeStatusCode] || genericMessage,
-    [T.RPCGen.StatusCode.scdecryptionerror]: causeStatusCodeToMessage[causeStatusCode] || genericMessage,
-  } as const
+  const statusCodeToMessage = new Map([
+    [T.RPCGen.StatusCode.scapinetworkerror, offlineMessage],
+    [
+      T.RPCGen.StatusCode.scgeneric,
+      `${error.message.includes('API network error') ? offlineMessage : genericMessage}`,
+    ],
+    [
+      T.RPCGen.StatusCode.scstreamunknown,
+      `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`,
+    ],
+    [T.RPCGen.StatusCode.scsigcannotverify, causeStatusCodeToMessage.get(causeStatusCode) || genericMessage],
+    [T.RPCGen.StatusCode.scdecryptionerror, causeStatusCodeToMessage.get(causeStatusCode) || genericMessage],
+  ])
 
-  return statusCodeToMessage[error.code] || genericMessage
+  return statusCodeToMessage.get(error.code) ?? genericMessage
 }
 
 // State

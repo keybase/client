@@ -180,8 +180,8 @@ const BottomLineImpl = React.memo(function BottomLineImpl(p: IProps) {
   const subColor = isSelected
     ? Kb.Styles.globalColors.white
     : hasUnread
-    ? Kb.Styles.globalColors.black
-    : Kb.Styles.globalColors.black_50
+      ? Kb.Styles.globalColors.black
+      : Kb.Styles.globalColors.black_50
   const showBold = !isSelected && hasUnread
 
   let content: React.ReactNode

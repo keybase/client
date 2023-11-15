@@ -43,8 +43,10 @@ const makeWaitingResponse = (_r?: Partial<CommonResponseHandler>, waitingKey?: W
 async function listener(p: {
   method: string
   params?: Object
-  incomingCallMap?: {[K in string]: any}
-  customResponseIncomingCallMap?: {[K in string]: any}
+  incomingCallMap?: {[K in string]: (params: unknown) => Promise<void>}
+  customResponseIncomingCallMap?: {
+    [K in string]: (params: unknown, response: Partial<CommonResponseHandler>) => Promise<void>
+  }
   waitingKey?: WaitingKey
 }) {
   return new Promise((resolve, reject) => {
@@ -63,8 +65,8 @@ async function listener(p: {
       getEngine().dispatchWaitingAction(waitingKey, true)
     }
 
-    const callMap = bothCallMaps.reduce((map: any, {method, custom}) => {
-      map[method] = (params: any, _response: CommonResponseHandler) => {
+    const callMap = bothCallMaps.reduce((map: {[key: string]: unknown}, {method, custom}) => {
+      map[method] = (params: unknown, _response: CommonResponseHandler) => {
         // No longer waiting on the server
         if (waitingKey) {
           getEngine().dispatchWaitingAction(waitingKey, false)
@@ -106,7 +108,7 @@ async function listener(p: {
     }, {})
 
     // Make the actual call
-    let outstandingIntervalID: any
+    let outstandingIntervalID: ReturnType<typeof setInterval>
     if (printOutstandingRPCs) {
       outstandingIntervalID = setInterval(() => {
         console.log('Engine/Listener with a still-alive eventChannel for method:', method)
@@ -114,7 +116,7 @@ async function listener(p: {
     }
 
     getEngine()._rpcOutgoing({
-      callback: (error?: RPCError, params?: any) => {
+      callback: (error?: RPCError, params?: unknown) => {
         if (printOutstandingRPCs) {
           clearInterval(outstandingIntervalID)
         }

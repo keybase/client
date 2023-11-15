@@ -191,7 +191,7 @@ function iconTypeToSrcSet(type: IconType) {
   return [1, 2, 3].map(mult => imgName(name, ext, imagesDir, mult)).join(', ')
 }
 
-export function iconTypeToImgSet(imgMap: any, targetSize: number): any {
+export function iconTypeToImgSet(imgMap: {[key: string]: IconType}, targetSize: number) {
   const multsMap: any = Shared.getMultsMap(imgMap, targetSize)
   const sets = Object.keys(multsMap)
     .map(mult => {
@@ -206,7 +206,7 @@ export function iconTypeToImgSet(imgMap: any, targetSize: number): any {
   return sets ? `-webkit-image-set(${sets})` : null
 }
 
-export function urlsToImgSet(imgMap: any, targetSize: number): any {
+export function urlsToImgSet(imgMap: {[key: number]: string}, targetSize: number) {
   const multsMap: any = Shared.getMultsMap(imgMap, targetSize)
   const sets = Object.keys(multsMap)
     .map(mult => {
@@ -219,10 +219,6 @@ export function urlsToImgSet(imgMap: any, targetSize: number): any {
     .filter(Boolean)
     .join(', ')
   return sets ? `-webkit-image-set(${sets})` : null
-}
-
-export function castPlatformStyles(styles: any) {
-  return Shared.castPlatformStyles(styles)
 }
 
 const styles = Styles.styleSheetCreate(() => ({
