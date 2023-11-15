@@ -203,8 +203,8 @@ const AppTabs = React.memo(
                 ? styles.labelDarkModeFocused
                 : styles.labelDarkMode
               : focused
-              ? styles.labelLightModeFocused
-              : styles.labelLightMode,
+                ? styles.labelLightModeFocused
+                : styles.labelLightMode,
           ])}
           type="BodyBig"
         >
@@ -316,7 +316,9 @@ const useBarStyle = () => {
 }
 
 const RNApp = React.memo(function RNApp() {
-  const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
+  const s = Shared.useShared()
+  const {loggedInLoaded, loggedIn, appState, onStateChange} = s
+  const {navKey, initialState, onUnhandledAction} = s
   const goodLinking = RouterLinking.useReduxToLinking(appState.current)
   // we only send certain params to the container depending on the state so we can remount w/ the right data
   // instead of using useEffect and flashing all the time
@@ -351,6 +353,7 @@ const RNApp = React.memo(function RNApp() {
         key={String(navKey)}
         theme={Shared.theme}
         initialState={initialState}
+        onUnhandledAction={onUnhandledAction}
         onStateChange={onStateChange}
         onReady={onReady}
       >

@@ -212,7 +212,7 @@ type State = Store & {
     setAndroidShare: (s: Store['androidShare']) => void
     setBadgeState: (b: State['badgeState']) => void
     setDefaultUsername: (u: string) => void
-    setGlobalError: (e?: any) => void
+    setGlobalError: (e?: unknown) => void
     setGregorReachable: (r: Store['gregorReachable']) => void
     setGregorPushState: (state: T.RPCGen.Gregor1.State) => void
     setHTTPSrvInfo: (address: string, token: string) => void
@@ -929,10 +929,12 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       })
     },
     setGlobalError: _e => {
-      let e = _e
       if (_e) {
-        e = convertToError(_e)
-        logger.error('Error (global):', e)
+        const e = convertToError(_e)
+        set(s => {
+          s.globalError = e
+        })
+        logger.error('Error (global):', e.message, e)
         if (isEOFError(e)) {
           Stats.gotEOF()
         }
@@ -940,10 +942,11 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
           logger.info('globalError silencing:', e)
           return
         }
+      } else {
+        set(s => {
+          s.globalError = undefined
+        })
       }
-      set(s => {
-        s.globalError = e
-      })
     },
     setGregorPushState: state => {
       const items = state.items || []

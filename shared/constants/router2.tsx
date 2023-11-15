@@ -28,6 +28,14 @@ export const _getNavigator = () => {
   return navigationRef_.isReady() ? navigationRef_ : undefined
 }
 
+export const logState = () => {
+  const rs = getRootState()
+  const safePaths = (ps: ReturnType<typeof getModalStack>) => ps.map(p => ({key: p.key, name: p.name}))
+  const modals = safePaths(getModalStack(rs))
+  const visible = safePaths(getVisiblePath(rs))
+  return {loggedIn: _isLoggedIn(rs), modals, visible}
+}
+
 export const getRootState = (): NavState | undefined => {
   if (!navigationRef_.isReady()) return
   return navigationRef_.getRootState()
@@ -320,6 +328,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         params = path.props
       }
       if (!routeName) {
+        DEBUG_NAV && console.log('[Nav] navigateAppend no routeName bail', routeName)
         return
       }
       const vp = getVisiblePath(ns)
@@ -339,8 +348,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
       if (replace) {
         if (visible?.name === routeName) {
           n.dispatch(CommonActions.setParams(params as object))
+          return
         } else {
           n.dispatch(StackActions.replace(routeName, params))
+          return
         }
       }
       n.dispatch(StackActions.push(routeName, params))
