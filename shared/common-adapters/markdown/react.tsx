@@ -197,9 +197,13 @@ const reactComponentsForMarkdownType = {
       <Text
         type="Body"
         key={state.key}
-        style={Styles.collapseStyles([markdownStyles.italicStyle, state['styleOverride'].em])}
+        style={Styles.collapseStyles([
+          markdownStyles.italicStyle,
+          state['insideStrong'] && markdownStyles.boldStyle,
+          state['styleOverride'].em,
+        ])}
       >
-        {output(node['content'], state)}
+        {output(node['content'], {...state, insideEM: true})}
       </Text>
     ),
   },
@@ -325,10 +329,14 @@ const reactComponentsForMarkdownType = {
       <Text
         type="BodySemibold"
         key={state.key}
-        style={Styles.collapseStyles([markdownStyles.boldStyle, state['styleOverride'].strong])}
+        style={Styles.collapseStyles([
+          markdownStyles.boldStyle,
+          state['insideEM'] && markdownStyles.italicStyle,
+          state['styleOverride'].strong,
+        ])}
         allowFontScaling={state['allowFontScaling']}
       >
-        {output(node['content'], state)}
+        {output(node['content'], {...state, insideStrong: true})}
       </Text>
     ),
   },

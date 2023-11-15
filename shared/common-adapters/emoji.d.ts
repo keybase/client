@@ -2,7 +2,7 @@ import type * as React from 'react'
 import type {StylesCrossPlatform} from '../styles'
 
 export type Props = {
-  size: number
+  size: 16 | 18 | 32 // number
   emojiName: string
   disableSelecting?: boolean // desktop only - helps with chrome copy/paste bug workarounds
   allowFontScaling?: boolean
