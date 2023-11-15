@@ -144,7 +144,9 @@ const documentTitle = {
   },
 }
 const ElectronApp = () => {
-  const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
+  const s = Shared.useShared()
+  const {loggedInLoaded, loggedIn, appState, onStateChange} = s
+  const {navKey, initialState, onUnhandledAction} = s
   Shared.useSharedAfter(appState)
 
   return (
@@ -154,6 +156,7 @@ const ElectronApp = () => {
       theme={Shared.theme}
       initialState={initialState}
       onStateChange={onStateChange}
+      onUnhandledAction={onUnhandledAction}
       documentTitle={documentTitle}
     >
       <RootStack.Navigator

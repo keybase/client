@@ -1,9 +1,9 @@
 import * as C from '../constants'
-import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
 import * as React from 'react'
+import logger from '../logger'
 import Loading from '../login/loading'
 import type {Theme} from '@react-navigation/native'
 import {colors, darkColors, themed} from '../styles/colors'
@@ -19,13 +19,13 @@ const useConnectNavToRedux = () => {
   const setNavigatorExists = C.useConfigState(s => s.dispatch.setNavigatorExists)
   React.useEffect(() => {
     if (!setNavOnce.current) {
-      if (RouterConstants.navigationRef_.isReady()) {
+      if (C.Router2.navigationRef_.isReady()) {
         setNavOnce.current = true
         setNavigatorExists()
 
         if (__DEV__) {
-          window.DEBUGNavigator = RouterConstants.navigationRef_.current
-          window.DEBUGRouter2 = RouterConstants
+          window.DEBUGNavigator = C.Router2.navigationRef_.current
+          window.DEBUGRouter2 = C.Router2
           window.KBCONSTANTS = require('../constants')
         }
       }
@@ -69,8 +69,8 @@ const useIsDarkChanged = () => {
 const useInitialState = () => {
   const darkChanged = useIsDarkChanged()
   return darkChanged
-    ? RouterConstants.navigationRef_.isReady()
-      ? RouterConstants.navigationRef_.getRootState()
+    ? C.Router2.navigationRef_.isReady()
+      ? C.Router2.navigationRef_.getRootState()
       : undefined
     : undefined
 }
@@ -91,12 +91,26 @@ export const useShared = () => {
 
   const setNavState = C.useRouterState(s => s.dispatch.setNavState)
   const onStateChange = React.useCallback(() => {
-    const ns = RouterConstants.getRootState()
+    const ns = C.Router2.getRootState()
     setNavState(ns)
   }, [setNavState])
 
   const navKey = useNavKey(appState.current, navContainerKey)
   const initialState = useInitialState()
+
+  const onUnhandledAction = React.useCallback(
+    (
+      a: Readonly<{
+        type: string
+        payload?: object | undefined
+        source?: string | undefined
+        target?: string | undefined
+      }>
+    ) => {
+      logger.info(`[NAV] Unhandled action: ${a.type}`, a, C.Router2.logState())
+    },
+    []
+  )
   return {
     appState,
     initialState,
@@ -104,6 +118,7 @@ export const useShared = () => {
     loggedInLoaded,
     navKey,
     onStateChange,
+    onUnhandledAction,
   }
 }
 
