@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type {RefreshControlProps} from 'react-native'
+import type {RefreshControlProps, GestureResponderEvent} from 'react-native'
 import type {StylesCrossPlatform} from '../styles'
 
 export type Props = {
@@ -40,6 +40,8 @@ export type Props = {
   horizontal?: boolean
   snapToInterval?: number
   refreshControl?: React.ReactElement<RefreshControlProps>
+  onTouchStart?: (e: GestureResponderEvent) => void
+  onTouchEnd?: (e: GestureResponderEvent) => void
 }
 
 export default class ScrollView extends React.Component<Props> {

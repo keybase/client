@@ -19,50 +19,32 @@ const ZoomableImage = (p: Props) => {
   const onZoom = onChanged
   const [boxW, setBoxW] = React.useState(0)
   const [boxH, setBoxH] = React.useState(0)
-  // const [imgW, setImgW] = React.useState(0)
-  // const [imgH, setImgH] = React.useState(0)
-  // const [zoomScale, setZoomScale] = React.useState(0)
-
-  // const updateZoomScale = React.useCallback(() => {
-  //   if (zoomScale === 0 && boxW !== 0 && boxH !== 0 && imgW !== 0 && imgH !== 0) {
-  //     console.log('aaa updating zoomscale', {
-  //       boxW,
-  //       boxH,
-  //       imgW,
-  //       imgH,
-  //       scale: Math.min(boxW / imgW, boxH / imgH),
-  //     })
-  //     setZoomScale(Math.min(boxW / imgW, boxH / imgH))
-  //   }
-  // }, [boxW, boxH, imgH, imgW, zoomScale])
-  //
+  const [loading, setLoading] = React.useState(true)
+  const [lastSrc, setLastSrc] = React.useState(src)
   const onLoad = React.useCallback(
     (e: {source?: {width: number; height: number}}) => {
       if (!e.source) return
+      setLoading(false)
       onLoaded?.()
-      // const {height, width} = e.source
-      // setImgW(width)
-      // setImgH(height)
-      // updateZoomScale()
     },
-    [onLoaded /*, updateZoomScale*/]
+    [onLoaded]
   )
 
-  const boxOnLayout = React.useCallback(
-    (e: Partial<LayoutChangeEvent>) => {
-      if (!e.nativeEvent) return
-      const {width, height} = e.nativeEvent.layout
-      setBoxW(width)
-      setBoxH(height)
-      // updateZoomScale()
-    },
-    [
-      /*updateZoomScale*/
-    ]
-  )
+  if (lastSrc !== src) {
+    setLastSrc(src)
+    setLoading(true)
+  }
+
+  const boxOnLayout = React.useCallback((e: Partial<LayoutChangeEvent>) => {
+    if (!e.nativeEvent) return
+    const {width, height} = e.nativeEvent.layout
+    setBoxW(width)
+    setBoxH(height)
+  }, [])
 
   // in order for the images to not get downscaled we have to make it larger and then transform it
   const manualScale = 5
+
   return (
     <Kb.ZoomableBox
       onLayout={boxOnLayout}
@@ -84,14 +66,14 @@ const ZoomableImage = (p: Props) => {
           src={src}
           style={styles.image}
           onLoad={onLoad}
-          showLoadingStateUntilLoaded={true}
+          showLoadingStateUntilLoaded={false}
         />
-        {/*show ? null : (
-          <Kb.Box2 direction="vertical" style={styles.progress}>
-            <Kb.ProgressIndicator white={true} />
-          </Kb.Box2>
-        )*/}
       </Kb.Box2>
+      {loading ? (
+        <Kb.Box2 direction="vertical" style={styles.progress}>
+          <Kb.ProgressIndicator white={true} />
+        </Kb.Box2>
+      ) : null}
     </Kb.ZoomableBox>
   )
 }
@@ -114,7 +96,8 @@ const styles = Styles.styleSheetCreate(
       },
       progress: {
         position: 'absolute',
-        top: 0,
+        top: '50%',
+        left: '50%',
       },
       zoomableBoxContainerAndroid: {
         flex: 1,

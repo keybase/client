@@ -7,6 +7,7 @@ const Image2 = (p: Props) => {
   const {showLoadingStateUntilLoaded, src, onLoad, onError, style, contentFit = 'contain'} = p
   // if we don't have showLoadingStateUntilLoaded then just mark as loaded and ignore this state
   const [loading, setLoading] = React.useState(!showLoadingStateUntilLoaded)
+  const [lastSrc, setLastSrc] = React.useState(src)
   const _onLoad = React.useCallback(
     (e: ImageLoadEventData) => {
       setLoading(false)
@@ -14,6 +15,11 @@ const Image2 = (p: Props) => {
     },
     [onLoad]
   )
+
+  if (lastSrc !== src) {
+    setLastSrc(src)
+    setLoading(true)
+  }
 
   const _onError = React.useCallback(
     (e: unknown) => {
@@ -26,16 +32,7 @@ const Image2 = (p: Props) => {
 
   return (
     <>
-      <Image
-        source={src}
-        style={
-          // eslint-disable-next-line
-          style as any
-        }
-        onLoad={_onLoad}
-        contentFit={contentFit}
-        onError={_onError}
-      />
+      <Image source={src} style={style as any} onLoad={_onLoad} contentFit={contentFit} onError={_onError} />
       {showLoadingStateUntilLoaded && loading ? <LoadingStateView loading={loading} /> : null}
     </>
   )
