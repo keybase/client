@@ -490,7 +490,6 @@ const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: M
   const inner = (() => {
     switch (true) {
       case serviceOnlyNoWrap:
-        console.log('aaaaaa serivcenowrapraw', output)
         return output
       case serviceOnly:
         return (
