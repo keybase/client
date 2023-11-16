@@ -27,3 +27,7 @@
     right: -1px;
   }
 }
+
+.scroll-ignore-pointer {
+  pointer-events: none;
+}

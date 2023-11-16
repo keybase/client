@@ -1,8 +1,17 @@
 import * as React from 'react'
+import type * as Styles from '../styles'
+import {isAndroid} from '../constants/platform'
 import {emojiIndexByName} from './markdown/emoji-gen'
 import Text from './text'
 
 import type {Props} from './emoji'
+
+const familyOverride = isAndroid ? {fontFamily: ''} : {}
+
+const sizes = [16, 18, 22, 24, 26, 28, 32, 36] as const
+const sizeStyle = new Map<(typeof sizes)[number], Styles.StylesCrossPlatform>(
+  sizes.map(size => [size, {fontSize: size - 2, lineHeight: undefined, ...familyOverride}])
+)
 
 const EmojiWrapper = React.memo(function EmojiWrapper(props: Props) {
   const {emojiName, size} = props
@@ -10,7 +19,7 @@ const EmojiWrapper = React.memo(function EmojiWrapper(props: Props) {
   return (
     <Text
       type="Body"
-      style={[{fontSize: size ? size - 2 : undefined, lineHeight: undefined}, props.style as any]} // Mobile emoji need to be smaller with Proxima Nova
+      style={[sizeStyle.get(size), props.style as any]} // Mobile emoji need to be smaller with Proxima Nova
       allowFontScaling={props.allowFontScaling}
     >
       {!!emojiIndexByName[emojiName] && emojiIndexByName[emojiName] + emojiVariantSuffix}

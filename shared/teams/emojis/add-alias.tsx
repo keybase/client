@@ -211,8 +211,7 @@ const SelectedEmoji = (props: SelectedEmojiProps) => {
 }
 
 const emojiWidthWithPadding = Kb.Styles.isMobile ? 40 : 32
-const emojiPadding = 4
-const singleEmojiWidth = emojiWidthWithPadding - 2 * emojiPadding
+const singleEmojiWidth = Kb.Styles.isMobile ? (24 as const) : (16 as const)
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: Kb.Styles.platformStyles({

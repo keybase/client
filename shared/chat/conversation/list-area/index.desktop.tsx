@@ -237,37 +237,29 @@ const useScrolling = (p: {
       })
   }, [listRef, adjustScrollAndIgnoreOnScroll, checkForLoadMoreThrottled])
 
-  // After lets turn them back on
-  const onAfterScroll = C.useDebouncedCallback(
-    React.useCallback(() => {
-      if (isScrollingRef.current) {
-        isScrollingRef.current = false
-        if (pointerWrapperRef.current) {
-          pointerWrapperRef.current.style.pointerEvents = 'initial'
-        }
-      }
-
-      const list = listRef.current
-      // are we locked on the bottom?
-      if (list) {
-        lockedToBottomRef.current =
-          list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlopBottom
-      }
-    }, [listRef]),
-    200
-  )
-
   // While scrolling we disable mouse events to speed things up. We avoid state so we don't re-render while doing this
-  const onScrollThrottled = C.useThrottledCallback(
+  const onScrollThrottled = C.useDebouncedCallback(
     React.useCallback(() => {
+      // starting a scroll
       if (!isScrollingRef.current) {
         isScrollingRef.current = true
         if (pointerWrapperRef.current) {
-          pointerWrapperRef.current.style.pointerEvents = 'none'
+          pointerWrapperRef.current.classList.add('scroll-ignore-pointer')
+        }
+      } else {
+        isScrollingRef.current = false
+        if (pointerWrapperRef.current) {
+          pointerWrapperRef.current.classList.remove('scroll-ignore-pointer')
+        }
+
+        const list = listRef.current
+        // are we locked on the bottom?
+        if (list) {
+          lockedToBottomRef.current =
+            list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlopBottom
         }
       }
-      onAfterScroll()
-    }, [onAfterScroll]),
+    }, [listRef]),
     100,
     {leading: true, trailing: true}
   )
@@ -302,9 +294,8 @@ const useScrolling = (p: {
   )
 
   const cleanupDebounced = React.useCallback(() => {
-    onAfterScroll.cancel()
     onScrollThrottled.cancel()
-  }, [onAfterScroll, onScrollThrottled])
+  }, [onScrollThrottled])
 
   React.useEffect(() => {
     return () => {

@@ -6,10 +6,18 @@ import logger from '../../logger'
 import type {Props as MarkdownProps} from '.'
 import Emoji, {type Props as EmojiProps} from '../emoji'
 import {emojiIndexByName, emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
-import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles, serviceOnlyOutput} from './react'
+import {
+  reactOutput,
+  previewOutput,
+  bigEmojiOutput,
+  markdownStyles,
+  serviceOnlyOutput,
+  serviceOnlyNoWrapOutput,
+} from './react'
 import type * as T from '../../constants/types'
 import type {StylesTextCrossPlatform, LineClampType} from '../../common-adapters/text'
 import isArray from 'lodash/isArray'
+import {ErrorBoundary} from 'react-error-boundary'
 
 type MarkdownComponentType =
   | 'inline-code'
@@ -61,6 +69,8 @@ export type Props = {
   paragraphTextClassName?: string
   preview?: boolean // if true render a simplified version
   serviceOnly?: boolean // only render stuff from the service
+  serviceOnlyNoWrap?: boolean // only render stuff from the service, no wrapper
+  disallowAnimation?: boolean // only if serviceOnly
 
   // Style only styles the top level container.
   // This is only useful in desktop because of cascading styles and there is a top level wrapper.
@@ -410,123 +420,118 @@ const isAllEmoji = (ast: Array<SimpleMarkdown.SingleASTNode>) => {
 const tooLong = 10000
 const fastMDReg = /[*_`@#]/
 
-const useParser = (s: string) => {
+const shouldUseParser = (s: string) => {
   if (s.length < tooLong) return true
   return s.search(fastMDReg) !== -1
 }
 
-class SimpleMarkdownComponent extends React.PureComponent<MarkdownProps, {hasError: boolean}> {
-  state = {hasError: false}
-
-  static getDerivedStateFromError() {
-    // Update state so the next render will show the fallback UI.
-    return {hasError: true}
-  }
-
-  componentDidCatch(error: Error) {
-    logger.error('Error rendering markdown')
-    logger.debug('Error rendering markdown', error)
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <Text
-          type="Body"
-          style={Styles.collapseStyles([styles.rootWrapper, markdownStyles.wrapStyle] as const)}
-        >
-          {this.props.children || ''}
-        </Text>
-      )
-    }
-    const {allowFontScaling, styleOverride = {}, paragraphTextClassName} = this.props
-    let parseTree: Array<SimpleMarkdown.SingleASTNode>
-    let output: React.ReactNode
-    try {
-      const options = {
-        // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't
-        // So we add our own new line
-        disableAutoBlockNewlines: true,
-        inline: false,
-        messageType: this.props.messageType,
-      }
-
-      const parse = useParser(this.props.children ?? '')
-
-      parseTree = parse
-        ? simpleMarkdownParser((this.props.children || '').trim() + '\n', options)
-        : noMarkdownParser(this.props.children + '\n', options)
-
-      const state = {
-        allowFontScaling,
-        messageType: this.props.messageType,
-        paragraphTextClassName,
-        styleOverride,
-        virtualText: this.props.virtualText,
-      }
-
-      output = this.props.serviceOnly
-        ? serviceOnlyOutput(parseTree, state)
-        : this.props.preview
-          ? previewOutput(parseTree, state)
-          : !this.props.smallStandaloneEmoji && isAllEmoji(parseTree)
-            ? bigEmojiOutput(parseTree, state)
-            : reactOutput(parseTree, state)
-    } catch (e) {
-      logger.error('Error parsing markdown')
-      logger.debug('Error parsing markdown', e)
-      return (
-        <Text
-          type="Body"
-          style={Styles.collapseStyles([styles.rootWrapper, markdownStyles.wrapStyle] as const)}
-        >
-          {this.props.children || ''}
-        </Text>
-      )
-    }
-
-    const inner = this.props.serviceOnly ? (
-      <Text
-        className={this.props.paragraphTextClassName}
-        type="Body"
-        style={this.props.style}
-        lineClamp={this.props.lineClamp}
-      >
-        {output}
-      </Text>
-    ) : this.props.preview ? (
-      <Text
-        className={this.props.paragraphTextClassName}
-        type={Styles.isMobile ? 'Body' : 'BodySmall'}
-        style={Styles.collapseStyles([
-          markdownStyles.neutralPreviewStyle,
-          this.props.style,
-          styleOverride.preview,
-        ])}
-        lineClamp={1 as const}
-      >
-        {output}
-      </Text>
-    ) : (
-      output
-    )
-
-    // Mobile doesn't use a wrapper
-    return Styles.isMobile ? (
-      inner
-    ) : (
-      <Text
-        className={this.props.paragraphTextClassName}
-        type="Body"
-        lineClamp={this.props.lineClamp}
-        style={Styles.collapseStyles([styles.rootWrapper, this.props.style])}
-        selectable={this.props.selectable}
-      >
-        {inner}
-      </Text>
-    )
-  }
+const ErrorComponent = (p: {children: React.ReactNode}) => {
+  const {children} = p
+  return (
+    <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, markdownStyles.wrapStyle] as const)}>
+      {children ?? ''}
+    </Text>
+  )
 }
+
+const SimpleMarkdownComponent = React.memo(function SimpleMarkdownComponent(p: MarkdownProps) {
+  const {allowFontScaling, styleOverride = {}, paragraphTextClassName, messageType, children} = p
+  const {serviceOnly, preview, smallStandaloneEmoji, virtualText, lineClamp, style, selectable} = p
+  const {serviceOnlyNoWrap, disallowAnimation} = p
+  let parseTree: Array<SimpleMarkdown.SingleASTNode>
+  let output: React.ReactNode
+  try {
+    const options = {
+      // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't
+      // So we add our own new line
+      disableAutoBlockNewlines: true,
+      inline: false,
+      messageType,
+    }
+
+    parseTree = (() => {
+      switch (true) {
+        case shouldUseParser(children ?? ''):
+          return simpleMarkdownParser((children || '').trim() + '\n', options)
+        default:
+          return noMarkdownParser(children + '\n', options)
+      }
+    })()
+
+    const state = {
+      allowFontScaling,
+      disallowAnimation,
+      messageType,
+      paragraphTextClassName,
+      styleOverride,
+      virtualText,
+    }
+
+    output = (() => {
+      switch (true) {
+        case serviceOnlyNoWrap:
+          return serviceOnlyNoWrapOutput(parseTree, state)
+        case serviceOnly:
+          return serviceOnlyOutput(parseTree, state)
+        case preview:
+          return previewOutput(parseTree, state)
+        case !smallStandaloneEmoji && isAllEmoji(parseTree):
+          return bigEmojiOutput(parseTree, state)
+        default:
+          return reactOutput(parseTree, state)
+      }
+    })()
+  } catch (e) {
+    logger.error('Error parsing markdown')
+    logger.debug('Error parsing markdown', e)
+    return <ErrorComponent>{children}</ErrorComponent>
+  }
+
+  const inner = (() => {
+    switch (true) {
+      case serviceOnlyNoWrap:
+        return output
+      case serviceOnly:
+        return (
+          <Text className={paragraphTextClassName} type="Body" style={style} lineClamp={lineClamp}>
+            {output}
+          </Text>
+        )
+      case preview:
+        return (
+          <Text
+            className={paragraphTextClassName}
+            type={Styles.isMobile ? 'Body' : 'BodySmall'}
+            style={Styles.collapseStyles([markdownStyles.neutralPreviewStyle, style, styleOverride.preview])}
+            lineClamp={1 as const}
+          >
+            {output}
+          </Text>
+        )
+      default:
+        return output
+    }
+  })()
+
+  // Mobile doesn't use a wrapper
+  return (
+    <ErrorBoundary fallback={<ErrorComponent>{children}</ErrorComponent>}>
+      {Styles.isMobile ? (
+        inner
+      ) : (
+        <Text
+          className={paragraphTextClassName}
+          type="Body"
+          lineClamp={lineClamp}
+          style={Styles.collapseStyles([styles.rootWrapper, style])}
+          selectable={selectable}
+        >
+          {inner}
+        </Text>
+      )}
+    </ErrorBoundary>
+  )
+})
 
 const styles = Styles.styleSheetCreate(() => ({
   rootWrapper: Styles.platformStyles({
@@ -535,31 +540,29 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 // TODO kill this when we remove the old markdown parser. This check is done at the parsing level.
-export const EmojiIfExists = React.memo(
-  (
-    props: EmojiProps & {
-      paragraphTextClassName?: string
-      style?: Styles.StylesCrossPlatform
-      allowFontScaling?: boolean
-      lineClamp?: LineClampType
-    }
-  ) => {
-    const emojiNameLower = props.emojiName.toLowerCase()
-    const exists = !!emojiIndexByName[emojiNameLower]
-    return exists ? (
-      <Emoji emojiName={emojiNameLower} size={props.size} allowFontScaling={props.allowFontScaling} />
-    ) : (
-      <SimpleMarkdownComponent
-        paragraphTextClassName={props.paragraphTextClassName}
-        style={props.style}
-        lineClamp={props.lineClamp}
-        allowFontScaling={props.allowFontScaling}
-      >
-        {props.emojiName}
-      </SimpleMarkdownComponent>
-    )
+export const EmojiIfExists = React.memo(function EmojiIfExists(
+  props: EmojiProps & {
+    paragraphTextClassName?: string
+    style?: Styles.StylesCrossPlatform
+    allowFontScaling?: boolean
+    lineClamp?: LineClampType
   }
-)
+) {
+  const emojiNameLower = props.emojiName.toLowerCase()
+  const exists = !!emojiIndexByName[emojiNameLower]
+  return exists ? (
+    <Emoji emojiName={emojiNameLower} size={props.size} allowFontScaling={props.allowFontScaling} />
+  ) : (
+    <SimpleMarkdownComponent
+      paragraphTextClassName={props.paragraphTextClassName}
+      style={props.style}
+      lineClamp={props.lineClamp}
+      allowFontScaling={props.allowFontScaling}
+    >
+      {props.emojiName}
+    </SimpleMarkdownComponent>
+  )
+})
 
 export {SimpleMarkdownComponent, simpleMarkdownParser}
 export default SimpleMarkdownComponent
