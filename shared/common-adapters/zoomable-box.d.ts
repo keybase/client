@@ -15,6 +15,7 @@ export type Props = {
   showsVerticalScrollIndicator?: boolean
   showsHorizontalScrollIndicator?: boolean
   contentContainerStyle?: Styles.StylesCrossPlatform
+  onSwipe?: (left: boolean) => void
 }
 
 declare const ZoomableBox: (p: Props) => React.ReactNode

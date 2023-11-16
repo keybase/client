@@ -11,12 +11,24 @@ import {useData} from './hooks'
 const Fullscreen = (p: Props) => {
   const data = useData(p.ordinal)
   const {isVideo, onClose, message, path, previewHeight, onAllMedia} = data
+  const {onNextAttachment, onPreviousAttachment} = data
   const [loaded, setLoaded] = React.useState(false)
   const {id} = message
 
   const {toggleShowingPopup, popup} = useMessagePopup({
     ordinal: id,
   })
+
+  const onSwipe = React.useCallback(
+    (left: boolean) => {
+      if (left) {
+        onNextAttachment()
+      } else {
+        onPreviousAttachment()
+      }
+    },
+    [onNextAttachment, onPreviousAttachment]
+  )
 
   let content: React.ReactNode = null
   let spinner: React.ReactNode = null
@@ -48,7 +60,7 @@ const Fullscreen = (p: Props) => {
         </Kb.Box2>
       )
     } else {
-      content = <Kb.ZoomableImage src={path} style={styles.zoomableBox} />
+      content = <Kb.ZoomableImage src={path} style={styles.zoomableBox} onSwipe={onSwipe} />
     }
   }
   if (!loaded && isVideo) {
