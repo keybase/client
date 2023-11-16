@@ -18,7 +18,7 @@ const electronWrapStyle = {
   wordBreak: 'break-word',
 } as const
 
-const markdownStyles = Styles.styleSheetCreate(
+export const markdownStyles = Styles.styleSheetCreate(
   () =>
     ({
       bigTextBlockStyle: Styles.platformStyles({
@@ -215,9 +215,10 @@ const reactComponentsForMarkdownType = {
     ) => (
       <Emoji
         emojiName={String(node['content']).toLowerCase()}
-        size={16}
+        size={state['styleOverride'].emojiSize?.size ?? 16}
         key={state.key}
         disableSelecting={state['virtualText']}
+        style={state['styleOverride'].emoji}
       />
     ),
   },
@@ -364,7 +365,7 @@ const passthroughForMarkdownType = Object.keys(reactComponentsForMarkdownType).r
   return obj
 }, {})
 
-const bigEmojiOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
+export const bigEmojiOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
   {
     ...reactComponentsForMarkdownType,
     emoji: {
@@ -387,22 +388,24 @@ const bigEmojiOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
         node: SimpleMarkdown.SingleASTNode,
         output: SimpleMarkdown.ReactOutput,
         state: SimpleMarkdown.State
-      ) => (
-        <Text
-          type="Body"
-          key={state.key}
-          style={markdownStyles.bigTextBlockStyle}
-          allowFontScaling={state['allowFontScaling']}
-        >
-          {output(node['content'], {...state, inParagraph: true})}
-        </Text>
-      ),
+      ) => {
+        return (
+          <Text
+            type="Body"
+            key={state.key}
+            style={markdownStyles.bigTextBlockStyle}
+            allowFontScaling={state['allowFontScaling']}
+          >
+            {output(node['content'], {...state, inParagraph: true})}
+          </Text>
+        )
+      },
     },
   },
   'react'
 )
 
-const previewOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
+export const previewOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
   {
     Array: SimpleMarkdown.defaultRules.Array,
     ...passthroughForMarkdownType,
@@ -464,7 +467,7 @@ const previewOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
   'react'
 )
 
-const serviceOnlyOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
+export const serviceOnlyOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
   {
     Array: SimpleMarkdown.defaultRules.Array,
     ...passthroughForMarkdownType,
@@ -488,7 +491,7 @@ const serviceOnlyOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
           styleOverride={state['styleOverride']}
           styles={markdownStyles as any}
           disableBigEmojis={true}
-          disableEmojiAnimation={true}
+          disableEmojiAnimation={state['disallowAnimation'] ?? true}
         />
       ),
     },
@@ -497,9 +500,55 @@ const serviceOnlyOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
   'react'
 )
 
-const reactOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
-  reactComponentsForMarkdownType,
+export const serviceOnlyNoWrapOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
+  {
+    Array: SimpleMarkdown.defaultRules.Array,
+    ...Object.keys(reactComponentsForMarkdownType).reduce<{
+      [key: string]: SimpleMarkdown.ReactOutputRule | SimpleMarkdown.ReactArrayRule
+    }>((obj, k) => {
+      // keep special Array type
+      if (k === 'Array') {
+        obj[k] = reactComponentsForMarkdownType[k]
+      } else {
+        obj[k] = {
+          react: () => null,
+        }
+      }
+      return obj
+    }, {}),
+    emoji: {
+      react: (
+        node: SimpleMarkdown.SingleASTNode,
+        output: SimpleMarkdown.ReactOutput,
+        state: SimpleMarkdown.State
+      ) => reactComponentsForMarkdownType.emoji.react(node, output, state),
+    },
+    paragraph: {
+      react: (node: SimpleMarkdown.SingleASTNode, output: SimpleMarkdown.ReactOutput) =>
+        output(node['content']),
+    },
+    serviceDecoration: {
+      react: (
+        node: SimpleMarkdown.SingleASTNode,
+        _output: SimpleMarkdown.ReactOutput,
+        state: SimpleMarkdown.State
+      ) => (
+        <ServiceDecoration
+          json={node['content']}
+          key={state.key}
+          allowFontScaling={state['allowFontScaling']}
+          styleOverride={state['styleOverride']}
+          styles={markdownStyles as any}
+          disableBigEmojis={true}
+          disableEmojiAnimation={state['disallowAnimation'] ?? true}
+        />
+      ),
+    },
+  },
   'react'
 )
 
-export {bigEmojiOutput, markdownStyles, previewOutput, reactOutput, serviceOnlyOutput}
+export const reactOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
+  reactComponentsForMarkdownType,
+  'react'
+)

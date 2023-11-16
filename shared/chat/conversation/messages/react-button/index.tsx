@@ -13,18 +13,19 @@ export type Props = {
   style?: Kb.Styles.StylesCrossPlatform
 }
 
-const markdownOverride = {
-  customEmoji: {
-    height: Kb.Styles.isMobile ? 26 : 18,
-    marginTop: Kb.Styles.isMobile ? 0 : 4,
-    width: Kb.Styles.isMobile ? 20 : 18,
-  },
-  emoji: {height: Kb.Styles.isMobile ? 20 : 21},
-  paragraph: {
-    height: Kb.Styles.isMobile ? 20 : 18,
-    ...(Kb.Styles.isMobile ? {} : {display: 'flex', fontSize: 14}),
-  },
-}
+const markdownOverride = Kb.Styles.isMobile
+  ? {
+      customEmoji: {height: 24, width: 24},
+      emoji: {height: 24, lineHeight: 24},
+      emojiSize: {size: 22},
+      paragraph: {},
+    }
+  : {
+      customEmoji: {height: 18, width: 18},
+      emoji: {height: 18},
+      emojiSize: {size: 18},
+      paragraph: {alignSelf: 'center', display: 'flex'},
+    }
 
 const ReactButton = React.memo(function ReactButton(p: Props) {
   const {decorated, emoji, onLongPress, active, className, onClick} = p
@@ -37,26 +38,26 @@ const ReactButton = React.memo(function ReactButton(p: Props) {
       onClick={onClick}
       style={Kb.Styles.collapseStyles([styles.borderBase, styles.buttonBox, active && styles.active, style])}
     >
-      <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal" style={styles.container}>
-        <Kb.Box2 direction="horizontal" style={styles.containerInner} gap="xtiny">
-          <Kb.Box2 direction="vertical" className="center-emojis">
-            <Kb.Markdown
-              styleOverride={markdownOverride as any}
-              lineClamp={1}
-              smallStandaloneEmoji={true}
-              virtualText={true}
-            >
-              {text}
-            </Kb.Markdown>
-          </Kb.Box2>
-          <Kb.Text
-            type="BodyTinyBold"
+      <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal" gap="xtiny">
+        <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal">
+          <Kb.Markdown
+            serviceOnlyNoWrap={true}
+            styleOverride={markdownOverride as any}
+            lineClamp={1}
+            smallStandaloneEmoji={true}
+            disallowAnimation={false}
             virtualText={true}
-            style={Kb.Styles.collapseStyles([styles.count, active && styles.countActive])}
           >
-            {count}
-          </Kb.Text>
+            {text}
+          </Kb.Markdown>
         </Kb.Box2>
+        <Kb.Text
+          type="BodyTinyBold"
+          virtualText={true}
+          style={Kb.Styles.collapseStyles([styles.count, active && styles.countActive])}
+        >
+          {count}
+        </Kb.Text>
       </Kb.Box2>
     </Kb.ClickableBox2>
   )
@@ -206,17 +207,14 @@ const styles = Kb.Styles.styleSheetCreate(
           alignItems: 'center',
           backgroundColor: Kb.Styles.globalColors.white,
           borderWidth: 1,
-          height: Kb.Styles.isMobile ? 30 : 24,
+          height: Kb.Styles.isMobile ? 30 : 26,
           justifyContent: 'center',
+          minWidth: 40,
+          paddingLeft: 6,
+          paddingRight: 6,
         },
         isElectron: {...Kb.Styles.transition('border-color', 'background-color', 'box-shadow')},
       }),
-      container: {
-        height: Kb.Styles.isMobile ? 20 : undefined,
-        minWidth: 40,
-        paddingLeft: 6,
-        paddingRight: 6,
-      },
       containerInner: {
         alignItems: 'center',
         height: 24,

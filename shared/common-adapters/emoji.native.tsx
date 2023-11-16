@@ -1,4 +1,5 @@
 import * as React from 'react'
+import type * as Styles from '../styles'
 import {isAndroid} from '../constants/platform'
 import {emojiIndexByName} from './markdown/emoji-gen'
 import Text from './text'
@@ -7,11 +8,10 @@ import type {Props} from './emoji'
 
 const familyOverride = isAndroid ? {fontFamily: ''} : {}
 
-const sizeStyle = new Map([
-  [16, {fontSize: 16 - 2, lineHeight: undefined, ...familyOverride}],
-  [18, {fontSize: 18 - 2, lineHeight: undefined, ...familyOverride}],
-  [32, {fontSize: 32 - 2, lineHeight: undefined, ...familyOverride}],
-])
+const sizes = [16, 18, 22, 24, 26, 28, 32, 36] as const
+const sizeStyle = new Map<(typeof sizes)[number], Styles.StylesCrossPlatform>(
+  sizes.map(size => [size, {fontSize: size - 2, lineHeight: undefined, ...familyOverride}])
+)
 
 const EmojiWrapper = React.memo(function EmojiWrapper(props: Props) {
   const {emojiName, size} = props

@@ -94,7 +94,7 @@ export type RenderableEmoji = {
 
 export const renderEmoji = (opts: {
   emoji: RenderableEmoji
-  size: number
+  size: 16 | 18 | 22 | 24 | 26 | 28 | 32 | 36
   showTooltip: boolean
   customEmojiSize?: number
   virtualText?: boolean
@@ -145,8 +145,8 @@ export function RPCToEmojiData(emoji: T.RPCChat.Emoji, noAnim: boolean, category
       emoji.source.typ === T.RPCChat.EmojiLoadSourceTyp.str
         ? undefined
         : noAnim && emoji.noAnimSource.typ === T.RPCChat.EmojiLoadSourceTyp.httpsrv
-        ? emoji.noAnimSource.httpsrv
-        : emoji.source.httpsrv,
+          ? emoji.noAnimSource.httpsrv
+          : emoji.source.httpsrv,
   }
 }
 
