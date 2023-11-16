@@ -8,15 +8,13 @@ export type OwnProps = {
   className?: string
   emoji?: string
   onLongPress?: () => void
-  onShowPicker?: (showing: boolean) => void
   showBorder?: boolean
   style?: StylesCrossPlatform
 }
 
 const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProps) {
   const ordinal = React.useContext(OrdinalContext)
-  const {emoji, className} = p
-  const {onLongPress, onShowPicker, showBorder, style} = p
+  const {onLongPress, style, emoji, className} = p
   const me = C.useCurrentUserState(s => s.username)
   const {active, count, decorated} = C.useChatContext(
     C.useShallow(s => {
@@ -32,12 +30,6 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   )
 
   const toggleMessageReaction = C.useChatContext(s => s.dispatch.toggleMessageReaction)
-  const onAddReaction = React.useCallback(
-    (emoji: string) => {
-      toggleMessageReaction(ordinal, emoji)
-    },
-    [toggleMessageReaction, ordinal]
-  )
   const onClick = React.useCallback(() => {
     toggleMessageReaction(ordinal, emoji || '')
   }, [toggleMessageReaction, emoji, ordinal])
@@ -61,14 +53,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
       style={style}
     />
   ) : (
-    <NewReactionButton
-      onAddReaction={onAddReaction}
-      onLongPress={onLongPress}
-      onOpenEmojiPicker={onOpenEmojiPicker}
-      onShowPicker={onShowPicker}
-      showBorder={showBorder || false}
-      style={style}
-    />
+    <NewReactionButton onOpenEmojiPicker={onOpenEmojiPicker} style={style} />
   )
 })
 
