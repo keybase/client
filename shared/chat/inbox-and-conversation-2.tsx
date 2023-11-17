@@ -16,45 +16,40 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props?: Pr
   const inboxSearch = C.useChatState(s => s.inboxSearch)
   const infoPanelShowing = C.useChatState(s => s.infoPanelShowing)
   const validConvoID = conversationIDKey && conversationIDKey !== C.noConversationIDKey
-  const needSelectConvoID = C.useChatState(s => {
-    if (validConvoID) {
+  const seenValidCIDRef = React.useRef(validConvoID ? conversationIDKey : '')
+  const selectNextConvo = C.useChatState(s => {
+    if (seenValidCIDRef.current) {
       return null
     }
     const first = s.inboxLayout?.smallTeams?.[0]
     return first?.convID
   })
 
-  C.useOnMountOnce(() => {
-    if (needSelectConvoID) {
-      // hack to select the convo after we render
-      setTimeout(() => {
-        C.getConvoState(needSelectConvoID).dispatch.navigateToThread('findNewestConversationFromLayout')
-      }, 1)
-    }
-  })
+  if (selectNextConvo) {
+    seenValidCIDRef.current = selectNextConvo
+    C.getConvoState(selectNextConvo).dispatch.navigateToThread('findNewestConversationFromLayout')
+  }
 
   return (
-    <Kb.KeyboardAvoidingView2>
-      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.container}>
-        {!C.isTablet && inboxSearch ? (
-          <InboxSearch />
-        ) : (
-          <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
-        )}
-        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.conversation}>
-          <C.ChatProvider id={conversationIDKey} canBeNull={true}>
-            <Conversation conversationIDKey={conversationIDKey} />
-          </C.ChatProvider>
-        </Kb.Box2>
-        {infoPanelShowing ? (
-          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
-            <C.ChatProvider id={conversationIDKey} canBeNull={true}>
-              <InfoPanel conversationIDKey={conversationIDKey} />
-            </C.ChatProvider>
+    <C.ChatProvider id={conversationIDKey} canBeNull={true}>
+      <Kb.KeyboardAvoidingView2>
+        <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.container}>
+          {!C.isTablet && inboxSearch ? (
+            <InboxSearch />
+          ) : (
+            <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
+          )}
+          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.conversation}>
+            <Conversation />
           </Kb.Box2>
-        ) : null}
-      </Kb.Box2>
-    </Kb.KeyboardAvoidingView2>
+          {infoPanelShowing ? (
+            <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
+              <InfoPanel />
+            </Kb.Box2>
+          ) : null}
+        </Kb.Box2>
+      </Kb.KeyboardAvoidingView2>
+    </C.ChatProvider>
   )
 })
 

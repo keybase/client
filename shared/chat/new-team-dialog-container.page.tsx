@@ -2,15 +2,16 @@ import * as React from 'react'
 import * as C from '../constants'
 
 const New = React.lazy(async () => import('./new-team-dialog-container'))
-type OwnProps = C.ViewPropsToPageProps<typeof New>
+type OwnProps = C.ChatProviderProps<C.ViewPropsToPageProps<typeof New>>
 
-const Screen = (p: OwnProps) => (
-  <React.Suspense>
+const Screen = (p: OwnProps) => {
+  const {conversationIDKey, ...rest} = p.route.params
+  return (
     <C.ProviderScreen rp={p}>
-      <New {...p.route.params} />
+      <New {...rest} />
     </C.ProviderScreen>
-  </React.Suspense>
-)
+  )
+}
 
 const Page = {getScreen: () => Screen}
 export default Page

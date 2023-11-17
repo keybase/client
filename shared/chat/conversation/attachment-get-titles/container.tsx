@@ -3,7 +3,6 @@ import * as T from '../../../constants/types'
 import GetTitles, {type Info} from '.'
 
 type OwnProps = {
-  conversationIDKey: T.Chat.ConversationIDKey // needed by page
   pathAndOutboxIDs: Array<T.Chat.PathAndOutboxID>
   titles?: Array<string>
   selectConversationWithReason?: 'extension' | 'files'

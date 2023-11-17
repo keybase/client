@@ -1,15 +1,12 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import type * as T from '../../constants/types'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 
-type SwitchProps = {conversationIDKey?: T.Chat.ConversationIDKey} // needed by page
-
-const Conversation = React.memo(function Conversation(_: SwitchProps) {
+const Conversation = React.memo(function Conversation() {
   const type = C.useChatContext(s => {
     const meta = s.meta
     switch (s.id) {

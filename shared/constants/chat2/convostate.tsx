@@ -3084,6 +3084,7 @@ export function _useConvoState<T>(id: T.Chat.ConversationIDKey, selector: (state
   return useStore(store, selector)
 }
 
+export type ChatProviderProps<T> = T & {route: {params: {conversationIDKey?: string}}}
 type RouteParams = {
   route: {params: {conversationIDKey?: string}}
 }

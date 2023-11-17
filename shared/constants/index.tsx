@@ -71,7 +71,7 @@ import * as Wallets from './wallets'
 export {Wallets}
 export {_useState as useWalletsState} from './wallets'
 export {_useState as useWNState} from './whats-new'
-export {getSelectedConversation, _useState as useChatState} from './chat2'
+export {getSelectedConversation, _useState as useChatState, type ChatProviderProps} from './chat2'
 import * as Chat from './chat2'
 export {Chat}
 export {_useConvoState as useConvoState, _stores as chatStores, _Provider as ChatProvider} from './chat2'

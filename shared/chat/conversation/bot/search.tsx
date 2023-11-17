@@ -6,10 +6,7 @@ import debounce from 'lodash/debounce'
 import type * as T from '../../../constants/types'
 import {Bot} from '../info-panel/bot'
 
-type Props = {
-  conversationIDKey?: T.Chat.ConversationIDKey
-  teamID?: T.Teams.TeamID
-}
+type Props = {teamID?: T.Teams.TeamID}
 
 const renderSectionHeader = ({section}: {section: {title: string}}) => {
   return <Kb.SectionDivider label={section.title} />
@@ -19,7 +16,7 @@ const userEmptyPlaceholder = '---EMPTYUSERS---'
 const resultEmptyPlaceholder = '---EMPTYRESULT---'
 
 const SearchBotPopup = (props: Props) => {
-  const conversationIDKey = props.conversationIDKey
+  const conversationIDKey = C.useChatContext(s => s.id)
   const teamID = props.teamID
   const [lastQuery, setLastQuery] = React.useState('')
   const featuredBotsMap = C.useBotsState(s => s.featuredBotsMap)

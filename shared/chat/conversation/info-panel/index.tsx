@@ -11,12 +11,8 @@ import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
 import type {Tab as TabType} from '../../../common-adapters/tabs'
 
 type Props = {
-  conversationIDKey: T.Chat.ConversationIDKey // for page
-  navigation?: any
-} & Partial<{
-  conversationIDKey: T.Chat.ConversationIDKey // for page
   tab?: 'settings' | 'members' | 'attachments' | 'bots'
-}>
+}
 
 const InfoPanelConnector = (props: Props) => {
   const storeSelectedTab = C.useChatState(s => s.infoPanelSelectedTab)

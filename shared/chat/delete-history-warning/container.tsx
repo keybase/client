@@ -1,12 +1,7 @@
 import * as C from '../../constants'
-import type * as T from '../../constants/types'
 import DeleteHistoryWarning from '.'
 
-type OwnProps = {
-  conversationIDKey: T.Chat.ConversationIDKey // for page
-}
-
-const Container = (_ownProps: OwnProps) => {
+const Container = () => {
   const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     navigateUp()

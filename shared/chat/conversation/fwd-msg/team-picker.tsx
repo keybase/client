@@ -8,7 +8,6 @@ import debounce from 'lodash/debounce'
 import logger from '../../../logger'
 
 type Props = {
-  conversationIDKey: T.Chat.ConversationIDKey // for page
   ordinal: T.Chat.Ordinal
 }
 
