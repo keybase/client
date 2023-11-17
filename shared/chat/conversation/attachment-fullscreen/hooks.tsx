@@ -65,8 +65,8 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   const progressLabel = downloadPath
     ? undefined
     : message.transferState === 'downloading'
-    ? 'Downloading'
-    : undefined
+      ? 'Downloading'
+      : undefined
 
   return {
     isVideo,

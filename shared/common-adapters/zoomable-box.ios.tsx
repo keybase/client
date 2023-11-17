@@ -20,7 +20,6 @@ export const ZoomableBox = (props: Props) => {
   const onTouchEnd = React.useCallback(
     (e: GestureResponderEvent) => {
       const scaleDiff = Math.abs(1 - curScaleRef.current)
-      console.log('aaaa scalediff', scaleDiff)
       if (scaleDiff > 0.1) {
         return
       }

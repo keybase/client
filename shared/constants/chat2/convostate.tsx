@@ -1113,22 +1113,22 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     markThreadAsRead: () => {
       const f = async () => {
         if (!C.useConfigState.getState().loggedIn) {
-          logger.info('bail on not logged in')
+          logger.info('mark read bail on not logged in')
           return
         }
         const {id: conversationIDKey, meta, messageMap, messageOrdinals, isMetaGood} = get()
         if (!T.Chat.isValidConversationIDKey(conversationIDKey)) {
-          logger.info('bail on no selected conversation')
+          logger.info('mark read bail on no selected conversation')
           return
         }
         if (!Common.isUserActivelyLookingAtThisThread(conversationIDKey)) {
-          logger.info('bail on not looking at this thread')
+          logger.info('mark read bail on not looking at this thread')
           return
         }
         // Check to see if we do not have the latest message, and don't mark anything as read in that case
         // If we have no information at all, then just mark as read
         if (!get().isCaughtUp()) {
-          logger.info('bail on not containing latest message')
+          logger.info('mark read bail on not containing latest message')
           return
         }
 
@@ -2444,7 +2444,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const conversationIDKey = get().id
       const f = async () => {
         if (!C.useConfigState.getState().loggedIn) {
-          logger.info('bail on not logged in')
+          logger.info('mark unread bail on not logged in')
           return
         }
         const meta = get().meta
