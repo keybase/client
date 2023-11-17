@@ -2,7 +2,9 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import ScrollView from './scroll-view'
 import type {Props} from './zoomable-box'
-import type {GestureResponderEvent} from 'react-native'
+import type {LayoutChangeEvent, GestureResponderEvent} from 'react-native'
+import {Gesture, GestureDetector} from 'react-native-gesture-handler'
+import {runOnJS} from 'react-native-reanimated'
 
 const Kb = {
   ScrollView,
@@ -11,11 +13,15 @@ const Kb = {
 const needDiff = Styles.dimensionWidth / 3
 
 export const ZoomableBox = (props: Props) => {
-  const {onSwipe} = props
+  const {onSwipe, onLayout} = props
   const initialTouch = React.useRef(-1)
   const curScaleRef = React.useRef(1)
   const onTouchStart = React.useCallback((e: GestureResponderEvent) => {
-    initialTouch.current = e.nativeEvent.pageX
+    if (e.nativeEvent.touches.length === 1) {
+      initialTouch.current = e.nativeEvent.pageX
+    } else {
+      initialTouch.current = -1
+    }
   }, [])
   const onTouchEnd = React.useCallback(
     (e: GestureResponderEvent) => {
@@ -34,42 +40,85 @@ export const ZoomableBox = (props: Props) => {
     [onSwipe]
   )
 
-  const [zoomScale, setZoomScale] = React.useState(1)
-  React.useEffect(() => {
-    setTimeout(() => {
-      props.zoomScale && setZoomScale(props.zoomScale)
-    }, 1000)
-  }, [props.zoomScale])
+  const widthRef = React.useRef(0)
+  const heightRef = React.useRef(0)
+  const _onLayout = React.useCallback(
+    (e: Partial<LayoutChangeEvent>) => {
+      widthRef.current = e.nativeEvent?.layout.width ?? 0
+      heightRef.current = e.nativeEvent?.layout.height ?? 0
+      onLayout?.(e)
+    },
+    [onLayout]
+  )
+
+  const ref = React.useRef<ScrollView>(null)
+  const onDoubleTap = React.useCallback(() => {
+    const scroll = ref.current as unknown as null | {
+      getScrollResponder?: () => {
+        scrollResponderZoomTo: (p: {
+          animated: boolean
+          width: number
+          height: number
+          x?: number
+          y?: number
+        }) => void
+      }
+    }
+    scroll?.getScrollResponder?.()?.scrollResponderZoomTo(
+      curScaleRef.current > 1.01
+        ? {
+            animated: true,
+            height: 2000,
+            width: 2000,
+          }
+        : {
+            animated: true,
+            height: heightRef.current / 4,
+            width: widthRef.current / 4,
+            x: widthRef.current / 4,
+            y: heightRef.current / 4,
+          }
+    )
+  }, [])
+
+  const doubleTap = Gesture.Tap()
+    .maxDuration(250)
+    .numberOfTaps(2)
+    .onStart(() => {
+      runOnJS(onDoubleTap)()
+    })
+
   return (
-    <Kb.ScrollView
-      centerContent={true}
-      alwaysBounceVertical={false}
-      bounces={props.bounces}
-      children={props.children}
-      contentContainerStyle={props.contentContainerStyle}
-      indicatorStyle="white"
-      maximumZoomScale={props.maxZoom || 10}
-      minimumZoomScale={props.minZoom || 1}
-      onTouchStart={onSwipe ? onTouchStart : undefined}
-      onTouchEnd={onSwipe ? onTouchEnd : undefined}
-      onScroll={e => {
-        curScaleRef.current = e.nativeEvent?.zoomScale ?? 0
-        props.onZoom?.({
-          height: e.nativeEvent?.contentSize.height ?? 0,
-          scale: e.nativeEvent?.zoomScale ?? 0,
-          width: e.nativeEvent?.contentSize.width ?? 0,
-          x: e.nativeEvent?.contentOffset.x ?? 0,
-          y: e.nativeEvent?.contentOffset.y ?? 0,
-        })
-      }}
-      scrollEventThrottle={16}
-      scrollsToTop={false}
-      showsHorizontalScrollIndicator={props.showsHorizontalScrollIndicator}
-      showsVerticalScrollIndicator={props.showsVerticalScrollIndicator}
-      style={props.style}
-      key={String(zoomScale)}
-      zoomScale={zoomScale}
-      onLayout={props.onLayout}
-    />
+    <GestureDetector gesture={doubleTap}>
+      <Kb.ScrollView
+        ref={ref}
+        centerContent={true}
+        alwaysBounceVertical={false}
+        bounces={props.bounces}
+        children={props.children}
+        contentContainerStyle={props.contentContainerStyle}
+        indicatorStyle="white"
+        maximumZoomScale={props.maxZoom || 10}
+        minimumZoomScale={props.minZoom || 1}
+        onLayout={_onLayout}
+        onTouchStart={onSwipe ? onTouchStart : undefined}
+        onTouchEnd={onSwipe ? onTouchEnd : undefined}
+        onScroll={e => {
+          curScaleRef.current = e.nativeEvent?.zoomScale ?? 0
+          props.onZoom?.({
+            height: e.nativeEvent?.contentSize.height ?? 0,
+            scale: e.nativeEvent?.zoomScale ?? 0,
+            width: e.nativeEvent?.contentSize.width ?? 0,
+            x: e.nativeEvent?.contentOffset.x ?? 0,
+            y: e.nativeEvent?.contentOffset.y ?? 0,
+          })
+        }}
+        scrollEventThrottle={16}
+        scrollsToTop={false}
+        showsHorizontalScrollIndicator={props.showsHorizontalScrollIndicator}
+        showsVerticalScrollIndicator={props.showsVerticalScrollIndicator}
+        style={props.style}
+      />
+    </GestureDetector>
   )
 }
