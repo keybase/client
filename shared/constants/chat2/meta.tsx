@@ -354,7 +354,7 @@ export const makeConversationMeta = (): T.Chat.ConversationMeta => ({
   resetParticipants: new Set(),
   retentionPolicy: C.Teams.makeRetentionPolicy(),
   snippet: '',
-  snippetDecorated: '',
+  snippetDecorated: undefined,
   snippetDecoration: T.RPCChat.SnippetDecoration.none as T.RPCChat.SnippetDecoration,
   status: T.RPCChat.ConversationStatus.unfiled as T.RPCChat.ConversationStatus,
   supersededBy: T.Chat.noConversationIDKey,
@@ -373,14 +373,14 @@ export const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
   const backgroundColor = isSelected
     ? globalColors.blue
     : isPhone
-    ? globalColors.fastBlank
-    : globalColors.blueGrey
+      ? globalColors.fastBlank
+      : globalColors.blueGrey
   const showBold = !isSelected && hasUnread
   const subColor: AllowedColors = isSelected
     ? globalColors.white
     : hasUnread
-    ? globalColors.black
-    : globalColors.black_50
+      ? globalColors.black
+      : globalColors.black_50
   const usernameColor = isSelected ? globalColors.white : globalColors.black
 
   return {
