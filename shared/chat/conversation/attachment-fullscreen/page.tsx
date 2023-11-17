@@ -5,6 +5,7 @@ const Full = React.lazy(async () => import('.'))
 type OwnProps = C.ViewPropsToPageProps<typeof Full>
 
 const getOptions = () => ({
+  ...(C.isIOS ? {presentation: 'transparentModal'} : {}),
   safeAreaStyle: {
     backgroundColor: 'black', // true black
   },
