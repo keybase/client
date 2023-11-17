@@ -9,7 +9,7 @@ export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => 
   const markInitiallyLoadedThreadAsRead = React.useCallback(() => {
     const selected = C.getSelectedConversation()
     if (selected !== conversationIDKey) {
-      logger.info('bail on not looking at this thread anymore?')
+      logger.info('mark intially as read bail on not looking at this thread anymore?')
       return
     }
     C.getConvoState(conversationIDKey).dispatch.markThreadAsRead()
