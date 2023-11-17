@@ -89,15 +89,15 @@ const styles = Styles.styleSheetCreate(
         maxWidth: '100%',
         width: '100%',
       },
-      imageAndroid: {flexGrow: 1},
       image: {
         height: '100%',
         width: '100%',
       },
+      imageAndroid: {flexGrow: 1},
       progress: {
+        left: '50%',
         position: 'absolute',
         top: '50%',
-        left: '50%',
       },
       zoomableBoxContainerAndroid: {
         flex: 1,
