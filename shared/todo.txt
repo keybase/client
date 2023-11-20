@@ -1,5 +1,3 @@
 Some short term todos:
 swipeable2 slow
 sectionlist typing
-
-leave channel doesn't select a new one on desktop
