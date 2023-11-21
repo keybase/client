@@ -12,6 +12,7 @@ import HiddenString from '../../util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '../../logger'
 import throttle from 'lodash/throttle'
+import type {DebouncedFunc} from 'lodash'
 import {RPCError} from '../../util/errors'
 import {findLast} from '../../util/arrays'
 import {mapGetEnsureValue} from '../../util/map'
@@ -255,7 +256,7 @@ export type ConvoState = ConvoStore & {
     resolveMaybeMention: (name: string, channel: string) => void
     selectedConversation: () => void
     sendAudioRecording: (path: string, duration: number, amps: Array<number>) => void
-    sendTyping: (typing: boolean) => void
+    sendTyping: DebouncedFunc<(typing: boolean) => void>
     setCommandMarkdown: (md?: T.RPCChat.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
     setConvRetentionPolicy: (policy: T.Retention.RetentionPolicy) => void
@@ -1429,6 +1430,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const conversationIDKey = get().id
         const clientPrev = getClientPrev()
 
+        get().dispatch.sendTyping.cancel()
+        get().dispatch.sendTyping(false)
+
         // disable sending exploding messages if flag is false
         const ephemeralLifetime = get().explodingMode
         const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
@@ -2289,15 +2293,19 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       C.ignorePromise(f())
     },
-    sendTyping: throttle(typing => {
-      const f = async () => {
-        await T.RPCChat.localUpdateTypingRpcPromise({
-          conversationID: T.Chat.keyToConversationID(get().id),
-          typing,
-        })
-      }
-      C.ignorePromise(f())
-    }, 2000),
+    sendTyping: throttle(
+      (typing: boolean) => {
+        const f = async () => {
+          await T.RPCChat.localUpdateTypingRpcPromise({
+            conversationID: T.Chat.keyToConversationID(get().id),
+            typing,
+          })
+        }
+        C.ignorePromise(f())
+      },
+      2000,
+      {leading: true, trailing: true}
+    ),
     setCommandMarkdown: md => {
       set(s => {
         s.commandMarkdown = md

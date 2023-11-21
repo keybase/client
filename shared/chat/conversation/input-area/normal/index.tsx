@@ -108,7 +108,11 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput() {
     (text: string) => {
       if (injectingTextRef.current) return
       lastTextRef.current = text
-      sendTyping(text.length > 0)
+      const isTyping = text.length > 0
+      if (!isTyping) {
+        sendTyping.cancel()
+      }
+      sendTyping(isTyping)
       updateDraft(text)
       setExplodingModeLocked(text.length > 0)
     },
