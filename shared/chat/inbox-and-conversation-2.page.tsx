@@ -2,6 +2,7 @@ import * as Common from '../router-v2/common'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import Header from './header'
+import type * as T from '../constants/types'
 import type * as C from '../constants'
 
 const Split = React.lazy(async () => import('./inbox-and-conversation-2'))
@@ -15,15 +16,23 @@ const getOptions = ({route}: OwnProps) => {
       headerRight: null,
       headerRightContainerStyle: {maxWidth: 0},
       headerStyle: {},
-      headerTitle: () => (
-        <Common.TabletWrapper>
-          <Header conversationIDKey={route.params?.conversationIDKey} />
-        </Common.TabletWrapper>
-      ),
+      headerTitle: () => {
+        const params: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = route.params
+        return (
+          <Common.TabletWrapper>
+            <Header conversationIDKey={params?.conversationIDKey} />
+          </Common.TabletWrapper>
+        )
+      },
       headerTitleContainerStyle: {},
     }
   } else {
-    return {headerTitle: () => <Header conversationIDKey={route.params?.conversationIDKey} />}
+    return {
+      headerTitle: () => {
+        const params: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = route.params
+        return <Header conversationIDKey={params?.conversationIDKey} />
+      },
+    }
   }
 }
 
