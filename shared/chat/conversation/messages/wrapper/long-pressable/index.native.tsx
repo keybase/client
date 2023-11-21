@@ -11,6 +11,7 @@ import {FocusContext} from '../../../normal/context'
 
 const LongPressable = React.memo(function LongPressable(props: Props) {
   const {children, onLongPress, style} = props
+
   const onPress = React.useCallback(() => dismiss(), [])
 
   // uncomment to debug measuring issues w/ items

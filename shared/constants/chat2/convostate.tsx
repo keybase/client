@@ -265,7 +265,6 @@ export type ConvoState = ConvoStore & {
     // false to clear
     setMarkAsUnread: (readMsgID?: T.RPCChat.MessageID | false) => void
     setMessageCenterOrdinal: (m?: T.Chat.CenterOrdinal) => void
-    setMessageTypeMap: (o: T.Chat.Ordinal, t?: T.Chat.RenderMessageType) => void
     setMeta: (m?: T.Chat.ConversationMeta) => void
     setMinWriterRole: (role: T.Teams.TeamRoleType) => void
     setMoreToLoad: (m: boolean) => void
@@ -1957,7 +1956,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             const m = get().messageMap.get(ordinal)
             dispatch.updateMessage(ordinal, m ? Message.upgradeMessage(m, message) : message)
             const subType = Message.getMessageRenderType(message)
-            dispatch.setMessageTypeMap(ordinal, subType)
+            set(s => {
+              s.messageTypeMap.set(ordinal, subType)
+            })
           }
         } else if (shouldAddMessage) {
           // A normal message
@@ -2533,15 +2534,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMessageCenterOrdinal: m => {
       set(s => {
         s.messageCenterOrdinal = m
-      })
-    },
-    setMessageTypeMap: (o, t) => {
-      set(s => {
-        if (t) {
-          s.messageTypeMap.set(o, t)
-        } else {
-          s.messageTypeMap.delete(o)
-        }
       })
     },
     setMeta: _m => {

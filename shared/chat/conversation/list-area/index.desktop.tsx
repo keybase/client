@@ -417,6 +417,7 @@ const useItems = (p: {
     [messageTypeMap, centeredOrdinal, editingOrdinal]
   )
 
+  // TODO doesn't need all messageOrdinals in there, could just find buckets and push details down
   const items = React.useMemo(() => {
     const items: Array<React.ReactNode> = [<SpecialTopMessage key="specialTop" />]
 
@@ -497,7 +498,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper() {
   const centeredOrdinal = C.useChatContext(s => s.messageCenterOrdinal)?.ordinal
   const containsLatestMessage = C.useChatContext(s => s.isCaughtUp())
   const messageTypeMap = C.useChatContext(s => s.messageTypeMap)
-  const messageOrdinals = C.useChatContext(s => s.messageOrdinals) ?? []
+  const messageOrdinals = C.useChatContext(C.useShallow(s => s.messageOrdinals ?? []))
   const copyToClipboard = C.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const {isLockedToBottom, scrollToBottom, setListRef, pointerWrapperRef} = useScrolling({
