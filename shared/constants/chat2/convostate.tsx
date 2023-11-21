@@ -804,6 +804,17 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       if (navToInbox) {
         C.useRouterState.getState().dispatch.navUpToScreen('chatRoot')
         C.useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
+        if (!C.isMobile) {
+          const vs = C.Router2.getVisibleScreen()
+          const params: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = vs?.params
+          if (params?.conversationIDKey === get().id) {
+            // select a convo
+            const next = C.useChatState.getState().inboxLayout?.smallTeams?.[0]?.convID
+            if (next) {
+              C.getConvoState(next).dispatch.navigateToThread('findNewestConversationFromLayout')
+            }
+          }
+        }
       }
     },
     loadAttachmentView: (viewType, fromMsgID) => {
