@@ -27,7 +27,6 @@ type Props = {
 }
 
 type RoutableProps = {
-  conversationIDKey: T.Chat.ConversationIDKey
   small?: boolean
   hideFrequentEmoji?: boolean
   onlyTeamCustomEmoji?: boolean

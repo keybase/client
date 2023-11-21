@@ -73,11 +73,7 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
 export default MessagePopup
 
 // Mobile only
-type ModalProps = {
-  // needed for page
-  conversationIDKey: T.Chat.ConversationIDKey
-  ordinal: T.Chat.Ordinal
-}
+type ModalProps = {ordinal: T.Chat.Ordinal}
 export const MessagePopupModal = (p: ModalProps) => {
   const {ordinal} = p
   const {pop} = C.useNav()

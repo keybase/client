@@ -84,10 +84,10 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   const backgroundColor = isInWidget
     ? Kb.Styles.globalColors.white
     : isSelected
-    ? Kb.Styles.globalColors.blue
-    : Kb.Styles.isPhone && !Kb.Styles.isTablet
-    ? Kb.Styles.globalColors.fastBlank
-    : Kb.Styles.globalColors.blueGrey
+      ? Kb.Styles.globalColors.blue
+      : Kb.Styles.isPhone && !Kb.Styles.isTablet
+        ? Kb.Styles.globalColors.fastBlank
+        : Kb.Styles.globalColors.blueGrey
 
   const children = React.useMemo(() => {
     return (

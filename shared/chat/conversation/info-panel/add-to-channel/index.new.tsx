@@ -10,7 +10,6 @@ import {memoize} from '../../../../util/memoize'
 import {ModalTitle, useChannelParticipants} from '../../../../teams/common'
 
 type Props = {
-  conversationIDKey: T.Chat.ConversationIDKey // for page
   teamID: T.Teams.TeamID
 }
 

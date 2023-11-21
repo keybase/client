@@ -102,9 +102,12 @@ public class KbModule extends KbSpec {
     return NAME;
   }
 
+    @ReactMethod
+    public void addListener(String eventName) { }
 
-  public void addListener(String eventType) {}
-  public void removeListeners(double count) {}
+    @ReactMethod
+    public void removeListeners(Integer count) {
+    }
 
     // Is this a robot controlled test device? (i.e. pre-launch report?)
     private static boolean isTestDevice(ReactApplicationContext context) {

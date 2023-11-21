@@ -228,8 +228,8 @@ export const messageAuthorIsBot = (
     ? TeamConstants.userIsRoleInTeam(state, teamID, message.author, 'restrictedbot') ||
         TeamConstants.userIsRoleInTeam(state, teamID, message.author, 'bot')
     : meta.teamType === 'adhoc' && participantInfo.name.length > 0 // teams without info may have type adhoc with an empty participant name list
-    ? !participantInfo.name.includes(message.author) // if adhoc, check if author in participants
-    : false // if we don't have team information, don't show bot icon
+      ? !participantInfo.name.includes(message.author) // if adhoc, check if author in participants
+      : false // if we don't have team information, don't show bot icon
 }
 
 export const uiParticipantsToParticipantInfo = (uiParticipants: Array<T.RPCChat.UIParticipant>) => {
@@ -1496,12 +1496,12 @@ export const _useState = Z.createZustand<State>((set, get) => {
         const {participants, teamname, highlightMessageID} = p
         if (teamname) return
         if (!participants) return
-        const toFind = participants.toSorted().join(',')
+        const toFind = [...participants].sort().join(',')
         const toFindN = participants.length
         for (const cs of C.chatStores.values()) {
           const names = cs.getState().participants.name
           if (names.length !== toFindN) continue
-          const p = names.toSorted().join(',')
+          const p = [...names].sort().join(',')
           if (p === toFind) {
             C.getConvoState(cs.getState().id).dispatch.navigateToThread('justCreated', highlightMessageID)
             return

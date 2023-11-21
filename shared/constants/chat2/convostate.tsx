@@ -12,6 +12,7 @@ import HiddenString from '../../util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '../../logger'
 import throttle from 'lodash/throttle'
+import type {DebouncedFunc} from 'lodash'
 import {RPCError} from '../../util/errors'
 import {findLast} from '../../util/arrays'
 import {mapGetEnsureValue} from '../../util/map'
@@ -255,7 +256,7 @@ export type ConvoState = ConvoStore & {
     resolveMaybeMention: (name: string, channel: string) => void
     selectedConversation: () => void
     sendAudioRecording: (path: string, duration: number, amps: Array<number>) => void
-    sendTyping: (typing: boolean) => void
+    sendTyping: DebouncedFunc<(typing: boolean) => void>
     setCommandMarkdown: (md?: T.RPCChat.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
     setConvRetentionPolicy: (policy: T.Retention.RetentionPolicy) => void
@@ -265,7 +266,6 @@ export type ConvoState = ConvoStore & {
     // false to clear
     setMarkAsUnread: (readMsgID?: T.RPCChat.MessageID | false) => void
     setMessageCenterOrdinal: (m?: T.Chat.CenterOrdinal) => void
-    setMessageTypeMap: (o: T.Chat.Ordinal, t?: T.Chat.RenderMessageType) => void
     setMeta: (m?: T.Chat.ConversationMeta) => void
     setMinWriterRole: (role: T.Teams.TeamRoleType) => void
     setMoreToLoad: (m: boolean) => void
@@ -804,6 +804,17 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       if (navToInbox) {
         C.useRouterState.getState().dispatch.navUpToScreen('chatRoot')
         C.useRouterState.getState().dispatch.switchTab(Tabs.chatTab)
+        if (!C.isMobile) {
+          const vs = C.Router2.getVisibleScreen()
+          const params: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = vs?.params
+          if (params?.conversationIDKey === get().id) {
+            // select a convo
+            const next = C.useChatState.getState().inboxLayout?.smallTeams?.[0]?.convID
+            if (next) {
+              C.getConvoState(next).dispatch.navigateToThread('findNewestConversationFromLayout')
+            }
+          }
+        }
       }
     },
     loadAttachmentView: (viewType, fromMsgID) => {
@@ -1430,6 +1441,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const conversationIDKey = get().id
         const clientPrev = getClientPrev()
 
+        get().dispatch.sendTyping.cancel()
+        get().dispatch.sendTyping(false)
+
         // disable sending exploding messages if flag is false
         const ephemeralLifetime = get().explodingMode
         const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
@@ -1957,7 +1971,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             const m = get().messageMap.get(ordinal)
             dispatch.updateMessage(ordinal, m ? Message.upgradeMessage(m, message) : message)
             const subType = Message.getMessageRenderType(message)
-            dispatch.setMessageTypeMap(ordinal, subType)
+            set(s => {
+              s.messageTypeMap.set(ordinal, subType)
+            })
           }
         } else if (shouldAddMessage) {
           // A normal message
@@ -2288,15 +2304,19 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       C.ignorePromise(f())
     },
-    sendTyping: throttle(typing => {
-      const f = async () => {
-        await T.RPCChat.localUpdateTypingRpcPromise({
-          conversationID: T.Chat.keyToConversationID(get().id),
-          typing,
-        })
-      }
-      C.ignorePromise(f())
-    }, 2000),
+    sendTyping: throttle(
+      (typing: boolean) => {
+        const f = async () => {
+          await T.RPCChat.localUpdateTypingRpcPromise({
+            conversationID: T.Chat.keyToConversationID(get().id),
+            typing,
+          })
+        }
+        C.ignorePromise(f())
+      },
+      2000,
+      {leading: true, trailing: true}
+    ),
     setCommandMarkdown: md => {
       set(s => {
         s.commandMarkdown = md
@@ -2533,15 +2553,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMessageCenterOrdinal: m => {
       set(s => {
         s.messageCenterOrdinal = m
-      })
-    },
-    setMessageTypeMap: (o, t) => {
-      set(s => {
-        if (t) {
-          s.messageTypeMap.set(o, t)
-        } else {
-          s.messageTypeMap.delete(o)
-        }
       })
     },
     setMeta: _m => {
@@ -3084,6 +3095,7 @@ export function _useConvoState<T>(id: T.Chat.ConversationIDKey, selector: (state
   return useStore(store, selector)
 }
 
+export type ChatProviderProps<T> = T & {route: {params: {conversationIDKey?: string}}}
 type RouteParams = {
   route: {params: {conversationIDKey?: string}}
 }

@@ -1,13 +1,8 @@
 import * as C from '../constants'
-import type * as T from '../constants/types'
 import NewTeamDialog from '../teams/new-team'
 import upperFirst from 'lodash/upperFirst'
 
-type OwnProps = {
-  conversationIDKey: T.Chat.ConversationIDKey // for page
-}
-
-const Container = (_: OwnProps) => {
+const Container = () => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const baseTeam = ''
   const errorText = C.useTeamsState(s => upperFirst(s.errorInTeamCreation))

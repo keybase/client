@@ -8,6 +8,7 @@ import {pluralize} from '../../../util/string'
 import {memoize} from '../../../util/memoize'
 import {useAllChannelMetas} from '../../common/channel-hooks'
 import {useEditState} from './use-edit'
+import {useFocusEffect} from '@react-navigation/core'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -50,6 +51,12 @@ const AddToChannels = (props: Props) => {
   const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(
     channelMetas,
     usernames
+  )
+
+  useFocusEffect(
+    React.useCallback(() => {
+      C.ignorePromise(reloadChannels())
+    }, [reloadChannels])
   )
 
   const [filter, setFilter] = React.useState('')

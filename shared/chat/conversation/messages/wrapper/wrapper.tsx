@@ -144,8 +144,8 @@ const useRedux = (ordinal: T.Chat.Ordinal) => {
   const you = C.useCurrentUserState(s => s.username)
   const paymentStatusMap = C.useChatState(s => s.paymentStatusMap)
   const accountsInfoMap = C.useChatContext(s => s.accountsInfoMap)
-  const ordinals = C.useChatContext(s => s.messageOrdinals)
   const isEditing = C.useChatContext(s => s.editing === ordinal)
+  const ordinals = C.useChatContext(s => s.messageOrdinals)
   const d = C.useChatContext(
     C.useShallow(s => {
       const m = s.messageMap.get(ordinal) ?? missingMessage
