@@ -1,5 +1,6 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
+import type {Section as _Section} from '../../common-adapters/section-list'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import Actions from './actions/container'
@@ -15,6 +16,8 @@ import upperFirst from 'lodash/upperFirst'
 import {SiteIcon} from '../generic/shared'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
+
+type Section = _Section<'bioTeamProofs'> | _Section<ChunkType[number], {itemWidth: number}>
 
 export type Props = {
   assertionKeys?: Array<string>
@@ -316,12 +319,7 @@ type State = {
 
 type Tab = 'followers' | 'following'
 
-type ChunkType = Array<
-  | Array<string>
-  | {type: 'IKnowThem'; text: string}
-  | {type: 'noFriends'; text: string}
-  | {type: 'loading'; text: string}
->
+type ChunkType = Array<Array<string> | {type: 'noFriends'; text: string} | {type: 'loading'; text: string}>
 
 // TODO move container and get rid of this simple wrapper
 const UserWrap = (p: Props) => {
@@ -351,7 +349,7 @@ class User extends React.Component<Props2, State> {
     })
   }
 
-  _renderSectionHeader = ({section}: any) => {
+  _renderSectionHeader = ({section}: {section: Section}) => {
     if (section === this._bioTeamProofsSection) return null
     if (this.props.notAUser) return null
 
@@ -376,17 +374,20 @@ class User extends React.Component<Props2, State> {
     section,
     index,
   }: {
-    item: any /* ChunkType TODO better typing here */
+    item: 'bioTeamProofs' | ChunkType[number]
     section: {itemWidth: number}
     index: number
-  }) =>
-    this.props.notAUser ? null : item.type === 'noFriends' || item.type === 'loading' ? (
+  }) => {
+    if (item === 'bioTeamProofs') return null
+    if (Array.isArray(item)) {
+      return <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
+    }
+    return this.props.notAUser ? null : (
       <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
         <Kb.Text type="BodySmall">{item.text}</Kb.Text>
       </Kb.Box2>
-    ) : (
-      <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
     )
+  }
 
   _bioTeamProofsSection = {
     data: ['bioTeamProofs'],
@@ -408,7 +409,7 @@ class User extends React.Component<Props2, State> {
         title={this.props.title}
       />
     ),
-  }
+  } as const
 
   _onMeasured = (width: number) => this.setState(p => (p.width !== width ? {width} : null))
   _keyExtractor = (_: unknown, index: number) => index
@@ -426,8 +427,8 @@ class User extends React.Component<Props2, State> {
       this.state.selectedTab === 'following'
         ? this.props.following
         : this.state.selectedTab === 'followers'
-        ? this.props.followers
-        : null
+          ? this.props.followers
+          : null
     const {itemsInARow, itemWidth} = widthToDimensions(this.state.width)
     const chunks: ChunkType = this.state.width ? chunk(friends, itemsInARow) : []
     if (chunks.length === 0) {
@@ -470,22 +471,24 @@ class User extends React.Component<Props2, State> {
           <Kb.Box2 direction="vertical" style={styles.innerContainer}>
             {!Kb.Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
             {!!this.state.width && (
-              <Kb.SectionList
+              <Kb.SectionList<Section>
                 key={this.props.username + this.state.width /* forc render on user change or width change */}
                 desktopReactListTypeOverride="variable"
                 desktopItemSizeEstimatorOverride={() => 113}
-                getItemHeight={(item: any) => (item?.usernames ? 113 : 0)}
+                getItemHeight={item => (Array.isArray(item) ? 113 : 0)}
                 stickySectionHeadersEnabled={true}
                 renderSectionHeader={this._renderSectionHeader}
                 keyExtractor={this._keyExtractor}
-                sections={[
-                  this._bioTeamProofsSection,
-                  {
-                    data: chunks,
-                    itemWidth,
-                    renderItem: this._renderOtherUsers,
-                  },
-                ]}
+                sections={
+                  [
+                    this._bioTeamProofsSection,
+                    {
+                      data: chunks,
+                      itemWidth,
+                      renderItem: this._renderOtherUsers,
+                    },
+                  ] as const
+                }
                 style={styles.sectionList}
                 contentContainerStyle={styles.sectionListContentStyle}
               />

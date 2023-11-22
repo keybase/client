@@ -30,7 +30,7 @@ export const _getNavigator = () => {
 
 export const logState = () => {
   const rs = getRootState()
-  const safePaths = (ps: ReturnType<typeof getModalStack>) => ps.map(p => ({key: p.key, name: p.name}))
+  const safePaths = (ps: Array<{key?: string; name?: string}>) => ps.map(p => ({key: p.key, name: p.name}))
   const modals = safePaths(getModalStack(rs))
   const visible = safePaths(getVisiblePath(rs))
   return {loggedIn: _isLoggedIn(rs), modals, visible}
@@ -127,7 +127,7 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
 
   // search stack for target
   if (route.state?.type === 'stack') {
-    const idx = route.state.routes.findIndex(r => r.name === name)
+    const idx = route.state.routes.findIndex((r: {name: string}) => r.name === name)
     // found
     if (idx !== -1) {
       route.state.index = idx
@@ -137,7 +137,7 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
   }
   // try the incoming s
   if (s?.type === 'stack') {
-    const idx = s.routes?.findIndex((r: {name: string}) => r.name === name) ?? -1
+    const idx: number = s.routes?.findIndex((r: {name: string}) => r.name === name) ?? -1
     // found
     if (idx !== -1 && s.routes) {
       s.index = idx
@@ -325,7 +325,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
         routeName = path
       } else {
         routeName = path.selected
-        params = path.props
+        params = path.props as object
       }
       if (!routeName) {
         DEBUG_NAV && console.log('[Nav] navigateAppend no routeName bail', routeName)

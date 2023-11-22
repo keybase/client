@@ -15,7 +15,8 @@ const file = path.join(Electron.app.getPath('userData'), 'installer.json')
 const loadHasPrompted = () => {
   try {
     const data = fs.readFileSync(file, 'utf8')
-    return JSON.parse(data)?.promptedForCLI
+    const p = JSON.parse(data) as undefined | {promptedForCLI: unknown}
+    return !!p?.promptedForCLI
   } catch (error_) {
     const error = error_ as {code?: string} | undefined
     if (error?.code === 'ENOENT') {
@@ -115,7 +116,7 @@ const checkErrors = (result: ResultType, errors: Array<string>, errorTypes: Erro
   })
 }
 
-type CB = (err?: Error) => void
+type CB = (err: Error | null) => void
 const darwinInstall = (callback: CB) => {
   logger.info('[Installer]: Installer check starting now')
   const keybaseBin = keybaseBinPath()
@@ -148,7 +149,7 @@ const darwinInstall = (callback: CB) => {
       )
       .catch(err => logger.error('[Installer]: Error zipping up logs: ', err))
 
-  const handleResults = (err: {code: number} | undefined, _: unknown, stdout: string, stderr: string) => {
+  const handleResults = (err: {code?: number} | null, _: unknown, stdout: string, stderr: string) => {
     const loggingPromise = logOutput(stdout, stderr)
     const errors: Array<string> = []
     const errorTypes: ErrorTypes = {
@@ -185,7 +186,7 @@ const darwinInstall = (callback: CB) => {
             if (response === 1) {
               ctlQuit()
             } else {
-              callback()
+              callback(null)
             }
           })
         )
@@ -212,7 +213,7 @@ const darwinInstall = (callback: CB) => {
       }
     }
 
-    callback()
+    callback(null)
   }
   exec(
     keybaseBin,
@@ -224,5 +225,5 @@ const darwinInstall = (callback: CB) => {
   )
 }
 
-const install = isDarwin ? darwinInstall : (callback: CB) => callback() // nothing on other platforms
+const install = isDarwin ? darwinInstall : (callback: CB) => callback(null) // nothing on other platforms
 export default install

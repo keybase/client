@@ -52,6 +52,7 @@ export type StyleOverride = {
   inlineCode?: StylesTextCrossPlatform
   strong?: StylesTextCrossPlatform
   em?: StylesTextCrossPlatform
+  emojiSize?: {size: 22 | 16 | 18 | 32 | 24 | 26 | 28 | 36}
   del?: StylesTextCrossPlatform
   link?: StylesTextCrossPlatform
   mailto?: StylesTextCrossPlatform

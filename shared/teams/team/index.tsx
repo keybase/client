@@ -19,8 +19,6 @@ import {
   useEmojiSections,
   type Section,
 } from './rows'
-import {createAnimatedComponent} from '../../common-adapters/reanimated'
-import type {Props as SectionListProps, Section as SectionType} from '../../common-adapters/section-list'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -81,8 +79,6 @@ const useLoadFeaturedBots = (teamDetails: T.Teams.TeamDetails, shouldLoad: boole
   }, [shouldLoad, _bots, featuredBotsMap, searchFeaturedBots])
 }
 
-const SectionList = createAnimatedComponent<SectionListProps<SectionType<Section>>>(Kb.SectionList)
-
 const Team = (props: Props) => {
   const teamID = props.teamID
   const initialTab = props.initialTab
@@ -114,7 +110,7 @@ const Team = (props: Props) => {
       ) : (
         <TeamTabs teamID={teamID} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
       ),
-  }
+  } as const
 
   const sections: Array<Section> = [headerSection]
   const membersSections = useMembersSections(teamID, teamMeta, teamDetails, yourOperations)
@@ -166,7 +162,7 @@ const Team = (props: Props) => {
   return (
     <Kb.Styles.CanFixOverdrawContext.Provider value={false}>
       <Kb.Box style={styles.container}>
-        <SectionList
+        <Kb.SectionList
           renderSectionHeader={renderSectionHeader}
           stickySectionHeadersEnabled={Kb.Styles.isMobile}
           sections={sections}

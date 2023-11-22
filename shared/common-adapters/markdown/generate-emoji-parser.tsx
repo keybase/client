@@ -45,8 +45,8 @@ function UTF162JSON(text: string) {
 }
 
 function genEmojiData() {
-  const emojiIndexByChar: any = {}
-  const emojiIndexByName: any = {}
+  const emojiIndexByChar: {[key: string]: string} = {}
+  const emojiIndexByName: {[key: string]: string} = {}
   const emojiLiterals: Array<string> = []
   function addEmojiLiteral(unified: string, name: string, skinTone?: number) {
     const chars = unified.split('-').map(c => String.fromCodePoint(parseInt(c, 16)))

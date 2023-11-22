@@ -31,7 +31,7 @@ const prettierCheck = () => {
       stdio: [],
     })
   } catch (error_) {
-    const error = error_ as any
+    const error = error_ as {stdout: string}
     const lines = error.stdout.split('\n')
     const [, ...toPrint] = lines
     toPrint.pop()
