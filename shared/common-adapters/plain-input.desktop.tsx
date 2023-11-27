@@ -206,21 +206,21 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   _getMultilineProps = () => {
     const rows = this.props.rowsMin || Math.min(2, this.props.rowsMax || 2)
-    const textStyle: any = getTextStyle(this.props.textType)
-    const heightStyles: any = {
+    const textStyle = getTextStyle(this.props.textType)
+    const heightStyles: {minHeight: number; maxHeight?: number; overflowY?: 'hidden'} = {
       minHeight:
-        rows * (maybeParseInt(textStyle.lineHeight, 10) || 20) +
+        rows * (textStyle.lineHeight === undefined ? 20 : maybeParseInt(textStyle.lineHeight, 10) || 20) +
         (this.props.padding ? Styles.globalMargins[this.props.padding] * 2 : 0),
     }
     if (this.props.rowsMax) {
-      heightStyles.maxHeight = this.props.rowsMax * (maybeParseInt(textStyle.lineHeight, 10) || 20)
+      heightStyles.maxHeight =
+        this.props.rowsMax *
+        (textStyle.lineHeight === undefined ? 20 : maybeParseInt(textStyle.lineHeight, 10) || 20)
     } else {
       heightStyles.overflowY = 'hidden'
     }
 
-    const paddingStyles: any = this.props.padding
-      ? Styles.padding(Styles.globalMargins[this.props.padding])
-      : {}
+    const paddingStyles = this.props.padding ? Styles.padding(Styles.globalMargins[this.props.padding]) : {}
     return {
       ...this._getCommonProps(),
       rows,

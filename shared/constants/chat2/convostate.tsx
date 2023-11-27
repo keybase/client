@@ -274,7 +274,7 @@ export type ConvoState = ConvoStore & {
     setReplyTo: (o: T.Chat.Ordinal) => void
     setThreadLoadStatus: (status: T.RPCChat.UIChatThreadStatusTyp) => void
     setThreadSearchQuery: (query: string) => void
-    setTyping: (t: Set<string>) => void
+    setTyping: DebouncedFunc<(t: Set<string>) => void>
     setupSubscriptions: () => void
     showInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
     tabSelected: () => void
@@ -295,7 +295,7 @@ export type ConvoState = ConvoStore & {
       result: T.RPCChat.UnfurlPromptResult
     ) => void
     unfurlRemove: (messageID: T.Chat.MessageID) => void
-    updateDraft: (text: string) => void
+    updateDraft: DebouncedFunc<(text: string) => void>
     updateFromUIInboxLayout: (l: {isMuted: boolean; draft?: string | null}) => void
     unfurlTogglePrompt: (messageID: T.Chat.MessageID, domain: string, show: boolean) => void
     unreadUpdated: (unread: number) => void
@@ -846,7 +846,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 if (message) {
                   set(s => {
                     const info = mapGetEnsureValue(s.attachmentViewMap, viewType, makeAttachmentViewInfo())
-                    if (!info.messages.find((item: any) => item.id === message.id)) {
+                    if (!info.messages.find(item => item.id === message.id)) {
                       info.messages = info.messages.concat(message).sort((l, r) => r.id - l.id)
                     }
                     // inject them into the message map
@@ -2305,7 +2305,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       C.ignorePromise(f())
     },
     sendTyping: throttle(
-      (typing: boolean) => {
+      typing => {
         const f = async () => {
           await T.RPCChat.localUpdateTypingRpcPromise({
             conversationID: T.Chat.keyToConversationID(get().id),
@@ -2496,10 +2496,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           try {
             await new Promise<void>(resolve => {
-              const onGotThread = (p: any) => {
+              const onGotThread = (p: string) => {
                 try {
-                  const d = JSON.parse(p)
-                  msgID = d?.messages[1]?.valid?.messageID
+                  const d = JSON.parse(p) as undefined | {messages?: Array<{valid?: {messageID?: unknown}}>}
+                  const m = d?.messages?.[1]?.valid?.messageID
+                  if (typeof m === 'number') {
+                    msgID = m
+                  }
                   resolve()
                 } catch {}
               }
