@@ -29,7 +29,7 @@ PODS:
     - ExpoModulesCore
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
-  - Expo (49.0.20):
+  - Expo (49.0.21):
     - ExpoModulesCore
   - ExpoClipboard (4.5.0):
     - ExpoModulesCore
@@ -441,7 +441,7 @@ PODS:
     - React-Core
   - react-native-safe-area-context (4.7.4):
     - React-Core
-  - react-native-webview (13.6.2):
+  - react-native-webview (13.6.3):
     - React-Core
   - React-NativeModulesApple (0.72.7):
     - React-callinvoker
@@ -554,7 +554,7 @@ PODS:
     - React-Core
   - RNCPushNotificationIOS (1.11.0):
     - React-Core
-  - RNGestureHandler (2.13.4):
+  - RNGestureHandler (2.14.0):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
   - RNReanimated (3.5.4):
@@ -901,7 +901,7 @@ SPEC CHECKSUMS:
   EXImageLoader: 03063370bc06ea1825713d3f55fe0455f7c88d04
   EXLocation: e5dd52bdf61ccb6153c9e46ad4cb2686c96a35f9
   EXMediaLibrary: 802eee8ef888ee16ef80f1b79005d3d611793e14
-  Expo: 25b41ba5d4a3af57234dca132f6b9e1f5b0bd4b5
+  Expo: 61a8e1aa94311557c137c0a4dfd4fe78281cfbb4
   ExpoClipboard: d2f0e44d50e5ba07b02f5fb7bd280178b420e24e
   ExpoHaptics: 604aca02e942d1d43c139cae7cf397b26f85476f
   ExpoImage: bbd451559f49f78d858592fe1d4d74aedb3d900b
@@ -953,7 +953,7 @@ SPEC CHECKSUMS:
   react-native-kb: 00f70648f2f1e0ab1df703c6e8774f8ffffe121c
   react-native-netinfo: 3aa5637c18834966e0c932de8ae1ae56fea20a97
   react-native-safe-area-context: 2cd91d532de12acdb0a9cbc8d43ac72a8e4c897c
-  react-native-webview: 8fc09f66a1a5b16bbe37c3878fda27d5982bb776
+  react-native-webview: 88293a0f23eca8465c0433c023ec632930e644d0
   React-NativeModulesApple: 6f63747fd6e237b646c61957a8f877a2713617af
   React-perflogger: 31ea61077185eb1428baf60c0db6e2886f141a5a
   React-RCTActionSheet: 392090a3abc8992eb269ef0eaa561750588fc39d
@@ -974,7 +974,7 @@ SPEC CHECKSUMS:
   RNCMaskedView: f7c74478c83c4fdfc5cf4df51f80c0dd5cf125c6
   RNCPicker: 529d564911e93598cc399b56cc0769ce3675f8c8
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
-  RNGestureHandler: 6e46dde1f87e5f018a54fe5d40cd0e0b942b49ee
+  RNGestureHandler: 32a01c29ecc9bb0b5bf7bc0a33547f61b4dc2741
   RNReanimated: bdadbf5322d7894bb6016985d8ae5c9ed5fc83d0
   RNScreens: 3c2d122f5e08c192e254c510b212306da97d2581
   SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
@@ -989,4 +989,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 8afc2f8257035b709cecf925e4ed8b9cd0f839fd
 
-COCOAPODS: 1.13.0
+COCOAPODS: 1.14.3
