@@ -27,7 +27,7 @@ class Text extends React.Component<Props> {
   }
 
   shouldComponentUpdate(nextProps: Props): boolean {
-    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+    return !shallowEqual(this.props, nextProps, (obj: unknown, oth: unknown, key) => {
       if (key === 'style') {
         return shallowEqual(obj, oth)
       } else if (key === 'children' && this.props.plainText && nextProps.plainText) {
@@ -66,7 +66,7 @@ class Text extends React.Component<Props> {
     openURL(this.props.onClickURL)
   }
 
-  private onContextMenu = (event: any) => {
+  private onContextMenu = (event: React.SyntheticEvent<HTMLSpanElement>) => {
     const url = this.props.onClickURL
     if (!url) {
       return
@@ -82,7 +82,7 @@ class Text extends React.Component<Props> {
 
     if (this.props.textRef) {
       // outer type isn't writable due to class components
-      const writeRef = this.props.textRef as React.MutableRefObject<any>
+      const writeRef = this.props.textRef as React.MutableRefObject<typeof this.props.textRef.current>
       writeRef.current = {
         divRef: {current: null},
         highlightText: () => {
@@ -124,7 +124,7 @@ function externalGetStyle(
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   // pipe positive color through because caller probably isn't using class
   const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}
-  const cursorStyle: any = meta.isLink ? {cursor: 'pointer'} : null
+  const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
   const clickableStyle = clickable ? Styles.desktopStyles.clickable : null
   const selectableStyle = selectable

@@ -19,9 +19,19 @@ type SectionExtras = {
   onToggleCollapsed?: () => void
   title?: string
 }
-export type Section = _Section<any, SectionExtras>
 
-const makeSingleRow = (key: string, renderItem: () => React.ReactNode) => ({
+type Requests = Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'teamID'>
+
+export type Section =
+  | _Section<T.Teams.MemberInfo, SectionExtras>
+  | _Section<'row'>
+  | _Section<T.Teams.InviteInfo>
+  | _Section<Requests>
+  | _Section<T.Teams.TeamChannelInfo>
+  | _Section<string>
+  | _Section<T.RPCChat.Emoji>
+
+const makeSingleRow = (key: string, renderItem: () => React.ReactNode): Section => ({
   data: ['row'] as const,
   key,
   renderItem,
@@ -45,7 +55,7 @@ export const useMembersSections = (
     {
       data: getOrderedMemberArray(details.members, yourUsername, yourOperations),
       key: 'member-members',
-      renderItem: ({index, item}) => (
+      renderItem: ({index, item}: {index: number; item: T.Teams.MemberInfo}) => (
         <MemberRow teamID={teamID} username={item.username} firstItem={index === 0} />
       ),
       title: `Already in team (${meta.memberCount})`,
@@ -74,7 +84,7 @@ export const useBotSections = (
     {
       data: getOrderedBotsArray(details.members),
       key: 'bots',
-      renderItem: ({item}) => <BotRow teamID={teamID} username={item.username} />,
+      renderItem: ({item}: {item: T.Teams.MemberInfo}) => <BotRow teamID={teamID} username={item.username} />,
     },
     ...(yourOperations.manageBots ? [makeSingleRow('add-bots', () => <AddBotRow teamID={teamID} />)] : []),
   ]
@@ -90,10 +100,7 @@ export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.Team
   const resetMembers = [...details.members.values()].filter(m => m.status === 'reset')
 
   if (details.requests.size || resetMembers.length) {
-    const requestsSection: _Section<
-      Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'teamID'>,
-      SectionExtras
-    > = {
+    const requestsSection: _Section<Requests, SectionExtras> = {
       data: [
         ...[...details.requests].map(req => ({
           ctime: req.ctime,
@@ -121,7 +128,9 @@ export const useInvitesSections = (teamID: T.Teams.TeamID, details: T.Teams.Team
       data: collapsed ? [] : [...details.invites].sort(sortInvites),
       key: 'member-invites',
       onToggleCollapsed,
-      renderItem: ({index, item}) => <InviteRow teamID={teamID} id={item.id} firstItem={index === 0} />,
+      renderItem: ({index, item}: {index: number; item: T.Teams.InviteInfo}) => (
+        <InviteRow teamID={teamID} id={item.id} firstItem={index === 0} />
+      ),
       title: `Invitations (${details.invites.size})`,
     })
   }
@@ -155,12 +164,14 @@ export const useChannelsSections = (
             : a.channelname.localeCompare(b.channelname)
       ),
       key: 'channel-channels',
-      renderItem: ({item}) => <ChannelRow teamID={teamID} conversationIDKey={item.conversationIDKey} />,
+      renderItem: ({item}: {item: T.Teams.TeamChannelInfo}) => (
+        <ChannelRow teamID={teamID} conversationIDKey={item.conversationIDKey} />
+      ),
     },
     channels.size < 5 && yourOperations.createChannel
       ? makeSingleRow('channel-few', () => <EmptyRow type="channelsFew" teamID={teamID} />)
       : makeSingleRow('channel-info', () => <ChannelFooterRow />),
-  ]
+  ] as const
 }
 
 // When we delete the feature flag, clean this up a bit
@@ -179,7 +190,9 @@ export const useSubteamsSections = (
   sections.push({
     data: subteams,
     key: 'subteams',
-    renderItem: ({item, index}) => <SubteamTeamRow teamID={item} firstItem={index === 0} />,
+    renderItem: ({item, index}: {item: string; index: number}) => (
+      <SubteamTeamRow teamID={item} firstItem={index === 0} />
+    ),
   })
 
   if (details.subteams.size) {
@@ -284,7 +297,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
     sections.push({
       data: filteredEmoji,
       key: 'emoji-item',
-      renderItem: ({item, index}) => (
+      renderItem: ({item, index}: {item: T.RPCChat.Emoji; index: number}) => (
         <EmojiItemRow
           emoji={item}
           firstItem={index === 0}

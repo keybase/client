@@ -18,9 +18,9 @@ const AudioVideo = (props: Props) => {
 
   seekRef.current = seek
   const onTimeUpdate = React.useCallback(
-    (e: any) => {
-      const ct = e?.target?.currentTime ?? -1
-      const dur = e?.target?.duration ?? -1
+    (e: React.SyntheticEvent<HTMLVideoElement>) => {
+      const ct = e.currentTarget.currentTime
+      const dur = e.currentTarget.duration
       if (dur === 0) {
         return
       }

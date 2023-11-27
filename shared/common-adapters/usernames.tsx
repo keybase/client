@@ -11,6 +11,7 @@ import Text, {
 } from './text'
 import {backgroundModeIsNegative} from './text.shared'
 import isArray from 'lodash/isArray'
+import type {e164ToDisplay as e164ToDisplayType} from '../util/phone-numbers'
 
 export type User = {
   username: string
@@ -88,7 +89,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
 
   const showUserProfile = C.useProfileState(s => s.dispatch.showUserProfile)
   const onOpenProfile = React.useCallback(
-    (evt: any) => {
+    (evt?: React.BaseSyntheticEvent) => {
       evt?.stopPropagation()
       showUserProfile(username)
     },
@@ -96,7 +97,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
   )
   const showUser = C.useTrackerState(s => s.dispatch.showUser)
   const onOpenTracker = React.useCallback(
-    (evt: any) => {
+    (evt?: React.BaseSyntheticEvent) => {
       evt?.stopPropagation()
       showUser(username, true)
     },
@@ -107,7 +108,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
       onUsernameClicked(username)
     }
   }, [username, onUsernameClicked])
-  let onClicked: undefined | ((evt?: any) => void)
+  let onClicked: undefined | ((evt?: React.BaseSyntheticEvent) => void)
   switch (onUsernameClicked) {
     case 'tracker':
       onClicked = onOpenTracker
@@ -324,7 +325,7 @@ const Usernames = React.memo(
     )
   },
   (p, n) => {
-    return C.shallowEqual(p, n, (v, o) => {
+    return C.shallowEqual(p, n, (v: unknown, o: unknown) => {
       if (isArray(v) && isArray(o)) {
         return C.shallowEqual(v, o)
       }
@@ -343,7 +344,7 @@ export const assertionToDisplay = (assertion: string): string => {
     }
     // phone number
     try {
-      const {e164ToDisplay} = require('../util/phone-numbers')
+      const {e164ToDisplay} = require('../util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
       return e164ToDisplay('+' + noSuffix)
     } catch (e) {
       return '+' + noSuffix

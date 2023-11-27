@@ -34,7 +34,7 @@ const routesMinusRoots = (tab: DesktopTabs) => {
 }
 
 // we must ensure we don't keep remaking these components
-const tabScreensCache = new Map()
+const tabScreensCache = new Map<DesktopTabs, ReturnType<typeof makeNavScreens>>()
 const makeTabStack = (tab: DesktopTabs) => {
   const S = createNativeStackNavigator()
 
@@ -62,16 +62,19 @@ const makeTabStack = (tab: DesktopTabs) => {
   return Comp
 }
 
-const makeNavScreens = (rs: any, Screen: any, _isModal: boolean) => {
-  return Object.keys(rs).map(name => {
+type Screen = ReturnType<typeof createNativeStackNavigator>['Screen']
+const makeNavScreens = (rs: typeof routes, Screen: Screen, _isModal: boolean) => {
+  return Object.keys(rs).map((name: keyof typeof routes) => {
+    const val = rs[name]
+    if (!val?.getScreen) return null
     return (
       <Screen
         key={name}
         navigationKey={name}
         name={name}
-        getComponent={rs[name].getScreen}
+        getComponent={val.getScreen}
         options={({route, navigation}: any) => {
-          const no = getOptions(rs[name])
+          const no = getOptions(val)
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}
         }}

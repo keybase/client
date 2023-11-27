@@ -2,12 +2,12 @@ import * as C from '../constants'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as T from '../constants/types'
+import type {Section as _Section} from '../common-adapters/section-list'
 import {keybaseFM} from '../constants/whats-new'
 import {isAndroid} from '../constants/platform'
 import SettingsItem from './sub-nav/settings-item'
 import WhatsNewIcon from '../whats-new/icon/container'
 import noop from 'lodash/noop'
-import {SectionList} from 'react-native' // TODO use common one
 
 const PerfRow = () => {
   const [toSubmit, setToSubmit] = React.useState('')
@@ -48,12 +48,18 @@ const PerfRow = () => {
   )
 }
 
-const renderItem = ({item}: any) => {
-  if (item.text === 'perf') {
-    return <PerfRow />
-  }
-  return item.text ? <SettingsItem {...item} /> : null
-}
+type Section = _Section<
+  {
+    badgeNumber?: number
+    text: string
+    icon?: Kb.IconType
+    onClick: () => void
+    iconComponent?: (a: {}) => React.ReactElement
+    subText?: string
+    textColor?: string
+  },
+  {title: string}
+>
 
 function SettingsNav() {
   const badgeNumbers = C.useNotifState(s => s.navBadges)
@@ -70,14 +76,107 @@ function SettingsNav() {
     s.importEnabled ? 'Phone contacts' : 'Import phone contacts'
   )
 
+  const sections: Array<Section> = [
+    {
+      data: [
+        ...(statsShown ? [{onClick: noop, text: 'perf'}] : []),
+        {
+          icon: 'iconfont-nav-2-crypto',
+          onClick: () => onTabChange(C.settingsCryptoTab),
+          text: 'Crypto',
+        },
+        {
+          badgeNumber: badgeNumbers.get(C.gitTab),
+          icon: 'iconfont-nav-2-git',
+          onClick: () => onTabChange(C.settingsGitTab),
+          text: 'Git',
+        },
+        {
+          badgeNumber: badgeNumbers.get(C.devicesTab),
+          icon: 'iconfont-nav-2-devices',
+          onClick: () => onTabChange(C.settingsDevicesTab),
+          text: 'Devices',
+        },
+        {
+          badgeNumber: badgeNumbers.get(C.walletsTab),
+          icon: 'iconfont-nav-2-wallets',
+          onClick: () => onTabChange(C.settingsWalletsTab),
+          text: 'Wallet',
+        },
+        {
+          iconComponent: WhatsNewIcon,
+          onClick: () => onTabChange(C.settingsWhatsNewTab),
+          subText: `What's new?`,
+          text: keybaseFM,
+        },
+      ],
+      title: '',
+    },
+    {
+      data: [
+        {
+          badgeNumber: badgeNumbers.get(C.settingsTab),
+          onClick: () => onTabChange(C.settingsAccountTab),
+          text: 'Your account',
+        },
+        {
+          onClick: () => onTabChange(C.settingsChatTab),
+          text: 'Chat',
+        },
+        {
+          onClick: () => onTabChange(C.settingsContactsTab),
+          text: contactsLabel,
+        },
+        {
+          onClick: () => onTabChange(C.settingsFsTab),
+          text: 'Files',
+        },
+        {
+          badgeNumber: badgeNotifications ? 1 : 0,
+          onClick: () => onTabChange(C.settingsNotificationsTab),
+          text: 'Notifications',
+        },
+        {
+          onClick: () => onTabChange(C.settingsDisplayTab),
+          text: 'Display',
+        },
+        ...(isAndroid
+          ? [
+              {
+                onClick: () => onTabChange(C.settingsScreenprotectorTab),
+                text: 'Screen protector',
+              } as const,
+            ]
+          : []),
+      ] as const,
+      title: 'Settings' as const,
+    },
+    {
+      data: [
+        {onClick: () => onTabChange(C.settingsAboutTab), text: 'About'},
+        {onClick: () => onTabChange(C.settingsFeedbackTab), text: 'Feedback'},
+        {onClick: () => onTabChange(C.settingsAdvancedTab), text: 'Advanced'},
+        {
+          onClick: () => onTabChange(C.settingsLogOutTab),
+          text: 'Sign out',
+          textColor: Kb.Styles.globalColors.red,
+        },
+      ] as const,
+      title: 'More' as const,
+    },
+  ]
+
   return (
-    <SectionList
-      overScrollMode="never"
-      onScrollToIndexFailed={noop}
+    <Kb.SectionList
       keyboardShouldPersistTaps="handled"
       keyExtractor={(item, index) => item.text + index}
       initialNumToRender={20}
-      renderItem={renderItem}
+      renderItem={({item}) => {
+        if (item.text === 'perf') {
+          return <PerfRow />
+        }
+        return item.text ? <SettingsItem {...item} /> : null
+      }}
       renderSectionHeader={({section: {title}}) =>
         title ? (
           <Kb.Text type="BodySmallSemibold" style={styles.sectionTitle}>
@@ -86,97 +185,7 @@ function SettingsNav() {
         ) : null
       }
       style={Kb.Styles.globalStyles.fullHeight}
-      sections={
-        [
-          {
-            data: [
-              ...(statsShown ? [{text: 'perf'}] : []),
-              {
-                icon: 'iconfont-nav-2-crypto',
-                onClick: () => onTabChange(C.settingsCryptoTab),
-                text: 'Crypto',
-              },
-              {
-                badgeNumber: badgeNumbers.get(C.gitTab),
-                icon: 'iconfont-nav-2-git',
-                onClick: () => onTabChange(C.settingsGitTab),
-                text: 'Git',
-              },
-              {
-                badgeNumber: badgeNumbers.get(C.devicesTab),
-                icon: 'iconfont-nav-2-devices',
-                onClick: () => onTabChange(C.settingsDevicesTab),
-                text: 'Devices',
-              },
-              {
-                badgeNumber: badgeNumbers.get(C.walletsTab),
-                icon: 'iconfont-nav-2-wallets',
-                onClick: () => onTabChange(C.settingsWalletsTab),
-                text: 'Wallet',
-              },
-              {
-                iconComponent: WhatsNewIcon,
-                onClick: () => onTabChange(C.settingsWhatsNewTab),
-                subText: `What's new?`,
-                text: keybaseFM,
-              },
-            ] as const,
-            title: '',
-          },
-          {
-            data: [
-              {
-                badgeNumber: badgeNumbers.get(C.settingsTab),
-                onClick: () => onTabChange(C.settingsAccountTab),
-                text: 'Your account',
-              },
-              {
-                onClick: () => onTabChange(C.settingsChatTab),
-                text: 'Chat',
-              },
-              {
-                onClick: () => onTabChange(C.settingsContactsTab),
-                text: contactsLabel,
-              },
-              {
-                onClick: () => onTabChange(C.settingsFsTab),
-                text: 'Files',
-              },
-              {
-                badgeNumber: badgeNotifications ? 1 : 0,
-                onClick: () => onTabChange(C.settingsNotificationsTab),
-                text: 'Notifications',
-              },
-              {
-                onClick: () => onTabChange(C.settingsDisplayTab),
-                text: 'Display',
-              },
-              ...(isAndroid
-                ? [
-                    {
-                      onClick: () => onTabChange(C.settingsScreenprotectorTab),
-                      text: 'Screen protector',
-                    },
-                  ]
-                : []),
-            ],
-            title: 'Settings',
-          },
-          {
-            data: [
-              {onClick: () => onTabChange(C.settingsAboutTab), text: 'About'},
-              {onClick: () => onTabChange(C.settingsFeedbackTab), text: 'Feedback'},
-              {onClick: () => onTabChange(C.settingsAdvancedTab), text: 'Advanced'},
-              {
-                onClick: () => onTabChange(C.settingsLogOutTab),
-                text: 'Sign out',
-                textColor: Kb.Styles.globalColors.red,
-              },
-            ] as const,
-            title: 'More',
-          },
-        ] as any
-      }
+      sections={sections}
     />
   )
 }
