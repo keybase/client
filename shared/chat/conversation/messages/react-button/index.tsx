@@ -15,7 +15,7 @@ export type Props = {
 const markdownOverride = Kb.Styles.isMobile
   ? {
       customEmoji: {height: 24, width: 24},
-      emoji: {height: 24, lineHeight: 24},
+      emoji: {height: 21, lineHeight: 24},
       emojiSize: {size: 22},
       paragraph: {},
     }
