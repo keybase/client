@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {PortalHost, Portal} from '../../common-adapters/portal.native'
+import {PortalHost, Portal} from '@/common-adapters/portal.native'
 import * as Styles from '../../styles'
 import AudioPlayer from './audio-player'
 import type {AmpTracker} from './amptracker'

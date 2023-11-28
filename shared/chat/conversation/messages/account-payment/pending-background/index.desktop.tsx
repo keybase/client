@@ -1,5 +1,5 @@
 import './pending-background.css'
-import * as Kb from '../../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {Props} from '.'
 import {backgroundURL} from '../../../../../styles/index.desktop'
 

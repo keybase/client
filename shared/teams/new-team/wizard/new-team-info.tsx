@@ -5,7 +5,7 @@ import * as Container from '../../../util/container'
 import {ModalTitle} from '../../common'
 import * as T from '../../../constants/types'
 import {pluralize} from '../../../util/string'
-import {InlineDropdown} from '../../../common-adapters/dropdown'
+import {InlineDropdown} from '@/common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
 import debounce from 'lodash/debounce'
 

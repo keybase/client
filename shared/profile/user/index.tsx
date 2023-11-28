@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/tracker2'
-import type {Section as _Section} from '../../common-adapters/section-list'
+import type {Section as _Section} from '@/common-adapters/section-list'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Actions from './actions/container'

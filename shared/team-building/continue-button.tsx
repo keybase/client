@@ -1,4 +1,4 @@
-import * as Kb from '../common-adapters/index'
+import * as Kb from '@/common-adapters/index'
 
 export type Props = {
   label: string

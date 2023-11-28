@@ -1,6 +1,6 @@
 import type * as T from '../constants/types'
 import * as Kb from '@/common-adapters'
-import type {IconType} from '../common-adapters/icon.constants-gen'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
 import {allServices} from '../constants/team-building'
 
 const serviceColors: {[K in T.TB.ServiceIdWithContact]: string} = {

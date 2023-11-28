@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import {InlineDropdown} from '../../common-adapters/dropdown'
+import {InlineDropdown} from '@/common-adapters/dropdown'
 import type * as T from '../../constants/types'
 import capitalize from 'lodash/capitalize'
 

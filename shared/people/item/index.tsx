@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {formatTimeForPeopleItem} from '../../util/timestamp'
-import type {Props as ButtonProps} from '../../common-adapters/button'
+import type {Props as ButtonProps} from '@/common-adapters/button'
 
 type NonReactTaskButton = {
   label: string

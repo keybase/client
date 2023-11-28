@@ -14,7 +14,7 @@ import {
   Extrapolation,
   type SharedValue,
   createAnimatedComponent,
-} from '../common-adapters/reanimated'
+} from '@/common-adapters/reanimated'
 
 export const labelHeight = 34
 

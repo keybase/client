@@ -11,8 +11,8 @@ import ChannelMemberRow from './rows/member-row'
 import BotRow from '../team/rows/bot-row/bot/container'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
-import {createAnimatedComponent} from '../../common-adapters/reanimated'
-import type {Props as SectionListProps, Section as SectionType} from '../../common-adapters/section-list'
+import {createAnimatedComponent} from '@/common-adapters/reanimated'
+import type {Props as SectionListProps, Section as SectionType} from '@/common-adapters/section-list'
 
 export type OwnProps = {
   teamID: T.Teams.TeamID

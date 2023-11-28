@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as RowSizes from '../../sizes'
-import * as Kb from '../../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {Props} from '.'
 
 const SwipeConvActions = (props: Props) => {

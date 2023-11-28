@@ -10,7 +10,7 @@ import ReplyPreview from '../../reply-preview'
 import type * as T from '../../../../constants/types'
 import {indefiniteArticle} from '../../../../util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
-import {assertionToDisplay} from '../../../../common-adapters/usernames'
+import {assertionToDisplay} from '@/common-adapters/usernames'
 import {FocusContext, ScrollContext} from '../../normal/context'
 
 const useHintText = (p: {

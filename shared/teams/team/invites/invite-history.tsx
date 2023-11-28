@@ -7,7 +7,7 @@ import {memoize} from '../../../util/memoize'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import {ModalTitle} from '../../common'
 import {InviteItem} from './invite-item'
-import type {Section} from '../../../common-adapters/section-list'
+import type {Section} from '@/common-adapters/section-list'
 
 type Props = {teamID: T.Teams.TeamID}
 

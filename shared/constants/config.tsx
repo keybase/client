@@ -12,7 +12,7 @@ import uniq from 'lodash/uniq'
 import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '../util/errors'
 import {defaultUseNativeFrame, runMode, isMobile} from './platform'
 import {type CommonResponseHandler} from '../engine/types'
-import {useAvatarState} from '../common-adapters/avatar-zus'
+import {useAvatarState} from '@/common-adapters/avatar-zus'
 import {mapGetEnsureValue} from '../util/map'
 
 const ignorePromise = (f: Promise<void>) => {

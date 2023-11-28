@@ -4,7 +4,7 @@ import * as React from 'react'
 import UnfurlGeneric from './generic'
 import UnfurlGiphy from './giphy'
 import UnfurlMap from './map'
-import * as Kb from '../../../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {OrdinalContext} from '../../../ids-context'
 
 export type UnfurlListItem = {

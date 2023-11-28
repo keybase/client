@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader} from './index.native'
 import {DebugChatDumpContext} from '../../../constants/chat2/debug'
-import {HeaderLeftArrow} from '../../../common-adapters/header-hoc'
+import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
 import {Keyboard} from 'react-native'
 import {getRouteParamsFromRoute} from '../../../router-v2/route-params'
 

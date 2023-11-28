@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {AvatarSize} from '../common-adapters/avatar'
+import type {AvatarSize} from '@/common-adapters/avatar'
 import * as Styles from '../styles'
 import './chat.css'
 

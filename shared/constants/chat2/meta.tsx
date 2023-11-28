@@ -5,7 +5,7 @@ import * as Message from './message'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isPhone} from '../platform'
-import type {AllowedColors} from '../../common-adapters/text'
+import type {AllowedColors} from '@/common-adapters/text'
 import {base64ToUint8Array, uint8ArrayToHex} from 'uint8array-extras'
 
 const conversationMemberStatusToMembershipType = (m: T.RPCChat.ConversationMemberStatus) => {

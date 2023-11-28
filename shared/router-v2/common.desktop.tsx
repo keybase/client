@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import Header from './header/index.desktop'
-import {HeaderLeftArrow} from '../common-adapters/header-hoc'
+import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
 import {TabActions} from '@react-navigation/core'
 import type {useSubnavTabAction as useSubnavTabActionType} from './common'
 

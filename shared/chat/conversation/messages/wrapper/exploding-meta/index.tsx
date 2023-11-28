@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
 import {formatDurationShort} from '../../../../../util/timestamp'
 import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'

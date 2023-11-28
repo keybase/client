@@ -6,7 +6,7 @@ import * as T from '../../../constants/types'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import {ModalTitle} from '../../common'
 import {FloatingRolePicker} from '../../role-picker'
-import {InlineDropdown} from '../../../common-adapters/dropdown'
+import {InlineDropdown} from '@/common-adapters/dropdown'
 import {pluralize} from '../../../util/string'
 import {InviteItem} from './invite-item'
 

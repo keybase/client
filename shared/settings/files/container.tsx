@@ -1,7 +1,7 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import Files, {defaultNotificationThreshold, allowedNotificationThresholds} from '.'
-import type {PickerItem} from '../../common-adapters/floating-picker'
+import type {PickerItem} from '@/common-adapters/floating-picker'
 import {isMobile} from '../../constants/platform'
 
 const SettingsFiles = () => {

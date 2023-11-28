@@ -1,7 +1,7 @@
 import * as C from '../../constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type {ButtonType} from '../../common-adapters/button'
+import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '../../signup/common'
 
 const PaperKey = () => {

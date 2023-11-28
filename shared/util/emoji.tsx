@@ -1,4 +1,4 @@
-import Emoji from '../common-adapters/emoji'
+import Emoji from '@/common-adapters/emoji'
 import emojidata from 'emoji-datasource-apple'
 import groupBy from 'lodash/groupBy'
 import type * as Styles from '../styles'

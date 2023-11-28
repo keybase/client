@@ -1,6 +1,6 @@
 import * as C from '../../../../../constants'
 import * as T from '../../../../../constants/types'
-import * as Kb from '../../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {TeamJourney, type Action} from '.'
 import {renderWelcomeMessage} from './util'

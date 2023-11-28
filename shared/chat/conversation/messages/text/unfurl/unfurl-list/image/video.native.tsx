@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../../../../../common-adapters/index'
+import * as Kb from '@/common-adapters/index'
 import logger from '../../../../../../../logger'
 import {Video as AVVideo, ResizeMode} from 'expo-av'
 import type {Props} from './video'

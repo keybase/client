@@ -1,6 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as Kb from '../common-adapters/index'
+import * as Kb from '@/common-adapters/index'
 import * as Constants from '../constants/team-building'
 import type * as T from 'constants/types'
 import ContinueButton from './continue-button'

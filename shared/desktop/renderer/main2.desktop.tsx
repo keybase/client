@@ -14,8 +14,8 @@ import {initDesktopStyles} from '../../styles/index.desktop'
 import {isWindows} from '../../constants/platform'
 import KB2 from '../../util/electron.desktop'
 
-import {setServiceDecoration} from '../../common-adapters/markdown/react'
-import ServiceDecoration from '../../common-adapters/markdown/service-decoration'
+import {setServiceDecoration} from '@/common-adapters/markdown/react'
+import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 setServiceDecoration(ServiceDecoration)
 
 const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions
@@ -150,7 +150,7 @@ const setupHMR = () => {
   }
 
   accept(['../../app/main.desktop'], refreshMain)
-  accept('../../common-adapters/index.js', () => {})
+  accept('@/common-adapters/index.js', () => {})
 }
 
 const load = () => {

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as C from '../../../../../constants'
-import * as Kb from '../../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {useRedux} from './use-redux'
 import {ShowToastAfterSaving} from '../shared'
 import {Video, ResizeMode, type AVPlaybackStatus} from 'expo-av'

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import throttle from 'lodash/throttle'
 // ios must animated plain colors not the dynamic ones

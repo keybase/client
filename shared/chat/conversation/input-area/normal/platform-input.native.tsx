@@ -8,7 +8,7 @@ import MoreMenuPopup from './moremenu-popup'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import Typing from './typing'
 import type * as ImagePicker from 'expo-image-picker'
-import type {LayoutEvent} from '../../../../common-adapters/box'
+import type {LayoutEvent} from '@/common-adapters/box'
 import type {Props} from './platform-input'
 import {Keyboard} from 'react-native'
 import {formatDurationShort} from '../../../../util/timestamp'
@@ -23,11 +23,11 @@ import {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-} from '../../../../common-adapters/reanimated'
+} from '@/common-adapters/reanimated'
 import logger from '../../../../logger'
 import {AudioSendWrapper} from '../../../audio/audio-send.native'
 import {usePickerState} from '../../../emoji-picker/use-picker'
-import type {Props as PlainInputProps} from '../../../../common-adapters/plain-input'
+import type {Props as PlainInputProps} from '@/common-adapters/plain-input'
 
 const singleLineHeight = 36
 const threeLineHeight = 78

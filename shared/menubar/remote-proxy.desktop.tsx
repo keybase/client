@@ -9,7 +9,7 @@ import {intersect} from '../util/set'
 import {mapFilterByKey} from '../util/map'
 import {memoize} from '../util/memoize'
 import {serialize, type ProxyProps, type RemoteTlfUpdates} from './remote-serializer.desktop'
-import {useAvatarState} from '../common-adapters/avatar-zus'
+import {useAvatarState} from '@/common-adapters/avatar-zus'
 import type * as NotifConstants from '../constants/notifications'
 
 const {showTray} = KB2.functions

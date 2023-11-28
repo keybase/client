@@ -7,8 +7,8 @@ import type * as Types from './types'
 import {ContactsImportButton} from './contacts'
 import {memoize} from '../util/memoize'
 import {userResultHeight} from './search-result/common-result'
-import {createAnimatedComponent} from '../common-adapters/reanimated'
-import type {Props as SectionListProps, Section as SectionType} from '../common-adapters/section-list'
+import {createAnimatedComponent} from '@/common-adapters/reanimated'
+import type {Props as SectionListProps, Section as SectionType} from '@/common-adapters/section-list'
 
 export const numSectionLabel = '0-9'
 

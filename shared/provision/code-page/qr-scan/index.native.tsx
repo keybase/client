@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import * as QR from '../../../common-adapters/qr.native'
+import * as QR from '@/common-adapters/qr.native'
 import type {Props} from '.'
 
 const QRScan = (props: Props) => (

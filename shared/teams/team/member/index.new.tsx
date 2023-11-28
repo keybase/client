@@ -10,8 +10,8 @@ import {formatTimeForTeamMember, formatTimeRelativeToNow} from '../../../util/ti
 import {pluralize} from '../../../util/string'
 import {useAllChannelMetas} from '../../common/channel-hooks'
 import {useTeamDetailsSubscribe} from '../../subscriber'
-import {createAnimatedComponent} from '../../../common-adapters/reanimated'
-import type {Props as SectionListProps, Section as SectionType} from '../../../common-adapters/section-list'
+import {createAnimatedComponent} from '@/common-adapters/reanimated'
+import type {Props as SectionListProps, Section as SectionType} from '@/common-adapters/section-list'
 
 type Props = {
   teamID: T.Teams.TeamID

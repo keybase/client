@@ -13,7 +13,7 @@ import {RecsAndRecos, numSectionLabel} from './recs-and-recos'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {memoize} from '../util/memoize'
 import {useRoute} from '@react-navigation/native'
-// import {useAnimatedScrollHandler} from '../common-adapters/reanimated'
+// import {useAnimatedScrollHandler} from '@/common-adapters/reanimated'
 
 const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) => {
   const {namespace, selectedService} = props

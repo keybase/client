@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import PaymentStatusError from './error'
-import Text from '../../../common-adapters/text'
-import {Box2} from '../../../common-adapters/box'
-import Icon from '../../../common-adapters/icon'
+import Text from '@/common-adapters/text'
+import {Box2} from '@/common-adapters/box'
+import Icon from '@/common-adapters/icon'
 import type * as T from '../../../constants/types'
-import type {MeasureRef} from '../../../common-adapters/measure-ref'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
 const Kb = {

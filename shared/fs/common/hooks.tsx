@@ -5,7 +5,7 @@ import * as T from '../../constants/types'
 import * as Kb from '@/common-adapters'
 import logger from '../../logger'
 import type * as Styles from '../../styles'
-import type {StylesTextCrossPlatform} from '../../common-adapters/text'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text'
 
 const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
 

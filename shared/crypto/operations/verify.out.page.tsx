@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {HeaderLeftCancel2, type HeaderBackButtonProps} from '../../common-adapters/header-hoc'
+import {HeaderLeftCancel2, type HeaderBackButtonProps} from '@/common-adapters/header-hoc'
 
 const Output = React.lazy(async () => {
   const {VerifyOutput} = await import('./verify')

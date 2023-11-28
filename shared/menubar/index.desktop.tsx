@@ -12,7 +12,7 @@ import Upload from '../fs/footer/upload'
 import openUrl from '../util/open-url'
 import {Loading} from '../fs/simple-screens'
 import {isLinux, isDarwin} from '../constants/platform'
-import {type _InnerMenuItem} from '../common-adapters/floating-menu/menu-layout'
+import {type _InnerMenuItem} from '@/common-adapters/floating-menu/menu-layout'
 import {useUploadCountdown} from '../fs/footer/use-upload-countdown'
 
 const {hideWindow, ctlQuit} = KB2.functions

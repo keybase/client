@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as Kb from '@/common-adapters'
-import type {ButtonType} from '../../common-adapters/button'
+import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '../../signup/common'
 
 const useConn = () => {

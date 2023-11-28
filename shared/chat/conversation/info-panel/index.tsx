@@ -8,7 +8,7 @@ import MembersList from './members'
 import BotsList from './bot'
 import AttachmentsList from './attachments'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
-import type {Tab as TabType} from '../../../common-adapters/tabs'
+import type {Tab as TabType} from '@/common-adapters/tabs'
 
 type Props = {
   tab?: 'settings' | 'members' | 'attachments' | 'bots'

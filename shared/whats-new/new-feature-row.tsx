@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {IconType} from '../common-adapters/icon.constants-gen'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
 
 type Props = {
   children?: React.ReactNode

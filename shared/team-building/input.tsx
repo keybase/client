@@ -1,6 +1,6 @@
 import * as React from 'react'
 import noop from 'lodash/noop'
-import * as Kb from '../common-adapters/index'
+import * as Kb from '@/common-adapters/index'
 import * as Container from '../util/container'
 
 type Props = {

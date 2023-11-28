@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {useRedux} from './use-redux'
 
 const Image2Impl = () => {

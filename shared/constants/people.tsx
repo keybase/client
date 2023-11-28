@@ -5,7 +5,7 @@ import invert from 'lodash/invert'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
 import * as T from './types'
-import type {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
+import type {IconType} from '@/common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {isMobile} from './platform'
 
 // set this to true to have all todo items + a contact joined notification show up all the time

@@ -13,7 +13,7 @@ import {ListBody} from './list-body'
 import {serviceIdToSearchPlaceholder} from './shared'
 import {FilteredServiceTabBar} from './filtered-service-tab-bar'
 import {modalHeaderProps} from './modal-header-props'
-import {useSharedValue} from '../common-adapters/reanimated'
+import {useSharedValue} from '@/common-adapters/reanimated'
 
 const deriveTeamSoFar = (teamSoFar: Set<T.TB.User>): Array<T.TB.SelectedUser> =>
   [...teamSoFar].map(userInfo => {

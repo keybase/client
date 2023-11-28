@@ -1,7 +1,7 @@
 import Icon, {type IconType} from './icon'
 import * as Styles from '../styles'
 import type {Props, AvatarSize} from './avatar.render'
-import {AVATAR_SIZE} from '../common-adapters/avatar-size'
+import {AVATAR_SIZE} from '@/common-adapters/avatar-size'
 
 const avatarSizeToPoopIconType = (s: AvatarSize): IconType | undefined =>
   s === 128

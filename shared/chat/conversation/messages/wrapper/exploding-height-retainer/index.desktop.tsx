@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
-import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
+import * as Kb from '@/common-adapters'
+import {urlsToImgSet} from '@/common-adapters/icon.desktop'
 import type {Props} from '.'
 import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
 import {getAssetPath} from '../../../../../constants/platform.desktop'
