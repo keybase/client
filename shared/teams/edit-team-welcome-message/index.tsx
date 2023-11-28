@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as Container from '../../util/container'
 import * as T from '../../constants/types'
 import {computeWelcomeMessageTextRaw} from '../../chat/conversation/messages/cards/team-journey/util'

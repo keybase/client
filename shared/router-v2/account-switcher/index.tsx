@@ -1,6 +1,6 @@
 import './account-switcher.css'
 import * as Constants from '../../constants/config'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '../../constants/types'
 

@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as Container from '../../util/container'
 import * as Platform from '../../constants/platform'
 import {EnterEmailBody} from '../../signup/email'

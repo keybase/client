@@ -1,7 +1,7 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/settings'
 import Notifications, {type Props} from '.'
-import {Reloadable} from '../../common-adapters'
+import {Reloadable} from '@/common-adapters'
 
 const ReloadableNotifications = (props: Props) => {
   const loadSettings = C.useSettingsState(s => s.dispatch.loadSettings)

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Common from '../../router-v2/common'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
 
 const Defer = React.lazy(async () => import('./defer-loading'))

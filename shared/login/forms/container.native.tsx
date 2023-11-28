@@ -1,5 +1,5 @@
 import type {Props} from './container'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import NativeScrollView from '../../common-adapters/scroll-view.native'
 
 const Container = ({children, style, outerStyle}: Props) => {

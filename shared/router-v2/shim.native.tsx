@@ -1,4 +1,4 @@
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './shim.shared'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'

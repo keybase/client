@@ -1,4 +1,4 @@
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '../common-adapters/markdown'
 
 const styleOverride: StyleOverride = Kb.Styles.styleSheetCreate(() => ({

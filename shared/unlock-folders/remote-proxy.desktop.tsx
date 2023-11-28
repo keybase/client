@@ -1,5 +1,5 @@
 import * as C from '../constants'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'

@@ -1,6 +1,6 @@
 import * as C from '../constants'
 import * as React from 'react'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as T from '../constants/types'
 import * as Constants from '../constants/wallets'
 import {useFocusEffect} from '@react-navigation/native'

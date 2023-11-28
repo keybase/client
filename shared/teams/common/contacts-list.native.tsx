@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {Section as _Section} from '../../common-adapters/section-list'
 import useContacts, {type Contact as _Contact} from './use-contacts.native'
 import {memoize} from '../../util/memoize'

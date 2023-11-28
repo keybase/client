@@ -1,4 +1,4 @@
-// import * as Kb from '../../common-adapters'
+// import * as Kb from '@/common-adapters'
 // import * as Styles from '../../styles'
 
 // import './row.css'

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import {FilteredTopLine} from './top-line'
 import {BottomLine} from './inbox/row/small-team/bottom-line'
 import {Avatars, TeamAvatar} from './avatars'

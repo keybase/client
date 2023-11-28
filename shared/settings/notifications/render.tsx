@@ -1,5 +1,5 @@
 import * as C from '../../constants'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {NotificationsSettingsState} from '../../constants/settings-notifications'
 import type {Props} from './index'
 

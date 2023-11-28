@@ -1,5 +1,5 @@
 import * as C from '../../constants'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 const TeamsFooter = (props: {empty: boolean}) => {
   const isLoadingTeams = C.useAnyWaiting(C.Teams.teamsLoadedWaitingKey)

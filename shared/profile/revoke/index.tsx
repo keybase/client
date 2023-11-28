@@ -1,5 +1,5 @@
 import * as C from '../../constants'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import capitalize from 'lodash/capitalize'
 import {subtitle as platformSubtitle} from '../../util/platforms'
 import {SiteIcon} from '../generic/shared'

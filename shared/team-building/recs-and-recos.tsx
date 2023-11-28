@@ -1,4 +1,4 @@
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import AlphabetIndex from './alphabet-index'
 import PeopleResult from './search-result/people-result'

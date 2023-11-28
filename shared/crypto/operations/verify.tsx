@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as Constants from '../../constants/crypto'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {Input, InputActionsBar, DragAndDrop, OperationBanner} from '../input'
 import {OperationOutput, SignedSender, OutputActionsBar} from '../output'

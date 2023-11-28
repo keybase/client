@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as C from '../../constants'
 import Modal from '../modal'
 

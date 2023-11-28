@@ -1,4 +1,4 @@
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 
 const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
   <div style={styles.container}>

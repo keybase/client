@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as Platform from '../../constants/platform'
 import SyncingFolders from './syncing-folders'
 import {IconWithPopup as WhatsNewIconWithPopup} from '../../whats-new/icon/container'

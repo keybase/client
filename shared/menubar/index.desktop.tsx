@@ -1,7 +1,7 @@
 import * as C from '../constants'
 import * as R from '../constants/remote'
 import * as T from '../constants/types'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as RemoteGen from '../actions/remote-gen'
 import ChatContainer from './chat-container.desktop'

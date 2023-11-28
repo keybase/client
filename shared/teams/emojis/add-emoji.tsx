@@ -1,7 +1,7 @@
 import * as T from '../../constants/types'
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {AliasInput, Modal} from './common'
 import {pickImages} from '../../util/pick-files'
 import kebabCase from 'lodash/kebabCase'

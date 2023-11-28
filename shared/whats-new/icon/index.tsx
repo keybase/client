@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {IconStyle} from '../../common-adapters/icon'
 import {keybaseFM} from '../../constants/whats-new'
 import Popup from './popup'

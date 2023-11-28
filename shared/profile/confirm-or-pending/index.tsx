@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {subtitle} from '../../util/platforms'
 import Modal from '../modal'
 import type * as T from '../../constants/types'

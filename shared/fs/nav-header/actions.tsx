@@ -2,7 +2,7 @@ import * as C from '../../constants'
 import * as Constants from '../../constants/fs'
 import * as T from '../../constants/types'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
 
 type Props = {

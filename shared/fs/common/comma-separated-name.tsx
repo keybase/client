@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {StylesTextCrossPlatform} from '../../common-adapters/text'
 
 type TextType = any

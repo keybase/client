@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as ConfigConstants from '../../constants/config'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import NativeScrollView from '../../common-adapters/scroll-view.native'
 import * as React from 'react'
 import Dropdown from './dropdown.native'

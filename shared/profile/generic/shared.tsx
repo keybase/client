@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type * as T from '../../constants/types'
 
 export const ProofSuccessIcon = <Kb.Icon type="icon-proof-success" color={Kb.Styles.globalColors.green} />

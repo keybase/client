@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 const LoadingScreen = (p: {why?: string}) => (
   <Kb.Box2

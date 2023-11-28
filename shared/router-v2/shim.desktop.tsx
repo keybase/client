@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Shared from './shim.shared'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import {EscapeHandler} from '../common-adapters/key-event-handler.desktop'
 import {useFocusEffect} from '@react-navigation/native'
 import type {

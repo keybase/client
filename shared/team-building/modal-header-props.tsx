@@ -1,7 +1,7 @@
 import {ModalTitle as TeamsModalTitle} from '../teams/common'
 import type * as Types from './types'
 import * as T from '../constants/types'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 
 export const modalHeaderProps = (
   props: Pick<Types.Props, 'onClose' | 'namespace' | 'teamID' | 'onFinishTeamBuilding' | 'goButtonLabel'> & {

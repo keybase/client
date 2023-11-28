@@ -1,5 +1,5 @@
 import * as C from '../constants'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Main from './main.native'
 import {AppRegistry, AppState, Appearance, Linking, Keyboard} from 'react-native'

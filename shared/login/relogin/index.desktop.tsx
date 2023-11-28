@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as ConfigConstants from '../../constants/config'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import UserCard from '../user-card'
 import {errorBanner, SignupScreen} from '../../signup/common'
 import type {Props} from '.'

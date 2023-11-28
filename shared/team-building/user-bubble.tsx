@@ -1,4 +1,4 @@
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import type * as T from '../constants/types'
 import {e164ToDisplay} from '../util/phone-numbers'
 

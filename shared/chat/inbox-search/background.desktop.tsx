@@ -1,6 +1,6 @@
 // parallax animated rover while waiting for a search
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {useSpring, animated} from 'react-spring'
 
 const widthX = window.innerWidth

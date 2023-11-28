@@ -1,7 +1,7 @@
 import * as C from '../../constants'
 import * as React from 'react'
 import IconComponent, {IconWithPopup as IconWithPopupComponent} from '.'
-import type * as Kb from '../../common-adapters'
+import type * as Kb from '@/common-adapters'
 import type {IconStyle} from '../../common-adapters/icon'
 
 type OwnProps = {

@@ -2,7 +2,7 @@
 // Also protects it with an error boundary
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {Provider} from 'react-redux'
 import RemoteStore from './store.desktop'
 import Root from '../renderer/container.desktop'

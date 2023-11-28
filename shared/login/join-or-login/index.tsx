@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {InfoIcon} from '../../signup/common'
 import {useFocusEffect} from '@react-navigation/core'
 

@@ -1,5 +1,5 @@
 import * as Common from '../router-v2/common'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Header from './header'
 import type * as T from '../constants/types'

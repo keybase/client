@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {Props} from './pdf-view'
 
 const PDFView = (props: Props) => {

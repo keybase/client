@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Box, Button, Input, Icon} from '../common-adapters'
+import {Box, Button, Input, Icon} from '@/common-adapters'
 import {globalColors, globalStyles, desktopStyles, platformStyles} from '../styles'
 import {defaultKBFSPath} from '../constants/config'
 

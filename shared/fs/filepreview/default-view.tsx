@@ -1,6 +1,6 @@
 import * as T from '../../constants/types'
 import * as C from '../../constants'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {PathItemAction, LastModifiedLine, ItemIcon} from '../common'
 import {hasShare} from '../common/path-item-action/layout'
 

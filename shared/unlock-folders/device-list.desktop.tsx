@@ -1,5 +1,5 @@
 import type * as C from '../constants'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 
 export type Props = {
   devices: C.ConfigStore['unlockFoldersDevices']

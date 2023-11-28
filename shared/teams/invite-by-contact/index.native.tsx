@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {FloatingRolePicker} from '../role-picker'
 import type * as T from '../../constants/types'

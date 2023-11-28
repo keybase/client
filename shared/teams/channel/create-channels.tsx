@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as Container from '../../util/container'
 import type * as T from '../../constants/types'
 import CreateChannelsModal from '../new-team/wizard/create-channels'

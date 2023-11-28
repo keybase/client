@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as C from '../../constants'
 import * as Kbfs from '../common'
 import Download from './download'

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {SignupScreen} from '../common'
 import {e164ToDisplay} from '../../util/phone-numbers'
 

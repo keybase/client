@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 const Rover = () => (
   <Kb.Box2 direction="vertical" style={styles.container}>

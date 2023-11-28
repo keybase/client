@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as Platform from '../../constants/platform'
 import {SignupScreen, errorBanner} from '../common'
 

@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {AcceptedInvite, PendingInvite} from '../../constants/settings-invites'
 import * as React from 'react'
 import SubHeading from '../subheading'

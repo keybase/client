@@ -1,5 +1,5 @@
 import * as C from '../../constants'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as TabConstants from '../../constants/tabs'
 import WhatsNewIcon from '../../whats-new/icon/container'
 import SettingsItem from './settings-item'

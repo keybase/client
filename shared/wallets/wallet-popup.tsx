@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import AccountPageHeader from './account-page-header'
 
 // WalletPopup - wraps all stellar modals except for the send / request forms.

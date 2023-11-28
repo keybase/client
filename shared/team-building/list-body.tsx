@@ -1,6 +1,6 @@
 import * as C from '../constants'
 import * as Container from '../util/container'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as Shared from './shared'
 import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'

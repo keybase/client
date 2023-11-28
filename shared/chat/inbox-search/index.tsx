@@ -1,5 +1,5 @@
 import * as C from '../../constants'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Rover from './background'
 import SelectableBigTeamChannel from '../selectable-big-team-channel-container'

@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {useSpring, animated} from 'react-spring'
 
 type Props = {

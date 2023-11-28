@@ -1,5 +1,5 @@
 import * as Container from '../util/container'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import GoButton from './go-button'
 import UserBubble from './user-bubble'

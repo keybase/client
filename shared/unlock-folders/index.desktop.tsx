@@ -1,5 +1,5 @@
 import * as C from '../constants'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import DeviceList from './device-list.desktop'
 import DragHeader from '../desktop/remote/drag-header.desktop'

@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import WhatsNew from '.././container'
 import type {Props} from './popup'
 

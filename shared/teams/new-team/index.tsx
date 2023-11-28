@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import openUrl from '../../util/open-url'
 
 const openSubteamInfo = () => openUrl('https://book.keybase.io/docs/teams/design')

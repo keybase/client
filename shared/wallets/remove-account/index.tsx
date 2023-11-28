@@ -1,5 +1,5 @@
 import * as C from '../../constants'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import WalletPopup from '../wallet-popup'
 
 type OwnProps = {accountID: string}

@@ -1,6 +1,6 @@
 import * as C from '../constants'
 import * as Constants from '../constants/router2'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import {shim, getOptions} from './shim'

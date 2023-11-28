@@ -1,7 +1,7 @@
 import * as C from '../../constants'
 import * as T from '../../constants/types'
 import * as Constants from '../../constants/fs'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as Platform from '../../constants/platform'
 import * as Kbfs from '../../fs/common'
 import RefreshDriverStatusOnMount from '../../fs/common/refresh-driver-status-on-mount'

@@ -1,6 +1,6 @@
 import * as C from './../../constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as T from './../../constants/types'
 import * as Data from './../../util/emoji'
 import type {LayoutEvent} from './../../common-adapters/box'

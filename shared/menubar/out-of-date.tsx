@@ -1,4 +1,4 @@
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as R from '../constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
 import {isWindows, isDarwin} from '../constants/platform'

@@ -1,5 +1,5 @@
 import * as C from '../constants'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as Common from '../router-v2/common'
 import {shim, getOptions} from '../router-v2/shim'
 import LeftNav from './sub-nav/left-nav'

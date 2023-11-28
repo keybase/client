@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 const YouAreReset = () => (
   <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, flex: 1}}>

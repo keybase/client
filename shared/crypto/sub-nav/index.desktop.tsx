@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as Constants from '../../constants/crypto'
 import * as Common from '../../router-v2/common.desktop'
 import LeftNav from './left-nav.desktop'

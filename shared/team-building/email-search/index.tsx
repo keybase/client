@@ -1,6 +1,6 @@
 import * as C from '../../constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type * as T from '../../constants/types'
 import {validateEmailAddress} from '../../util/email-address'
 import {UserMatchMention} from '../phone-search'

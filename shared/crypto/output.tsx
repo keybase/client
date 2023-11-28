@@ -1,6 +1,6 @@
 import * as C from '../constants'
 import * as Constants from '../constants/crypto'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as Path from '../util/path'
 import * as Platforms from '../constants/platform'
 import * as React from 'react'
