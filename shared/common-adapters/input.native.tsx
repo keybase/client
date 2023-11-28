@@ -4,7 +4,7 @@ import * as React from 'react'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.native'
 import * as Styles from '../styles'
-import {isIOS, isAndroid} from '../constants/platform'
+import {isIOS, isAndroid} from '@/constants/platform'
 import {
   TextInput,
   type NativeSyntheticEvent,

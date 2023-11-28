@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import SelectableBigTeamChannel from './selectable-big-team-channel'
 
 type OwnProps = {

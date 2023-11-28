@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
-import * as Constants from '../../constants/settings'
-import * as C from '../../constants'
+import * as Constants from '@/constants/settings'
+import * as C from '@/constants'
 import LogOut from '.'
 
 const LogoutContainer = () => {

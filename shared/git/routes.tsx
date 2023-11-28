@@ -1,4 +1,4 @@
-import type * as C from '../constants'
+import type * as C from '@/constants'
 import gitRoot from './page'
 import gitDeleteRepo from './delete-repo.page'
 import gitNewRepo from './new-repo.page'

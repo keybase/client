@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as T from '../../../../constants/types'
+import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 

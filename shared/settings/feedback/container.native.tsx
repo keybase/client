@@ -1,11 +1,11 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Feedback from '.'
 import logger from '../../logger'
 import {Platform} from 'react-native'
 import {getExtraChatLogsForLogSend} from './shared'
-import {isAndroid, version, pprofDir} from '../../constants/platform'
+import {isAndroid, version, pprofDir} from '@/constants/platform'
 import {logSend, appVersionName, appVersionCode} from 'react-native-kb'
 import type {Props as OwnProps} from './container'
 

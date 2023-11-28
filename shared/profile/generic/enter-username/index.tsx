@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SiteIcon} from '../shared'
-import type * as T from '../../../constants/types'
+import type * as T from '@/constants/types'
 
 type InputProps = {
   error: boolean

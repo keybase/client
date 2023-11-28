@@ -1,6 +1,6 @@
 import * as React from 'react'
-import type * as T from '../../../../constants/types'
-import * as C from '../../../../constants'
+import type * as T from '@/constants/types'
+import * as C from '@/constants'
 import ReactionItem from './reactionitem'
 import MessagePopupHeader from './header'
 import ExplodingPopupHeader from './exploding-header'

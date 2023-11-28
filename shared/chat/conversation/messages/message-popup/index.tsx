@@ -1,10 +1,10 @@
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import AttachmentMessage from './attachment'
 import JourneycardMessage from './journeycard'
 import TextMessage from './text'
-import type * as T from '../../../../constants/types'
+import type * as T from '@/constants/types'
 
 type Props = {
   ordinal: T.Chat.Ordinal

@@ -1,5 +1,5 @@
 import Text, {type StylesTextCrossPlatform} from './text'
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 
 export type Props = {
   name: string

@@ -1,5 +1,5 @@
-import * as T from '../../constants/types'
-import * as C from '../../constants'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 
 // The behavior is to only show spinner when user first time lands on a screen

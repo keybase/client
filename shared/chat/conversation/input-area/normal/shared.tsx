@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import * as T from '../../../../constants/types'
+import * as T from '@/constants/types'
 import {formatDurationShort} from '../../../../util/timestamp'
 
 export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: number}) => {

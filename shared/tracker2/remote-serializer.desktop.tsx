@@ -1,4 +1,4 @@
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 import type {RPCError} from '../util/errors'
 import {produce} from 'immer'
 

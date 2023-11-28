@@ -1,6 +1,6 @@
 import * as React from 'react'
-import type * as T from '../constants/types'
-import * as Constants from '../constants/team-building'
+import type * as T from '@/constants/types'
+import * as Constants from '@/constants/team-building'
 import {ServiceTabBar} from './service-tab-bar'
 
 export const FilteredServiceTabBar = (

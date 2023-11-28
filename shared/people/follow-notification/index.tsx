@@ -1,6 +1,6 @@
 import * as React from 'react'
 import PeopleItem from '../item'
-import type * as T from '../../constants/types'
+import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {FollowButton} from '../../settings/contacts-joined/buttons'
 

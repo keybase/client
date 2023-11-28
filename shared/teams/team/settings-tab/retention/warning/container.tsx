@@ -1,5 +1,5 @@
-import * as C from '../../../../../constants'
-import type * as T from '../../../../../constants/types'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
 import type {RetentionEntityType} from '../../../../team/settings-tab/retention'
 import RetentionWarning from '.'
 import {useConfirm} from '../use-confirm'

@@ -12,7 +12,7 @@ import {
 import {Box2} from './box'
 import {checkTextInfo} from './input.shared'
 import {getStyle as getTextStyle} from './text'
-import {isIOS} from '../constants/platform'
+import {isIOS} from '@/constants/platform'
 import {stringToUint8Array} from 'uint8array-extras'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but

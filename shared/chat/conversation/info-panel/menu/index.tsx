@@ -1,8 +1,8 @@
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as InfoPanelCommon from '../common'
-import type * as T from '../../../../constants/types'
+import type * as T from '@/constants/types'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import {TeamsSubscriberMountOnly} from '../../../../teams/subscriber'
 

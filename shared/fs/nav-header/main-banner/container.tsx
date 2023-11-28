@@ -1,7 +1,7 @@
-import * as C from '../../../constants'
-import * as Constants from '../../../constants/fs'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
 import Banner from './index'
-import * as T from '../../../constants/types'
+import * as T from '@/constants/types'
 
 const ConnectedBanner = () => {
   const _kbfsDaemonStatus = C.useFSState(s => s.kbfsDaemonStatus)

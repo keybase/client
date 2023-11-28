@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type * as Styles from '../styles'
-import {isAndroid} from '../constants/platform'
+import {isAndroid} from '@/constants/platform'
 import {emojiIndexByName} from './markdown/emoji-gen'
 import Text from './text'
 

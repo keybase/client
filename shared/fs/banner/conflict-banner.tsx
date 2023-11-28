@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
-import * as C from '../../constants'
-import * as T from '../../constants/types'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 
 export type Props = {
   conflictState: T.FS.ConflictState

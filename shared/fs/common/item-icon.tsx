@@ -1,6 +1,6 @@
-import * as C from '../../constants'
-import * as Constants from '../../constants/fs'
-import * as T from '../../constants/types'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import type {IconType} from '@/common-adapters/icon'
 

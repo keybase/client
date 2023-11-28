@@ -3,7 +3,7 @@ import * as Styles from '../styles'
 import FloatingBox from './floating-box'
 import {Box2} from './box'
 import {KeyboardAvoidingView2} from './keyboard-avoiding-view'
-import {windowHeight} from '../constants/platform'
+import {windowHeight} from '@/constants/platform'
 
 const Kb = {
   Box2,

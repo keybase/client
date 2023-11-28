@@ -1,4 +1,4 @@
-import * as T from '../../constants/types'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import Footer from '../footer/footer'
 import View from './view'

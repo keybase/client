@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as C from '../constants'
+import * as C from '@/constants'
 import Menubar from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import {useAvatarState} from '@/common-adapters/avatar-zus'

@@ -1,6 +1,6 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Constants from '../../constants/crypto'
+import * as Constants from '@/constants/crypto'
 import NavRow from './nav-row'
 
 const CryptoSubNav = () => {

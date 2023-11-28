@@ -1,7 +1,7 @@
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type * as T from '../../../../constants/types'
+import type * as T from '@/constants/types'
 import SaveIndicator from '@/common-adapters/save-indicator'
 import {useConfirm} from './use-confirm'
 

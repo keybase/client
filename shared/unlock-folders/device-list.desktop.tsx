@@ -1,4 +1,4 @@
-import type * as C from '../constants'
+import type * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 
 export type Props = {

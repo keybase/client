@@ -1,8 +1,8 @@
-import * as C from '../../../constants'
-import * as Constants from '../../../constants/tracker2'
+import * as C from '@/constants'
+import * as Constants from '@/constants/tracker2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '../../../constants/types'
+import type * as T from '@/constants/types'
 import FollowButton from './follow-button'
 import ChatButton from '../../../chat/chat-button'
 

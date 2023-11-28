@@ -1,7 +1,7 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as T from '../constants/types'
+import * as T from '@/constants/types'
 
 const PaperKey = () => {
   const [paperkey, setPaperkey] = React.useState('')

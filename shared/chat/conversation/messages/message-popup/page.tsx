@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 
 const PopupModal = React.lazy(async () => {
   const {MessagePopupModal} = await import('.')

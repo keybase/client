@@ -1,6 +1,6 @@
-import * as C from '../../../../../../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters/index'
-import * as T from '../../../../../../constants/types'
+import * as T from '@/constants/types'
 import * as React from 'react'
 import UnfurlImage from './image'
 import {OrdinalContext} from '../../../ids-context'

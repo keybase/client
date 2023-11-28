@@ -1,6 +1,6 @@
-import * as C from '../../../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import type * as T from '../../../../../constants/types'
+import type * as T from '@/constants/types'
 import type {RowProps} from '.'
 import {TeamRequestRow} from '.'
 import {sendNotificationFooter} from '../../../../role-picker'

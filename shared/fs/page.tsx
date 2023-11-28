@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as T from '../constants/types'
-import * as C from '../constants'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 
 const Index = React.lazy(async () => import('.'))

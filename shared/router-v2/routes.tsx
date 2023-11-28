@@ -11,9 +11,9 @@ import {newRoutes as signupNewRoutes, newModalRoutes as signupNewModalRoutes} fr
 import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
 import {newRoutes as walletsNewRoutes, newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
 import {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/routes'
-import {isMobile} from '../constants/platform'
-import * as Tabs from '../constants/tabs'
-import type {RouteMap} from '../constants/types/router2'
+import {isMobile} from '@/constants/platform'
+import * as Tabs from '@/constants/tabs'
+import type {RouteMap} from '@/constants/types/router2'
 
 // We have normal routes, modal routes, and logged out routes.
 // We also end up using existence of a nameToTab value for a route as a test

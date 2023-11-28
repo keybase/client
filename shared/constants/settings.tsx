@@ -6,7 +6,7 @@ import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
 import * as Tabs from './tabs'
 import logger from '../logger'
-import {pprofDir} from '../constants/platform'
+import {pprofDir} from '@/constants/platform'
 
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'

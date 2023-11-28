@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as C from '../constants'
+import type * as C from '@/constants'
 
 const Device = React.lazy(async () => import('./device-page'))
 type OwnProps = C.ViewPropsToPageProps<typeof Device>

@@ -1,4 +1,4 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import {CanFixOverdrawContext, DarkModeContext} from '../../styles'

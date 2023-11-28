@@ -1,8 +1,8 @@
-import * as C from '../../constants'
-import * as Constants from '../../constants/fs'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
 import Files, {defaultNotificationThreshold, allowedNotificationThresholds} from '.'
 import type {PickerItem} from '@/common-adapters/floating-picker'
-import {isMobile} from '../../constants/platform'
+import {isMobile} from '@/constants/platform'
 
 const SettingsFiles = () => {
   const areSettingsLoading = C.useFSState(s => s.settings.isLoading)

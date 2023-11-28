@@ -1,6 +1,6 @@
 import {ModalTitle as TeamsModalTitle} from '../teams/common'
 import type * as Types from './types'
-import * as T from '../constants/types'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 
 export const modalHeaderProps = (

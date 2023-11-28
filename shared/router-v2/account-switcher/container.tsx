@@ -1,6 +1,6 @@
-import * as C from '../../constants'
-import * as ConfigConstants from '../../constants/config'
-import * as TrackerConstants from '../../constants/tracker2'
+import * as C from '@/constants'
+import * as ConfigConstants from '@/constants/config'
+import * as TrackerConstants from '@/constants/tracker2'
 import AccountSwitcher from './index'
 
 const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(

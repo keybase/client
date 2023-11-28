@@ -1,7 +1,7 @@
 import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
 import MainWindow, {showDockIcon, closeWindows, getMainWindow} from './main-window.desktop'
 import * as Electron from 'electron'
-import * as R from '../../constants/remote'
+import * as R from '@/constants/remote'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
 import menuBar from './menu-bar.desktop'
@@ -22,11 +22,11 @@ import {
   fileUIName,
   dokanPath,
   windowsBinPath,
-} from '../../constants/platform.desktop'
+} from '@/constants/platform.desktop'
 import {ctlQuit} from './ctl.desktop'
 import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RPCTypes from '@/constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
 import {makeEngine} from '../../engine'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'

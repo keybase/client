@@ -1,7 +1,7 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as Container from '../../util/container'
 import * as Kb from '@/common-adapters'
-import type * as T from '../../constants/types'
+import type * as T from '@/constants/types'
 import {FollowButton} from './buttons'
 
 const renderItem = (_: number, item: T.RPCGen.ProcessedContact) => <Item item={item} />

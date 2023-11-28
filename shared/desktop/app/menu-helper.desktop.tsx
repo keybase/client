@@ -1,10 +1,10 @@
 import * as RemoteGen from '../../actions/remote-gen'
-import * as R from '../../constants/remote'
+import * as R from '@/constants/remote'
 import * as Electron from 'electron'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RPCTypes from '@/constants/types/rpc-gen'
 import flags from '../../util/feature-flags'
 import {closeWindows} from './main-window.desktop'
-import {isDarwin, isLinux} from '../../constants/platform'
+import {isDarwin, isLinux} from '@/constants/platform'
 import {ctlQuit} from './ctl.desktop'
 
 const reallyQuit = () => {

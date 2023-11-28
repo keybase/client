@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as C from '../constants'
+import * as C from '@/constants'
 import {TouchableWithoutFeedback, Keyboard} from 'react-native'
 import Badge from './badge'
 import Box from './box'

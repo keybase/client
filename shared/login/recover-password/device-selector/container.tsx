@@ -1,4 +1,4 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import {SelectOtherDevice} from '../../../provision/select-other-device'
 
 const ConnectedDeviceSelector = () => {

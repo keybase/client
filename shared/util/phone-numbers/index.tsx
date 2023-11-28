@@ -1,4 +1,4 @@
-import {isMobile} from '../../constants/platform'
+import {isMobile} from '@/constants/platform'
 import libphonenumber from 'google-libphonenumber'
 
 const PNF = libphonenumber.PhoneNumberFormat

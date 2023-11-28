@@ -1,4 +1,4 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import Normal from '.'
 import {OrangeLineContext} from '../orange-line-context'

@@ -1,4 +1,4 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import {Box2, Avatar, WaitingButton, Input as CommonInput, ButtonBar} from '@/common-adapters'
 import {styleSheetCreate, isMobile, globalMargins, globalColors} from '../../styles'

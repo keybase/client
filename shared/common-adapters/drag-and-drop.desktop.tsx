@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as Styles from '../styles'
 import {Box2} from './box'
 import Icon from './icon'

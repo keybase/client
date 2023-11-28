@@ -1,7 +1,7 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import PaymentStatus, {type Props} from '.'
-import type * as WalletTypes from '../../../constants/types/wallets'
+import type * as WalletTypes from '@/constants/types/wallets'
 import {OrdinalContext} from '../../conversation/messages/ids-context'
 
 type OwnProps = {

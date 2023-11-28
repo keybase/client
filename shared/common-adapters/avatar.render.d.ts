@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 import type {StylesCrossPlatform} from '../styles'
 import type {IconType, IconStyle} from './icon'
 

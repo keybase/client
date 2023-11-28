@@ -1,5 +1,5 @@
-import * as T from '../../constants/types'
-import * as C from '../../constants'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'

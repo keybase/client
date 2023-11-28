@@ -1,7 +1,7 @@
-import type * as C from '../constants'
+import type * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import type * as T from '../constants/types'
-import * as Constants from '../constants/devices'
+import type * as T from '@/constants/types'
+import * as Constants from '@/constants/devices'
 import type {IconStyle} from '@/common-adapters/icon'
 
 export type Props = {

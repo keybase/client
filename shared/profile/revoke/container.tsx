@@ -1,6 +1,6 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import Revoke from '.'
-import type * as T from '../../constants/types'
+import type * as T from '@/constants/types'
 
 type OwnProps = {
   icon: T.Tracker.SiteIconSet

@@ -1,4 +1,4 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type {Props} from './pdf-view'
 

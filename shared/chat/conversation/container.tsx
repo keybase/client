@@ -1,4 +1,4 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'

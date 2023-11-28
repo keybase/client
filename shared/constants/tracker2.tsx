@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Z from '../util/zustand'
 import logger from '../logger'

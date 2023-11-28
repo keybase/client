@@ -1,6 +1,6 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 import {useFocusEffect} from '@react-navigation/core'
 
 // NOTE: If you are in a floating box or otherwise outside the navigation

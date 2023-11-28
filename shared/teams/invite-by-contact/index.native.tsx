@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {FloatingRolePicker} from '../role-picker'
-import type * as T from '../../constants/types'
+import type * as T from '@/constants/types'
 import type {Contact} from '../common/use-contacts.native'
 
 // Contact info + other things needed for list row.

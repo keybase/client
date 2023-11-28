@@ -1,4 +1,4 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import {PortalHost} from '@/common-adapters/portal.native'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'

@@ -1,6 +1,6 @@
-import * as C from '../../../../../../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters/index'
-import type * as T from '../../../../../../constants/types'
+import type * as T from '@/constants/types'
 import openURL from '../../../../../../util/open-url'
 import LocationMap from '../../../../../location-map'
 

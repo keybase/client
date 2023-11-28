@@ -1,7 +1,7 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import type * as T from '../../../constants/types'
+import type * as T from '@/constants/types'
 
 export const infoPanelWidthElectron = 320
 const infoPanelWidthPhone = Styles.dimensionWidth

@@ -1,8 +1,8 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as Container from '../../util/container'
-import * as T from '../../constants/types'
+import * as T from '@/constants/types'
 import * as React from 'react'
-import * as SignupConstants from '../../constants/signup'
+import * as SignupConstants from '@/constants/signup'
 import Username from '.'
 import type {RPCError} from '../../util/errors'
 

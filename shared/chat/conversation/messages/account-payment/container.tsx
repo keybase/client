@@ -1,6 +1,6 @@
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import type * as T from '../../../../constants/types'
+import type * as T from '@/constants/types'
 import AccountPayment from '.'
 
 // Props for rendering the loading indicator

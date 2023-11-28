@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 import {ScrollView} from 'react-native'
 import type {Props, IconProps} from './service-tab-bar'
 import {

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as C from '../constants'
+import type * as C from '@/constants'
 
 const Ext = React.lazy(async () => import('./external-team'))
 type OwnProps = C.ViewPropsToPageProps<typeof Ext>

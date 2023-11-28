@@ -1,4 +1,4 @@
-import type * as T from '../../../constants/types'
+import type * as T from '@/constants/types'
 
 // Weights for sorting team members
 // 2 is neutral

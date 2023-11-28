@@ -1,5 +1,5 @@
-import * as C from '../../../constants'
-import * as T from '../../../constants/types'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import * as Kb from '@/common-adapters'
 import {useFsPathMetadata, TlfInfoLine, Filename} from '../../common'

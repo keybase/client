@@ -1,4 +1,4 @@
-import type * as C from '../constants'
+import type * as C from '@/constants'
 import feedback from './feedback.page'
 import signupEnterDevicename from './device-name.page'
 import signupEnterUsername from './username.page'

@@ -1,5 +1,5 @@
 import {forceImmediateLogging} from '../local-debug'
-import {isMobile, isDebuggingInChrome} from '../constants/platform'
+import {isMobile, isDebuggingInChrome} from '@/constants/platform'
 
 type TimeoutInfo = {
   didTimeout: boolean

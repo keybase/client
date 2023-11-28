@@ -1,5 +1,5 @@
-import * as C from '../../constants'
-import * as T from '../../constants/types'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import NewTeamDialog from '.'
 import upperFirst from 'lodash/upperFirst'
 

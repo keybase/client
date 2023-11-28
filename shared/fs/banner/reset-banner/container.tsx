@@ -1,6 +1,6 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as T from '../../../constants/types'
+import * as T from '@/constants/types'
 import {folderNameWithoutUsers} from '../../../util/kbfs'
 import Banner, {getHeight} from '.'
 import * as RowTypes from '../../browser/rows/types'

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as C from '../../constants'
+import * as C from '@/constants'
 
 const Pdf = React.lazy(async () => import('.'))
 type OwnProps = C.ChatProviderProps<C.ViewPropsToPageProps<typeof Pdf>>

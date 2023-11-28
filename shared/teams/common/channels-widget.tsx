@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type * as T from '../../constants/types'
+import type * as T from '@/constants/types'
 import ChannelPopup from '../team/settings-tab/channel-popup'
 import useAutocompleter from './use-autocompleter'
 import {useAllChannelMetas} from './channel-hooks'

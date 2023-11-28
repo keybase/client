@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as C from '../../../constants'
+import type * as C from '@/constants'
 
 const Index = React.lazy(async () => import('./index.new'))
 type OwnProps = C.ViewPropsToPageProps<typeof Index>

@@ -1,8 +1,8 @@
 // Just for desktop and tablet, we show inbox and conversation side by side
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 import Conversation from './conversation/container'
 import Inbox from './inbox/container'
 import InboxSearch from './inbox-search'

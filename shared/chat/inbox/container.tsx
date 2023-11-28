@@ -1,6 +1,6 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as T from '../../constants/types'
+import * as T from '@/constants/types'
 import Inbox, {type Props} from '.'
 import {useIsFocused} from '@react-navigation/core'
 import isEqual from 'lodash/isEqual'

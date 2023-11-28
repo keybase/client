@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
-import * as T from '../../constants/types'
+import * as T from '@/constants/types'
 import TopBar from '../top-bar'
-import * as C from '../../constants'
+import * as C from '@/constants'
 
 type Props = {
   path: T.FS.Path

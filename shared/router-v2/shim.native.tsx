@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Shared from './shim.shared'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {View} from 'react-native'
-import type {RouteMap, GetOptions, GetOptionsParams} from '../constants/types/router2'
+import type {RouteMap, GetOptions, GetOptionsParams} from '@/constants/types/router2'
 
 export const shim = (routes: RouteMap, isModal: boolean, isLoggedOut: boolean) =>
   Shared._shim(routes, platformShim, isModal, isLoggedOut)

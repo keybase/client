@@ -1,4 +1,4 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import DeleteHistoryWarning from '.'
 
 const Container = () => {

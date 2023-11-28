@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 // A screen we show when we have a problem loading a screen
 import * as React from 'react'
 import * as Styles from '../styles'

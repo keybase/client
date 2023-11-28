@@ -1,11 +1,11 @@
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
-import * as C from '../../constants'
-import * as Constants from '../../constants/fs'
-import * as T from '../../constants/types'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
+import * as T from '@/constants/types'
 import DownloadWrapper from './download-wrapper'
 import {formatDurationFromNowTo} from '../../util/timestamp'
-import {isMobile} from '../../constants/platform'
+import {isMobile} from '@/constants/platform'
 
 export type Props = {
   downloadID: string

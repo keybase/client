@@ -1,14 +1,14 @@
 // Entrypoint for the menubar node part
 import * as RemoteGen from '../../actions/remote-gen'
-import * as R from '../../constants/remote'
+import * as R from '@/constants/remote'
 import * as Electron from 'electron'
 import logger from '../../logger'
-import {isDarwin, isWindows, isLinux, getAssetPath} from '../../constants/platform.desktop'
+import {isDarwin, isWindows, isLinux, getAssetPath} from '@/constants/platform.desktop'
 import {menubar} from 'menubar'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug'
 import {getMainWindow} from './main-window.desktop'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
-import type {BadgeType} from '../../constants/notifications'
+import type {BadgeType} from '@/constants/notifications'
 
 const getIcons = (iconType: BadgeType, isBadged: boolean) => {
   const devMode = __DEV__ ? '-dev' : ''

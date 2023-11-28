@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import * as C from '../../constants'
+import * as C from '@/constants'
 import Modal from '../modal'
 
 export default function NoPGPView() {

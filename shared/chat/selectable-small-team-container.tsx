@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import SelectableSmallTeam from './selectable-small-team'
 
 type OwnProps = {

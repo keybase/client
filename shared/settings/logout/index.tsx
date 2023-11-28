@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Constants from '../../constants/settings'
+import * as Constants from '@/constants/settings'
 import UpdatePassword from '../password'
 
 export type Props = {

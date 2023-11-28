@@ -1,4 +1,4 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 
 const TeamsFooter = (props: {empty: boolean}) => {

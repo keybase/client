@@ -1,9 +1,9 @@
 import * as React from 'react'
-import type * as T from '../../constants/types'
+import type * as T from '@/constants/types'
 import * as Data from '../../util/emoji'
 import * as Kb from '@/common-adapters'
 import debounce from 'lodash/debounce'
-import {isMobile} from '../../constants/platform'
+import {isMobile} from '@/constants/platform'
 import chunk from 'lodash/chunk'
 import {memoize} from '../../util/memoize'
 import {

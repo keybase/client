@@ -1,4 +1,4 @@
-import * as T from '../../../constants/types'
+import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {OpenInSystemFileManager, ItemIcon, PathItemAction, PathStatusIcon} from '../../common'

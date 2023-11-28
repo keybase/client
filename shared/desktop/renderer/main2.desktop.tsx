@@ -1,7 +1,7 @@
 // Entry point to the chrome part of the app
 import Main from '../../app/main.desktop'
 // order of the above must NOT change. needed for patching / hot loading to be correct
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import type * as RemoteGen from '../../actions/remote-gen'
@@ -9,9 +9,9 @@ import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container.desktop'
 import {makeEngine} from '../../engine'
 import {disableDragDrop} from '../../util/drag-drop.desktop'
-import {dumpLogs} from '../../constants/platform-specific/index.desktop'
+import {dumpLogs} from '@/constants/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
-import {isWindows} from '../../constants/platform'
+import {isWindows} from '@/constants/platform'
 import KB2 from '../../util/electron.desktop'
 
 import {setServiceDecoration} from '@/common-adapters/markdown/react'

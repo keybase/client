@@ -25,7 +25,7 @@ import SetDescription from '../set-description/wrapper'
 import Pin from '../pin/wrapper'
 import SetChannelname from '../set-channelname/wrapper'
 import {type Props} from './wrapper'
-import type * as T from '../../../../constants/types'
+import type * as T from '@/constants/types'
 
 const typeMap = {
   'attachment:audio': WrapperAttachmentAudio,

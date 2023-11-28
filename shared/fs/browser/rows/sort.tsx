@@ -1,4 +1,4 @@
-import * as T from '../../../constants/types'
+import * as T from '@/constants/types'
 import * as RowTypes from './types'
 import {memoize} from '../../../util/memoize'
 import logger from '../../../logger'

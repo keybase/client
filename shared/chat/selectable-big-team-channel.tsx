@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import {TeamAvatar} from './avatars'
 import {pluralize} from '../util/string'
 import {BottomLine} from './inbox/row/small-team/bottom-line'
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 import {SnippetContext} from './inbox/row/small-team/contexts'
 
 type Props = {

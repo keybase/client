@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 
 const Add = React.lazy(async () => import('./index.new'))
 type OwnProps = C.ChatProviderProps<C.ViewPropsToPageProps<typeof Add>>

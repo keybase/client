@@ -1,6 +1,6 @@
-import * as T from '../../constants/types'
+import * as T from '@/constants/types'
 import * as React from 'react'
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as Styles from '../../styles'
 import Channel from '../channel-container'
 import KbfsPath from '../../fs/common/kbfs-path'

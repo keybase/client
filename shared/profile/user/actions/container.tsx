@@ -1,6 +1,6 @@
-import * as C from '../../../constants'
-import * as Constants from '../../../constants/tracker2'
-import * as T from '../../../constants/types'
+import * as C from '@/constants'
+import * as Constants from '@/constants/tracker2'
+import * as T from '@/constants/types'
 import Actions from '.'
 
 type OwnProps = {

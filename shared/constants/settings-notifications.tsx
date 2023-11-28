@@ -1,6 +1,6 @@
 import * as Z from '../util/zustand'
-import * as C from '../constants'
-import {isAndroidNewerThanN} from '../constants/platform'
+import * as C from '@/constants'
+import {isAndroidNewerThanN} from '@/constants/platform'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
 import * as T from './types'

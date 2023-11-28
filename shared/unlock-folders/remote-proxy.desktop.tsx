@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'

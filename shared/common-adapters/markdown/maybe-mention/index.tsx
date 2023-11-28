@@ -1,5 +1,5 @@
-import * as C from '../../../constants'
-import * as T from '../../../constants/types'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import Text, {type StylesTextCrossPlatform} from '../../text'
 import Mention from '../../mention-container'
 import TeamMention from './team-container'

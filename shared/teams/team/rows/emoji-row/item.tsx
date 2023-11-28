@@ -1,5 +1,5 @@
-import * as C from '../../../../constants'
-import * as T from '../../../../constants/types'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Container from '../../../../util/container'
 import * as Kb from '@/common-adapters'

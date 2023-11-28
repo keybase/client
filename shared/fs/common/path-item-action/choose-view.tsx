@@ -1,5 +1,5 @@
-import * as T from '../../../constants/types'
-import * as C from '../../../constants'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 import type {FloatingMenuProps} from './types'
 import Menu from './menu-container'
 import Confirm from './confirm-container'

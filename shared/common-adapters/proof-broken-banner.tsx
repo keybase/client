@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import {Banner, BannerParagraph} from './banner'
 

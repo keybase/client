@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import {useSpring, animated} from 'react-spring'
 import capitalize from 'lodash/capitalize'
 import {pluralize} from '../../util/string'
-import type * as T from '../../constants/types'
+import type * as T from '@/constants/types'
 
 // Controls the ordering of the role picker
 const orderedRoles: Array<Role<true>> = ['owner', 'admin', 'writer', 'reader', 'setIndividually']

@@ -1,8 +1,8 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import type * as T from '../../../constants/types'
+import type * as T from '@/constants/types'
 import type {Section as _Section} from '@/common-adapters/section-list'
 
 type AddToChannelProps = {

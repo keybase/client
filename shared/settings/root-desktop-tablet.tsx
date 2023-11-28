@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Common from '../router-v2/common'
 import {shim, getOptions} from '../router-v2/shim'

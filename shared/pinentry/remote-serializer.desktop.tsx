@@ -1,5 +1,5 @@
-import * as T from '../constants/types'
-import type * as Constants from '../constants/pinentry'
+import * as T from '@/constants/types'
+import type * as Constants from '@/constants/pinentry'
 
 export type ProxyProps = {
   darkMode: boolean

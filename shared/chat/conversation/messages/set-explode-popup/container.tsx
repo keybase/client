@@ -1,7 +1,7 @@
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import type * as Kb from '@/common-adapters'
-import type * as T from '../../../../constants/types'
+import type * as T from '@/constants/types'
 import SetExplodeTime from '.'
 
 const makeItems = (meta: T.Chat.ConversationMeta) => {

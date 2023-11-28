@@ -1,6 +1,6 @@
-import * as T from '../../constants/types'
-import * as C from '../../constants'
-import * as Constants from '../../constants/fs'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
 import PathStatusIcon from './path-status-icon'
 
 type OwnPropsPathItem = {

@@ -1,5 +1,5 @@
-import type {ConversationIDKey} from '../../../constants/types/chat2'
-import type * as T from '../../../constants/types'
+import type {ConversationIDKey} from '@/constants/types/chat2'
+import type * as T from '@/constants/types'
 
 export type ChatInboxRowItemSmall = {
   type: 'small'

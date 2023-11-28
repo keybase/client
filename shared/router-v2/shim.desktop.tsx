@@ -9,7 +9,7 @@ import type {
   GetOptionsParams,
   GetOptionsRet,
   ModalType,
-} from '../constants/types/router2'
+} from '@/constants/types/router2'
 
 export const getOptions = Shared._getOptions
 export const shim = (routes: RouteMap, isModal: boolean, isLoggedOut: boolean) =>

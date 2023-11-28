@@ -1,5 +1,5 @@
 import * as Z from '../util/zustand'
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as T from './types'
 import {memoize} from '../util/memoize'
 

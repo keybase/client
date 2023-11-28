@@ -4,7 +4,7 @@ import styleSheetCreateProxy from './style-sheet-proxy'
 import type * as CSS from './css'
 import {isDarkMode} from './dark-mode'
 import {themed, colors, darkColors} from './colors'
-import {getAssetPath} from '../constants/platform.desktop'
+import {getAssetPath} from '@/constants/platform.desktop'
 import * as Path from '../util/path'
 import isArray from 'lodash/isArray'
 import shallowEqual from 'shallowequal'
@@ -233,7 +233,7 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
   const s = Object.assign({}, ...styles.flat())
   return Object.keys(s).length ? s : undefined
 }
-export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '../constants/platform'
+export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '@/constants/platform'
 export * from './shared'
 
 export {themed as globalColors} from './colors'

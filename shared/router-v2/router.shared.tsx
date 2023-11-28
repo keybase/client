@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as Container from '../util/container'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../fs/common'
@@ -26,7 +26,7 @@ const useConnectNavToRedux = () => {
         if (__DEV__) {
           window.DEBUGNavigator = C.Router2.navigationRef_.current
           window.DEBUGRouter2 = C.Router2
-          window.KBCONSTANTS = require('../constants')
+          window.KBCONSTANTS = require('@/constants')
         }
       }
     }

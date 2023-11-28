@@ -1,5 +1,5 @@
-import * as C from '../../../constants'
-import type * as T from '../../../constants/types'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
 import {Settings} from '.'
 import {useSettingsState} from './use-settings'
 

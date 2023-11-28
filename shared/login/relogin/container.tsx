@@ -1,9 +1,9 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as Container from '../../util/container'
 import * as React from 'react'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
-import type * as T from '../../constants/types'
+import type * as T from '@/constants/types'
 
 const needPasswordError = 'passphrase cannot be empty'
 

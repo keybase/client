@@ -1,8 +1,8 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Container from '../../util/container'
-import type * as T from '../../constants/types'
+import type * as T from '@/constants/types'
 import {ModalTitle} from '../common'
 
 type Props = {teamID: T.Teams.TeamID}

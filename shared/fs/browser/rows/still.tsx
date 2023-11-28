@@ -1,5 +1,5 @@
-import * as T from '../../../constants/types'
-import * as C from '../../../constants'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import * as Kb from '@/common-adapters'
 import {LastModifiedLine, Filename} from '../../common'

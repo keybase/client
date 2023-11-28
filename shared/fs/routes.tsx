@@ -1,4 +1,4 @@
-import type * as C from '../constants'
+import type * as C from '@/constants'
 import fsRoot from './page'
 import barePreview from './filepreview/page'
 import confirmDelete from './common/path-item-action/confirm-delete/page'

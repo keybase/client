@@ -1,6 +1,6 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Constants from '../constants/devices'
+import * as Constants from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 
 type OwnProps = {

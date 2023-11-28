@@ -1,6 +1,6 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as DevicesConstants from '../../constants/devices'
+import * as DevicesConstants from '@/constants/devices'
 import CodePage2 from '.'
 
 const CodePageContainer = () => {

@@ -1,4 +1,4 @@
-import {pathSep} from '../constants/platform'
+import {pathSep} from '@/constants/platform'
 // simple versions we use in the renderer, definitely doesn't handle edge cases but likely ok as-is
 
 export const join = (...args: Array<string>) => {

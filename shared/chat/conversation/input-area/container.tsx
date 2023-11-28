@@ -1,4 +1,4 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import Normal from './normal'
 import Preview from './preview/container'
 import ThreadSearch from '../search/container'

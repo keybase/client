@@ -1,4 +1,4 @@
-import * as T from '../../constants/types'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import PieSlice from './pie-slice'
 import UploadIcon from './upload-icon'

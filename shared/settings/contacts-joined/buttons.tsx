@@ -1,6 +1,6 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Tracker2Constants from '../../constants/tracker2'
+import * as Tracker2Constants from '@/constants/tracker2'
 import UnconnectedFollowButton from '../../profile/user/actions/follow-button'
 
 type FollowProps = {

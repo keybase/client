@@ -1,5 +1,5 @@
-import * as C from '../../constants'
-import * as Constants from '../../constants/settings'
+import * as C from '@/constants'
+import * as Constants from '@/constants/settings'
 import Notifications, {type Props} from '.'
 import {Reloadable} from '@/common-adapters'
 

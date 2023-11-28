@@ -1,6 +1,6 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Constants from '../../constants/signup'
+import * as Constants from '@/constants/signup'
 import EnterEmail, {type Props} from '.'
 
 type WatcherProps = Props & {

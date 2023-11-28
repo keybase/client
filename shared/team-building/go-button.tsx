@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters/index'
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 
 export type Props = {
   onClick: () => void

@@ -1,5 +1,5 @@
 import {Keyboard} from 'react-native'
-import {isIOS} from '../constants/platform'
+import {isIOS} from '@/constants/platform'
 
 let open = false
 Keyboard.addListener(isIOS ? 'keyboardWillShow' : 'keyboardDidShow', () => (open = true))

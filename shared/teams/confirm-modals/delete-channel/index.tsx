@@ -1,7 +1,7 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '../../../constants/types'
+import type * as T from '@/constants/types'
 import {pluralize} from '../../../util/string'
 import {useAllChannelMetas} from '../../common/channel-hooks'
 

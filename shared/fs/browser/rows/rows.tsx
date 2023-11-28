@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as RowTypes from './types'
-import type * as T from '../../../constants/types'
+import type * as T from '@/constants/types'
 import Placeholder from './placeholder'
 import TlfType from './tlf-type-container'
 import Tlf from './tlf-container'

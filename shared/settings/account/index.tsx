@@ -1,5 +1,5 @@
-import * as C from '../../constants'
-import * as Constants from '../../constants/settings'
+import * as C from '@/constants'
+import * as Constants from '@/constants/settings'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import EmailPhoneRow from './email-phone-row'

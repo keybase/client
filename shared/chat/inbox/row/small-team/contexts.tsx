@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as T from '../../../../constants/types'
+import * as T from '@/constants/types'
 // so popups will work in both places
 export const SnippetContext = React.createContext('')
 export const SnippetDecorationContext = React.createContext(T.RPCChat.SnippetDecoration.none)

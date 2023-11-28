@@ -1,8 +1,8 @@
-import * as C from '../../constants'
-import * as Constants from '../../constants/fs'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
 import * as React from 'react'
-import * as SettingsConstants from '../../constants/settings'
-import type * as T from '../../constants/types'
+import * as SettingsConstants from '@/constants/settings'
+import type * as T from '@/constants/types'
 import ConflictBanner from './conflict-banner'
 import openUrl from '../../util/open-url'
 

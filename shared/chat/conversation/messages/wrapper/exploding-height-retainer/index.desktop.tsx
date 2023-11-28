@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import {urlsToImgSet} from '@/common-adapters/icon.desktop'
 import type {Props} from '.'
 import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
-import {getAssetPath} from '../../../../../constants/platform.desktop'
+import {getAssetPath} from '@/constants/platform.desktop'
 
 const copyChildren = (children: React.ReactNode): React.ReactNode =>
   React.Children.map(children, child => (child ? React.cloneElement(child as any) : child))

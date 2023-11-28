@@ -1,4 +1,4 @@
-import * as T from '../../../constants/types'
+import * as T from '@/constants/types'
 import {useOpen} from '../../common/use-open'
 import TlfType from './tlf-type'
 

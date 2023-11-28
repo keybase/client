@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as C from '../constants'
+import * as C from '@/constants'
 
 const Loading = React.lazy(async () => import('./loading/container'))
 const Relogin = React.lazy(async () => import('./relogin/container'))

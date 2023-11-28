@@ -1,5 +1,5 @@
 import * as Channels from './channels'
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as Commands from './commands'
 import * as Emoji from './emoji'
 import * as Kb from '@/common-adapters'

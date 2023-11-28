@@ -1,4 +1,4 @@
-import type * as ConfigConstants from '../constants/config'
+import type * as ConfigConstants from '@/constants/config'
 export type ProxyProps = {
   darkMode: boolean
   devices: ConfigConstants.Store['unlockFoldersDevices']

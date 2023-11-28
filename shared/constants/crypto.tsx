@@ -1,5 +1,5 @@
 import * as C from '.'
-import * as Platform from '../constants/platform'
+import * as Platform from '@/constants/platform'
 import * as Z from '../util/zustand'
 import HiddenString from '../util/hidden-string'
 import logger from '../logger'

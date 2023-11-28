@@ -1,4 +1,4 @@
-import type * as C from '../constants'
+import type * as C from '@/constants'
 import contactRestricted from '../team-building/contact-restricted.page'
 import openTeamWarning from './team/settings-tab/open-team-warning/page'
 import retentionWarning from './team/settings-tab/retention/warning/page'

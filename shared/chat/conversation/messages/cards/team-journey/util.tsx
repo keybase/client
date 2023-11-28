@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as T from '../../../../../constants/types'
+import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 
 const defaultWelcomeMessageWriter = ':wave: Welcome to the team! Say hi to everyone and introduce yourself.'

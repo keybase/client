@@ -1,5 +1,5 @@
-import type * as C from '../constants'
-import * as T from '../constants/types'
+import type * as C from '@/constants'
+import * as T from '@/constants/types'
 import {produce} from 'immer'
 
 const emptySet = new Set<any>()

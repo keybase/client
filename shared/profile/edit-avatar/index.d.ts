@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import type {ImageInfo} from '../../util/expo-image-picker.native'
-import type * as T from '../../constants/types'
+import type * as T from '@/constants/types'
 
 type TeamProps = {
   createdTeam?: boolean

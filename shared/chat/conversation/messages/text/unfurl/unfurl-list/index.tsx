@@ -1,5 +1,5 @@
-import * as C from '../../../../../../constants'
-import * as T from '../../../../../../constants/types'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import * as React from 'react'
 import UnfurlGeneric from './generic'
 import UnfurlGiphy from './giphy'

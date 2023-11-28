@@ -1,10 +1,10 @@
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as T from '../../../../constants/types'
+import * as T from '@/constants/types'
 import {WrapperMessage, type Props} from '../wrapper/wrapper'
 import {ForceListRedrawContext} from '../../force-list-redraw-context'
-import {useChatDebugDump} from '../../../../constants/chat2/debug'
+import {useChatDebugDump} from '@/constants/chat2/debug'
 
 const noop = () => {}
 

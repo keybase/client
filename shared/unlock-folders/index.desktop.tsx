@@ -1,11 +1,11 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import DeviceList from './device-list.desktop'
 import DragHeader from '../desktop/remote/drag-header.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
 import Success from './success.desktop'
-import type * as Constants from '../constants/unlock-folders'
+import type * as Constants from '@/constants/unlock-folders'
 
 export type Props = {
   darkMode: boolean

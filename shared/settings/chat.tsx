@@ -1,8 +1,8 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as T from '../constants/types'
+import * as T from '@/constants/types'
 import * as React from 'react'
-import type {NotificationsGroupState} from '../constants/settings-notifications'
+import type {NotificationsGroupState} from '@/constants/settings-notifications'
 import {Group} from './notifications/render'
 
 const emptyList = new Array<string>()

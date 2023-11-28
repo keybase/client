@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import {Box2Measure} from './box'
 import Icon from './icon'

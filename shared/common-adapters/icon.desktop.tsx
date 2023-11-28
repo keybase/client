@@ -5,7 +5,7 @@ import * as React from 'react'
 import logger from '../logger'
 import {iconMeta} from './icon.constants-gen'
 import invert from 'lodash/invert'
-import {getAssetPath} from '../constants/platform.desktop'
+import {getAssetPath} from '@/constants/platform.desktop'
 import type {Props, IconType} from './icon'
 import type {MeasureRef} from './measure-ref'
 

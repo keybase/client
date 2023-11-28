@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as T from '../../constants/types'
+import * as T from '@/constants/types'
 
 // A list so the order of the elements is fixed
 const proxyTypeList = ['noProxy', 'httpConnect', 'socks'] as const

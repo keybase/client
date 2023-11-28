@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import {Box2, Box} from './box'
 import Icon from './icon'
@@ -6,7 +6,7 @@ import Text from './text'
 import Button from './button'
 import Emoji from './emoji'
 import * as Styles from '../styles'
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 import logger from '../logger'
 
 const Kb = {

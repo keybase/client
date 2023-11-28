@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type * as T from '../../../../constants/types'
+import type * as T from '@/constants/types'
 import type * as Kb from '@/common-adapters'
 
 export type Props = {

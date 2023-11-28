@@ -1,4 +1,4 @@
-import type * as T from '../../../constants/types'
+import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import PathItemInfo from '../path-item-info'
 import PathInfo from '../path-info'

@@ -1,4 +1,4 @@
-import * as Constants from '../../constants/tracker2'
+import * as Constants from '@/constants/tracker2'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 

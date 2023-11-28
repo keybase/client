@@ -1,5 +1,5 @@
-import * as C from '../../constants'
-import * as T from '../../constants/types'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {Portal} from '@/common-adapters/portal.native'
 import * as React from 'react'

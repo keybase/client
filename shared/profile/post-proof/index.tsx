@@ -1,9 +1,9 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {subtitle} from '../../util/platforms'
 import openUrl from '../../util/open-url'
-import type * as T from '../../constants/types'
+import type * as T from '@/constants/types'
 import Modal from '../modal'
 
 export type Props = {

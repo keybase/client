@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as C from '../../../../../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {useRedux} from './use-redux'
 import {ShowToastAfterSaving} from '../shared'

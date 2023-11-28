@@ -1,4 +1,4 @@
-import type * as C from '../constants'
+import type * as C from '@/constants'
 import peopleRoot from './page'
 import accountSwitcher from '../router-v2/account-switcher/page'
 import peopleTeamBuilder from '../team-building/page'

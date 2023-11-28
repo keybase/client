@@ -1,8 +1,8 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as T from '../constants/types'
-import * as FsConstants from '../constants/fs'
+import * as T from '@/constants/types'
+import * as FsConstants from '@/constants/fs'
 import * as FsCommon from '../fs/common'
 import {MobileSendToChat} from '../chat/send-to-chat'
 

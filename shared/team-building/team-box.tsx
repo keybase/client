@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import GoButton from './go-button'
 import UserBubble from './user-bubble'
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 import {e164ToDisplay} from '../util/phone-numbers'
 
 type Props = {

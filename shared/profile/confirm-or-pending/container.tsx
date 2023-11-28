@@ -1,6 +1,6 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import ConfirmOrPending from '.'
-import * as T from '../../constants/types'
+import * as T from '@/constants/types'
 import {globalColors} from '../../styles'
 
 const Container = () => {

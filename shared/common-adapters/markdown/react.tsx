@@ -1,6 +1,6 @@
 import * as React from 'react'
 import SimpleMarkdown from 'simple-markdown'
-import type * as T from '../../constants/types'
+import type * as T from '@/constants/types'
 import * as Styles from '../../styles'
 import Text from '../text'
 import Box from '../box'

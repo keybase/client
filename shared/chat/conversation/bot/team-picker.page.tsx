@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as C from '../../../constants'
+import type * as C from '@/constants'
 
 const Install = React.lazy(async () => import('./install'))
 type OwnProps = C.ViewPropsToPageProps<typeof Install>

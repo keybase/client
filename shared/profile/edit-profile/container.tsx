@@ -1,5 +1,5 @@
-import * as C from '../../constants'
-import * as Constants from '../../constants/tracker2'
+import * as C from '@/constants'
+import * as Constants from '@/constants/tracker2'
 import EditProfile from '.'
 
 const Container = () => {

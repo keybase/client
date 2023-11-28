@@ -11,7 +11,7 @@ import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
 import {usePopup2, type Popup2Parms} from './use-popup'
-import {isIOS, isMobile} from '../constants/platform'
+import {isIOS, isMobile} from '@/constants/platform'
 import {
   countryData,
   codeToCountry,

@@ -1,5 +1,5 @@
 import {rowStyles} from './common'
-import * as T from '../../../constants/types'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 
 type PlaceholderProps = {

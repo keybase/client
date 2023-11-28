@@ -1,4 +1,4 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import RenameTeam from '.'
 
 type OwnProps = {teamname: string}

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as T from '../../../../constants/types'
+import * as T from '@/constants/types'
 import type {Props} from './suggestion-list'
 import SafeReactList from '@/common-adapters/safe-react-list'
 import type RL from 'react-list'

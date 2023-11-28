@@ -1,8 +1,8 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as RowSizes from './sizes'
-import type * as T from '../../../constants/types'
+import type * as T from '@/constants/types'
 import TeamMenu from '../../conversation/info-panel/menu/container'
 
 type Props = {

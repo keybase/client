@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import {FilteredTopLine} from './top-line'
 import {BottomLine} from './inbox/row/small-team/bottom-line'
 import {Avatars, TeamAvatar} from './avatars'
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 import {SnippetContext} from './inbox/row/small-team/contexts'
 
 type Props = {
