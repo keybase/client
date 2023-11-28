@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {InfoIcon} from '../../signup/common'
+import {InfoIcon} from '@/signup/common'
 
 const Error = React.lazy(async () => import('./error'))
 

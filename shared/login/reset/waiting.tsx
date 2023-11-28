@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {SignupScreen} from '../../signup/common'
+import {SignupScreen} from '@/signup/common'
 import {addTicker, removeTicker} from '@/util/second-timer'
 import * as C from '@/constants'
 import * as Container from '@/util/container'

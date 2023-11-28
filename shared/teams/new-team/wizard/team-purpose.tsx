@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Container from '@/util/container'
-import {ModalTitle} from '../../common'
+import {ModalTitle} from '@/teams/common'
 import * as T from '@/constants/types'
 
 const TeamPurpose = () => {

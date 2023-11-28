@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {EmojiPickerDesktop} from '../../../emoji-picker/container'
+import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
 import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '@/util/emoji'
 
 type Props = {

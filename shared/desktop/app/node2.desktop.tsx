@@ -28,7 +28,7 @@ import logger from '@/logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import * as RPCTypes from '@/constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
-import {makeEngine} from '../../engine'
+import {makeEngine} from '@/engine'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug.desktop'
 const {env} = KB2.constants
 

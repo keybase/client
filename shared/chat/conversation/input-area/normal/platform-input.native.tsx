@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import AudioRecorder from '../../../audio/audio-recorder.native'
+import AudioRecorder from '@/chat/audio/audio-recorder.native'
 import FilePickerPopup from '../filepicker-popup'
 import HWKeyboardEvent from 'react-native-hw-keyboard-event'
 import MoreMenuPopup from './moremenu-popup'
-import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
+import SetExplodingMessagePicker from '@/chat/conversation/messages/set-explode-popup/container'
 import Typing from './typing'
 import type * as ImagePicker from 'expo-image-picker'
 import type {LayoutEvent} from '@/common-adapters/box'
@@ -25,8 +25,8 @@ import {
   withTiming,
 } from '@/common-adapters/reanimated'
 import logger from '@/logger'
-import {AudioSendWrapper} from '../../../audio/audio-send.native'
-import {usePickerState} from '../../../emoji-picker/use-picker'
+import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
+import {usePickerState} from '@/chat/emoji-picker/use-picker'
 import type {Props as PlainInputProps} from '@/common-adapters/plain-input'
 
 const singleLineHeight = 36

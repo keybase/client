@@ -5,7 +5,7 @@ import * as Styles from '@/styles'
 import ChannelPicker from './channel-picker'
 import openURL from '@/util/open-url'
 import * as T from '@/constants/types'
-import {useAllChannelMetas} from '../../../teams/common/channel-hooks'
+import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
 const RestrictedItem = '---RESTRICTED---'
 

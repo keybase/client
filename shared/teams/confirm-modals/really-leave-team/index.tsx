@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useTeamsSubscribe} from '../../subscriber'
+import {useTeamsSubscribe} from '@/teams/subscriber'
 
 export type Props = {
   error: string

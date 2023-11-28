@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Styles from '@/styles'
 import * as T from '@/constants/types'
-import {Avatars, TeamAvatar} from '../../avatars'
+import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
 

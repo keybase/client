@@ -4,10 +4,10 @@ import * as Kb from '@/common-adapters'
 import * as Styles from '@/styles'
 import * as Container from '@/util/container'
 import * as T from '@/constants/types'
-import {useTeamDetailsSubscribe} from '../../../../teams/subscriber'
+import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 import {pluralize} from '@/util/string'
 import {memoize} from '@/util/memoize'
-import {ModalTitle, useChannelParticipants} from '../../../../teams/common'
+import {ModalTitle, useChannelParticipants} from '@/teams/common'
 
 type Props = {
   teamID: T.Teams.TeamID

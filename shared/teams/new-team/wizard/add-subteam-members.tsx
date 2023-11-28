@@ -3,9 +3,9 @@ import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {ModalTitle} from '../../common'
+import {ModalTitle} from '@/teams/common'
 import {pluralize} from '@/util/string'
-import {useTeamDetailsSubscribe} from '../../subscriber'
+import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 
 const AddSubteamMembers = () => {
   const nav = Container.useSafeNavigation()

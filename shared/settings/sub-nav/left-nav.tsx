@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as TabConstants from '@/constants/tabs'
-import WhatsNewIcon from '../../whats-new/icon/container'
+import WhatsNewIcon from '@/whats-new/icon/container'
 import SettingsItem from './settings-item'
 import {keybaseFM} from '@/constants/whats-new'
 

@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type {AllowedColors} from '@/common-adapters/text'
-import MarkdownMemo from '../../../../wallets/markdown-memo'
+import MarkdownMemo from '@/wallets/markdown-memo'
 
 export type Props = {
   action: string

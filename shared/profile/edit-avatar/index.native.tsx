@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {type Props} from '.'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
-import {ModalTitle} from '../../teams/common'
+import {ModalTitle} from '@/teams/common'
 import * as Container from '@/util/container'
 
 type WrappedProps = {
@@ -183,8 +183,8 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
                   this.props.image && C.isIOS
                     ? 'Zoom and pan'
                     : this.props.wizard
-                    ? 'Upload avatar'
-                    : 'Change avatar'
+                      ? 'Upload avatar'
+                      : 'Change avatar'
                 }
               />
             ),

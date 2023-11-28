@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import File from '.'
 import type * as T from '@/constants/types'
-import {OrdinalContext} from '../../ids-context'
+import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
 import {globalColors} from '@/styles'
 import {isPathSaltpack} from '@/constants/crypto'
 
@@ -90,10 +90,10 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const arrowColor = C.isMobile
     ? ''
     : downloadPath
-    ? globalColors.green
-    : transferState === 'downloading'
-    ? globalColors.blue
-    : ''
+      ? globalColors.green
+      : transferState === 'downloading'
+        ? globalColors.blue
+        : ''
   const hasProgress =
     !!transferState && transferState !== 'remoteUploading' && transferState !== 'mobileSaving'
 

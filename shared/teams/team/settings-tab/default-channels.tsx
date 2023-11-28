@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {RPCError} from '@/util/errors'
-import {ChannelsWidget} from '../../common'
+import {ChannelsWidget} from '@/teams/common'
 
 type Props = {
   teamID: T.Teams.TeamID

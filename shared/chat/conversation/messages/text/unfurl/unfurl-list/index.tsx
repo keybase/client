@@ -5,7 +5,7 @@ import UnfurlGeneric from './generic'
 import UnfurlGiphy from './giphy'
 import UnfurlMap from './map'
 import * as Kb from '@/common-adapters'
-import {OrdinalContext} from '../../../ids-context'
+import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
 
 export type UnfurlListItem = {
   unfurl: T.RPCChat.UnfurlDisplay

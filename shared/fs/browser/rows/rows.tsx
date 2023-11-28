@@ -9,7 +9,7 @@ import Still from './still-container'
 import Editing from './editing'
 import {normalRowHeight} from './common'
 import {memoize} from '@/util/memoize'
-import {useFsChildren, UploadButton} from '../../common'
+import {useFsChildren, UploadButton} from '@/fs/common'
 
 export type Props = {
   emptyMode: 'empty' | 'not-empty-but-no-match' | 'not-empty'

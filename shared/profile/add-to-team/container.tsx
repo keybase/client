@@ -3,7 +3,7 @@ import * as React from 'react'
 import AddToTeam, {type AddToTeamProps} from '.'
 import type * as T from '@/constants/types'
 import {memoize} from '@/util/memoize'
-import {sendNotificationFooter} from '../../teams/role-picker'
+import {sendNotificationFooter} from '@/teams/role-picker'
 
 const getOwnerDisabledReason = memoize((selected: Set<string>, teamNameToRole) => {
   return [...selected]

@@ -3,10 +3,10 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Container from '@/util/container'
-import * as Common from '../../common'
+import * as Common from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {memoize} from '@/util/memoize'
-import {useAllChannelMetas} from '../../common/channel-hooks'
+import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useFocusEffect} from '@react-navigation/core'
 
 type Props = {

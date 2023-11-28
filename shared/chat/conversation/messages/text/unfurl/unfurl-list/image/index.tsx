@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters/index'
 import * as C from '@/constants'
-import {maxWidth} from '../../../../../messages/attachment/shared'
+import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
 import {Video} from './video'
 import openURL from '@/util/open-url'
 

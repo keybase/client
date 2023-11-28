@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import logger from '@/logger'
 import debounce from 'lodash/debounce'
-import {Avatars, TeamAvatar} from '../../avatars'
+import {Avatars, TeamAvatar} from '@/chat/avatars'
 
 /* This is used in Fs tab for sending attachments to chat. Please check to make
  * sure it doesn't break there if you make changes to this file. */

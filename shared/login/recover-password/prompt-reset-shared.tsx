@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Container from '@/util/container'
 import * as T from '@/constants/types'
-import {SignupScreen} from '../../signup/common'
+import {SignupScreen} from '@/signup/common'
 import type {ButtonType} from '@/common-adapters/button'
 
 export type Props = {

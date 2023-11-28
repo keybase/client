@@ -3,9 +3,9 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Container from '@/util/container'
 import * as Platform from '@/constants/platform'
-import {EnterEmailBody} from '../../signup/email'
-import {EnterPhoneNumberBody} from '../../signup/phone-number'
-import {VerifyBody} from '../../signup/phone-number/verify'
+import {EnterEmailBody} from '@/signup/email'
+import {EnterPhoneNumberBody} from '@/signup/phone-number'
+import {VerifyBody} from '@/signup/phone-number/verify'
 import {e164ToDisplay} from '@/util/phone-numbers'
 
 export const Email = () => {

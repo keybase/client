@@ -3,10 +3,10 @@ import * as Kb from '@/common-adapters/index'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import UnfurlImage from './image'
-import {OrdinalContext} from '../../../ids-context'
+import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
 import {formatDurationForLocation} from '@/util/timestamp'
 import {getUnfurlInfo} from './use-redux'
-import {maxWidth} from '../../../attachment/shared'
+import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
 
 const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const {idx} = p

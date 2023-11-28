@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {InfoIcon} from '../../signup/common'
+import {InfoIcon} from '@/signup/common'
 
 const Explain = React.lazy(async () => import('./explain-device'))
 

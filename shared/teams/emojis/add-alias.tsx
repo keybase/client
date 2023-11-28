@@ -2,7 +2,7 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {EmojiPickerDesktop} from '../../chat/emoji-picker/container'
+import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
 import {
   type EmojiData,
   type RenderableEmoji,
@@ -12,7 +12,7 @@ import {
 } from '@/util/emoji'
 import {AliasInput, Modal} from './common'
 import {useEmojiState} from './use-emoji'
-import {usePickerState} from '../../chat/emoji-picker/use-picker'
+import {usePickerState} from '@/chat/emoji-picker/use-picker'
 
 type Props = {
   conversationIDKey: T.Chat.ConversationIDKey

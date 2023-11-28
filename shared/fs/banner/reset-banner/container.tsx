@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {folderNameWithoutUsers} from '@/util/kbfs'
 import Banner, {getHeight} from '.'
-import * as RowTypes from '../../browser/rows/types'
+import * as RowTypes from '@/fs/browser/rows/types'
 
 type OwnProps = {
   path: T.FS.Path

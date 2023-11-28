@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import LocationMap from '../../../location-map'
+import LocationMap from '@/chat/location-map'
 import {watchPositionForMap} from '@/constants/platform-specific'
 
 const LocationPopup = () => {

@@ -4,7 +4,7 @@ import * as Container from '@/util/container'
 import type * as T from '@/constants/types'
 import ReallyLeaveTeam from '.'
 import LastOwnerDialog from './last-owner'
-import {useTeamDetailsSubscribeMountOnly} from '../../subscriber'
+import {useTeamDetailsSubscribeMountOnly} from '@/teams/subscriber'
 
 type OwnProps = {teamID: T.Teams.TeamID}
 

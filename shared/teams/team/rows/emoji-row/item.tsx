@@ -6,7 +6,7 @@ import * as Kb from '@/common-adapters'
 import * as dateFns from 'date-fns'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '@/util/emoji'
 import EmojiMenu from './emoji-menu'
-import {useEmojiState} from '../../../emojis/use-emoji'
+import {useEmojiState} from '@/teams/emojis/use-emoji'
 
 type OwnProps = {
   conversationIDKey: T.Chat.ConversationIDKey

@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as Container from '@/util/container'
 import {pluralize} from '@/util/string'
-import {ModalTitle} from '../../common'
+import {ModalTitle} from '@/teams/common'
 
 type Props = {
   onSubmitChannels?: (channels: Array<string>) => void

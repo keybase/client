@@ -3,7 +3,7 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import type {RowProps} from '.'
 import {TeamRequestRow} from '.'
-import {sendNotificationFooter} from '../../../../role-picker'
+import {sendNotificationFooter} from '@/teams/role-picker'
 
 type OwnProps = {
   ctime: number

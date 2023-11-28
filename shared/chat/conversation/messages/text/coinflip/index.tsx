@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import CoinFlipError from './errors'
 import CoinFlipParticipants from './participants'
 import CoinFlipResult from './results'
-import {OrdinalContext} from '../../ids-context'
+import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
 import {pluralize} from '@/util/string'
 
 const CoinFlipContainer = React.memo(function CoinFlipContainer() {

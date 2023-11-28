@@ -3,7 +3,7 @@ import * as Constants from '@/constants/fs'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import * as Kbfs from '../../common'
+import * as Kbfs from '@/fs/common'
 
 type Props = {
   alwaysShow?: boolean

@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters/index'
 import * as React from 'react'
 import UnfurlImage from './image'
 import * as T from '@/constants/types'
-import {OrdinalContext} from '../../../ids-context'
+import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
 import {getUnfurlInfo, useActions} from './use-redux'
 
 const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
