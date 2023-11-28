@@ -1184,12 +1184,12 @@ export type State = Store & {
       teamID: T.Teams.TeamID,
       conversationIDKey: T.Chat.ConversationIDKey,
       newChannelName: string
-    ) => void
+    ) => Promise<void>
     updateTopic: (
       teamID: T.Teams.TeamID,
       conversationIDKey: T.Chat.ConversationIDKey,
       newTopic: string
-    ) => void
+    ) => Promise<void>
     uploadTeamAvatar: (
       teamname: string,
       filename: string,
@@ -2139,8 +2139,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
               error.code === T.RPCGen.StatusCode.scteaminvitebadtoken
                 ? 'Sorry, that team name or token is not valid.'
                 : error.code === T.RPCGen.StatusCode.scnotfound
-                ? 'This invitation is no longer valid, or has expired.'
-                : error.desc
+                  ? 'This invitation is no longer valid, or has expired.'
+                  : error.desc
             set(s => {
               s.errorInTeamJoin = desc
             })
@@ -2589,8 +2589,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
               error.code === T.RPCGen.StatusCode.scteaminvitebadtoken
                 ? 'Sorry, that invite token is not valid.'
                 : error.code === T.RPCGen.StatusCode.scnotfound
-                ? 'This invitation is no longer valid, or has expired.'
-                : error.desc
+                  ? 'This invitation is no longer valid, or has expired.'
+                  : error.desc
             set(s => {
               s.errorInTeamJoin = desc
             })
@@ -3096,25 +3096,22 @@ export const _useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    updateChannelName: (teamID, conversationIDKey, newChannelName) => {
-      const f = async () => {
-        const param = {
-          channelName: newChannelName,
-          conversationID: T.Chat.keyToConversationID(conversationIDKey),
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          tlfName: getTeamNameFromID(get(), teamID) ?? '',
-          tlfPublic: false,
-        }
+    updateChannelName: async (teamID, conversationIDKey, newChannelName) => {
+      const param = {
+        channelName: newChannelName,
+        conversationID: T.Chat.keyToConversationID(conversationIDKey),
+        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+        tlfName: getTeamNameFromID(get(), teamID) ?? '',
+        tlfPublic: false,
+      }
 
-        try {
-          await T.RPCChat.localPostMetadataRpcPromise(param, updateChannelNameWaitingKey(teamID))
-        } catch (error) {
-          if (error instanceof RPCError) {
-            get().dispatch.setChannelCreationError(error.desc)
-          }
+      try {
+        await T.RPCChat.localPostMetadataRpcPromise(param, updateChannelNameWaitingKey(teamID))
+      } catch (error) {
+        if (error instanceof RPCError) {
+          get().dispatch.setChannelCreationError(error.desc)
         }
       }
-      C.ignorePromise(f())
     },
     updateTeamRetentionPolicy: metas => {
       const first = metas[0]
@@ -3127,18 +3124,17 @@ export const _useState = Z.createZustand<State>((set, get) => {
         s.teamIDToRetentionPolicy.set(teamID, teamRetentionPolicy)
       })
     },
-    updateTopic: (teamID, conversationIDKey, newTopic) => {
-      const f = async () => {
-        const param = {
-          conversationID: T.Chat.keyToConversationID(conversationIDKey),
-          headline: newTopic,
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          tlfName: getTeamNameFromID(get(), teamID) ?? '',
-          tlfPublic: false,
-        }
-        await T.RPCChat.localPostHeadlineRpcPromise(param, updateChannelNameWaitingKey(teamID))
+    updateTopic: async (teamID, conversationIDKey, newTopic) => {
+      const param = {
+        conversationID: T.Chat.keyToConversationID(conversationIDKey),
+        headline: newTopic,
+        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+        tlfName: getTeamNameFromID(get(), teamID) ?? '',
+        tlfPublic: false,
       }
-      C.ignorePromise(f())
+      try {
+        await T.RPCChat.localPostHeadlineRpcPromise(param, updateChannelNameWaitingKey(teamID))
+      } catch {}
     },
     uploadTeamAvatar: (teamname, filename, sendChatNotification, crop) => {
       const f = async () => {

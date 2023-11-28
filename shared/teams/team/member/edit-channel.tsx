@@ -4,7 +4,6 @@ import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import type * as T from '../../../constants/types'
 import {ModalTitle} from '../../common'
-import {useEditState} from './use-edit'
 
 type Props = {
   channelname: string
@@ -34,25 +33,17 @@ const EditChannel = (props: Props) => {
   const updateTopic = C.useTeamsState(s => s.dispatch.updateTopic)
 
   const onSave = () => {
-    if (oldName !== name) {
-      updateChannelName(teamID, conversationIDKey, name)
-    }
-    if (oldDescription !== description) {
-      updateTopic(teamID, conversationIDKey, description)
-    }
+    const ps = [
+      ...(oldName !== name ? [updateChannelName(teamID, conversationIDKey, name)] : []),
+      ...(oldDescription !== description ? [updateTopic(teamID, conversationIDKey, description)] : []),
+    ]
+    Promise.all(ps)
+      .then(() => {
+        nav.safeNavigateUp()
+      })
+      .catch(() => {})
   }
   const waiting = C.useAnyWaiting(C.Teams.updateChannelNameWaitingKey(teamID))
-  const wasWaiting = Container.usePrevious(waiting)
-
-  const triggerEditUpdated = useEditState(s => s.dispatch.triggerEditUpdated)
-  const loadTeamChannelList = C.useTeamsState(s => s.dispatch.loadTeamChannelList)
-  React.useEffect(() => {
-    if (wasWaiting && !waiting) {
-      nav.safeNavigateUp()
-      loadTeamChannelList(teamID)
-      triggerEditUpdated()
-    }
-  }, [loadTeamChannelList, nav, waiting, wasWaiting, triggerEditUpdated, teamID])
 
   return (
     <Kb.Modal
