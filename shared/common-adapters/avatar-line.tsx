@@ -1,7 +1,7 @@
 import Avatar, {avatarSizes, type AvatarSize} from './avatar'
 import {Box2} from './box'
 import Text from './text'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 
 const Kb = {
   Avatar,

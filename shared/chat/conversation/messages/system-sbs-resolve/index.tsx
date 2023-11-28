@@ -1,6 +1,6 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {e164ToDisplay} from '../../../../util/phone-numbers'
+import {e164ToDisplay} from '@/util/phone-numbers'
 import UserNotice from '../user-notice'
 
 function serviceIdToPrettyName(serviceId: T.TB.ServiceId): string {

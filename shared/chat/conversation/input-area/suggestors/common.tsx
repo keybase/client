@@ -1,4 +1,4 @@
-import * as Container from '../../../../util/container'
+import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import SuggestionList from './suggestion-list'

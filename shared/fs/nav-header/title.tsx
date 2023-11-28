@@ -4,8 +4,8 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
-import {memoize} from '../../util/memoize'
-import * as Container from '../../util/container'
+import {memoize} from '@/util/memoize'
+import * as Container from '@/util/container'
 
 type Props = {
   path: T.FS.Path

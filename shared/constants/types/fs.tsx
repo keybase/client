@@ -1,7 +1,7 @@
 import * as RPCTypes from './rpc-gen'
 import type * as Devices from './devices'
 import {isWindows} from '../platform'
-import {memoize} from '../../util/memoize'
+import {memoize} from '@/util/memoize'
 // lets not create cycles in flow, lets discuss how to fix this
 // import {type Actions} from '../../actions/fs-gen'
 

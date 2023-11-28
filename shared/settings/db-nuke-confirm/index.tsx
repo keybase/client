@@ -1,4 +1,4 @@
-import {globalStyles, globalMargins} from '../../styles'
+import {globalStyles, globalMargins} from '@/styles'
 import {Box, Button, Text, ButtonBar} from '@/common-adapters'
 
 export type Props = {

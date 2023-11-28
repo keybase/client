@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {FloatingRolePicker} from '../role-picker'
-import {pluralize} from '../../util/string'
+import {pluralize} from '@/util/string'
 import {useFocusEffect} from '@react-navigation/core'
 
 type UnselectableTab = string

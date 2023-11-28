@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Style from '../../../../styles'
+import * as Style from '@/styles'
 import type * as T from '@/constants/types'
 import upperFirst from 'lodash/upperFirst'
-import {indefiniteArticle} from '../../../../util/string'
+import {indefiniteArticle} from '@/util/string'
 
 const positionFallbacks = ['bottom center'] as const
 

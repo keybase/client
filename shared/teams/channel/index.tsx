@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '../../util/container'
+import * as Container from '@/util/container'
 import type * as T from '@/constants/types'
 import {useAttachmentSections} from '../../chat/conversation/info-panel/attachments'
 import {SelectionPopup, useChannelParticipants} from '../common'

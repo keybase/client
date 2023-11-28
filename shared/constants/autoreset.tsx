@@ -1,8 +1,8 @@
 import * as C from '.'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import * as T from '@/constants/types'
 import logger from '../logger'
-import {RPCError} from '../util/errors'
+import {RPCError} from '@/util/errors'
 
 export const enterPipelineWaitingKey = 'autoreset:EnterPipelineWaitingKey'
 export const actuallyResetWaitingKey = 'autoreset:ActuallyResetWaitingKey' // TODO not really set

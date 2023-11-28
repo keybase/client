@@ -1,5 +1,5 @@
 import * as C from '.'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 
 type Store = {
   active: boolean

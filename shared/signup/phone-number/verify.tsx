@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen} from '../common'
-import {e164ToDisplay} from '../../util/phone-numbers'
+import {e164ToDisplay} from '@/util/phone-numbers'
 
 export type Props = {
   error: string

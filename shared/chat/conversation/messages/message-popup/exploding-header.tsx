@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../util/timestamp'
-import {addTicker, removeTicker, type TickerID} from '../../../../util/second-timer'
+import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '@/util/timestamp'
+import {addTicker, removeTicker, type TickerID} from '@/util/second-timer'
 
 type Props = {
   explodesAt: number

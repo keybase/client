@@ -5,7 +5,7 @@
 import {createStore, applyMiddleware, type Store} from 'redux'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '../../actions/remote-gen'
-import KB2 from '../../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 
 const {ipcRendererOn} = KB2.functions
 

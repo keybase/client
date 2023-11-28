@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import type * as Styles from '../../../styles'
+import type * as Styles from '@/styles'
 import type * as T from '@/constants/types'
 import ThreadSearch from '.'
 

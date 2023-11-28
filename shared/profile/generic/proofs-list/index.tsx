@@ -2,7 +2,7 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {SiteIcon} from '../shared'
-import {makeInsertMatcher} from '../../../util/string'
+import {makeInsertMatcher} from '@/util/string'
 
 export type IdentityProvider = {
   name: string

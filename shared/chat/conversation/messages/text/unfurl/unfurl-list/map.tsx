@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import UnfurlImage from './image'
 import {OrdinalContext} from '../../../ids-context'
-import {formatDurationForLocation} from '../../../../../../util/timestamp'
+import {formatDurationForLocation} from '@/util/timestamp'
 import {getUnfurlInfo} from './use-redux'
 import {maxWidth} from '../../../attachment/shared'
 

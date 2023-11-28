@@ -5,7 +5,7 @@ import * as Platform from '@/constants/platform'
 import SyncingFolders from './syncing-folders'
 import {IconWithPopup as WhatsNewIconWithPopup} from '../../whats-new/icon/container'
 import * as ReactIs from 'react-is'
-import KB2 from '../../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 
 const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
 

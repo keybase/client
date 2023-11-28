@@ -1,6 +1,6 @@
 import Icon from './icon'
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import ClickableBox from './clickable-box'
 import Image2 from './image2'
 import Box from './box'

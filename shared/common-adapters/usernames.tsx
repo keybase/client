@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Text, {
   type TextType,
   type Background,
@@ -11,7 +11,7 @@ import Text, {
 } from './text'
 import {backgroundModeIsNegative} from './text.shared'
 import isArray from 'lodash/isArray'
-import type {e164ToDisplay as e164ToDisplayType} from '../util/phone-numbers'
+import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 
 export type User = {
   username: string
@@ -344,7 +344,7 @@ export const assertionToDisplay = (assertion: string): string => {
     }
     // phone number
     try {
-      const {e164ToDisplay} = require('../util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
+      const {e164ToDisplay} = require('@/util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
       return e164ToDisplay('+' + noSuffix)
     } catch (e) {
       return '+' + noSuffix

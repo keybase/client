@@ -3,9 +3,9 @@ import * as Kb from '@/common-adapters'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import throttle from 'lodash/throttle'
 // ios must animated plain colors not the dynamic ones
-import colors, {darkColors} from '../../../../../styles/colors'
+import colors, {darkColors} from '@/styles/colors'
 import type {Props} from '.'
-import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
+import SharedTimer, {type SharedTimerID} from '@/util/shared-timers'
 
 // If this image changes, some hard coded dimensions
 // in this file also need to change.

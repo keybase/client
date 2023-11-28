@@ -1,4 +1,4 @@
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import * as C from '@/constants'
 import Text from './text'
 import {Box2} from './box'

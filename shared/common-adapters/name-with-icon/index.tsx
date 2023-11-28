@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 import Avatar, {type AvatarSize} from '../avatar'
 import {Box} from '../box'
 import ClickableBox from '../clickable-box'

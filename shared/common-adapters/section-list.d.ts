@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as Styles from '../styles'
+import type * as Styles from '@/styles'
 import type * as ReactNative from 'react-native'
 
 export type SectionListRenderItem<ItemT, ExtraT> = (info: {

@@ -4,9 +4,9 @@ import * as React from 'react'
 import DeviceRow, {NewContext} from './row'
 import partition from 'lodash/partition'
 import type * as T from '@/constants/types'
-import {intersect} from '../util/set'
+import {intersect} from '@/util/set'
 import {useFocusEffect} from '@react-navigation/core'
-import {useLocalBadging} from '../util/use-local-badging'
+import {useLocalBadging} from '@/util/use-local-badging'
 
 const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   if (a.currentDevice) return -1

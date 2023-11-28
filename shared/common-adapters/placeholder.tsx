@@ -1,4 +1,4 @@
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Box from './box'
 
 type PlaceholderProps = {

@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Styles from '../../../styles'
+import * as Styles from '@/styles'
 import type * as T from '@/constants/types'
-import {memoize} from '../../../util/memoize'
-import {makeInsertMatcher} from '../../../util/string'
+import {memoize} from '@/util/memoize'
+import {makeInsertMatcher} from '@/util/string'
 
 type Props = {
   channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>

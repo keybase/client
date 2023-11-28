@@ -3,14 +3,14 @@ import * as ConfigConstants from '../config'
 import * as EngineGen from '../../actions/engine-gen-gen'
 import * as T from '../types'
 import InputMonitor from './input-monitor.desktop'
-import KB2 from '../../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 import logger from '../../logger'
-import type {RPCError} from '../../util/errors'
+import type {RPCError} from '@/util/errors'
 import {getEngine} from '../../engine'
 import {isLinux, isWindows} from '../platform.desktop'
 import {kbfsNotification} from './kbfs-notifications'
 import {skipAppFocusActions} from '../../local-debug.desktop'
-import NotifyPopup from '../../util/notify-popup'
+import NotifyPopup from '@/util/notify-popup'
 
 const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin, ctlQuit, copyToClipboard} = KB2.functions

@@ -3,7 +3,7 @@ import ClickableBox from './clickable-box'
 import Icon from './icon'
 import Text from './text'
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {Props} from './choice-list'
 
 type State = {

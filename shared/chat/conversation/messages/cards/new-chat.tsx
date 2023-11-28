@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import openUrl from '../../../../util/open-url'
+import openUrl from '@/util/open-url'
 
 type Props = {
   self: boolean

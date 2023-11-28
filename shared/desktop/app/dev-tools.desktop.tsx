@@ -1,6 +1,6 @@
 import * as Electron from 'electron'
 import {showDevTools, skipExtensions} from '../../local-debug.desktop'
-import flags from '../../util/feature-flags'
+import flags from '@/util/feature-flags'
 
 export function setupDevToolsExtensions() {
   if (!skipExtensions && process.env['KEYBASE_DEV_TOOL_EXTENSIONS']) {

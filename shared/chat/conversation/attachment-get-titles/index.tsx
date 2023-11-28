@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Styles from '../../../styles'
+import * as Styles from '@/styles'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
 

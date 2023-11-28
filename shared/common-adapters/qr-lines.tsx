@@ -1,5 +1,5 @@
 import {Box} from './box'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 
 const long = 22
 const small = 4

@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '../../util/container'
+import * as Container from '@/util/container'
 import * as T from '@/constants/types'
-import {pluralize} from '../../util/string'
+import {pluralize} from '@/util/string'
 import {ModalTitle} from '../common'
 import ContactsList, {useContacts, EnableContactsPopup, type Contact} from '../common/contacts-list.native'
 

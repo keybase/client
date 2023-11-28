@@ -8,7 +8,7 @@ import {
   renderEmoji,
   type EmojiData,
   RPCToEmojiData,
-} from '../../../../util/emoji'
+} from '@/util/emoji'
 
 export const transformer = (
   emoji: EmojiData,

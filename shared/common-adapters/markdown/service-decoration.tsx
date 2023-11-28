@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 import Channel from '../channel-container'
 import KbfsPath from '../../fs/common/kbfs-path'
 import MaybeMention from './maybe-mention'
@@ -14,7 +14,7 @@ import type {
   emojiDataToRenderableEmoji as emojiDataToRenderableEmojiType,
   renderEmoji as renderEmojiType,
   RPCToEmojiData as RPCToEmojiDataType,
-} from '../../util/emoji'
+} from '@/util/emoji'
 import {base64ToUint8Array, uint8ArrayToString} from 'uint8array-extras'
 
 const prefix = 'keybase://'
@@ -230,10 +230,10 @@ const ServiceDecoration = (p: Props) => {
       />
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.emoji) {
-    const emojiDataToRenderableEmoji = require('../../util/emoji')
+    const emojiDataToRenderableEmoji = require('@/util/emoji')
       .emojiDataToRenderableEmoji as typeof emojiDataToRenderableEmojiType
-    const renderEmoji = require('../../util/emoji').renderEmoji as typeof renderEmojiType
-    const RPCToEmojiData = require('../../util/emoji').RPCToEmojiData as typeof RPCToEmojiDataType
+    const renderEmoji = require('@/util/emoji').renderEmoji as typeof renderEmojiType
+    const RPCToEmojiData = require('@/util/emoji').RPCToEmojiData as typeof RPCToEmojiDataType
     return renderEmoji({
       customStyle: styleOverride.customEmoji,
       emoji: emojiDataToRenderableEmoji(RPCToEmojiData(parsed.emoji, disableEmojiAnimation)),

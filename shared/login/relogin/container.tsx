@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Container from '../../util/container'
+import * as Container from '@/util/container'
 import * as React from 'react'
 import Login from '.'
 import sortBy from 'lodash/sortBy'

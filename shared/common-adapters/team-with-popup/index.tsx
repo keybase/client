@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {Box2} from '../box'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 import Text, {type TextType} from '../text'
 import DelayedMounting from '../delayed-mounting'
 import {TeamDetailsSubscriber} from '../../teams/subscriber'

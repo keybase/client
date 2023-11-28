@@ -14,7 +14,7 @@ import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {useEdited} from './edited'
 import {Sent} from './sent'
-// import {useDebugLayout} from '../../../../util/debug'
+// import {useDebugLayout} from '@/util/debug'
 
 export type Props = {
   ordinal: T.Chat.Ordinal

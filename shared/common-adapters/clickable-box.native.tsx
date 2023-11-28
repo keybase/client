@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Box from './box'
 import {View, Pressable, TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import type {Props, Props2} from './clickable-box'

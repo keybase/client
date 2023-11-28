@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 import ButtonBar from '../button-bar'
 import Icon from '../icon'
 import Modal from '../modal'

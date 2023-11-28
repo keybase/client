@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import * as Util from '../../util/kbfs'
+import * as Util from '@/util/kbfs'
 
 type OwnProps = {
   path: T.FS.Path

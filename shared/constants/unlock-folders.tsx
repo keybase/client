@@ -1,7 +1,7 @@
 import * as C from '.'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as T from './types'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import logger from '../logger'
 import {getEngine} from '../engine/require'
 

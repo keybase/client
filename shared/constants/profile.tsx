@@ -1,10 +1,10 @@
 import * as C from '.'
 import * as T from './types'
-import * as Validators from '../util/simple-validators'
-import * as Z from '../util/zustand'
+import * as Validators from '@/util/simple-validators'
+import * as Z from '@/util/zustand'
 import logger from '../logger'
-import openURL from '../util/open-url'
-import {RPCError} from '../util/errors'
+import openURL from '@/util/open-url'
+import {RPCError} from '@/util/errors'
 import {isMobile} from './platform'
 
 type ProveGenericParams = {

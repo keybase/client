@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type * as Styles from '../styles'
+import type * as Styles from '@/styles'
 import type {LayoutChangeEvent} from 'react-native'
 
 export type Props = {

@@ -1,6 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 import type * as RPCTypes from '@/constants/types/rpc-gen'
-import type HiddenString from '../util/hidden-string'
+import type HiddenString from '@/util/hidden-string'
 import type * as Tabs from '@/constants/tabs'
 
 // Constants

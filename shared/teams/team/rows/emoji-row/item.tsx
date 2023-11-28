@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
-import * as Container from '../../../../util/container'
+import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as dateFns from 'date-fns'
-import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../../../util/emoji'
+import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '@/util/emoji'
 import EmojiMenu from './emoji-menu'
 import {useEmojiState} from '../../../emojis/use-emoji'
 

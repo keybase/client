@@ -1,14 +1,14 @@
 import * as C from '.'
 import * as T from './types'
 import * as React from 'react'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import logger from '../logger'
 import trim from 'lodash/trim'
-import {RPCError} from '../util/errors'
-import {mapGetEnsureValue} from '../util/map'
-import {serviceIdFromString} from '../util/platforms'
+import {RPCError} from '@/util/errors'
+import {mapGetEnsureValue} from '@/util/map'
+import {serviceIdFromString} from '@/util/platforms'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
-import {validateEmailAddress} from '../util/email-address'
+import {validateEmailAddress} from '@/util/email-address'
 
 const searchServices: Array<T.TB.ServiceId> = ['keybase', 'twitter', 'github', 'reddit', 'hackernews']
 
@@ -213,7 +213,7 @@ const apiSearchOne = async (
 // If the query is a well-formatted phone number or email, do additional search
 // and if the result is not already in the list, insert at the beginning.
 async function specialContactSearch(users: T.TB.User[], query: string, region?: string) {
-  const {validateNumber} = await import('../util/phone-numbers')
+  const {validateNumber} = await import('@/util/phone-numbers')
   let result: T.TB.User | undefined
   const phoneNumber = validateNumber(query, region)
   if (phoneNumber.valid) {

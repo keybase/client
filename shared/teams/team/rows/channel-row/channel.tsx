@@ -1,10 +1,10 @@
 import * as C from '@/constants'
-import * as Container from '../../../../util/container'
+import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {Activity, useChannelParticipants} from '../../../common'
-import {pluralize} from '../../../../util/string'
+import {pluralize} from '@/util/string'
 
 type ChannelRowProps = {
   conversationIDKey: T.Chat.ConversationIDKey

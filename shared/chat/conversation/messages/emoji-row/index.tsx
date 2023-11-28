@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {EmojiPickerDesktop} from '../../../emoji-picker/container'
-import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '../../../../util/emoji'
+import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '@/util/emoji'
 
 type Props = {
   className?: string

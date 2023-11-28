@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
+import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import type * as T from '@/constants/types'
 
 const iconNameForDeviceType = Kb.Styles.isMobile

@@ -4,7 +4,7 @@ import {useTimeout} from './use-timers'
 import Text from './text'
 import Box from './box'
 import {TouchableHighlight} from 'react-native'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import * as Clipboard from 'expo-clipboard'
 
 export type Props = {

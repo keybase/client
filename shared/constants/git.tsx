@@ -1,7 +1,7 @@
 import * as C from '.'
 import * as T from './types'
 import * as dateFns from 'date-fns'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 
 const parseRepos = (results: Array<T.RPCGen.GitRepoResult>) => {
   const errors: Array<Error> = []

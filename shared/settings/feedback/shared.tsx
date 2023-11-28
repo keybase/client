@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import * as Constants from '@/constants/settings'
 import * as React from 'react'
 import logger from '../../logger'
-import {RPCError} from '../../util/errors'
+import {RPCError} from '@/util/errors'
 import {androidIsTestDevice, version} from '@/constants/platform'
 
 export const getExtraChatLogsForLogSend = () => {

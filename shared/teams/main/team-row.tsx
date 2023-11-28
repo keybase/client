@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Container from '../../util/container'
+import * as Container from '@/util/container'
 import type * as T from '@/constants/types'
 import TeamMenu from '../team/menu-container'
-import {pluralize} from '../../util/string'
+import {pluralize} from '@/util/string'
 import {Activity} from '../common'
 
 type Props = {

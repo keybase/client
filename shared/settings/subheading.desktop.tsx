@@ -1,4 +1,4 @@
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '@/styles'
 import {Box, Text} from '@/common-adapters'
 
 import type {Props} from './subheading'

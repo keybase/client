@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Container from '../../../util/container'
+import * as Container from '@/util/container'
 import {ModalTitle} from '../../common'
 import * as T from '@/constants/types'
 

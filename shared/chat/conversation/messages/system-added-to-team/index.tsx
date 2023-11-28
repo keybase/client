@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import type * as T from '@/constants/types'
 import {getAddedUsernames} from '../system-users-added-to-conv'
-import {indefiniteArticle} from '../../../../util/string'
+import {indefiniteArticle} from '@/util/string'
 
 type Props = {
   addee: string

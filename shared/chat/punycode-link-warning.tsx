@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
-import * as Container from '../util/container'
-import openURL from '../util/open-url'
+import * as Container from '@/util/container'
+import openURL from '@/util/open-url'
 
 type PunycodeLinkWarningProps = {
   display: string

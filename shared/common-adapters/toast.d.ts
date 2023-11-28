@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type {Position, StylesCrossPlatform} from '../styles'
+import type {Position, StylesCrossPlatform} from '@/styles'
 import type {MeasureRef} from './measure-ref'
 
 export type Props = {

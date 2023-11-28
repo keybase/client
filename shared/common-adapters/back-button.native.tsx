@@ -4,7 +4,7 @@ import {TouchableWithoutFeedback, Keyboard} from 'react-native'
 import Badge from './badge'
 import Box from './box'
 import Icon from './icon'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {Props} from './back-button'
 import noop from 'lodash/noop'
 

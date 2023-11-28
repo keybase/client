@@ -1,6 +1,6 @@
 import type {Props} from './toast'
 import FloatingBox from './floating-box'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import './toast.css'
 
 const Kb = {

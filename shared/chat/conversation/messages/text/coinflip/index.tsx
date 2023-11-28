@@ -6,7 +6,7 @@ import CoinFlipError from './errors'
 import CoinFlipParticipants from './participants'
 import CoinFlipResult from './results'
 import {OrdinalContext} from '../../ids-context'
-import {pluralize} from '../../../../../util/string'
+import {pluralize} from '@/util/string'
 
 const CoinFlipContainer = React.memo(function CoinFlipContainer() {
   const ordinal = React.useContext(OrdinalContext)

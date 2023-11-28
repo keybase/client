@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import ReactButton, {NewReactionButton} from '.'
-import type {StylesCrossPlatform} from '../../../../styles'
+import type {StylesCrossPlatform} from '@/styles'
 import {OrdinalContext} from '../ids-context'
 
 export type OwnProps = {

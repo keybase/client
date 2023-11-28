@@ -7,7 +7,7 @@ import {
   type NavigationContainerRef,
   type NavigationState,
 } from '@react-navigation/core'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import {produce} from 'immer'
 import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'

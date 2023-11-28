@@ -1,4 +1,4 @@
-import * as Styles from '../../../styles'
+import * as Styles from '@/styles'
 import {TouchableOpacity, Keyboard} from 'react-native'
 import Badge from '../../badge'
 import Box, {Box2} from '../../box'

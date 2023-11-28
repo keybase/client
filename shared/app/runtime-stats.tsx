@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 // import {isIPhoneX} from '@/constants/platform'
 import * as T from '@/constants/types'
 const isIPhoneX = false as boolean

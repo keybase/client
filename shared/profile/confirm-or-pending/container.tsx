@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import ConfirmOrPending from '.'
 import * as T from '@/constants/types'
-import {globalColors} from '../../styles'
+import {globalColors} from '@/styles'
 
 const Container = () => {
   const proofFound = C.useProfileState(s => s.proofFound)

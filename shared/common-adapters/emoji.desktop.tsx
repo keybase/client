@@ -1,5 +1,5 @@
 import type {Props} from './emoji'
-import {type EmojiData, emojiNameMap, skinTones} from '../util/emoji-shared'
+import {type EmojiData, emojiNameMap, skinTones} from '@/util/emoji-shared'
 
 // Just the single set we use
 import emojiSet from 'emoji-datasource-apple/img/apple/sheets/64.png'

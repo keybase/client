@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import openURL from '../../util/open-url'
+import openURL from '@/util/open-url'
 import type * as T from '@/constants/types'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import type {TaskButton} from '../item'

@@ -1,4 +1,4 @@
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import {type Store, type State} from './push'
 
 export const permissionsRequestingWaitingKey = 'push:permissionsRequesting'

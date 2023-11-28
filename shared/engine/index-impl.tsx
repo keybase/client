@@ -9,7 +9,7 @@ import {initEngine, initEngineListener} from './require'
 import {isMobile} from '@/constants/platform'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog, type createClientType} from './index.platform'
-import {type RPCError, convertToError} from '../util/errors'
+import {type RPCError, convertToError} from '@/util/errors'
 import type * as EngineGen from '../actions/engine-gen-gen'
 
 // delay incoming to stop react from queueing too many setState calls and stopping rendering

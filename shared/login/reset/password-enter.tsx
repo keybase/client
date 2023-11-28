@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen} from '../../signup/common'
-import * as Container from '../../util/container'
+import * as Container from '@/util/container'
 
 const EnterPassword = () => {
   const [password, setPassword] = React.useState('')

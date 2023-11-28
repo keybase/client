@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import WaitingButton from '@/common-adapters/waiting-button'
 import Icon from '@/common-adapters/icon'
 

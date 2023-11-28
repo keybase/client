@@ -2,7 +2,7 @@
 import * as T from '../types'
 import * as C from '..'
 import type * as ConvoConstants from './convostate'
-import HiddenString from '../../util/hidden-string'
+import HiddenString from '@/util/hidden-string'
 import invert from 'lodash/invert'
 import logger from '../../logger'
 import type * as MessageTypes from '../types/chat2/message'

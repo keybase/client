@@ -1,5 +1,5 @@
 import Box from '../box'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 import {urlsToImgSet} from '../icon.desktop'
 import type {Props} from '.'
 import {getAssetPath} from '@/constants/platform.desktop'

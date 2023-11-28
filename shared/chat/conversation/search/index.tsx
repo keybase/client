@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {formatTimeForMessages} from '../../../util/timestamp'
+import {formatTimeForMessages} from '@/util/timestamp'
 
 const hitHeight = 30
 

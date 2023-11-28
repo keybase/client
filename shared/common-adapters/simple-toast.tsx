@@ -2,7 +2,7 @@ import Toast from './toast'
 import {Box2} from './box'
 import Icon, {type IconType} from './icon'
 import Text from './text'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 
 const Kb = {
   Box2,

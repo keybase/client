@@ -1,12 +1,12 @@
 import * as C from '@/constants'
-import * as Container from '../util/container'
+import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../fs/common'
 import * as React from 'react'
 import logger from '../logger'
 import Loading from '../login/loading'
 import type {Theme} from '@react-navigation/native'
-import {colors, darkColors, themed} from '../styles/colors'
+import {colors, darkColors, themed} from '@/styles/colors'
 
 export enum AppState {
   UNINIT, // haven't rendered the nav yet

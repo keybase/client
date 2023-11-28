@@ -1,6 +1,6 @@
 import * as Shared from './icon.shared'
-import * as Styles from '../styles'
-import {colors, darkColors} from '../styles/colors'
+import * as Styles from '@/styles'
+import {colors, darkColors} from '@/styles/colors'
 import * as React from 'react'
 import logger from '../logger'
 import {iconMeta} from './icon.constants-gen'

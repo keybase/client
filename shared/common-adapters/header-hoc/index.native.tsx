@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 import BackButton from '../back-button'
 import Box from '../box'
 import FloatingMenu from '../floating-menu'

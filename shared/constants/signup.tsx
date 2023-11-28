@@ -2,11 +2,11 @@ import * as C from '.'
 import * as Platforms from './platform'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as T from './types'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import logger from '../logger'
 import trim from 'lodash/trim'
-import {RPCError} from '../util/errors'
-import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
+import {RPCError} from '@/util/errors'
+import {isValidEmail, isValidName, isValidUsername} from '@/util/simple-validators'
 
 export const maxUsernameLength = 16
 export const usernameHint =

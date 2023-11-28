@@ -3,9 +3,9 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {Portal} from '@/common-adapters/portal.native'
 import * as React from 'react'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 // we need to use the raw colors to animate
-import {colors} from '../../styles/colors'
+import {colors} from '@/styles/colors'
 import * as Reanimated from 'react-native-reanimated'
 import {AmpTracker} from './amptracker'
 import {
@@ -15,9 +15,9 @@ import {
   type PanGestureHandlerEventPayload,
 } from 'react-native-gesture-handler'
 import {View} from 'react-native'
-import {formatAudioRecordDuration} from '../../util/timestamp'
+import {formatAudioRecordDuration} from '@/util/timestamp'
 import {Audio} from 'expo-av'
-import {setupAudioMode} from '../../util/audio.native'
+import {setupAudioMode} from '@/util/audio.native'
 import logger from '../../logger'
 import * as Haptics from 'expo-haptics'
 import * as FileSystem from 'expo-file-system'

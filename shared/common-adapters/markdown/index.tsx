@@ -1,4 +1,4 @@
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 import * as React from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import Text from '../text'

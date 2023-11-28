@@ -10,9 +10,9 @@ import * as Common from './common.desktop'
 import * as TrackerConstants from '@/constants/tracker2'
 import AccountSwitcher from './account-switcher/container'
 import RuntimeStats from '../app/runtime-stats'
-import openURL from '../util/open-url'
+import openURL from '@/util/open-url'
 import {isLinux} from '@/constants/platform'
-import KB2 from '../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 
 const {hideWindow, ctlQuit} = KB2.functions
 

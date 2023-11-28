@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type {StylesCrossPlatform, Position} from '../styles'
+import type {StylesCrossPlatform, Position} from '@/styles'
 
 export type Props = {
   backgroundColor?: string

@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {UploadProps} from './upload'
 import capitalize from 'lodash/capitalize'
-import {backgroundURL} from '../../styles/index.desktop'
+import {backgroundURL} from '@/styles/index.desktop'
 import './upload.css'
 
 type DrawState = 'showing' | 'hiding' | 'hidden'

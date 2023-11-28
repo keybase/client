@@ -1,5 +1,5 @@
 import type * as Types from '.'
-import {toStringForLog} from '../util/string'
+import {toStringForLog} from '@/util/string'
 
 const levelToFunction = {
   Action: 'log',

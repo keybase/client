@@ -11,7 +11,7 @@ import Measure from './measure'
 import Teams from './teams'
 import chunk from 'lodash/chunk'
 import * as T from '@/constants/types'
-import type {RPCError} from '../../util/errors'
+import type {RPCError} from '@/util/errors'
 import upperFirst from 'lodash/upperFirst'
 import {SiteIcon} from '../generic/shared'
 

@@ -2,7 +2,7 @@ import * as React from 'react'
 import Box from './box'
 import LottieView from 'lottie-react-native'
 import type {Props} from './animation'
-import {useDepChangeEffect} from '../util/container'
+import {useDepChangeEffect} from '@/util/container'
 import type {default as AnimationData} from './animation-data.json'
 type AnimationObject = {
   v: string

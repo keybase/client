@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Container from '../../../../util/container'
+import * as Container from '@/util/container'
 import type * as T from '@/constants/types'
 import MenuHeader from '../menu-header.new'
 

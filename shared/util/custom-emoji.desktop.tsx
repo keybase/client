@@ -1,4 +1,4 @@
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {Box2} from '@/common-adapters/box'
 import WithTooltip from '@/common-adapters/with-tooltip'
 import Image2 from '@/common-adapters/image2'

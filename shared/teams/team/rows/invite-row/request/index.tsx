@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {FloatingRolePicker} from '../../../../role-picker'
-import {formatTimeRelativeToNow} from '../../../../../util/timestamp'
+import {formatTimeRelativeToNow} from '@/util/timestamp'
 import MenuHeader from '../../menu-header.new'
 
 const positionFallbacks = ['left center', 'top left'] as const

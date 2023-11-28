@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type * as Styles from '../../../styles'
+import type * as Styles from '@/styles'
 import type {IconType, IconStyle} from '../../icon'
 
 export type MenuItem = {

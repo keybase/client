@@ -1,5 +1,5 @@
 // import * as ProvisionGen from '../../actions/provision-gen'
-// import * as Container from '../../util/container'
+// import * as Container from '@/util/container'
 // import * as Constants from '@/constants/provision'
 // import GPGSign from '.'
 

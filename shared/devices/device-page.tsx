@@ -3,7 +3,7 @@ import * as Constants from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '../util/timestamp'
+import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '@/util/timestamp'
 
 type OwnProps = {deviceID: string}
 

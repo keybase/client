@@ -6,7 +6,7 @@ import {
   globalMargins,
   globalStyles,
   isMobile,
-} from '../../styles'
+} from '@/styles'
 
 export type HeaderButtonProps = {
   iconType: IconType

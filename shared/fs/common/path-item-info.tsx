@@ -6,7 +6,7 @@ import LastModifiedLine from './last-modified-line-container'
 import TlfInfoLine from './tlf-info-line-container'
 import ItemIcon from './item-icon'
 import CommaSeparatedName from './comma-separated-name'
-import {pluralize} from '../../util/string'
+import {pluralize} from '@/util/string'
 import {useFsChildren, useFsPathMetadata, useFsOnlineStatus, useFsSoftError} from './hooks'
 
 type Props = {

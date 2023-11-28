@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '../../util/container'
+import * as Container from '@/util/container'
 import TeamMenu from './menu-container'
-import {pluralize} from '../../util/string'
+import {pluralize} from '@/util/string'
 import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import type * as T from '@/constants/types'
 

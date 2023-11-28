@@ -9,7 +9,7 @@ import {
   emojiDataToRenderableEmoji,
   getEmojiStr,
   renderEmoji,
-} from '../../util/emoji'
+} from '@/util/emoji'
 import {AliasInput, Modal} from './common'
 import {useEmojiState} from './use-emoji'
 import {usePickerState} from '../../chat/emoji-picker/use-picker'

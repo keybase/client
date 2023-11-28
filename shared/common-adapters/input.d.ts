@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type {StylesCrossPlatform} from '../styles'
+import type {StylesCrossPlatform} from '@/styles'
 import type {TextContentType} from './plain-input'
 
 /**

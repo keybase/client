@@ -1,5 +1,5 @@
 import capitalize from 'lodash/capitalize'
-import KB2 from '../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 
 const {env, platform} = KB2.constants
 

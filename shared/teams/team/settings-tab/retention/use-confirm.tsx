@@ -1,4 +1,4 @@
-import * as Z from '../../../../util/zustand'
+import * as Z from '@/util/zustand'
 import type * as T from '@/constants/types'
 
 type Store = {

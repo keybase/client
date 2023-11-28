@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {pluralize} from '../util/string'
+import {pluralize} from '@/util/string'
 
 type Props = {
   isSelected: boolean

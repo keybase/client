@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Constants from '@/constants/provision'
-import * as Container from '../util/container'
+import * as Container from '@/util/container'
 import * as Devices from '@/constants/devices'
 import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'

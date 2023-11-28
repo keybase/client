@@ -7,13 +7,13 @@ import * as ExpoTaskManager from 'expo-task-manager'
 import * as MediaLibrary from 'expo-media-library'
 import * as Tabs from '../tabs'
 import NetInfo from '@react-native-community/netinfo'
-import NotifyPopup from '../../util/notify-popup'
+import NotifyPopup from '@/util/notify-popup'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../../logger'
 import {Alert, Linking, ActionSheetIOS} from 'react-native'
 import {isIOS, isAndroid} from '../platform'
-import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
-import {setupAudioMode} from '../../util/audio.native'
+import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
+import {setupAudioMode} from '@/util/audio.native'
 import {
   androidOpenSettings,
   androidShare,

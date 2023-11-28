@@ -2,7 +2,7 @@ import * as C from '.'
 import {getNavigator} from '.'
 import logger from '../logger'
 import * as T from './types'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 
 export const maxHandshakeTries = 3
 

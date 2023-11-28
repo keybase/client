@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 import AudioVideo from './audio-video'
-import {formatAudioRecordDuration} from '../../util/timestamp'
+import {formatAudioRecordDuration} from '@/util/timestamp'
 import {isMobile} from '@/constants/platform'
 
 type VisProps = {

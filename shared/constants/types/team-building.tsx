@@ -1,4 +1,4 @@
-import type {ServiceId as _ServiceId} from '../../util/platforms'
+import type {ServiceId as _ServiceId} from '@/util/platforms'
 
 export const allowedNamespace = ['chat2', 'crypto', 'teams', 'people', 'invalid'] as const
 export type AllowedNamespace = (typeof allowedNamespace)[number]

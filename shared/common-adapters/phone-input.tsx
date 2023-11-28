@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Emoji from './emoji'
 import Text from './text'
 import {Box2, Box2Measure} from './box'
@@ -19,8 +19,8 @@ import {
   AsYouTypeFormatter,
   validateNumber,
   type CountryData,
-} from '../util/phone-numbers'
-import {memoize} from '../util/memoize'
+} from '@/util/phone-numbers'
+import {memoize} from '@/util/memoize'
 import type {MeasureRef} from './measure-ref'
 
 const Kb = {

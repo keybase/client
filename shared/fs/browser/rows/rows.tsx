@@ -8,7 +8,7 @@ import Tlf from './tlf-container'
 import Still from './still-container'
 import Editing from './editing'
 import {normalRowHeight} from './common'
-import {memoize} from '../../../util/memoize'
+import {memoize} from '@/util/memoize'
 import {useFsChildren, UploadButton} from '../../common'
 
 export type Props = {

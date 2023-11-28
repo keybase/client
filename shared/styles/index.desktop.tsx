@@ -5,7 +5,7 @@ import type * as CSS from './css'
 import {isDarkMode} from './dark-mode'
 import {themed, colors, darkColors} from './colors'
 import {getAssetPath} from '@/constants/platform.desktop'
-import * as Path from '../util/path'
+import * as Path from '@/util/path'
 import isArray from 'lodash/isArray'
 import shallowEqual from 'shallowequal'
 

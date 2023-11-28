@@ -3,7 +3,7 @@ import * as React from 'react'
 import File from '.'
 import type * as T from '@/constants/types'
 import {OrdinalContext} from '../../ids-context'
-import {globalColors} from '../../../../../styles'
+import {globalColors} from '@/styles'
 import {isPathSaltpack} from '@/constants/crypto'
 
 type OwnProps = {

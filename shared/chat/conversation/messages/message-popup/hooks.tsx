@@ -4,7 +4,7 @@ import * as C from '@/constants'
 import ReactionItem from './reactionitem'
 import MessagePopupHeader from './header'
 import ExplodingPopupHeader from './exploding-header'
-import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
+import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 
 const emptyAttach = C.Chat.makeMessageAttachment({})
 const emptyText = C.Chat.makeMessageText({})

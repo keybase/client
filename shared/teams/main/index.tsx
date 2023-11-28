@@ -5,8 +5,8 @@ import type * as T from '@/constants/types'
 import Banner from './banner'
 import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
-import {memoize} from '../../util/memoize'
-import {pluralize} from '../../util/string'
+import {memoize} from '@/util/memoize'
+import {pluralize} from '@/util/string'
 
 type DeletedTeam = {
   teamName: string

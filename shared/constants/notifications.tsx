@@ -1,5 +1,5 @@
 import * as C from '.'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as T from './types'
 import {isMobile} from './platform'

@@ -2,7 +2,7 @@
 import {app, nativeTheme} from 'electron'
 import os from 'os'
 import path from 'path'
-import type {KB2} from '../../util/electron.desktop'
+import type {KB2} from '@/util/electron.desktop'
 const {env, argv, pid} = process
 
 const platform = process.platform

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import ClickableBox from './clickable-box'
 import logger from '../logger'
 import pick from 'lodash/pick'

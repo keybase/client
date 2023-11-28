@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {Box2} from './box'
 import Icon from './icon'
 import Text from './text'
 import logger from '../logger'
 import type {Props} from './drag-and-drop'
-import KB2 from '../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 
 const {isDirectory} = KB2.functions
 

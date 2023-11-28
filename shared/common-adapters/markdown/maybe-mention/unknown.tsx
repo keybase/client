@@ -5,7 +5,7 @@ import {Box2} from '../../box'
 import type {MeasureRef} from '../../measure-ref'
 import type {MenuItems} from '../../floating-menu/menu-layout'
 import FloatingMenu from '../../floating-menu'
-import * as Styles from '../../../styles'
+import * as Styles from '@/styles'
 
 const Kb = {Box2, Button, FloatingMenu, Styles, Text}
 

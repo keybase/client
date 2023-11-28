@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Text from './text'
 import {Box2} from './box'
 import * as Scanner from 'expo-barcode-scanner'

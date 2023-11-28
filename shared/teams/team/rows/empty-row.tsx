@@ -1,6 +1,6 @@
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Container from '../../../util/container'
+import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 
 type Props = {

@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import UnfurlImage from './image'
 import {OrdinalContext} from '../../../ids-context'
-import {formatTimeForMessages} from '../../../../../../util/timestamp'
+import {formatTimeForMessages} from '@/util/timestamp'
 import {getUnfurlInfo, useActions} from './use-redux'
 
 const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {

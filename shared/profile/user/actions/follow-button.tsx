@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../../../styles'
+import * as Styles from '@/styles'
 import WaitingButton from '@/common-adapters/waiting-button'
 
 const Kb = {

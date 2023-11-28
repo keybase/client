@@ -1,14 +1,14 @@
 import * as T from './types'
 import * as C from '.'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import logger from '../logger'
-import {RPCError} from '../util/errors'
+import {RPCError} from '@/util/errors'
 import type {
   e164ToDisplay as e164ToDisplayType,
   phoneUtil as phoneUtilType,
   ValidationResult as ValidationResultType,
   PhoneNumberFormat as PhoneNumberFormatType,
-} from '../util/phone-numbers'
+} from '@/util/phone-numbers'
 
 export const makePhoneRow = (): PhoneRow => ({
   displayNumber: '',
@@ -24,7 +24,7 @@ export const resendVerificationForPhoneWaitingKey = 'settings:resendVerification
 
 // Get phone number in e.164, or null if we can't parse it.
 export const getE164 = (phoneNumber: string, countryCode?: string) => {
-  const {phoneUtil, ValidationResult, PhoneNumberFormat} = require('../util/phone-numbers') as {
+  const {phoneUtil, ValidationResult, PhoneNumberFormat} = require('@/util/phone-numbers') as {
     phoneUtil: typeof phoneUtilType
     ValidationResult: typeof ValidationResultType
     PhoneNumberFormat: typeof PhoneNumberFormatType
@@ -42,7 +42,7 @@ export const getE164 = (phoneNumber: string, countryCode?: string) => {
 }
 
 const toPhoneRow = (p: T.RPCGen.UserPhoneNumber) => {
-  const {e164ToDisplay} = require('../util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
+  const {e164ToDisplay} = require('@/util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
   return {
     ...makePhoneRow(),
     displayNumber: e164ToDisplay(p.phoneNumber),

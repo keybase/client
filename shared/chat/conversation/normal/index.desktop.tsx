@@ -8,9 +8,9 @@ import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message/container'
 import ThreadLoadStatus from '../load-status'
 import ThreadSearch from '../search/container'
-import {readImageFromClipboard} from '../../../util/clipboard.desktop'
+import {readImageFromClipboard} from '@/util/clipboard.desktop'
 import '../conversation.css'
-import {indefiniteArticle} from '../../../util/string'
+import {indefiniteArticle} from '@/util/string'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>

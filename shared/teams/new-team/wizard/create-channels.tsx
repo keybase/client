@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as Container from '../../../util/container'
-import {pluralize} from '../../../util/string'
+import * as Container from '@/util/container'
+import {pluralize} from '@/util/string'
 import {ModalTitle} from '../../common'
 
 type Props = {

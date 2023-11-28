@@ -7,7 +7,7 @@ import Text from '../../text'
 import Meta from '../../meta'
 import Badge from '../../badge'
 import ProgressIndicator from '../../progress-indicator'
-import * as Styles from '../../../styles'
+import * as Styles from '@/styles'
 
 class MenuLayout extends React.Component<MenuLayoutProps> {
   private renderDivider = (index: number) => (

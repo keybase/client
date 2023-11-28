@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSpring, animated} from 'react-spring'
 import capitalize from 'lodash/capitalize'
-import {pluralize} from '../../util/string'
+import {pluralize} from '@/util/string'
 import type * as T from '@/constants/types'
 
 // Controls the ordering of the role picker

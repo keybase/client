@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import * as Styles from '../../../styles'
+import * as Styles from '@/styles'
 import * as T from '@/constants/types'
 
 type Action = {

@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type {Position} from '../../styles'
+import type {Position} from '@/styles'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 
 export type Props = {

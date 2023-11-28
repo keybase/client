@@ -1,4 +1,4 @@
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {
   AccessibilityInfo,
   Dimensions,
@@ -16,7 +16,7 @@ import {
 import {useHeaderHeight} from '@react-navigation/elements'
 import type {Props as KAVProps} from './keyboard-avoiding-view'
 import * as React from 'react'
-import {getKeyboardUp} from '../styles/keyboard-state'
+import {getKeyboardUp} from '@/styles/keyboard-state'
 
 type Props = React.ComponentProps<typeof OldKeyboardAvoidingViewType> & {extraPadding?: number}
 

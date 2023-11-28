@@ -4,7 +4,7 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
-import {pluralize} from '../../../util/string'
+import {pluralize} from '@/util/string'
 import RetentionPicker from './retention/container'
 import DefaultChannels from './default-channels'
 

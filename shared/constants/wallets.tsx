@@ -1,6 +1,6 @@
 import * as C from '.'
 import * as T from './types'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
 
 export const statusSimplifiedToString = invert(T.RPCStellar.PaymentStatus) as {

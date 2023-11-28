@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import type {RPCError} from '../../util/errors'
+import type {RPCError} from '@/util/errors'
 
 export type Size = 'Closed' | 'Small' | 'Big'
 

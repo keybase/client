@@ -7,7 +7,7 @@ import * as Constants from '@/constants/tracker2'
 import type * as T from '@/constants/types'
 import Tracker from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
-import KB2 from '../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 import {useAvatarState} from '@/common-adapters/avatar-zus'
 
 const {closeWindow} = KB2.functions

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {Props} from './scroll-view'
 
 const ScrollView = React.forwardRef(function ScrollView(props: Props, ref) {

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Animated, {withRepeat, useSharedValue, withTiming, useAnimatedStyle, withDelay} from './reanimated'
 
 const LoadingLine = React.memo(function LoadingLine() {

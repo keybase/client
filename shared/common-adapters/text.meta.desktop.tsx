@@ -1,4 +1,4 @@
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {MetaType, TextType, Background} from './text'
 
 export function defaultColor(backgroundMode?: Background) {

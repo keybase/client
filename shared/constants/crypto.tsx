@@ -1,10 +1,10 @@
 import * as C from '.'
 import * as Platform from '@/constants/platform'
-import * as Z from '../util/zustand'
-import HiddenString from '../util/hidden-string'
+import * as Z from '@/util/zustand'
+import HiddenString from '@/util/hidden-string'
 import logger from '../logger'
 import * as T from './types'
-import {RPCError} from '../util/errors'
+import {RPCError} from '@/util/errors'
 
 export const saltpackDocumentation = 'https://saltpack.org'
 export const inputDesktopMaxHeight = {maxHeight: '30%'} as const

@@ -1,4 +1,4 @@
-import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '../../util/electron.desktop'
+import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '@/util/electron.desktop'
 import MainWindow, {showDockIcon, closeWindows, getMainWindow} from './main-window.desktop'
 import * as Electron from 'electron'
 import * as R from '@/constants/remote'

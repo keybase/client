@@ -1,7 +1,7 @@
 // Incoming and outgoing requests that are in a session
 import type {MethodKey, ResponseType} from './types'
 import type {invokeType} from './index.platform'
-import type {RPCError} from '../util/errors'
+import type {RPCError} from '@/util/errors'
 
 type SimpleWaiting = (waiting: boolean, err?: RPCError) => void
 

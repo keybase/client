@@ -24,4 +24,4 @@ export type Long = number
 export type String = string
 export type Uint = number
 export type Uint64 = number
-export {RPCError} from '../util/errors'
+export {RPCError} from '@/util/errors'

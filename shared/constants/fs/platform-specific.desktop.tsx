@@ -4,8 +4,8 @@ import * as Constants from '../fs'
 import * as Tabs from '../tabs'
 import {isWindows, isLinux, pathSep, isDarwin} from '../platform.desktop'
 import logger from '../../logger'
-import * as Path from '../../util/path'
-import KB2 from '../../util/electron.desktop'
+import * as Path from '@/util/path'
+import KB2 from '@/util/electron.desktop'
 import {uint8ArrayToHex} from 'uint8array-extras'
 
 const {openPathInFinder, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions

@@ -4,10 +4,10 @@ import * as React from 'react'
 import Row, {NewContext} from './row'
 import sortBy from 'lodash/sortBy'
 import type * as T from '@/constants/types'
-import {memoize} from '../util/memoize'
-import {union} from '../util/set'
+import {memoize} from '@/util/memoize'
+import {union} from '@/util/set'
 import {useFocusEffect} from '@react-navigation/core'
-import {useLocalBadging} from '../util/use-local-badging'
+import {useLocalBadging} from '@/util/use-local-badging'
 
 type OwnProps = {expanded?: string}
 

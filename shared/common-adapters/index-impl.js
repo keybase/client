@@ -292,7 +292,7 @@ module.exports = {
     return require('./simple-toast').default
   },
   get Styles() {
-    return require('../styles')
+    return require('@/styles')
   },
   get Switch() {
     return require('./switch').default

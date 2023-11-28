@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Container from '../../../util/container'
+import * as Container from '@/util/container'
 import * as Kb from '@/common-adapters'
 import * as Hooks from './hooks'
 import * as React from 'react'
@@ -9,9 +9,9 @@ import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import chunk from 'lodash/chunk'
 import {ErrorBoundary} from '@/common-adapters'
-import {findLast} from '../../../util/arrays'
+import {findLast} from '@/util/arrays'
 import {getMessageRender} from '../messages/wrapper'
-import {globalMargins} from '../../../styles/shared'
+import {globalMargins} from '@/styles/shared'
 import {FocusContext, ScrollContext} from '../normal/context'
 
 // Infinite scrolling list.

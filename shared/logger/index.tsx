@@ -3,7 +3,7 @@ import Logger from './ring-logger'
 import noop from 'lodash/noop'
 import {hasEngine} from '../engine/require'
 import {isMobile} from '@/constants/platform'
-import {requestIdleCallback} from '../util/idle-callback'
+import {requestIdleCallback} from '@/util/idle-callback'
 
 export type Timestamp = number
 export type ISOTimestamp = string

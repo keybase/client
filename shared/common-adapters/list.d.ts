@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type {StylesCrossPlatform} from '../styles'
+import type {StylesCrossPlatform} from '@/styles'
 
 export type Props<Item> = {
   bounces?: boolean // mobile only

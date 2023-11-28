@@ -1,5 +1,5 @@
-import * as Z from '../../util/zustand'
-import type {RenderableEmoji} from '../../util/emoji'
+import * as Z from '@/util/zustand'
+import type {RenderableEmoji} from '@/util/emoji'
 
 export type PickKey = 'addAlias' | 'chatInput' | 'reaction'
 type PickerValue = {

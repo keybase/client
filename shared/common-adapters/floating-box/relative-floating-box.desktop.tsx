@@ -1,6 +1,6 @@
 import logger from '../../logger'
 import * as React from 'react'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 import throttle from 'lodash/throttle'
 import includes from 'lodash/includes'
 import without from 'lodash/without'

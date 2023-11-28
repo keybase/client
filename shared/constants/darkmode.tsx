@@ -1,5 +1,5 @@
 import * as T from './types'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import {Appearance} from 'react-native'
 import {isMobile} from './platform'
 

@@ -1,13 +1,13 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Container from '../../../util/container'
+import * as Container from '@/util/container'
 import * as T from '@/constants/types'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 import {ModalTitle} from '../../common'
 import {FloatingRolePicker} from '../../role-picker'
 import {InlineDropdown} from '@/common-adapters/dropdown'
-import {pluralize} from '../../../util/string'
+import {pluralize} from '@/util/string'
 import {InviteItem} from './invite-item'
 
 type Props = {teamID: T.Teams.TeamID}

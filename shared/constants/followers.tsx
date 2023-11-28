@@ -1,4 +1,4 @@
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 
 export type Store = {
   followers: Set<string>

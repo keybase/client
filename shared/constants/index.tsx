@@ -153,8 +153,8 @@ export const useNav = () => {
 
 export {useIsMounted, useOnMountOnce, useOnUnMountOnce, useEvent} from './react'
 export {useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
-export {useShallow, useDeep} from '../util/zustand'
-export {isNetworkErr, RPCError} from '../util/errors'
-export {default as useRPC} from '../util/use-rpc'
-export {default as useSafeCallback} from '../util/use-safe-callback'
+export {useShallow, useDeep} from '@/util/zustand'
+export {isNetworkErr, RPCError} from '@/util/errors'
+export {default as useRPC} from '@/util/use-rpc'
+export {default as useSafeCallback} from '@/util/use-safe-callback'
 export {produce} from 'immer'

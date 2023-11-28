@@ -5,7 +5,7 @@ import type * as RPCChatTypes from '../rpc-chat-gen'
 import type * as RPCStellarTypes from '../rpc-stellar-gen'
 import type * as WalletTypes from '../wallets'
 import type * as TeamTypes from '../teams'
-import type HiddenString from '../../../util/hidden-string'
+import type HiddenString from '@/util/hidden-string'
 import type {DeviceType} from '../devices'
 import type {ServiceIdWithContact} from '../team-building'
 

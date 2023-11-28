@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Constants from '@/constants/fs'
-import * as Container from '../../../util/container'
+import * as Container from '@/util/container'
 import * as FsCommon from '../../common'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -10,7 +10,7 @@ import NavHeaderTitle from '../../nav-header/title'
 import Root from '../root'
 import Rows from '../rows/rows-container'
 import {OriginalOrCompressedButton} from '../../../incoming-share'
-import {memoize} from '../../../util/memoize'
+import {memoize} from '@/util/memoize'
 
 type OwnProps = {index: number}
 

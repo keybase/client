@@ -1,11 +1,11 @@
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import * as Data from '../../util/emoji'
+import * as Data from '@/util/emoji'
 import * as Kb from '@/common-adapters'
 import debounce from 'lodash/debounce'
 import {isMobile} from '@/constants/platform'
 import chunk from 'lodash/chunk'
-import {memoize} from '../../util/memoize'
+import {memoize} from '@/util/memoize'
 import {
   emojiDataToRenderableEmoji,
   getEmojiStr,
@@ -18,7 +18,7 @@ import type {Section as _Section} from './../../common-adapters/section-list'
 
 // defer loading this until we need to, very expensive
 const _getData = () => {
-  const utilEmoji = require('../../util/emoji') as {
+  const utilEmoji = require('@/util/emoji') as {
     categories: typeof Data.categories
     emojiSearch: typeof Data.emojiSearch
     emojiNameMap: typeof Data.emojiNameMap

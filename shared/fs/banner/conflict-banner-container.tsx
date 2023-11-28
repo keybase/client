@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as SettingsConstants from '@/constants/settings'
 import type * as T from '@/constants/types'
 import ConflictBanner from './conflict-banner'
-import openUrl from '../../util/open-url'
+import openUrl from '@/util/open-url'
 
 type OwnProps = {
   path: T.FS.Path

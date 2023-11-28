@@ -10,7 +10,7 @@ import logger from '../../logger'
 import debounce from 'lodash/debounce'
 import {setupDevToolsExtensions} from './dev-tools.desktop'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
-import KB2 from '../../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 
 const {env} = KB2.constants
 

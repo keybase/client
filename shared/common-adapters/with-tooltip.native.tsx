@@ -6,7 +6,7 @@ import Box from './box'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import {animated} from 'react-spring'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {Props} from './with-tooltip'
 import {View, Dimensions} from 'react-native'
 

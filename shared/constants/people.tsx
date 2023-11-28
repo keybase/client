@@ -1,6 +1,6 @@
 import * as C from '.'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
@@ -182,7 +182,7 @@ const makeDescriptionForTodoItem = (todo: T.RPCGen.HomeScreenTodo) => {
     case t.verifyAllEmail:
       return `Your email address *${todo.verifyAllEmail}* is unverified.`
     case t.verifyAllPhoneNumber: {
-      const {e164ToDisplay} = require('../util/phone-numbers')
+      const {e164ToDisplay} = require('@/util/phone-numbers')
       const p = todo.verifyAllPhoneNumber
       return `Your number *${p ? e164ToDisplay(p) : ''}* is unverified.`
     }

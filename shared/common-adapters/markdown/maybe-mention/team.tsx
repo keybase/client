@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Text, {type StylesTextCrossPlatform} from '../../text'
 import {Box2} from '../../box'
-import * as Styles from '../../../styles'
+import * as Styles from '@/styles'
 import TeamInfo from '../../../profile/user/teams/teaminfo'
 import type {MeasureRef} from 'common-adapters/measure-ref'
 

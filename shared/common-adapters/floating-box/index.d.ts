@@ -1,6 +1,6 @@
 import type * as React from 'react'
-import type {StylesCrossPlatform} from '../../styles/css'
-import type {Position} from '../../styles'
+import type {StylesCrossPlatform} from '@/styles/css'
+import type {Position} from '@/styles'
 import type {MeasureRef} from '../measure-ref'
 
 // GatewayDests:

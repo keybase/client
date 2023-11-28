@@ -4,7 +4,7 @@ import * as C from '@/constants'
 import clamp from 'lodash/clamp'
 import type {Props} from '.'
 import {ModalTitle} from '../../teams/common'
-import KB2 from '../../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 import './edit-avatar.css'
 const {isDirectory} = KB2.functions
 

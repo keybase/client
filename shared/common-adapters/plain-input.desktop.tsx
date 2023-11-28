@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {getStyle as getTextStyle} from './text.desktop'
 import pick from 'lodash/pick'
 import logger from '../logger'

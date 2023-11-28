@@ -4,7 +4,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import throttle from 'lodash/throttle'
-import KB2 from '../../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 import isEqual from 'lodash/isEqual'
 
 const {rendererNewProps} = KB2.functions

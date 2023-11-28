@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import ScrollView from './scroll-view'
 import type {Props} from './zoomable-box'
 import type {LayoutChangeEvent, GestureResponderEvent} from 'react-native'

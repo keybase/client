@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Constants from '@/constants/tracker2'
-import * as Styles from '../../../styles'
+import * as Styles from '@/styles'
 import OpenMeta from './openmeta'
 import FloatingMenu from '@/common-adapters/floating-menu'
 import ConnectedUsernames from '@/common-adapters/usernames'

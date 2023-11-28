@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {formatTimeForFS} from '../../util/timestamp'
+import {formatTimeForFS} from '@/util/timestamp'
 
 export type Props = {
   isNew: boolean

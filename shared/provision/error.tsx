@@ -2,11 +2,11 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import LoginContainer from '../login/forms/container'
-import openURL from '../util/open-url'
-import type {RPCError} from '../util/errors'
+import openURL from '@/util/open-url'
+import type {RPCError} from '@/util/errors'
 import {Box2, Button, Icon, Text, Markdown} from '@/common-adapters'
 import * as T from '@/constants/types'
-import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../styles'
+import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '@/styles'
 
 const ConnectedRenderError = () => {
   const _username = C.useAutoResetState(s => s.username)

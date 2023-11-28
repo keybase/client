@@ -1,5 +1,5 @@
 import Meta from '@/common-adapters/meta'
-import * as Styles from '../../../styles'
+import * as Styles from '@/styles'
 
 const Kb = {
   Meta,

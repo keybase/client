@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type {StylesCrossPlatform} from '../../styles/css'
+import type {StylesCrossPlatform} from '@/styles/css'
 
 // Cross platform Box with a repeating background image
 
