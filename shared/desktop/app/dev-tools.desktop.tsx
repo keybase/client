@@ -1,5 +1,5 @@
 import * as Electron from 'electron'
-import {showDevTools, skipExtensions} from '../../local-debug.desktop'
+import {showDevTools, skipExtensions} from '@/local-debug.desktop'
 import flags from '@/util/feature-flags'
 
 export function setupDevToolsExtensions() {

@@ -7,7 +7,7 @@ import Text, {type TextMeasureRef, type LineClampType, type TextType} from './te
 import Toast from './toast'
 import {useTimeout} from './use-timers'
 import * as Styles from '@/styles'
-import logger from '../logger'
+import logger from '@/logger'
 import type {MeasureRef} from './measure-ref'
 
 const Kb = {

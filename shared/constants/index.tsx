@@ -137,7 +137,7 @@ export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
 export const assertNever = (_: never) => undefined
 
 import {useNavigation} from '@react-navigation/core'
-import {type RouteKeys} from '../router-v2/route-params'
+import {type RouteKeys} from '@/router-v2/route-params'
 export const useNav = () => {
   const n = useNavigation()
   const na: {pop?: () => void; navigate: (n: RouteKeys) => void} = n as any

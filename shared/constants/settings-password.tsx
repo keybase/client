@@ -1,6 +1,6 @@
 import * as C from '.'
 import * as Z from '@/util/zustand'
-import logger from '../logger'
+import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import * as T from './types'
 

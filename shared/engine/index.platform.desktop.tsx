@@ -1,7 +1,7 @@
-import logger from '../logger'
+import logger from '@/logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {socketPath} from '@/constants/platform.desktop'
-import {printRPCBytes} from '../local-debug'
+import {printRPCBytes} from '@/local-debug'
 import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import KB2 from '@/util/electron.desktop'
 

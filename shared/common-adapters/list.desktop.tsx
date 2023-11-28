@@ -1,7 +1,7 @@
 import * as Styles from '@/styles'
 import * as React from 'react'
 import SafeReactList from './safe-react-list'
-import logger from '../logger'
+import logger from '@/logger'
 import once from 'lodash/once'
 import throttle from 'lodash/throttle'
 import type RL from 'react-list'

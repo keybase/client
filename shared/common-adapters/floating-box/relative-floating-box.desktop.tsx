@@ -1,4 +1,4 @@
-import logger from '../../logger'
+import logger from '@/logger'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import throttle from 'lodash/throttle'

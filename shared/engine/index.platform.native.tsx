@@ -1,7 +1,7 @@
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {encode} from '@msgpack/msgpack'
 import type {incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
-import logger from '../logger'
+import logger from '@/logger'
 import {engineStart, engineReset, getNativeEmitter} from 'react-native-kb'
 
 class NativeTransport extends TransportShared {

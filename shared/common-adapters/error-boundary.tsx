@@ -3,7 +3,7 @@ import Box from './box'
 import ScrollView from './scroll-view'
 import Text from './text'
 import Icon from './icon'
-import logger from '../logger'
+import logger from '@/logger'
 import * as Styles from '@/styles'
 
 // Although not mentioned in

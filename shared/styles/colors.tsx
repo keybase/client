@@ -1,6 +1,6 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
 import {_useState as useDarkModeState} from '@/constants/darkmode'
-import {partyMode} from '../local-debug'
+import {partyMode} from '@/local-debug'
 import {isIOS, isNewArch} from '@/constants/platform'
 
 export const colors = {

@@ -1,5 +1,5 @@
 import * as Electron from 'electron'
-import type {Actions} from '../../actions/remote-gen'
+import type {Actions} from '@/actions/remote-gen'
 import {
   injectPreload,
   type KB2,

@@ -5,7 +5,7 @@ import * as Styles from '@/styles'
 import * as T from '@/constants/types'
 import {Avatars, TeamAvatar} from '../../avatars'
 import debounce from 'lodash/debounce'
-import logger from '../../../logger'
+import logger from '@/logger'
 
 type Props = {
   ordinal: T.Chat.Ordinal

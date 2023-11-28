@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Constants from '@/constants/fs'
 import * as Kb from '@/common-adapters'
-import * as Kbfs from '../../fs/common'
+import * as Kbfs from '@/fs/common'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 

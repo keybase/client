@@ -1,6 +1,6 @@
 // Classes used to handle RPCs. Ability to inject delays into calls to/from server
 import * as Framed from 'framed-msgpack-rpc'
-import {printRPC, printRPCWaitingSession} from '../local-debug'
+import {printRPC, printRPCWaitingSession} from '@/local-debug'
 import {requestIdleCallback} from '@/util/idle-callback'
 import * as LocalConsole from './local-console'
 import * as Stats from './stats'

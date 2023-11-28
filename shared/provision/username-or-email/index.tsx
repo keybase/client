@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import UserCard from '../../login/user-card'
-import {SignupScreen, errorBanner} from '../../signup/common'
+import UserCard from '@/login/user-card'
+import {SignupScreen, errorBanner} from '@/signup/common'
 
 type Props = {
   error: string

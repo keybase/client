@@ -154,7 +154,7 @@ function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName) {
 // }
 
 async function main() {
-  const root = path.join(__dirname, '../../actions/json')
+  const root = path.join(__dirname, '@/actions/json')
   const files = fs.readdirSync(root)
   const created: Array<string> = []
   const proms = files

@@ -1,6 +1,6 @@
 import * as C from '.'
 import {getNavigator} from '.'
-import logger from '../logger'
+import logger from '@/logger'
 import * as T from './types'
 import * as Z from '@/util/zustand'
 

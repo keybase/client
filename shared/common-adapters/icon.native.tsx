@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Shared from './icon.shared'
 import * as Styles from '@/styles'
-import logger from '../logger'
+import logger from '@/logger'
 import type {IconType, Props, SizeType} from './icon'
 import {Image as RNImage, Text as RNText, TouchableOpacity} from 'react-native'
 import {iconMeta} from './icon.constants-gen'

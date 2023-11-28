@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {useTeamsSubscribe} from '../../teams/subscriber'
+import {useTeamsSubscribe} from '@/teams/subscriber'
 
 const Container = () => {
   const waiting = C.useWaitingState(s => s.counts)

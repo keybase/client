@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import './tab-bar.css'
 import * as Kb from '@/common-adapters'
-import * as Kbfs from '../fs/common'
+import * as Kbfs from '@/fs/common'
 import * as Platforms from '@/constants/platform'
 import * as T from '@/constants/types'
 import * as React from 'react'

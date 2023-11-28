@@ -11,7 +11,7 @@ import fs from 'fs'
 import path from 'path'
 import fse from 'fs-extra'
 import {spawn, execFile, exec} from 'child_process'
-import * as RemoteGen from '../../actions/remote-gen'
+import * as RemoteGen from '@/actions/remote-gen'
 import startWinService from './start-win-service.desktop'
 import {
   isDarwin,
@@ -24,12 +24,12 @@ import {
   windowsBinPath,
 } from '@/constants/platform.desktop'
 import {ctlQuit} from './ctl.desktop'
-import logger from '../../logger'
+import logger from '@/logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
 import * as RPCTypes from '@/constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
 import {makeEngine} from '../../engine'
-import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
+import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug.desktop'
 const {env} = KB2.constants
 
 const isPathSaltpack = (path: string) =>

@@ -1,4 +1,4 @@
-import {PaperKey} from '../../../provision/paper-key'
+import {PaperKey} from '@/provision/paper-key'
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 

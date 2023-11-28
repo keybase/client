@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import ClickableBox from './clickable-box'
-import logger from '../logger'
+import logger from '@/logger'
 import pick from 'lodash/pick'
 import type {InternalProps, TextInfo, Selection} from './plain-input'
 import {

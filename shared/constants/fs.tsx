@@ -1,11 +1,11 @@
 import * as C from '.'
-import * as EngineGen from '../actions/engine-gen-gen'
+import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Tabs from './tabs'
 import * as T from './types'
 import * as Z from '@/util/zustand'
 import NotifyPopup from '@/util/notify-popup'
 import {RPCError} from '@/util/errors'
-import logger from '../logger'
+import logger from '@/logger'
 import {isLinux, isMobile} from './platform'
 import {tlfToPreferredOrder} from '@/util/kbfs'
 import isObject from 'lodash/isObject'
@@ -768,14 +768,14 @@ export const getDestinationPickerPathName = (picker: T.FS.DestinationPicker): st
   picker.source.type === T.FS.DestinationPickerSource.MoveOrCopy
     ? T.FS.getPathName(picker.source.path)
     : picker.source.type === T.FS.DestinationPickerSource.IncomingShare
-    ? Array.isArray(picker.source.source)
-      ? getSharePathArrayDescription(
-          picker.source.source
-            .map(({originalPath}) => (originalPath ? T.FS.getLocalPathName(originalPath) : ''))
-            .filter(Boolean)
-        )
-      : picker.source.source
-    : ''
+      ? Array.isArray(picker.source.source)
+        ? getSharePathArrayDescription(
+            picker.source.source
+              .map(({originalPath}) => (originalPath ? T.FS.getLocalPathName(originalPath) : ''))
+              .filter(Boolean)
+          )
+        : picker.source.source
+      : ''
 
 const isPathEnabledForSync = (syncConfig: T.FS.TlfSyncConfig, path: T.FS.Path): boolean => {
   switch (syncConfig.mode) {
@@ -841,8 +841,8 @@ export const getPathStatusIconInMergeProps = (
     return tlf.conflictState.type === T.FS.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
       ? T.FS.UploadIcon.UploadingStuck
       : kbfsDaemonStatus.onlineStatus === T.FS.KbfsDaemonOnlineStatus.Offline
-      ? T.FS.UploadIcon.AwaitingToUpload
-      : T.FS.UploadIcon.Uploading
+        ? T.FS.UploadIcon.AwaitingToUpload
+        : T.FS.UploadIcon.Uploading
   }
   if (!isPathEnabledForSync(tlf.syncConfig, path)) {
     return T.FS.NonUploadStaticSyncStatus.OnlineOnly
@@ -1775,11 +1775,11 @@ export const _useState = Z.createZustand<State>((set, get) => {
           onlineStatus === T.RPCGen.KbfsOnlineStatus.offline
             ? T.FS.KbfsDaemonOnlineStatus.Offline
             : onlineStatus === T.RPCGen.KbfsOnlineStatus.trying
-            ? T.FS.KbfsDaemonOnlineStatus.Trying
-            : // eslint-disable-next-line
-            onlineStatus === T.RPCGen.KbfsOnlineStatus.online
-            ? T.FS.KbfsDaemonOnlineStatus.Online
-            : T.FS.KbfsDaemonOnlineStatus.Unknown
+              ? T.FS.KbfsDaemonOnlineStatus.Trying
+              : // eslint-disable-next-line
+                onlineStatus === T.RPCGen.KbfsOnlineStatus.online
+                ? T.FS.KbfsDaemonOnlineStatus.Online
+                : T.FS.KbfsDaemonOnlineStatus.Unknown
       })
     },
     kbfsDaemonRpcStatusChanged: rpcStatus => {
@@ -2600,8 +2600,8 @@ export const _useState = Z.createZustand<State>((set, get) => {
       const diskSpaceStatus = status.outOfSyncSpace
         ? T.FS.DiskSpaceStatus.Error
         : status.localDiskBytesAvailable < get().settings.spaceAvailableNotificationThreshold
-        ? T.FS.DiskSpaceStatus.Warning
-        : T.FS.DiskSpaceStatus.Ok
+          ? T.FS.DiskSpaceStatus.Warning
+          : T.FS.DiskSpaceStatus.Ok
 
       const oldStatus = get().overallSyncStatus.diskSpaceStatus
       set(s => {

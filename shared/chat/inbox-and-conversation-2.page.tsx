@@ -1,4 +1,4 @@
-import * as Common from '../router-v2/common'
+import * as Common from '@/router-v2/common'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Header from './header'

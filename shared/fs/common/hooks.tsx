@@ -3,7 +3,7 @@ import * as Constants from '@/constants/fs'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import logger from '../../logger'
+import logger from '@/logger'
 import type * as Styles from '@/styles'
 import type {StylesTextCrossPlatform} from '@/common-adapters/text'
 

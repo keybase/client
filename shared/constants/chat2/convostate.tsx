@@ -3,14 +3,14 @@ import * as T from '../types'
 import * as Styles from '@/styles'
 import * as Common from './common'
 import * as Tabs from '../tabs'
-import * as EngineGen from '../../actions/engine-gen-gen'
+import * as EngineGen from '@/actions/engine-gen-gen'
 import * as Message from './message'
 import * as Meta from './meta'
 import * as React from 'react'
 import * as Z from '@/util/zustand'
 import HiddenString from '@/util/hidden-string'
 import isEqual from 'lodash/isEqual'
-import logger from '../../logger'
+import logger from '@/logger'
 import throttle from 'lodash/throttle'
 import type {DebouncedFunc} from 'lodash'
 import {RPCError} from '@/util/errors'
@@ -3118,7 +3118,7 @@ export const ProviderScreen = (p: {children: React.ReactNode; rp: RouteParams; c
   )
 }
 
-import type {NavigateAppendType} from '../../router-v2/route-params'
+import type {NavigateAppendType} from '@/router-v2/route-params'
 export const useChatNavigateAppend = () => {
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const cid = _useContext(s => s.id)

@@ -7,7 +7,7 @@ import Button from './button'
 import Emoji from './emoji'
 import * as Styles from '@/styles'
 import type * as T from '@/constants/types'
-import logger from '../logger'
+import logger from '@/logger'
 
 const Kb = {
   Box,

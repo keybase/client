@@ -1,7 +1,7 @@
 import * as React from 'react'
-import logger from '../../logger'
+import logger from '@/logger'
 import * as Kb from '@/common-adapters'
-import {ignoreDisconnectOverlay} from '../../local-debug.desktop'
+import {ignoreDisconnectOverlay} from '@/local-debug.desktop'
 import useData, {type Size} from './hook'
 
 const maxHeightForSize = (size: Size) => {

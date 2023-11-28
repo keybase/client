@@ -39,6 +39,7 @@ const config = (_, {mode}) => {
         ignore: [/\.(native|ios|android)\.(ts|js)x?$/],
         plugins: [
           ['module-resolver', {alias: {'@': './'}}],
+          // ['module-resolver', {alias: {'@': path.resolve(__dirname, '..')}}],
           ...(isHot && !nodeThread ? ['react-refresh/babel'] : []),
         ],
         presets: [

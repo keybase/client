@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Contacts from 'expo-contacts'
 import * as React from 'react'
 import {e164ToDisplay} from '@/util/phone-numbers'
-import logger from '../../logger'
+import logger from '@/logger'
 import {getDefaultCountryCode} from 'react-native-kb'
 
 // Contact info coming from the native contacts library.

@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import * as T from './types'
 import {isValidEmail} from '@/util/simple-validators'
 import {RPCError} from '@/util/errors'
-import logger from '../logger'
+import logger from '@/logger'
 
 export const addEmailWaitingKey = 'settings:addEmail'
 

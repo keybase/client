@@ -1,4 +1,4 @@
-import {forceImmediateLogging} from '../local-debug'
+import {forceImmediateLogging} from '@/local-debug'
 import {isMobile, isDebuggingInChrome} from '@/constants/platform'
 
 type TimeoutInfo = {

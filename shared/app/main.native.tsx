@@ -1,4 +1,4 @@
-import Router from '../router-v2/router'
+import Router from '@/router-v2/router'
 import {PortalHost} from '@/common-adapters/portal.native'
 import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors'

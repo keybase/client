@@ -1,4 +1,4 @@
-import * as RemoteGen from '../../actions/remote-gen'
+import * as RemoteGen from '@/actions/remote-gen'
 import * as R from '@/constants/remote'
 import * as Electron from 'electron'
 import * as RPCTypes from '@/constants/types/rpc-gen'

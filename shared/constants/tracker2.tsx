@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Z from '@/util/zustand'
-import logger from '../logger'
+import logger from '@/logger'
 import * as T from './types'
 import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'

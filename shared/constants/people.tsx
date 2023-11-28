@@ -3,7 +3,7 @@ import * as EngineGen from '../actions/engine-gen-gen'
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
 import isEqual from 'lodash/isEqual'
-import logger from '../logger'
+import logger from '@/logger'
 import * as T from './types'
 import type {IconType} from '@/common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {isMobile} from './platform'

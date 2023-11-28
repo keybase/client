@@ -1,7 +1,7 @@
 import * as C from '..'
 import * as T from '../types'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
-import logger from '../../logger'
+import logger from '@/logger'
 import {isIOS, isAndroid} from '../platform'
 import {
   androidGetRegistrationToken,

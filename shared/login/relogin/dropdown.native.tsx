@@ -1,4 +1,4 @@
-import logger from '../../logger'
+import logger from '@/logger'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'

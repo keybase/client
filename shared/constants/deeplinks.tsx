@@ -4,7 +4,7 @@ import * as Z from '@/util/zustand'
 import * as EngineGen from '../actions/engine-gen-gen'
 import type HiddenString from '@/util/hidden-string'
 import URL from 'url-parse'
-import logger from '../logger'
+import logger from '@/logger'
 import type * as T from '@/constants/types'
 
 const prefix = 'keybase://'

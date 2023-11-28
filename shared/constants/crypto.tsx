@@ -2,7 +2,7 @@ import * as C from '.'
 import * as Platform from '@/constants/platform'
 import * as Z from '@/util/zustand'
 import HiddenString from '@/util/hidden-string'
-import logger from '../logger'
+import logger from '@/logger'
 import * as T from './types'
 import {RPCError} from '@/util/errors'
 

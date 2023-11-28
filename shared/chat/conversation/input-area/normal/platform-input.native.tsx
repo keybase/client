@@ -24,7 +24,7 @@ import {
   useAnimatedStyle,
   withTiming,
 } from '@/common-adapters/reanimated'
-import logger from '../../../../logger'
+import logger from '@/logger'
 import {AudioSendWrapper} from '../../../audio/audio-send.native'
 import {usePickerState} from '../../../emoji-picker/use-picker'
 import type {Props as PlainInputProps} from '@/common-adapters/plain-input'

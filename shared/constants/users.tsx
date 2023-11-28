@@ -1,6 +1,6 @@
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Z from '@/util/zustand'
-import logger from '../logger'
+import logger from '@/logger'
 import * as T from './types'
 import * as C from '.'
 import {mapGetEnsureValue} from '@/util/map'

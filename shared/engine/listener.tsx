@@ -2,7 +2,7 @@
 import type * as Framed from 'framed-msgpack-rpc'
 import {getEngine} from './require'
 import {RPCError} from '@/util/errors'
-import {printOutstandingRPCs} from '../local-debug'
+import {printOutstandingRPCs} from '@/local-debug'
 import type {CommonResponseHandler} from './types'
 
 type WaitingKey = string | Array<string>

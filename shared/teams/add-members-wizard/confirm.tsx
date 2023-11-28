@@ -9,7 +9,7 @@ import {FloatingRolePicker} from '../role-picker'
 import {useDefaultChannels} from '../team/settings-tab/default-channels'
 import {ModalTitle, ChannelsWidget} from '../common'
 import {pluralize} from '@/util/string'
-import logger from '../../logger'
+import logger from '@/logger'
 
 type DisabledRoles = React.ComponentProps<typeof FloatingRolePicker>['disabledRoles']
 const disabledRolesForNonKeybasePlural = {

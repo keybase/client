@@ -1,4 +1,4 @@
-import logger from '../logger'
+import logger from '@/logger'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {errors as transportErrors} from 'framed-msgpack-rpc'
