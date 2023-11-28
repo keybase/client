@@ -1,5 +1,5 @@
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as Kb from '@/common-adapters'
+import * as Styles from '@/styles'
 
 type Props = {
   body: string

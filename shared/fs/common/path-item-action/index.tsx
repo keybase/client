@@ -1,12 +1,12 @@
 import * as React from 'react'
-import type * as T from '../../../constants/types'
-import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
+import type * as T from '@/constants/types'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import ChooseView from './choose-view'
 
 type SizeType = any
 // TODO: replace this when common adapters is TS
-// import { SizeType } from '../../../common-adapters/icon';
+// import { SizeType } from '@/common-adapters/icon';
 
 type ClickableProps = {
   onClick: () => void

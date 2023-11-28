@@ -1,6 +1,6 @@
 import './check-circle.css'
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Icon from './icon'
 
 const Kb = {Icon}

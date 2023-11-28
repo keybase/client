@@ -1,9 +1,9 @@
-import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
-import * as T from '../../../constants/types'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import * as React from 'react'
 import * as RowSizes from './sizes'
-import {memoize} from '../../../util/memoize'
+import {memoize} from '@/util/memoize'
 
 type Props = {
   hiddenCountDelta?: number

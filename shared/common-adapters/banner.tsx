@@ -2,7 +2,7 @@ import * as React from 'react'
 import Box, {Box2} from './box'
 import Icon from './icon'
 import Text from './text'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 
 type Color = 'blue' | 'red' | 'yellow' | 'green' | 'grey' | 'white'
 

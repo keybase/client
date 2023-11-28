@@ -1,5 +1,5 @@
 import PeopleItem, {type TaskButton} from '../item'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 export type Props = {
   badged: boolean

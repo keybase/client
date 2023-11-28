@@ -1,7 +1,7 @@
-import * as C from '../constants'
-import * as Styles from '../styles'
-import WaitingButton from '../common-adapters/waiting-button'
-import Icon from '../common-adapters/icon'
+import * as C from '@/constants'
+import * as Styles from '@/styles'
+import WaitingButton from '@/common-adapters/waiting-button'
+import Icon from '@/common-adapters/icon'
 
 // pulled in from common-adapters/profile-card
 const Kb = {

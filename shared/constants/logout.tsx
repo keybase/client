@@ -1,8 +1,8 @@
 import * as C from '.'
-import logger from '../logger'
-import * as T from '../constants/types'
+import logger from '@/logger'
+import * as T from '@/constants/types'
 // normally util.container but it re-exports from us so break the cycle
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})

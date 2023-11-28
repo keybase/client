@@ -1,7 +1,7 @@
 import './pending-background.css'
-import * as Kb from '../../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {Props} from '.'
-import {backgroundURL} from '../../../../../styles/index.desktop'
+import {backgroundURL} from '@/styles/index.desktop'
 
 const patternImage = backgroundURL('payment-pattern-80.png')
 

@@ -1,5 +1,5 @@
-import * as Kb from '../../../../common-adapters'
-import * as T from '../../../../constants/types'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import noop from 'lodash/noop'
 import type {Props} from './suggestion-list'
 import {BotCommandUpdateStatus} from '../normal/shared'

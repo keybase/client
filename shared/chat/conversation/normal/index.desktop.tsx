@@ -1,16 +1,16 @@
-import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Banner from '../bottom-banner/container'
 import InputArea from '../input-area/container'
-import InvitationToBlock from '../../blocking/invitation-to-block'
+import InvitationToBlock from '@/chat/blocking/invitation-to-block'
 import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message/container'
 import ThreadLoadStatus from '../load-status'
 import ThreadSearch from '../search/container'
-import {readImageFromClipboard} from '../../../util/clipboard.desktop'
+import {readImageFromClipboard} from '@/util/clipboard.desktop'
 import '../conversation.css'
-import {indefiniteArticle} from '../../../util/string'
+import {indefiniteArticle} from '@/util/string'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>

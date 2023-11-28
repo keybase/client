@@ -1,7 +1,7 @@
 import type * as Framed from 'framed-msgpack-rpc'
 import type Session from './session'
-import type {RPCError} from '../util/errors'
-import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '../constants/types/rpc-all-gen'
+import type {RPCError} from '@/util/errors'
+import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '@/constants/types/rpc-all-gen'
 
 export type BatchParams = Array<{key: string | Array<string>; increment: boolean; error?: RPCError}>
 

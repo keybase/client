@@ -1,7 +1,7 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {useMessagePopup} from '../messages/message-popup'
-import * as Styles from '../../../styles'
+import * as Styles from '@/styles'
 import type {Props} from '.'
 import {useData} from './hooks'
 

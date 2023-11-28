@@ -1,10 +1,10 @@
-import * as C from '../../../../../../constants'
-import * as Kb from '../../../../../../common-adapters/index'
-import * as T from '../../../../../../constants/types'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters/index'
+import * as T from '@/constants/types'
 import * as React from 'react'
 import UnfurlImage from './image'
-import {OrdinalContext} from '../../../ids-context'
-import {formatTimeForMessages} from '../../../../../../util/timestamp'
+import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
+import {formatTimeForMessages} from '@/util/timestamp'
 import {getUnfurlInfo, useActions} from './use-redux'
 
 const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
@@ -25,10 +25,10 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
       const imageLocation = isCollapsed
         ? 'collapsed'
         : showImageOnSide
-        ? 'side'
-        : width > 0 && height > 0
-        ? 'bottom'
-        : 'none'
+          ? 'side'
+          : width > 0 && height > 0
+            ? 'bottom'
+            : 'none'
 
       return {
         description: description || undefined,

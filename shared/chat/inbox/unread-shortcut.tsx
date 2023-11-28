@@ -1,5 +1,5 @@
-import * as Kb from '../../common-adapters'
-import {pluralize} from '../../util/string'
+import * as Kb from '@/common-adapters'
+import {pluralize} from '@/util/string'
 
 type Props = {
   onClick: () => void

@@ -37,7 +37,11 @@ const config = (_, {mode}) => {
       options: {
         cacheDirectory: true,
         ignore: [/\.(native|ios|android)\.(ts|js)x?$/],
-        plugins: [...(isHot && !nodeThread ? ['react-refresh/babel'] : [])],
+        plugins: [
+          ['module-resolver', {alias: {'@': './'}}],
+          // ['module-resolver', {alias: {'@': path.resolve(__dirname, '..')}}],
+          ...(isHot && !nodeThread ? ['react-refresh/babel'] : []),
+        ],
         presets: [
           ['@babel/preset-env', {debug: false, modules: false, targets: {electron: elecVersion}}],
           [

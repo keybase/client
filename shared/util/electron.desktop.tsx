@@ -3,7 +3,7 @@
 // start drawing. If you need access to these values you need to call `waitOnKB2Loaded`
 // the electron preload scripts will create kb2 on the node side and plumb it back and then call `injectPreload`
 import type {Actions} from '../actions/remote-gen'
-import type * as RPCTypes from '../constants/types/rpc-gen'
+import type * as RPCTypes from '@/constants/types/rpc-gen'
 
 export type OpenDialogOptions = {
   allowFiles?: boolean

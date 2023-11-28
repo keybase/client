@@ -1,6 +1,6 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {Props} from './image2'
 import LoadingStateView from './loading-state-view'
 

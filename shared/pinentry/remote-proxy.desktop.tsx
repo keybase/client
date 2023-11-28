@@ -1,6 +1,6 @@
 // Manages remote pinentry windows
-import * as C from '../constants'
-import * as T from '../constants/types'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import * as React from 'react'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'

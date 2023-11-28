@@ -1,8 +1,8 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Constants from '../../constants/crypto'
-import * as Kb from '../../common-adapters'
-import openURL from '../../util/open-url'
+import * as Constants from '@/constants/crypto'
+import * as Kb from '@/common-adapters'
+import openURL from '@/util/open-url'
 import {Input, DragAndDrop, OperationBanner, InputActionsBar} from '../input'
 import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from '../output'
 

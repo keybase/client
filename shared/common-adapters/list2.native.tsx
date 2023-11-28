@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {FlatList, View} from 'react-native'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {smallHeight, largeHeight} from './list-item2'
 import {createAnimatedComponent} from './reanimated'
 import type {Props} from './list2'

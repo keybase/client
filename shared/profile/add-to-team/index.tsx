@@ -1,9 +1,9 @@
-import * as C from '../../constants'
-import * as Kb from '../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '../../constants/types'
-import {FloatingRolePicker} from '../../teams/role-picker'
-import {InlineDropdown} from '../../common-adapters/dropdown'
+import type * as T from '@/constants/types'
+import {FloatingRolePicker} from '@/teams/role-picker'
+import {InlineDropdown} from '@/common-adapters/dropdown'
 
 type RowProps = {
   canAddThem: boolean

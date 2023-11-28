@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Image2} from '../../common-adapters'
+import {Image2} from '@/common-adapters'
 import QRCodeGen from 'qrcode-generator'
 
 const Kb = {

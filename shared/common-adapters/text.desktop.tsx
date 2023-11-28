@@ -1,11 +1,11 @@
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import * as React from 'react'
 // TODO remove this from this component, hook it in externally so we don't have these types of dependencies in storybook
-import openURL from '../util/open-url'
+import openURL from '@/util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import shallowEqual from 'shallowequal'
 import type {Props, TextType, _StylesTextCrossPlatform} from './text'
-import KB2 from '../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 const {showContextMenu} = KB2.functions
 
 class Text extends React.Component<Props> {

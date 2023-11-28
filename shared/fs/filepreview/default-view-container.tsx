@@ -1,5 +1,5 @@
-import * as T from '../../constants/types'
-import * as C from '../../constants'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 import DefaultView from './default-view'
 
 type OwnProps = {path: T.FS.Path}

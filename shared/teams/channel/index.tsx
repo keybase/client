@@ -1,8 +1,8 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
-import type * as T from '../../constants/types'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import type * as T from '@/constants/types'
 import {useAttachmentSections} from '../../chat/conversation/info-panel/attachments'
 import {SelectionPopup, useChannelParticipants} from '../common'
 import ChannelTabs, {type TabKey} from './tabs'
@@ -11,8 +11,8 @@ import ChannelMemberRow from './rows/member-row'
 import BotRow from '../team/rows/bot-row/bot/container'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
-import {createAnimatedComponent} from '../../common-adapters/reanimated'
-import type {Props as SectionListProps, Section as SectionType} from '../../common-adapters/section-list'
+import {createAnimatedComponent} from '@/common-adapters/reanimated'
+import type {Props as SectionListProps, Section as SectionType} from '@/common-adapters/section-list'
 
 export type OwnProps = {
   teamID: T.Teams.TeamID

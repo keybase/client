@@ -1,15 +1,15 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
-import * as T from '../../constants/types'
-import {assertionToDisplay} from '../../common-adapters/usernames'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import * as T from '@/constants/types'
+import {assertionToDisplay} from '@/common-adapters/usernames'
 import capitalize from 'lodash/capitalize'
 import {FloatingRolePicker} from '../role-picker'
 import {useDefaultChannels} from '../team/settings-tab/default-channels'
 import {ModalTitle, ChannelsWidget} from '../common'
-import {pluralize} from '../../util/string'
-import logger from '../../logger'
+import {pluralize} from '@/util/string'
+import logger from '@/logger'
 
 type DisabledRoles = React.ComponentProps<typeof FloatingRolePicker>['disabledRoles']
 const disabledRolesForNonKeybasePlural = {

@@ -1,7 +1,7 @@
-import * as C from '../../../../constants'
-import type * as T from '../../../../constants/types'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
 import RetentionPicker, {type RetentionEntityType} from '.'
-import type {StylesCrossPlatform} from '../../../../styles'
+import type {StylesCrossPlatform} from '@/styles'
 
 export type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey

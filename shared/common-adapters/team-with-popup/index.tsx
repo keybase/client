@@ -1,11 +1,11 @@
 import * as React from 'react'
-import {Box2} from '../box'
-import * as Styles from '../../styles'
-import Text, {type TextType} from '../text'
+import {Box2} from '@/common-adapters/box'
+import * as Styles from '@/styles'
+import Text, {type TextType} from '@/common-adapters/text'
 import DelayedMounting from '../delayed-mounting'
 import {TeamDetailsSubscriber} from '../../teams/subscriber'
 import type TeamInfoType from '../../profile/user/teams/teaminfo'
-import type * as T from '../../constants/types'
+import type * as T from '@/constants/types'
 import type {MeasureRef} from 'common-adapters/measure-ref'
 
 const Kb = {

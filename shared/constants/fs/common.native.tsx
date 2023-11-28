@@ -1,9 +1,9 @@
 import * as C from '..'
-import * as Constants from '../fs'
-import logger from '../../logger'
+import * as Constants from '@/constants/fs'
+import logger from '@/logger'
 import * as T from '../types'
-import * as Styles from '../../styles'
-import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
+import * as Styles from '@/styles'
+import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
 
 export default function initNative() {

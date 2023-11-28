@@ -2,8 +2,8 @@ import * as React from 'react'
 import PlainInput, {type PropsWithInput} from './plain-input'
 import {Box2} from './box'
 import Text, {getStyle as getTextStyle} from './text'
-import * as Styles from '../styles'
-import {isMobile} from '../constants/platform'
+import * as Styles from '@/styles'
+import {isMobile} from '@/constants/platform'
 import './input.css'
 
 export type _Props = {

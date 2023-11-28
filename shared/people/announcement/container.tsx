@@ -1,7 +1,7 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import Announcement from '.'
-import * as T from '../../constants/types'
-import openURL from '../../util/open-url'
+import * as T from '@/constants/types'
+import openURL from '@/util/open-url'
 
 type OwnProps = {
   appLink?: T.RPCGen.AppLinkType

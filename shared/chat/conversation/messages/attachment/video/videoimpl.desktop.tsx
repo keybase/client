@@ -1,4 +1,4 @@
-import * as Kb from '../../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from './videoimpl'
 import {useRedux} from './use-redux'

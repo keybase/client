@@ -1,11 +1,11 @@
-import Emoji from '../common-adapters/emoji'
+import Emoji from '@/common-adapters/emoji'
 import emojidata from 'emoji-datasource-apple'
 import groupBy from 'lodash/groupBy'
-import type * as Styles from '../styles'
-import * as T from '../constants/types'
+import type * as Styles from '@/styles'
+import * as T from '@/constants/types'
 import CustomEmoji from './custom-emoji'
-import {type EmojiData, emojiNameMap} from '../util/emoji-shared'
-export {type EmojiData, emojiNameMap, skinTones} from '../util/emoji-shared'
+import {type EmojiData, emojiNameMap} from '@/util/emoji-shared'
+export {type EmojiData, emojiNameMap, skinTones} from '@/util/emoji-shared'
 
 const categorized = groupBy(emojidata, 'category')
 const sorted: typeof categorized = {}

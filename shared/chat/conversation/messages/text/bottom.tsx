@@ -1,6 +1,6 @@
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import type * as T from '../../../../constants/types'
+import type * as T from '@/constants/types'
 import type CoinFlipType from './coinflip'
 import type UnfurlListType from './unfurl/unfurl-list'
 import type UnfurlPromptListType from './unfurl/prompt-list/container'

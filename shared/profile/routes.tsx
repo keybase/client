@@ -1,4 +1,4 @@
-import type * as C from '../constants'
+import type * as C from '@/constants'
 import profile from './user/page'
 import profileAddToTeam from './add-to-team/page'
 import profileConfirmOrPending from './confirm-or-pending/page'

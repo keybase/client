@@ -1,4 +1,4 @@
-import {isMobile} from '../../constants/platform'
+import {isMobile} from '@/constants/platform'
 import libphonenumber from 'google-libphonenumber'
 
 const PNF = libphonenumber.PhoneNumberFormat
@@ -33,7 +33,7 @@ const load = () => {
     name: string
     countryCallingCodes: Array<string>
   }> = require('./country-data/countries.json')
-  const {emojiIndexByChar} = require('../../common-adapters/markdown/emoji-gen')
+  const {emojiIndexByChar} = require('@/common-adapters/markdown/emoji-gen')
   const supportedCodes: {[key: string]: boolean} = require('./sms-support/data.json')
 
   countries.forEach(curr => {

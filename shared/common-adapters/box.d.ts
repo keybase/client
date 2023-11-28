@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type {StylesCrossPlatform, globalMargins} from '../styles'
+import type {StylesCrossPlatform, globalMargins} from '@/styles'
 import type {MeasureRef} from './measure-ref'
 import type {View, NativeSyntheticEvent} from 'react-native'
 

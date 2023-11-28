@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {bind, unbind} from '../util/mousetrap'
+import {bind, unbind} from '@/util/mousetrap'
 
 // mousetrap is very simple. a bind will overwrite the binding. unbind unbinds it globally
 // we need to keep a stack to manage the state

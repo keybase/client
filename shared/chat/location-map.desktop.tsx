@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import openURL from '../util/open-url'
+import * as Kb from '@/common-adapters'
+import openURL from '@/util/open-url'
 
 type Props = {
   height: number

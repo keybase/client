@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as C from '../../constants'
-import * as Kb from '../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
 import Troubleshooting from '../troubleshooting'
-import type * as T from '../../constants/types'
+import type * as T from '@/constants/types'
 
 export type DeviceType = 'mobile' | 'desktop'
 export type Tab = 'QR' | 'enterText' | 'viewText'

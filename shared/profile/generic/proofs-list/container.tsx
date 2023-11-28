@@ -1,5 +1,5 @@
-import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import ProofsList from '.'
 
 const Container = () => {

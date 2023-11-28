@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as C from '../../../constants'
+import type * as C from '@/constants'
 
 const Invite = React.lazy(async () => import('./invite-history'))
 type OwnProps = C.ViewPropsToPageProps<typeof Invite>

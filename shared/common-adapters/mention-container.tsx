@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import Mention, {type OwnProps} from './mention'
 
 const Container = (ownProps: OwnProps) => {

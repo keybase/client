@@ -1,11 +1,11 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Container from '../util/container'
-import * as T from '../constants/types'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import * as T from '@/constants/types'
 import {useTeamLinkPopup} from './common'
-import {pluralize} from '../util/string'
-import {memoize} from '../util/memoize'
+import {pluralize} from '@/util/string'
+import {memoize} from '@/util/memoize'
 import capitalize from 'lodash/capitalize'
 
 type Props = {teamname: string}

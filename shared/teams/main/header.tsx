@@ -1,4 +1,4 @@
-import {ClickableBox, Box2, Button, Icon, ProgressIndicator, Text, type IconType} from '../../common-adapters'
+import {ClickableBox, Box2, Button, Icon, ProgressIndicator, Text, type IconType} from '@/common-adapters'
 import {
   desktopStyles,
   platformStyles,
@@ -6,7 +6,7 @@ import {
   globalMargins,
   globalStyles,
   isMobile,
-} from '../../styles'
+} from '@/styles'
 
 export type HeaderButtonProps = {
   iconType: IconType

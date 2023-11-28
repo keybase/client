@@ -1,5 +1,5 @@
 import type * as T from './types'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import {uint8ArrayToString} from 'uint8array-extras'
 
 /*

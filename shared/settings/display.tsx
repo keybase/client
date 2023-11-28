@@ -1,8 +1,8 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as T from '../constants/types'
-import logger from '../logger'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import logger from '@/logger'
 
 const Display = () => {
   const allowAnimatedEmojis = C.useConfigState(s => s.allowAnimatedEmojis)

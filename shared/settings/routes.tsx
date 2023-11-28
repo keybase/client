@@ -1,5 +1,5 @@
-import * as C from '../constants'
-import * as Constants from '../constants/settings'
+import * as C from '@/constants'
+import * as Constants from '@/constants/settings'
 import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'

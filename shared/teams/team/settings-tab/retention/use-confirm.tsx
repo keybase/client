@@ -1,5 +1,5 @@
-import * as Z from '../../../../util/zustand'
-import type * as T from '../../../../constants/types'
+import * as Z from '@/util/zustand'
+import type * as T from '@/constants/types'
 
 type Store = {
   confirmed: T.Retention.RetentionPolicy | undefined

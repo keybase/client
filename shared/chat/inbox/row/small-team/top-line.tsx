@@ -1,8 +1,8 @@
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import TeamMenu from '../../../conversation/info-panel/menu/container'
-import {formatTimeForConversationList} from '../../../../util/timestamp'
+import * as Kb from '@/common-adapters'
+import TeamMenu from '@/chat/conversation/info-panel/menu/container'
+import {formatTimeForConversationList} from '@/util/timestamp'
 import {TimeContext, ParticipantsContext} from './contexts'
 
 type Props = {
@@ -27,10 +27,10 @@ const Names = React.memo(function Names(p: {isSelected?: boolean; showBold: bool
   const backgroundColor = isInWidget
     ? Kb.Styles.globalColors.white
     : isSelected
-    ? Kb.Styles.globalColors.blue
-    : Kb.Styles.isPhone
-    ? Kb.Styles.globalColors.fastBlank
-    : Kb.Styles.globalColors.blueGrey
+      ? Kb.Styles.globalColors.blue
+      : Kb.Styles.isPhone
+        ? Kb.Styles.globalColors.fastBlank
+        : Kb.Styles.globalColors.blueGrey
   const nameContainerStyle = React.useMemo(
     () =>
       Kb.Styles.collapseStyles([
@@ -101,8 +101,8 @@ const SimpleTopLineImpl = React.memo(function SimpleTopLineImpl(p: IProps) {
   const subColor = isSelected
     ? Kb.Styles.globalColors.white
     : hasUnread
-    ? Kb.Styles.globalColors.black
-    : Kb.Styles.globalColors.black_50
+      ? Kb.Styles.globalColors.black
+      : Kb.Styles.globalColors.black_50
 
   const iconHoverColor = isSelected ? Kb.Styles.globalColors.white_75 : Kb.Styles.globalColors.black
 

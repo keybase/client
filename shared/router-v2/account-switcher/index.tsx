@@ -1,8 +1,8 @@
 import './account-switcher.css'
-import * as Constants from '../../constants/config'
-import * as Kb from '../../common-adapters'
+import * as Constants from '@/constants/config'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '../../constants/types'
+import type * as T from '@/constants/types'
 
 export type AccountRowItem = {
   account: T.Config.ConfiguredAccount

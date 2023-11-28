@@ -1,5 +1,5 @@
-import * as Kb from '../../common-adapters'
-import type {IconType} from '../../common-adapters/icon.constants-gen'
+import * as Kb from '@/common-adapters'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
 
 type Props = {
   title: string

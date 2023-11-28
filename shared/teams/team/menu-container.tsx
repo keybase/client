@@ -1,9 +1,9 @@
-import * as C from '../../constants'
-import * as Kb from '../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import capitalize from 'lodash/capitalize'
-import * as T from '../../constants/types'
-import {pluralize} from '../../util/string'
+import * as T from '@/constants/types'
+import {pluralize} from '@/util/string'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef>

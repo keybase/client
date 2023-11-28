@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import chatAddToChannel from './conversation/info-panel/add-to-channel/page'
 import chatAttachmentFullscreen from './conversation/attachment-fullscreen/page'
 import chatAttachmentGetTitles from './conversation/attachment-get-titles/page'

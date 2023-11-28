@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Box from '../box'
+import Box from '@/common-adapters/box'
 import {Keyboard, StyleSheet} from 'react-native'
 import {Portal} from '../portal.native'
 import type {Props} from '.'

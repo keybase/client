@@ -1,7 +1,7 @@
-import * as C from '../../constants'
-import * as Constants from '../../constants/fs'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
 import Sort from './sort'
-import * as T from '../../constants/types'
+import * as T from '@/constants/types'
 
 type OwnProps = {
   path: T.FS.Path

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type {globalMargins, CustomStyles} from '../styles'
+import type {globalMargins, CustomStyles} from '@/styles'
 import type {TextType} from './text'
 import type {NativeSyntheticEvent} from 'react-native'
 import type {MeasureDesktop} from './measure-ref'

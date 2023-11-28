@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as C from '../../constants'
+import type * as C from '@/constants'
 
 const Disable = React.lazy(async () => {
   const {DeleteModal} = await import('./confirm-delete')

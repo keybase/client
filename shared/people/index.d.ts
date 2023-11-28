@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 
 export type Props = {
   oldItems: Array<T.People.PeopleScreenItem>

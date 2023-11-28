@@ -1,9 +1,9 @@
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import type * as T from '../../../../constants/types'
-import {type Position, fileUIName, type StylesCrossPlatform} from '../../../../styles'
+import type * as T from '@/constants/types'
+import {type Position, fileUIName, type StylesCrossPlatform} from '@/styles'
 import {useItems, useHeader} from './hooks'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef>

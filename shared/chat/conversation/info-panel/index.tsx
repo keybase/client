@@ -1,14 +1,14 @@
-import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '../../../constants/types'
+import type * as T from '@/constants/types'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
 import MembersList from './members'
 import BotsList from './bot'
 import AttachmentsList from './attachments'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
-import type {Tab as TabType} from '../../../common-adapters/tabs'
+import type {Tab as TabType} from '@/common-adapters/tabs'
 
 type Props = {
   tab?: 'settings' | 'members' | 'attachments' | 'bots'

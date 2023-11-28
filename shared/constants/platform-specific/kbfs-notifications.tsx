@@ -1,8 +1,8 @@
-import {pathSep} from '../../constants/platform'
-import {_useState as useCurrentUserState} from '../../constants/current-user'
+import {pathSep} from '@/constants/platform'
+import {_useState as useCurrentUserState} from '@/constants/current-user'
 import capitalize from 'lodash/capitalize'
-import * as T from '../../constants/types'
-import {parseFolderNameToUsers} from '../../util/kbfs'
+import * as T from '@/constants/types'
+import {parseFolderNameToUsers} from '@/util/kbfs'
 
 type DecodedKBFSError = {
   title: string

@@ -1,6 +1,6 @@
-import * as C from '../../constants'
-import * as Constants from '../../constants/fs'
-import type * as T from '../../constants/types'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
+import type * as T from '@/constants/types'
 import LastModifiedLine from './last-modified-line'
 
 export type OwnProps = {

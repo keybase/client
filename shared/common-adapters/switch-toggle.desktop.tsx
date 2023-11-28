@@ -1,4 +1,4 @@
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {Props} from './switch-toggle'
 
 const SwitchToggle = (props: Props) => (

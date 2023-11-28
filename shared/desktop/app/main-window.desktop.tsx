@@ -1,16 +1,16 @@
 import URL from 'url-parse'
 import * as Electron from 'electron'
-import * as RemoteGen from '../../actions/remote-gen'
-import * as R from '../../constants/remote'
+import * as RemoteGen from '@/actions/remote-gen'
+import * as R from '@/constants/remote'
 import * as fs from 'fs'
 import menuHelper from './menu-helper.desktop'
-import {showDevTools} from '../../local-debug'
-import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
-import logger from '../../logger'
+import {showDevTools} from '@/local-debug'
+import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '@/constants/platform.desktop'
+import logger from '@/logger'
 import debounce from 'lodash/debounce'
 import {setupDevToolsExtensions} from './dev-tools.desktop'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
-import KB2 from '../../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 
 const {env} = KB2.constants
 

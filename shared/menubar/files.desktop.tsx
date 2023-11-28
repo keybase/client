@@ -1,7 +1,7 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as T from '../constants/types'
-import {Filename} from '../fs/common'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import {Filename} from '@/fs/common'
 
 type FileUpdateProps = {
   path: T.FS.Path

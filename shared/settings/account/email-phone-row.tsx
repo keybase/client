@@ -1,8 +1,8 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as T from '../../constants/types'
-import {isMobile} from '../../constants/platform'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import {isMobile} from '@/constants/platform'
 
 // props exported for stories
 export type Props = {

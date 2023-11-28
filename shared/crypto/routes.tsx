@@ -1,5 +1,5 @@
-import * as C from '../constants'
-import * as Constants from '../constants/crypto'
+import * as C from '@/constants'
+import * as Constants from '@/constants/crypto'
 import cryptoRoot from './sub-nav/page'
 import cryptoTeamBuilder from '../team-building/page'
 import decryptIn from './operations/decrypt.in.page'

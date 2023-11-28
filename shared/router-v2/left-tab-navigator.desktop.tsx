@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as C from '../constants'
+import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 import TabBar from './tab-bar.desktop'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 

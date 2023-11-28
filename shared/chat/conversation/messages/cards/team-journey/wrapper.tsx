@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type TeamJourneyType from './container'
-import type * as T from '../../../../../constants/types'
+import type * as T from '@/constants/types'
 
 type Props = {
   ordinal: T.Chat.Ordinal

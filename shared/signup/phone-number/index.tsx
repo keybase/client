@@ -1,8 +1,8 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {SignupScreen, errorBanner} from '../common'
-import type {ButtonType} from '../../common-adapters/button'
+import type {ButtonType} from '@/common-adapters/button'
 
 export type Props = {
   error: string

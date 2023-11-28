@@ -1,12 +1,12 @@
-import * as C from '../../../../../constants'
-import * as Kb from '../../../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as T from '../../../../../constants/types'
+import * as T from '@/constants/types'
 import CoinFlipError from './errors'
 import CoinFlipParticipants from './participants'
 import CoinFlipResult from './results'
-import {OrdinalContext} from '../../ids-context'
-import {pluralize} from '../../../../../util/string'
+import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
+import {pluralize} from '@/util/string'
 
 const CoinFlipContainer = React.memo(function CoinFlipContainer() {
   const ordinal = React.useContext(OrdinalContext)

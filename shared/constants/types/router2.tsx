@@ -1,4 +1,4 @@
-import type * as Styles from '../../styles'
+import type * as Styles from '@/styles'
 import type {NavigationContainerRef} from '@react-navigation/core'
 import type {NavigationState} from '@react-navigation/core'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'

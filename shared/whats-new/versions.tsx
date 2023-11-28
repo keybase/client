@@ -1,9 +1,9 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Platform from '../constants/platform'
-import {encryptTab} from '../constants/crypto'
-import {keybaseFM} from '../constants/whats-new'
+import * as Kb from '@/common-adapters'
+import * as Platform from '@/constants/platform'
+import {encryptTab} from '@/constants/crypto'
+import {keybaseFM} from '@/constants/whats-new'
 import NewFeatureRow from './new-feature-row'
 
 export type VersionProps = {

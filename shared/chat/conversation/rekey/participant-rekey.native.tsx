@@ -1,5 +1,5 @@
-import * as Kb from '../../../common-adapters'
-import NativeScrollView from '../../../common-adapters/scroll-view.native'
+import * as Kb from '@/common-adapters'
+import NativeScrollView from '@/common-adapters/scroll-view.native'
 import type {Props} from './participant-rekey.types'
 
 const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked: (s: string) => void}) => (

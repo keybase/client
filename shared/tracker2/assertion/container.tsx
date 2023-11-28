@@ -1,8 +1,8 @@
-import * as C from '../../constants'
-import * as Constants from '../../constants/tracker2'
-import type * as T from '../../constants/types'
+import * as C from '@/constants'
+import * as Constants from '@/constants/tracker2'
+import type * as T from '@/constants/types'
 import Assertion from '.'
-import openUrl from '../../util/open-url'
+import openUrl from '@/util/open-url'
 
 type OwnProps = {
   isSuggestion?: boolean

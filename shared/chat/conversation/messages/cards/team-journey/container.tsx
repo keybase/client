@@ -1,10 +1,10 @@
-import * as C from '../../../../../constants'
-import * as T from '../../../../../constants/types'
-import * as Kb from '../../../../../common-adapters'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {TeamJourney, type Action} from '.'
 import {renderWelcomeMessage} from './util'
-import {useAllChannelMetas} from '../../../../../teams/common/channel-hooks'
+import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
 type OwnProps = {
   ordinal: T.Chat.Ordinal

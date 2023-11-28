@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {View} from 'react-native'
 import type {Box2Props} from './box'
 import type {MeasureRef} from './measure-ref'

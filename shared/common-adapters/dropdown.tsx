@@ -8,7 +8,7 @@ import ScrollView from './scroll-view'
 import Icon from './icon'
 import {smallHeight, regularHeight} from './button'
 import {usePopup2, type Popup2Parms} from './use-popup'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import './dropdown.css'
 import type {MeasureRef} from './measure-ref'
 

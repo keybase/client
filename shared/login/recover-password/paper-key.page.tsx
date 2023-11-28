@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import {InfoIcon} from '../../signup/common'
+import * as Kb from '@/common-adapters'
+import {InfoIcon} from '@/signup/common'
 
 const Paper = React.lazy(async () => import('./paper-key'))
 

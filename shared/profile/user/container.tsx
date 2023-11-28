@@ -1,8 +1,8 @@
-import * as C from '../../constants'
-import * as Constants from '../../constants/tracker2'
-import * as Kb from '../../common-adapters'
-import type * as T from '../../constants/types'
-import {memoize} from '../../util/memoize'
+import * as C from '@/constants'
+import * as Constants from '@/constants/tracker2'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
+import {memoize} from '@/util/memoize'
 import Profile2, {type BackgroundColorType} from '.'
 
 export type OwnProps = {username: string}

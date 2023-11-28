@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as C from '../../constants'
+import type * as C from '@/constants'
 
 const BarePreview = React.lazy(async () => {
   const {BarePreview} = await import('.')

@@ -1,4 +1,4 @@
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {IconType, SizeType} from './icon'
 import {iconMeta} from './icon.constants-gen'
 import './icon.css'

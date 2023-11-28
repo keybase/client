@@ -1,7 +1,7 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Platforms from '../../constants/platform'
+import * as Kb from '@/common-adapters'
+import * as Platforms from '@/constants/platform'
 
 type OwnProps = {
   onEnsureSelection: () => void

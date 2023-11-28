@@ -1,7 +1,7 @@
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import SystemCreateTeam from '.'
-import type * as T from '../../../../constants/types'
+import type * as T from '@/constants/types'
 
 type OwnProps = {
   message: T.Chat.MessageSystemCreateTeam

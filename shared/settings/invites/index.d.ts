@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type {PendingInvite, AcceptedInvite} from '../../constants/settings-invites'
+import type {PendingInvite, AcceptedInvite} from '@/constants/settings-invites'
 
 export type Props = {
   acceptedInvites: Array<AcceptedInvite>

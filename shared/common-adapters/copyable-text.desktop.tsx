@@ -1,4 +1,4 @@
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {Props} from './copyable-text'
 
 const CopyableText = ({value, style}: Props) => {

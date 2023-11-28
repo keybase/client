@@ -1,8 +1,8 @@
-import * as C from '../../../../constants'
-import * as Kb from '../../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {OrdinalContext, HighlightedContext} from '../ids-context'
-import type * as T from '../../../../constants/types'
+import type * as T from '@/constants/types'
 
 export const useReply = (ordinal: T.Chat.Ordinal) => {
   const showReplyTo = C.useChatContext(s => !!s.messageMap.get(ordinal)?.replyTo)

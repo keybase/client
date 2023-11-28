@@ -1,6 +1,6 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import type * as T from '../../../constants/types'
+import type * as T from '@/constants/types'
 import PinnedMessage from '.'
 
 const PinnedMessageContainer = React.memo(function PinnedMessageContainer() {

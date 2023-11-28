@@ -1,4 +1,4 @@
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import type SystemCreateTeamType from './container'

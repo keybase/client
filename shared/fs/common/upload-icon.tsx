@@ -1,5 +1,5 @@
-import * as T from '../../constants/types'
-import Icon, {type IconStyle} from '../../common-adapters/icon'
+import * as T from '@/constants/types'
+import Icon, {type IconStyle} from '@/common-adapters/icon'
 
 type Props = {
   style?: IconStyle

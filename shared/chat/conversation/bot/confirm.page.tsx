@@ -1,4 +1,4 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 
 const Confirm = React.lazy(async () => import('./confirm'))

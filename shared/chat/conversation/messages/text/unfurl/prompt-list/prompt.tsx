@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../../../../common-adapters/index'
+import * as Kb from '@/common-adapters/index'
 
 export type Props = {
   domain: string

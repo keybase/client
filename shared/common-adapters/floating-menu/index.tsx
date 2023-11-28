@@ -6,12 +6,12 @@
 
 import * as React from 'react'
 import Overlay from '../overlay'
-import {Box2} from '../box'
-import type {MeasureRef} from '../measure-ref'
+import {Box2} from '@/common-adapters/box'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 import MenuLayout, {type MenuItems as _MenuItems} from './menu-layout'
-import * as Styles from '../../styles'
-import {BottomSheetModal, BottomSheetBackdrop, type BottomSheetBackdropProps} from '../bottom-sheet'
-import {useSafeAreaInsets} from '../safe-area-view'
+import * as Styles from '@/styles'
+import {BottomSheetModal, BottomSheetBackdrop, type BottomSheetBackdropProps} from '@/common-adapters/bottom-sheet'
+import {useSafeAreaInsets} from '@/common-adapters/safe-area-view'
 import {FloatingModalContext} from './context'
 
 const Kb = {

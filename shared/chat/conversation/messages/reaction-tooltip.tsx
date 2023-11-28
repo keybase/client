@@ -1,8 +1,8 @@
-import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import ReactButton from './react-button/container'
-import type * as T from '../../../constants/types'
+import type * as T from '@/constants/types'
 import {OrdinalContext} from './ids-context'
 
 const positionFallbacks = ['bottom center', 'left center'] as const

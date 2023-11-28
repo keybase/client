@@ -1,13 +1,13 @@
-import * as C from '../../../../../constants'
-import * as Kb from '../../../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from '.'
 import {OrdinalContext} from '../../ids-context'
-import {SwipeTrigger} from '../../../../../common-adapters/swipeable.native'
-import {dismiss} from '../../../../../util/keyboard'
+import {SwipeTrigger} from '@/common-adapters/swipeable.native'
+import {dismiss} from '@/util/keyboard'
 import {Pressable} from 'react-native'
-import {FocusContext} from '../../../normal/context'
-// import {useDebugLayout} from '../../../../../util/debug'
+import {FocusContext} from '@/chat/conversation/normal/context'
+// import {useDebugLayout} from '@/util/debug'
 
 const LongPressable = React.memo(function LongPressable(props: Props) {
   const {children, onLongPress, style} = props

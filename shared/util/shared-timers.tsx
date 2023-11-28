@@ -1,5 +1,5 @@
-import {printOutstandingTimerListeners} from '../local-debug'
-import logger from '../logger'
+import {printOutstandingTimerListeners} from '@/local-debug'
+import logger from '@/logger'
 
 /**
  * Shared timers for when disparate components need to

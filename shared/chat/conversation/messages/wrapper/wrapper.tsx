@@ -1,5 +1,5 @@
-import * as C from '../../../../constants'
-import * as Kb from '../../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {OrdinalContext, HighlightedContext} from '../ids-context'
 import EmojiRow from '../emoji-row/container'
@@ -10,11 +10,11 @@ import {useMessagePopup} from '../message-popup'
 import PendingPaymentBackground from '../account-payment/pending-background'
 import ReactionsRow from '../reactions-row'
 import SendIndicator from './send-indicator'
-import * as T from '../../../../constants/types'
+import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {useEdited} from './edited'
 import {Sent} from './sent'
-// import {useDebugLayout} from '../../../../util/debug'
+// import {useDebugLayout} from '@/util/debug'
 
 export type Props = {
   ordinal: T.Chat.Ordinal

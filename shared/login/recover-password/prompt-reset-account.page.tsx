@@ -1,6 +1,6 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {InfoIcon} from '../../signup/common'
+import {InfoIcon} from '@/signup/common'
 
 const ResetAccount = React.lazy(async () => import('./prompt-reset-account'))
 

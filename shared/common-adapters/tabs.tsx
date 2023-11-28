@@ -1,4 +1,4 @@
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Badge from './badge'
 import ClickableBox from './clickable-box'
 import Divider from './divider'

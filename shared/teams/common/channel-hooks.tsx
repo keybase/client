@@ -1,5 +1,5 @@
-import * as T from '../../constants/types'
-import * as C from '../../constants'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 import * as React from 'react'
 
 // Filter bots out using team role info, isolate to only when related state changes

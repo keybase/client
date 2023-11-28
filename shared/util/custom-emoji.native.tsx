@@ -1,5 +1,5 @@
 import type {Props} from './custom-emoji'
-import Image2 from '../common-adapters/image2'
+import Image2 from '@/common-adapters/image2'
 
 const CustomEmoji = (props: Props) => {
   const {size, src} = props

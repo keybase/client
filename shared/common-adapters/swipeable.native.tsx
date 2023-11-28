@@ -6,8 +6,8 @@ import {
   type GestureUpdateEvent,
   GestureDetector,
 } from 'react-native-gesture-handler'
-import * as Styles from '../styles'
-import {colors, darkColors} from '../styles/colors'
+import * as Styles from '@/styles'
+import {colors, darkColors} from '@/styles/colors'
 import * as Reanimated from 'react-native-reanimated'
 
 // to be extra careful about closing over extra variables, we try and limit sharing any parent scopes

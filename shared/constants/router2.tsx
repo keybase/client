@@ -7,12 +7,12 @@ import {
   type NavigationContainerRef,
   type NavigationState,
 } from '@react-navigation/core'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import {produce} from 'immer'
 import * as Tabs from './tabs'
 import isEqual from 'lodash/isEqual'
-import logger from '../logger'
-import type {NavigateAppendType, RouteKeys} from '../router-v2/route-params'
+import logger from '@/logger'
+import type {NavigateAppendType, RouteKeys} from '@/router-v2/route-params'
 export type PathParam = NavigateAppendType
 type Route = NavigationState['routes'][0]
 // still a little paranoid about some things being missing in this type

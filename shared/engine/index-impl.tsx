@@ -1,15 +1,15 @@
 // Handles sending requests to the daemon
 import Session, {type CancelHandlerType} from './session'
 import engineListener from './listener'
-import logger from '../logger'
+import logger from '@/logger'
 import throttle from 'lodash/throttle'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from '.'
 import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
 import {initEngine, initEngineListener} from './require'
-import {isMobile} from '../constants/platform'
-import {printOutstandingRPCs, isTesting} from '../local-debug'
+import {isMobile} from '@/constants/platform'
+import {printOutstandingRPCs, isTesting} from '@/local-debug'
 import {resetClient, createClient, rpcLog, type createClientType} from './index.platform'
-import {type RPCError, convertToError} from '../util/errors'
+import {type RPCError, convertToError} from '@/util/errors'
 import type * as EngineGen from '../actions/engine-gen-gen'
 
 // delay incoming to stop react from queueing too many setState calls and stopping rendering
@@ -64,7 +64,7 @@ class Engine {
     this._onConnectedCB = onConnected
     const f = async () => {
       this._engineConstantsIncomingCall = (
-        await import('../constants')
+        await import('@/constants')
       ).useEngineState.getState().dispatch.onEngineIncoming
     }
     f()

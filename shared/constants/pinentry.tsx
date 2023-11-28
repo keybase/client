@@ -1,8 +1,8 @@
 import * as C from '.'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as T from './types'
-import logger from '../logger'
+import logger from '@/logger'
 
 export type Store = {
   cancelLabel?: string

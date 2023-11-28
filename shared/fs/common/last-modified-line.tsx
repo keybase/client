@@ -1,5 +1,5 @@
-import * as Kb from '../../common-adapters'
-import {formatTimeForFS} from '../../util/timestamp'
+import * as Kb from '@/common-adapters'
+import {formatTimeForFS} from '@/util/timestamp'
 
 export type LastModifiedLineProps = {
   lastModifiedTimestamp?: number

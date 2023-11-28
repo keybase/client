@@ -1,7 +1,7 @@
 import {Box} from './box'
 import Text from './text'
 import Icon, {type IconType} from './icon'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {Props} from './choice-list'
 import './choice-list.css'
 

@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import {Box2Measure} from './box'
 import Icon from './icon'
@@ -6,8 +6,8 @@ import Button, {type Props as ButtonProps} from './button'
 import Text, {type TextMeasureRef, type LineClampType, type TextType} from './text'
 import Toast from './toast'
 import {useTimeout} from './use-timers'
-import * as Styles from '../styles'
-import logger from '../logger'
+import * as Styles from '@/styles'
+import logger from '@/logger'
 import type {MeasureRef} from './measure-ref'
 
 const Kb = {

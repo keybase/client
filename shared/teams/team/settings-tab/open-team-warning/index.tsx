@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as C from '../../../../constants'
+import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 import {useSettingsState} from '../use-settings'
 
 type Props = {

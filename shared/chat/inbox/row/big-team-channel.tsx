@@ -1,8 +1,8 @@
-import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as RowSizes from './sizes'
-import * as T from '../../../constants/types'
+import * as T from '@/constants/types'
 
 type Props = {
   layoutChannelname: string

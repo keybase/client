@@ -1,4 +1,4 @@
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 
 type Store = {
   counts: Map<string, number>

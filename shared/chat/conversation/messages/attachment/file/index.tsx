@@ -1,10 +1,10 @@
 import captialize from 'lodash/capitalize'
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
-import * as C from '../../../../../constants'
-import type * as T from '../../../../../constants/types'
+import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
 import {getEditStyle, ShowToastAfterSaving} from '../shared'
-import * as CryptoConstants from '../../../../../constants/crypto'
+import * as CryptoConstants from '@/constants/crypto'
 
 type Props = {
   toggleMessageMenu: () => void

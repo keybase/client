@@ -1,7 +1,7 @@
-import * as Z from '../util/zustand'
-import * as C from '../constants'
+import * as Z from '@/util/zustand'
+import * as C from '@/constants'
 import * as T from './types'
-import {memoize} from '../util/memoize'
+import {memoize} from '@/util/memoize'
 
 const initialStore: T.Devices.State = {
   deviceMap: new Map(),

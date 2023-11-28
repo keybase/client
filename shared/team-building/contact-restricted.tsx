@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Container from '../util/container'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
 
 type Props = {
   source: 'newFolder' | 'teamAddSomeFailed' | 'teamAddAllFailed' | 'misc'

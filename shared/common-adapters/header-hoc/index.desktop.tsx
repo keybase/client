@@ -1,10 +1,10 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 import BackButton from '../back-button'
-import Box from '../box'
-import Icon from '../icon'
-import Text from '../text'
+import Box from '@/common-adapters/box'
+import Icon from '@/common-adapters/icon'
+import Text from '@/common-adapters/text'
 import type {Props, LeftActionProps} from '.'
 
 const Kb = {BackButton, Box, Icon, Text}

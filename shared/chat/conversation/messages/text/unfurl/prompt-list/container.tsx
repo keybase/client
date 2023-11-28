@@ -1,7 +1,7 @@
-import * as C from '../../../../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import {OrdinalContext} from '../../../ids-context'
-import * as T from '../../../../../../constants/types'
+import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
+import * as T from '@/constants/types'
 import UnfurlPromptList from '.'
 
 const noMessageID = T.Chat.numberToMessageID(0)

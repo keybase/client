@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import type * as C from '../../constants'
+import * as Kb from '@/common-adapters'
+import type * as C from '@/constants'
 
 const AddToTeam = React.lazy(async () => import('./container'))
 type OwnProps = C.ViewPropsToPageProps<typeof AddToTeam>

@@ -1,9 +1,9 @@
 import * as C from '.'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as T from './types'
 import {isMobile} from './platform'
-import logger from '../logger'
+import logger from '@/logger'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from './tabs'
 

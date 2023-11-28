@@ -1,10 +1,10 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Container from '../../../util/container'
-import * as T from '../../../constants/types'
-import {pluralize} from '../../../util/string'
-import {ModalTitle} from '../../common'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import * as T from '@/constants/types'
+import {pluralize} from '@/util/string'
+import {ModalTitle} from '@/teams/common'
 
 const cleanSubteamName = (name: string) => name.replace(/[^0-9a-zA-Z_]/, '')
 

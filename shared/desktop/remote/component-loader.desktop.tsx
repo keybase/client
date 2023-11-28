@@ -2,17 +2,17 @@
 // Also protects it with an error boundary
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {Provider} from 'react-redux'
 import RemoteStore from './store.desktop'
 import Root from '../renderer/container.desktop'
-import {disableDragDrop} from '../../util/drag-drop.desktop'
-import ErrorBoundary from '../../common-adapters/error-boundary'
-import {initDesktopStyles} from '../../styles/index.desktop'
-import KB2 from '../../util/electron.desktop'
+import {disableDragDrop} from '@/util/drag-drop.desktop'
+import ErrorBoundary from '@/common-adapters/error-boundary'
+import {initDesktopStyles} from '@/styles/index.desktop'
+import KB2 from '@/util/electron.desktop'
 
-import {setServiceDecoration} from '../../common-adapters/markdown/react'
-import ServiceDecoration from '../../common-adapters/markdown/service-decoration'
+import {setServiceDecoration} from '@/common-adapters/markdown/react'
+import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 setServiceDecoration(ServiceDecoration)
 
 const {closeWindow, showInactive} = KB2.functions

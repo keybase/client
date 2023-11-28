@@ -1,11 +1,11 @@
-import * as C from '../../../constants'
-import * as Constants from '../../../constants/fs'
-import * as T from '../../../constants/types'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
+import * as T from '@/constants/types'
 import * as RowTypes from './types'
 import {sortRowItems, type SortableRowItem} from './sort'
 import Rows, {type Props} from './rows'
 import {asRows as topBarAsRow} from '../../top-bar'
-import {memoize} from '../../../util/memoize'
+import {memoize} from '@/util/memoize'
 
 type OwnProps = {
   path: T.FS.Path // path to the parent folder containering the rows,

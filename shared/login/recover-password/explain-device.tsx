@@ -1,9 +1,9 @@
-import * as C from '../../constants'
-import * as Kb from '../../common-adapters'
-import * as T from '../../constants/types'
-import type {ButtonType} from '../../common-adapters/button'
-import {SignupScreen} from '../../signup/common'
-import {globalColors} from '../../styles'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import type {ButtonType} from '@/common-adapters/button'
+import {SignupScreen} from '@/signup/common'
+import {globalColors} from '@/styles'
 
 const ConnectedExplainDevice = () => {
   const ed = C.useRecoverState(s => s.explainedDevice)

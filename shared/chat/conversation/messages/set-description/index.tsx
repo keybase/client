@@ -1,5 +1,5 @@
-import * as Kb from '../../../../common-adapters'
-import type * as T from '../../../../constants/types'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 
 type Props = {
   message: T.Chat.MessageSetDescription

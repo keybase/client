@@ -1,4 +1,4 @@
-import type * as Kb from '../common-adapters'
+import type * as Kb from '@/common-adapters'
 export type Props = {
   labels: Array<string>
   showNumSection: boolean

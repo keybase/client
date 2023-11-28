@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters/index'
+import * as Kb from '@/common-adapters/index'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
 import difference from 'lodash/difference'
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 import type {Props, IconProps} from './service-tab-bar'
 
 const ServiceIcon = (props: IconProps) => {

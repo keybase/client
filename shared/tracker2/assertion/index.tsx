@@ -1,9 +1,9 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import type * as T from '../../constants/types'
-import {SiteIcon} from '../../profile/generic/shared'
-import {formatTimeForAssertionPopup} from '../../util/timestamp'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
+import {SiteIcon} from '@/profile/generic/shared'
+import {formatTimeForAssertionPopup} from '@/util/timestamp'
 
 type Props = {
   color: T.Tracker.AssertionColor
@@ -253,8 +253,8 @@ const AssertionSiteIcon = (p: SIProps) => {
       ? siteIconFullDarkmode
       : siteIconFull
     : isDarkMode
-    ? siteIconDarkmode
-    : siteIcon
+      ? siteIconDarkmode
+      : siteIcon
   if (!set) return null
   let child = <SiteIcon full={full} set={set} />
   if (full) {

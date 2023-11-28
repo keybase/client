@@ -1,7 +1,7 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 // A screen we show when we have a problem loading a screen
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {Box2} from './box'
 import {HeaderHocHeader} from './header-hoc'
 import ScrollView from './scroll-view'
@@ -9,7 +9,7 @@ import Text from './text'
 import Button from './button'
 import Icon from './icon'
 import {useFocusEffect} from '@react-navigation/core'
-import type {RPCError} from '../util/errors'
+import type {RPCError} from '@/util/errors'
 
 const Kb = {
   Box2,

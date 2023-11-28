@@ -1,7 +1,7 @@
-import * as C from '../../constants'
-import * as Constants from '../../constants/wallets'
-import * as Kb from '../../common-adapters'
-import * as T from '../../constants/types'
+import * as C from '@/constants'
+import * as Constants from '@/constants/wallets'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import * as React from 'react'
 import WalletPopup from '../wallet-popup'
 

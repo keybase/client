@@ -1,4 +1,4 @@
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Text from './text'
 import type {Props} from './radio-button'
 import './radio-button.css'

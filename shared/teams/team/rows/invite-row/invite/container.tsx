@@ -1,7 +1,7 @@
-import * as C from '../../../../../constants'
+import * as C from '@/constants'
 import {TeamInviteRow} from '.'
-import type * as T from '../../../../../constants/types'
-import {formatPhoneNumber} from '../../../../../util/phone-numbers'
+import type * as T from '@/constants/types'
+import {formatPhoneNumber} from '@/util/phone-numbers'
 
 type OwnProps = {
   id: string

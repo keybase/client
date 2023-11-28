@@ -1,6 +1,6 @@
 import Box from './box'
 import {TouchableWithoutFeedback} from 'react-native'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 
 import type {Props} from './popup-dialog'
 

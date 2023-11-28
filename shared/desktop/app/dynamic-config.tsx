@@ -1,5 +1,5 @@
 import fs from 'fs'
-import {serverConfigFileName, jsonDebugFileName} from '../../constants/platform.desktop'
+import {serverConfigFileName, jsonDebugFileName} from '@/constants/platform.desktop'
 const getConfigOverload = () => {
   let config: any = {}
   // Load overrides from server config

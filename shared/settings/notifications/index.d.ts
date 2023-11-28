@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type {NotificationsGroupState} from '../../constants/settings-notifications'
+import type {NotificationsGroupState} from '@/constants/settings-notifications'
 
 export type Props = {
   allowEdit: boolean

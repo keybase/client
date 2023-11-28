@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as C from '../../constants'
+import type * as C from '@/constants'
 
 const Rename = React.lazy(async () => import('./container'))
 type OwnProps = C.ViewPropsToPageProps<typeof Rename>

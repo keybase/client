@@ -2,7 +2,7 @@ import * as React from 'react'
 import {Box2} from './box'
 import Icon from './icon'
 import {EscapeHandler} from './key-event-handler.desktop'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {Props} from './popup-dialog'
 
 const Kb = {

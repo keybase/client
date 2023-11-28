@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import {SignupScreen} from '../../signup/common'
-import {addTicker, removeTicker} from '../../util/second-timer'
-import * as C from '../../constants'
-import * as Container from '../../util/container'
-import {formatDurationForAutoreset as formatDuration} from '../../util/timestamp'
+import * as Kb from '@/common-adapters'
+import {SignupScreen} from '@/signup/common'
+import {addTicker, removeTicker} from '@/util/second-timer'
+import * as C from '@/constants'
+import * as Container from '@/util/container'
+import {formatDurationForAutoreset as formatDuration} from '@/util/timestamp'
 
 type Props = {pipelineStarted: boolean}
 

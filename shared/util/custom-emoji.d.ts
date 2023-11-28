@@ -1,4 +1,4 @@
-import type * as Styles from '../styles'
+import type * as Styles from '@/styles'
 
 export type Props = {
   size: number

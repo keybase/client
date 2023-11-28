@@ -1,11 +1,11 @@
-import * as C from '../../constants'
-import * as ConfigConstants from '../../constants/config'
-import * as Kb from '../../common-adapters'
-import NativeScrollView from '../../common-adapters/scroll-view.native'
+import * as C from '@/constants'
+import * as ConfigConstants from '@/constants/config'
+import * as Kb from '@/common-adapters'
+import NativeScrollView from '@/common-adapters/scroll-view.native'
 import * as React from 'react'
 import Dropdown from './dropdown.native'
 import UserCard from '../user-card'
-import type {Props as InputProps} from '../../common-adapters/labeled-input'
+import type {Props as InputProps} from '@/common-adapters/labeled-input'
 import type {Props} from '.'
 
 type State = {

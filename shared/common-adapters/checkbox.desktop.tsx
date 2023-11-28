@@ -2,7 +2,7 @@ import Box, {Box2} from './box'
 import Icon from './icon'
 import Text from './text'
 import type {Props} from './checkbox'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 
 const Kb = {
   Box,

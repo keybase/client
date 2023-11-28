@@ -1,10 +1,10 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as Z from '../util/zustand'
-import logger from '../logger'
+import * as Z from '@/util/zustand'
+import logger from '@/logger'
 import * as T from './types'
-import {RPCError} from '../util/errors'
-import {mapGetEnsureValue} from '../util/map'
+import {RPCError} from '@/util/errors'
+import {mapGetEnsureValue} from '@/util/map'
 
 export const noDetails: T.Tracker.Details = {
   assertions: new Map(),
@@ -435,7 +435,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
               })
               return
             } else {
-              const formatPhoneNumberInternational = (await import('../util/phone-numbers'))
+              const formatPhoneNumberInternational = (await import('@/util/phone-numbers'))
                 .formatPhoneNumberInternational
               const formattedName =
                 res.assertionKey === 'phone'

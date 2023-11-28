@@ -1,7 +1,7 @@
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import EmojiRow from '.'
-import type {Position, StylesCrossPlatform} from '../../../../styles'
+import type {Position, StylesCrossPlatform} from '@/styles'
 import {OrdinalContext} from '../ids-context'
 
 type OwnProps = {

@@ -1,7 +1,7 @@
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 import Box from './box'
 import Icon, {type IconType} from './icon'
-import {isMobile} from '../constants/platform'
+import {isMobile} from '@/constants/platform'
 
 type Props = {
   platform: T.More.PlatformsExpandedType

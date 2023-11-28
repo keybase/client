@@ -1,6 +1,6 @@
-import * as C from '../../../../constants'
-import * as Kb from '../../../../common-adapters'
-import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '../../../../util/emoji'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '@/util/emoji'
 
 type Props = {
   onHidden: () => void

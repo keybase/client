@@ -1,5 +1,5 @@
 import type {FeatureFlags} from './feature-flags'
-import {featureFlagsOverride} from '../local-debug.native'
+import {featureFlagsOverride} from '@/local-debug.native'
 
 const features = featureFlagsOverride.split(',')
 

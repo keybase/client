@@ -1,6 +1,6 @@
-import * as T from '../../constants/types'
-import * as Kb from '../../common-adapters'
-import type {allTextTypes} from '../../common-adapters/text.shared'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import type {allTextTypes} from '@/common-adapters/text.shared'
 
 type TextType = keyof typeof allTextTypes
 

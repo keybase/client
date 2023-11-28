@@ -1,5 +1,5 @@
-import * as Constants from '../../constants/teams'
-import * as Kb from '../../common-adapters'
+import * as Constants from '@/constants/teams'
+import * as Kb from '@/common-adapters'
 import type {Props} from './index'
 
 const CreateChannel = (props: Props) => (

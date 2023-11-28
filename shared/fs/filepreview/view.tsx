@@ -1,11 +1,11 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as T from '../../constants/types'
+import * as T from '@/constants/types'
 import DefaultView from './default-view-container'
 import TextView from './text-view'
 import AVView from './av-view'
 import PdfView from './pdf-view'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 type Props = {
   path: T.FS.Path

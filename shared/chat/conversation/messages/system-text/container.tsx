@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 
 type OwnProps = {text: string}

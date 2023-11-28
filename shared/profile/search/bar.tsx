@@ -1,6 +1,6 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 const ProfileSearch = () => {
   const appendPeopleBuilder = C.useRouterState(s => s.appendPeopleBuilder)

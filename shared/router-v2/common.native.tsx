@@ -1,9 +1,9 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import {TabActions, type NavigationContainerRef} from '@react-navigation/core'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
-import {HeaderLeftArrow} from '../common-adapters/header-hoc'
-import type {NavState} from '../constants/router2'
+import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
+import type {NavState} from '@/constants/router2'
 
 export const TabletWrapper = (p: {children: React.ReactNode}) => {
   const {children} = p

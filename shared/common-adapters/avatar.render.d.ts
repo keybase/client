@@ -1,6 +1,6 @@
 import type * as React from 'react'
-import type * as T from '../constants/types'
-import type {StylesCrossPlatform} from '../styles'
+import type * as T from '@/constants/types'
+import type {StylesCrossPlatform} from '@/styles'
 import type {IconType, IconStyle} from './icon'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16

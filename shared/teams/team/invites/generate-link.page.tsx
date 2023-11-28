@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as C from '../../../constants'
+import type * as C from '@/constants'
 
 const Gen = React.lazy(async () => import('./generate-link'))
 type OwnProps = C.ViewPropsToPageProps<typeof Gen>

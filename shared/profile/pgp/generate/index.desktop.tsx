@@ -1,6 +1,6 @@
-import * as Kb from '../../../common-adapters'
-import * as C from '../../../constants'
-import Modal from '../../modal'
+import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
+import Modal from '@/profile/modal'
 
 export default function Generate() {
   const cancelPgpGen = C.useProfileState(s => s.dispatch.dynamic.cancelPgpGen)

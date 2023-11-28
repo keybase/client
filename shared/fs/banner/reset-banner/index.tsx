@@ -1,5 +1,5 @@
-import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 
 /*
  * This banner is used as part of a List2 in fs/folder/rows/rows.js, so it's

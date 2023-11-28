@@ -1,4 +1,4 @@
-import type {RouteMap, RouteDef, GetOptions} from '../constants/types/router2'
+import type {RouteMap, RouteDef, GetOptions} from '@/constants/types/router2'
 import type {PlatformWrapper} from './shim'
 
 export const _getOptions = (route: RouteDef): GetOptions | undefined => {

@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as C from '../../../constants'
-import type * as T from '../../../constants/types'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
 import {maxWidth, maxHeight} from '../messages/attachment/shared'
 
 const blankMessage = C.Chat.makeMessageAttachment({})

@@ -1,7 +1,7 @@
 import type * as React from 'react'
-import type {Position} from '../../styles'
-import type {MeasureRef} from '../measure-ref'
-import type {StylesCrossPlatform} from '../../styles/css'
+import type {Position} from '@/styles'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
+import type {StylesCrossPlatform} from '@/styles/css'
 
 /**
  * Overlay is the generic form of

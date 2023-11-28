@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import {InfoIcon} from './common'
 
 const Username = React.lazy(async () => import('./username'))

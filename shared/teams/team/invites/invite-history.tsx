@@ -1,13 +1,13 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Container from '../../../util/container'
-import type * as T from '../../../constants/types'
-import {memoize} from '../../../util/memoize'
-import {useTeamDetailsSubscribe} from '../../subscriber'
-import {ModalTitle} from '../../common'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import type * as T from '@/constants/types'
+import {memoize} from '@/util/memoize'
+import {useTeamDetailsSubscribe} from '@/teams/subscriber'
+import {ModalTitle} from '@/teams/common'
 import {InviteItem} from './invite-item'
-import type {Section} from '../../../common-adapters/section-list'
+import type {Section} from '@/common-adapters/section-list'
 
 type Props = {teamID: T.Teams.TeamID}
 

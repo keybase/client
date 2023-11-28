@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Box from './box'
 import PopupDialog from './popup-dialog'
-import {collapseStyles, globalColors, isMobile} from '../styles'
+import {collapseStyles, globalColors, isMobile} from '@/styles'
 
 type Props = {
   onClose: () => void

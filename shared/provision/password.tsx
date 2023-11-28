@@ -1,9 +1,9 @@
-import * as C from '../constants'
-import * as Kb from '../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import UserCard from '../login/user-card'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {isMobile} from '../constants/platform'
+import {isMobile} from '@/constants/platform'
 
 const Container = () => {
   const error = C.useProvisionState(s => s.error)

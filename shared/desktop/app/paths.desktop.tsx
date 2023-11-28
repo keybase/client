@@ -1,6 +1,6 @@
 import os from 'os'
 import path from 'path'
-import KB2 from '../../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 import {app} from 'electron'
 const {env} = KB2.constants
 

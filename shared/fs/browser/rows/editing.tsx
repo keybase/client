@@ -1,8 +1,8 @@
-import * as C from '../../../constants'
-import * as Constants from '../../../constants/fs'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
 import * as React from 'react'
-import * as T from '../../../constants/types'
-import * as Kb from '../../../common-adapters'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 import {rowStyles} from './common'
 
 type Props = {

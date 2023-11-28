@@ -1,11 +1,11 @@
-import * as C from '../../../../../../constants'
-import * as T from '../../../../../../constants/types'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import * as React from 'react'
 import UnfurlGeneric from './generic'
 import UnfurlGiphy from './giphy'
 import UnfurlMap from './map'
-import * as Kb from '../../../../../../common-adapters'
-import {OrdinalContext} from '../../../ids-context'
+import * as Kb from '@/common-adapters'
+import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
 
 export type UnfurlListItem = {
   unfurl: T.RPCChat.UnfurlDisplay

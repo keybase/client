@@ -1,11 +1,11 @@
 import * as C from '.'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
 import isEqual from 'lodash/isEqual'
-import logger from '../logger'
+import logger from '@/logger'
 import * as T from './types'
-import type {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
+import type {IconType} from '@/common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {isMobile} from './platform'
 
 // set this to true to have all todo items + a contact joined notification show up all the time
@@ -182,7 +182,7 @@ const makeDescriptionForTodoItem = (todo: T.RPCGen.HomeScreenTodo) => {
     case t.verifyAllEmail:
       return `Your email address *${todo.verifyAllEmail}* is unverified.`
     case t.verifyAllPhoneNumber: {
-      const {e164ToDisplay} = require('../util/phone-numbers')
+      const {e164ToDisplay} = require('@/util/phone-numbers')
       const p = todo.verifyAllPhoneNumber
       return `Your number *${p ? e164ToDisplay(p) : ''}* is unverified.`
     }

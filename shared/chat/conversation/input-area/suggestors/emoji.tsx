@@ -1,6 +1,6 @@
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as Common from './common'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {
   emojiSearch,
@@ -8,7 +8,7 @@ import {
   renderEmoji,
   type EmojiData,
   RPCToEmojiData,
-} from '../../../../util/emoji'
+} from '@/util/emoji'
 
 export const transformer = (
   emoji: EmojiData,

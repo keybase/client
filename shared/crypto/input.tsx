@@ -1,12 +1,12 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Constants from '../constants/crypto'
-import * as FsConstants from '../constants/fs'
-import type * as T from '../constants/types'
-import * as Kb from '../common-adapters'
-import type {IconType} from '../common-adapters/icon.constants-gen'
+import * as Constants from '@/constants/crypto'
+import * as FsConstants from '@/constants/fs'
+import type * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
 import capitalize from 'lodash/capitalize'
-import {pickFiles} from '../util/pick-files'
+import {pickFiles} from '@/util/pick-files'
 
 type CommonProps = {
   operation: T.Crypto.Operations

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Box from './box'
 import type {Props} from './video'
 import {StatusBar} from 'react-native'

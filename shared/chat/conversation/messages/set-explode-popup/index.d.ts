@@ -1,6 +1,6 @@
 import type * as React from 'react'
-import type * as T from '../../../../constants/types'
-import type * as Kb from '../../../../common-adapters'
+import type * as T from '@/constants/types'
+import type * as Kb from '@/common-adapters'
 
 export type Props = {
   attachTo?: React.RefObject<Kb.MeasureRef>

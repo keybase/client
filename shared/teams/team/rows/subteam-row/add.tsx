@@ -1,7 +1,7 @@
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import type * as T from '../../../../constants/types'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 
 const AddSubteam = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const subteamFilter = C.useTeamsState(s => s.subteamFilter)

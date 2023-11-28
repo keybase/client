@@ -1,5 +1,5 @@
-import type {OpenDialogOptions, SaveDialogOptions} from '../../util/electron.desktop'
-import type * as RPCTypes from '../../constants/types/rpc-gen'
+import type {OpenDialogOptions, SaveDialogOptions} from '@/util/electron.desktop'
+import type * as RPCTypes from '@/constants/types/rpc-gen'
 
 export type Action =
   | {type: 'appStartedUp'}

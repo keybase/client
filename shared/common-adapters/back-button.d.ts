@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type {Color, StylesCrossPlatform} from '../styles'
+import type {Color, StylesCrossPlatform} from '@/styles'
 
 export type Props = {
   badgeNumber?: number

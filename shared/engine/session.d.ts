@@ -1,19 +1,19 @@
 import type {
   CustomResponseIncomingCallMap as KBCustomResponseIncomingCallMap,
   IncomingCallMapType as KBIncomingCallMap,
-} from '../constants/types/rpc-gen'
+} from '@/constants/types/rpc-gen'
 import type {
   CustomResponseIncomingCallMap as ChatCustomResponseIncomingCallMap,
   IncomingCallMapType as ChatIncomingCallMap,
-} from '../constants/types/rpc-chat-gen'
+} from '@/constants/types/rpc-chat-gen'
 import type {
   CustomResponseIncomingCallMap as GregorCustomResponseIncomingCallMap,
   IncomingCallMapType as GregorIncomingCallMap,
-} from '../constants/types/rpc-gregor-gen'
+} from '@/constants/types/rpc-gregor-gen'
 import type {
   CustomResponseIncomingCallMap as SellarCustomResponseIncomingCallMap,
   IncomingCallMapType as SellarIncomingCallMap,
-} from '../constants/types/rpc-stellar-gen'
+} from '@/constants/types/rpc-stellar-gen'
 
 type IncomingCallMap = {} & KBIncomingCallMap &
   ChatIncomingCallMap &

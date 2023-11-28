@@ -4,7 +4,7 @@ import {colors as lightColors} from './colors'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import {StyleSheet, Dimensions} from 'react-native'
 import {isDarkMode} from './dark-mode'
-import {isIOS, isTablet} from '../constants/platform'
+import {isIOS, isTablet} from '@/constants/platform'
 import type {StylesCrossPlatform} from './css'
 
 type _Elem = Object | null | false
@@ -154,7 +154,7 @@ export const collapseStyles = (
 }
 export const transition = () => ({})
 
-export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '../constants/platform'
+export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '@/constants/platform'
 export * from './shared'
 export {themed as globalColors} from './colors'
 export {default as classNames} from 'classnames'

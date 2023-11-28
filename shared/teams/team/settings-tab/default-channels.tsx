@@ -1,9 +1,9 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as T from '../../../constants/types'
-import type {RPCError} from '../../../util/errors'
-import {ChannelsWidget} from '../../common'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import type {RPCError} from '@/util/errors'
+import {ChannelsWidget} from '@/teams/common'
 
 type Props = {
   teamID: T.Teams.TeamID

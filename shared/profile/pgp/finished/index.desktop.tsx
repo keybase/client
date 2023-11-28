@@ -1,7 +1,7 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import Modal from '../../modal'
+import * as Kb from '@/common-adapters'
+import Modal from '@/profile/modal'
 
 type Props = {
   onDone: (shouldStoreKeyOnServer: boolean) => void

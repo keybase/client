@@ -1,9 +1,9 @@
 import * as C from '.'
 import * as ProvisionConstants from './provision'
 import * as T from './types'
-import * as Z from '../util/zustand'
-import logger from '../logger'
-import {RPCError} from '../util/errors'
+import * as Z from '@/util/zustand'
+import logger from '@/logger'
+import {RPCError} from '@/util/errors'
 import {type Device} from './provision'
 
 export const waitingKey = 'recover-password:waiting'

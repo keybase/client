@@ -1,5 +1,5 @@
-import * as C from '../constants'
-import * as Styles from '../styles'
+import * as C from '@/constants'
+import * as Styles from '@/styles'
 import {WithProfileCardPopup} from './profile-card'
 import Text from './text'
 

@@ -1,11 +1,11 @@
-import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
+import * as Styles from '@/styles'
 import ChannelPicker from './channel-picker'
-import openURL from '../../../util/open-url'
-import * as T from '../../../constants/types'
-import {useAllChannelMetas} from '../../../teams/common/channel-hooks'
+import openURL from '@/util/open-url'
+import * as T from '@/constants/types'
+import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
 const RestrictedItem = '---RESTRICTED---'
 

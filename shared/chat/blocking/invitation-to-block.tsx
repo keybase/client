@@ -1,7 +1,7 @@
-import * as C from '../../constants'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import * as Styles from '@/styles'
+import * as Container from '@/util/container'
 
 const BlockButtons = () => {
   const nav = Container.useSafeNavigation()

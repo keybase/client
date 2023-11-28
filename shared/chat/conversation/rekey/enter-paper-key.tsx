@@ -1,6 +1,6 @@
-import {PaperKey} from '../../../provision/paper-key'
-import * as T from '../../../constants/types'
-import * as C from '../../../constants'
+import {PaperKey} from '@/provision/paper-key'
+import * as T from '@/constants/types'
+import * as C from '@/constants'
 
 const EnterPaperKey = () => {
   const error = ''

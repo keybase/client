@@ -1,9 +1,9 @@
-import * as Common from '../router-v2/common'
-import * as Kb from '../common-adapters'
+import * as Common from '@/router-v2/common'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Header from './header'
-import type * as T from '../constants/types'
-import type * as C from '../constants'
+import type * as T from '@/constants/types'
+import type * as C from '@/constants'
 
 const Split = React.lazy(async () => import('./inbox-and-conversation-2'))
 type OwnProps = C.ViewPropsToPagePropsMaybe<typeof Split>

@@ -1,6 +1,6 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Icon from './icon'
 import Text from './text'
 import type {Props} from './back-button'

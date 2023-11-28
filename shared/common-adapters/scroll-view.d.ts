@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type {RefreshControlProps, GestureResponderEvent} from 'react-native'
-import type {StylesCrossPlatform} from '../styles'
+import type {StylesCrossPlatform} from '@/styles'
 
 export type Props = {
   children?: React.ReactNode

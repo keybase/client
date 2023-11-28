@@ -1,6 +1,6 @@
 import * as dateFns from 'date-fns'
 import {enUS} from 'date-fns/locale'
-import {uses24HourClock} from '../constants/platform'
+import {uses24HourClock} from '@/constants/platform'
 
 const hourMinuteString = uses24HourClock ? 'HH:mm' : 'h:mm a'
 const hourMinuteSecondString = uses24HourClock ? 'HH:mm:ss' : 'h:mm:ss a'

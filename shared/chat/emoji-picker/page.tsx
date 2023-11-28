@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as C from '../../constants'
+import * as C from '@/constants'
 
 const Picker = React.lazy(async () => import('./container'))
 type OwnProps = C.ChatProviderProps<C.ViewPropsToPageProps<typeof Picker>>

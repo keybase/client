@@ -1,11 +1,11 @@
-import * as C from '../../../../../constants'
-import * as Kb from '../../../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
 import * as RowSizes from '../../sizes'
 import type {Props} from '.'
 import {RectButton} from 'react-native-gesture-handler'
-import {Swipeable} from '../../../../../common-adapters/swipeable.native'
+import {Swipeable} from '@/common-adapters/swipeable.native'
 import {View} from 'react-native'
 
 const actionWidth = 64

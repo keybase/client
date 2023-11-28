@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import VideoImpl from './videoimpl'
 import {Title, useAttachmentRedux, Collapsed, useCollapseIcon, Transferring} from '../shared'
 

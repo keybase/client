@@ -1,7 +1,7 @@
-import * as T from '../../constants/types'
+import * as T from '@/constants/types'
 import Upload from './upload'
 import {useUploadCountdown} from './use-upload-countdown'
-import * as C from '../../constants'
+import * as C from '@/constants'
 
 // NOTE flip this to show a button to debug the upload banner animations.
 const enableDebugUploadBanner = false as boolean

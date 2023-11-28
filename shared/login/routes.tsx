@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import login from './page'
 import proxySettingsModal from '../settings/proxy/page'
 import recoverPasswordDeviceSelector from './recover-password/device-selector/page'

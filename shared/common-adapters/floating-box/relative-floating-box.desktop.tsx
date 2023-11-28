@@ -1,14 +1,14 @@
-import logger from '../../logger'
+import logger from '@/logger'
 import * as React from 'react'
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 import throttle from 'lodash/throttle'
 import includes from 'lodash/includes'
 import without from 'lodash/without'
-import Box from '../box'
+import Box from '@/common-adapters/box'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../key-event-handler.desktop'
 import isEqual from 'lodash/isEqual'
-import type {MeasureDesktop} from '../measure-ref'
+import type {MeasureDesktop} from '@/common-adapters/measure-ref'
 
 const Kb = {
   Box,

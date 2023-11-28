@@ -1,7 +1,7 @@
 /* eslint-disable sort-keys */
 import './button.css'
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import Badge from './badge'
 import ClickableBox from './clickable-box'
 import Icon, {type SizeType} from './icon'

@@ -1,5 +1,5 @@
 import Tracker2 from './remote-container.desktop'
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import load from '../desktop/remote/component-loader.desktop'
 import {deserialize} from './remote-serializer.desktop'
 

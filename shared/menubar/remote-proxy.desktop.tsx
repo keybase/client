@@ -1,16 +1,16 @@
 // A mirror of the remote menubar windows.
-import * as C from '../constants'
-import * as T from '../constants/types'
-import * as Kb from '../common-adapters'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import KB2 from '../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
-import {intersect} from '../util/set'
-import {mapFilterByKey} from '../util/map'
-import {memoize} from '../util/memoize'
+import {intersect} from '@/util/set'
+import {mapFilterByKey} from '@/util/map'
+import {memoize} from '@/util/memoize'
 import {serialize, type ProxyProps, type RemoteTlfUpdates} from './remote-serializer.desktop'
-import {useAvatarState} from '../common-adapters/avatar-zus'
-import type * as NotifConstants from '../constants/notifications'
+import {useAvatarState} from '@/common-adapters/avatar-zus'
+import type * as NotifConstants from '@/constants/notifications'
 
 const {showTray} = KB2.functions
 

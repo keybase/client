@@ -12,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import {View, type LayoutChangeEvent} from 'react-native'
 import {Gesture, GestureDetector} from 'react-native-gesture-handler'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 
 const needDiff = Styles.dimensionWidth / 3
 

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Measure from 'react-measure'
 import type {Props, State} from './video'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {getVideoSize, CheckURL} from './video.shared'
 
 export default class Video extends React.PureComponent<Props, State> {

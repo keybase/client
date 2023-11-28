@@ -1,4 +1,4 @@
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 const LoadingRow = () => (
   <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.container} gap="tiny">

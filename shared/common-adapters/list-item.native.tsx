@@ -2,7 +2,7 @@ import * as React from 'react'
 import type {Props} from './list-item'
 import Box from './box'
 import ClickableBox from './clickable-box'
-import {globalStyles} from '../styles'
+import {globalStyles} from '@/styles'
 
 const ListItem = (p: Props) => {
   const height = {Large: 64, Small: 48}[p.type] // minimum height

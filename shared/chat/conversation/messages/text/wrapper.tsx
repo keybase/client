@@ -1,5 +1,5 @@
-import * as C from '../../../../constants'
-import * as Kb from '../../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useReply} from './reply'
 import {useBottom} from './bottom'

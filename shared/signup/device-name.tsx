@@ -1,6 +1,6 @@
-import * as C from '../constants'
-import * as Constants from '../constants/provision'
-import * as Kb from '../common-adapters'
+import * as C from '@/constants'
+import * as Constants from '@/constants/provision'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from './common'
 

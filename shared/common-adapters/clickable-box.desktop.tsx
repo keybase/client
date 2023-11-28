@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {MeasureRef} from './measure-ref'
 import type {Props as _Props, Props2} from './clickable-box'
-import type {_StylesCrossPlatform} from '../styles/css'
+import type {_StylesCrossPlatform} from '@/styles/css'
 
 type Props = _Props & {children: React.ReactNode}
 

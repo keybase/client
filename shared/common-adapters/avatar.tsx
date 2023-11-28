@@ -1,11 +1,11 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import Avatar from './avatar.render'
 import {iconTypeToImgSet, urlsToImgSet, type IconType, type IconStyle} from './icon'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import * as AvatarZus from './avatar-zus'
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 import './avatar.css'
 
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const

@@ -1,5 +1,5 @@
-import * as C from '../../../constants'
-import * as Constants from '../../../constants/users'
+import * as C from '@/constants'
+import * as Constants from '@/constants/users'
 import * as React from 'react'
 import BlockModal, {type BlockModalContext, type BlockType, type NewBlocksMap, type ReportSettings} from '.'
 

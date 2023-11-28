@@ -1,6 +1,6 @@
-import * as Kb from '../../../common-adapters'
-import * as C from '../../../constants'
-import Modal from '../../modal'
+import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
+import Modal from '@/profile/modal'
 
 export default function Choice() {
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)

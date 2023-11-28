@@ -1,5 +1,5 @@
-import type * as T from '../../constants/types'
-import * as Kb from '../../common-adapters'
+import type * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
 import Footer from '../footer/footer'
 import View from './view'

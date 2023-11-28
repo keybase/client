@@ -1,6 +1,6 @@
 import type * as React from 'react'
-import type * as T from '../../constants/types'
-import type {PickerItem} from '../../common-adapters/floating-picker'
+import type * as T from '@/constants/types'
+import type {PickerItem} from '@/common-adapters/floating-picker'
 
 export type Props = {
   title?: string

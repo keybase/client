@@ -1,9 +1,9 @@
 import * as React from 'react'
-import openURL from '../util/open-url'
+import openURL from '@/util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 import shallowEqual from 'shallowequal'
 import type {Props, TextType} from './text'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {Text as NativeText, Alert} from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type * as C from '../../constants'
+import type * as C from '@/constants'
 
 const AddAlias = React.lazy(async () => import('./add-alias'))
 type OwnProps = C.ViewPropsToPageProps<typeof AddAlias>

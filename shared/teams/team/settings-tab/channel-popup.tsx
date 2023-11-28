@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import type * as T from '../../../constants/types'
-import {pluralize} from '../../../util/string'
-import {useAllChannelMetas} from '../../common/channel-hooks'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
+import {pluralize} from '@/util/string'
+import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
 type Props = {
   disabledChannels?: Array<T.Teams.ChannelNameID>

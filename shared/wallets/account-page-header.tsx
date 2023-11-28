@@ -1,4 +1,4 @@
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 
 // Component to show page title on desktop
 // And account name / title like this on mobile:

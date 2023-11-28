@@ -1,6 +1,6 @@
-import * as Kb from '../common-adapters'
-import type * as T from '../constants/types'
-import {e164ToDisplay} from '../util/phone-numbers'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
+import {e164ToDisplay} from '@/util/phone-numbers'
 
 export type Props = {
   username: string

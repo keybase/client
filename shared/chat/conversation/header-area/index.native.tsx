@@ -1,8 +1,8 @@
-import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
-import {assertionToDisplay} from '../../../common-adapters/usernames'
+import * as Styles from '@/styles'
+import {assertionToDisplay} from '@/common-adapters/usernames'
 
 const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24

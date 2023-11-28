@@ -1,7 +1,7 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {UploadProps} from './upload'
-import {NativeAnimated, NativeEasing} from '../../common-adapters/native-wrappers.native'
+import {NativeAnimated, NativeEasing} from '@/common-adapters/native-wrappers.native'
 
 const lightPatternImage = require('../../images/upload-pattern-80.png')
 const darkPatternImage = require('../../images/dark-upload-pattern-80.png')

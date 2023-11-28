@@ -1,6 +1,6 @@
-import * as C from '../constants'
-import openURL from '../util/open-url'
-import {currentVersion} from '../constants/whats-new'
+import * as C from '@/constants'
+import openURL from '@/util/open-url'
+import {currentVersion} from '@/constants/whats-new'
 import {Current, Last, LastLast} from './versions'
 import WhatsNew from '.'
 

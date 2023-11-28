@@ -1,7 +1,7 @@
-import * as C from '../../../constants'
-import * as Constants from '../../../constants/fs'
-import * as T from '../../../constants/types'
-import {useOpen} from '../../common/use-open'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
+import * as T from '@/constants/types'
+import {useOpen} from '@/fs/common/use-open'
 import Tlf from './tlf'
 
 export type OwnProps = {

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Shared from './shim.shared'
-import * as Kb from '../common-adapters'
-import {EscapeHandler} from '../common-adapters/key-event-handler.desktop'
+import * as Kb from '@/common-adapters'
+import {EscapeHandler} from '@/common-adapters/key-event-handler.desktop'
 import {useFocusEffect} from '@react-navigation/native'
 import type {
   RouteMap,
@@ -9,7 +9,7 @@ import type {
   GetOptionsParams,
   GetOptionsRet,
   ModalType,
-} from '../constants/types/router2'
+} from '@/constants/types/router2'
 
 export const getOptions = Shared._getOptions
 export const shim = (routes: RouteMap, isModal: boolean, isLoggedOut: boolean) =>

@@ -1,8 +1,8 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as RowSizes from './sizes'
-import * as T from '../../../constants/types'
+import * as T from '@/constants/types'
 import {BigTeamsLabel} from './big-teams-label'
 
 type Props = {

@@ -1,6 +1,6 @@
-import * as C from '../../../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import {OrdinalContext} from '../../ids-context'
+import {OrdinalContext} from '@/chat/conversation/messages/ids-context'
 import {maxWidth, maxHeight} from '../shared'
 
 const missingMessage = C.Chat.makeMessageAttachment()

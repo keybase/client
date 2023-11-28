@@ -1,8 +1,8 @@
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import JumpToRecent from './jump-to-recent'
-import type * as T from '../../../constants/types'
-import logger from '../../../logger'
+import type * as T from '@/constants/types'
+import logger from '@/logger'
 
 export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => {
   const {conversationIDKey} = p

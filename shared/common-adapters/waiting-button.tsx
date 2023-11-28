@@ -1,4 +1,4 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
 import {default as Button, type Props as ButtonProps} from './button'
 import type {MeasureRef} from './measure-ref'

@@ -1,4 +1,4 @@
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import type {Store, State} from './settings-contacts'
 
 export const importContactsWaitingKey = 'settings:importContacts'

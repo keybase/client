@@ -1,11 +1,11 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Platform from '../../constants/platform'
+import * as Kb from '@/common-adapters'
+import * as Platform from '@/constants/platform'
 import SyncingFolders from './syncing-folders'
-import {IconWithPopup as WhatsNewIconWithPopup} from '../../whats-new/icon/container'
+import {IconWithPopup as WhatsNewIconWithPopup} from '@/whats-new/icon/container'
 import * as ReactIs from 'react-is'
-import KB2 from '../../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 
 const {closeWindow, minimizeWindow, toggleMaximizeWindow} = KB2.functions
 
@@ -145,8 +145,8 @@ const DesktopHeader = React.memo(
     const iconColor = back
       ? Kb.Styles.globalColors.black_50
       : loggedIn
-      ? Kb.Styles.globalColors.black_10
-      : Kb.Styles.globalColors.transparent
+        ? Kb.Styles.globalColors.black_10
+        : Kb.Styles.globalColors.transparent
 
     const popupAnchor = React.createRef<Kb.MeasureRef>()
 

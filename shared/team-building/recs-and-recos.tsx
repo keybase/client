@@ -1,14 +1,14 @@
-import * as Kb from '../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import AlphabetIndex from './alphabet-index'
 import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
 import type * as Types from './types'
 import {ContactsImportButton} from './contacts'
-import {memoize} from '../util/memoize'
+import {memoize} from '@/util/memoize'
 import {userResultHeight} from './search-result/common-result'
-import {createAnimatedComponent} from '../common-adapters/reanimated'
-import type {Props as SectionListProps, Section as SectionType} from '../common-adapters/section-list'
+import {createAnimatedComponent} from '@/common-adapters/reanimated'
+import type {Props as SectionListProps, Section as SectionType} from '@/common-adapters/section-list'
 
 export const numSectionLabel = '0-9'
 

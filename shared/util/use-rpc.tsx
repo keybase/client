@@ -1,4 +1,4 @@
-import {useIsMounted} from '../constants/react'
+import {useIsMounted} from '@/constants/react'
 import * as React from 'react'
 import type {RPCError} from './errors'
 

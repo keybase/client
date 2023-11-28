@@ -1,8 +1,8 @@
-import * as Styles from '../../styles'
+import * as Styles from '@/styles'
 import * as React from 'react'
 import SimpleMarkdown from 'simple-markdown'
-import Text from '../text'
-import logger from '../../logger'
+import Text from '@/common-adapters/text'
+import logger from '@/logger'
 import type {Props as MarkdownProps} from '.'
 import Emoji, {type Props as EmojiProps} from '../emoji'
 import {emojiIndexByName, emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
@@ -14,8 +14,8 @@ import {
   serviceOnlyOutput,
   serviceOnlyNoWrapOutput,
 } from './react'
-import type * as T from '../../constants/types'
-import type {StylesTextCrossPlatform, LineClampType} from '../../common-adapters/text'
+import type * as T from '@/constants/types'
+import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/text'
 import isArray from 'lodash/isArray'
 import {ErrorBoundary} from 'react-error-boundary'
 

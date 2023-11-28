@@ -32,8 +32,8 @@ const paths = {
   fonts: path.resolve(__dirname, '../../fonts'),
   webFonts: path.resolve(__dirname, '../../fonts-for-web'),
   webFontsCss: path.resolve(__dirname, '../../fonts-for-web/fonts_custom.styl'),
-  iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants-gen.tsx'),
-  iconCss: path.resolve(__dirname, '../../common-adapters/icon.css'),
+  iconConstants: path.resolve(__dirname, '@/common-adapters/icon.constants-gen.tsx'),
+  iconCss: path.resolve(__dirname, '@/common-adapters/icon.css'),
 }
 
 // Locations of all PNG assets to include in icon.constants.gen

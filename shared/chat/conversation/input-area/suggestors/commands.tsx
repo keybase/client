@@ -1,9 +1,9 @@
-import * as C from '../../../../constants'
-import * as T from '../../../../constants/types'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
 import * as Common from './common'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {memoize} from '../../../../util/memoize'
+import {memoize} from '@/util/memoize'
 
 const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {
   return command.username ? '!' : '/'

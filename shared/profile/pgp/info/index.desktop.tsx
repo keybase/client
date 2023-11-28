@@ -1,6 +1,6 @@
-import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
-import Modal from '../../modal'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import Modal from '@/profile/modal'
 
 const Info = () => {
   const updatePgpInfo = C.useProfileState(s => s.dispatch.updatePgpInfo)

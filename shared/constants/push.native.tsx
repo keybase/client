@@ -1,10 +1,10 @@
 import * as C from '.'
 import * as Tabs from './tabs'
-import * as Z from '../util/zustand'
+import * as Z from '@/util/zustand'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
-import logger from '../logger'
+import logger from '@/logger'
 import * as T from './types'
-import {isDevApplePushToken} from '../local-debug'
+import {isDevApplePushToken} from '@/local-debug'
 import {isIOS} from './platform'
 import {
   iosGetHasShownPushPrompt,

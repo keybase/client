@@ -1,8 +1,8 @@
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import {OrdinalContext} from '../ids-context'
-import AudioPlayer from '../../../audio/audio-player'
+import AudioPlayer from '@/chat/audio/audio-player'
 
 const missingMessage = C.Chat.makeMessageAttachment()
 const AudioAttachment = () => {

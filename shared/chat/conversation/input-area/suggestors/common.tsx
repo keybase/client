@@ -1,8 +1,8 @@
-import * as Container from '../../../../util/container'
-import * as Kb from '../../../../common-adapters'
+import * as Container from '@/util/container'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import SuggestionList from './suggestion-list'
-import type * as T from '../../../../constants/types'
+import type * as T from '@/constants/types'
 
 export type TransformerData = {
   text: string

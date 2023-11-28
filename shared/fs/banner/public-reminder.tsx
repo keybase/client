@@ -1,8 +1,8 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as T from '../../constants/types'
-import openUrl from '../../util/open-url'
+import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
+import openUrl from '@/util/open-url'
 
 type Props = {
   path: T.FS.Path

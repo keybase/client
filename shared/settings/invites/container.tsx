@@ -1,6 +1,6 @@
-import * as C from '../../constants'
-import * as Constants from '../../constants/settings'
-import type {PendingInvite} from '../../constants/settings-invites'
+import * as C from '@/constants'
+import * as Constants from '@/constants/settings'
+import type {PendingInvite} from '@/constants/settings-invites'
 import Invites from '.'
 
 const Container = () => {

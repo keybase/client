@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as C from '../../../constants'
-import type * as T from '../../../constants/types'
-import * as Kb from '../../../common-adapters'
-import {InlineDropdown} from '../../../common-adapters/dropdown'
-import {FloatingRolePicker} from '../../role-picker'
-import {pluralize} from '../../../util/string'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+import {InlineDropdown} from '@/common-adapters/dropdown'
+import {FloatingRolePicker} from '@/teams/role-picker'
+import {pluralize} from '@/util/string'
 import RetentionPicker from './retention/container'
 import DefaultChannels from './default-channels'
 
@@ -78,8 +78,8 @@ const SetMemberShowcase = (props: SettingProps) => (
             {props.canShowcase
               ? 'Your profile will mention this team. Team description and number of members will be public.'
               : props.yourOperations.joinTeam
-              ? 'You must join this team to feature it on your profile.'
-              : "Admins aren't allowing members to feature this team on their profile."}
+                ? 'You must join this team to feature it on your profile.'
+                : "Admins aren't allowing members to feature this team on their profile."}
           </Kb.Text>
         </Kb.Box2>
       }

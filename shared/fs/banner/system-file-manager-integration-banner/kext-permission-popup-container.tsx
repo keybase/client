@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as C from '../../../constants'
+import * as C from '@/constants'
 import KextPermissionPopup from './kext-permission-popup'
 
 const KPPContainer = () => {

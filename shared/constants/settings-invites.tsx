@@ -1,7 +1,7 @@
 import * as C from '.'
-import * as Z from '../util/zustand'
-import {RPCError} from '../util/errors'
-import logger from '../logger'
+import * as Z from '@/util/zustand'
+import {RPCError} from '@/util/errors'
+import logger from '@/logger'
 import trim from 'lodash/trim'
 import * as T from './types'
 

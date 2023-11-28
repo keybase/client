@@ -1,11 +1,11 @@
-import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader} from './index.native'
-import {DebugChatDumpContext} from '../../../constants/chat2/debug'
-import {HeaderLeftArrow} from '../../../common-adapters/header-hoc'
+import {DebugChatDumpContext} from '@/constants/chat2/debug'
+import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
 import {Keyboard} from 'react-native'
-import {getRouteParamsFromRoute} from '../../../router-v2/route-params'
+import {getRouteParamsFromRoute} from '@/router-v2/route-params'
 
 export const HeaderAreaRight = () => {
   const conversationIDKey = C.useChatContext(s => s.id)

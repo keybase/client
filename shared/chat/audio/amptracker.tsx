@@ -1,4 +1,4 @@
-import {maxAmpsLength} from '../../constants/chat2/message'
+import {maxAmpsLength} from '@/constants/chat2/message'
 const minBars = 20
 const maxBars = maxAmpsLength
 const snap0 = 1000 // anything under this seconds takes minBars

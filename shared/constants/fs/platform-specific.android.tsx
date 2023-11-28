@@ -1,7 +1,7 @@
 import * as C from '..'
-import * as Constants from '../fs'
+import * as Constants from '@/constants/fs'
 import * as T from '../types'
-import logger from '../../logger'
+import logger from '@/logger'
 import nativeInit from './common.native'
 import {androidAddCompleteDownload, fsCacheDir, fsDownloadDir} from 'react-native-kb'
 

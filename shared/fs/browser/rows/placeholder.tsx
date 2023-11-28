@@ -1,6 +1,6 @@
 import {rowStyles} from './common'
-import * as T from '../../../constants/types'
-import * as Kb from '../../../common-adapters'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 
 type PlaceholderProps = {
   type: T.FS.PathType.Folder | T.FS.PathType.File

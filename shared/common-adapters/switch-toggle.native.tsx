@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {NativeAnimated, NativeEasing} from './native-wrappers.native'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import type {Props} from './switch-toggle'
 
 class SwitchToggle extends React.PureComponent<Props> {

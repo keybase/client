@@ -1,13 +1,13 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import FloatingBox from './floating-box'
 import Box from './box'
 import {KeyboardAvoidingView2} from './keyboard-avoiding-view'
 import {useTimeout} from './use-timers'
 import {NativeAnimated, NativeEasing} from './native-wrappers.native'
 import type {Props} from './toast'
-import {colors, darkColors} from '../styles/colors'
-import {isDarkMode} from '../styles/dark-mode'
+import {colors, darkColors} from '@/styles/colors'
+import {isDarkMode} from '@/styles/dark-mode'
 import noop from 'lodash/noop'
 
 const Kb = {

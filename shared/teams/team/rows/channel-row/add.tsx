@@ -1,7 +1,7 @@
-import * as C from '../../../../constants'
-import * as Kb from '../../../../common-adapters'
-import * as Container from '../../../../util/container'
-import type * as T from '../../../../constants/types'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import type * as T from '@/constants/types'
 
 const ButtonRow = (props: {teamID: T.Teams.TeamID}) => {
   const nav = Container.useSafeNavigation()

@@ -1,13 +1,13 @@
 // A mirror of the remote tracker windows.
-import * as C from '../constants'
-import {useAvatarState} from '../common-adapters/avatar-zus'
+import * as C from '@/constants'
+import {useAvatarState} from '@/common-adapters/avatar-zus'
 import * as React from 'react'
-import * as Constants from '../constants/tracker2'
+import * as Constants from '@/constants/tracker2'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import {serialize, type ProxyProps} from './remote-serializer.desktop'
-import {intersect} from '../util/set'
-import {mapFilterByKey} from '../util/map'
+import {intersect} from '@/util/set'
+import {mapFilterByKey} from '@/util/map'
 
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}

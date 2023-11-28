@@ -1,14 +1,14 @@
-import * as C from '../../../../constants'
-import * as Kb from '../../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
+import SetExplodingMessagePopup from '@/chat/conversation/messages/set-explode-popup/container'
 import Typing from './typing'
 import type {Props} from './platform-input'
-import {EmojiPickerDesktop} from '../../../emoji-picker/container'
-import {KeyEventHandler} from '../../../../common-adapters/key-event-handler.desktop'
-import {formatDurationShort} from '../../../../util/timestamp'
+import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
+import {KeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
+import {formatDurationShort} from '@/util/timestamp'
 import {useSuggestors} from '../suggestors'
-import {ScrollContext} from '../../normal/context'
+import {ScrollContext} from '@/chat/conversation/normal/context'
 
 type HtmlInputRefType = React.MutableRefObject<HTMLInputElement | null>
 type InputRefType = React.MutableRefObject<Kb.PlainInput | null>

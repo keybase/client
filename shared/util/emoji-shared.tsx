@@ -1,5 +1,5 @@
 // just used to break import cycles
-import type * as T from '../constants/types'
+import type * as T from '@/constants/types'
 import emojidata from 'emoji-datasource-apple'
 export type EmojiData = {
   category: string

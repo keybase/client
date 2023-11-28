@@ -1,8 +1,8 @@
-import * as C from '../constants'
-import * as R from '../constants/remote'
+import * as C from '@/constants'
+import * as R from '@/constants/remote'
 import * as RemoteGen from '../actions/remote-gen'
-import * as Kb from '../common-adapters'
-import type * as T from '../constants/types'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import {SmallTeam} from '../chat/inbox/row/small-team'
 

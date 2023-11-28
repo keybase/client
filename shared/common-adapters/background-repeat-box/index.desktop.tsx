@@ -1,8 +1,8 @@
-import Box from '../box'
-import * as Styles from '../../styles'
-import {urlsToImgSet} from '../icon.desktop'
+import Box from '@/common-adapters/box'
+import * as Styles from '@/styles'
+import {urlsToImgSet} from '@/common-adapters/icon.desktop'
 import type {Props} from '.'
-import {getAssetPath} from '../../constants/platform.desktop'
+import {getAssetPath} from '@/constants/platform.desktop'
 
 const BackgroundRepeatBox = (props: Props) => {
   let pattern = ''

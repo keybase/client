@@ -1,13 +1,13 @@
 import * as Electron from 'electron'
-import * as RemoteGen from '../../actions/remote-gen'
-import * as R from '../../constants/remote'
+import * as RemoteGen from '@/actions/remote-gen'
+import * as R from '@/constants/remote'
 import fs from 'fs'
 import path from 'path'
 import exec from './exec.desktop'
 import {keybaseBinPath} from './paths.desktop'
 import {ctlQuit} from './ctl.desktop'
-import {isDarwin} from '../../constants/platform'
-import logger from '../../logger'
+import {isDarwin} from '@/constants/platform'
+import logger from '@/logger'
 import zlib from 'zlib'
 
 const file = path.join(Electron.app.getPath('userData'), 'installer.json')

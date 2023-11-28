@@ -1,19 +1,19 @@
-import * as C from '../constants'
-import * as R from '../constants/remote'
-import * as T from '../constants/types'
-import * as Kb from '../common-adapters'
+import * as C from '@/constants'
+import * as R from '@/constants/remote'
+import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as RemoteGen from '../actions/remote-gen'
+import * as RemoteGen from '@/actions/remote-gen'
 import ChatContainer from './chat-container.desktop'
 import FilesPreview from './files-container.desktop'
-import KB2 from '../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 import OutOfDate from './out-of-date'
-import Upload from '../fs/footer/upload'
-import openUrl from '../util/open-url'
-import {Loading} from '../fs/simple-screens'
-import {isLinux, isDarwin} from '../constants/platform'
-import {type _InnerMenuItem} from '../common-adapters/floating-menu/menu-layout'
-import {useUploadCountdown} from '../fs/footer/use-upload-countdown'
+import Upload from '@/fs/footer/upload'
+import openUrl from '@/util/open-url'
+import {Loading} from '@/fs/simple-screens'
+import {isLinux, isDarwin} from '@/constants/platform'
+import {type _InnerMenuItem} from '@/common-adapters/floating-menu/menu-layout'
+import {useUploadCountdown} from '@/fs/footer/use-upload-countdown'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -273,8 +273,8 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
   const text = fullyLoggedOut
     ? 'You are logged out of Keybase.'
     : daemonHandshakeState === 'waitingForWaiters'
-    ? 'Connecting interface to crypto engine... This may take a few seconds.'
-    : 'Starting up Keybase...'
+      ? 'Connecting interface to crypto engine... This may take a few seconds.'
+      : 'Starting up Keybase...'
 
   const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const logIn = () => {

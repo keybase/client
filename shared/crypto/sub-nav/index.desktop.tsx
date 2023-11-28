@@ -1,13 +1,13 @@
-import * as Kb from '../../common-adapters'
-import * as Constants from '../../constants/crypto'
-import * as Common from '../../router-v2/common.desktop'
+import * as Kb from '@/common-adapters'
+import * as Constants from '@/constants/crypto'
+import * as Common from '@/router-v2/common.desktop'
 import LeftNav from './left-nav.desktop'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import {type EncryptIO} from '../operations/encrypt'
 import {type DecryptIO} from '../operations/decrypt'
 import {type SignIO} from '../operations/sign'
 import {type VerifyIO} from '../operations/verify'
-import {getOptions, shim} from '../../router-v2/shim'
+import {getOptions, shim} from '@/router-v2/shim'
 
 /* Desktop SubNav */
 const cryptoSubRoutes = {

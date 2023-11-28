@@ -1,5 +1,5 @@
-import * as Kb from '../../common-adapters'
-import type * as T from '../../constants/types'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 import Upload from './upload-container'
 import Downloads from './downloads'
 import ProofBroken from './proof-broken'

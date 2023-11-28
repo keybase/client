@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as C from '../../../../constants'
+import * as C from '@/constants'
 
 const Location = React.lazy(async () => import('./location-popup'))
 type OwnProps = C.ChatProviderProps<C.ViewPropsToPageProps<typeof Location>>

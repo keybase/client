@@ -1,7 +1,7 @@
-import * as C from '../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import type * as T from '../constants/types'
+import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 import ChatInboxHeader from './inbox/header'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey}

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {ZoomableBox} from './zoomable-box'
 import Image2 from './image2.native'
 import type {Props} from './zoomable-image'

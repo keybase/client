@@ -1,13 +1,13 @@
 import * as React from 'react'
 import type {MenuLayoutProps, MenuItem} from '.'
-import Box from '../../box'
-import Divider from '../../divider'
-import Icon from '../../icon'
-import Text from '../../text'
-import Meta from '../../meta'
-import Badge from '../../badge'
-import ProgressIndicator from '../../progress-indicator'
-import * as Styles from '../../../styles'
+import Box from '@/common-adapters/box'
+import Divider from '@/common-adapters/divider'
+import Icon from '@/common-adapters/icon'
+import Text from '@/common-adapters/text'
+import Meta from '@/common-adapters/meta'
+import Badge from '@/common-adapters/badge'
+import ProgressIndicator from '@/common-adapters/progress-indicator'
+import * as Styles from '@/styles'
 
 class MenuLayout extends React.Component<MenuLayoutProps> {
   private renderDivider = (index: number) => (

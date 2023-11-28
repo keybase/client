@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type * as Kb from '../../../../../common-adapters'
+import type * as Kb from '@/common-adapters'
 
 export type Props = {
   style: Kb.Styles.StylesCrossPlatform

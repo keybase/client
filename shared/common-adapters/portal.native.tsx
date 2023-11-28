@@ -1,5 +1,5 @@
 import {Portal as GPortal} from '@gorhom/portal'
-import * as Styles from '../styles'
+import * as Styles from '@/styles'
 import {FullWindowOverlay} from 'react-native-screens'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 

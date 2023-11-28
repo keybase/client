@@ -1,6 +1,6 @@
-import * as C from '../../constants'
-import * as T from '../../constants/types'
-import * as Container from '../../util/container'
+import * as C from '@/constants'
+import * as T from '@/constants/types'
+import * as Container from '@/util/container'
 
 type Props = {
   path: T.FS.Path

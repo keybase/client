@@ -51,6 +51,7 @@ module.exports = function (api /*: any */) {
     // console.error('KB babel.config.js for ReactNative')
     return {
       plugins: [
+        ['module-resolver', {alias: {'@': './'}}],
         ...(skipAnimation ? [] : ['react-native-reanimated/plugin']),
         '@babel/plugin-proposal-numeric-separator',
         '@babel/plugin-transform-export-namespace-from',

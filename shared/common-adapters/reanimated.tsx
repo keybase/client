@@ -1,4 +1,4 @@
-import {isDebuggingInChrome, isMobile} from '../constants/platform'
+import {isDebuggingInChrome, isMobile} from '@/constants/platform'
 import skipAnimations from './skip-animations'
 import type * as R from 'react-native-reanimated'
 

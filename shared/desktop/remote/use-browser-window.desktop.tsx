@@ -1,6 +1,6 @@
 // This hook creates a remote brower window when mounted
 import * as React from 'react'
-import KB2 from '../../util/electron.desktop'
+import KB2 from '@/util/electron.desktop'
 
 const {makeRenderer, closeRenderer} = KB2.functions
 

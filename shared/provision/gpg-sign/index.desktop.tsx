@@ -2,8 +2,8 @@
 // import Container from '../../login/forms/container'
 // import * as React from 'react'
 // import Row from './row.desktop'
-// import * as Kb from '../../common-adapters'
-// import * as Styles from '../../styles'
+// import * as Kb from '@/common-adapters'
+// import * as Styles from '@/styles'
 
 // import type {Props} from '.'
 

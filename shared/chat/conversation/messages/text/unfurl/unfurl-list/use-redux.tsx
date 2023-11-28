@@ -1,6 +1,6 @@
-import * as C from '../../../../../../constants'
+import * as C from '@/constants'
 import * as React from 'react'
-import type * as T from '../../../../../../constants/types'
+import type * as T from '@/constants/types'
 
 export const useActions = (youAreAuthor: boolean, messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => {
   const unfurlRemove = C.useChatContext(s => s.dispatch.unfurlRemove)

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type {Props} from '.'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
-import type {MeasureDesktop} from '../measure-ref'
+import type {MeasureDesktop} from '@/common-adapters/measure-ref'
 
 type State = {
   targetRect?: MeasureDesktop

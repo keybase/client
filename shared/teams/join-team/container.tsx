@@ -1,4 +1,4 @@
-import * as C from '../../constants'
+import * as C from '@/constants'
 import JoinTeam from '.'
 import upperFirst from 'lodash/upperFirst'
 

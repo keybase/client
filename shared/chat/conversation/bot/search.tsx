@@ -1,9 +1,9 @@
-import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Styles from '../../../styles'
+import * as Styles from '@/styles'
 import debounce from 'lodash/debounce'
-import type * as T from '../../../constants/types'
+import type * as T from '@/constants/types'
 import {Bot} from '../info-panel/bot'
 
 type Props = {teamID?: T.Teams.TeamID}

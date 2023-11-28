@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters'
+import * as Kb from '@/common-adapters'
 import Modal from '../modal'
 
 type Props = {

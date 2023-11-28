@@ -1,6 +1,6 @@
-import * as C from '../../../constants'
-import * as Constants from '../../../constants/fs'
-import * as T from '../../../constants/types'
+import * as C from '@/constants'
+import * as Constants from '@/constants/fs'
+import * as T from '@/constants/types'
 
 export type Layout = {
   delete: boolean

@@ -1,8 +1,8 @@
-import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
-import * as Container from '../../../util/container'
-import {ModalTitle} from '../../common'
-import * as T from '../../../constants/types'
+import * as C from '@/constants'
+import * as Kb from '@/common-adapters'
+import * as Container from '@/util/container'
+import {ModalTitle} from '@/teams/common'
+import * as T from '@/constants/types'
 
 const TeamPurpose = () => {
   const nav = Container.useSafeNavigation()
