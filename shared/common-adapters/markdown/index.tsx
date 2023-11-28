@@ -1,7 +1,7 @@
 import * as Styles from '@/styles'
 import * as React from 'react'
 import SimpleMarkdown from 'simple-markdown'
-import Text from '../text'
+import Text from '@/common-adapters/text'
 import logger from '@/logger'
 import type {Props as MarkdownProps} from '.'
 import Emoji, {type Props as EmojiProps} from '../emoji'

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Box from '../box'
+import Box from '@/common-adapters/box'
 import * as Styles from '@/styles'
 import {Image} from 'react-native'
 import type {Props} from '.'

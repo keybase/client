@@ -7,7 +7,7 @@ import KbfsPath from '@/fs/common/kbfs-path'
 import MaybeMention from './maybe-mention'
 import Mention from '../mention-container'
 import PaymentStatus from '../../chat/payments/status/container'
-import Text, {type StylesTextCrossPlatform} from '../text'
+import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
 import WithTooltip from '../with-tooltip'
 import type {StyleOverride} from '.'
 import type {

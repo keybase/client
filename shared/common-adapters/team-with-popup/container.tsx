@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import type {TextType} from '../text'
+import type {TextType} from '@/common-adapters/text'
 import {TeamWithPopup} from './'
 
 type OwnProps = {

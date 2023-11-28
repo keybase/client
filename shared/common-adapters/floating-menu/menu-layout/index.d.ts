@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import type * as Styles from '@/styles'
-import type {IconType, IconStyle} from '../../icon'
+import type {IconType, IconStyle} from '@/common-adapters/icon'
 
 export type MenuItem = {
   backgroundColor?: Styles.Color

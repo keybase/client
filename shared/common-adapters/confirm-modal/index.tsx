@@ -1,13 +1,13 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import ButtonBar from '../button-bar'
-import Icon from '../icon'
+import Icon from '@/common-adapters/icon'
 import Modal from '../modal'
-import Text from '../text'
+import Text from '@/common-adapters/text'
 import WaitingButton from '../waiting-button'
-import type {IconType} from '../icon.constants-gen'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
 import {Banner, BannerParagraph} from '../banner'
-import {Box2} from '../box'
+import {Box2} from '@/common-adapters/box'
 
 // generally one of icon or header will be given
 export type Props = {

@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import type {StylesTextCrossPlatform} from '../../text'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text'
 import TeamMention from './team'
 
 type OwnProps = {

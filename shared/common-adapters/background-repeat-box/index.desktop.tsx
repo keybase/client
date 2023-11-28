@@ -1,6 +1,6 @@
-import Box from '../box'
+import Box from '@/common-adapters/box'
 import * as Styles from '@/styles'
-import {urlsToImgSet} from '../icon.desktop'
+import {urlsToImgSet} from '@/common-adapters/icon.desktop'
 import type {Props} from '.'
 import {getAssetPath} from '@/constants/platform.desktop'
 

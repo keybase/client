@@ -1,7 +1,7 @@
 import type * as React from 'react'
 import type {StylesCrossPlatform} from '@/styles/css'
 import type {Position} from '@/styles'
-import type {MeasureRef} from '../measure-ref'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 
 // GatewayDests:
 // popup-root: At the root of the app. Sibling to root route renderer.

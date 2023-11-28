@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import type {StylesCrossPlatform} from '@/styles'
-import type {IconType} from '../icon.constants-gen'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 export type Action = {
   custom?: React.ReactNode
