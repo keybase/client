@@ -7,7 +7,6 @@ import * as Common from '../../common'
 import {pluralize} from '../../../util/string'
 import {memoize} from '../../../util/memoize'
 import {useAllChannelMetas} from '../../common/channel-hooks'
-import {useEditState} from './use-edit'
 import {useFocusEffect} from '@react-navigation/core'
 
 type Props = {
@@ -40,10 +39,11 @@ const getChannelsForList = memoize(
   }
 )
 
-const AddToChannels = (props: Props) => {
+const AddToChannels = React.memo(function AddToChannels(props: Props) {
   const teamID = props.teamID
   const myUsername = C.useCurrentUserState(s => s.username)
-  const usernames = props.usernames ?? [myUsername]
+  const justMe = React.useMemo(() => [myUsername], [myUsername])
+  const usernames = props.usernames ?? justMe
   const mode = props.usernames ? 'others' : 'self'
   const nav = Container.useSafeNavigation()
 
@@ -271,7 +271,7 @@ const AddToChannels = (props: Props) => {
       )}
     </Kb.Modal>
   )
-}
+})
 
 const HeaderRow = React.memo(function HeaderRow(p: {
   mode: 'others' | 'self'
@@ -307,11 +307,11 @@ const HeaderRow = React.memo(function HeaderRow(p: {
   )
 })
 
-const SelfChannelActions = (p: {
+const SelfChannelActions = React.memo(function SelfChannelActions(p: {
   meta: T.Chat.ConversationMeta
   reloadChannels: () => Promise<void>
   selfMode: boolean
-}) => {
+}) {
   const {meta, reloadChannels, selfMode} = p
   const nav = Container.useSafeNavigation()
   const yourOperations = C.useTeamsState(s => C.Teams.getCanPerformByID(s, meta.teamID))
@@ -321,17 +321,6 @@ const SelfChannelActions = (p: {
 
   const [waiting, setWaiting] = React.useState(false)
   const stopWaiting = React.useCallback(() => setWaiting(false), [])
-
-  const updatedTrigger = useEditState(s => s.editUpdatedTrigger)
-  const [lastUpdatedTrigger, setLastUpdatedTrigger] = React.useState(updatedTrigger)
-
-  if (lastUpdatedTrigger !== updatedTrigger) {
-    setTimeout(() => {
-      setLastUpdatedTrigger(updatedTrigger)
-      setWaiting(true)
-      reloadChannels().then(stopWaiting, stopWaiting)
-    }, 1)
-  }
 
   const onEditChannel = React.useCallback(() => {
     nav.safeNavigateAppend({
@@ -455,7 +444,8 @@ const SelfChannelActions = (p: {
       )}
     </Kb.Box2>
   )
-}
+})
+
 type ChannelRowProps = {
   channelMeta: T.Chat.ConversationMeta
   selected: boolean
@@ -469,8 +459,10 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
   const {channelMeta, mode, selected, onSelect: _onSelect, reloadChannels, usernames, rowHeight} = p
   const {conversationIDKey} = channelMeta
   const selfMode = mode === 'self'
-  const info = C.useConvoState(conversationIDKey, s => s.participants)
-  const participants = info.name.length ? info.name : info.all
+  const participants = C.useConvoState(conversationIDKey, s => {
+    const {name, all} = s.participants
+    return name.length ? name : all
+  })
   const activityLevel = C.useTeamsState(
     s => s.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
   )

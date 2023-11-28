@@ -2582,8 +2582,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     setParticipants: p => {
       set(s => {
-        if (!isEqual(s.participants, p)) {
-          s.participants = p
+        if (!isEqual(s.participants.all, p.all)) {
+          s.participants.all = p.all
+        }
+        if (!isEqual(s.participants.name, p.name)) {
+          s.participants.name = p.name
+        }
+        if (!isEqual(s.participants.contactName, p.contactName)) {
+          s.participants.contactName = p.contactName
         }
       })
     },
