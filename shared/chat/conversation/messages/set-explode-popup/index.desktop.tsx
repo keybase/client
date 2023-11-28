@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type * as T from '../../../../constants/types'
-import {Box2, Icon, Text, FloatingMenu, type MenuItems} from '../../../../common-adapters'
+import {Box2, Icon, Text, FloatingMenu, type MenuItems} from '@/common-adapters'
 import {platformStyles, globalColors} from '../../../../styles'
 import type {Props} from '.'
 

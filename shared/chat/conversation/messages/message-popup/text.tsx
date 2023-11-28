@@ -1,6 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type * as T from '../../../../constants/types'
 import type {Position, StylesCrossPlatform} from '../../../../styles'
 import {useItems, useHeader} from './hooks'

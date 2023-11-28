@@ -1,5 +1,5 @@
 import * as C from '../../../../constants'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type * as T from '../../../../constants/types'
 
 type Props = {messageID: T.Chat.MessageID}

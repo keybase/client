@@ -1,5 +1,5 @@
 import * as C from '../../../../constants'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 type Props = {
   onHidden: () => void

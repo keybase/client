@@ -1,4 +1,4 @@
-import {Text} from '../../../../common-adapters'
+import {Text} from '@/common-adapters'
 import UserNotice from '../user-notice'
 
 type Props = {

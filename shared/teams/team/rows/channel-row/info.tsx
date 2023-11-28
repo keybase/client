@@ -1,4 +1,4 @@
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 const sentence1 = 'Channels can be joined by anyone, unlike subteams.'
 const sentence2 = 'Anyone except readers can create channels.'

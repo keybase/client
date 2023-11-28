@@ -1,4 +1,4 @@
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import * as T from '../../../../constants/types'
 import * as dateFns from 'date-fns'

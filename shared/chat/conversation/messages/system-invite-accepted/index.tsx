@@ -1,6 +1,6 @@
 import * as C from '../../../../constants'
 import type * as T from '../../../../constants/types'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 
 type Props = {

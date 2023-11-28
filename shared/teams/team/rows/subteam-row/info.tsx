@@ -1,4 +1,4 @@
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 const SubteamRow = () => (
   <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>

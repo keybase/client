@@ -1,6 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import {Box, Icon, Text} from '../../../../common-adapters'
+import {Box, Icon, Text} from '@/common-adapters'
 import {styleSheetCreate, platformStyles, globalColors, globalMargins, globalStyles} from '../../../../styles'
 import type * as T from '../../../../constants/types'
 

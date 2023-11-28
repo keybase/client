@@ -1,6 +1,6 @@
 import * as C from '../../../../constants'
 import * as Container from '../../../../util/container'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '../../../../constants/types'
 import {Activity, useChannelParticipants} from '../../../common'

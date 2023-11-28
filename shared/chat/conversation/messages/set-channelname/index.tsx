@@ -1,5 +1,5 @@
 import type * as T from '../../../../constants/types'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 
 type Props = {
   message: T.Chat.MessageSetChannelname

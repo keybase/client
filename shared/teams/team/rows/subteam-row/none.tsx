@@ -1,4 +1,4 @@
-import {Box, Text} from '../../../../common-adapters'
+import {Box, Text} from '@/common-adapters'
 import {globalMargins, globalStyles} from '../../../../styles'
 
 const None = () => (

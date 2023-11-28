@@ -1,6 +1,6 @@
 import * as C from '../../../../constants'
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import {formatTimeForConversationList} from '../../../../util/timestamp'
 import {TimeContext, ParticipantsContext} from './contexts'

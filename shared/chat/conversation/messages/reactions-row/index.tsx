@@ -1,5 +1,5 @@
 import * as C from '../../../../constants'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import EmojiRow from '../emoji-row/container'
 import ReactButton from '../react-button/container'

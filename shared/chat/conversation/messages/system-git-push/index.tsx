@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as T from '../../../../constants/types'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 
 const branchRefPrefix = 'refs/heads/'

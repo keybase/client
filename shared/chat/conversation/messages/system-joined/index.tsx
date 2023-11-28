@@ -1,4 +1,4 @@
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import {getAddedUsernames} from '../system-users-added-to-conv'
 import {formatTimeForChat} from '../../../../util/timestamp'
