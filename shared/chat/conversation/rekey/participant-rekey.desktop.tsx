@@ -1,4 +1,4 @@
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import type {Props} from './participant-rekey.types'
 
 const Row = (props: {username: string; onUsernameClicked: (s: string) => void}) => (

@@ -1,6 +1,6 @@
 import * as C from '../../../constants'
 import {PortalHost} from '../../../common-adapters/portal.native'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import DropView, {type DropItems} from '../../../common-adapters/drop-view.native'

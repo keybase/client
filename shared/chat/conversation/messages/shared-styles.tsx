@@ -1,4 +1,4 @@
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 // TODO remove
 export const sharedStyles = Kb.Styles.styleSheetCreate(() => {
   const editing = {

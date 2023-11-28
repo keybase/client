@@ -1,6 +1,6 @@
 import * as C from '../../../constants'
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import InfoPanelMenu from './menu/container'
 import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'

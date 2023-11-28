@@ -1,12 +1,12 @@
 import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import logger from '../../../logger'
 import BigTeamHeader from './big-team-header'
 import BigTeamChannel from './big-team-channel'
 import {SmallTeam} from './small-team'
 import {BigTeamsLabel} from './big-teams-label'
-import {Box} from '../../../common-adapters'
+import {Box} from '@/common-adapters'
 import type * as T from '../../../constants/types'
 
 const makeRow = (

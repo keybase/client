@@ -1,4 +1,4 @@
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as C from '../../../constants'
 import type * as T from '../../../constants/types'
 import {useBotConversationIDKey} from './install'

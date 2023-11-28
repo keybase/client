@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as RowTypes from './types'
 import type * as T from '../../../constants/types'
 import Placeholder from './placeholder'

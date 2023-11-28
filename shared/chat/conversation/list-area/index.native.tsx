@@ -1,7 +1,7 @@
 import * as C from '../../../constants'
 import * as Container from '../../../util/container'
 import * as Hooks from './hooks'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'

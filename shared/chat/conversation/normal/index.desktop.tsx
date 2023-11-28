@@ -1,5 +1,5 @@
 import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Banner from '../bottom-banner/container'
 import InputArea from '../input-area/container'

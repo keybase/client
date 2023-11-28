@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as Styles from '../../../styles'
 import {useMessagePopup} from '../messages/message-popup'
 import {Video, ResizeMode} from 'expo-av'

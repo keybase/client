@@ -1,7 +1,7 @@
 import * as C from '../../../constants'
 import type * as T from '../../../constants/types'
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import MenuHeader from '../../team/rows/menu-header.new'
 
 type Props = {

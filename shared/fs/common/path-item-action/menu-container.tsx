@@ -1,6 +1,6 @@
 import * as C from '../../../constants'
 import * as Constants from '../../../constants/fs'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as Kbfs from '../../common/hooks'
 import * as React from 'react'
 import * as T from '../../../constants/types'

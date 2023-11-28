@@ -1,5 +1,5 @@
 import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import openSMS from '../../../util/sms'
 import {InviteBanner} from '.'

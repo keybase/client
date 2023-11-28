@@ -1,5 +1,5 @@
 import * as C from '../../../constants'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import ReactButton from './react-button/container'
 import type * as T from '../../../constants/types'

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as C from '../../../constants'
 import {colors, darkColors} from '../../../styles/colors'
 import * as Styles from '../../../styles'

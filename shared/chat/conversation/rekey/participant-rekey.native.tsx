@@ -1,4 +1,4 @@
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import NativeScrollView from '../../../common-adapters/scroll-view.native'
 import type {Props} from './participant-rekey.types'
 

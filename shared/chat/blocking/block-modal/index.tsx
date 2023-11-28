@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '@/common-adapters'
 import * as Styles from '../../../styles'
 
 // Type for extra RouteProp passed to block modal sometimes when launching the
