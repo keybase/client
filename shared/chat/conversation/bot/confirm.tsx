@@ -3,27 +3,15 @@ import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {useBotConversationIDKey} from './install'
 
-type LoaderProps = {
-  botUsername: string
-  conversationIDKey?: T.Chat.ConversationIDKey
-  teamID?: T.Teams.TeamID
-}
-
-const ConfirmBotRemoveLoader = (props: LoaderProps) => {
-  const botUsername = props.botUsername
-  const inConvIDKey = props.conversationIDKey
-  const teamID = props.teamID
-  const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
-  return <ConfirmBotRemove botUsername={botUsername} conversationIDKey={conversationIDKey} />
-}
-
 type Props = {
   botUsername: string
+  teamID?: T.Teams.TeamID
   conversationIDKey?: T.Chat.ConversationIDKey
 }
 
 const ConfirmBotRemove = (props: Props) => {
-  const {botUsername, conversationIDKey} = props
+  const {teamID, botUsername} = props
+  const conversationIDKey = useBotConversationIDKey(props.conversationIDKey, teamID)
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const removeBotMember = C.useChatContext(s => s.dispatch.removeBotMember)
   const onClose = () => {
@@ -46,4 +34,4 @@ const ConfirmBotRemove = (props: Props) => {
   )
 }
 
-export default ConfirmBotRemoveLoader
+export default ConfirmBotRemove
