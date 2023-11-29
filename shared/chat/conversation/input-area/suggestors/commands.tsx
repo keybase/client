@@ -137,7 +137,8 @@ export const useDataSource = (p: UseDataSourceProps) => {
           : blankCommands
 
       const sel = inputRef.current?.getSelection()
-      if (sel && lastTextRef.current) {
+      if (sel) {
+        if (!lastTextRef.current) return []
         const maxCmdLength = getMaxCmdLength(suggestBotCommands, suggestCommands)
 
         // a little messy. Check if the message starts with '/' and that the cursor is

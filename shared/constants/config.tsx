@@ -1035,6 +1035,10 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       if (loggedIn) {
         C.useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
       }
+
+      if (!causedByStartup) {
+        C.ignorePromise(C.useDaemonState.getState().dispatch.refreshAccounts())
+      }
     },
     setMobileAppState: nextAppState => {
       if (get().mobileAppState === nextAppState) return

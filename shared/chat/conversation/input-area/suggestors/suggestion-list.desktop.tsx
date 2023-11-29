@@ -39,11 +39,11 @@ class SuggestionList extends React.Component<Props> {
           />
         </Kb.ScrollView>
         {this.props.suggestBotCommandsUpdateStatus &&
-          this.props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank && (
-            <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">
-              <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
-            </Kb.Box2>
-          )}
+        this.props.suggestBotCommandsUpdateStatus !== T.RPCChat.UIBotCommandsUpdateStatusTyp.blank ? (
+          <Kb.Box2 style={styles.commandStatusContainer} fullWidth={true} direction="vertical">
+            <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
+          </Kb.Box2>
+        ) : null}
       </Kb.Box2>
     )
   }

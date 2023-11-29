@@ -184,7 +184,7 @@ const PopText = (ownProps: OwnProps) => {
     ...itemFlag,
   ]
   const header = useHeader(ordinal, false)
-  const snapPoints = React.useMemo(() => [6 * 40 + 25], [])
+  const snapPoints = React.useMemo(() => [8 * 40 + 25], [])
 
   return (
     <Kb.FloatingMenu

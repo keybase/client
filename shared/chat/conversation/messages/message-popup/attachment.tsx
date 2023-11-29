@@ -101,7 +101,7 @@ const PopAttach = (ownProps: OwnProps) => {
   ]
 
   const header = useHeader(ordinal, true)
-  const snapPoints = React.useMemo(() => [6 * 40 + 25], [])
+  const snapPoints = React.useMemo(() => [8 * 40 + 25], [])
 
   return (
     <Kb.FloatingMenu
