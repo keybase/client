@@ -10,9 +10,14 @@ import {Box2} from '@/common-adapters/box'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 import MenuLayout, {type MenuItems as _MenuItems} from './menu-layout'
 import * as Styles from '@/styles'
-import {BottomSheetModal, BottomSheetBackdrop, type BottomSheetBackdropProps} from '@/common-adapters/bottom-sheet'
+import {
+  BottomSheetModal,
+  BottomSheetBackdrop,
+  type BottomSheetBackdropProps,
+} from '@/common-adapters/bottom-sheet'
 import {useSafeAreaInsets} from '@/common-adapters/safe-area-view'
 import {FloatingModalContext} from './context'
+import {FullWindowOverlay} from 'react-native-screens'
 
 const Kb = {
   Box2,
@@ -81,6 +86,7 @@ const FloatingMenu = (props: Props) => {
   if (Styles.isMobile && isModal === 'bottomsheet') {
     return (
       <BottomSheetModal
+        containerComponent={FullWindowOverlay as any}
         snapPoints={snapPoints}
         enableDynamicSizing={true}
         ref={bottomSheetModalRef}
