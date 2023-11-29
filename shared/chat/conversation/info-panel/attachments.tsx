@@ -396,7 +396,7 @@ export const useAttachmentSections = (
   p: Props,
   loadImmediately: boolean,
   useFlexWrap: boolean
-): Array<Section<any, {title?: string}>> => {
+): {sections: Array<Section<any, {title?: string}>>} => {
   const conversationIDKey = C.useChatContext(s => s.id)
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<T.RPCChat.GalleryItemTyp>(
     T.RPCChat.GalleryItemTyp.media
@@ -527,8 +527,8 @@ export const useAttachmentSections = (
                     m.audioAmps.length > 0
                       ? ThumbTyp.AUDIO
                       : m.videoDuration
-                      ? ThumbTyp.VIDEO
-                      : ThumbTyp.IMAGE,
+                        ? ThumbTyp.VIDEO
+                        : ThumbTyp.IMAGE,
                   width: m.previewWidth,
                 }) as Thumb
             )
@@ -678,11 +678,11 @@ export const useAttachmentSections = (
     }
   }
 
-  return sections
+  return {sections}
 }
 
 const Attachments = (p: Props) => {
-  const sections = useAttachmentSections(p, true /* loadImmediately */, false /* flexWrap */)
+  const {sections} = useAttachmentSections(p, true /* loadImmediately */, false /* flexWrap */)
   return (
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
