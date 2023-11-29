@@ -138,7 +138,7 @@ const Channel = (props: OwnProps) => {
       ),
   }
 
-  const attachmentSections = useAttachmentSections(
+  const {sections: attachmentSections} = useAttachmentSections(
     {commonSections: [], renderTabs: () => null},
     selectedTab === 'attachments', // load data immediately
     true // variable width
