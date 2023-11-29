@@ -52,6 +52,10 @@ const Backdrop = React.memo(function Backdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
 })
 
+const FullWindow = ({children}: {children?: React.ReactNode}) => {
+  return Styles.isAndroid ? children : <FullWindowOverlay>{children}</FullWindowOverlay>
+}
+
 const FloatingMenu = (props: Props) => {
   const {snapPoints, items} = props
   const isModal = React.useContext(FloatingModalContext)
@@ -86,7 +90,7 @@ const FloatingMenu = (props: Props) => {
   if (Styles.isMobile && isModal === 'bottomsheet') {
     return (
       <BottomSheetModal
-        containerComponent={FullWindowOverlay as any}
+        containerComponent={FullWindow}
         snapPoints={snapPoints}
         enableDynamicSizing={true}
         ref={bottomSheetModalRef}
