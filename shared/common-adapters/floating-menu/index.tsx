@@ -53,7 +53,7 @@ const Backdrop = React.memo(function Backdrop(props: BottomSheetBackdropProps) {
 })
 
 const FullWindow = ({children}: {children?: React.ReactNode}) => {
-  return Styles.isAndroid ? children : <FullWindowOverlay>{children}</FullWindowOverlay>
+  return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
 }
 
 const FloatingMenu = (props: Props) => {
