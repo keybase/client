@@ -32,6 +32,7 @@ type State = Store & {
   dispatch: {
     loadDaemonAccounts: () => void
     loadDaemonBootstrapStatus: () => Promise<void>
+    refreshAccounts: () => Promise<void>
     resetState: () => void
     setError: (e?: Error) => void
     setFailed: (r: string) => void
@@ -163,37 +164,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             wait(getAccountsWaitKey, handshakeVersion, true)
           }
 
-          const configuredAccounts = (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? []
-          // already have one?
-          const {defaultUsername} = C.useConfigState.getState()
-          const {setAccounts, setDefaultUsername} = C.useConfigState.getState().dispatch
-
-          let existingDefaultFound = false as boolean
-          let currentName = ''
-          const nextConfiguredAccounts: Array<T.Config.ConfiguredAccount> = []
-          const usernameToFullname: {[username: string]: string} = {}
-
-          configuredAccounts.forEach(account => {
-            const {username, isCurrent, fullname, hasStoredSecret} = account
-            if (username === defaultUsername) {
-              existingDefaultFound = true
-            }
-            if (isCurrent) {
-              currentName = account.username
-            }
-            nextConfiguredAccounts.push({hasStoredSecret, username})
-            usernameToFullname[username] = fullname
-          })
-          if (!existingDefaultFound) {
-            setDefaultUsername(currentName)
-          }
-          setAccounts(nextConfiguredAccounts)
-          C.useUsersState.getState().dispatch.updates(
-            Object.keys(usernameToFullname).map(name => ({
-              info: {fullname: usernameToFullname[name]},
-              name,
-            }))
-          )
+          await get().dispatch.refreshAccounts()
 
           if (handshakeWait) {
             // someone dismissed this already?
@@ -261,6 +232,39 @@ export const _useState = Z.createZustand<State>((set, get) => {
       return await f()
     },
     onRestartHandshakeNative: _onRestartHandshakeNative,
+    refreshAccounts: async () => {
+      const configuredAccounts = (await T.RPCGen.loginGetConfiguredAccountsRpcPromise()) ?? []
+      // already have one?
+      const {defaultUsername} = C.useConfigState.getState()
+      const {setAccounts, setDefaultUsername} = C.useConfigState.getState().dispatch
+
+      let existingDefaultFound = false as boolean
+      let currentName = ''
+      const nextConfiguredAccounts: Array<T.Config.ConfiguredAccount> = []
+      const usernameToFullname: {[username: string]: string} = {}
+
+      configuredAccounts.forEach(account => {
+        const {username, isCurrent, fullname, hasStoredSecret} = account
+        if (username === defaultUsername) {
+          existingDefaultFound = true
+        }
+        if (isCurrent) {
+          currentName = account.username
+        }
+        nextConfiguredAccounts.push({hasStoredSecret, username})
+        usernameToFullname[username] = fullname
+      })
+      if (!existingDefaultFound) {
+        setDefaultUsername(currentName)
+      }
+      setAccounts(nextConfiguredAccounts)
+      C.useUsersState.getState().dispatch.updates(
+        Object.keys(usernameToFullname).map(name => ({
+          info: {fullname: usernameToFullname[name]},
+          name,
+        }))
+      )
+    },
     resetState: () => {
       set(s => ({
         ...s,
