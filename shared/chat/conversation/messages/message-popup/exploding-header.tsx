@@ -62,7 +62,7 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
-        {botUsername && (
+        {botUsername ? (
           <Kb.Box2 direction="horizontal">
             <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
             <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
@@ -77,12 +77,12 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
               />
             </Kb.Box2>
           </Kb.Box2>
-        )}
+        ) : null}
         <Kb.Box2 direction="horizontal">
           <Kb.Text center={true} type="BodySmall">
             {formatTimeForPopup(timestamp)}
           </Kb.Text>
-          {!!deviceRevokedAt && (
+          {deviceRevokedAt ? (
             <Kb.PopupHeaderText
               color={Kb.Styles.globalColors.white}
               backgroundColor={Kb.Styles.globalColors.blue}
@@ -90,7 +90,7 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
             >
               {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
             </Kb.PopupHeaderText>
-          )}{' '}
+          ) : null}
         </Kb.Box2>
       </Kb.Box2>
     )
