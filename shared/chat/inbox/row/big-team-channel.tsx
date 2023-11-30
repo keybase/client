@@ -56,12 +56,12 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
     isError
       ? styles.textError
       : selected
-      ? hasUnread
-        ? (styles.textSelectedBold as any)
-        : styles.textSelected
-      : hasUnread
-      ? styles.textPlainBold
-      : (styles.textPlain as any),
+        ? hasUnread
+          ? (styles.textSelectedBold as any)
+          : styles.textSelected
+        : hasUnread
+          ? styles.textPlainBold
+          : (styles.textPlain as any),
   ] as any)
 
   const name = (
@@ -158,7 +158,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {wordBreak: 'break-all'},
   }),
   container: {flexShrink: 0, height: RowSizes.bigRowHeight},
-  icon: {margin: 3},
+  icon: {
+    display: 'flex',
+    margin: 3,
+  },
   iconContainer: {
     ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
