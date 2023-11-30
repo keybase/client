@@ -51,7 +51,7 @@ const useDoAddEmojis = (
                 // TODO add plumbing when editing an existing emoji.
                 allowOverwrite: emojisToAdd.map(() => false),
                 convID: T.Chat.keyToConversationID(conversationIDKey),
-                filenames: emojisToAdd.map(e => e.path),
+                filenames: emojisToAdd.map(e => Kb.Styles.unnormalizePath(e.path)),
               },
             ],
             res => {
@@ -167,6 +167,7 @@ export const AddEmojiModal = (props: Props) => {
       .then(addFiles)
       .catch(() => {})
   }
+
   return !emojisToAdd.length ? (
     <Modal
       title="Add emoji"
@@ -201,7 +202,6 @@ const AddEmojiModalWrapper = (routableProps: RoutableProps) => {
   const teamID = routableProps.teamID
   return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} />
 }
-export default AddEmojiModalWrapper
 
 const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {
   const [dragOver, setDragOver] = React.useState(false)
@@ -478,3 +478,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginBottom: Kb.Styles.globalMargins.tiny,
   },
 }))
+
+export default AddEmojiModalWrapper
