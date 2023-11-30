@@ -26,8 +26,7 @@ const Container = () => {
     submitNewPassword(false)
   }
 
-  const loadPgpSettings = C.useSettingsPasswordState(s => s.dispatch.loadPgpSettings)
-  const onUpdatePGPSettings = loadPgpSettings
+  const onUpdatePGPSettings = C.useSettingsPasswordState(s => s.dispatch.loadPgpSettings)
   const props = {
     error,
     hasPGPKeyOnServer,

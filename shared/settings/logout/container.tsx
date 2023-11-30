@@ -43,8 +43,12 @@ const LogoutContainer = () => {
 
   const onLogout = Container.useSafeSubmit(_onLogout, false)
 
+  const onUpdatePGPSettings = C.useSettingsPasswordState(s => s.dispatch.loadPgpSettings)
+  const hasPGPKeyOnServer = C.useSettingsPasswordState(s => !!s.hasPGPKeyOnServer)
   return (
     <LogOut
+      hasPGPKeyOnServer={hasPGPKeyOnServer}
+      onUpdatePGPSettings={onUpdatePGPSettings}
       checkPasswordIsCorrect={checkPasswordIsCorrect}
       hasRandomPW={hasRandomPW}
       onBootstrap={onBootstrap}

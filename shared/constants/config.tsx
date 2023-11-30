@@ -124,7 +124,7 @@ const initialStore: Store = {
   },
   incomingShareUseOriginal: undefined,
   installerRanCount: 0,
-  isOnline: false,
+  isOnline: true,
   justDeletedSelf: '',
   justRevokedSelf: '',
   loadOnStartPhase: 'notStarted',

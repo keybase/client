@@ -60,7 +60,7 @@
     "android-clean": "cd android; ./gradlew clean",
     "android-debug": "react-native run-android --mode 'debug'",
     "android-install-downgrade": "adb install -r -d android/app/build/outputs/apk/debug/app-debug.apk",
-    "android-unsigned": "react-native run-android --mode 'releaseUnsigned'",
+    "android-unsigned": "react-native run-android --mode 'releaseUnsigned' --appId io.keybase.ossifrage.unsigned",
     "android-install-downgrade-unsigned": "adb install -r -d android/app/build/outputs/apk/releaseUnsigned/app-releaseUnsigned.apk",
     "clean-and-install": "rm -rf node_modules ; yarn pod-clean ; yarn modules ; yarn pod-install",
     "coverage": "rm -rf coverage-ts; npx typescript-coverage-report"

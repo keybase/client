@@ -5,12 +5,14 @@ import UpdatePassword from '../password'
 
 export type Props = {
   checkPasswordIsCorrect?: boolean
+  hasPGPKeyOnServer: boolean
   hasRandomPW?: boolean
   onBootstrap: () => void
   onCancel: () => void
   onCheckPassword: (password: string) => void
   onLogout: () => void
   onSavePassword: (password: string) => void
+  onUpdatePGPSettings: () => void
   waitingForResponse: boolean
 }
 
@@ -49,6 +51,8 @@ class LogOut extends React.Component<Props, State> {
     ) : this.props.hasRandomPW ? (
       <UpdatePassword
         error=""
+        onUpdatePGPSettings={this.props.onUpdatePGPSettings}
+        hasPGPKeyOnServer={this.props.hasPGPKeyOnServer}
         hasRandomPW={this.props.hasRandomPW}
         onCancel={this.props.onCancel}
         onSave={this.props.onSavePassword}

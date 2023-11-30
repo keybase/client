@@ -14,20 +14,19 @@ import {AliasInput, Modal} from './common'
 import {useEmojiState} from './use-emoji'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
 
-type Props = {
-  conversationIDKey: T.Chat.ConversationIDKey
-  defaultSelected?: EmojiData
-}
+type Props = {defaultSelected?: EmojiData}
 
 type ChosenEmoji = {
   emojiStr: string
   renderableEmoji: RenderableEmoji
 }
 
-export const AddAliasModal = (props: Props) => {
+const AddAliasModal = (props: Props) => {
+  const {defaultSelected} = props
   const [emoji, setEmoji] = React.useState<ChosenEmoji | undefined>(undefined)
   const [alias, setAlias] = React.useState('')
   const [error, setError] = React.useState<undefined | string>(undefined)
+  const conversationIDKey = C.useChatContext(s => s.id)
 
   const aliasInputRef = React.useRef<AliasInput>(null)
   const onChoose = (emojiStr: string, renderableEmoji: RenderableEmoji) => {
@@ -45,9 +44,8 @@ export const AddAliasModal = (props: Props) => {
 
   React.useEffect(
     () =>
-      props.defaultSelected &&
-      onChoose(getEmojiStr(props.defaultSelected), emojiDataToRenderableEmoji(props.defaultSelected)),
-    [props.defaultSelected]
+      defaultSelected && onChoose(getEmojiStr(defaultSelected), emojiDataToRenderableEmoji(defaultSelected)),
+    [defaultSelected]
   )
 
   const addAliasRpc = C.useRPC(T.RPCChat.localAddEmojiAliasRpcPromise)
@@ -62,7 +60,7 @@ export const AddAliasModal = (props: Props) => {
         addAliasRpc(
           [
             {
-              convID: T.Chat.keyToConversationID(props.conversationIDKey),
+              convID: T.Chat.keyToConversationID(conversationIDKey),
               existingAlias: emoji.emojiStr,
               newAlias: alias,
             },
@@ -241,9 +239,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-const AddEmojiAliasWrapper = (p: Props) => {
-  const conversationIDKey = p.conversationIDKey
-  const defaultSelected = p.defaultSelected
-  return <AddAliasModal conversationIDKey={conversationIDKey} defaultSelected={defaultSelected} />
-}
-export default AddEmojiAliasWrapper
+export default AddAliasModal
