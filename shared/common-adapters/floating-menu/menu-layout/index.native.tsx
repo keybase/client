@@ -96,7 +96,6 @@ const MenuRow = (props: MenuRowProps) => (
             style={{justifyContent: 'center'}}
           >
             <Kb.Box2 direction="horizontal" fullWidth={true}>
-              {props.decoration && <Kb.Box style={styles.flexOne} />}
               <Kb.Text type="Body" style={styleRowText(props)}>
                 {props.title}
               </Kb.Text>
@@ -108,7 +107,7 @@ const MenuRow = (props: MenuRowProps) => (
                   style={styles.badge}
                 />
               )}
-              {props.decoration && <Kb.Box style={styles.flexOne}>{props.decoration}</Kb.Box>}
+              {props.decoration}
             </Kb.Box2>
             {!!props.subTitle && (
               <Kb.Box2 direction="horizontal" fullWidth={true}>
