@@ -71,14 +71,14 @@ class UpdatePassword extends React.Component<Props, State> {
     const notification = this.props.error
       ? this.props.error
       : this.props.hasPGPKeyOnServer
-      ? "Changing your password will delete your PGP key from Keybase, and you'll need to generate or upload one again."
-      : null
+        ? "Changing your password will delete your PGP key from Keybase, and you'll need to generate or upload one again."
+        : null
 
     const hintType = this.state.errorSaving
       ? 'BodySmallError'
       : this.state.password.length >= 8 && this.state.passwordConfirm.length >= 8
-      ? 'BodySmallSuccess'
-      : 'BodySmall'
+        ? 'BodySmallSuccess'
+        : 'BodySmall'
     const hintText = this.state.errorSaving ? (
       this.state.errorSaving
     ) : this.state.password.length >= 8 && this.state.passwordConfirm.length >= 8 ? (
