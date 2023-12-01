@@ -192,3 +192,7 @@ dependencies {
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+// This requires a google-services.json file locally.  Drop it in
+// android/app/src/debug/google-services.json
+// android/app/src/releaseUnsigned/google-services.json
+apply plugin: 'com.google.gms.google-services'
