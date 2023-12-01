@@ -9,6 +9,8 @@ import {darkModeSupported, guiConfig, install} from 'react-native-kb'
 import * as DarkMode from './constants/darkmode'
 import {enableMapSet} from 'immer'
 
+console.log('------------- ios starting up ------------')
+
 enableMapSet()
 install()
 
