@@ -198,11 +198,14 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
       loggedInRoute.state.index = chatTabIdx
     }
 
-    if (isSplit) {
-      // set inbox + convo
-      chatStack.state = chatStack.state ?? {index: 0, routes: []}
-      chatStack.state.index = 0
+    // setup root
+    chatStack.state = {
+      index: 0,
+      routes: [{key: 'chatRoot', name: 'chatRoot'}],
+    }
 
+    if (isSplit) {
+      chatStack.state.index = 0
       const _chatRoot = chatStack.state.routes[0]
       // key is required or you'll run into issues w/ the nav
       const chatRoot = {
@@ -212,9 +215,6 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
       } as const
       chatStack.state.routes = [chatRoot]
     } else {
-      // set inbox + convo
-      chatStack.state = chatStack.state ?? {index: 0, routes: []}
-      chatStack.state.index = 1
       // key is required or you'll run into issues w/ the nav
       let convoRoute = {
         key: `chatConversation-${conversationIDKey}`,
@@ -230,8 +230,9 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
         }
       }
 
-      const chatRoot = chatStack.state.routes[0]!
+      const chatRoot = chatStack.state.routes[0]
       chatStack.state.routes = [chatRoot, convoRoute] as typeof chatStack.state.routes
+      chatStack.state.index = 1
     }
   })
 
