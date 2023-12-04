@@ -82,17 +82,19 @@ const Advanced = () => {
 
   // load it
   if (disableSpellCheck === undefined) {
-    loadDisableSpellcheck(
-      [{path: 'ui.disableSpellCheck'}],
-      result => {
-        const res = result.b ?? false
-        initialDisableSpellCheck.current = res
-        setDisableSpellcheck(res)
-      },
-      () => {
-        setDisableSpellcheck(false)
-      }
-    )
+    setTimeout(() => {
+      loadDisableSpellcheck(
+        [{path: 'ui.disableSpellCheck'}],
+        result => {
+          const res = result.b ?? false
+          initialDisableSpellCheck.current = res
+          setDisableSpellcheck(res)
+        },
+        () => {
+          setDisableSpellcheck(false)
+        }
+      )
+    }, 1)
   }
   const submitDisableSpellcheck = C.useRPC(T.RPCGen.configGuiSetValueRpcPromise)
 
