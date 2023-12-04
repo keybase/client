@@ -534,29 +534,33 @@ public class KbModule extends KbSpec {
     @ReactMethod
     public void androidGetInitialShareFileUrl(Promise promise) {
         try {
-
-        final Activity activity = this.reactContext.getCurrentActivity();
-        if (activity != null) {
-            Method m = activity.getClass().getMethod("getShareFileUrl");
-            String shareFileUrl = String.valueOf(m.invoke(activity));
-            promise.resolve(shareFileUrl);
-            return;
+            final Activity activity = this.reactContext.getCurrentActivity();
+            if (activity != null) {
+                Method m = activity.getClass().getMethod("getInitialShareFileUrl");
+                Object shareFileUrl = m.invoke(activity);
+                if (shareFileUrl != null) {
+                    promise.resolve(String.valueOf(shareFileUrl));
+                    return;
+                }
+            }
+        } catch (Exception ex){
+             Log.d("androidGetInitialShareFileUrl exception", ex.toString());
         }
-        } catch (Exception ex){}
         promise.resolve("");
     }
 
     @ReactMethod
     public void androidGetInitialShareText(Promise promise) {
         try {
-
-        final Activity activity = this.reactContext.getCurrentActivity();
-        if (activity != null) {
-            Method m = activity.getClass().getMethod("getShareText");
-            String shareText =String.valueOf(m.invoke(activity));
-            promise.resolve(shareText);
-            return;
-        }
+            final Activity activity = this.reactContext.getCurrentActivity();
+            if (activity != null) {
+                Method m = activity.getClass().getMethod("getInitialShareText");
+                Object shareText = m.invoke(activity);
+                if (shareText != null) {
+                    promise.resolve(String.valueOf(shareText));
+                    return;
+                }
+            }
         } catch (Exception ex){}
         promise.resolve("");
     }

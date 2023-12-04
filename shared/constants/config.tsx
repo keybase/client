@@ -862,7 +862,10 @@ export const _useConfigState = Z.createZustand<State>((set, get) => {
       })
       // already loaded, so just go now
       if (get().startup.loaded) {
-        C.useRouterState.getState().dispatch.navigateAppend('incomingShareNew')
+        // android needs the nav to render first sadly
+        setTimeout(() => {
+          C.useRouterState.getState().dispatch.navigateAppend('incomingShareNew')
+        }, 500)
       }
     },
     setBadgeState: b => {

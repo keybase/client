@@ -59,7 +59,10 @@ export const MobileSendToChat = (props: Props) => {
       navigateAppend({
         props: {
           conversationIDKey,
-          pathAndOutboxIDs: sendPaths.map(p => ({path: p, url: fileContext.get(p)?.url})),
+          pathAndOutboxIDs: sendPaths.map(p => ({
+            path: Kb.Styles.normalizePath(p),
+            url: fileContext.get(p)?.url,
+          })),
           selectConversationWithReason: isFromShareExtension ? 'extension' : 'files',
           tlfName,
         },
