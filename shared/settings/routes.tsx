@@ -22,6 +22,7 @@ import inviteSent from './invite-generated/page'
 import logOut from './logout/page'
 import password from './password/page'
 import deleteConfirm from './delete-confirm/page'
+import mobileCheckPassphrase from './delete-confirm/check-passphrase.page'
 import disableCertPinningModal from './disable-cert-pinning-modal/page'
 import settingsDeleteAddress from './account/confirm-delete.modal.page'
 import keybaseLinkError from '../deeplinks/page'
@@ -88,7 +89,7 @@ export const newModalRoutes = {
   ...sharedNewModalRoutes,
   [Constants.settingsLogOutTab]: logOut,
   [Constants.settingsPasswordTab]: password,
-  checkPassphraseBeforeDeleteAccount: deleteConfirm,
+  checkPassphraseBeforeDeleteAccount: mobileCheckPassphrase,
   modalFeedback: feedback,
   settingsContactsJoined,
   settingsPushPrompt,

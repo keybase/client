@@ -145,6 +145,7 @@ export const _useState = Z.createZustand<State>(set => {
 
         await T.RPCGen.loginAccountDeleteRpcPromise({passphrase}, settingsWaitingKey)
         C.useConfigState.getState().dispatch.setJustDeletedSelf(username)
+        C.useRouterState.getState().dispatch.clearModals()
         C.useRouterState.getState().dispatch.navigateAppend(Tabs.loginTab)
       }
       C.ignorePromise(f())
