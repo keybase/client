@@ -532,14 +532,19 @@ public class KbModule extends KbSpec {
     }
 
     @ReactMethod
-    public void androidGetInitialShareFileUrl(Promise promise) {
+    public void androidGetInitialShareFileUrls(Promise promise) {
         try {
             final Activity activity = this.reactContext.getCurrentActivity();
             if (activity != null) {
-                Method m = activity.getClass().getMethod("getInitialShareFileUrl");
-                Object shareFileUrl = m.invoke(activity);
-                if (shareFileUrl != null) {
-                    promise.resolve(String.valueOf(shareFileUrl));
+                Method m = activity.getClass().getMethod("getInitialShareFileUrls");
+                Object o = m.invoke(activity);
+                if (o != null && o instanceof String[]) {
+                    String[] us = (String[]) o;
+                    WritableArray writableArray = Arguments.createArray();
+                    for (String str : us) {
+                        writableArray.pushString(str);
+                    }
+                    promise.resolve(writableArray);
                     return;
                 }
             }

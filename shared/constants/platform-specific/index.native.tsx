@@ -161,7 +161,7 @@ const loadStartupDetails = async () => {
   let followUser = ''
   let link = ''
   let tab = ''
-  let sharePath = ''
+  let sharePaths = new Array<string>()
   let shareText = ''
 
   // Top priority, push
@@ -173,9 +173,9 @@ const loadStartupDetails = async () => {
     logger.info('initialState: link', link)
     // Second priority, deep link
     link = initialUrl
-  } else if (share?.fileUrl || share?.text) {
+  } else if (share?.fileUrls || share?.text) {
     logger.info('initialState: share')
-    sharePath = share.fileUrl
+    sharePaths = share.fileUrls
     shareText = share.text
   } else if (routeState) {
     // Last priority, saved from last session
@@ -208,8 +208,8 @@ const loadStartupDetails = async () => {
 
   const {setAndroidShare} = C.useConfigState.getState().dispatch
 
-  if (sharePath) {
-    setAndroidShare({type: T.RPCGen.IncomingShareType.file, url: sharePath})
+  if (sharePaths.length) {
+    setAndroidShare({type: T.RPCGen.IncomingShareType.file, urls: sharePaths})
   } else if (shareText) {
     setAndroidShare({text: shareText, type: T.RPCGen.IncomingShareType.text})
   }

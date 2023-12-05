@@ -29,6 +29,7 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.modules.core.PermissionListener;
 
@@ -42,6 +43,9 @@ import java.io.OutputStream;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import io.keybase.ossifrage.modules.NativeLogger;
@@ -59,14 +63,14 @@ public class MainActivity extends ReactActivity {
     private boolean isUsingHardwareKeyboard = false;
     static boolean createdReact = false;
     private Bundle initialBundleFromNotification;
-    private String shareFileUrl;
+    private String[] shareFileUrls;
     private String shareText;
 
     public void setInitialBundleFromNotification(Bundle bundle) {
         this.initialBundleFromNotification = bundle;
     }
-    public void setInitialShareFileUrl(String s) {
-        this.shareFileUrl = s;
+    public void setInitialShareFileUrls(String [] urls) {
+        this.shareFileUrls = urls;
     }
     public void setInitialShareText(String text) {
         this.shareText = text;
@@ -77,9 +81,9 @@ public class MainActivity extends ReactActivity {
         this.initialBundleFromNotification = null;
         return b;
     }
-    public String getInitialShareFileUrl() {
-        String s = this.shareFileUrl;
-        this.shareFileUrl = null;
+    public String []getInitialShareFileUrls() {
+        String []s = this.shareFileUrls;
+        this.shareFileUrls = null;
         return s;
     }
     public String getInitialShareText() {
@@ -285,8 +289,18 @@ public class MainActivity extends ReactActivity {
             Bundle bundleFromNotification = intent.getBundleExtra("notification");
             intent.removeExtra("notification");
 
-            Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+            String action = intent.getAction();
+
+            Uri [] uris_ = null;
+            if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+                ArrayList<Uri> alUri = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                uris_ = alUri.toArray(new Uri[0]);
+            } else if (Intent.ACTION_SEND.equals(action)) {
+                Uri oneUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                uris_ = new Uri[]{oneUri};
+            }
             intent.removeExtra(Intent.EXTRA_STREAM);
+            final Uri [] uris = uris_;
 
             String subject = intent.getStringExtra(Intent.EXTRA_SUBJECT);
             intent.removeExtra(Intent.EXTRA_SUBJECT);
@@ -317,13 +331,18 @@ public class MainActivity extends ReactActivity {
                 }
 
                 private void run() {
+                    String[] filePaths = new String[uris != null ? uris.length : 0];
+                    if (uris != null && uris.length > 0) {
+                        for (int i = 0; i < uris.length; i++) {
+                            filePaths [i] = readFileFromUri(getReactContext(), uris[i]);
+                        }
+                    }
+                    filePaths = Arrays.stream(filePaths).filter(Objects::nonNull).toArray(String[]::new);
+
                     if (bundleFromNotification != null) {
                         setInitialBundleFromNotification(bundleFromNotification);
-                    } else if (uri != null) {
-                        String filePath = readFileFromUri(getReactContext(), uri);
-                        if (filePath != null) {
-                            setInitialShareFileUrl(filePath);
-                        }
+                    } else if (filePaths.length != 0) {
+                        setInitialShareFileUrls(filePaths);
                     } else if (textPayload.length() > 0){
                         setInitialShareText(textPayload);
                     }
@@ -338,13 +357,14 @@ public class MainActivity extends ReactActivity {
                         emitter.emit("initialIntentFromNotification", Arguments.fromBundle(bundleFromNotification));
                     }
 
-                    if (uri != null) {
-                        String filePath = readFileFromUri(getReactContext(), uri);
-                        if (filePath != null) {
-                            WritableMap args = Arguments.createMap();
-                            args.putString("localPath", filePath);
-                            emitter.emit("onShareData", args);
+                    if (filePaths.length != 0) {
+                        WritableMap args = Arguments.createMap();
+                        WritableArray lPaths = Arguments.createArray();
+                        for (String path : filePaths) {
+                            lPaths.pushString(path);
                         }
+                        args.putArray("localPaths", lPaths);
+                        emitter.emit("onShareData", args);
                     } else if (textPayload.length() > 0) {
                         WritableMap args = Arguments.createMap();
                         args.putString("text", textPayload);

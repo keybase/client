@@ -102,9 +102,9 @@ export const androidGetInitialBundleFromNotification = () => {
   }
   return Promise.reject();
 };
-export const androidGetInitialShareFileUrl = () => {
+export const androidGetInitialShareFileUrls = () => {
   if (Platform.OS === 'android') {
-    return Kb.androidGetInitialShareFileUrl();
+    return Kb.androidGetInitialShareFileUrls();
   }
   return Promise.reject();
 };

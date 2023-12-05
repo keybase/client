@@ -45,7 +45,7 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 export type Store = {
   allowAnimatedEmojis: boolean
   androidShare?:
-    | {type: T.RPCGen.IncomingShareType.file; url: string}
+    | {type: T.RPCGen.IncomingShareType.file; urls: Array<string>}
     | {type: T.RPCGen.IncomingShareType.text; text: string}
   appFocused: boolean
   badgeState?: T.RPCGen.BadgeState

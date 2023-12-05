@@ -7,7 +7,7 @@ import {
   androidGetRegistrationToken,
   androidSetApplicationIconBadgeNumber,
   androidGetInitialBundleFromNotification,
-  androidGetInitialShareFileUrl,
+  androidGetInitialShareFileUrls,
   androidGetInitialShareText,
   getNativeEmitter,
 } from 'react-native-kb'
@@ -177,15 +177,15 @@ const listenForNativeAndroidIntentNotifications = async () => {
     }
   })
 
-  RNEmitter.addListener('onShareData', (evt: {text?: string; localPath?: string}) => {
+  RNEmitter.addListener('onShareData', (evt: {text?: string; localPaths?: Array<string>}) => {
     logger.debug('[ShareDataIntent]', evt)
     const {setAndroidShare} = C.useConfigState.getState().dispatch
 
     const text = evt.text
-    const url = evt.localPath
+    const urls = evt.localPaths
 
-    if (url) {
-      setAndroidShare({type: T.RPCGen.IncomingShareType.file, url})
+    if (urls) {
+      setAndroidShare({type: T.RPCGen.IncomingShareType.file, urls})
     } else if (text) {
       setAndroidShare({text, type: T.RPCGen.IncomingShareType.text})
     }
@@ -215,9 +215,9 @@ const iosListenForPushNotificationsFromJS = () => {
 
 const getStartupDetailsFromInitialShare = async () => {
   if (isAndroid) {
-    const fileUrl = await androidGetInitialShareFileUrl()
+    const fileUrls = await androidGetInitialShareFileUrls()
     const text = await androidGetInitialShareText()
-    return {fileUrl, text}
+    return {fileUrls, text}
   } else {
     return Promise.resolve(undefined)
   }
