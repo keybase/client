@@ -99,15 +99,12 @@ public class MainActivity extends ReactActivity {
     }
 
     private static void createDummyFile(Context context) {
-        final File dummyFile = new File(context.getFilesDir(), "dummy.txt");
+        File dummyFile = new File(context.getFilesDir(), "dummy.txt");
         try {
             if (dummyFile.createNewFile()) {
                 dummyFile.setWritable(true);
-                final FileOutputStream stream = new FileOutputStream(dummyFile);
-                try {
+                try (FileOutputStream stream = new FileOutputStream(dummyFile)) {
                     stream.write("hi".getBytes());
-                } finally {
-                    stream.close();
                 }
             } else {
                 Log.d(TAG, "dummy.txt exists");
@@ -153,8 +150,7 @@ public class MainActivity extends ReactActivity {
 
     private String colorSchemeForCurrentConfiguration() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            int currentNightMode =
-                this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+            int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
             switch (currentNightMode) {
                 case Configuration.UI_MODE_NIGHT_NO:
                     return "light";
@@ -224,6 +220,45 @@ public class MainActivity extends ReactActivity {
         }
     }
 
+    private String getFileNameFromResolver(ContentResolver resolver, Uri uri, String extension) {
+        // Use a GUID default.
+        String filename = String.format("%s.%s", UUID.randomUUID().toString(), extension);
+
+        String[] nameProjection = {MediaStore.MediaColumns.DISPLAY_NAME};
+        try (Cursor cursor = resolver.query(uri, nameProjection, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                filename = cursor.getString(0);
+            }
+        }
+
+        int cut = filename.lastIndexOf('/');
+        if (cut != -1) {
+            filename = filename.substring(cut + 1);
+        }
+
+        return filename;
+    }
+
+    private File saveFileToCache(ReactContext reactContext, Uri uri, String filename) {
+        File file = new File(reactContext.getCacheDir(), filename);
+
+        try (InputStream istream = reactContext.getContentResolver().openInputStream(uri);
+                OutputStream ostream = new FileOutputStream(file)) {
+
+            byte[] buf = new byte[64 * 1024];
+            int len;
+
+            while ((len = istream.read(buf)) != -1) {
+                ostream.write(buf, 0, len);
+            }
+
+        } catch (IOException ex) {
+            Log.w(TAG, "Error writing shared file " + uri.toString(), ex);
+        }
+
+        return file;
+    }
+
     private String readFileFromUri(ReactContext reactContext, Uri uri) {
         if (uri == null) return null;
 
@@ -234,41 +269,11 @@ public class MainActivity extends ReactActivity {
             String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
 
             // Load the filename from the resolver.
-            // Of course, Android makes this super clean and easy.
-            // Use a GUID default.
-            String filename = String.format("%s.%s", UUID.randomUUID().toString(), extension);
-            String[] nameProjection = {MediaStore.MediaColumns.DISPLAY_NAME};
-            Cursor cursor = resolver.query(uri, nameProjection, null, null, null);
-            if (cursor != null) {
-                try {
-                    if (cursor.moveToFirst()) {
-                        filename = cursor.getString(0);
-                    }
-                } finally {
-                    cursor.close();
-                }
-            }
-
-            int cut = filename.lastIndexOf('/');
-            if (cut != -1) {
-                filename = filename.substring(cut + 1);
-            }
+            String filename = getFileNameFromResolver(resolver, uri, extension);
 
             // Now load the file itself.
-            File file = new File(reactContext.getCacheDir(), filename);
-            try {
-                InputStream istream = resolver.openInputStream(uri);
-                OutputStream ostream = new FileOutputStream(file);
-
-                byte[] buf = new byte[64 * 1024];
-                int len;
-                while ((len = istream.read(buf)) != -1) {
-                    ostream.write(buf, 0, len);
-                }
-                filePath = file.getPath();
-            } catch (IOException ex) {
-                Log.w(TAG, "error writing shared file " + uri.toString());
-            }
+            File file = saveFileToCache(reactContext, uri, filename);
+            filePath = file.getPath();
         } else {
             filePath = uri.getPath();
         }
@@ -312,7 +317,7 @@ public class MainActivity extends ReactActivity {
             if (subject != null) {
                 sb.append(subject);
             }
-            if (subject!=null&&text!=null){
+            if (subject != null && text != null){
                 sb.append(" ");
             }
             if (text != null) {
@@ -331,13 +336,10 @@ public class MainActivity extends ReactActivity {
                 }
 
                 private void run() {
-                    String[] filePaths = new String[uris != null ? uris.length : 0];
-                    if (uris != null && uris.length > 0) {
-                        for (int i = 0; i < uris.length; i++) {
-                            filePaths [i] = readFileFromUri(getReactContext(), uris[i]);
-                        }
-                    }
-                    filePaths = Arrays.stream(filePaths).filter(Objects::nonNull).toArray(String[]::new);
+                    String[] filePaths = uris != null ? Arrays.stream(uris)
+                        .map(uri -> readFileFromUri(getReactContext(), uri))
+                        .filter(Objects::nonNull)
+                        .toArray(String[]::new) : new String[0];
 
                     if (bundleFromNotification != null) {
                         setInitialBundleFromNotification(bundleFromNotification);
