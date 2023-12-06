@@ -325,6 +325,19 @@ public class MainActivity extends ReactActivity {
             }
             String textPayload = sb.toString();
 
+            final String[] filePaths = uris != null ? Arrays.stream(uris)
+                .map(uri -> readFileFromUri(getReactContext(), uri))
+                .filter(Objects::nonNull)
+                .toArray(String[]::new) : new String[0];
+
+            if (bundleFromNotification != null) {
+                setInitialBundleFromNotification(bundleFromNotification);
+            } else if (filePaths != null && filePaths.length != 0) {
+                setInitialShareFileUrls(filePaths);
+            } else if (textPayload.length() > 0){
+                setInitialShareText(textPayload);
+            }
+
             // Closure like class so we can keep our emit logic together
             class Emit {
                 private final ReactContext context;
@@ -336,19 +349,6 @@ public class MainActivity extends ReactActivity {
                 }
 
                 private void run() {
-                    String[] filePaths = uris != null ? Arrays.stream(uris)
-                        .map(uri -> readFileFromUri(getReactContext(), uri))
-                        .filter(Objects::nonNull)
-                        .toArray(String[]::new) : new String[0];
-
-                    if (bundleFromNotification != null) {
-                        setInitialBundleFromNotification(bundleFromNotification);
-                    } else if (filePaths.length != 0) {
-                        setInitialShareFileUrls(filePaths);
-                    } else if (textPayload.length() > 0){
-                        setInitialShareText(textPayload);
-                    }
-
                     ReactContext context = getReactContext();
                     if (context == null) {
                         return;
@@ -388,7 +388,6 @@ public class MainActivity extends ReactActivity {
                 if (context != null) {
                     DeviceEventManagerModule.RCTDeviceEventEmitter emitter = context
                         .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
-
                     (new Emit(emitter, context)).run();
 
                 } else {
