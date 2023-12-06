@@ -272,24 +272,15 @@ const useIncomingShareItems = () => {
       return
     }
 
-    const item =
+    const items =
       androidShare.type === T.RPCGen.IncomingShareType.file
-        ? {
-            originalPath: androidShare.url,
-            type: T.RPCGen.IncomingShareType.file,
-          }
-        : {
-            content: androidShare.text,
-            type: T.RPCGen.IncomingShareType.text,
-          }
-    setIncomingShareItems([item])
+        ? androidShare.urls.map(u => ({originalPath: u, type: T.RPCGen.IncomingShareType.file}))
+        : [{content: androidShare.text, type: T.RPCGen.IncomingShareType.text}]
+    setIncomingShareItems(items)
   }, [androidShare, setIncomingShareItems])
   React.useEffect(getIncomingShareItemsAndroid, [getIncomingShareItemsAndroid])
 
-  return {
-    incomingShareError,
-    incomingShareItems,
-  }
+  return {incomingShareError, incomingShareItems}
 }
 
 const IncomingShareMain = () => {

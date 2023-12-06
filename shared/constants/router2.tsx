@@ -315,7 +315,9 @@ export const _useState = Z.createZustand<State>((set, get) => {
     navigateAppend: (path, replace, fromKey) => {
       DEBUG_NAV && console.log('[Nav] navigateAppend', {path})
       const n = _getNavigator()
-      if (!n) return
+      if (!n) {
+        return
+      }
       const ns = getRootState()
       if (!ns) {
         return

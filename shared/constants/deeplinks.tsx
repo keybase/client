@@ -246,7 +246,10 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
           break
         case 'incoming-share':
-          C.useRouterState.getState().dispatch.navigateAppend('incomingShareNew')
+          // android needs to render first when coming back
+          setTimeout(() => {
+            C.useRouterState.getState().dispatch.navigateAppend('incomingShareNew')
+          }, 500)
           return
         case 'team-invite-link':
           C.useTeamsState.getState().dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')

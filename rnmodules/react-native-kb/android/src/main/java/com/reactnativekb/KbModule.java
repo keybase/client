@@ -271,32 +271,42 @@ public class KbModule extends KbSpec {
         File file = new File(uriPath);
         Intent intent = new Intent(Intent.ACTION_SEND).setType(mimeType);
         if (mimeType.startsWith("text/")) {
-            try {
-                BufferedReader br = new BufferedReader(new FileReader(file));
-                StringBuilder textBuilder = new StringBuilder();
-                String text;
-                boolean isFirst = true;
-                while (textBuilder.length() < MAX_TEXT_FILE_SIZE && (text = br.readLine()) != null) {
-                    if (isFirst) {
-                        isFirst = false;
-                    } else {
-                        textBuilder.append(LINE_SEPARATOR);
-                    }
-                    textBuilder.append(text);
-                }
-                intent.putExtra(Intent.EXTRA_TEXT, textBuilder.toString());
-            } catch (FileNotFoundException ex) {
-                // Create our own exceptions for the promise so we don't leak anything.
-                promise.reject(new Exception("File not found"));
-                return;
-            } catch (IOException ex) {
-                promise.reject(new Exception("Error reading the file"));
-                return;
-            }
+            handleTextFileSharing(file, intent, promise);
         } else {
-            Uri fileUri = FileProvider.getUriForFile(reactContext, reactContext.getPackageName() + ".fileprovider", file);
-            intent.putExtra(Intent.EXTRA_STREAM, fileUri);
+            handleNonTextFileSharing(file, intent, promise);
         }
+    }
+    private void handleTextFileSharing(File file, Intent intent, Promise promise) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            StringBuilder textBuilder = new StringBuilder();
+            String text;
+            boolean isFirst = true;
+
+            while (textBuilder.length() < MAX_TEXT_FILE_SIZE && (text = br.readLine()) != null) {
+                if (!isFirst) {
+                    textBuilder.append(LINE_SEPARATOR);
+                }
+                textBuilder.append(text);
+                isFirst = false;
+            }
+            intent.putExtra(Intent.EXTRA_TEXT, textBuilder.toString());
+        } catch (FileNotFoundException ex) {
+            promise.reject(new Exception("File not found"));
+            return;
+        } catch (IOException ex) {
+            promise.reject(new Exception("Error reading the file"));
+            return;
+        }
+        startSharing(intent, promise);
+    }
+
+    private void handleNonTextFileSharing(File file, Intent intent, Promise promise) {
+        Uri fileUri = FileProvider.getUriForFile(reactContext, reactContext.getPackageName() + ".fileprovider", file);
+        intent.putExtra(Intent.EXTRA_STREAM, fileUri);
+        startSharing(intent, promise);
+    }
+
+    private void startSharing(Intent intent, Promise promise) {
         if (intent.resolveActivity(reactContext.getPackageManager()) != null) {
             Intent chooser = Intent.createChooser(intent, "Send to");
             // Android 5.1.1 fails `startActivity` below without this flag in the Intent.
@@ -532,31 +542,40 @@ public class KbModule extends KbSpec {
     }
 
     @ReactMethod
-    public void androidGetInitialShareFileUrl(Promise promise) {
+    public void androidGetInitialShareFileUrls(Promise promise) {
         try {
-
-        final Activity activity = this.reactContext.getCurrentActivity();
-        if (activity != null) {
-            Method m = activity.getClass().getMethod("getShareFileUrl");
-            String shareFileUrl = String.valueOf(m.invoke(activity));
-            promise.resolve(shareFileUrl);
-            return;
+            final Activity activity = this.reactContext.getCurrentActivity();
+            if (activity != null) {
+                Method m = activity.getClass().getMethod("getInitialShareFileUrls");
+                Object o = m.invoke(activity);
+                if (o != null && o instanceof String[]) {
+                    String[] us = (String[]) o;
+                    WritableArray writableArray = Arguments.createArray();
+                    for (String str : us) {
+                        writableArray.pushString(str);
+                    }
+                    promise.resolve(writableArray);
+                    return;
+                }
+            }
+        } catch (Exception ex){
+             Log.d("androidGetInitialShareFileUrl exception", ex.toString());
         }
-        } catch (Exception ex){}
         promise.resolve("");
     }
 
     @ReactMethod
     public void androidGetInitialShareText(Promise promise) {
         try {
-
-        final Activity activity = this.reactContext.getCurrentActivity();
-        if (activity != null) {
-            Method m = activity.getClass().getMethod("getShareText");
-            String shareText =String.valueOf(m.invoke(activity));
-            promise.resolve(shareText);
-            return;
-        }
+            final Activity activity = this.reactContext.getCurrentActivity();
+            if (activity != null) {
+                Method m = activity.getClass().getMethod("getInitialShareText");
+                Object shareText = m.invoke(activity);
+                if (shareText != null) {
+                    promise.resolve(String.valueOf(shareText));
+                    return;
+                }
+            }
         } catch (Exception ex){}
         promise.resolve("");
     }

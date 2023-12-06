@@ -47,7 +47,7 @@ export interface Spec extends TurboModule {
   androidAppColorSchemeChanged(mode: string /*'system' | 'alwaysDark' | 'alwaysLight' | ''*/): void
   androidSetApplicationIconBadgeNumber(n: number): void
   androidGetInitialBundleFromNotification(): Promise<any>
-  androidGetInitialShareFileUrl(): Promise<string>
+  androidGetInitialShareFileUrls(): Promise<Array<string>>
   androidGetInitialShareText(): Promise<string>
   engineReset(): void
   engineStart(): void
