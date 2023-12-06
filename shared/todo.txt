@@ -1,2 +1,5 @@
 Some short term todos:
 swipeable2 slow
+
+android audio not working
+ipad
