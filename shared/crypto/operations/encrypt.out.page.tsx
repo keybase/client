@@ -8,7 +8,7 @@ const Output = React.lazy(async () => {
 const getOptions = () => ({
   headerShown: true,
   needsKeyboard: false,
-  title: 'Encrypt',
+  title: 'Encrypted',
 })
 
 const Screen = () => (

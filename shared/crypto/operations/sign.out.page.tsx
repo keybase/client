@@ -10,7 +10,7 @@ const getOptions = () => ({
   headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftCancel2 {...p} />,
   headerShown: true,
   needsKeyboard: false,
-  title: 'Decrypt',
+  title: 'Signed',
 })
 
 const Screen = () => (
