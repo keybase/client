@@ -235,8 +235,8 @@ const styles = Kb.Styles.styleSheetCreate(
       container: {
         flexGrow: 1,
         flexShrink: 0,
-        width: '100%',
         height: 40 - 1,
+        width: '100%',
       },
       desc: {
         ...Kb.Styles.platformStyles({isElectron: Kb.Styles.desktopStyles.windowDraggingClickable}),
