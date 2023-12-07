@@ -83,11 +83,7 @@ const Input = (props: Props) => {
   )
 
   const onKeyPress = React.useCallback(
-    (
-      e: NativeSyntheticEvent<{
-        key: string
-      }>
-    ) => {
+    (e: NativeSyntheticEvent<{key: string}>) => {
       handleKeyDown(noop, false, e.nativeEvent.key, onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown)
     },
     [onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown]
