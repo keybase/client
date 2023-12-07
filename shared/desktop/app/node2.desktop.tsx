@@ -268,8 +268,8 @@ const winCheckRPCOwnership = async () => {
         reject(error)
         return
       }
-      const result = JSON.parse(stdout.toString())
-      if (result.isOwner) {
+      const result = JSON.parse(stdout.toString()) as undefined | {isOwner?: unknown}
+      if (result?.isOwner) {
         resolve(undefined)
         return
       }
@@ -374,7 +374,7 @@ const plumbEvents = () => {
     })
   }
 
-  Electron.ipcMain.handle('KBdispatchAction', (_: any, action: any) => {
+  Electron.ipcMain.handle('KBdispatchAction', (_: unknown, action: unknown) => {
     mainWindow?.webContents.send('KBdispatchAction', action)
   })
 
@@ -414,7 +414,7 @@ const plumbEvents = () => {
             logger.info('Opened directory:', openPath)
             resolve()
           })
-          .catch(err => {
+          .catch((err: unknown) => {
             reject(err)
           })
       })
