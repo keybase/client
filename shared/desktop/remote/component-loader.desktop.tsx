@@ -10,6 +10,7 @@ import {disableDragDrop} from '@/util/drag-drop.desktop'
 import ErrorBoundary from '@/common-adapters/error-boundary'
 import {initDesktopStyles} from '@/styles/index.desktop'
 import KB2 from '@/util/electron.desktop'
+import {type Store} from 'redux'
 
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
@@ -25,7 +26,7 @@ type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker2'
 
 type Props = {
   children: React.ReactNode
-  deserialize: (arg0: any, arg1: any) => any
+  deserialize: (arg0: unknown, arg1: unknown) => unknown
   name: RemoteComponents
   params: string
   showOnProps: boolean
@@ -33,7 +34,7 @@ type Props = {
 }
 
 class RemoteComponentLoader extends React.Component<Props> {
-  _store: any
+  _store: Store<unknown, any>
 
   constructor(props: Props) {
     super(props)
@@ -86,7 +87,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
 export default function Loader(options: {
   child: React.ReactNode
-  deserialize: (arg0: any, arg1: any) => any
+  deserialize: (arg0: any, arg1: any) => unknown
   name: RemoteComponents
   params?: string
   style?: Kb.Styles.StylesDesktop

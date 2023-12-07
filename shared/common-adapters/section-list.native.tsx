@@ -24,7 +24,7 @@ const SectionList = React.forwardRef<NativeSectionList, Props<unknown>>(function
       : undefined
   }, [getItemHeight, getSectionHeaderHeight])
   const onViewableItemsChanged = onSectionChange
-    ? (e: any) => {
+    ? (e: {viewableItems: Array<{section: T}>}) => {
         const section = e.viewableItems[0]?.section
         section && onSectionChange(section)
       }
@@ -41,7 +41,7 @@ const SectionList = React.forwardRef<NativeSectionList, Props<unknown>>(function
       sections={sections as any}
       {...rest}
       getItemLayout={getItemLayout as any}
-      onViewableItemsChanged={onViewableItemsChanged}
+      onViewableItemsChanged={onViewableItemsChanged as any}
     />
   )
 })

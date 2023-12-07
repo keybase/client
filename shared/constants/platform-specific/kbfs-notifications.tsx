@@ -142,7 +142,17 @@ function decodeKBFSError(user: string, notification: T.RPCGen.FSNotification): D
   // }
 }
 
-export function kbfsNotification(notification: T.RPCGen.FSNotification, notify: any) {
+export function kbfsNotification(
+  notification: T.RPCGen.FSNotification,
+  notify: (
+    title: string,
+    opts?: any,
+    rateLimitSeconds?: number,
+    rateLimitKey?: string,
+    onClick?: () => void,
+    onClose?: () => void
+  ) => void
+) {
   const action = (
     {
       // For now, disable file notifications because they're really annoying and
@@ -192,7 +202,7 @@ export function kbfsNotification(notification: T.RPCGen.FSNotification, notify: 
   let title = `KBFS: ${action}`
   let body = `Chat or files with ${usernames} ${notification.status}`
   const user = useCurrentUserState.getState().username
-  let rateLimitKey
+  let rateLimitKey: string
 
   const isError = notification.statusCode === T.RPCGen.FSStatusCode.error
   // Don't show starting or finished, but do show error.

@@ -34,12 +34,12 @@ const useData = () => {
   const [cachedSummary, setSummary] = React.useState(summaryForError(error))
   const [cachedDetails, setDetails] = React.useState(detailsForError(error))
   const [size, setSize] = React.useState<Size>('Closed')
-  const countdownTimerRef = React.useRef<any>(0)
-  const newErrorTimerRef = React.useRef<any>(0)
+  const countdownTimerRef = React.useRef<ReturnType<typeof setTimeout>>()
+  const newErrorTimerRef = React.useRef<ReturnType<typeof setTimeout>>()
 
   const clearCountdown = React.useCallback(() => {
     countdownTimerRef.current && clearTimeout(countdownTimerRef.current)
-    countdownTimerRef.current = 0
+    countdownTimerRef.current = undefined
   }, [countdownTimerRef])
 
   const onExpandClick = React.useCallback(() => {
