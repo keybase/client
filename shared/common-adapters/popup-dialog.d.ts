@@ -1,4 +1,5 @@
 import type * as React from 'react'
+import type * as Styles from '@/styles'
 
 export type Props = {
   onClose?: () => void
@@ -9,10 +10,10 @@ export type Props = {
   fill?: boolean
   children?: React.ReactNode
   immuneToEscape?: boolean
-  styleCover?: any
-  styleContainer?: any
-  styleClose?: any
-  styleClipContainer?: any
+  styleCover?: Styles.StylesCrossPlatform
+  styleClipContainer?: Styles.StylesCrossPlatform
+  styleClose?: Styles.StylesCrossPlatform
+  styleContainer?: Styles.StylesCrossPlatform
 }
 
 declare const PopupDialog: (p: Props) => React.ReactNode

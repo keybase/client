@@ -3,10 +3,7 @@ import type * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import ChooseView from './choose-view'
-
-type SizeType = any
-// TODO: replace this when common adapters is TS
-// import { SizeType } from '@/common-adapters/icon';
+import type {SizeType} from '@/common-adapters/icon'
 
 type ClickableProps = {
   onClick: () => void
@@ -47,7 +44,7 @@ const IconClickable = (props: ICProps) => (
       color={props.actionIconWhite ? Kb.Styles.globalColors.whiteOrBlueDark : Kb.Styles.globalColors.black_50}
       hoverColor={props.actionIconWhite ? undefined : Kb.Styles.globalColors.black}
       padding="tiny"
-      sizeType={props.sizeType || 'Default'}
+      sizeType={props.sizeType}
       onClick={props.onClick}
       ref={props.measureRef}
     />
@@ -105,7 +102,7 @@ const PathItemAction = (props: Props) => {
         <IconClickable
           onClick={onClick}
           measureRef={popupAnchor}
-          sizeType={props.clickable.sizeType}
+          sizeType={props.clickable.sizeType ?? 'Default'}
           actionIconWhite={props.clickable.actionIconWhite}
         />
       )}

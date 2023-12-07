@@ -143,7 +143,7 @@ export type {
 export {default as classNames} from 'classnames'
 export declare const CanFixOverdrawContext: React.Context<boolean>
 export declare const DarkModeContext: React.Context<boolean>
-export declare const undynamicColor: (col: any) => any
+export declare const undynamicColor: (col: string) => string
 // add file:// if its a pure path
 export declare const normalizePath: (p: string) => string
 // remove file://

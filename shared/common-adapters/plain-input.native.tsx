@@ -205,6 +205,10 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
   }
 
+  _onSubmitEditing = () => {
+    this.props.onEnterKeyDown?.()
+  }
+
   _getProps = () => {
     const common = {
       ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
@@ -225,7 +229,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       onImageChange: this.onImageChange,
       onKeyPress: this.props.onKeyPress,
       onSelectionChange: this._onSelectionChange,
-      onSubmitEditing: this.props.onEnterKeyDown,
+      onSubmitEditing: this._onSubmitEditing,
       placeholder: this.props.placeholder,
       placeholderTextColor: this.props.placeholderColor || Styles.globalColors.black_35,
       ref: this._input,
