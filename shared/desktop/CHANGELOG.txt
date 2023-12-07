@@ -1,2 +1,1 @@
-• Various bug fixes and performance enhancements
-• Mark threads as unread
+• Support KBFS on macOS Sonoma
