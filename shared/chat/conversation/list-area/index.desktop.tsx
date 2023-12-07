@@ -237,26 +237,38 @@ const useScrolling = (p: {
       })
   }, [listRef, adjustScrollAndIgnoreOnScroll, checkForLoadMoreThrottled])
 
+  const scrollCheckRef = React.useRef<ReturnType<typeof setTimeout>>()
+  React.useEffect(() => {
+    return () => {
+      clearTimeout(scrollCheckRef.current)
+    }
+  }, [])
+
   // While scrolling we disable mouse events to speed things up. We avoid state so we don't re-render while doing this
-  const onScrollThrottled = C.useDebouncedCallback(
+  const onScrollThrottled = C.useThrottledCallback(
     React.useCallback(() => {
-      // starting a scroll
+      clearTimeout(scrollCheckRef.current)
+      scrollCheckRef.current = setTimeout(() => {
+        if (isScrollingRef.current) {
+          isScrollingRef.current = false
+          if (pointerWrapperRef.current) {
+            pointerWrapperRef.current.classList.remove('scroll-ignore-pointer')
+          }
+
+          const list = listRef.current
+          // are we locked on the bottom?
+          if (list) {
+            lockedToBottomRef.current =
+              list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlopBottom
+          }
+        }
+      }, 200)
+
       if (!isScrollingRef.current) {
+        // starting a scroll
         isScrollingRef.current = true
         if (pointerWrapperRef.current) {
           pointerWrapperRef.current.classList.add('scroll-ignore-pointer')
-        }
-      } else {
-        isScrollingRef.current = false
-        if (pointerWrapperRef.current) {
-          pointerWrapperRef.current.classList.remove('scroll-ignore-pointer')
-        }
-
-        const list = listRef.current
-        // are we locked on the bottom?
-        if (list) {
-          lockedToBottomRef.current =
-            list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlopBottom
         }
       }
     }, [listRef]),

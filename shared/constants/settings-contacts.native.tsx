@@ -193,7 +193,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
           }
           mapped = nativeContactsToContacts(_contacts, defaultCountryCode)
         } catch (_error) {
-          const error = _error as any
+          const error = _error as {message: string}
           logger.error(`error loading contacts: ${error.message}`)
           set(s => {
             s.importedCount = undefined
@@ -231,7 +231,7 @@ export const _useState = Z.createZustand<State>((set, get) => {
             }
           }
         } catch (_error) {
-          const error = _error as any
+          const error = _error as {message: string}
           logger.error('Error saving contacts list: ', error.message)
           set(s => {
             s.importedCount = undefined
