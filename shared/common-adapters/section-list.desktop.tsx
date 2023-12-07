@@ -6,6 +6,7 @@ import ScrollView from './scroll-view'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
 import once from 'lodash/once'
+import noop from 'lodash/noop'
 import {memoize} from '@/util/memoize'
 import {renderElementOrComponentOrNot} from '@/util/util'
 import type RL from 'react-list'
@@ -126,6 +127,11 @@ class SectionList<T extends Section<any>> extends React.Component<Props<T>, Stat
             index: item.indexWithinSection,
             item: item.item,
             section: section.section as any,
+            separators: {
+              highlight: noop,
+              unhighlight: noop,
+              updateProps: noop,
+            },
           })}
         </Kb.Box2>
       )
@@ -260,8 +266,8 @@ class SectionList<T extends Section<any>> extends React.Component<Props<T>, Stat
     return item.type === 'header'
       ? getSectionHeaderHeight(item.sectionIndex)
       : item.type === 'body'
-      ? getItemHeight(item.item, item.sectionIndex, item.indexWithinSection)
-      : 0
+        ? getItemHeight(item.item, item.sectionIndex, item.indexWithinSection)
+        : 0
   }
 
   private itemRenderer = (index: number, key: any) => this._itemRenderer(index, key, false)

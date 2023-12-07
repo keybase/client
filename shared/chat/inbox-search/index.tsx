@@ -113,7 +113,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     )
   }
 
-  const renderTeamHeader = (section: any) => {
+  const renderTeamHeader = (section: Section<T.Chat.InboxSearchOpenTeamHit>) => {
     const showMore = _openTeamsResults.length > 3 && !openTeamsCollapsed
     const label = (
       <Kb.Box2 direction="horizontal" gap="xtiny">
@@ -208,7 +208,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
   const keyExtractor = (
     _: T.RPCGen.FeaturedBot | T.Chat.InboxSearchOpenTeamHit | NameResult | TextResult,
     index: number
-  ) => index
+  ) => String(index)
 
   const renderHit = (h: {
     item: unknown // TextResult | NameResult
@@ -261,14 +261,14 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
   const nameResults: Array<NameResult> = nameCollapsed
     ? []
     : _nameResults.length
-    ? _nameResults.map(r => ({
-        conversationIDKey: r.conversationIDKey,
-        name: r.name,
-        type: r.teamType,
-      }))
-    : nameResultsUnread
-    ? [emptyUnreadPlaceholder]
-    : []
+      ? _nameResults.map(r => ({
+          conversationIDKey: r.conversationIDKey,
+          name: r.name,
+          type: r.teamType,
+        }))
+      : nameResultsUnread
+        ? [emptyUnreadPlaceholder]
+        : []
 
   const textResults = textCollapsed
     ? []
@@ -283,8 +283,8 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
   const openTeamsResults = openTeamsCollapsed
     ? []
     : openTeamsAll
-    ? _openTeamsResults
-    : _openTeamsResults.slice(0, 3)
+      ? _openTeamsResults
+      : _openTeamsResults.slice(0, 3)
 
   const botsResults = botsCollapsed ? [] : botsAll ? _botsResults : _botsResults.slice(0, 3)
   const indexOffset = botsResults.length + openTeamsResults.length + nameResults.length

@@ -32,7 +32,7 @@ enum ThumbTyp {
 }
 
 type Thumb = {
-  key: React.Key
+  key: string
   ctime: number
   height: number
   typ: ThumbTyp
@@ -74,10 +74,10 @@ function getDateInfo<I extends {ctime: number}>(thumb: I) {
   }
 }
 
-function formMonths<I extends {ctime: number; key: React.Key}>(
+function formMonths<I extends {ctime: number; key: string}>(
   items: Array<I>
 ): Array<{
-  key: React.Key
+  key: string
   data: Array<I>
   month?: string
   year: number
@@ -595,7 +595,7 @@ export const useAttachmentSections = (
             Array<{
               author: string
               ctime: number
-              key: React.Key
+              key: string
               snippet: string
               title?: string
               url?: string

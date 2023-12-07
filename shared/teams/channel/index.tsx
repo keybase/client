@@ -96,7 +96,11 @@ const useTabsState = (
   return [selectedTab, setSelectedTab]
 }
 
-const makeSingleRow = (key: string, renderItem: () => React.ReactNode) => ({data: ['row'], key, renderItem})
+const makeSingleRow = (key: string, renderItem: () => React.ReactElement | null) => ({
+  data: ['row'],
+  key,
+  renderItem,
+})
 
 const SectionList = createAnimatedComponent<SectionListProps<SectionType<string, {title?: string}>>>(
   Kb.SectionList

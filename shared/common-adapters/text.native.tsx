@@ -70,7 +70,7 @@ class Text extends React.Component<Props> {
   }
 
   shouldComponentUpdate(nextProps: Props): boolean {
-    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+    return !shallowEqual(this.props, nextProps, (obj: unknown, oth: unknown, key: unknown) => {
       if (key === 'style') {
         return shallowEqual(obj, oth)
       } else if (key === 'children' && this.props.plainText && nextProps.plainText) {
@@ -86,12 +86,13 @@ class Text extends React.Component<Props> {
   }
 
   render() {
-    const baseStyle = styles[`${this.props.type}:${this.props.negative ? 'negative' : 'positive'}`]
-    const dynamicStyle = this.props.negative
+    const baseStyle: Styles.StylesCrossPlatform =
+      styles[`${this.props.type}:${this.props.negative ? 'negative' : 'positive'}`]
+    const dynamicStyle: Styles._StylesCrossPlatform = this.props.negative
       ? _getStyle(this.props.type, this.props.negative, !!this.props.underline)
       : {}
 
-    let style
+    let style: Array<Styles.StylesCrossPlatform> | Styles.StylesCrossPlatform
     if (!Object.keys(dynamicStyle).length) {
       style =
         this.props.style || this.props.center || this.props.fixOverdraw
@@ -136,12 +137,12 @@ class Text extends React.Component<Props> {
 // external things call this so leave the original alone
 function _getStyle(type: TextType, negative?: boolean, forceUnderline?: boolean) {
   if (!negative) {
-    return forceUnderline ? {textDecorationLine: 'underline'} : {}
+    return forceUnderline ? ({textDecorationLine: 'underline'} as const) : {}
   }
   // negative === true
   const meta = metaData()[type]
   const colorStyle = {color: meta.colorForBackground.negative}
-  const textDecoration = meta.isLink ? {textDecorationLine: 'underline'} : {}
+  const textDecoration = meta.isLink ? ({textDecorationLine: 'underline'} as const) : {}
 
   return {
     ...colorStyle,

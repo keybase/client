@@ -6,7 +6,13 @@ export type SectionListRenderItem<ItemT, ExtraT> = (info: {
   index: number
   item: ItemT
   section: Section<ItemT, ExtraT>
-}) => React.ReactNode
+
+  separators: {
+    highlight: () => void
+    unhighlight: () => void
+    updateProps: (select: 'leading' | 'trailing', newProps: any) => void
+  }
+}) => React.ReactElement | null // ;React.ReactNode
 
 /**
  * Section is the type for a section in a sectionlist. ItemT is the type of the
@@ -15,11 +21,9 @@ export type SectionListRenderItem<ItemT, ExtraT> = (info: {
  */
 export type Section<ItemT, ExtraT = {}> = {
   data: ReadonlyArray<ItemT>
-  key?: React.Key
+  key?: string | undefined
   renderItem?: SectionListRenderItem<ItemT, ExtraT>
-  // There exist mobile-only keyExtractor and ItemSeparatorComponent here, not
-  // included because I think they would create more confusion than usefulness
-  // and a mobile-only situation can import the native sectionlist anyway.
+  ItemSeparatorComponent?: React.ComponentType<any> | null | undefined
 } & ExtraT
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -65,7 +69,7 @@ export type Props<SectionT extends Section<any, any>> = {
    * default extractor checks `item.key`, then falls back to using the index,
    * like React does.
    */
-  keyExtractor?: (item: ItemTFromSectionT<SectionT>, index: number) => React.Key
+  keyExtractor?: (item: ItemTFromSectionT<SectionT>, index: number) => string
 
   /**
    * Called once when the scroll position gets within onEndReachedThreshold of

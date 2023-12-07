@@ -10,7 +10,7 @@ function isRPCErrorLike(err: Object): err is RPCErrorLike {
 
 // convertToError converts an RPC error object (or any object) into an
 // Error or RPCError.
-export function convertToError(err: any, method?: string): Error | RPCError {
+export function convertToError(err: unknown, method?: string): Error | RPCError {
   if (err instanceof Error || err instanceof RPCError) {
     return err
   }
@@ -35,7 +35,7 @@ export function convertToError(err: any, method?: string): Error | RPCError {
 type RPCErrorLike = {
   code: number
   desc: string
-  fields?: any
+  fields?: unknown
   name?: string
 }
 
@@ -43,7 +43,7 @@ export function convertToRPCError(err: RPCErrorLike, method?: string): RPCError 
   return new RPCError(err.desc, err.code, err.fields, err.name, method)
 }
 
-export function logError(error: any) {
+export function logError(error: unknown) {
   logger.info(`logError: ${JSON.stringify(error)}`)
 }
 

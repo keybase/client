@@ -31,7 +31,7 @@ export type Section =
   | _Section<string, SectionExtras>
   | _Section<T.RPCChat.Emoji, SectionExtras>
 
-const makeSingleRow = (key: string, renderItem: () => React.ReactNode): Section => ({
+const makeSingleRow = (key: string, renderItem: () => React.ReactElement | null): Section => ({
   data: ['row'] as const,
   key,
   renderItem,

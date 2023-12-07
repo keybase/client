@@ -77,13 +77,15 @@ type Unified<T> = {
   [P in keyof T]: P extends 'lineHeight' ? _StylesCrossPlatform[P] : T[P]
 }
 function unifyStyles<T extends {}>(s_: T): Unified<T> {
-  const s: any = s_
+  const s: {[key: string]: unknown} = s_
   return {
     ...s,
-    ...(Object.hasOwn(s, 'lineHeight') && typeof s.lineHeight === 'number'
-      ? {lineHeight: isMobile ? s.lineHeight : s.lineHeight === 0 ? '0' : `${s.lineHeight}px`}
+    ...(Object.hasOwn(s, 'lineHeight') && typeof s['lineHeight'] === 'number'
+      ? ({
+          lineHeight: isMobile ? s['lineHeight'] : s['lineHeight'] === 0 ? '0' : `${s['lineHeight']}px`,
+        } as const)
       : {}),
-  }
+  } as Unified<T>
 }
 
 // This is a better literal to literal inferrer but is too slow

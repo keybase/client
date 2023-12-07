@@ -11,7 +11,7 @@ type State = {
 
 const other = 'Someone else...'
 
-const UserRow = ({user, hasStoredSecret}: any) => (
+const UserRow = ({user, hasStoredSecret}: {user: string; hasStoredSecret: boolean}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.userRow} gap="xtiny">
     <Kb.Text type="Header" style={user === other ? styles.other : styles.provisioned}>
       {user}
@@ -31,13 +31,14 @@ class Login extends React.Component<Props, State> {
     this.setState(prevState => ({open: !prevState.open}))
   }
 
-  _onClickUser = (selected: React.ReactElement) => {
-    if (selected.props.user === other) {
+  _onClickUserIdx = (selected: number) => {
+    const user = this.props.users.at(selected)
+    if (!user) {
       this._toggleOpen()
       this.props.onSomeoneElse()
     } else {
       this._toggleOpen()
-      this.props.selectedUserChange(selected.props.user)
+      this.props.selectedUserChange(user.username)
       if (this._inputRef.current) {
         this._inputRef.current.focus()
       }
@@ -65,7 +66,7 @@ class Login extends React.Component<Props, State> {
             style={styles.userContainer}
           >
             <Kb.Dropdown
-              onChanged={this._onClickUser}
+              onChangedIdx={this._onClickUserIdx}
               selected={userRows[selectedIdx]}
               items={userRows}
               overlayStyle={styles.userOverlayStyle}
