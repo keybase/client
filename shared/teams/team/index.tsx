@@ -104,7 +104,7 @@ const Team = (props: Props) => {
   const headerSection = {
     data: ['header', 'tabs'],
     key: 'headerSection',
-    renderItem: ({item}: any) =>
+    renderItem: ({item}: {item: unknown}) =>
       item === 'header' ? (
         <NewTeamHeader teamID={teamID} />
       ) : (
@@ -148,7 +148,7 @@ const Team = (props: Props) => {
   }
 
   const renderSectionHeader = React.useCallback(
-    ({section}: any) =>
+    ({section}: {section: Section}) =>
       section.title ? (
         <Kb.SectionDivider
           label={section.title}

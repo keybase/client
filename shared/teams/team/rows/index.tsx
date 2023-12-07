@@ -24,12 +24,12 @@ type Requests = Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'tea
 
 export type Section =
   | _Section<T.Teams.MemberInfo, SectionExtras>
-  | _Section<'row'>
-  | _Section<T.Teams.InviteInfo>
-  | _Section<Requests>
-  | _Section<T.Teams.TeamChannelInfo>
-  | _Section<string>
-  | _Section<T.RPCChat.Emoji>
+  | _Section<'row', SectionExtras>
+  | _Section<T.Teams.InviteInfo, SectionExtras>
+  | _Section<Requests, SectionExtras>
+  | _Section<T.Teams.TeamChannelInfo, SectionExtras>
+  | _Section<string, SectionExtras>
+  | _Section<T.RPCChat.Emoji, SectionExtras>
 
 const makeSingleRow = (key: string, renderItem: () => React.ReactNode): Section => ({
   data: ['row'] as const,

@@ -1,7 +1,7 @@
 import fs from 'fs'
 import {serverConfigFileName, jsonDebugFileName} from '@/constants/platform.desktop'
 const getConfigOverload = () => {
-  let config: any = {}
+  let config: {[key: string]: unknown} = {}
   // Load overrides from server config
   if (fs.existsSync(serverConfigFileName)) {
     try {
@@ -14,7 +14,7 @@ const getConfigOverload = () => {
         if (lastLoggedInUser) {
           const userConfig = serverConfig[lastLoggedInUser] as {printRPCStats?: boolean} | undefined
           if (userConfig?.printRPCStats) {
-            config.printRPCStats = true
+            config['printRPCStats'] = true
           }
         }
       }
@@ -26,7 +26,7 @@ const getConfigOverload = () => {
   // Load overrides from a local json file
   if (fs.existsSync(jsonDebugFileName)) {
     try {
-      const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf8'))
+      const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf8')) as {[key: string]: unknown}
       console.log('Loaded', jsonDebugFileName, pathJson)
       config = {...config, ...pathJson}
     } catch (e) {
