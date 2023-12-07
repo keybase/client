@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Measure from 'react-measure'
+import {default as Measure, type ContentRect} from 'react-measure'
 import type {Props, State} from './video'
 import * as Styles from '@/styles'
 import {getVideoSize, CheckURL} from './video.shared'
@@ -15,8 +15,10 @@ export default class Video extends React.PureComponent<Props, State> {
 
   _mounted = false
 
-  _onContainerResize = ({bounds}: any) =>
-    this._mounted && this.setState({containerHeight: bounds.height, containerWidth: bounds.width})
+  _onContainerResize = ({bounds}: ContentRect) =>
+    bounds !== undefined &&
+    this._mounted &&
+    this.setState({containerHeight: bounds.height, containerWidth: bounds.width})
 
   _videoRef: {
     current: HTMLVideoElement | null
@@ -31,12 +33,12 @@ export default class Video extends React.PureComponent<Props, State> {
         : this._videoRef.current.pause())
   }
 
-  _onVideoLoadedmetadata = ({target}: any) => {
+  _onVideoLoadedmetadata = ({currentTarget}: React.SyntheticEvent<HTMLVideoElement>) => {
     this._mounted &&
       this.setState({
         loadedVideoSize: true,
-        videoHeight: target.videoHeight,
-        videoWidth: target.videoWidth,
+        videoHeight: currentTarget.videoHeight,
+        videoWidth: currentTarget.videoWidth,
       })
   }
 

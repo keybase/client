@@ -2,6 +2,7 @@ import * as React from 'react'
 import noop from 'lodash/noop'
 import * as Kb from '@/common-adapters/index'
 import * as Container from '@/util/container'
+import type {NativeSyntheticEvent} from 'react-native'
 
 type Props = {
   onChangeText: (newText: string) => void
@@ -68,7 +69,7 @@ const Input = (props: Props) => {
   }, [focusCounter, prevFocusCounter])
 
   const onKeyDown = React.useCallback(
-    (e: any) => {
+    (e: React.KeyboardEvent) => {
       handleKeyDown(
         () => e.preventDefault(),
         e.ctrlKey,
@@ -82,7 +83,7 @@ const Input = (props: Props) => {
   )
 
   const onKeyPress = React.useCallback(
-    (e: any) => {
+    (e: NativeSyntheticEvent<{key: string}>) => {
       handleKeyDown(noop, false, e.nativeEvent.key, onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown)
     },
     [onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown]

@@ -268,7 +268,7 @@ type Props = {
   autoFocus?: boolean
   defaultCountry?: string
   onChangeNumber: (phoneNumber: string, valid: boolean) => void
-  onEnterKeyDown?: React.ComponentProps<typeof PlainInput>['onEnterKeyDown']
+  onEnterKeyDown?: (e?: React.KeyboardEvent) => void
   onClear?: () => void
   small?: boolean // default is true on desktop and false on mobile
   style?: Styles.StylesCrossPlatform

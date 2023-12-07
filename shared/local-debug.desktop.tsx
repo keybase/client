@@ -56,7 +56,7 @@ if (config.debugFullLogs) {
 if (config.PERF) {
   console.warn('\n\n\nlocal debug config.PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
 
-  const c: any = console
+  const c = console
   c.log = noop
   c.warn = noop
   c.error = noop

@@ -108,11 +108,14 @@ if (PERF) {
 
 if (serverConfig) {
   try {
-    const sc = JSON.parse(serverConfig)
-    if (sc.lastLoggedInUser) {
-      const userConfig = sc[sc.lastLoggedInUser] || {}
-      if (userConfig.printRPCStats) {
-        config.printRPCStats = true
+    const sc = JSON.parse(serverConfig) as undefined | {[key: string]: unknown}
+    if (sc?.['lastLoggedInUser']) {
+      const lastLoggedInUser = sc['lastLoggedInUser']
+      if (typeof lastLoggedInUser === 'string') {
+        const userConfig = sc[lastLoggedInUser] as {[key: string]: unknown}
+        if (typeof userConfig === 'object' && userConfig['printRPCStats']) {
+          config.printRPCStats = true
+        }
       }
     }
   } catch (e) {}

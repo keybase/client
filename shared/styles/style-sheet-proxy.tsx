@@ -6,7 +6,7 @@ import type {StylesCrossPlatform} from '.'
 
 type Transform = (o: MapToStyles) => MapToStyles
 
-type MapToStyles = Record<string, StylesCrossPlatform>
+export type MapToStyles = Record<string, StylesCrossPlatform>
 
 const styleSheetCreate = (f: () => MapToStyles, transform: Transform) => {
   let lightCached: MapToStyles | undefined

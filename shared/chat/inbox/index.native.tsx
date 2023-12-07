@@ -79,7 +79,7 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
     }
   }
 
-  private renderItem = ({item}: any /*ListRenderItemInfo<RowItem>*/): React.ReactElement | null => {
+  private renderItem = ({item}: {item: RowItem}): React.ReactElement | null => {
     const row = item
     let element: React.ReactElement | null
     if (row.type === 'divider') {
@@ -195,7 +195,7 @@ class Inbox extends React.PureComponent<TInbox.Props, State> {
     const {viewableItems} = data
     const item = viewableItems[0]
     if (item && Object.hasOwn(item, 'index')) {
-      this.askForUnboxing(viewableItems.map(i => i.item))
+      this.askForUnboxing(viewableItems.map(i => i.item as RowItem))
     }
   }, 1000)
 

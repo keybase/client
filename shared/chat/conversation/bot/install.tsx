@@ -181,7 +181,7 @@ const InstallBotPopup = (props: Props) => {
     <Kb.Dropdown
       items={dropdownButtons}
       selected={installWithRestrict ? restrictedButton : unrestrictedButton}
-      onChanged={selected => setInstallWithRestrict(selected.key === RestrictedItem)}
+      onChangedIdx={selected => setInstallWithRestrict(selected === 0)}
       style={styles.dropdown}
       overlayStyle={{width: '100%'}}
     />

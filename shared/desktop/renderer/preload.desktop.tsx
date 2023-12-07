@@ -108,7 +108,7 @@ if (isRenderer) {
             throw new Error('installCachedDokan fail')
           }
         },
-        ipcRendererOn: (channel: string, cb: (event: any, action: any) => void) => {
+        ipcRendererOn: (channel: string, cb: (event: unknown, action: unknown) => void) => {
           Electron.ipcRenderer.on(channel, cb)
         },
         isDirectory: async (path: string) => {
@@ -288,11 +288,11 @@ if (isRenderer) {
       Electron.contextBridge.exposeInMainWorld('_fromPreload', kb2)
       injectPreload(kb2)
     })
-    .catch(e => {
+    .catch((e: unknown) => {
       throw e
     })
 } else {
-  const kb2consts = require('../app/kb2-impl.desktop').default
+  const kb2consts = require('../app/kb2-impl.desktop').default as KB2['constants']
   const getMainWindow = (): Electron.BrowserWindow | undefined => {
     const w = require('electron')
       .BrowserWindow.getAllWindows()

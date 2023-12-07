@@ -106,7 +106,7 @@ export const formatTimeForFS = (time: number, dontUpperCase: boolean): string =>
   dateFns.formatRelative(time, Date.now(), {
     locale: {
       ...enUS,
-      formatRelative: (token, date, baseDate) =>
+      formatRelative: (token: string, date: Date, baseDate: Date) =>
         formatRelativeCalendarForFS(dontUpperCase, token, date, baseDate),
     },
   })
@@ -120,8 +120,8 @@ export const formatDuration = (duration: number): string => {
   return d.getUTCHours()
     ? `${d.getUTCHours()} hr`
     : d.getUTCMinutes()
-    ? `${d.getUTCMinutes()} min`
-    : `${d.getUTCSeconds()} s`
+      ? `${d.getUTCMinutes()} min`
+      : `${d.getUTCSeconds()} s`
 }
 
 export const formatAudioRecordDuration = (duration: number): string => {
@@ -148,7 +148,7 @@ export const formatDurationForLocation = (duration: number): string => {
   return dateFns.formatDistanceStrict(0, duration, {
     locale: {
       ...enUS,
-      formatDistance: (token, count, _) => formatDistanceAbbr(token, count),
+      formatDistance: (token: Token, count: number, _) => formatDistanceAbbr(token, count),
     },
   })
 }
@@ -215,8 +215,11 @@ export function formatTimeForPeopleItem(time: number): string {
   return dateFns.formatDistanceStrict(time, Date.now(), {
     locale: {
       ...enUS,
-      formatDistance: (token, count, _) =>
-        token === 'xSeconds' && count === 1 ? 'now' : formatDistanceAbbr(token, count),
+      formatDistance: (
+        token: 'xDays' | 'xHours' | 'xMinutes' | 'xMonths' | 'xSeconds' | 'xYears',
+        count: number,
+        _
+      ) => (token === 'xSeconds' && count === 1 ? 'now' : formatDistanceAbbr(token, count)),
     },
   })
 }

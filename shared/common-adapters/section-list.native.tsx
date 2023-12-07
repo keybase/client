@@ -3,10 +3,18 @@ import type {Props, Section} from './section-list'
 import {SectionList as NativeSectionList} from 'react-native'
 import noop from 'lodash/noop'
 
-const SectionList = React.forwardRef<NativeSectionList, Props<any>>(function SectionList<
-  T extends Section<any, any>
+const SectionList = React.forwardRef<NativeSectionList, Props<unknown>>(function SectionList<
+  T extends Section<any, any>,
 >(props: Props<T>, forwardedRef: React.Ref<NativeSectionList>) {
-  const {getItemHeight, getSectionHeaderHeight, onSectionChange, ...rest} = props
+  const {
+    getItemHeight,
+    getSectionHeaderHeight,
+    onSectionChange,
+    renderItem,
+    renderSectionHeader,
+    sections,
+    ...rest
+  } = props
   const getItemLayout = React.useMemo(() => {
     return getItemHeight && getSectionHeaderHeight
       ? getGetItemLayout({
@@ -16,22 +24,24 @@ const SectionList = React.forwardRef<NativeSectionList, Props<any>>(function Sec
       : undefined
   }, [getItemHeight, getSectionHeaderHeight])
   const onViewableItemsChanged = onSectionChange
-    ? (e: any) => {
+    ? (e: {viewableItems: Array<{section: T}>}) => {
         const section = e.viewableItems[0]?.section
         section && onSectionChange(section)
       }
     : undefined
 
-  const NativeSectionListAny = NativeSectionList as any
   return (
-    <NativeSectionListAny
+    <NativeSectionList
       overScrollMode="never"
       onScrollToIndexFailed={noop}
       keyboardDismissMode="on-drag"
       ref={forwardedRef}
+      renderItem={renderItem as any}
+      renderSectionHeader={renderSectionHeader as any}
+      sections={sections as any}
       {...rest}
       getItemLayout={getItemLayout as any}
-      onViewableItemsChanged={onViewableItemsChanged}
+      onViewableItemsChanged={onViewableItemsChanged as any}
     />
   )
 })

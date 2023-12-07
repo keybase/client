@@ -92,7 +92,7 @@ export type Props = {
   dummyInput?: boolean // Only affects mobile
   /* Platform discrepancies */
   // Maps to onSubmitEditing on native
-  onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
+  onEnterKeyDown?: (event?: React.KeyboardEvent) => void
   // Desktop only
   allowKeyboardEvents?: boolean // By default keybaord events won't fire in textarea or input elements. Adds 'mousetrap' class to enable keyboard events.
   onClick?: () => void

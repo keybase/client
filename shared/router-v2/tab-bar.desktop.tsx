@@ -170,7 +170,7 @@ const TabBar = React.memo(function TabBar(props: Props) {
         <Header />
         <Kb.Divider style={styles.divider} />
       </Kb.Box2>
-      {state?.routes?.map((route, index) => (
+      {state?.routes?.map((route: {key?: string; name?: string}, index: number) => (
         <Tab
           key={route.key}
           tab={route.name as Tabs.AppTab}

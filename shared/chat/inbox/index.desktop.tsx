@@ -264,10 +264,11 @@ class Inbox extends React.Component<TInbox.Props, State> {
     this.onItemsRenderedDebounced({visibleStartIndex, visibleStopIndex})
   }
 
-  private onItemsRenderedDebounced = debounce(({visibleStartIndex, visibleStopIndex}) => {
+  private onItemsRenderedDebounced = debounce((p: {visibleStartIndex: number; visibleStopIndex: number}) => {
     if (!this.mounted) {
       return
     }
+    const {visibleStartIndex, visibleStopIndex} = p
     const toUnbox = this.props.rows
       .slice(visibleStartIndex, visibleStopIndex + 1)
       .reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
@@ -350,7 +351,7 @@ class Inbox extends React.Component<TInbox.Props, State> {
           >
             {this.props.rows.length ? (
               <AutoSizer>
-                {p => {
+                {(p: {height?: number; width?: number}) => {
                   let {height = 1, width = 1} = p
                   if (isNaN(height)) {
                     height = 1

@@ -412,7 +412,7 @@ class User extends React.Component<Props2, State> {
   } as const
 
   _onMeasured = (width: number) => this.setState(p => (p.width !== width ? {width} : null))
-  _keyExtractor = (_: unknown, index: number) => index
+  _keyExtractor = (_: unknown, index: number) => String(index)
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.username !== prevProps.username) {

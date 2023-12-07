@@ -56,7 +56,7 @@ const icons = {
 } as const
 
 export type TlfTypeIconProps = {
-  badgeOverride?: any // TS freaking out IconType
+  badgeOverride?: Kb.IconType
   size: Size
   style: Kb.Styles.StylesCrossPlatform
   tlfType: T.FS.TlfType
@@ -124,7 +124,7 @@ const TlfIcon = (props: TlfIconProps) => (
 )
 
 type InTlfItemIconProps = {
-  badgeOverride?: any // TS freaking out IconType
+  badgeOverride?: Kb.IconType
   path: T.FS.Path
   size: Size
   style?: Kb.Styles.StylesCrossPlatform

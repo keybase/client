@@ -3,22 +3,18 @@ import * as Constants from '@/constants/crypto'
 import * as Common from '@/router-v2/common.desktop'
 import LeftNav from './left-nav.desktop'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
-import {type EncryptIO} from '../operations/encrypt'
-import {type DecryptIO} from '../operations/decrypt'
-import {type SignIO} from '../operations/sign'
-import {type VerifyIO} from '../operations/verify'
+import decryptIO from './decrypt.inout.page'
+import encryptIO from './encrypt.inout.page'
+import signIO from './sign.inout.page'
+import verifyIO from './verify.inout.page'
 import {getOptions, shim} from '@/router-v2/shim'
 
 /* Desktop SubNav */
 const cryptoSubRoutes = {
-  [Constants.decryptTab]: {
-    getScreen: (): typeof DecryptIO => require('../operations/decrypt').DecryptIO,
-  },
-  [Constants.encryptTab]: {
-    getScreen: (): typeof EncryptIO => require('../operations/encrypt').EncryptIO,
-  },
-  [Constants.signTab]: {getScreen: (): typeof SignIO => require('../operations/sign').SignIO},
-  [Constants.verifyTab]: {getScreen: (): typeof VerifyIO => require('../operations/verify').VerifyIO},
+  [Constants.decryptTab]: decryptIO,
+  [Constants.encryptTab]: encryptIO,
+  [Constants.signTab]: signIO,
+  [Constants.verifyTab]: verifyIO,
 }
 function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavior}: any) {
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
