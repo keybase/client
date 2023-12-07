@@ -10,7 +10,7 @@ const getOptions = () => ({
   headerLeft: (p: HeaderBackButtonProps) => <HeaderLeftCancel2 {...p} />,
   headerShown: true,
   needsKeyboard: false,
-  title: 'Verify',
+  title: 'Verified',
 })
 
 const Screen = () => (

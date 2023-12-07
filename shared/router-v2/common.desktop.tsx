@@ -11,7 +11,6 @@ export const tabBarStyle = {
     return Kb.Styles.globalColors.blueDarkOrGreyDarkest
   },
 }
-export const TabletWrapper = (p: {children: React.ReactNode}) => p.children
 const actionWidth = 64
 export const defaultNavigationOptions = {
   header: (p: any) => <Header {...p} />,

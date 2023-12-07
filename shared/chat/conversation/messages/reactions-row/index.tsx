@@ -6,6 +6,7 @@ import ReactButton from '../react-button/container'
 import ReactionTooltip from '../reaction-tooltip'
 import type * as T from '@/constants/types'
 import {OrdinalContext} from '../ids-context'
+import {Keyboard} from 'react-native'
 
 // Get array of emoji names in the order of their earliest reaction
 const getOrderedReactions = (reactions?: T.Chat.Reactions) => {
@@ -77,6 +78,7 @@ const RowItem = React.memo(function RowItem(p: IProps) {
   const [showingPopup, setShowingPopup] = React.useState(false)
 
   const showPopup = React.useCallback(() => {
+    Kb.Styles.isMobile && Keyboard.dismiss()
     setShowingPopup(true)
   }, [])
   const hidePopup = React.useCallback(() => {

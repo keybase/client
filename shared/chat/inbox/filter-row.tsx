@@ -1,11 +1,9 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Platforms from '@/constants/platform'
 
 type OwnProps = {
   onEnsureSelection: () => void
-  onNewChat: () => void
   onSelectDown: () => void
   onSelectUp: () => void
   onQueryChanged: (arg0: string) => void
@@ -19,12 +17,10 @@ const hotKeys = ['mod+n']
 const ConversationFilterInput = React.memo(function ConversationFilterInput(ownProps: OwnProps) {
   const {
     onEnsureSelection,
-    onNewChat: _onNewChat,
     onSelectDown,
     onSelectUp,
     onQueryChanged: onSetFilter,
     query: filter,
-    showNewChat,
     showSearch,
   } = ownProps
 
@@ -93,7 +89,6 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
     }
   }
 
-  const onNewChat = showNewChat ? _onNewChat : null
   const searchInput = (
     <Kb.SearchFilter
       ref={inputRef}
@@ -134,13 +129,6 @@ const ConversationFilterInput = React.memo(function ConversationFilterInput(ownP
     >
       {!Kb.Styles.isMobile && <Kb.HotKey hotKeys={hotKeys} onHotKey={onHotKeys} />}
       {showSearch && searchInput}
-      {!!onNewChat && !Kb.Styles.isPhone && (Kb.Styles.isTablet || !isSearching) && (
-        <Kb.Box style={styles.rainbowBorder}>
-          <Kb.WithTooltip position="top center" tooltip={`(${Platforms.shortcutSymbol}N)`}>
-            <Kb.Button small={true} label="New chat" onClick={onNewChat} style={styles.newChatButton} />
-          </Kb.WithTooltip>
-        </Kb.Box>
-      )}
     </Kb.Box2>
   )
 })
@@ -210,12 +198,6 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'relative',
         top: 1,
       },
-      newChatButton: Kb.Styles.platformStyles({
-        isElectron: {
-          ...Kb.Styles.desktopStyles.windowDraggingClickable,
-          paddingRight: Kb.Styles.globalMargins.xsmall,
-        },
-      }),
       newChatButtonText: {
         color: Kb.Styles.globalColors.white,
         marginRight: Kb.Styles.globalMargins.xtiny,

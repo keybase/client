@@ -162,6 +162,7 @@ export const getTab = (navState?: NavState): undefined | C.Tab => {
 const isSplit = !C.isMobile || C.isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
 export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  DEBUG_NAV && console.log('[Nav] navToThread', conversationIDKey)
   const rs = getRootState()
   // some kind of unknown race, just bail
   if (!rs) {
@@ -201,7 +202,7 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
     // setup root
     chatStack.state = {
       index: 0,
-      routes: [{key: 'chatRoot', name: 'chatRoot'}],
+      routes: [{key: chatStack.state?.routes[0]?.key ?? 'chatRoot', name: 'chatRoot'}],
     }
 
     if (isSplit) {

@@ -5,26 +5,6 @@ import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
 import type {NavState} from '@/constants/router2'
 
-export const TabletWrapper = (p: {children: React.ReactNode}) => {
-  const {children} = p
-  return (
-    <Kb.Box2
-      direction="horizontal"
-      fullWidth={true}
-      fullHeight={true}
-      // ios only allows centered so we do some margin to help spread it out
-      style={{
-        height: 48,
-        marginLeft: -20,
-        maxWidth: undefined,
-        width: Kb.Styles.dimensionWidth,
-      }}
-    >
-      {children}
-    </Kb.Box2>
-  )
-}
-
 export const headerDefaultStyle = {
   get backgroundColor() {
     return Kb.Styles.isIOS ? Kb.Styles.globalColors.fastBlank : Kb.Styles.globalColors.white
