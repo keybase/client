@@ -16,9 +16,7 @@ const getOptions = ({route}: OwnProps) => {
       headerLeftContainerStyle: {maxWidth: 0},
       headerRight: null,
       headerRightContainerStyle: {maxWidth: 0},
-      headerStyle: {
-        width: '100%',
-      },
+      headerStyle: {},
       headerTitle: () => {
         const params: undefined | {conversationIDKey?: T.Chat.ConversationIDKey} = route.params
         return (
@@ -35,9 +33,7 @@ const getOptions = ({route}: OwnProps) => {
           </Kb.Box2>
         )
       },
-      headerTitleContainerStyle: {
-        width: '100%',
-      },
+      headerTitleContainerStyle: {},
     }
   } else {
     return {
